@@ -37,6 +37,23 @@ namespace Xenko.Physics
         [DataMemberIgnore]
         public byte[] Bytes => null;
 
+        [DataMember(40)]
+        [DataMemberRange(0, 255, 1, 10, 0)]
+        public byte InitialByte { get; set; } = 0;
+
+        public void CopyTo<T>(UnmanagedArray<T> heightStickArray, int index) where T : struct
+        {
+            if (heightStickArray == null) throw new ArgumentNullException(nameof(heightStickArray));
+            if (heightStickArray is UnmanagedArray<byte> unmanagedArray)
+            {
+                unmanagedArray.Fill(InitialByte, index, HeightStickSize.X * HeightStickSize.Y);
+            }
+            else
+            {
+                throw new NotSupportedException($"{ typeof(UnmanagedArray<T>) } type is not supported.");
+            }
+        }
+
         public bool Match(object obj)
         {
             var other = obj as ByteHeightStickArraySource;
@@ -48,7 +65,8 @@ namespace Xenko.Physics
 
             return other.HeightStickSize == HeightStickSize &&
                 other.HeightRange == HeightRange &&
-                Math.Abs(other.HeightScale - HeightScale) < float.Epsilon;
+                Math.Abs(other.HeightScale - HeightScale) < float.Epsilon &&
+                other.InitialByte == InitialByte;
         }
     }
 }

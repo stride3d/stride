@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 
@@ -30,6 +31,22 @@ namespace Xenko.Physics
         [DataMemberIgnore]
         public byte[] Bytes => null;
 
+        [DataMember(30)]
+        public float InitialHeight { get; set; } = 0;
+
+        public void CopyTo<T>(UnmanagedArray<T> heightStickArray, int index) where T : struct
+        {
+            if (heightStickArray == null) throw new ArgumentNullException(nameof(heightStickArray));
+            if (heightStickArray is UnmanagedArray<float> unmanagedArray)
+            {
+                unmanagedArray.Fill(InitialHeight, index, HeightStickSize.X * HeightStickSize.Y);
+            }
+            else
+            {
+                throw new NotSupportedException($"{ typeof(UnmanagedArray<T>) } type is not supported.");
+            }
+        }
+
         public bool Match(object obj)
         {
             var other = obj as FloatHeightStickArraySource;
@@ -40,7 +57,8 @@ namespace Xenko.Physics
             }
 
             return other.HeightStickSize == HeightStickSize &&
-                other.HeightRange == HeightRange;
+                other.HeightRange == HeightRange &&
+                Math.Abs(other.InitialHeight - InitialHeight) < float.Epsilon;
         }
     }
 }

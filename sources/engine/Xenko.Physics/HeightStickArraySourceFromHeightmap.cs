@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 
@@ -32,6 +33,43 @@ namespace Xenko.Physics
 
         [DataMemberIgnore]
         public byte[] Bytes => Heightmap?.Bytes;
+
+        public void CopyTo<T>(UnmanagedArray<T> heightStickArray, int index) where T : struct
+        {
+            if (Heightmap == null) throw new InvalidOperationException($"{ nameof(Heightmap) } is a null");
+            if (heightStickArray == null) throw new ArgumentNullException(nameof(heightStickArray));
+
+            var heightStickArrayLength = heightStickArray.Length - index;
+            if (heightStickArrayLength <= 0) throw new IndexOutOfRangeException(nameof(index));
+
+            var typeOfT = typeof(T);
+            T[] heights;
+
+            if (typeOfT == typeof(float))
+            {
+                if (Heightmap.Floats == null) throw new InvalidOperationException($"{ nameof(Heightmap.Floats) } is a null.");
+                heights = (T[])(object)Heightmap.Floats;
+            }
+            else if (typeOfT == typeof(short))
+            {
+                if (Heightmap.Shorts == null) throw new InvalidOperationException($"{ nameof(Heightmap.Shorts) } is a null.");
+                heights = (T[])(object)Heightmap.Shorts;
+            }
+            else if (typeOfT == typeof(byte))
+            {
+                if (Heightmap.Bytes == null) throw new InvalidOperationException($"{ nameof(Heightmap.Bytes) } is a null.");
+                heights = (T[])(object)Heightmap.Bytes;
+            }
+            else
+            {
+                throw new NotSupportedException($"{ typeof(UnmanagedArray<T>) } type is not supported.");
+            }
+
+            var heightsLength = heights.Length;
+            if (heightStickArrayLength < heightsLength) throw new ArgumentException($"{ nameof(heightStickArray) }.{ nameof(heightStickArray.Length) } is not enough to copy.");
+
+            heightStickArray.Write(heights, index * Utilities.SizeOf<T>(), 0, heightsLength);
+        }
 
         public bool Match(object obj)
         {
