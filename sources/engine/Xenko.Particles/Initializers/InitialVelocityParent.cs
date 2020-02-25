@@ -66,7 +66,7 @@ namespace Xenko.Particles.Initializers
         /// </userdoc>
         [DataMember(40)]
         [Display("Velocity max")]
-        public Vector3 VelocityMax { get; set; } = new Vector3(1, 1, 1);
+        public Vector3 VelocityMax { get; set; } = Vector3.One;
 
 
         /// <inheritdoc />
@@ -120,7 +120,7 @@ namespace Xenko.Particles.Initializers
 
                 if (parentParticlesCount > 0)
                 {
-                    var parentParticleVelocity = new Vector3(0, 0, 0);
+                    var parentParticleVelocity = Vector3.Zero;
 
                     // Spawn is fixed - parent particles have spawned a very specific number of children each
                     if (spawnControlField.IsValid())

@@ -66,7 +66,7 @@ namespace Xenko.Particles.Initializers
             {
                 // Interpolate positions between the old and the new one
 
-                var positionDistance = (hasBegun) ? oldPosition - WorldPosition : new Vector3(0, 0, 0);
+                var positionDistance = (hasBegun) ? oldPosition - WorldPosition : Vector3.Zero;
                 oldPosition = WorldPosition;
                 hasBegun = true;
 
@@ -152,7 +152,7 @@ namespace Xenko.Particles.Initializers
         /// </userdoc>
         [DataMember(40)]
         [Display("Position max")]
-        public Vector3 PositionMax { get; set; } = new Vector3(1, 1, 1);
+        public Vector3 PositionMax { get; set; } = Vector3.One;
 
         /// <summary>
         /// If set to <c>true</c> it will interpolate the particles between the old and the new position, rather than using only the new one

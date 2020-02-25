@@ -32,7 +32,7 @@ namespace Xenko.Physics
                 LocalScaling = cachedScaling,
             };
 
-            DebugPrimitiveMatrix = Matrix.Scaling(new Vector3(1, 1, 1) * DebugScaling);
+            DebugPrimitiveMatrix = Matrix.Scaling(Vector3.One * DebugScaling);
         }
 
         public IReadOnlyList<Vector3> Points

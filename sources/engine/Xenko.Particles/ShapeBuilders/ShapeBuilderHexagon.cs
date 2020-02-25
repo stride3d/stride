@@ -57,7 +57,7 @@ namespace Xenko.Particles.ShapeBuilders
 
             // Check if the draw space is identity - in this case we don't need to transform the position, scale and rotation vectors
             var trsIdentity = (spaceScale == 1f);
-            trsIdentity = trsIdentity && (spaceTranslation.Equals(new Vector3(0, 0, 0)));
+            trsIdentity = trsIdentity && (spaceTranslation.Equals(Vector3.Zero));
             trsIdentity = trsIdentity && (spaceRotation.Equals(Quaternion.Identity));
 
 

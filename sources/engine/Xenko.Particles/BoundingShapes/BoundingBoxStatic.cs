@@ -29,7 +29,7 @@ namespace Xenko.Particles.BoundingShapes
         /// </userdoc>
         [DataMember(40)]
         [Display("Upper corner")]
-        public Vector3 Maximum { get; set; } = new Vector3(1, 1, 1);
+        public Vector3 Maximum { get; set; } = Vector3.One;
 
         [DataMemberIgnore]
         private BoundingBox cachedBox;

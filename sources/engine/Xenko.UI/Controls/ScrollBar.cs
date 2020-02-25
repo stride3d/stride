@@ -8,7 +8,7 @@ using Xenko.Core.Mathematics;
 namespace Xenko.UI.Controls
 {
     /// <summary>
-    /// Represents a scroll bar. 
+    /// Represents a scroll bar.
     /// </summary>
     [DataContract(nameof(ScrollBar))]
     [DebuggerDisplay("ScrollBar - Name={Name}")]
@@ -16,7 +16,7 @@ namespace Xenko.UI.Controls
     {
         public ScrollBar()
         {
-            BarColorInternal = new Color(0, 0, 0, 0);
+            BarColorInternal = Color.Transparent;
         }
 
         internal Color BarColorInternal;

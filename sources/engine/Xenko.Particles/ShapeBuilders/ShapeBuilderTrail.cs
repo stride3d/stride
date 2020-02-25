@@ -129,7 +129,7 @@ namespace Xenko.Particles.ShapeBuilders
 
             // Check if the draw space is identity - in this case we don't need to transform the position, scale and rotation vectors
             var trsIdentity = (spaceScale == 1f);
-            trsIdentity = trsIdentity && (spaceTranslation.Equals(new Vector3(0, 0, 0)));
+            trsIdentity = trsIdentity && (spaceTranslation.Equals(Vector3.Zero));
             trsIdentity = trsIdentity && (spaceRotation.Equals(Quaternion.Identity));
 
             var ribbonizer = new Ribbonizer(this, currentTotalParticles, currentQuadsPerParticle);
@@ -374,8 +374,8 @@ namespace Xenko.Particles.ShapeBuilders
                     // Optional - connect first particle to the origin/emitter
 
                     // Draw a dummy quad for the first particle
-                    var particlePos = new Vector3(0, 0, 0);
-                    var uvCoord = new Vector2(0, 0);
+                    var particlePos = Vector3.Zero;
+                    var uvCoord = Vector2.Zero;
 
                     for (var particleIdx = 0; particleIdx < lastParticle; particleIdx++)
                     {
@@ -426,7 +426,7 @@ namespace Xenko.Particles.ShapeBuilders
                     // Particle rotation - intentionally IGNORED for ribbon
 
                     var particlePos = (EdgePolicy == EdgePolicy.Center) ? oldPoint - oldUnitX : oldPoint;
-                    var uvCoord = new Vector2(0, 0);
+                    var uvCoord = Vector2.Zero;
                     var rotatedCoord = uvCoord;
 
 
