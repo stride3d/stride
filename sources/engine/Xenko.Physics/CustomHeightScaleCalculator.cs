@@ -9,8 +9,8 @@ namespace Xenko.Physics
     public class CustomHeightScaleCalculator : IHeightScaleCalculator
     {
         [DataMember(10)]
-        public float Value { get; set; } = 1f;
+        public float CustomHeightScale { get; set; } = 1f;
 
-        public float Calculate(IHeightStickParameters heightDescription) => Value;
+        public float Calculate(IHeightStickParameters heightDescription) => CustomHeightScale;
     }
 }

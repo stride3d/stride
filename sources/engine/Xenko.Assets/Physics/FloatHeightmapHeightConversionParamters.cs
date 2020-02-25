@@ -20,6 +20,6 @@ namespace Xenko.Assets.Physics
         public float HeightScale => 1f;
 
         [DataMember(20)]
-        public bool ScaleToFit { get; set; } = true;
+        public bool ScaleToRange { get; set; } = true;
     }
 }

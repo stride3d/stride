@@ -58,7 +58,7 @@ namespace Xenko.Assets.Physics
 
                 // HeightRange
 
-                var heightRange = Parameters.HeightParameters.HeightRange;
+                var heightRange = Parameters.HeightConversionParameters.HeightRange;
 
                 if (heightRange.Y < heightRange.X)
                 {
@@ -67,7 +67,7 @@ namespace Xenko.Assets.Physics
 
                 // HeightScale
 
-                var heightScale = Parameters.HeightParameters.HeightScale;
+                var heightScale = Parameters.HeightConversionParameters.HeightScale;
 
                 // Heights
 
@@ -94,7 +94,7 @@ namespace Xenko.Assets.Physics
 
                     // Convert pixel format of the image
 
-                    var heightfieldType = Parameters.HeightParameters.HeightType;
+                    var heightfieldType = Parameters.HeightConversionParameters.HeightType;
 
                     switch (heightfieldType)
                     {
@@ -207,15 +207,15 @@ namespace Xenko.Assets.Physics
                                 {
                                     var floats = pixelBuffer.GetPixels<float>();
 
-                                    var floatConversionParameters = Parameters.HeightParameters as FloatHeightmapHeightConversionParamters;
+                                    var floatConversionParameters = Parameters.HeightConversionParameters as FloatHeightmapHeightConversionParamters;
                                     if (floatConversionParameters == null)
                                     {
-                                        throw new NullReferenceException($"{nameof(Parameters.HeightParameters)} is a null.");
+                                        throw new NullReferenceException($"{nameof(Parameters.HeightConversionParameters)} is a null.");
                                     }
 
                                     float scale = 1f;
 
-                                    if (floatConversionParameters.ScaleToFit)
+                                    if (floatConversionParameters.ScaleToRange)
                                     {
                                         var max = floats.Max(h => Math.Abs(h));
                                         if ((max - 1f) < float.Epsilon)

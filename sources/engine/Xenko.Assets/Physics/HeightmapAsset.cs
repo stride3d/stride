@@ -21,7 +21,7 @@ namespace Xenko.Assets.Physics
         [DataMember(10)]
         [Display("Height", category: "Convert", Expand = ExpandRule.Always)]
         [NotNull]
-        public IHeightmapHeightConversionParameters HeightParameters { get; set; } = new FloatHeightmapHeightConversionParamters();
+        public IHeightmapHeightConversionParameters HeightConversionParameters { get; set; } = new FloatHeightmapHeightConversionParamters();
 
         [DataMember(20, "Resize")]
         [Display(category: "Convert")]
