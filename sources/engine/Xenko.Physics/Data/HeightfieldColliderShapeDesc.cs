@@ -23,8 +23,11 @@ namespace Xenko.Physics
         public bool FlipQuadEdges = false;
 
         [DataMember(80)]
-        [Display("Center the height 0")]
-        public bool ShouldCenterHeightZero = true;
+        public HeightfieldCenteringParameters Centering { get; set; } = new HeightfieldCenteringParameters
+        {
+            Enabled = true,
+            CenterHeight = 0,
+        };
 
         [DataMember(100)]
         public Vector3 LocalOffset;
@@ -46,16 +49,23 @@ namespace Xenko.Physics
                 return false;
             }
 
-            var initialHeightsComparison = other.InitialHeights?.Match(InitialHeights) ?? InitialHeights == null;
+            var initialHeightsMatch = other.InitialHeights?.Match(InitialHeights) ?? InitialHeights == null;
 
-            return initialHeightsComparison &&
-                other.FlipQuadEdges == FlipQuadEdges &&
-                other.ShouldCenterHeightZero == ShouldCenterHeightZero;
+            var centeringMatch = other.Centering.Match(Centering);
+
+            return initialHeightsMatch &&
+                centeringMatch &&
+                other.FlipQuadEdges == FlipQuadEdges;
         }
 
         public static bool IsValidHeightStickSize(Int2 size)
         {
             return size.X >= HeightfieldColliderShape.MinimumHeightStickWidth && size.Y >= HeightfieldColliderShape.MinimumHeightStickLength;
+        }
+
+        public static float GetCenteringOffset(Vector2 heightRange, float centerHeight)
+        {
+            return (heightRange.X + heightRange.Y) * 0.5f - centerHeight;
         }
 
         private static void FillHeights<T>(UnmanagedArray<T> unmanagedArray, T value) where T : struct
@@ -79,6 +89,15 @@ namespace Xenko.Physics
             heightStickArraySource.CopyTo(unmanagedArray, 0);
 
             return unmanagedArray;
+        }
+
+        public float GetCenteringOffset()
+        {
+            if (InitialHeights == null) throw new InvalidOperationException($"{ nameof(InitialHeights) } is a null.");
+
+            return Centering.Enabled ?
+                GetCenteringOffset(InitialHeights.HeightRange, Centering.CenterHeight) :
+                0f;
         }
 
         public ColliderShape CreateShape()
@@ -115,8 +134,6 @@ namespace Xenko.Physics
                     return null;
             }
 
-            var offsetToCenterHeightZero = ShouldCenterHeightZero ? InitialHeights.HeightRange.X + ((InitialHeights.HeightRange.Y - InitialHeights.HeightRange.X) * 0.5f) : 0f;
-
             var shape = new HeightfieldColliderShape
                         (
                             InitialHeights.HeightStickSize.X,
@@ -129,7 +146,7 @@ namespace Xenko.Physics
                             FlipQuadEdges
                         )
                         {
-                            LocalOffset = LocalOffset + new Vector3(0, offsetToCenterHeightZero, 0),
+                            LocalOffset = LocalOffset + new Vector3(0, GetCenteringOffset(), 0),
                             LocalRotation = LocalRotation,
                         };
 
