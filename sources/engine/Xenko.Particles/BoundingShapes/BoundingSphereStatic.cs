@@ -43,7 +43,7 @@ namespace Xenko.Particles.BoundingShapes
 
             debugDrawShape = DebugDrawShape.Cube;
             scale = new Vector3(Radius, Radius, Radius);
-            translation = new Vector3(0, 0, 0);
+            translation = Vector3.Zero;
             rotation = Quaternion.Identity;
             return true;
         }

@@ -16,7 +16,7 @@ namespace Xenko.Particles
 
         [DataMember(1)]
         [Display("Position offset")]
-        public Vector3 Position { get; set; } = new Vector3(0, 0, 0);
+        public Vector3 Position { get; set; } = Vector3.Zero;
 
         [DataMember(2)]
         [Display("Rotation inheritance")]
@@ -32,7 +32,7 @@ namespace Xenko.Particles
 
         [DataMember(5)]
         [Display("Scale offset")]
-        public Vector3 Scale { get; set; } = new Vector3(1, 1, 1);
+        public Vector3 Scale { get; set; } = Vector3.One;
 
         [DataMember(6)]
         [Display("Uniform Scale")]
@@ -52,13 +52,13 @@ namespace Xenko.Particles
         public bool DisplayParticleScaleUniform = false;
 
         [DataMemberIgnore]
-        public Vector3 WorldPosition { get; private set; } = new Vector3(0, 0, 0);
+        public Vector3 WorldPosition { get; private set; } = Vector3.Zero;
 
         [DataMemberIgnore]
         public Quaternion WorldRotation { get; private set; } = Quaternion.Identity;
 
         [DataMemberIgnore]
-        public Vector3 WorldScale { get; private set; } = new Vector3(1, 1, 1);
+        public Vector3 WorldScale { get; private set; } = Vector3.One;
 
 
         public void SetParentTransform(ParticleTransform parentTransform)

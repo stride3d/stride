@@ -29,7 +29,7 @@ namespace Xenko.Editor.Thumbnails
         /// <summary>
         /// The color added to the background when rendering the thumbnail.
         /// </summary>
-        protected Color AdditiveColor = new Color(0, 0, 0, 0);
+        protected Color AdditiveColor = Color.Zero;
 
         /// <summary>
         /// Swizzle mode for sampling (RGBA, RRRR, RRR1)

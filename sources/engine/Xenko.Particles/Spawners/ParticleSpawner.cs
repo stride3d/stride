@@ -82,10 +82,10 @@ namespace Xenko.Particles.Spawners
         private uint randomOffset = 0;
 
         [DataMemberIgnore]
-        private Vector2 delay = new Vector2(0, 0);
+        private Vector2 delay = Vector2.Zero;
 
         [DataMemberIgnore]
-        private Vector2 duration = new Vector2(1, 1);
+        private Vector2 duration = Vector2.One;
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="ParticleSpawner"/> is enabled.

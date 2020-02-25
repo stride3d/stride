@@ -474,7 +474,7 @@ namespace Xenko.Graphics
         /// <returns>The glyph corresponding to the request or null if not existing</returns>
         protected virtual Glyph GetGlyph(CommandList commandList, char character, in Vector2 fontSize, bool uploadGpuResources, out Vector2 auxiliaryScaling)
         {
-            auxiliaryScaling = new Vector2(1, 1);
+            auxiliaryScaling = Vector2.One;
             return null;
         }
         

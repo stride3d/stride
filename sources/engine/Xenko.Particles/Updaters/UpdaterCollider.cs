@@ -108,7 +108,7 @@ namespace Xenko.Particles.Modules
 
             foreach (var particle in pool)
             {
-                var surfacePoint = new Vector3(0, 0, 0);
+                var surfacePoint = Vector3.Zero;
                 var surfaceNormal = new Vector3(0, 1, 0);
 
                 var particlePos = (*((Vector3*)particle[posField]));
@@ -139,7 +139,7 @@ namespace Xenko.Particles.Modules
                     var verticalIncidentVelocity = verIncidentCoef * surfaceNormal;
                     var horizontalIncidentVelocity = particleVel - verticalIncidentVelocity;
 
-                    particleVel = horizontalIncidentVelocity * (1 - Friction) + 
+                    particleVel = horizontalIncidentVelocity * (1 - Friction) +
                         verticalIncidentVelocity * ((verIncidentCoef > 0) ? Restitution : -Restitution);
 
                     (*((Vector3*)particle[velField])) = particleVel;
@@ -177,8 +177,8 @@ namespace Xenko.Particles.Modules
                 return base.TryGetDebugDrawShape(out debugDrawShape, out translation, out rotation, out scale);
 
             rotation = Quaternion.Identity;
-            scale = new Vector3(1, 1, 1);
-            translation = new Vector3(0, 0, 0);
+            scale = Vector3.One;
+            translation = Vector3.Zero;
 
             debugDrawShape = FieldShape?.GetDebugDrawShape(out translation, out rotation, out scale) ?? DebugDrawShape.None;
 

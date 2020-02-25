@@ -38,7 +38,7 @@ namespace Xenko.UI.Controls
             new HashSet<ScrollingMode> { ScrollingMode.VerticalInDepth, ScrollingMode.InDepthHorizontal, ScrollingMode.InDepth }
         };
 
-        private static Color transparent = new Color(0, 0, 0, 0);
+        private static Color transparent = Color.Transparent;
 
         private const float ScrollBarHidingSpeed = 1f;
 

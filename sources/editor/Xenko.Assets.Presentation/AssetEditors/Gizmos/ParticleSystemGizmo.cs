@@ -60,9 +60,9 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
                 return;
             }
 
-            var pos = new Vector3(0, 0, 0);
-            var rot = new Quaternion(0, 0, 0, 1);
-            var scl = new Vector3(1, 1, 1);
+            var pos = Vector3.Zero;
+            var rot = Quaternion.Identity;
+            var scl = Vector3.One;
             DebugDrawShape drawShape = DebugDrawShape.None;
 
             if (Component.ParticleSystem.TryGetDebugDrawShape(ref drawShape, ref pos, ref rot, ref scl))
