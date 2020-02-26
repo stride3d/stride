@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Xenko.Core.Mathematics;
@@ -114,14 +115,14 @@ namespace Xenko.Graphics
             indices[count++] = 2;
             indices[count++] = 6;
 
-            indices[count++] = 1; // top 
+            indices[count++] = 1; // top
             indices[count++] = 0;
             indices[count++] = 4;
             indices[count++] = 1;
             indices[count++] = 4;
             indices[count++] = 5;
 
-            indices[count++] = 2; // bottom 
+            indices[count++] = 2; // bottom
             indices[count++] = 3;
             indices[count++] = 6;
             indices[count++] = 3;
@@ -145,7 +146,7 @@ namespace Xenko.Graphics
         /// <param name="device">A valid instance of <see cref="GraphicsDevice"/>.</param>
         public UIBatch(GraphicsDevice device)
             : base(device, UIEffect.Bytecode, UIEffect.BytecodeSRgb,
-            ResourceBufferInfo.CreateDynamicIndexBufferInfo("UIBatch.VertexIndexBuffers", MaxIndicesCount, MaxVerticesCount), 
+            ResourceBufferInfo.CreateDynamicIndexBufferInfo("UIBatch.VertexIndexBuffers", MaxIndicesCount, MaxVerticesCount),
             VertexPositionColorTextureSwizzle.Layout)
         {
             // Create a 1x1 pixel white texture
@@ -161,7 +162,7 @@ namespace Xenko.Graphics
         }
 
         /// <summary>
-        /// Begins a image batch rendering using the specified blend state, depth stencil and a view-projection transformation matrix. 
+        /// Begins a image batch rendering using the specified blend state, depth stencil and a view-projection transformation matrix.
         /// Passing null for any of the state objects selects the default default state objects (BlendState.AlphaBlend, DepthStencilState.None).
         /// </summary>
         /// <param name="graphicsContext">The graphics context to use.</param>
@@ -175,8 +176,8 @@ namespace Xenko.Graphics
         }
 
         /// <summary>
-        /// Begins a image batch rendering using the specified blend state, sampler, depth stencil, rasterizer state objects, and the view-projection transformation matrix. 
-        /// Passing null for any of the state objects selects the default default state objects (BlendState.AlphaBlend, DepthStencilState.None, RasterizerState.CullCounterClockwise, SamplerState.LinearClamp). 
+        /// Begins a image batch rendering using the specified blend state, sampler, depth stencil, rasterizer state objects, and the view-projection transformation matrix.
+        /// Passing null for any of the state objects selects the default default state objects (BlendState.AlphaBlend, DepthStencilState.None, RasterizerState.CullCounterClockwise, SamplerState.LinearClamp).
         /// </summary>
         /// <param name="graphicsContext">The graphics context to use.</param>
         /// <param name="viewProjection">The view projection matrix used for this series of draw calls</param>
@@ -202,7 +203,7 @@ namespace Xenko.Graphics
         {
             EffectInstance effect = (overrideEffect == 0) ? null : signedDistanceFieldFontEffect;
 
-            Begin(graphicsContext, effect, SpriteSortMode.BackToFront, 
+            Begin(graphicsContext, effect, SpriteSortMode.BackToFront,
                 currentBlendState, currentSamplerState, currentDepthStencilState, currentRasterizerState, currentStencilValue);
         }
 
@@ -320,13 +321,13 @@ namespace Xenko.Graphics
         /// <param name="worldMatrix">The world matrix of the element</param>
         /// <param name="sourceRectangle">The rectangle indicating the source region of the texture to use</param>
         /// <param name="elementSize">The size of the ui element</param>
-        /// <param name="borderSize">The size of the borders in the texture in pixels (left/right/top/bottom)</param>
+        /// <param name="borderSize">The size of the borders in the texture in pixels (left/top/right/bottom)</param>
         /// <param name="color">The color to apply to the texture image.</param>
         /// <param name="depthBias">The depth bias of the ui element</param>
         /// <param name="imageOrientation">The rotation to apply on the image uv</param>
         /// <param name="swizzle">Swizzle mode indicating the swizzle use when sampling the texture in the shader</param>
         /// <param name="snapImage">Indicate if the image needs to be snapped or not</param>
-        public void DrawImage(Texture texture, ref Matrix worldMatrix, ref RectangleF sourceRectangle, ref Vector3 elementSize, ref Vector4 borderSize, 
+        public void DrawImage(Texture texture, ref Matrix worldMatrix, ref RectangleF sourceRectangle, ref Vector3 elementSize, ref Vector4 borderSize,
             ref Color color, int depthBias, ImageOrientation imageOrientation = ImageOrientation.AsIs, SwizzleMode swizzle = SwizzleMode.None, bool snapImage = false)
         {
             if (texture == null) throw new ArgumentNullException(nameof(texture));
@@ -340,9 +341,9 @@ namespace Xenko.Graphics
             {
                 Source =
                 {
-                    X = sourceRectangle.X / texture.ViewWidth, 
-                    Y = sourceRectangle.Y / texture.ViewHeight, 
-                    Width = sourceRectangle.Width / texture.ViewWidth, 
+                    X = sourceRectangle.X / texture.ViewWidth,
+                    Y = sourceRectangle.Y / texture.ViewHeight,
+                    Width = sourceRectangle.Width / texture.ViewWidth,
                     Height = sourceRectangle.Height / texture.ViewHeight,
                 },
                 DepthBias = depthBias,
@@ -517,28 +518,32 @@ namespace Xenko.Graphics
 
         private static unsafe void CalculateCubeVertices(UIImageDrawInfo* drawInfo, VertexPositionColorTextureSwizzle* vertex)
         {
-            var currentPosition = drawInfo->LeftTopCornerWorld;
-            
-            // set the two first line of vertices
-            for (var l = 0; l < 2; ++l)
-            {
-                for (var r = 0; r < 2; r++)
-                {
-                    for (var c = 0; c < 2; c++)
-                    {
-                        vertex->ColorScale = drawInfo->ColorScale;
-                        vertex->ColorAdd = drawInfo->ColorAdd;
+            const int VertexCountPerAxis = 2;
 
-                        vertex->Swizzle = (int)drawInfo->Swizzle;
-                        vertex->TextureCoordinate.X = 0; // cubes are used only for color
-                        vertex->TextureCoordinate.Y = 0; // cubes are used only for color
+            var depthBiasMultiplier = drawInfo->DepthBias * DepthBiasShiftOneUnit;
+            var colorScale = drawInfo->ColorScale.ToColor4();
+            var colorAdd = drawInfo->ColorAdd.ToColor4();
+            var swizzle = (float)drawInfo->Swizzle;
+
+            // The vertices are arranged from the top-left-back, going left to right first, then top to bottom, then back to front
+            var currentPosition = drawInfo->LeftTopCornerWorld;
+            for (int l = 0; l < VertexCountPerAxis; l++)
+            {
+                for (int r = 0; r < VertexCountPerAxis; r++)
+                {
+                    for (var c = 0; c < VertexCountPerAxis; c++)
+                    {
+                        vertex->ColorScale = colorScale;
+                        vertex->ColorAdd = colorAdd;
+                        vertex->Swizzle = swizzle;
+                        vertex->TextureCoordinate = Vector2.Zero;   // cubes are used only for color
 
                         vertex->Position.X = currentPosition.X;
                         vertex->Position.Y = currentPosition.Y;
-                        vertex->Position.Z = currentPosition.Z - currentPosition.W * drawInfo->DepthBias * DepthBiasShiftOneUnit;
+                        vertex->Position.Z = currentPosition.Z - currentPosition.W * depthBiasMultiplier;
                         vertex->Position.W = currentPosition.W;
 
-                        vertex++;
+                        vertex++;     // Move vertex pointer position
 
                         if (c == 0)
                             Vector4.Add(ref currentPosition, ref drawInfo->UnitXWorld, out currentPosition);
@@ -558,113 +563,167 @@ namespace Xenko.Graphics
 
         private unsafe void CalculateBorderRectangleVertices(UIImageDrawInfo* drawInfo, VertexPositionColorTextureSwizzle* vertex)
         {
-            // set the texture uv vectors
-            var uvX = new Vector4();
-            uvX[0] = drawInfo->Source.Left;
-            uvX[3] = drawInfo->Source.Right;
-            uvX[1] = uvX[0] + drawInfo->Source.Width * drawInfo->BorderSize.X;
-            uvX[2] = uvX[3] - drawInfo->Source.Width * drawInfo->BorderSize.Z;
-            var uvY = new Vector4();
-            uvY[0] = drawInfo->Source.Top;
-            uvY[3] = drawInfo->Source.Bottom;
-            uvY[1] = uvY[0] + drawInfo->Source.Height * drawInfo->BorderSize.Y;
-            uvY[2] = uvY[3] - drawInfo->Source.Height * drawInfo->BorderSize.W;
+            // The vertices are arranged from the top-left, going left to right first, then top to bottom
 
-            // set the shift vectors
-            shiftVectorX[0] = Vector4.Zero;
-            Vector4.Multiply(ref drawInfo->UnitXWorld, drawInfo->VertexShift.X, out shiftVectorX[1]);
-            Vector4.Multiply(ref drawInfo->UnitXWorld, drawInfo->VertexShift.Z, out shiftVectorX[2]);
-            shiftVectorX[3] = drawInfo->UnitXWorld;
-
-            shiftVectorY[0] = Vector4.Zero;
-            Vector4.Multiply(ref drawInfo->UnitYWorld, drawInfo->VertexShift.Y, out shiftVectorY[1]);
-            Vector4.Multiply(ref drawInfo->UnitYWorld, drawInfo->VertexShift.W, out shiftVectorY[2]);
-            shiftVectorY[3] = drawInfo->UnitYWorld;
-
-            for (var r = 0; r < 4; r++)
+            // Set the texture uv vectors
+            var texCoordsX = stackalloc float[]
             {
-                Vector4 currentRowPosition;
-                Vector4.Add(ref drawInfo->LeftTopCornerWorld, ref shiftVectorY[r], out currentRowPosition);
+                drawInfo->Source.Left,                                                          // Outer Left
+                drawInfo->Source.Left + drawInfo->Source.Width * drawInfo->BorderSize.X,        // Inner Left
+                drawInfo->Source.Right - drawInfo->Source.Width * drawInfo->BorderSize.Z,       // Inner Right
+                drawInfo->Source.Right,                                                         // Outer Right
+            };
+            var texCoordsY = stackalloc float[]
+            {
+                drawInfo->Source.Top,                                                           // Outer Top
+                drawInfo->Source.Top + drawInfo->Source.Height * drawInfo->BorderSize.Y,        // Inner Top
+                drawInfo->Source.Bottom - drawInfo->Source.Height * drawInfo->BorderSize.W,     // Inner Bottom
+                drawInfo->Source.Bottom,                                                        // Outer Bottom
+            };
 
-                for (var c = 0; c < 4; c++)
+            // Calculate the position offsets
+
+            // posOffsetOuterLeft is just Vector4.Zero
+            Vector4.Multiply(ref drawInfo->UnitXWorld, drawInfo->VertexShift.X, out var posOffsetLeftInner);
+            Vector4.Multiply(ref drawInfo->UnitXWorld, drawInfo->VertexShift.Z, out var posOffsetRightInner);
+            // posOffsetRightOuter is drawInfo->UnitXWorld
+
+            // posOffsetOuterTop is just Vector4.Zero
+            Vector4.Multiply(ref drawInfo->UnitYWorld, drawInfo->VertexShift.Y, out var posOffsetTopInner);
+            Vector4.Multiply(ref drawInfo->UnitYWorld, drawInfo->VertexShift.W, out var posOffsetBottomInner);
+            // posOffsetBottomOuter is drawInfo->UnitYWorld
+
+            var posOffsetX = stackalloc Vector4[]
+            {
+                Vector4.Zero,               // Outer Left
+                posOffsetLeftInner,         // Inner Left
+                posOffsetRightInner,        // Inner Right
+                drawInfo->UnitXWorld,       // Outer Right
+            };
+            var posOffsetY = stackalloc Vector4[]
+            {
+                Vector4.Zero,               // Outer Top
+                posOffsetTopInner,          // Inner Top
+                posOffsetBottomInner,       // Inner Bottom
+                drawInfo->UnitYWorld,       // Outer Bottom
+            };
+
+            const int VertexCountPerAxis = 4;
+
+            var depthBiasMultiplier = drawInfo->DepthBias * DepthBiasShiftOneUnit;
+            var colorScale = drawInfo->ColorScale.ToColor4();
+            var colorAdd = drawInfo->ColorAdd.ToColor4();
+            var swizzle = (float)drawInfo->Swizzle;
+            for (int r = 0; r < VertexCountPerAxis; r++)
+            {
+                for (var c = 0; c < VertexCountPerAxis; c++)
                 {
-                    Vector4 currentPosition;
-                    Vector4.Add(ref currentRowPosition, ref shiftVectorX[c], out currentPosition);
+                    vertex->ColorScale = colorScale;
+                    vertex->ColorAdd = colorAdd;
+                    vertex->Swizzle = swizzle;
+                    vertex->TextureCoordinate.X = texCoordsX[c];
+                    vertex->TextureCoordinate.Y = texCoordsY[r];
 
-                    vertex->Position.X = currentPosition.X;
-                    vertex->Position.Y = currentPosition.Y;
-                    vertex->Position.Z = currentPosition.Z - currentPosition.W * drawInfo->DepthBias * DepthBiasShiftOneUnit;
-                    vertex->Position.W = currentPosition.W;
+                    // drawInfo->LeftTopCornerWorld is the top-left most vertex
+                    var vertPos = Vector4Add(ref drawInfo->LeftTopCornerWorld, ref posOffsetX[c], ref posOffsetY[r]);
+                    vertex->Position.X = vertPos.X;
+                    vertex->Position.Y = vertPos.Y;
+                    vertex->Position.Z = vertPos.Z - vertPos.W * depthBiasMultiplier;
+                    vertex->Position.W = vertPos.W;
 
-                    vertex->ColorScale = drawInfo->ColorScale;
-                    vertex->ColorAdd = drawInfo->ColorAdd;
-
-                    vertex->TextureCoordinate.X = uvX[c];
-                    vertex->TextureCoordinate.Y = uvY[r];
-
-                    vertex->Swizzle = (int)drawInfo->Swizzle;
-
-                    vertex++;
+                    vertex++;     // Move vertex pointer position
                 }
             }
         }
 
         private unsafe void CalculateRectangleVertices(UIImageDrawInfo* drawInfo, VertexPositionColorTextureSwizzle* vertex)
         {
-            var currentPosition = drawInfo->LeftTopCornerWorld;
+            var startPos = drawInfo->LeftTopCornerWorld;
 
-            // snap first pixel to prevent possible problems when left/top is in the middle of a pixel
+            // Snap first pixel to prevent possible problems when left/top is in the middle of a pixel
             if (drawInfo->SnapImage)
             {
-                var invW = 1.0f / currentPosition.W;
+                var invW = 1.0f / startPos.W;
                 var backBufferHalfWidth = GraphicsContext.CommandList.RenderTarget.ViewWidth / 2;
                 var backBufferHalfHeight = GraphicsContext.CommandList.RenderTarget.ViewHeight / 2;
 
-                currentPosition.X *= invW;
-                currentPosition.Y *= invW;
-                currentPosition.X = (float)(Math.Round(currentPosition.X * backBufferHalfWidth) / backBufferHalfWidth);
-                currentPosition.Y = (float)(Math.Round(currentPosition.Y * backBufferHalfHeight) / backBufferHalfHeight);
-                currentPosition.X *= currentPosition.W;
-                currentPosition.Y *= currentPosition.W;
+                startPos.X *= invW;
+                startPos.Y *= invW;
+                startPos.X = (float)(Math.Round(startPos.X * backBufferHalfWidth) / backBufferHalfWidth);
+                startPos.Y = (float)(Math.Round(startPos.Y * backBufferHalfHeight) / backBufferHalfHeight);
+                startPos.X *= startPos.W;
+                startPos.Y *= startPos.W;
             }
 
-            var textureCoordX = new Vector2(drawInfo->Source.Left, drawInfo->Source.Right);
-            var textureCoordY = new Vector2(drawInfo->Source.Top, drawInfo->Source.Bottom);
-
-            // set the two first line of vertices
-            for (var r = 0; r < 2; r++)
+            const int VertexCount = 4;
+            var texCoords = stackalloc Vector2[]
             {
-                for (var c = 0; c < 2; c++)
+                new Vector2(drawInfo->Source.Left,  drawInfo->Source.Top),      // Top Left
+                new Vector2(drawInfo->Source.Right, drawInfo->Source.Top),      // Top Right
+                new Vector2(drawInfo->Source.Left,  drawInfo->Source.Bottom),   // Bottom Left
+                new Vector2(drawInfo->Source.Right, drawInfo->Source.Bottom),   // Bottom Right
+            };
+            var vertexPositions = stackalloc Vector4[]
+            {
+                startPos,                                                                        // Top Left
+                Vector4Add(ref startPos, ref drawInfo->UnitXWorld),                              // Top Right
+                Vector4Add(ref startPos, ref drawInfo->UnitYWorld),                              // Bottom Left (Y axis points up, but Y value will be negative value to orientate correctly)
+                Vector4Add(ref startPos, ref drawInfo->UnitXWorld, ref drawInfo->UnitYWorld),    // Bottom Right
+            };
+
+            if (drawInfo->SnapImage)
+            {
+                var backBufferHalfWidth = GraphicsContext.CommandList.RenderTarget.ViewWidth / 2;
+                var backBufferHalfHeight = GraphicsContext.CommandList.RenderTarget.ViewHeight / 2;
+
+                // First vertex position was already snapped so don't need to do it again
+                for (int i = 1; i < VertexCount; i++)
                 {
-                    vertex->ColorScale = drawInfo->ColorScale;
-                    vertex->ColorAdd = drawInfo->ColorAdd;
-                    vertex->Swizzle = (int)drawInfo->Swizzle;
-                    vertex->TextureCoordinate.X = textureCoordX[c];
-                    vertex->TextureCoordinate.Y = textureCoordY[r];
-
-                    vertex->Position.X = currentPosition.X;
-                    vertex->Position.Y = currentPosition.Y;
-                    vertex->Position.Z = currentPosition.Z - currentPosition.W * drawInfo->DepthBias * DepthBiasShiftOneUnit;
-                    vertex->Position.W = currentPosition.W;
-
-                    if (drawInfo->SnapImage)
-                    {
-                        var backBufferHalfWidth = GraphicsContext.CommandList.RenderTarget.ViewWidth / 2;
-                        var backBufferHalfHeight = GraphicsContext.CommandList.RenderTarget.ViewHeight / 2;
-                        vertex->Position.X = (float)(Math.Round(vertex->Position.X * backBufferHalfWidth) / backBufferHalfWidth);
-                        vertex->Position.Y = (float)(Math.Round(vertex->Position.Y * backBufferHalfHeight) / backBufferHalfHeight);
-                    }
-
-                    vertex++;
-
-                    if (c == 0)
-                        Vector4.Add(ref currentPosition, ref drawInfo->UnitXWorld, out currentPosition);
-                    else
-                        Vector4.Subtract(ref currentPosition, ref drawInfo->UnitXWorld, out currentPosition);
+                    ref var vertPos = ref vertexPositions[i];
+                    vertPos.X = (float)(Math.Round(vertPos.X * backBufferHalfWidth) / backBufferHalfWidth);
+                    vertPos.Y = (float)(Math.Round(vertPos.Y * backBufferHalfHeight) / backBufferHalfHeight);
                 }
-
-                Vector4.Add(ref currentPosition, ref drawInfo->UnitYWorld, out currentPosition);
             }
+
+            var depthBiasMultiplier = drawInfo->DepthBias * DepthBiasShiftOneUnit;
+            var colorScale = drawInfo->ColorScale.ToColor4();
+            var colorAdd = drawInfo->ColorAdd.ToColor4();
+            var swizzle = (float)drawInfo->Swizzle;
+            for (int i = 0; i < VertexCount; i++, vertex++)
+            {
+                vertex->ColorScale = colorScale;
+                vertex->ColorAdd = colorAdd;
+                vertex->Swizzle = swizzle;
+                vertex->TextureCoordinate = texCoords[i];
+
+                ref var vertPos = ref vertexPositions[i];
+                vertex->Position.X = vertPos.X;
+                vertex->Position.Y = vertPos.Y;
+                vertex->Position.Z = vertPos.Z - vertPos.W * depthBiasMultiplier;
+                vertex->Position.W = vertPos.W;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector4 Vector4Add(ref Vector4 v1, ref Vector4 v2)
+        {
+            Vector4 result;
+            result.X = v1.X + v2.X;
+            result.Y = v1.Y + v2.Y;
+            result.Z = v1.Z + v2.Z;
+            result.W = v1.W + v2.W;
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector4 Vector4Add(ref Vector4 v1, ref Vector4 v2, ref Vector4 v3)
+        {
+            Vector4 result;
+            result.X = v1.X + v2.X + v3.X;
+            result.Y = v1.Y + v2.Y + v3.Y;
+            result.Z = v1.Z + v2.Z + v3.Z;
+            result.W = v1.W + v2.W + v3.W;
+            return result;
         }
 
         /// <summary>
@@ -701,7 +760,13 @@ namespace Xenko.Graphics
             public Vector4 UnitYWorld;
             public Vector4 UnitZWorld;
             public RectangleF Source;
+            /// <summary>
+            /// X = Left, Y = Top, Z = Right, W = Bottom
+            /// </summary>
             public Vector4 BorderSize;
+            /// <summary>
+            /// X = Left, Y = Top, Z = Right, W = Bottom
+            /// </summary>
             public Vector4 VertexShift;
             public Color ColorScale;
             public Color ColorAdd;
