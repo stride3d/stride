@@ -173,7 +173,6 @@ namespace Xenko.Graphics
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector4 Vector4Add(ref Vector4 v1, ref Vector4 v2)
         {
             Vector4 result;
@@ -184,7 +183,6 @@ namespace Xenko.Graphics
             return result;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector4 Vector4Add(ref Vector4 v1, ref Vector4 v2, ref Vector4 v3)
         {
             Vector4 result;
