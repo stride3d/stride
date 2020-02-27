@@ -817,7 +817,7 @@ namespace Xenko.Graphics
 #if XENKO_GRAPHICS_API_OPENGLES
             Internal.Refactor.ThrowNotImplementedException();
 #else
-            GL.DrawElementsInstancedBaseVertex(newPipelineState.PrimitiveType, indexCountPerInstance, indexBuffer.Type, indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize), instanceCount, baseVertexLocation);
+            GL.DrawElementsInstancedBaseVertex(newPipelineState.PrimitiveType, indexCountPerInstance, indexBuffer.Type, (IntPtr)(indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)), instanceCount, baseVertexLocation);
 #endif
 
             GraphicsDevice.FrameDrawCalls++;
@@ -1182,7 +1182,7 @@ namespace Xenko.Graphics
 
 #if !XENKO_GRAPHICS_API_OPENGLES
                     if (vertexAttrib.IsInteger && !vertexAttrib.Normalized)
-                        GL.VertexAttribIPointer(vertexAttrib.AttributeIndex, vertexAttrib.Size, (VertexAttribIntegerType)vertexAttrib.Type, vertexBufferView.Stride, vertexBufferView.Offset + vertexAttrib.Offset);
+                        GL.VertexAttribIPointer(vertexAttrib.AttributeIndex, vertexAttrib.Size, (VertexAttribIntegerType)vertexAttrib.Type, vertexBufferView.Stride, (IntPtr)(vertexBufferView.Offset + vertexAttrib.Offset));
                     else
 #endif
                         GL.VertexAttribPointer(vertexAttrib.AttributeIndex, vertexAttrib.Size, vertexAttrib.Type, vertexAttrib.Normalized, vertexBufferView.Stride, vertexBufferView.Offset + vertexAttrib.Offset);
