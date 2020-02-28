@@ -694,7 +694,7 @@ namespace Xenko.Core.Mathematics
         /// Decomposes a matrix into a scale, rotation, and translation.
         /// </summary>
         /// <param name="scale">When the method completes, contains the scaling component of the decomposed matrix.</param>
-        /// <param name="rotation">When the method completes, contains the rtoation component of the decomposed matrix.</param>
+        /// <param name="rotation">When the method completes, contains the rotation component of the decomposed matrix.</param>
         /// <param name="translation">When the method completes, contains the translation component of the decomposed matrix.</param>
         /// <remarks>
         /// This method is designed to decompose an SRT transformation matrix only.
@@ -711,7 +711,7 @@ namespace Xenko.Core.Mathematics
         /// Decomposes a matrix into a scale, rotation, and translation.
         /// </summary>
         /// <param name="scale">When the method completes, contains the scaling component of the decomposed matrix.</param>
-        /// <param name="rotation">When the method completes, contains the rtoation component of the decomposed matrix.</param>
+        /// <param name="rotation">When the method completes, contains the rotation component of the decomposed matrix.</param>
         /// <param name="translation">When the method completes, contains the translation component of the decomposed matrix.</param>
         /// <remarks>
         /// This method is designed to decompose an SRT transformation matrix only.
@@ -2820,7 +2820,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the created rotation matrix.</param>
         public static void RotationYawPitchRoll(float yaw, float pitch, float roll, out Matrix result)
         {
-            Quaternion quaternion = new Quaternion();
+            Quaternion quaternion;
             Quaternion.RotationYawPitchRoll(yaw, pitch, roll, out quaternion);
             RotationQuaternion(ref quaternion, out result);
         }

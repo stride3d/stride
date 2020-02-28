@@ -35,7 +35,7 @@ namespace Xenko.Engine
             if (name.Equals(element.Name))
                 return element;
 
-            foreach (var child in element.VisualChildren)
+            foreach (var child in element.VisualChildrenCollection)
             {
                 var childElement = FindElementByName(name, child);
                 if (childElement != null)
