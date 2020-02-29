@@ -24,7 +24,7 @@ namespace Xenko.Core.Assets.CompilerApp
 
             foreach (var logPipeName in logPipeNames)
             {
-                var client = new NpClient<IForwardSerializableLogRemote>(new NpEndPoint(logPipeName));
+                var client = new NpClient<IForwardSerializableLogRemote>(new NpEndPoint(logPipeName), new XenkoServiceWireSerializer());
                 remoteLogs.Add(client);
             }
 

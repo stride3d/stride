@@ -17,7 +17,7 @@ namespace Xenko.GameStudio.Logs
             : base(serviceProvider)
         {
             PipeName = $"{BasePipeName}.{Guid.NewGuid()}";
-            host = new NpHost(PipeName, null, null);
+            host = new NpHost(PipeName, null, null, new XenkoServiceWireSerializer());
             host.AddService<IForwardSerializableLogRemote>(this);
             host.Open();
         }
