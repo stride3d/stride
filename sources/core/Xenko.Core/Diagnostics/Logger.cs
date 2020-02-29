@@ -107,7 +107,7 @@ namespace Xenko.Core.Diagnostics
                     throw new ArgumentNullException(nameof(logMessage));
 
                 // Even if the type is not enabled, set HasErrors property
-                // This allow to know that there is an error even if is is not logger.
+                // This allow to know that there is an error even if it is not logger.
                 if (logMessage.Type == LogMessageType.Error || logMessage.Type == LogMessageType.Fatal)
                     HasErrors = true;
 

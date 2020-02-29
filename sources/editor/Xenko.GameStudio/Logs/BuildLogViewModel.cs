@@ -11,15 +11,15 @@ namespace Xenko.GameStudio.Logs
     public sealed class BuildLogViewModel : LoggerViewModel, IForwardSerializableLogRemote
     {
         private const string BasePipeName = "XenkoCoreAssetsEditor";
-        private readonly NpHost _host;
+        private readonly NpHost host;
 
         public BuildLogViewModel(IViewModelServiceProvider serviceProvider)
             : base(serviceProvider)
         {
             PipeName = $"{BasePipeName}.{Guid.NewGuid()}";
-            _host = new NpHost(PipeName, null, null);
-            _host.AddService<IForwardSerializableLogRemote>(this);
-            _host.Open();
+            host = new NpHost(PipeName, null, null);
+            host.AddService<IForwardSerializableLogRemote>(this);
+            host.Open();
         }
         
         public string PipeName { get; }
@@ -35,8 +35,7 @@ namespace Xenko.GameStudio.Logs
         /// <inheritdoc/>
         public override void Destroy()
         {
-            _host.Close();
-            _host.Dispose();
+            host.Close();
             base.Destroy();
         }
     }
