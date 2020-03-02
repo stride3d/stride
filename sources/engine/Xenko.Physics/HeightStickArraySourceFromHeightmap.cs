@@ -25,6 +25,8 @@ namespace Xenko.Physics
         [DataMemberIgnore]
         public float HeightScale => Heightmap?.HeightScale ?? default;
 
+        public bool IsValid() => Heightmap?.IsValid() ?? false;
+
         public void CopyTo<T>(UnmanagedArray<T> heightStickArray, int index) where T : struct
         {
             if (Heightmap == null) throw new InvalidOperationException($"{ nameof(Heightmap) } is a null");

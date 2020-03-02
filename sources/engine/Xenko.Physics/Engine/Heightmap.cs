@@ -40,57 +40,34 @@ namespace Xenko.Physics
         [DataMember(70)]
         public float HeightScale;
 
-        public static Heightmap Create(Int2 size, Vector2 range, float scale, object data)
+        public static Heightmap Create<T>(Int2 size, HeightfieldTypes heightType, Vector2 heightRange, float heightScale, T[] data)
         {
-            if (!HeightfieldColliderShapeDesc.IsValidHeightStickSize(size)) throw new ArgumentOutOfRangeException(nameof(size));
-            if (range.Y < range.X) throw new ArgumentException($"{nameof(range)} is invalid. Max height should be greater than min height.");
             if (data == null) throw new ArgumentNullException(nameof(data));
 
-            var arrayLength = size.X * size.Y;
+            HeightmapUtils.CheckHeightParameters(size, heightType, heightRange, heightScale, true);
 
-            HeightfieldTypes heightType = default;
-            float[] floats = null;
-            short[] shorts = null;
-            byte[] bytes = null;
+            var length = size.X * size.Y;
 
-            if (data is float[])
+            switch (data)
             {
-                heightType = HeightfieldTypes.Float;
-                floats = data as float[];
-                if (floats.Length != arrayLength) throw new ArgumentException($"Not matched {nameof(size)} and size of {nameof(data)}.");
-            }
-            else if (data is short[])
-            {
-                heightType = HeightfieldTypes.Short;
-                shorts = data as short[];
-                if (shorts.Length != arrayLength) throw new ArgumentException($"Not matched {nameof(size)} and size of {nameof(data)}.");
-            }
-            else if (data is byte[])
-            {
-                heightType = HeightfieldTypes.Byte;
-                bytes = data as byte[];
-                if (bytes.Length != arrayLength) throw new ArgumentException($"Not matched {nameof(size)} and size of {nameof(data)}.");
-            }
-            else
-            {
-                throw new NotSupportedException($"Not supported height type '{data.GetType()}'.");
+                case float[] floats when floats.Length == length: break;
+                case short[] shorts when shorts.Length == length: break;
+                case byte[] bytes when bytes.Length == length: break;
+                default: throw new ArgumentException($"{ typeof(T[]) } is not supported in { heightType } height type. Or { nameof(data) }.{ nameof(data).Length } doesn't match { nameof(size) }.");
             }
 
-            return new Heightmap
+            var heightmap = new Heightmap
             {
                 HeightType = heightType,
                 Size = size,
-                HeightRange = range,
-                HeightScale = scale,
-                Floats = floats,
-                Shorts = shorts,
-                Bytes = bytes,
+                HeightRange = heightRange,
+                HeightScale = heightScale,
+                Floats = data as float[],
+                Shorts = data as short[],
+                Bytes = data as byte[],
             };
-        }
 
-        public static Heightmap Create<T>(Int2 size, Vector2 range, float scale, T[] data) where T : struct
-        {
-            return Create(size, range, scale, data as object);
+            return heightmap;
         }
     }
 }

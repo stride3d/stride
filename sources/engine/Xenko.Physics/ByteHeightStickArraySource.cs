@@ -33,6 +33,9 @@ namespace Xenko.Physics
         [DataMemberRange(0, 255, 1, 10, 0)]
         public byte InitialByte { get; set; } = 0;
 
+        public bool IsValid() => HeightmapUtils.CheckHeightParameters(HeightStickSize, HeightType, HeightRange, HeightScale, false) &&
+            MathUtil.IsInRange(InitialByte, byte.MinValue, byte.MaxValue);
+
         public void CopyTo<T>(UnmanagedArray<T> heightStickArray, int index) where T : struct
         {
             if (heightStickArray == null) throw new ArgumentNullException(nameof(heightStickArray));

@@ -11,6 +11,8 @@ namespace Xenko.Physics
 
         void CopyTo<T>(UnmanagedArray<T> heightStickArray, int index) where T : struct;
 
+        bool IsValid();
+
         bool Match(object obj);
     }
 }

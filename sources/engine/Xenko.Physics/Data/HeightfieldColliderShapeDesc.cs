@@ -16,8 +16,8 @@ namespace Xenko.Physics
     {
         [DataMember(10)]
         [NotNull]
-        [Display(Expand = ExpandRule.Always)]
-        public IHeightStickArraySource InitialHeights { get; set; } = new HeightStickArraySourceFromHeightmap();
+        [Display("Source", Expand = ExpandRule.Always)]
+        public IHeightStickArraySource HeightStickArraySource { get; set; } = new HeightStickArraySourceFromHeightmap();
 
         [DataMember(70)]
         public bool FlipQuadEdges = false;
@@ -49,18 +49,13 @@ namespace Xenko.Physics
                 return false;
             }
 
-            var initialHeightsMatch = other.InitialHeights?.Match(InitialHeights) ?? InitialHeights == null;
+            var sourceMatch = other.HeightStickArraySource?.Match(HeightStickArraySource) ?? HeightStickArraySource == null;
 
             var centeringMatch = other.Centering.Match(Centering);
 
-            return initialHeightsMatch &&
+            return sourceMatch &&
                 centeringMatch &&
                 other.FlipQuadEdges == FlipQuadEdges;
-        }
-
-        public static bool IsValidHeightStickSize(Int2 size)
-        {
-            return size.X >= HeightfieldColliderShape.MinimumHeightStickWidth && size.Y >= HeightfieldColliderShape.MinimumHeightStickLength;
         }
 
         public static float GetCenteringOffset(Vector2 heightRange, float centerHeight)
@@ -80,7 +75,10 @@ namespace Xenko.Physics
 
         private static UnmanagedArray<T> CreateHeights<T>(IHeightStickArraySource heightStickArraySource) where T : struct
         {
-            if (heightStickArraySource == null) throw new ArgumentNullException(nameof(heightStickArraySource));
+            if (!heightStickArraySource?.IsValid() ?? false)
+            {
+                return null;
+            }
 
             var arrayLength = heightStickArraySource.HeightStickSize.X * heightStickArraySource.HeightStickSize.Y;
 
@@ -93,40 +91,32 @@ namespace Xenko.Physics
 
         public float GetCenteringOffset()
         {
-            if (InitialHeights == null) throw new InvalidOperationException($"{ nameof(InitialHeights) } is a null.");
+            if (HeightStickArraySource == null) throw new InvalidOperationException($"{ nameof(HeightStickArraySource) } is a null.");
 
             return Centering.Enabled ?
-                GetCenteringOffset(InitialHeights.HeightRange, Centering.CenterHeight) :
+                GetCenteringOffset(HeightStickArraySource.HeightRange, Centering.CenterHeight) :
                 0f;
         }
 
         public ColliderShape CreateShape()
         {
-            if (InitialHeights == null ||
-                !IsValidHeightStickSize(InitialHeights.HeightStickSize) ||
-                InitialHeights.HeightRange.Y < InitialHeights.HeightRange.X ||
-                Math.Abs(InitialHeights.HeightRange.Y - InitialHeights.HeightRange.X) < float.Epsilon)
-            {
-                return null;
-            }
-
             object unmanagedArray;
 
-            switch (InitialHeights.HeightType)
+            switch (HeightStickArraySource.HeightType)
             {
                 case HeightfieldTypes.Float:
                 {
-                    unmanagedArray = CreateHeights<float>(InitialHeights);
+                    unmanagedArray = CreateHeights<float>(HeightStickArraySource);
                     break;
                 }
                 case HeightfieldTypes.Short:
                 {
-                    unmanagedArray = CreateHeights<short>(InitialHeights);
+                    unmanagedArray = CreateHeights<short>(HeightStickArraySource);
                     break;
                 }
                 case HeightfieldTypes.Byte:
                 {
-                    unmanagedArray = CreateHeights<byte>(InitialHeights);
+                    unmanagedArray = CreateHeights<byte>(HeightStickArraySource);
                     break;
                 }
 
@@ -134,15 +124,17 @@ namespace Xenko.Physics
                     return null;
             }
 
+            if (unmanagedArray == null) return null;
+
             var shape = new HeightfieldColliderShape
                         (
-                            InitialHeights.HeightStickSize.X,
-                            InitialHeights.HeightStickSize.Y,
-                            InitialHeights.HeightType,
+                            HeightStickArraySource.HeightStickSize.X,
+                            HeightStickArraySource.HeightStickSize.Y,
+                            HeightStickArraySource.HeightType,
                             unmanagedArray,
-                            InitialHeights.HeightScale,
-                            InitialHeights.HeightRange.X,
-                            InitialHeights.HeightRange.Y,
+                            HeightStickArraySource.HeightScale,
+                            HeightStickArraySource.HeightRange.X,
+                            HeightStickArraySource.HeightRange.Y,
                             FlipQuadEdges
                         )
                         {
