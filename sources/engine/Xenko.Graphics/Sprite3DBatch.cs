@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Xenko.Core.Mathematics;
@@ -30,9 +31,9 @@ namespace Xenko.Graphics
         }
 
         /// <summary>
-        /// Begins a 3D sprite batch rendering using the specified sorting mode and blend state, sampler, depth stencil, rasterizer state objects, plus a custom effect and a view-projection matrix. 
-        /// Passing null for any of the state objects selects the default default state objects (BlendState.AlphaBlend, DepthStencilState.Default, RasterizerState.CullCounterClockwise, SamplerState.LinearClamp). 
-        /// Passing a null effect selects the default SpriteBatch Class shader. 
+        /// Begins a 3D sprite batch rendering using the specified sorting mode and blend state, sampler, depth stencil, rasterizer state objects, plus a custom effect and a view-projection matrix.
+        /// Passing null for any of the state objects selects the default default state objects (BlendState.AlphaBlend, DepthStencilState.Default, RasterizerState.CullCounterClockwise, SamplerState.LinearClamp).
+        /// Passing a null effect selects the default SpriteBatch Class shader.
         /// </summary>
         /// <param name="graphicsContext">The graphics context to use.</param>
         /// <param name="sortMode">The sprite drawing order to use for the batch session</param>
@@ -63,7 +64,7 @@ namespace Xenko.Graphics
         /// <param name="imageOrientation">The rotation to apply on the image uv</param>
         /// <param name="swizzle">Swizzle mode indicating the swizzle use when sampling the texture in the shader</param>
         /// <param name="depth">The depth of the element. If null, it is calculated using world and view-projection matrix.</param>
-        public void Draw(Texture texture, ref Matrix worldMatrix, ref RectangleF sourceRectangle, ref Vector2 elementSize, ref Color4 color, 
+        public void Draw(Texture texture, ref Matrix worldMatrix, ref RectangleF sourceRectangle, ref Vector2 elementSize, ref Color4 color,
                          ImageOrientation imageOrientation = ImageOrientation.AsIs, SwizzleMode swizzle = SwizzleMode.None, float? depth = null)
         {
             // Check that texture is not null
@@ -73,7 +74,7 @@ namespace Xenko.Graphics
             // Skip items with null size
             if (elementSize.Length() < MathUtil.ZeroTolerance)
                 return;
-            
+
             // Calculate the information needed to draw.
             var drawInfo = new Sprite3DDrawInfo
             {
@@ -142,41 +143,56 @@ namespace Xenko.Graphics
             var vertex = (VertexPositionColorTextureSwizzle*)vertexPointer;
             fixed (Sprite3DDrawInfo* drawInfo = &elementInfo.DrawInfo)
             {
-                var currentPosition = drawInfo->LeftTopCornerWorld;
-
-                var textureCoordX = new Vector2(drawInfo->Source.Left, drawInfo->Source.Right);
-                var textureCoordY = new Vector2(drawInfo->Source.Top, drawInfo->Source.Bottom);
-
-                // set the two first line of vertices
-                for (int r = 0; r < 2; r++)
+                const int VertexCount = 4;
+                var texCoords = stackalloc Vector2[]
                 {
-                    for (int c = 0; c < 2; c++)
-                    {
-                        vertex->ColorScale = drawInfo->ColorScale;
-                        vertex->ColorAdd = drawInfo->ColorAdd;
+                    drawInfo->Source.TopLeft,
+                    drawInfo->Source.TopRight,
+                    drawInfo->Source.BottomLeft,
+                    drawInfo->Source.BottomRight,
+                };
 
-                        vertex->Swizzle = (int)drawInfo->Swizzle;
-                        vertex->TextureCoordinate.X = textureCoordX[c];
-                        vertex->TextureCoordinate.Y = textureCoordY[r];
+                ref var startPos = ref drawInfo->LeftTopCornerWorld;
+                var vertexPositions = stackalloc Vector4[]
+                {
+                    startPos,                                                                       // Top Left
+                    Vector4Add(ref startPos, ref drawInfo->UnitXWorld),                             // Top Right
+                    Vector4Add(ref startPos, ref drawInfo->UnitYWorld),                             // Bottom Left (Y axis points up, but Y value will be negative value to orientate correctly)
+                    Vector4Add(ref startPos, ref drawInfo->UnitXWorld, ref drawInfo->UnitYWorld),   // Bottom Right
+                };
 
-                        vertex->Position.X = currentPosition.X;
-                        vertex->Position.Y = currentPosition.Y;
-                        vertex->Position.Z = currentPosition.Z;
-                        vertex->Position.W = currentPosition.W;
-
-                        vertex++;
-
-                        if (c == 0)
-                            Vector4.Add(ref currentPosition, ref drawInfo->UnitXWorld, out currentPosition);
-                        else
-                            Vector4.Subtract(ref currentPosition, ref drawInfo->UnitXWorld, out currentPosition);
-                    }
-
-                    Vector4.Add(ref currentPosition, ref drawInfo->UnitYWorld, out currentPosition);
+                var swizzle = (float)drawInfo->Swizzle;
+                for (int i = 0; i < VertexCount; i++, vertex++)
+                {
+                    vertex->ColorScale = drawInfo->ColorScale;
+                    vertex->ColorAdd = drawInfo->ColorAdd;
+                    vertex->Swizzle = swizzle;
+                    vertex->TextureCoordinate = texCoords[i];
+                    vertex->Position = vertexPositions[i];
                 }
             }
         }
-         
+
+        private static Vector4 Vector4Add(ref Vector4 v1, ref Vector4 v2)
+        {
+            Vector4 result;
+            result.X = v1.X + v2.X;
+            result.Y = v1.Y + v2.Y;
+            result.Z = v1.Z + v2.Z;
+            result.W = v1.W + v2.W;
+            return result;
+        }
+
+        private static Vector4 Vector4Add(ref Vector4 v1, ref Vector4 v2, ref Vector4 v3)
+        {
+            Vector4 result;
+            result.X = v1.X + v2.X + v3.X;
+            result.Y = v1.Y + v2.Y + v3.Y;
+            result.Z = v1.Z + v2.Z + v3.Z;
+            result.W = v1.W + v2.W + v3.W;
+            return result;
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         public struct Sprite3DDrawInfo
         {
