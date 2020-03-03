@@ -157,7 +157,7 @@ namespace Xenko.Core.AssemblyProcessor
             // The previous instruction pushes the target onto the stack
             // If it's the this-parameter, we can create an instance field, and reuse the same delegate
             var loadClosureInstruction = functionPointerInstruction.Previous;
-            if (loadClosureInstruction.OpCode == OpCodes.Ldarg_0 && !method.IsStatic)
+            if ((loadClosureInstruction.OpCode == OpCodes.Ldarg_0 || loadClosureInstruction.OpCode == OpCodes.Ldnull) && !method.IsStatic)
             {
                 // TODO: Handle generic methods/delegates
                 // TODO: Handle multiple constructors propertly
@@ -173,7 +173,7 @@ namespace Xenko.Core.AssemblyProcessor
                 // Create and store the delegate in constructor
                 var ilProcessor5 = constructor.Body.GetILProcessor();
                 ilProcessor5.InsertBefore(retInstruction3, ilProcessor5.Create(OpCodes.Ldarg_0));
-                ilProcessor5.InsertBefore(retInstruction3, ilProcessor5.Create(OpCodes.Ldarg_0));
+                ilProcessor5.InsertBefore(retInstruction3, ilProcessor5.Create(loadClosureInstruction.OpCode));
                 ilProcessor5.InsertBefore(retInstruction3, ilProcessor5.Create(OpCodes.Ldftn, delegateMethod));
                 ilProcessor5.InsertBefore(retInstruction3, ilProcessor5.Create(OpCodes.Newobj, delegateInstanceConstructor));
                 ilProcessor5.InsertBefore(retInstruction3, ilProcessor5.Create(OpCodes.Stfld, sharedDelegateField));
@@ -181,6 +181,7 @@ namespace Xenko.Core.AssemblyProcessor
                 // Load from field instead of allocating
                 var ilProcessor4 = method.Body.GetILProcessor();
                 ilProcessor4.Remove(functionPointerInstruction);
+                loadClosureInstruction.OpCode = OpCodes.Ldarg_0; // In case it was a ldnull
                 ilProcessor4.Replace(delegateAllocationInstruction, ilProcessor4.Create(OpCodes.Ldfld, sharedDelegateField));
 
                 return true;
@@ -241,32 +242,39 @@ namespace Xenko.Core.AssemblyProcessor
 
             var ilProcessor = method.Body.GetILProcessor();
 
+            Func<Instruction> generateClosureVariable = () => closureVarible == null ? ilProcessor.Create(loadClosureInstruction.OpCode) : ilProcessor.Create(loadClosureInstruction.OpCode, closureVarible.Resolve());
+
             // Retrieve from pool
             var closureGenericArguments = (closureInstanceType as GenericInstanceType)?.GenericArguments.ToArray() ?? new TypeReference[0];
             var closureAllocation = storeClosureInstruction.Previous;
             if (closureAllocation.OpCode == OpCodes.Newobj)
             {
                 // Retrieve closure from pool, instead of allocating
+                ilProcessor.Replace(storeClosureInstruction, ilProcessor.Create(OpCodes.Nop));
+
                 var acquireClosure = ilProcessor.Create(OpCodes.Callvirt, poolAcquireMethod.MakeGeneric(closureInstanceType));
-                ilProcessor.InsertAfter(closureAllocation, acquireClosure);
-                ilProcessor.InsertAfter(closureAllocation, ilProcessor.Create(OpCodes.Ldsfld, closure.PoolField.MakeGeneric(closureGenericArguments)));
+                var methodPreviousStart = ilProcessor.Body.Instructions.First();
+                ilProcessor.InsertBefore(methodPreviousStart, ilProcessor.Create(OpCodes.Nop));
+                ilProcessor.InsertBefore(methodPreviousStart, ilProcessor.Create(OpCodes.Ldsfld, closure.PoolField.MakeGeneric(closureGenericArguments)));
+                ilProcessor.InsertBefore(methodPreviousStart, acquireClosure);
+                ilProcessor.InsertBefore(methodPreviousStart, storeClosureInstruction);
                 closureAllocation.OpCode = OpCodes.Nop; // Change to Nop instead of removing it, as this instruction might be reference somewhere?
                 closureAllocation.Operand = null;
 
                 // Add a reference
-                ilProcessor.InsertAfter(storeClosureInstruction, ilProcessor.Create(OpCodes.Callvirt, closure.AddReferenceMethod.MakeGeneric(closureGenericArguments)));
-                ilProcessor.InsertAfter(storeClosureInstruction, closureVarible == null ? ilProcessor.Create(loadClosureInstruction.OpCode) : ilProcessor.Create(loadClosureInstruction.OpCode, closureVarible.Resolve()));
+                ilProcessor.InsertBefore(methodPreviousStart, generateClosureVariable());
+                ilProcessor.InsertBefore(methodPreviousStart, ilProcessor.Create(OpCodes.Callvirt, closure.AddReferenceMethod.MakeGeneric(closureGenericArguments)));
 
                 // TODO: Multiple returns + try/finally
                 // Release reference
                 var retInstructions = method.Body.Instructions.Where(x => x.OpCode == OpCodes.Ret).ToArray();
 
-                Instruction beforeReturn = closureVarible == null ? ilProcessor.Create(loadClosureInstruction.OpCode) : ilProcessor.Create(loadClosureInstruction.OpCode, closureVarible.Resolve());
+                Instruction beforeReturn = generateClosureVariable();
                 Instruction newReturnInstruction = ilProcessor.Create(OpCodes.Ret);
                 ilProcessor.Append(beforeReturn);
                 ilProcessor.Append(ilProcessor.Create(OpCodes.Ldnull));
                 ilProcessor.Append(ilProcessor.Create(OpCodes.Beq, newReturnInstruction));
-                ilProcessor.Append(closureVarible == null ? ilProcessor.Create(loadClosureInstruction.OpCode) : ilProcessor.Create(loadClosureInstruction.OpCode, closureVarible.Resolve()));
+                ilProcessor.Append(generateClosureVariable());
                 ilProcessor.Append(ilProcessor.Create(OpCodes.Callvirt, closure.ReleaseMethod.MakeGeneric(closureGenericArguments)));
                 ilProcessor.Append(newReturnInstruction);
 
