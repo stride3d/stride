@@ -115,7 +115,7 @@ namespace Xenko.Rendering.Compositing
                 drawContext.CommandList.SetStencilReference(0);
 
                 // Apply the effect
-                bakeLightProbes.Parameters.Set(BakeLightProbeShaderKeys.MatrixTransform, renderView.ViewProjection);
+                bakeLightProbes.Parameters.Set(BakeLightProbeShaderKeys.MatrixTransform, ref renderView.ViewProjection);
                 bakeLightProbes.Apply(drawContext.GraphicsContext);
 
                 /*int tetrahedrawGridSize = 5;

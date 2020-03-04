@@ -376,7 +376,7 @@ namespace Xenko.Rendering.Images
 
             coclinearDepthMapEffect.SetInput(0, originalDepthBuffer);
             coclinearDepthMapEffect.SetOutput(cocLinearDepthTexture);
-            coclinearDepthMapEffect.Parameters.Set(CircleOfConfusionKeys.depthAreas, depthAreas);
+            coclinearDepthMapEffect.Parameters.Set(CircleOfConfusionKeys.depthAreas, ref depthAreas);
             coclinearDepthMapEffect.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane));
             coclinearDepthMapEffect.Draw(context, "CoC_LinearDepth");
 

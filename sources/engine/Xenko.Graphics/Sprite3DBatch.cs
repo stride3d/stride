@@ -132,7 +132,7 @@ namespace Xenko.Graphics
         protected override void PrepareForRendering()
         {
             // Setup the Transformation matrix of the shader
-            Parameters.Set(SpriteBaseKeys.MatrixTransform, transformationMatrix);
+            Parameters.Set(SpriteBaseKeys.MatrixTransform, ref transformationMatrix);
 
             base.PrepareForRendering();
         }
