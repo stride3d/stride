@@ -21,10 +21,11 @@ using Stride.TextureConverter;
 using Stride.Assets.Effect;
 using Stride.Assets.Templates;
 using Stride.Graphics;
+using System.Text;
 
 namespace Stride.Assets
 {
-    [PackageUpgrader(new[] { StrideConfig.PackageName, "Stride.Core", "Stride.Engine" }, "3.0.0.0", CurrentVersion)]
+    [PackageUpgrader(new[] { StrideConfig.PackageName, "Stride.Core", "Stride.Engine", "Xenko", "Xenko.Core", "Xenko.Engine" }, "3.1.0.0", CurrentVersion)]
     public partial class StridePackageUpgrader : PackageUpgrader
     {
         // Should match Stride.nupkg
@@ -44,20 +45,46 @@ namespace Stride.Assets
             {
                 foreach (var assetFile in assetFiles)
                 {
-                    // Add new generic parameter to ShadowMapReceiverDirectional in effect log
-                    if (assetFile.FilePath.GetFileExtension() == ".sdeffectlog")
+                    try
                     {
-                        var assetContent = assetFile.AssetContent ?? File.ReadAllBytes(assetFile.FilePath.FullPath);
-                        var assetContentString = System.Text.Encoding.UTF8.GetString(assetContent);
-                        var newAssetContentString = System.Text.RegularExpressions.Regex.Replace(assetContentString, @"([ ]*)-   ClassName:", "$1- !ShaderClassSource\r\n$1    ClassName:");
-                        if (assetContentString != newAssetContentString)
+                        // Add new generic parameter to ShadowMapReceiverDirectional in effect log
+                        if (assetFile.OriginalFilePath.GetFileExtension() == ".xkeffectlog")
                         {
-                            // Need replacement, update with replaced text
-                            assetFile.AssetContent = System.Text.Encoding.UTF8.GetBytes(newAssetContentString);
+                            var assetContent = assetFile.AssetContent ?? File.ReadAllBytes(assetFile.OriginalFilePath.FullPath);
+                            var assetContentString = System.Text.Encoding.UTF8.GetString(assetContent);
+                            var newAssetContentString = System.Text.RegularExpressions.Regex.Replace(assetContentString, @"([ ]*)-   ClassName:", "$1- !ShaderClassSource\r\n$1    ClassName:");
+                            if (assetContentString != newAssetContentString)
+                            {
+                                // Need replacement, update with replaced text
+                                // Save file (usually we shouldn't do that, but since we have the renaming in 4.0 we force everything to be on disk before moving on
+                                File.WriteAllBytes(assetFile.OriginalFilePath.FullPath, System.Text.Encoding.UTF8.GetBytes(newAssetContentString));
+                            }
                         }
+                    }
+                    catch (Exception e)
+                    {
+                        log.Warning($"Could not upgrade asset [{assetFile.AssetLocation}] to ShaderClassSource", e);
                     }
                 }
             }
+
+            if (dependency.Version.MinVersion < new PackageVersion("4.0.0.0"))
+            {
+                foreach (var assetFile in assetFiles)
+                {
+                    try
+                    {
+                        // Note: usually we shouldn't replace files directly (file might be already moved/modified in-memory)
+                        // but since we're currently the first/only upgrader to run, that's fine and later (4.1) we can get rid of this upgrade path
+                        assetFile.OriginalFilePath = assetFile.FilePath = XenkoToStrideRenameHelper.RenameStrideFile(assetFile.OriginalFilePath.FullPath, XenkoToStrideRenameHelper.StrideContentType.Asset);
+                    }
+                    catch (Exception e)
+                    {
+                        log.Warning($"Could not upgrade asset [{assetFile.AssetLocation}] to Stride", e);
+                    }
+                }
+            }
+
             return true;
         }
 
@@ -103,6 +130,12 @@ namespace Stride.Assets
 
         public override bool UpgradeBeforeAssembliesLoaded(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage)
         {
+            // Xenko to Stride renaming
+            if (dependency.Version.MinVersion < new PackageVersion("4.0.0.0"))
+            {
+                UpgradeStrideCode(dependentPackage, log);
+            }
+
             // Update NuGet references
             var projectFullPath = (dependentPackage.Container as SolutionProject)?.FullPath;
             if (projectFullPath != null)
@@ -113,40 +146,6 @@ namespace Stride.Assets
                     var isProjectDirty = false;
 
                     var packageReferences = project.GetItems("PackageReference").ToList();
-
-                    // Upgrade from 3.0 to 3.1 (Stride split in several nuget packages)
-                    if (dependency.Version.MinVersion < new PackageVersion("3.1.0.0"))
-                    {
-                        var strideReference = packageReferences.FirstOrDefault(packageReference => packageReference.EvaluatedInclude == "Stride");
-                        if (strideReference != null)
-                        {
-                            var items = new List<Microsoft.Build.Evaluation.ProjectItem> { strideReference };
-
-                            // Turn Stride reference into Stride.Engine
-                            strideReference.UnevaluatedInclude = "Stride.Engine";
-                            strideReference.SetMetadataValue("Version", CurrentVersion);
-
-                            // Add plugins (old Stride is equivalent to a meta package with all plugins)
-                            items.AddRange(project.AddItem("PackageReference", "Stride.Video", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
-                            items.AddRange(project.AddItem("PackageReference", "Stride.Physics", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
-                            items.AddRange(project.AddItem("PackageReference", "Stride.Navigation", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
-                            items.AddRange(project.AddItem("PackageReference", "Stride.Particles", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
-                            items.AddRange(project.AddItem("PackageReference", "Stride.UI", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
-                            // Necessary until "build" flows transitively
-                            items.AddRange(project.AddItem("PackageReference", "Stride.Core", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
-
-                            // Asset compiler
-                            items.AddRange(project.AddItem("PackageReference", "Stride.Core.Assets.CompilerApp", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers"), new KeyValuePair<string, string>("IncludeAssets", "build") }));
-
-                            foreach (var item in items)
-                            {
-                                foreach (var metadata in item.Metadata)
-                                    metadata.Xml.ExpressedAsAttribute = true;
-                            }
-
-                            isProjectDirty = true;
-                        }
-                    }
 
                     foreach (var packageReference in packageReferences)
                     {
@@ -159,47 +158,46 @@ namespace Stride.Assets
                         }
                     }
 
-                    // Change shader generated file from .cs to .sdsl.cs or .sdfx.cs
-                    if (dependency.Version.MinVersion < new PackageVersion("3.2.0.1-beta02"))
+                    // Change shader generated file from .cs to .xksl.cs or .xkfx.cs
+                    // Note: we support both 3.1.0.1 (.cs) and 3.2.0.1 (.xksl.cs)
+                    if (dependency.Version.MinVersion < new PackageVersion("4.0.0.0"))
                     {
-                        // Find sdsl files
-                        var shaderFiles = project.Items.Where(x => x.ItemType == "None" && (x.EvaluatedInclude.EndsWith(".sdsl", StringComparison.InvariantCultureIgnoreCase) || x.EvaluatedInclude.EndsWith(".sdfx", StringComparison.InvariantCultureIgnoreCase)) && x.HasMetadata("Generator"));
+                        // Find xksl files
+                        var shaderFiles = project.Items.Where(x => x.ItemType == "None" && (x.EvaluatedInclude.EndsWith(".xksl", StringComparison.InvariantCultureIgnoreCase) || x.EvaluatedInclude.EndsWith(".xkfx", StringComparison.InvariantCultureIgnoreCase)) && x.HasMetadata("Generator")).ToArray();
 
                         foreach (var shaderFile in shaderFiles)
                         {
+                            isProjectDirty = true;
+
                             var shaderFilePath = Path.Combine(projectFullPath.GetFullDirectory(), new UFile(shaderFile.EvaluatedInclude));
                             var oldGeneratedFilePath = Path.ChangeExtension(shaderFilePath, ".cs");
 
+                            if (!File.Exists(oldGeneratedFilePath))
+                            {
+                                oldGeneratedFilePath = shaderFilePath + ".cs";
+                            }
+
                             if (File.Exists(oldGeneratedFilePath))
                             {
-                                File.Move(oldGeneratedFilePath, shaderFilePath + ".cs");
+                                var newShaderFilePath = shaderFilePath.Replace(".xk", ".sd");
+                                File.Move(shaderFilePath, newShaderFilePath);
+                                File.Move(oldGeneratedFilePath, newShaderFilePath + ".cs");
 
-                                // Update project (directly with Xml since it is an Update element, not an Include)
-                                foreach (var csElement in project.Xml.ItemGroups.SelectMany(x => x.Items).Where(x => new UFile(x.Update) == new UFile(Path.ChangeExtension(shaderFile.EvaluatedInclude, ".cs"))))
+                                // Remove Items (.xksl .cs and .xksl.cs)
+                                foreach (var csElement in project.Xml.ItemGroups.SelectMany(x => x.Items).Where(x =>
+                                    new UFile(x.Include) == new UFile(Path.ChangeExtension(shaderFile.EvaluatedInclude, ".cs"))
+                                    || new UFile(x.Include) == new UFile(shaderFile.EvaluatedInclude + ".cs")
+                                    || new UFile(x.Include) == new UFile(shaderFile.EvaluatedInclude)
+                                    || new UFile(x.Update) == new UFile(Path.ChangeExtension(shaderFile.EvaluatedInclude, ".cs"))
+                                    || new UFile(x.Update) == new UFile(shaderFile.EvaluatedInclude + ".cs")
+                                    || new UFile(x.Update) == new UFile(shaderFile.EvaluatedInclude)
+                                    ).ToArray())
                                 {
-                                    csElement.Update = shaderFile.EvaluatedInclude + ".cs";
-                                    isProjectDirty = true;
-                                }
-                                // I think we should have only Update, not Include, but let's do that just in case
-                                foreach (var csElement in project.Xml.ItemGroups.SelectMany(x => x.Items).Where(x => new UFile(x.Include) == new UFile(Path.ChangeExtension(shaderFile.EvaluatedInclude, ".cs"))))
-                                {
-                                    csElement.Include = shaderFile.EvaluatedInclude + ".cs";
-                                    isProjectDirty = true;
-                                }
-
-                                if (shaderFile.EvaluatedInclude.EndsWith(".sdfx", StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    shaderFile.GetMetadata("Generator").UnevaluatedValue = "StrideEffectCodeGenerator";
-                                    isProjectDirty = true;
+                                    csElement.Parent.RemoveChild(csElement);
                                 }
 
-                                // Also update LastGenOutput
-                                var lastGenOutputMetadata = shaderFile.GetMetadata("LastGenOutput");
-                                if (lastGenOutputMetadata != null && !lastGenOutputMetadata.IsImported)
-                                {
-                                    lastGenOutputMetadata.UnevaluatedValue = new UFile(shaderFile.EvaluatedInclude + ".cs").GetFileName();
-                                    isProjectDirty = true;
-                                }
+                                if (!shaderFile.IsImported)
+                                    project.RemoveItem(shaderFile);
                             }
                         }
                     }

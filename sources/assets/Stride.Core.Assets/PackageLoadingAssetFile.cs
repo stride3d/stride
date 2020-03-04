@@ -17,7 +17,7 @@ namespace Stride.Core.Assets
     {
         public readonly UDirectory SourceFolder;
 
-        [NotNull] public UFile OriginalFilePath { get; }
+        [NotNull] public UFile OriginalFilePath { get; set; }
         [NotNull] public UFile FilePath { get; set; }
 
         public long CachedFileSize;
@@ -83,7 +83,7 @@ namespace Stride.Core.Assets
             }
         }
 
-        internal Stream OpenStream()
+        public Stream OpenStream()
         {
             if (Deleted)
                 throw new InvalidOperationException();
