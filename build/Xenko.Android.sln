@@ -118,12 +118,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Physics", "..\sources
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.SpriteStudio.Runtime", "..\sources\engine\Xenko.SpriteStudio.Runtime\Xenko.SpriteStudio.Runtime.csproj", "{9BC63BEC-F305-451D-BB31-262938EA964D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Graphics.Tests.Android", "..\sources\engine\Xenko.Graphics.Tests\Xenko.Graphics.Tests.Android.csproj", "{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Graphics.Tests.10_0.Android", "..\sources\engine\Xenko.Graphics.Tests.10_0\Xenko.Graphics.Tests.10_0.Android.csproj", "{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Graphics.Tests.11_0.Android", "..\sources\engine\Xenko.Graphics.Tests.11_0\Xenko.Graphics.Tests.11_0.Android.csproj", "{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Particles", "..\sources\engine\Xenko.Particles\Xenko.Particles.csproj", "{F32FDA80-B6DD-47A8-8681-437E2C0D3F31}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Games.Testing", "..\sources\engine\Xenko.Games.Testing\Xenko.Games.Testing.csproj", "{B84ECB15-5E3F-4BD1-AB87-333BAE9B70F9}"
@@ -330,24 +324,6 @@ Global
 		{9BC63BEC-F305-451D-BB31-262938EA964D}.Release|Android.ActiveCfg = Release|Android
 		{9BC63BEC-F305-451D-BB31-262938EA964D}.Release|Android.Build.0 = Release|Android
 		{9BC63BEC-F305-451D-BB31-262938EA964D}.Release|Android.Deploy.0 = Release|Android
-		{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}.Debug|Android.ActiveCfg = Debug|Android
-		{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}.Debug|Android.Build.0 = Debug|Android
-		{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}.Debug|Android.Deploy.0 = Debug|Android
-		{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}.Release|Android.ActiveCfg = Release|Android
-		{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}.Release|Android.Build.0 = Release|Android
-		{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}.Release|Android.Deploy.0 = Release|Android
-		{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}.Debug|Android.ActiveCfg = Debug|Android
-		{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}.Debug|Android.Build.0 = Debug|Android
-		{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}.Debug|Android.Deploy.0 = Debug|Android
-		{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}.Release|Android.ActiveCfg = Release|Android
-		{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}.Release|Android.Build.0 = Release|Android
-		{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}.Release|Android.Deploy.0 = Release|Android
-		{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}.Debug|Android.ActiveCfg = Debug|Android
-		{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}.Debug|Android.Build.0 = Debug|Android
-		{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}.Debug|Android.Deploy.0 = Debug|Android
-		{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}.Release|Android.ActiveCfg = Release|Android
-		{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}.Release|Android.Build.0 = Release|Android
-		{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}.Release|Android.Deploy.0 = Release|Android
 		{F32FDA80-B6DD-47A8-8681-437E2C0D3F31}.Debug|Android.ActiveCfg = Debug|Android
 		{F32FDA80-B6DD-47A8-8681-437E2C0D3F31}.Debug|Android.Build.0 = Debug|Android
 		{F32FDA80-B6DD-47A8-8681-437E2C0D3F31}.Debug|Android.Deploy.0 = Debug|Android
@@ -433,9 +409,6 @@ Global
 		{D002FEB1-00A6-4AB1-A83F-1F253465E64D} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
 		{DD592516-B341-40FE-9100-1B0FA784A060} = {4C142567-C42B-40F5-B092-798882190209}
 		{9BC63BEC-F305-451D-BB31-262938EA964D} = {4C142567-C42B-40F5-B092-798882190209}
-		{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
-		{570B0FF9-246F-4C6C-8384-F6BE1887A4A9} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
-		{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
 		{F32FDA80-B6DD-47A8-8681-437E2C0D3F31} = {4C142567-C42B-40F5-B092-798882190209}
 		{B84ECB15-5E3F-4BD1-AB87-333BAE9B70F9} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
 		{1DBBC150-F085-43EF-B41D-27C72D133770} = {4C142567-C42B-40F5-B092-798882190209}
