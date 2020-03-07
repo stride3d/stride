@@ -24,9 +24,9 @@ shader ParticleUtilities
 
     stage float GetLinearDepth(float z)
     {
-    	float fastA = -ProjectionMatrix._33;    // = zFar / (zFar - zNear);
-	    float fastB = ProjectionMatrix._43;     // = (-zFar * zNear) / (zFar - zNear);
-	    return fastB / (z - fastA);
+        float fastA = -ProjectionMatrix._33;    // = zFar / (zFar - zNear);
+        float fastB = ProjectionMatrix._43;     // = (-zFar * zNear) / (zFar - zNear);
+        return fastB / (z - fastA);
     }
 
     // -------------------------------------
@@ -49,7 +49,8 @@ shader ParticleUtilities
         int uSeed = (int) (fSeed);
         fSeed = (float) uSeed;
 
-        float2 rand2 = float2(cos(fSeed), sin(fSeed));
+        float2 rand2;
+        sincos(fSeed, rand2.y, rand2.x);
 
         float dotProduct = dot(rand2, Gelfond);
 

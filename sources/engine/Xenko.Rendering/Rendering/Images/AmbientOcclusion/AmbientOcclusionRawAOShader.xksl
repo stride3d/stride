@@ -36,7 +36,8 @@ namespace Xenko.Rendering.Images
             float alpha = 1 * (i + 0.5) * 0.675f / SamplesCount;
             float angle = 1 * 43.9822971503f * alpha + randomPatternRotationAngle;
 
-            float2 offset = float2(cos(angle), sin(angle));
+            float2 offset;
+            sincos(angle, offset.y, offset.x);
             float ssRadius = alpha * diskRadius;
 
             //*****************************
@@ -108,22 +109,22 @@ namespace Xenko.Rendering.Images
 
             float temp = ParamRadiusSquared * ParamRadius;
             sum /= temp * temp;
-	        float A = max(0.0, 1.0 - sum * 5 * ParamIntensity / SamplesCount);
+            float A = max(0.0, 1.0 - sum * 5 * ParamIntensity / SamplesCount);
             
             float nearPlaneFade = saturate(linearDepth * 2.0 - 0.5);
             A = lerp(1, A, nearPlaneFade);
 
             //*****************************
             // Bilateral box-filter over a quad for free, respecting depth edges
-	        // (the difference that this makes is subtle)
+            // (the difference that this makes is subtle)
             if (abs(ddx(linearDepth)) < 0.02)
             {
-		        A -= ddx(A) * ((screenPosition.x & 1) - 0.5);
-	        }
-	        if (abs(ddy(linearDepth)) < 0.02)
+                A -= ddx(A) * ((screenPosition.x & 1) - 0.5);
+            }
+            if (abs(ddy(linearDepth)) < 0.02)
             {
                 A -= ddy(A) * ((screenPosition.y & 1) - 0.5);
-	        }
+            }
 
             //************************
             // A now contains the light intensity factor (0 to 1) which can be applied to the ambient light illuminating the pixel

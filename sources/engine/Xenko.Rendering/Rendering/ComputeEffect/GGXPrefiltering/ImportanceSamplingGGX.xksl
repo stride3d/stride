@@ -16,8 +16,11 @@ namespace Xenko.Rendering.Images
             float SinTheta = sqrt( 1 - CosTheta * CosTheta );
 
             float3 H;
-            H.x = SinTheta * cos( phi );
-            H.y = SinTheta * sin( phi );
+            float sp;
+            float cp;
+            sincos(phi, sp, cp);
+            H.x = SinTheta * cp;
+            H.y = SinTheta * sp;
             H.z = CosTheta;
 
             float3 UpVector = abs(N.z) < 0.999 ? float3(0,0,1) : float3(1,0,0);
