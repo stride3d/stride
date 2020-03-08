@@ -63,16 +63,6 @@ namespace Xenko.Physics
             return (heightRange.X + heightRange.Y) * 0.5f - centerHeight;
         }
 
-        private static void FillHeights<T>(UnmanagedArray<T> unmanagedArray, T value) where T : struct
-        {
-            if (unmanagedArray == null) throw new ArgumentNullException(nameof(unmanagedArray));
-
-            for (int i = 0; i < unmanagedArray.Length; ++i)
-            {
-                unmanagedArray[i] = value;
-            }
-        }
-
         private static UnmanagedArray<T> CreateHeights<T>(IHeightStickArraySource heightStickArraySource) where T : struct
         {
             if (!heightStickArraySource?.IsValid() ?? false)
