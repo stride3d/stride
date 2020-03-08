@@ -12,6 +12,9 @@ namespace Xenko.Assets.Physics
         [DataMember(0)]
         public bool Enabled { get; set; }
 
+        /// <summary>
+        /// New size of the heightmap.
+        /// </summary>
         [DataMember(10)]
         [InlineProperty]
         public Int2 Size { get; set; }

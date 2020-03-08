@@ -20,6 +20,9 @@ namespace Xenko.Assets.Physics
         [DataMemberIgnore]
         public float HeightScale => HeightScaleCalculator.Calculate(this);
 
+        /// <summary>
+        /// Select how to calculate HeightScale.
+        /// </summary>
         [DataMember(20)]
         [NotNull]
         [Display("HeightScale", Expand = ExpandRule.Always)]

@@ -10,6 +10,9 @@ namespace Xenko.Physics
     [Display("Heightmap")]
     public class HeightStickArraySourceFromHeightmap : IHeightStickArraySource
     {
+        /// <summary>
+        /// The heightmap to initialize the height stick array.
+        /// </summary>
         [DataMember(10)]
         public Heightmap Heightmap { get; set; }
 

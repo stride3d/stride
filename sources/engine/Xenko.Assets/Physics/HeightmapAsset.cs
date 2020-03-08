@@ -20,11 +20,23 @@ namespace Xenko.Assets.Physics
 
         public const string FileExtension = ".xkhmap";
 
+        /// <summary>
+        /// Parameters to convert pixels to heights.
+        /// </summary>
+        /// <remarks>HeightType size should be greater than or equal to source type size(R channel size).</remarks>
         [DataMember(10)]
         [Display("Height", category: "Convert", Expand = ExpandRule.Always)]
         [NotNull]
         public IHeightmapHeightConversionParameters HeightConversionParameters { get; set; } = new FloatHeightmapHeightConversionParamters();
 
+        /// <summary>
+        /// The size of the heightmap.
+        /// </summary>
+        /// <remarks>
+        /// X is width and Y is length.
+        /// They should be greater than or equal to 2.
+        /// The heightmap size will be same to the image size, if disabled.
+        /// </remarks>
         [DataMember(20, "Resize")]
         [Display(category: "Convert")]
         public HeightmapResizingParameters Resizing { get; set; } = new HeightmapResizingParameters

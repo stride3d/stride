@@ -14,6 +14,9 @@ namespace Xenko.Physics
     [Display(300, "Heightfield")]
     public class HeightfieldColliderShapeDesc : IInlineColliderShapeDesc
     {
+        /// <summary>
+        /// The source to initialize the height stick array.
+        /// </summary>
         [DataMember(10)]
         [NotNull]
         [Display("Source", Expand = ExpandRule.Always)]
@@ -22,6 +25,12 @@ namespace Xenko.Physics
         [DataMember(70)]
         public bool FlipQuadEdges = false;
 
+        /// <summary>
+        /// Add a value to local offset in order to center specific height.
+        /// </summary>
+        /// <remarks>
+        /// NOTE: The center height is the middle point of the range, if this is disabled with asymmetrical range.
+        /// </remarks>
         [DataMember(80)]
         public HeightfieldCenteringParameters Centering { get; set; } = new HeightfieldCenteringParameters
         {
@@ -58,6 +67,12 @@ namespace Xenko.Physics
                 other.FlipQuadEdges == FlipQuadEdges;
         }
 
+        /// <summary>
+        /// Get the offset required in order to center specific height.
+        /// </summary>
+        /// <param name="heightRange">The range of the height.</param>
+        /// <param name="centerHeight">The height to be centered.</param>
+        /// <returns>The value in y axis required in order to center specific height.</returns>
         public static float GetCenteringOffset(Vector2 heightRange, float centerHeight)
         {
             return (heightRange.X + heightRange.Y) * 0.5f - centerHeight;
@@ -79,6 +94,10 @@ namespace Xenko.Physics
             return unmanagedArray;
         }
 
+        /// <summary>
+        /// Get the centering offset that will be added to the local offset of the collider shape.
+        /// </summary>
+        /// <returns>The value that will be added to the local offset of the collider shape in order to center specific height.</returns>
         public float GetCenteringOffset()
         {
             if (HeightStickArraySource == null) throw new InvalidOperationException($"{ nameof(HeightStickArraySource) } is a null.");

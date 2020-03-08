@@ -23,6 +23,9 @@ namespace Xenko.Physics
         [DataMemberIgnore]
         public float HeightScale => 1f;
 
+        /// <summary>
+        /// The value to fill the height stick array.
+        /// </summary>
         [DataMember(30)]
         public float InitialHeight { get; set; } = 0;
 

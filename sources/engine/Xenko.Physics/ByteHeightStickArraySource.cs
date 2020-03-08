@@ -24,11 +24,17 @@ namespace Xenko.Physics
         [DataMemberIgnore]
         public float HeightScale => HeightScaleCalculator.Calculate(this);
 
+        /// <summary>
+        /// Select how to calculate HeightScale.
+        /// </summary>
         [DataMember(30)]
         [NotNull]
         [Display("HeightScale", Expand = ExpandRule.Always)]
         public IHeightScaleCalculator HeightScaleCalculator { get; set; } = new HeightScaleCalculator();
 
+        /// <summary>
+        /// The value to fill the height stick array.
+        /// </summary>
         [DataMember(40)]
         [DataMemberRange(0, 255, 1, 10, 0)]
         public byte InitialByte { get; set; } = 0;
