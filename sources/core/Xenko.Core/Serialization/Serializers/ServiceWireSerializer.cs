@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using ServiceWire;
 
@@ -47,6 +48,7 @@ namespace Xenko.Core.Serialization.Serializers
                 info.MethodInfos = new MethodSyncInfo[length];
                 for (int i = 0; i < length; i++)
                 {
+                    info.MethodInfos[i] = new MethodSyncInfo();
                     info.MethodInfos[i].MethodIdent = stream.ReadInt32();
                     info.MethodInfos[i].MethodName = stream.ReadString();
                     info.MethodInfos[i].MethodReturnType = stream.ReadString();
