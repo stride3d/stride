@@ -57,12 +57,5 @@ namespace Xenko.Input
         {
             SimulatePointer(PointerEventType.Canceled, position, id);
         }
-
-        // not sure if needed, but maybe handy
-        public void ClearPointers()
-        {
-            PointerState.PointerInputEvents.Clear();
-            PointerState.PointerDatas.Clear();
-        }
     }
 }
