@@ -13,6 +13,7 @@ namespace Xenko.Core.Threading
     {
         public static readonly ThreadPool Instance = new ThreadPool();
 		private readonly ParameterizedThreadStart cachedTaskLoop;
+		private readonly bool ManyCore;
         
 		/// <summary>
 		/// Linked-list like collection of threads that are waiting for work.
@@ -21,13 +22,14 @@ namespace Xenko.Core.Threading
 		private volatile LinkedIdleThread idleThreads;
 
 		private readonly LightConcurrentQueue<Action> queue = new LightConcurrentQueue<Action>();
-		
+
 		public ThreadPool()
 		{
 			// Cache delegate to avoid pointless allocation
 			cachedTaskLoop = ProcessWorkItems;
 			// No point in having more threads than processors
 			int maxThreads = (Environment.ProcessorCount < 2) ? 1 : (Environment.ProcessorCount - 1);
+			ManyCore = maxThreads >= 8;
 			for( int i = 0; i < maxThreads; i++ )
 			{
 				NewThread(null);
@@ -62,11 +64,19 @@ namespace Xenko.Core.Threading
 			{
 				PooledDelegateHelper.AddReference(workItem);
 				LinkedIdleThread node;
-				// Spin a bit to wait for threads
-				while ((node = idleThreads) == null && sw.NextSpinWillYield == false)
+				if (ManyCore)
 				{
-					sw.SpinOnce();
+					// Spin a bit to wait for threads
+					while ((node = idleThreads) == null && sw.NextSpinWillYield == false)
+					{
+						sw.SpinOnce();
+					}
 				}
+				else
+				{
+					node = idleThreads;
+				}
+
 
 				if (node != null)
 				{
