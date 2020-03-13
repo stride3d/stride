@@ -15,13 +15,12 @@ namespace Xenko.Input
         private List<GamePadSimulated> gamePads = new List<GamePadSimulated>();
         private List<MouseSimulated> mice = new List<MouseSimulated>();
         private List<KeyboardSimulated> keyboards = new List<KeyboardSimulated>();
-        private List<PointerSimulated> pointerDevices = new List<PointerSimulated>();
-
+        private List<PointerSimulated> pointers = new List<PointerSimulated>();
 
         public IReadOnlyList<KeyboardSimulated> Keyboards => keyboards;
         public IReadOnlyList<MouseSimulated> Mice => mice;
         public IReadOnlyList<GamePadSimulated> GamePads => gamePads;
-        public IReadOnlyList<PointerSimulated> PointerDevices => pointerDevices;
+        public IReadOnlyList<PointerSimulated> Pointers => pointers;
 
         public override void Initialize(InputManager inputManager)
         {
@@ -33,7 +32,7 @@ namespace Xenko.Input
             keyboards.Clear();
             mice.Clear();
             gamePads.Clear();
-            pointerDevices.Clear();
+            pointers.Clear();
         }
 
         public GamePadSimulated AddGamePad()
@@ -105,33 +104,27 @@ namespace Xenko.Input
             keyboards.Clear();
         }
 
-        public PointerSimulated AddPointerDevice()
+        public PointerSimulated AddPointer()
         {
             var pointer = new PointerSimulated(this);
-            pointerDevices.Add(pointer);
+            pointers.Add(pointer);
             RegisterDevice(pointer);
             return pointer;
         }
 
-        public void RemovePointerDevice(PointerSimulated pointer)
+        public void RemovePointer(PointerSimulated pointer)
         {
-            if (!pointerDevices.Contains(pointer))
+            if (!pointers.Contains(pointer))
                 throw new InvalidOperationException("Simulated PointerDevice does not exist");
             UnregisterDevice(pointer);
-            pointerDevices.Remove(pointer);
+            pointers.Remove(pointer);
         }
 
-        public void RemoveAllPointerDevices()
+        public void RemoveAllPointers()
         {
-            foreach (var pointer in pointerDevices)
+            foreach (var pointer in pointers)
                 UnregisterDevice(pointer);
-            pointerDevices.Clear();
-        }
-
-        private enum DeviceEventType
-        {
-            Add,
-            Remove,
+            pointers.Clear();
         }
     }
 }
