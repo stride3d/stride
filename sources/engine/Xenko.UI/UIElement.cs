@@ -630,7 +630,7 @@ namespace Xenko.UI
 
                 ForceMeasure();
                 layoutingContext = value;
-                foreach (var child in VisualChildren)
+                foreach (var child in VisualChildrenCollection)
                     child.LayoutingContext = value;
             }
         }

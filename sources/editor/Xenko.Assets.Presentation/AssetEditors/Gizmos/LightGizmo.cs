@@ -25,9 +25,9 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
         protected Color3 GetLightColor(GraphicsDevice graphicsDevice)
         {
             var component = LightComponent;
-            var colorLigth = component.Type as IColorLight;
+            var colorLight = component.Type as IColorLight;
 
-            return colorLigth?.ComputeColor(graphicsDevice.ColorSpace, 1f) ?? new Color3(); // don't want to include light intensity in gizmo color (post effects not applied on gizmos)
+            return colorLight?.ComputeColor(graphicsDevice.ColorSpace, 1f) ?? new Color3(); // don't want to include light intensity in gizmo color (post effects not applied on gizmos)
         }
     }
 }

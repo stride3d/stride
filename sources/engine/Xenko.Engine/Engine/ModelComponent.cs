@@ -52,7 +52,7 @@ namespace Xenko.Engine
             /// </summary>
             public BoundingSphere BoundingSphere;
         }
-      
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelComponent"/> class.
         /// </summary>
@@ -267,12 +267,12 @@ namespace Xenko.Engine
                     for (int boneIndex = 0; boneIndex < bones.Length; boneIndex++)
                     {
                         var nodeIndex = bones[boneIndex].NodeIndex;
-                        Matrix.Multiply(ref bones[boneIndex].LinkToMeshMatrix, ref skeleton.NodeTransformations[nodeIndex].WorldMatrix, out meshInfos[meshIndex].BlendMatrices[boneIndex]);
+                        Matrix.Multiply(ref bones[boneIndex].LinkToMeshMatrix, ref skeleton.NodeTransformations[nodeIndex].WorldMatrix, out meshInfo.BlendMatrices[boneIndex]);
 
                         BoundingBox skinnedBoundingBox;
-                        BoundingBox.Transform(ref mesh.BoundingBox, ref meshInfos[meshIndex].BlendMatrices[boneIndex], out skinnedBoundingBox);
+                        BoundingBox.Transform(ref mesh.BoundingBox, ref meshInfo.BlendMatrices[boneIndex], out skinnedBoundingBox);
                         BoundingSphere skinnedBoundingSphere;
-                        BoundingSphere.Transform(ref mesh.BoundingSphere, ref meshInfos[meshIndex].BlendMatrices[boneIndex], out skinnedBoundingSphere);
+                        BoundingSphere.Transform(ref mesh.BoundingSphere, ref meshInfo.BlendMatrices[boneIndex], out skinnedBoundingSphere);
 
                         if (meshHasBoundingBox)
                         {

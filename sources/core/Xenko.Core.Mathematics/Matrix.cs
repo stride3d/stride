@@ -694,7 +694,7 @@ namespace Xenko.Core.Mathematics
         /// Decomposes a matrix into a scale, rotation, and translation.
         /// </summary>
         /// <param name="scale">When the method completes, contains the scaling component of the decomposed matrix.</param>
-        /// <param name="rotation">When the method completes, contains the rtoation component of the decomposed matrix.</param>
+        /// <param name="rotation">When the method completes, contains the rotation component of the decomposed matrix.</param>
         /// <param name="translation">When the method completes, contains the translation component of the decomposed matrix.</param>
         /// <remarks>
         /// This method is designed to decompose an SRT transformation matrix only.
@@ -711,7 +711,7 @@ namespace Xenko.Core.Mathematics
         /// Decomposes a matrix into a scale, rotation, and translation.
         /// </summary>
         /// <param name="scale">When the method completes, contains the scaling component of the decomposed matrix.</param>
-        /// <param name="rotation">When the method completes, contains the rtoation component of the decomposed matrix.</param>
+        /// <param name="rotation">When the method completes, contains the rotation component of the decomposed matrix.</param>
         /// <param name="translation">When the method completes, contains the translation component of the decomposed matrix.</param>
         /// <remarks>
         /// This method is designed to decompose an SRT transformation matrix only.
@@ -1454,14 +1454,23 @@ namespace Xenko.Core.Mathematics
             //By separating the above algorithm into multiple lines, we actually increase accuracy.
             result = value;
 
-            result.Row2 = result.Row2 - (Vector4.Dot(result.Row1, result.Row2) / Vector4.Dot(result.Row1, result.Row1)) * result.Row1;
+            var row1 = result.Row1;
+            var row2 = result.Row2;
+            var row3 = result.Row3;
+            var row4 = result.Row4;
 
-            result.Row3 = result.Row3 - (Vector4.Dot(result.Row1, result.Row3) / Vector4.Dot(result.Row1, result.Row1)) * result.Row1;
-            result.Row3 = result.Row3 - (Vector4.Dot(result.Row2, result.Row3) / Vector4.Dot(result.Row2, result.Row2)) * result.Row2;
+            row2 = row2 - (Vector4.Dot(row1, row2) / Vector4.Dot(row1, row1)) * row1;
 
-            result.Row4 = result.Row4 - (Vector4.Dot(result.Row1, result.Row4) / Vector4.Dot(result.Row1, result.Row1)) * result.Row1;
-            result.Row4 = result.Row4 - (Vector4.Dot(result.Row2, result.Row4) / Vector4.Dot(result.Row2, result.Row2)) * result.Row2;
-            result.Row4 = result.Row4 - (Vector4.Dot(result.Row3, result.Row4) / Vector4.Dot(result.Row3, result.Row3)) * result.Row3;
+            row3 = row3 - (Vector4.Dot(row1, row3) / Vector4.Dot(row1, row1)) * row1;
+            row3 = row3 - (Vector4.Dot(row2, row3) / Vector4.Dot(row2, row2)) * row2;
+
+            row4 = row4 - (Vector4.Dot(row1, row4) / Vector4.Dot(row1, row1)) * row1;
+            row4 = row4 - (Vector4.Dot(row2, row4) / Vector4.Dot(row2, row2)) * row2;
+            row4 = row4 - (Vector4.Dot(row3, row4) / Vector4.Dot(row3, row3)) * row3;
+
+            result.Row2 = row2;
+            result.Row3 = row3;
+            result.Row4 = row4;
         }
 
         /// <summary>
@@ -1516,21 +1525,30 @@ namespace Xenko.Core.Mathematics
             //q4 = (m4 - (q1 ⋅ m4) * q1 - (q2 ⋅ m4) * q2 - (q3 ⋅ m4) * q3) / |m4 - (q1 ⋅ m4) * q1 - (q2 ⋅ m4) * q2 - (q3 ⋅ m4) * q3|
 
             //By separating the above algorithm into multiple lines, we actually increase accuracy.
-            result = value;
+            var row1 = value.Row1;
+            var row2 = value.Row2;
+            var row3 = value.Row3;
+            var row4 = value.Row4;
 
-            result.Row1 = Vector4.Normalize(result.Row1);
+            row1.Normalize();
 
-            result.Row2 = result.Row2 - Vector4.Dot(result.Row1, result.Row2) * result.Row1;
-            result.Row2 = Vector4.Normalize(result.Row2);
+            row2 = row2 - Vector4.Dot(row1, row2) * row1;
+            row2.Normalize();
 
-            result.Row3 = result.Row3 - Vector4.Dot(result.Row1, result.Row3) * result.Row1;
-            result.Row3 = result.Row3 - Vector4.Dot(result.Row2, result.Row3) * result.Row2;
-            result.Row3 = Vector4.Normalize(result.Row3);
+            row3 = row3 - Vector4.Dot(row1, row3) * row1;
+            row3 = row3 - Vector4.Dot(row2, row3) * row2;
+            row3.Normalize();
 
-            result.Row4 = result.Row4 - Vector4.Dot(result.Row1, result.Row4) * result.Row1;
-            result.Row4 = result.Row4 - Vector4.Dot(result.Row2, result.Row4) * result.Row2;
-            result.Row4 = result.Row4 - Vector4.Dot(result.Row3, result.Row4) * result.Row3;
-            result.Row4 = Vector4.Normalize(result.Row4);
+            row4 = row4 - Vector4.Dot(row1, row4) * row1;
+            row4 = row4 - Vector4.Dot(row2, row4) * row2;
+            row4 = row4 - Vector4.Dot(row3, row4) * row3;
+            row4.Normalize();
+
+            result = default;
+            result.Row1 = row1;
+            result.Row2 = row2;
+            result.Row3 = row3;
+            result.Row4 = row4;
         }
 
         /// <summary>
@@ -2820,8 +2838,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the created rotation matrix.</param>
         public static void RotationYawPitchRoll(float yaw, float pitch, float roll, out Matrix result)
         {
-            Quaternion quaternion = new Quaternion();
-            Quaternion.RotationYawPitchRoll(yaw, pitch, roll, out quaternion);
+            Quaternion.RotationYawPitchRoll(yaw, pitch, roll, out var quaternion);
             RotationQuaternion(ref quaternion, out result);
         }
 

@@ -112,8 +112,7 @@ namespace Xenko.Rendering.Lights
         {
             var spotLight = (LightSpot)light.Type;
 
-            Matrix viewMatrix = light.WorldMatrix;
-            viewMatrix.Invert();
+            Matrix.Invert(ref light.WorldMatrix, out var viewMatrix);
 
             // TODO: PERFORMANCE: This does redundant work. The view projection matrix is already calculated within "LightSpotShadowMapRenderer".
 
@@ -157,7 +156,7 @@ namespace Xenko.Rendering.Lights
             viewMatrix.M21 *= -height;
             viewMatrix.M22 *= -height;   // Invert the matrix so we don't have to do it in the shader.
             viewMatrix.M23 *= -height;
-            
+
             return viewMatrix; // Model matrix of the projector plane.
         }
 
@@ -179,8 +178,8 @@ namespace Xenko.Rendering.Lights
         // TODO: Find a way to use this class!
         private class LightSpotTextureProjectionShaderData : ILightShadowMapShaderData
         {
-            public float ProjectiveTextureMipMapLevel; 
-            public Matrix WorldToTextureUV; 
+            public float ProjectiveTextureMipMapLevel;
+            public Matrix WorldToTextureUV;
         }
 
         public class LightSpotTextureProjectionGroupShaderData : ITextureProjectionShaderGroupData // TODO: Make private
@@ -264,7 +263,7 @@ namespace Xenko.Rendering.Lights
                         /*
                         // TODO: Just save the shaderdata struct directly within "LightDynamicEntry"?
                         var singleLightData = (LightSpotTextureProjectionShaderData)lightEntry.ShadowMapTexture.ShaderData;   // TODO: This must not depend on the shadow map texture!
-                        
+
                         worldToTextureUV[lightIndex] = singleLightData.WorldToTextureUV;
                         projectionTextureMipMapLevels[lightIndex] = singleLightData.ProjectiveTextureMipMapLevel;
                         projectiveTexture = singleLightData.ProjectiveTexture;
@@ -286,11 +285,11 @@ namespace Xenko.Rendering.Lights
                 }
 
                 // TODO: Why is this set if it's already in the collection?
-                // TODO: Does this get set once per group or something? 
+                // TODO: Does this get set once per group or something?
                 parameters.Set(projectiveTextureKey, lightParameters.ProjectionTexture);
                 parameters.Set(uvScale, lightParameters.UVScale);
                 parameters.Set(uvOffset, lightParameters.UVOffset);
-                parameters.Set(worldToProjectiveTextureUVsKey, worldToTextureUV); 
+                parameters.Set(worldToProjectiveTextureUVsKey, worldToTextureUV);
                 parameters.Set(projectorPlaneMatricesKey, projectorPlaneMatrices);
                 parameters.Set(projectionTextureMipMapLevelsKey, projectionTextureMipMapLevels);
                 parameters.Set(transitionAreasKey, transitionAreas);

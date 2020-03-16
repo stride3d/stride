@@ -42,7 +42,7 @@ namespace Xenko.Rendering.Images
         }
 
         /// <userdoc>
-        /// The number of pixels sampled to determine how occluded a point is. Higher values reduce noise, but affect performance. 
+        /// The number of pixels sampled to determine how occluded a point is. Higher values reduce noise, but affect performance.
         /// Use with "Blur count to find a balance between results and performance.
         /// </userdoc>
         [DataMember(10)]
@@ -109,7 +109,7 @@ namespace Xenko.Rendering.Images
         public float EdgeSharpness { get; set; } = 3f;
 
         /// <userdoc>
-        /// The resolution the ambient occlusion is calculated at. The result is upscaled to the game resolution. 
+        /// The resolution the ambient occlusion is calculated at. The result is upscaled to the game resolution.
         /// Larger sizes produce better results but use more memory and affect performance.
         /// </userdoc>
         [DataMember(100)]
@@ -202,7 +202,7 @@ namespace Xenko.Rendering.Images
             for (int bounces = 0; bounces < NumberOfBounces; bounces++)
             {
                 if (offsetsWeights == null)
-                {                    
+                {
                     offsetsWeights = new[]
                     {
                         //  0.356642f, 0.239400f, 0.072410f, 0.009869f,
@@ -216,8 +216,9 @@ namespace Xenko.Rendering.Images
                 }
 
                 // Set Near/Far pre-calculated factors to speed up the linear depth reconstruction
-                blurH.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane));
-                blurV.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane));
+                var zProj = CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane);
+                blurH.Parameters.Set(CameraKeys.ZProjection, ref zProj);
+                blurV.Parameters.Set(CameraKeys.ZProjection, ref zProj);
 
                 // Update permutation parameters
                 blurH.Parameters.Set(AmbientOcclusionBlurKeys.Count, offsetsWeights.Length);

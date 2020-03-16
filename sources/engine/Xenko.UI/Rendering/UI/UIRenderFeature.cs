@@ -172,7 +172,7 @@ namespace Xenko.Rendering.UI
                     
                     // only update result element, when this one has a value
                     if (loopedElementUnderMouseCursor != null)
-                        elementUnderMouseCursor = loopedElementUnderMouseCursor; 
+                        elementUnderMouseCursor = loopedElementUnderMouseCursor;
                 }
             }
             UIElementUnderMouseCursor = elementUnderMouseCursor;
@@ -361,17 +361,20 @@ namespace Xenko.Rendering.UI
 
                     if (renderObject.IsBillboard)
                     {
+                        var viewInverseRow1 = viewInverse.Row1;
+                        var viewInverseRow2 = viewInverse.Row2;
+
                         // remove scale of the camera
-                        viewInverse.Row1 /= viewInverse.Row1.XYZ().Length();
-                        viewInverse.Row2 /= viewInverse.Row2.XYZ().Length();
+                        viewInverseRow1 /= viewInverseRow1.XYZ().Length();
+                        viewInverseRow2 /= viewInverseRow2.XYZ().Length();
 
                         // set the scale of the object
-                        viewInverse.Row1 *= worldMatrix.Row1.XYZ().Length();
-                        viewInverse.Row2 *= worldMatrix.Row2.XYZ().Length();
+                        viewInverseRow1 *= worldMatrix.Row1.XYZ().Length();
+                        viewInverseRow2 *= worldMatrix.Row2.XYZ().Length();
 
                         // set the adjusted world matrix
-                        worldMatrix.Row1 = viewInverse.Row1;
-                        worldMatrix.Row2 = viewInverse.Row2;
+                        worldMatrix.Row1 = viewInverseRow1;
+                        worldMatrix.Row2 = viewInverseRow2;
                         worldMatrix.Row3 = viewInverse.Row3;
                     }
 

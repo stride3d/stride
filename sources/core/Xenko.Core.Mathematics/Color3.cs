@@ -66,7 +66,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The value that will be assigned to all components.</param>
         public Color3(float value)
         {
-            R = G = B = value;
+            R = value;
+            G = value;
+            B = value;
         }
 
         /// <summary>

@@ -70,7 +70,7 @@ namespace Xenko.Rendering.SubsurfaceScattering
             materialScatteringKernelBuffer?.Dispose();
             materialScatteringKernelBuffer = null;
         }
-        
+
         private void SetPermutationParameterForBothShaders<T>(PermutationParameterKey<T> parameter, T value) where T : struct
         {
             blurHShader.Parameters.Set(parameter, value);
@@ -81,6 +81,12 @@ namespace Xenko.Rendering.SubsurfaceScattering
         {
             blurHShader.Parameters.Set(parameter, value);
             blurVShader.Parameters.Set(parameter, value);
+        }
+
+        private void SetValueParameterForBothShaders<T>(ValueParameterKey<T> parameter, ref T value) where T : struct
+        {
+            blurHShader.Parameters.Set(parameter, ref value);
+            blurVShader.Parameters.Set(parameter, ref value);
         }
 
         private void SetValueParameterForBothShaders<T>(ValueParameterKey<T> parameter, T[] value) where T : struct
@@ -133,7 +139,7 @@ namespace Xenko.Rendering.SubsurfaceScattering
             Vector2 projectedSphereDimensionsOnFarPlane = CalculateProjectionSizeOnPlane(renderView, renderView.FarClipPlane);
 
             Vector2 nearFarPlaneRatio = projectedSphereDimensionsOnFarPlane / projectedSphereDimensionsOnNearPlane;
-            
+
             return nearFarPlaneRatio.Y > 0.01f ? true : false;
         }
 
@@ -183,7 +189,7 @@ namespace Xenko.Rendering.SubsurfaceScattering
             SetValueParameterForBothShaders(SubsurfaceScatteringBlurShaderKeys.ProjectionSizeOnUnitPlaneInClipSpace, projectionSizeOnUnitPlaneInClipSpace);
 
             // Other parameters:
-            SetValueParameterForBothShaders(SubsurfaceScatteringBlurShaderKeys.ViewProjectionMatrix, renderView.ViewProjection);    // This is used for debugging only.
+            SetValueParameterForBothShaders(SubsurfaceScatteringBlurShaderKeys.ViewProjectionMatrix, ref renderView.ViewProjection);    // This is used for debugging only.
 
             // Supply the material arrays of this frame to the shaders:
             SetValueParameterForBothShaders(SubsurfaceScatteringBlurShaderKeys.ScatteringWidths, materialScatteringWidths);  // TODO: PERFORMANCE: Only upload the actual number of elements used?
@@ -203,7 +209,7 @@ namespace Xenko.Rendering.SubsurfaceScattering
         {
             UpdatePermutationParameters(context);
             UpdateParameters(context, context.RenderContext.RenderView);
-            
+
             // Get the render target attachments to sample from:
             Texture inputFrameBufferColorAttachment = GetSafeInput(ColorInputIndex);
             Texture inputFrameBufferDepthAttachment = GetSafeInput(DepthStencilInputIndex);
@@ -254,7 +260,7 @@ namespace Xenko.Rendering.SubsurfaceScattering
             {
                 throw new Exception("Too many scattering materials present in order to be able to fit them all into a single array! Maximum count is " + MaxMaterialCount + ".");
             }
-            
+
             scatteringKernel.CopyTo(materialScatteringKernels, (int)materialIndex * SubsurfaceScatteringSettings.SamplesPerScatteringKernel2);   // Insert into the global scattering kernel array.
         }
 
@@ -267,7 +273,7 @@ namespace Xenko.Rendering.SubsurfaceScattering
         [DefaultValue(true)]
         [Display("Follow surface")]
         public bool FollowSurface { get; set; } = true;
-        
+
         /// <userdoc>
         /// Specifies the number of times the blur should be executed.
         /// The higher the number of passes, the smoother the final result (less noise & banding).
@@ -277,7 +283,7 @@ namespace Xenko.Rendering.SubsurfaceScattering
         [DataMemberRange(1, 10, 1, 1, 0)]
         [Display("Number of passes")]
         public int NumberOfPasses { get; set; } = 1;
-        
+
         /// <userdoc>
         // This reduces the banding artifacts caused by undersampling (visible on closeups) by introducing a bit of noise.
         // This might create a less mathematically correct falloff, since it messes with the sample offsets.

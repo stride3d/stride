@@ -603,7 +603,7 @@ namespace Xenko.Graphics
 
             // Setup effect states and parameters: SamplerState and MatrixTransform
             // Sets the sampler state
-            Parameters.Set(SpriteBaseKeys.MatrixTransform, viewProjection);
+            Parameters.Set(SpriteBaseKeys.MatrixTransform, ref viewProjection);
 
             base.PrepareForRendering();
         }
