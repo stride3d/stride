@@ -35,8 +35,11 @@ namespace Xenko.Core.Assets.CompilerApp
         {
             foreach (var remoteLog in remoteLogs)
             {
-                if (remoteLog != null)
-                    remoteLog.Dispose();
+                try
+                {
+                    remoteLog?.Dispose();
+                }
+                catch { }
             }
         }
 
@@ -77,7 +80,11 @@ namespace Xenko.Core.Assets.CompilerApp
                 catch
                 {
                     // Communication failed, let's null it out so that we don't try again
-                    remoteLog.Dispose();
+                    try
+                    {
+                        remoteLog.Dispose();
+                    }
+                    catch { }
                     remoteLogs[i] = null;
 
                     // Check if we still need to log anything
