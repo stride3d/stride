@@ -15,11 +15,13 @@ namespace Xenko.Input
         private List<GamePadSimulated> gamePads = new List<GamePadSimulated>();
         private List<MouseSimulated> mice = new List<MouseSimulated>();
         private List<KeyboardSimulated> keyboards = new List<KeyboardSimulated>();
-        
+        private List<PointerSimulated> pointers = new List<PointerSimulated>();
+
         public IReadOnlyList<KeyboardSimulated> Keyboards => keyboards;
         public IReadOnlyList<MouseSimulated> Mice => mice;
         public IReadOnlyList<GamePadSimulated> GamePads => gamePads;
-        
+        public IReadOnlyList<PointerSimulated> Pointers => pointers;
+
         public override void Initialize(InputManager inputManager)
         {
         }
@@ -30,6 +32,7 @@ namespace Xenko.Input
             keyboards.Clear();
             mice.Clear();
             gamePads.Clear();
+            pointers.Clear();
         }
 
         public GamePadSimulated AddGamePad()
@@ -101,10 +104,27 @@ namespace Xenko.Input
             keyboards.Clear();
         }
 
-        private enum DeviceEventType
+        public PointerSimulated AddPointer()
         {
-            Add,
-            Remove,
+            var pointer = new PointerSimulated(this);
+            pointers.Add(pointer);
+            RegisterDevice(pointer);
+            return pointer;
+        }
+
+        public void RemovePointer(PointerSimulated pointer)
+        {
+            if (!pointers.Contains(pointer))
+                throw new InvalidOperationException("Simulated PointerDevice does not exist");
+            UnregisterDevice(pointer);
+            pointers.Remove(pointer);
+        }
+
+        public void RemoveAllPointers()
+        {
+            foreach (var pointer in pointers)
+                UnregisterDevice(pointer);
+            pointers.Clear();
         }
     }
 }
