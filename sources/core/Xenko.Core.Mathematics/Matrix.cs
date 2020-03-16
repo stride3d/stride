@@ -2838,8 +2838,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the created rotation matrix.</param>
         public static void RotationYawPitchRoll(float yaw, float pitch, float roll, out Matrix result)
         {
-            Quaternion quaternion;
-            Quaternion.RotationYawPitchRoll(yaw, pitch, roll, out quaternion);
+            Quaternion.RotationYawPitchRoll(yaw, pitch, roll, out var quaternion);
             RotationQuaternion(ref quaternion, out result);
         }
 
