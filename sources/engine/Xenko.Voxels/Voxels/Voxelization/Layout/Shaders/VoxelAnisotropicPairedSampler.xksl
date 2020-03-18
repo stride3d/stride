@@ -1,0 +1,48 @@
+﻿namespace Xenko.Rendering.Voxels
+{
+    shader VoxelAnisotropicPairedSampler : IVoxelSampler, Texturing
+    {
+        compose VoxelStorageTextureShader storage;
+        cbuffer PerView.Lighting
+        {
+            float maxBrightness;
+        }
+        
+        float4 applyMaxBrightness(float4 col)
+        {
+            return float4(col.rgb * maxBrightness, col.a);
+        }
+        override float4 Sample(float3 position, float3 normal, float diameter)
+        {
+            return applyMaxBrightness(
+                   storage.Sample(position, diameter, 0) * abs(normal.x) +
+                   storage.Sample(position, diameter, 1) * abs(normal.y) +
+                   storage.Sample(position, diameter, 2) * abs(normal.z)
+                   );
+        }
+        override float4 SampleNearestMip(float3 position, float3 normal, float diameter)
+        {
+            return applyMaxBrightness(
+                   storage.SampleNearestMip(position, diameter, 0) * abs(normal.x) +
+                   storage.SampleNearestMip(position, diameter, 1) * abs(normal.y) +
+                   storage.SampleNearestMip(position, diameter, 2) * abs(normal.z)
+                   );
+        }
+        override float4 SampleByMipNearestMip(float3 position, float3 normal, float diameter)
+        {
+            return applyMaxBrightness(
+                   storage.SampleByMipNearestMip(position, diameter, 0) * abs(normal.x) +
+                   storage.SampleByMipNearestMip(position, diameter, 1) * abs(normal.y) +
+                   storage.SampleByMipNearestMip(position, diameter, 2) * abs(normal.z)
+                   );
+        }
+        override float4 SampleRaw(float3 pos, float mipmap, int textureID, int axis)
+        {
+            return storage.SampleRaw(pos, mipmap, textureID, axis);
+        }
+        override float VoxelSize()
+        {
+            return storage.VoxelSize();
+        }
+    };
+}

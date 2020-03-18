@@ -1,0 +1,19 @@
+﻿shader VoxelFragmentPacker
+{
+    compose VoxelBufferWriter writer;
+
+    void Skip(inout uint address, float unpacked){}
+    void Skip(inout uint address, float2 unpacked){}
+    void Skip(inout uint address, float3 unpacked){}
+    void Skip(inout uint address, float4 unpacked){}
+
+    void Write(RWBuffer<uint> fragmentsBuffer, inout uint address, float unpacked){}
+    void Write(RWBuffer<uint> fragmentsBuffer, inout uint address, float2 unpacked){}
+    void Write(RWBuffer<uint> fragmentsBuffer, inout uint address, float3 unpacked){}
+    void Write(RWBuffer<uint> fragmentsBuffer, inout uint address, float4 unpacked){}
+
+    void Read(RWBuffer<uint> fragmentsBuffer, inout uint address, out float unpacked){unpacked = 0;}
+    void Read(RWBuffer<uint> fragmentsBuffer, inout uint address, out float2 unpacked){unpacked = float2(0,0);}
+    void Read(RWBuffer<uint> fragmentsBuffer, inout uint address, out float3 unpacked){unpacked = float3(0,0,0);}
+    void Read(RWBuffer<uint> fragmentsBuffer, inout uint address, out float4 unpacked){unpacked = float4(0,0,0,0);}
+};

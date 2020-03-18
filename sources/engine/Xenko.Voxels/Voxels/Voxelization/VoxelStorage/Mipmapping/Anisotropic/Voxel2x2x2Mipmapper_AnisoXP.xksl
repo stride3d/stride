@@ -1,0 +1,14 @@
+﻿namespace Xenko.Rendering.Voxels
+{
+    shader Voxel2x2x2Mipmapper_AnisoXP : Voxel2x2x2Mipmapper
+    {
+        float4 blend(float4 s0, float4 s1)
+        {
+            return s0*(1-s1.a) + s1;
+        }
+        override float4 Mipmap(float4 s000, float4 s100, float4 s110, float4 s101, float4 s011, float4 s010, float4 s001, float4 s111)
+        {
+            return (blend(s000,s100) + blend(s010,s110) + blend(s011,s111) + blend(s001,s101))/4;
+        }
+    };
+}

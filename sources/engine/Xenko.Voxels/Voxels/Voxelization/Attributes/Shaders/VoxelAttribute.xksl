@@ -1,0 +1,9 @@
+shader VoxelAttribute
+{
+    void InitializeDummy(){}
+    void InitializeFromStreams(){}
+    void InitializeFromBuffer(RWBuffer<uint> buffer, uint address, uint2 base_stride){}
+    void IndirectWrite(RWBuffer<uint> buffer, uint address){}
+    void DirectWrite(uint3 address, uint strideIndex, uint stride){}
+    float4 SampleLocal(){return float4(0,0,0,1);};
+};

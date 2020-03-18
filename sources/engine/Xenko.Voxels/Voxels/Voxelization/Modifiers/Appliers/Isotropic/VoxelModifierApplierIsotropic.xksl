@@ -1,0 +1,7 @@
+﻿shader VoxelModifierApplierIsotropic
+{
+    void Apply(inout float4 center){}
+    void Apply(inout float3 center){}
+    void Apply(inout float2 center){}
+    void Apply(inout float center){}
+};

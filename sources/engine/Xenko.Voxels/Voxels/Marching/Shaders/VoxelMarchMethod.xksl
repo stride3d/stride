@@ -1,0 +1,5 @@
+﻿shader VoxelMarchMethod
+{
+    float4 March(float3 rayPos, float3 rayDir){ return float4(0, 0, 0, 0); }
+    float StepSize(){ return 1.0; }
+};

@@ -1,0 +1,8 @@
+﻿shader VoxelModifierApplierOpacifyIsotropic : VoxelModifierApplierIsotropic
+{
+    float Amount;
+    override void Apply(inout float4 center)
+    {
+        center.a *= Amount;
+    }
+};

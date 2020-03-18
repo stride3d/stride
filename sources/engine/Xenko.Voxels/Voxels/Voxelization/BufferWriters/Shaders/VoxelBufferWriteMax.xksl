@@ -1,0 +1,14 @@
+﻿    shader VoxelBufferWriteMax : VoxelBufferWriter
+    {
+        override void Write_Internal(RWBuffer<uint> fragmentsBuffer, inout uint address, uint data)
+        {
+            uint unusedOut = -1;
+            InterlockedMax(fragmentsBuffer[address], data, unusedOut);
+            address++;
+        }
+        
+        override float4 Test()
+        {
+            return float4(0,1,0,1);
+        }
+    };

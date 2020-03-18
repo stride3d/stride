@@ -1,0 +1,59 @@
+﻿shader VoxelFragmentPackFloat32 : VoxelFragmentPacker
+{
+    override void Skip(inout uint address, float unpacked){address += 1;}
+    override void Skip(inout uint address, float2 unpacked){address += 2;}
+    override void Skip(inout uint address, float3 unpacked){address += 3;}
+    override void Skip(inout uint address, float4 unpacked){address += 4;}
+    override void Write(RWBuffer<uint> fragmentsBuffer, inout uint address, float unpacked)
+    {
+        writer.Write_Internal(fragmentsBuffer, address, asuint(unpacked));
+    }
+    override void Write(RWBuffer<uint> fragmentsBuffer, inout uint address, float2 unpacked)
+    {
+        writer.Write_Internal(fragmentsBuffer, address, asuint(unpacked));
+    }
+    override void Write(RWBuffer<uint> fragmentsBuffer, inout uint address, float3 unpacked)
+    {
+        writer.Write_Internal(fragmentsBuffer, address, asuint(unpacked));
+    }
+    override void Write(RWBuffer<uint> fragmentsBuffer, inout uint address, float4 unpacked)
+    {
+        writer.Write_Internal(fragmentsBuffer, address, asuint(unpacked));
+    }
+
+
+    
+
+    override void Read(RWBuffer<uint> fragmentsBuffer, inout uint address, out float unpacked)
+    {
+        unpacked = asfloat(fragmentsBuffer[address]);
+        address++;
+    }
+    override void Read(RWBuffer<uint> fragmentsBuffer, inout uint address, out float2 unpacked)
+    {
+        unpacked.r = asfloat(fragmentsBuffer[address]);
+        address++;
+        unpacked.g = asfloat(fragmentsBuffer[address]);
+        address++;
+    }
+    override void Read(RWBuffer<uint> fragmentsBuffer, inout uint address, out float3 unpacked)
+    {
+        unpacked.r = asfloat(fragmentsBuffer[address]);
+        address++;
+        unpacked.g = asfloat(fragmentsBuffer[address]);
+        address++;
+        unpacked.b = asfloat(fragmentsBuffer[address]);
+        address++;
+    }
+    override void Read(RWBuffer<uint> fragmentsBuffer, inout uint address, out float4 unpacked)
+    {
+        unpacked.r = asfloat(fragmentsBuffer[address]);
+        address++;
+        unpacked.g = asfloat(fragmentsBuffer[address]);
+        address++;
+        unpacked.b = asfloat(fragmentsBuffer[address]);
+        address++;
+        unpacked.a = asfloat(fragmentsBuffer[address]);
+        address++;
+    }
+};

@@ -1,0 +1,45 @@
+﻿shader VoxelMarchSetHemisphere6 : VoxelMarchSet, ShaderBase
+{
+    cbuffer PerView.Lighting
+    {
+        float offset;
+    }
+    compose VoxelMarchMethod Marcher;
+    override float4 March(float3 rayPos, float3 rayDir)
+    {
+        float3 tan = normalize(cross(rayDir, normalize(float3(1, 1, 1))));
+        float3 bitan = cross(tan, rayDir);
+        float3x3 tangentMatrix = float3x3(tan, bitan, rayDir);
+
+        float3 startPos = rayPos + rayDir * Marcher.StepSize() * offset;
+
+        float4 reflLighting = float4(0, 0, 0, 0);
+        
+        //Dot products of rays
+        float central = 1.0;
+        float outer = 0.445;
+        float sum = central + outer * 5;
+        central /= sum;
+        outer /= sum;
+
+        rayDir = mul(float3(0, 0, 1), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * central;
+
+        rayDir = mul(normalize(float3(0.85, 0.278, 0.445)), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+
+        rayDir = mul(normalize(float3(0.527, -0.723, 0.445)), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+
+        rayDir = mul(normalize(float3(-0.526, -0.724, 0.445)), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+
+        rayDir = mul(normalize(float3(-0.851, 0.277, 0.445)), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+
+        rayDir = mul(normalize(float3(0.895, 0.445, 0.445)), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+
+        return reflLighting;
+    }
+};

@@ -1,0 +1,106 @@
+shader VoxelAttributeSolidityShader : VoxelAttribute, VoxelPositionStream, ShaderBaseStream, NormalStream, DataPacking
+{
+    stream uint Voxel_SolidifyTop;
+    stream uint Voxel_SolidifyBottom;
+    stream float Voxel_Solidity;
+    stream int sendTo;
+    stream int ignoreTil;
+
+    RWTexture3D<float> DirectOutput;
+
+    override void InitializeDummy()
+    {
+        streams.Voxel_SolidifyTop = 0;
+        streams.Voxel_SolidifyBottom = 0;
+        streams.Voxel_Solidity = 0;
+        streams.sendTo = 0;
+        streams.ignoreTil = 0;
+    }
+    override void InitializeFromStreams()
+    {
+        uint pos = FloatUnormToUint(streams.PositionVXS.y) & (0xFFFFFFFF << 2);
+        uint invpos = FloatUnormToUint(1.0 - streams.PositionVXS.y) & (0xFFFFFFFF << 2);
+        uint type = 0;
+        streams.normalWS = normalize(streams.normalWS);
+        if (streams.normalWS.y < -0.0)
+            type = 1;
+        if (streams.normalWS.y > 0.0)
+            type = 2;
+
+        streams.Voxel_SolidifyTop = pos + type;
+        streams.Voxel_SolidifyBottom = invpos + type;
+
+        streams.sendTo = 0;
+        streams.ignoreTil = 0;
+    }
+    override void DirectWrite(uint3 address, uint strideIndex, uint stride)
+    {
+        address.y += strideIndex * stride;
+        DirectOutput[address] = streams.Voxel_Solidity;
+    }
+    override void IndirectWrite(RWBuffer<uint> buffer, uint address)
+    {
+        InterlockedMax(buffer[address], streams.Voxel_SolidifyTop);
+        address++;
+        InterlockedMax(buffer[address], streams.Voxel_SolidifyBottom);
+    }
+    bool ResolvesSelf()
+    {
+        return (streams.Voxel_SolidifyTop & 3) == 2 && (streams.Voxel_SolidifyBottom & 3) == 1;
+    }
+    bool IsSender()
+    {
+        return (streams.Voxel_SolidifyTop & 3) == 1;
+    }
+    bool IsReceiver()
+    {
+        return (streams.Voxel_SolidifyBottom & 3) == 2;
+    }
+    override float4 SampleLocal()
+    {
+        return float4(IsReceiver()?1:0,IsSender()?1:0,ResolvesSelf()?1:0,streams.Voxel_Solidity);
+    }
+    override void InitializeFromBuffer(RWBuffer<uint> buffer, uint address, uint2 base_stride)
+    {
+        int Y = streams.PositionVXPS.y;
+        int maxY = streams.VoxelVolumeSize.y;
+
+        uint originalAddress = address;
+
+        streams.Voxel_Solidity = 0;
+
+        if (Y>streams.ignoreTil)
+        {
+            if (Y>=streams.sendTo)
+            {
+                streams.ignoreTil = maxY;
+                for(int y = Y ; y < maxY; y++)
+                {
+                    uint tempAddress = base_stride.x + base_stride.y * y;
+                    streams.Voxel_SolidifyTop = buffer[tempAddress];
+                    streams.Voxel_SolidifyBottom = buffer[tempAddress + 1];
+                    if (IsReceiver())
+                    {
+                        if (streams.ignoreTil<y)
+                        {
+                            streams.sendTo = y;
+                            break;
+                        }
+                    }
+                    if (IsSender())
+                    {
+                        streams.ignoreTil = y;
+                    }
+                    if (ResolvesSelf())
+                    {
+                        streams.ignoreTil = maxY;
+                    }
+                }
+            }
+            else if (Y<streams.sendTo)
+            {
+                streams.Voxel_Solidity = 1;
+            }
+        }
+    }
+};

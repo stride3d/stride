@@ -92,7 +92,7 @@ namespace Xenko.Rendering
         public void TryCollect(RenderView view)
         {
             // Already colleted this frame?
-            if (view.LastFrameCollected >= RenderSystem.FrameCounter)
+            if (view.LastFrameCollected == RenderSystem.FrameCounter)
                 return;
 
             view.LastFrameCollected = RenderSystem.FrameCounter;

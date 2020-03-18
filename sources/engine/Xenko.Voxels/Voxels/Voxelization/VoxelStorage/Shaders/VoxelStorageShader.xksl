@@ -1,0 +1,19 @@
+shader VoxelStorageShader : VoxelPositionStream, PositionStream4, ShaderBaseStream
+{
+    compose VoxelizationMethod method;
+    void PrepareFragments(){ method.PrepareFragment(); }
+    void StoreFragments(){ }
+    bool MightStoreFragments(){ return false; }
+    void PrepareVertex(){ method.PrepareVertex(); }
+    void GenerateTriangles(triangle Input input [3], inout TriangleStream<Output> triangleStream)
+    {
+        method.InitializeFromTriangle(input);
+        [unroll]
+        for (int i = 0; i < 3 ; i++)
+        {
+            streams = input[i];
+            method.Append(triangleStream);
+        }
+        method.RestartStrip(triangleStream);
+    }
+};

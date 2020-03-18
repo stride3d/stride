@@ -1,0 +1,4 @@
+shader LocalSamples
+{
+    stage stream float4 LocalSample[10];
+};

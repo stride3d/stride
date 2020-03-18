@@ -1,0 +1,13 @@
+shader VoxelModifierApplierAntiAliasingAnisotropic<int DirectionalOpacityAttributeID> : VoxelModifierApplierAnisotropic, LocalSamples
+{
+    override void Apply(inout float4 XP, inout float4 XN, inout float4 YP, inout float4 YN, inout float4 ZP, inout float4 ZN)
+    {
+        float3 PlaneCoverage = streams.LocalSample[DirectionalOpacityAttributeID].xyz;
+        XP *= PlaneCoverage.x;
+        XN *= PlaneCoverage.x;
+        YP *= PlaneCoverage.y;
+        YN *= PlaneCoverage.y;
+        ZP *= PlaneCoverage.z;
+        ZN *= PlaneCoverage.z;
+    }
+};

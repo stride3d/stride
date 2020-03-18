@@ -794,6 +794,34 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
+        /// Performs mathematical modulo component-wise (see MathUtil.Mod).
+        /// </summary>
+        /// <param name="left">The first source vector.</param>
+        /// <param name="right">The second source vector.</param>
+        /// <param name="result">When the method completes, contains an new vector composed of each component's modulo.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Mod(ref Vector3 left, ref Vector3 right, out Vector3 result)
+        {
+            result.X = MathUtil.Mod(left.X, right.X);
+            result.Y = MathUtil.Mod(left.Y, right.Y);
+            result.Z = MathUtil.Mod(left.Z, right.Z);
+        }
+
+        /// <summary>
+        /// Performs mathematical modulo component-wise (see MathUtil.Mod).
+        /// </summary>
+        /// <param name="left">The first source vector.</param>
+        /// <param name="right">The second source vector.</param>
+        /// <returns>When the method completes, contains an new vector composed of each component's modulo.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 Mod(Vector3 left, Vector3 right)
+        {
+            Vector3 result;
+            Mod(ref left, ref right, out result);
+            return result;
+        }
+
+        /// <summary>
         /// Returns a vector containing the smallest components of the specified vectors.
         /// </summary>
         /// <param name="left">The first source vector.</param>
@@ -1561,6 +1589,16 @@ namespace Xenko.Core.Mathematics
         public static explicit operator Vector4(Vector3 value)
         {
             return new Vector4(value, 0.0f);
+        }
+
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="Vector3"/> to <see cref="Int3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Int3(Vector3 value)
+        {
+            return new Int3((int)value.X, (int)value.Y, (int)value.Z);
         }
 
         /// <summary>

@@ -1,0 +1,62 @@
+shader VoxelAnisotropicPairedWriter_Float4 : VoxelLayout_Float4, NormalStream
+{
+    stream float4 axisX;
+    stream float4 axisY;
+    stream float4 axisZ;
+    RWTexture3D<float4> DirectOutput;
+    compose VoxelFragmentPacker writer;
+
+    float maxBrightnessInv;
+    
+    compose VoxelModifierApplierAnisotropicPaired Modifiers[];
+    override void InitializeDummy()
+    {
+        streams.axisX = float4(0,0,0,0);
+        streams.axisY = float4(0,0,0,0);
+        streams.axisZ = float4(0,0,0,0);
+    }
+    override void InitializeFromStreams(float4 original)
+    {
+        streams.axisX = original * abs(streams.normalWS.x);
+        streams.axisY = original * abs(streams.normalWS.y);
+        streams.axisZ = original * abs(streams.normalWS.z);
+    }
+    float4 applyMaxBrightness(float4 col)
+    {
+        return float4(col.rgb * maxBrightnessInv, col.a);
+    }
+    override void DirectWrite(uint3 address, uint strideIndex, uint stride)
+    {
+        address.y += strideIndex * stride * 3;
+        float4 tempAxisX = streams.axisX;
+        float4 tempAxisY = streams.axisY;
+        float4 tempAxisZ = streams.axisZ;
+        foreach (var modifier in Modifiers)
+        {
+            modifier.Apply(tempAxisX, tempAxisY, tempAxisZ);
+        }
+        streams.axisX = tempAxisX;
+        streams.axisY = tempAxisY;
+        streams.axisZ = tempAxisZ;
+
+        DirectOutput[address] = applyMaxBrightness(streams.axisX);address.y += stride;
+        DirectOutput[address] = applyMaxBrightness(streams.axisY);address.y += stride;
+        DirectOutput[address] = applyMaxBrightness(streams.axisZ);
+    }
+    override void IndirectWrite(RWBuffer<uint> buffer, uint address)
+    {
+        writer.Write(buffer, address, streams.axisX);
+        writer.Write(buffer, address, streams.axisY);
+        writer.Write(buffer, address, streams.axisZ);
+    }
+    override void InitializeFromBuffer(RWBuffer<uint> buffer, uint address)
+    {
+        writer.Read(buffer, address, streams.axisX);
+        writer.Read(buffer, address, streams.axisY);
+        writer.Read(buffer, address, streams.axisZ);
+    }
+    override float4 SampleLocal()
+    {
+        return streams.axisX;
+    }
+};
