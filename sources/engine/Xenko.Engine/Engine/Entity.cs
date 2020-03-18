@@ -13,7 +13,7 @@ using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Contents;
-using static EntityPool
+using static EntityPool;
 
 namespace Xenko.Engine
 {
