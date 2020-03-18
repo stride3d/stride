@@ -46,16 +46,18 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The value that will be assigned to all components.</param>
         public ColorBGRA(byte value)
         {
-            A = R = G = B = value;
+            B = value;
+            G = value;
+            R = value;
+            A = value;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ColorBGRA"/> struct.
         /// </summary>
         /// <param name="value">The value that will be assigned to all components.</param>
-        public ColorBGRA(float value)
+        public ColorBGRA(float value) : this(ToByte(value))
         {
-            A = R = G = B = ToByte(value);
         }
 
         /// <summary>

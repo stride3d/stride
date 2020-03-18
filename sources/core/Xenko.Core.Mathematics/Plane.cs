@@ -80,8 +80,8 @@ namespace Xenko.Core.Mathematics
         /// <param name="normal">The normal vector to the plane.</param>
         public Plane(Vector3 point, Vector3 normal)
         {
-            this.Normal = normal;
-            this.D = Vector3.Dot(normal, point);
+            Normal = normal;
+            Vector3.Dot(ref normal, ref point, out D);
         }
 
         /// <summary>
@@ -427,6 +427,24 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
+        /// Creates a plane of unit length.
+        /// </summary>
+        /// <param name="normalX">The X component of the normal.</param>
+        /// <param name="normalY">The Y component of the normal.</param>
+        /// <param name="normalZ">The Z component of the normal.</param>
+        /// <param name="planeD">The distance of the plane along its normal from the origin.</param>
+        /// <param name="result">When the method completes, contains the normalized plane.</param>
+        public static void Normalize(float normalX, float normalY, float normalZ, float planeD, out Plane result)
+        {
+            float magnitude = 1.0f / (float)(Math.Sqrt((normalX * normalX) + (normalY * normalY) + (normalZ * normalZ)));
+
+            result.Normal.X = normalX * magnitude;
+            result.Normal.Y = normalY * magnitude;
+            result.Normal.Z = normalZ * magnitude;
+            result.D = planeD * magnitude;
+        }
+
+        /// <summary>
         /// Changes the coefficients of the normal vector of the plane to make it of unit length.
         /// </summary>
         /// <param name="plane">The source plane.</param>
@@ -753,7 +771,7 @@ namespace Xenko.Core.Mathematics
         /// Returns a hash code for this instance.
         /// </summary>
         /// <returns>
-        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
         /// </returns>
         public override int GetHashCode()
         {
