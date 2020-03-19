@@ -210,7 +210,7 @@ namespace Xenko.Rendering
             if (accessor.BindingSlot == -1)
                 return parameter.DefaultValueMetadataT.DefaultValue;
 
-            return Get(GetAccessor(parameter, createIfNew));
+            return Get(accessor);
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace Xenko.Rendering
             if (accessor.BindingSlot == -1)
                 return parameter.DefaultValueMetadataT.DefaultValue;
 
-            return Get(GetAccessor(parameter));
+            return Get(accessor);
         }
 
         /// <summary>
