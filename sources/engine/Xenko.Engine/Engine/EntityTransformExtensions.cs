@@ -89,6 +89,18 @@ namespace Xenko.Engine
         }
 
         /// <summary>
+        /// Sets the parent of the <see cref="TransformComponent" /> of this <see cref="Entity" />. If the parent is set to <c>null</c>, the enity gets removed from the scene graph.
+        /// </summary>
+        /// <param name="entity">The entity.</param>
+        /// <param name="parent">The parent. Can be <c>null</c></param>
+        /// 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetParent(this Entity entity, Entity parent)
+        {
+            entity.Transform.Parent = parent?.Transform;
+        }
+
+        /// <summary>
         /// Returns the first child in the hierarchy with the provided name.
         /// This function can be slow, do not use every frame!
         /// </summary>
