@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="b0b8feb1-7b83-43fc-9fc0-70065ddb80a1" Version="3.0.9" Language="en-US" Publisher="Stride" />
+    <Identity Id="04d9ab62-ed21-4cd5-a8ee-0d15d877adbf" Version="3.0.9" Language="en-US" Publisher="Stride" />
     <DisplayName>Stride</DisplayName>
     <Description>Stride VisualStudio Package</Description>
     <Icon>Logo.ico</Icon>
