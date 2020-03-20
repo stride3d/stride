@@ -1568,7 +1568,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
             return null;
         }
 
-        public class PendingPackageUpgrade
+        public class PendingPackageUpgrade : IEquatable<PendingPackageUpgrade>
         {
             public readonly PackageUpgrader PackageUpgrader;
             public readonly PackageDependency Dependency;
@@ -1581,6 +1581,23 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                 Dependency = dependency;
                 DependencyPackage = dependencyPackage;
                 DependencyVersionBeforeUpgrade = Dependency.Version;
+            }
+
+            public bool Equals(PendingPackageUpgrade other)
+            {
+                if (ReferenceEquals(null, other)) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return Equals(PackageUpgrader, other.PackageUpgrader)
+                    && Equals(Dependency, other.Dependency)
+                    && Equals(DependencyPackage, other.DependencyPackage)
+                    && Equals(DependencyVersionBeforeUpgrade, other.DependencyVersionBeforeUpgrade);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                return Equals(obj as PendingPackageUpgrade);
             }
         }
 

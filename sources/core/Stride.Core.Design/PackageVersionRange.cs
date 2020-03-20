@@ -36,7 +36,7 @@ namespace Stride.Core
     /// </code>
     /// </remarks>
     [DataContract("PackageVersionDependency")]
-    public sealed class PackageVersionRange
+    public sealed class PackageVersionRange : IEquatable<PackageVersionRange>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageVersionRange"/> class.
@@ -385,6 +385,25 @@ namespace Stride.Core
 
                 return condition;
             };
+        }
+
+        /// <inheritdoc/>
+        public bool Equals(PackageVersionRange other)
+        {
+            if (ReferenceEquals(other, null)) return false;
+            if (ReferenceEquals(other, this)) return true;
+            return MinVersion.Equals(other.MinVersion)
+                && MaxVersion.Equals(other.MaxVersion)
+                && IsMinInclusive == other.IsMinInclusive
+                && IsMaxInclusive == other.IsMaxInclusive;
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(obj, null)) return false;
+            if (ReferenceEquals(obj, this)) return true;
+            return Equals(obj as PackageVersionRange);
         }
     }
 }

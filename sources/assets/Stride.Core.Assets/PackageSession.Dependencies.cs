@@ -91,6 +91,10 @@ namespace Stride.Core.Assets
 
             var packageReferences = new Dictionary<string, PackageVersionRange>();
 
+            // Check if there is any package upgrade to do
+            var pendingPackageUpgrades = new List<PendingPackageUpgrade>();
+            pendingPackageUpgradesPerPackage.Add(package, pendingPackageUpgrades);
+
             // Load some informations about the project
             try
             {
@@ -132,6 +136,20 @@ namespace Stride.Core.Assets
                             if (referencedProject != null)
                             {
                                 await PreLoadPackageDependencies(log, referencedProject, loadParameters);
+
+                                // Get package upgrader from dependency (a project might depend on another project rather than referencing Stride directly)
+                                // A better system would be to evaluate nuget flattened dependencies WITHOUT doing the actual restore (dry-run).
+                                // However I am not sure it's easy/possible to do it (using API) without doing a full restore/download, which we don't want to do
+                                // with old version (it might be uninstalled already and we want to avoid re-downloading it again)
+                                if (pendingPackageUpgradesPerPackage.TryGetValue(referencedProject.Package, out var dependencyPackageUpgraders))
+                                {
+                                    foreach (var dependencyPackageUpgrader in dependencyPackageUpgraders)
+                                    {
+                                        // Make sure this upgrader is not already added
+                                        if (!pendingPackageUpgrades.Contains(dependencyPackageUpgrader))
+                                            pendingPackageUpgrades.Add(dependencyPackageUpgrader);
+                                    }
+                                }
                             }
                         }
                     }
@@ -146,10 +164,6 @@ namespace Stride.Core.Assets
             {
                 log.Error($"Unexpected exception while loading project [{project.FullPath.ToWindowsPath()}]", ex);
             }
-
-            // Check if there is any package upgrade to do
-            var pendingPackageUpgrades = new List<PendingPackageUpgrade>();
-            pendingPackageUpgradesPerPackage.Add(package, pendingPackageUpgrades);
 
             foreach (var packageReference in packageReferences)
             {
