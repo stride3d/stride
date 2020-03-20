@@ -18,7 +18,7 @@ namespace Stride.LauncherApp.ViewModels
         private bool isDevRedirect;
 
         internal StrideDevVersionViewModel(LauncherViewModel launcher, NugetStore store, [CanBeNull] NugetLocalPackage localPackage, UDirectory path, bool isDevRedirect)
-            : base(launcher, store, localPackage, int.MaxValue, devMinorCounter--)
+            : base(launcher, store, localPackage, localPackage.Id, int.MaxValue, devMinorCounter--)
         {
             this.path = path;
             this.localPackage = localPackage;
@@ -32,7 +32,7 @@ namespace Stride.LauncherApp.ViewModels
         public override string Name => "Local " + path.MakeRelative(path.GetParent());
 
         /// <inheritdoc/>
-        public override string DisplayName => localPackage != null ? $"{localPackage.Version} (local)" : base.DisplayName;
+        public override string DisplayName => localPackage != null ? $"{PackageSimpleName} {localPackage.Version} (local)" : base.DisplayName;
 
         /// <inheritdoc/>
         public override string FullName => localPackage?.Version.ToString() ?? path.MakeRelative(path.GetParent());

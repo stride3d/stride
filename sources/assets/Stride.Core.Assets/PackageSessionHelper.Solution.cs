@@ -19,8 +19,8 @@ namespace Stride.Core.Assets
 {
     internal partial class PackageSessionHelper
     {
-        private const string StridePackage = "StridePackage";
-        private static readonly string[] SolutionPackageIdentifier = new[] { StridePackage, "SiliconStudioPackage" };
+        // Not used since Xenko 3.1 anymore, so doesn't apply to Stride
+        private static readonly string[] SolutionPackageIdentifier = new[] { "XenkoPackage", "SiliconStudioPackage" };
 
         public static async Task<PackageVersion> GetPackageVersion(string fullPath)
         {
@@ -81,7 +81,7 @@ namespace Stride.Core.Assets
                             var projectAssets = format.Read(projectAssetsJsonPath);
                             foreach (var library in projectAssets.Libraries)
                             {
-                                if ((library.Type == "package" || library.Type == "project") && library.Name == "Stride.Engine")
+                                if ((library.Type == "package" || library.Type == "project") && (library.Name == "Stride.Engine" || library.Name == "Xenko.Engine"))
                                 {
                                     return new PackageVersion((string)library.Version.ToString());
                                 }

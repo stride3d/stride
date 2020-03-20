@@ -41,7 +41,7 @@ namespace Stride.Core.Packages
     /// </summary>
     public class NugetStore : INugetDownloadProgress
     {
-        public const string MainExecutables = @"lib\net472\Stride.GameStudio.exe,Bin\Windows\Stride.GameStudio.exe,Bin\Windows-Direct3D11\Stride.GameStudio.exe";
+        public const string MainExecutables = @"lib\net472\Stride.GameStudio.exe,lib\net472\Xenko.GameStudio.exe,Bin\Windows\Xenko.GameStudio.exe,Bin\Windows-Direct3D11\Xenko.GameStudio.exe";
         public const string PrerequisitesInstaller = @"Bin\Prerequisites\install-prerequisites.exe";
 
         public const string DefaultPackageSource = "https://packages.stride3d.net/nuget";
@@ -74,6 +74,7 @@ namespace Stride.Core.Packages
             settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
 
             // Add dev source
+            RemoveDeletedSources(settings, "Xenko");
             RemoveDeletedSources(settings, "Stride");
             CheckPackageSource("Stride", DefaultPackageSource);
             settings.SaveToDisk();
@@ -130,7 +131,7 @@ namespace Stride.Core.Packages
         /// List of package Ids under which the main package is known. Usually just one entry, but
         /// we could have several in case there is a product name change.
         /// </summary>
-        public IReadOnlyCollection<string> MainPackageIds { get; } = new[] { "Stride.GameStudio", "Stride" };
+        public IReadOnlyCollection<string> MainPackageIds { get; } = new[] { "Stride.GameStudio", "Xenko.GameStudio", "Xenko" };
 
         /// <summary>
         /// Package Id of the Visual Studio Integration plugin.
@@ -327,7 +328,7 @@ namespace Stride.Core.Packages
                         var installPath = SettingsUtility.GetGlobalPackagesFolder(settings);
 
                         // Old version expects to be installed in GamePackages
-                        if (packageId == "Stride" && version < new PackageVersion(3, 0, 0, 0) && oldRootDirectory != null)
+                        if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0) && oldRootDirectory != null)
                         {
                             installPath = oldRootDirectory;
                         }
@@ -415,7 +416,7 @@ namespace Stride.Core.Packages
                             }
                         }
 
-                        if (packageId == "Stride" && version < new PackageVersion(3, 0, 0, 0))
+                        if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0))
                         {
                             UpdateTargetsHelper();
                         }
@@ -477,7 +478,7 @@ namespace Stride.Core.Packages
                     //    currentProgressReport = null;
                     //}
 
-                    if (package.Id == "Stride" && package.Version < new PackageVersion(3, 0, 0, 0))
+                    if (package.Id == "Xenko" && package.Version < new PackageVersion(3, 0, 0, 0))
                     {
                         UpdateTargetsHelper();
                     }
@@ -837,7 +838,7 @@ namespace Stride.Core.Packages
                 return;
 
             // Get latest package only for each MainPackageIds (up to 2.x)
-            var strideOldPackages = GetLocalPackages("Stride").Where(package => !((package.Tags != null) && package.Tags.Contains("internal"))).Where(x => x.Version.Version.Major < 3).ToList();
+            var strideOldPackages = GetLocalPackages("Xenko").Where(package => !((package.Tags != null) && package.Tags.Contains("internal"))).Where(x => x.Version.Version.Major < 3).ToList();
 
             // Generate target file
             var targetGenerator = new TargetGenerator(this, strideOldPackages, "SiliconStudioPackage");

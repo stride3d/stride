@@ -14,15 +14,18 @@ namespace Stride.LauncherApp.ViewModels
         private bool isVisible;
         private bool canStart;
 
-        internal StrideVersionViewModel(LauncherViewModel launcher, NugetStore store, NugetLocalPackage localPackage, int major, int minor)
+        internal StrideVersionViewModel(LauncherViewModel launcher, NugetStore store, NugetLocalPackage localPackage, string packageId, int major, int minor)
             : base(launcher, store, localPackage)
         {
+            PackageSimpleName = packageId.Replace(".GameStudio", string.Empty);
             Major = major;
             Minor = minor;
             SetAsActiveCommand = new AnonymousCommand(ServiceProvider, () => launcher.ActiveVersion = this);
             // Update status if the user changes whether to display beta versions.
             launcher.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(LauncherViewModel.ShowBetaVersions)) UpdateStatus(); };
         }
+
+        public string PackageSimpleName { get; }
 
         /// <summary>
         /// Gets the major number of this version.
@@ -37,12 +40,12 @@ namespace Stride.LauncherApp.ViewModels
         /// <summary>
         /// Gets the name of this version.
         /// </summary>
-        public override string Name => GetName(Major, Minor);
+        public override string Name => GetName(PackageSimpleName, Major, Minor);
 
         /// <summary>
         /// Gets the display name of this version.
         /// </summary>
-        public virtual string DisplayName => GetName(Major, Minor, true);
+        public virtual string DisplayName => GetName(PackageSimpleName, Major, Minor, true);
 
         /// <summary>
         /// Gets the command that will set the associated package as active.
@@ -71,12 +74,12 @@ namespace Stride.LauncherApp.ViewModels
         /// <param name="minorVersion">The minor version number.</param>
         /// <param name="isDisplayName">Indicates whether the name to compute is a display name, or a string token used to build urls.</param>
         /// <returns>A string representing the given version numbers.</returns>
-        public static string GetName(int majorVersion, int minorVersion, bool isDisplayName = false)
+        public static string GetName(string packageSimpleName, int majorVersion, int minorVersion, bool isDisplayName = false)
         {
             if (isDisplayName && IsBetaVersion(majorVersion, minorVersion))
-                return $"{majorVersion}.{minorVersion}-beta";
+                return $"{packageSimpleName} {majorVersion}.{minorVersion}-beta";
 
-            return $"{majorVersion}.{minorVersion}";
+            return $"{packageSimpleName} {majorVersion}.{minorVersion}";
         }
         
         /// <summary>

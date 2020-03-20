@@ -302,8 +302,8 @@
     <comment>Unknown version</comment>
   </data>
   <data name="VersionButton" xml:space="preserve">
-    <value>Stride {0}</value>
-    <comment>Caption of the version selection button. {0}: short version name</comment>
+    <value>{0}</value>
+    <comment>Caption of the version selection button. {0}: product name and short version name</comment>
   </data>
   <data name="VersionButtonUninstalled" xml:space="preserve">
     <value>(not installed)</value>

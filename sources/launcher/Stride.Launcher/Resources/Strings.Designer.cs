@@ -682,7 +682,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Stride {0}.
+        ///   Looks up a localized string similar to {0}.
         /// </summary>
         public static string VersionButton {
             get {

@@ -223,7 +223,7 @@ namespace Stride.LauncherApp.ViewModels
                             if (index < 0)
                             {
                                 // If not, add it
-                                version = new StrideStoreVersionViewModel(this, store, localPackage, localPackage.Version.Version.Major, localPackage.Version.Version.Minor);
+                                version = new StrideStoreVersionViewModel(this, store, localPackage, localPackage.Id, localPackage.Version.Version.Major, localPackage.Version.Version.Minor);
                                 Dispatcher.Invoke(() => strideVersions.Add(version));
                             }
                             else
@@ -359,7 +359,7 @@ namespace Stride.LauncherApp.ViewModels
                             if (index < 0)
                             {
                                 // If not, add it
-                                version = new StrideStoreVersionViewModel(this, store, null, serverPackage.Version.Version.Major, serverPackage.Version.Version.Minor);
+                                version = new StrideStoreVersionViewModel(this, store, null, serverPackage.Id, serverPackage.Version.Version.Major, serverPackage.Version.Version.Minor);
                                 Dispatcher.Invoke(() => strideVersions.Add(version));
                             }
                             else

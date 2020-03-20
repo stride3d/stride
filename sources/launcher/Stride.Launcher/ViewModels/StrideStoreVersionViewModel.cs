@@ -33,8 +33,8 @@ namespace Stride.LauncherApp.ViewModels
         /// <param name="localPackage"></param>
         /// <param name="major"></param>
         /// <param name="minor"></param>
-        internal StrideStoreVersionViewModel(LauncherViewModel launcher, NugetStore store, NugetLocalPackage localPackage, int major, int minor)
-            : base(launcher, store, localPackage, major, minor)
+        internal StrideStoreVersionViewModel(LauncherViewModel launcher, NugetStore store, NugetLocalPackage localPackage, string packageId, int major, int minor)
+            : base(launcher, store, localPackage, packageId, major, minor)
         {
             FetchReleaseNotes();
             FetchDocumentation();
@@ -265,7 +265,7 @@ namespace Stride.LauncherApp.ViewModels
         {
             Dispatcher.Invoke(() =>
             {
-                ReleaseNotes = new ReleaseNotesViewModel(Launcher, Name);
+                ReleaseNotes = new ReleaseNotesViewModel(Launcher, $"{Major}.{Minor}");
                 ReleaseNotes.FetchReleaseNotes();
             });
         }
