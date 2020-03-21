@@ -171,16 +171,20 @@ namespace Xenko.Rendering
 
         public void Reset()
         {
-            foreach (var context in threadContext.Values)
+            var contextList = threadContext.Values;     // returns IList so don't use foreach otherwise an object will be allocated
+            for (int i = 0; i < contextList.Count; i++)
             {
+                var context = contextList[i];
                 context.ResourceGroupAllocator.Reset(context.CommandList);
             }
         }
 
         public void Flush()
         {
-            foreach (var context in threadContext.Values)
+            var contextList = threadContext.Values;     // returns IList so don't use foreach otherwise an object will be allocated
+            for (int i = 0; i < contextList.Count; i++)
             {
+                var context = contextList[i];
                 context.ResourceGroupAllocator.Flush();
                 context.QueryManager.Flush();
             }
