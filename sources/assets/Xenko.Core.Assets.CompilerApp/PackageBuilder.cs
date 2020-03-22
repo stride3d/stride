@@ -93,8 +93,10 @@ namespace Xenko.Core.Assets.CompilerApp
 
                 projectSession = projectSessionResult.Session;
 
-                // Check build configuration
-                var package = projectSession.LocalPackages.Last();
+                // Find loaded package (either xkpkg or csproj) -- otherwise fallback to first one
+                var packageFile = (UFile)builderOptions.PackageFile;
+                var package = projectSession.LocalPackages.FirstOrDefault(x => x.FullPath == packageFile || (x.Container is SolutionProject project && project.FullPath == packageFile))
+                    ?? projectSession.LocalPackages.First();
 
                 // Setup variables
                 var buildDirectory = builderOptions.BuildDirectory;
