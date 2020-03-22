@@ -101,7 +101,7 @@ public:
 		auto textureName = parameterKey->Name;
 		auto needScaling = uvScaling != Vector2::One;
 		auto currentComposition = needScaling
-			? gcnew ShaderClassSource("ComputeColorTextureRepeat", textureName, uvSetName, "float2(" + uvScaling[0] + ", " + uvScaling[1] + ")")
+			? gcnew ShaderClassSource("ComputeColorTextureRepeat", textureName, uvSetName, "float2(" + uvScaling.X + ", " + uvScaling.Y + ")")
 			: gcnew ShaderClassSource("ComputeColorTexture", textureName, uvSetName);
 
 		return currentComposition;
