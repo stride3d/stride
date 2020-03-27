@@ -5,11 +5,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace Stride.Core.Presentation.Themes.ExpressionDark
+namespace Stride.Core.Presentation.Themes
 {
-    public partial class ExpressionDarkTheme : ResourceDictionary
+    public partial class ThemeSelector : ResourceDictionary
     {
-        public ExpressionDarkTheme()
+        public ThemeSelector()
         {
             InitializeComponent();
         }

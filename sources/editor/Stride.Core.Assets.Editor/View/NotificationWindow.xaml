@@ -9,7 +9,7 @@
     <ResourceDictionary>
       <!-- MERGED DICTIONARIES: IMAGE DICTIONARY, PROPERTY GRID VIEWS -->
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Stride.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
+        <ResourceDictionary Source="/Stride.Core.Presentation;component/Themes/ThemeSelector.xaml"/>
       </ResourceDictionary.MergedDictionaries>
 
       <Style TargetType="Hyperlink">

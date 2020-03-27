@@ -4,7 +4,7 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Stride.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
+        <ResourceDictionary Source="/Stride.Core.Presentation;component/Themes/ThemeSelector.xaml"/>
       </ResourceDictionary.MergedDictionaries>
       <DrawingImage x:Key="VectorEditorIcon">
         <DrawingImage.Drawing>
@@ -12,7 +12,7 @@
             <GeometryDrawing Brush="#101011" Geometry="M1.68887,5.08005 L10.2627,0 L18.3635,4.84767 L18.3654,5.46729 L14.6718,7.6596 L18.3335,9.84063 L18.3335,15.0019 L9.9374,20 L1.53998,15.0864 L1.54229,14.4645 L5.22764,12.3475 L1.68887,10.2397 z M17.5552,5.16011 L10.2682,0.788518 L2.67402,5.27561 L10.0112,9.64581 L13.8477,7.36068 z M9.6841,10.2397 L2.34302,5.86717 L2.34302,9.84062 L9.6841,14.2131 z M17.3443,10.0402 L14.0088,8.05343 L10.3383,10.2397 L10.3383,14.2131 z M17.6793,14.2131 L17.6793,10.6293 L14.6709,12.4212 z M10.0112,15.1967 L5.89594,12.7455 L2.35648,14.7788 L9.93464,19.213 L17.3442,14.8022 L14.0088,12.8156 z" />
           </DrawingGroup>
         </DrawingImage.Drawing>
-      </DrawingImage>    
+      </DrawingImage>
     </ResourceDictionary>
   </Application.Resources>
 </Application>

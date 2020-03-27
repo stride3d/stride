@@ -1,4 +1,8 @@
 <!--
+// Copyright (c) Stride contributors (https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+//
+// Original code:
 // (c) Copyright Microsoft Corporation.
 // This source is subject to Microsoft Public License (Ms-PL).
 // Please see http://go.microsoft.com/fwlink/?LinkID=131993 for details.
@@ -19,121 +23,21 @@
                     xmlns:wnd="clr-namespace:Stride.Core.Presentation.Windows"
                     xmlns:local="clr-namespace:Stride.Core.Presentation"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-                    x:Class="Stride.Core.Presentation.Themes.ExpressionDark.ExpressionDarkTheme"
+                    xmlns:themes="clr-namespace:Stride.Core.Presentation.Themes"
+                    x:Class="Stride.Core.Presentation.Themes.ThemeSelector"
                     mc:Ignorable="d">
   <ResourceDictionary.MergedDictionaries>
-    <ResourceDictionary Source="../generic.xaml"/>
+    <ResourceDictionary Source="generic.xaml"/>
     <ResourceDictionary Source="pack://application:,,,/Stride.Core.Presentation;component/Resources/VectorResources.xaml" />
+    <!--
+    // ExpressionDark is the default/fallback theme.
+    // When adding a new theme, ensure all themes:ThemeResourceDictionary in every *.xaml files
+    // are updated to ensure the theme is correctly applied.
+    -->
+    <themes:ThemeResourceDictionary Source="Overrides/ExpressionDarkTheme.xaml"
+                                    ExpressionDarkSource="Overrides/ExpressionDarkTheme.xaml"
+                                    DarkSteelSource="Overrides/DarkSteelTheme.xaml" />
   </ResourceDictionary.MergedDictionaries>
-
-  <!-- Main Colors -->
-
-  <Color x:Key="MainColor">#FF595959</Color>
-  <Color x:Key="HoverColor">#FF393939</Color>
-  <Color x:Key="DefaultColor">#FF9BB1C5</Color>
-  <SolidColorBrush x:Key="LightBrush" Color="#FF333333" />
-  <SolidColorBrush x:Key="ComboBoxBackground" Color="#212125" />
-
-  <Color x:Key="TopGradientSelectColor">#FFFFFFFF</Color>
-  <Color x:Key="BottomGradientSelectColor">#FF737373</Color>
-
-  <Color x:Key="BlackColor">#FF000000</Color>
-  <Color x:Key="WhiteColor">#FFFFFFFF</Color>
-
-  <SolidColorBrush x:Key="BackgroundBrush" Color="#1A1A1D"/>
-  <SolidColorBrush x:Key="TextBrush" Color="#E6E6E6" />
-  <SolidColorBrush x:Key="HyperlinkBrush" Color="#FF00A0FF" />
-  <SolidColorBrush x:Key="NormalBrush" Color="#3E3E40" />
-  <SolidColorBrush x:Key="NormalBorderBrush" Color="#FF333333" />
-  <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}" />
-  <SolidColorBrush x:Key="GlyphBrush" Color="#FFD1D1D1" />
-
-  <SolidColorBrush x:Key="ScrollbarBackgroundNormal" Color="#161616" />
-  <SolidColorBrush x:Key="ScrollbarThumbNormal" Color="#333333" />
-  <SolidColorBrush x:Key="ScrollbarThumbHover" Color="#6F6F73" />
-
-  <SolidColorBrush x:Key="PressedBrush" Color="#7E000000"/>
-
-  <SolidColorBrush x:Key="RedBrush" Color="#FFDC4E4E"/>
-  <SolidColorBrush x:Key="GreenBrush" Color="#FF65C36A"/>
-  <SolidColorBrush x:Key="BlueBrush" Color="#FF3F74D1"/>
-  <SolidColorBrush x:Key="AlphaBrush" Color="#FFBCBCBC"/>
-  <SolidColorBrush x:Key="LengthBrush" Color="#FFBCBCBC"/>
-
-  <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#101011" />
-
-  <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#3399FF"/>
-
-  <Color x:Key="EmphasisGreenColor">#FF8ABB2E</Color>
-  <SolidColorBrush x:Key="EmphasisGreenBrush" Color="{StaticResource EmphasisGreenColor}"/>
-
-  <Color x:Key="EmphasisYellowColor">#FFFFCF00</Color>
-  <SolidColorBrush x:Key="EmphasisYellowBrush" Color="{StaticResource EmphasisYellowColor}"/>
-
-  <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#656565" />
-  <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#040405" />
-  <SolidColorBrush x:Key="DisabledBorderBrush" Color="#AAA" />
-  <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FF595959" />
-
-  <SolidColorBrush x:Key="ToggleButtonNormalBackground" Color="#FF808080"/>
-  <SolidColorBrush x:Key="ComboToggleButtonBackground" Color="Transparent" />
-  <SolidColorBrush x:Key="ComboToggleButtonHoverBackground" Color="#1F1F20" />
-
-  <SolidColorBrush x:Key="ToggleButtonHoverBackground" Color="#FFAAAAAA"/>
-
-  <SolidColorBrush x:Key="ToolBarToggleButtonHoverBackground" Color="#FF878787"/>
-  <SolidColorBrush x:Key="ToolBarToggleButtonPressedBackground" Color="#FF969696"/>
-
-  <SolidColorBrush x:Key="DefaultedBorderBrush" Color="{StaticResource DefaultColor}" />
-  <SolidColorBrush x:Key="SolidBorderBrush" Color="#888" />
-  <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="#FF333333"/>
-  <SolidColorBrush x:Key="ButtonHoverBackgroundBrush" Color="#3E3E40"/>
-  <SolidColorBrush x:Key="MenuHoverBrush" Color="#333334"/>
-
-  <SolidColorBrush x:Key="CheckBoxBorderFocusBrush" Color="#FFE5E5E5"/>
-  <SolidColorBrush x:Key="HoverTextBorderBrush" Color="#FF6A6A6A"/>
-
-  <SolidColorBrush x:Key="MenuBackgroundBrush" Color="#040405"/>
-  <SolidColorBrush x:Key="ButtonNormalBorder" Color="#FF888888" />
-  <SolidColorBrush x:Key="ButtonNormalBackground" Color="#2D2D2D"/>
-
-  <SolidColorBrush x:Key="NormalTextBorderBrush" Color="#FF494949"/>
-
-  <SolidColorBrush x:Key="ToolBarButtonHover" Color="{StaticResource MainColor}" />
-  <SolidColorBrush x:Key="MenuBorderBrush" Color="#212125"/>
-
-  <SolidColorBrush x:Key="ListBorder" Color="#828790" />
-  <SolidColorBrush x:Key="ToolBarGripper" Color="#3A3A3A"/>
-  <SolidColorBrush x:Key="ToolBarSubMenuBackground" Color="#FFFDFDFD"/>
-  <SolidColorBrush x:Key="ToolBarMenuBorder" Color="#FFFFFFFF"/>
-  <SolidColorBrush x:Key="InnerExpanderBorderBrush" Color="#FF424242" />
-  <SolidColorBrush x:Key="InnerExpanderBackgroundBrush" Color="#FF525252"/>
-  <SolidColorBrush x:Key="ToolBarBackgroundBrush" Color="#FF101011"/>
-
-  <SolidColorBrush x:Key="MenuBlueGlyphs" Color="#007ACC" />
-
-  <DropShadowBitmapEffect x:Key="PopupDropShadow" ShadowDepth="1.5" Softness="0.15" />
-  <!-- EXPRESSION COMMON VALUES -->
-
-  <LinearGradientBrush x:Key="ShineBrush" EndPoint="0.5,0.971" StartPoint="0.5,0.042">
-    <GradientStop Color="#59FFFFFF" Offset="0" />
-    <GradientStop Color="#00FFFFFF" Offset="1" />
-    <GradientStop Color="#26FFFFFF" Offset="0.467" />
-    <GradientStop Color="#00FFFFFF" Offset="0.475" />
-  </LinearGradientBrush>
-
-  <LinearGradientBrush x:Key="HoverShineBrush" EndPoint="0.5,0.971" StartPoint="0.5,0.042">
-    <GradientStop Color="#4CFFFFFF" Offset="0" />
-    <GradientStop Color="#26FFFFFF" Offset="1" />
-    <GradientStop Color="#26FFFFFF" Offset="0.467" />
-    <GradientStop Color="#00FFFFFF" Offset="0.475" />
-    <GradientStop Color="#00FFFFFF" Offset="0.856" />
-  </LinearGradientBrush>
-
-  <LinearGradientBrush x:Key="PressedBorderBrush" EndPoint="0,1" StartPoint="0,0">
-    <GradientStop Color="#444" Offset="0.0" />
-    <GradientStop Color="#888" Offset="1.0" />
-  </LinearGradientBrush>
 
   <Geometry x:Key="GeometryDebugMessage">F1 M 46.5,19C 47.8807,19 49,20.1193 49,21.5C 49,22.8807 47.8807,24 46.5,24L 45.8641,23.9184L 43.5566,26.8718C 45.1489,28.0176 46.5309,29.6405 47.6023,31.6025C 44.8701,32.4842 41.563,33 38,33C 34.4369,33 31.1299,32.4842 28.3977,31.6025C 29.4333,29.7061 30.7591,28.1265 32.2844,26.9882L 29.9221,23.9646C 29.7849,23.9879 29.6438,24 29.5,24C 28.1193,24 27,22.8808 27,21.5C 27,20.1193 28.1193,19 29.5,19C 30.8807,19 32,20.1193 32,21.5C 32,22.0018 31.8521,22.4691 31.5976,22.8607L 34.0019,25.938C 35.2525,25.3305 36.5982,25 38,25C 39.3339,25 40.617,25.2993 41.8156,25.8516L 44.2947,22.6786C 44.1066,22.3274 44,21.9262 44,21.5C 44,20.1193 45.1193,19 46.5,19 Z M 54.5,40C 55.3284,40 56,40.6716 56,41.5C 56,42.3284 55.3284,43 54.5,43L 49.9511,43C 49.88,44.0847 49.7325,45.1391 49.5162,46.1531L 54.8059,48.6197C 55.5567,48.9698 55.8815,49.8623 55.5314,50.6131C 55.1813,51.3639 54.2889,51.6887 53.5381,51.3386L 48.6665,49.067C 46.8161,53.9883 43.2172,57.4651 39,57.9435L 39,34.9864C 42.541,34.8897 45.7913,34.283 48.4239,33.3201L 48.6187,33.8074L 53.73,31.8454C 54.5034,31.5485 55.371,31.9348 55.6679,32.7082C 55.9648,33.4816 55.5785,34.3492 54.8051,34.6461L 49.482,36.6895C 49.717,37.7515 49.8763,38.859 49.9511,40L 54.5,40 Z M 21.5,40L 26.0489,40C 26.1237,38.859 26.2829,37.7516 26.518,36.6895L 21.1949,34.6461C 20.4215,34.3492 20.0352,33.4816 20.332,32.7082C 20.6289,31.9348 21.4966,31.5485 22.27,31.8454L 27.3812,33.8074L 27.5761,33.3201C 30.2087,34.283 33.4589,34.8897 37,34.9864L 37,57.9435C 32.7827,57.4651 29.1838,53.9883 27.3335,49.067L 22.4618,51.3387C 21.711,51.6888 20.8186,51.3639 20.4685,50.6131C 20.1184,49.8623 20.4432,48.9699 21.194,48.6198L 26.4838,46.1531C 26.2674,45.1392 26.12,44.0847 26.0489,43L 21.5,43C 20.6716,43 20,42.3285 20,41.5C 20,40.6716 20.6716,40 21.5,40 Z</Geometry>
   <Geometry x:Key="GeometryVerboseMessage">F1 M 40.3806,19.0027C 49.5637,19.0027 57.008,23.611 57.008,29.2958C 57.008,32.9008 54.0141,36.073 49.4815,37.9115C 50.4478,39.7772 52.1442,41.8291 53.8406,44.4135C 50.3128,43.1826 45.0382,41.9924 41.9082,39.546L 40.3806,39.5889C 31.1976,39.5889 23.7533,34.9805 23.7533,29.2958C 23.7533,23.611 31.1976,19.0027 40.3806,19.0027 Z M 44.3395,43.5477C 44.3395,48.3579 38.6677,52.2573 31.6711,52.2573L 30.7082,52.2325C 28.1329,54.6161 24.5589,57.008 20.5862,57.008C 21.5113,55.1577 23.5174,53.3075 24.7099,50.8257C 21.2717,49.2683 19.0026,46.5902 19.0026,43.5477C 19.0026,40.5065 21.27,37.8293 24.706,36.2715C 27.6472,39.1709 32.8586,41.0982 38.7973,41.0982L 40.3249,41.0553C 41.4454,41.9312 42.8409,42.646 44.3327,43.2594L 44.3395,43.5477 Z</Geometry>
@@ -165,7 +69,6 @@
   <BitmapImage x:Key="ImageLocked" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/lock.png" />
   <BitmapImage x:Key="ImageUnlocked" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/lock-unlock.png" />
   <BitmapImage x:Key="ImageLength" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/ruler-triangle.png" />
-
   <!--  WINDOWS  -->
   <Style TargetType="{x:Type Window}" x:Key="WindowChromeStyle">
     <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
@@ -179,7 +82,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Window">
-          <Grid Background="#1A1A1D" Margin="6">
+          <Grid Background="{StaticResource BackgroundBrush}" Margin="6">
             <Border x:Name="ContentBorder" Background="{StaticResource BackgroundBrush}" BorderBrush="Black" BorderThickness="1" IsHitTestVisible="True">
               <DockPanel>
                 <DockPanel x:Name="TitleBar" DockPanel.Dock="Top" VerticalAlignment="Top" WindowChrome.IsHitTestVisibleInChrome="False"
@@ -194,7 +97,7 @@
                         <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True"/>
                       </ControlTemplate>
                     </Button.Template>
-                    <Image Source="{DynamicResource VectorEditorIcon}" Width="20" Margin="0,3,0,2"/>
+                    <Image Source="{DynamicResource VectorEditorIcon}" Width="22" Opacity="0.5"/>
                   </Button>
                   <TextBlock VerticalAlignment="Center" Text="{TemplateBinding Title}" Margin="0,4" FontSize="13"/>
                 </DockPanel>
