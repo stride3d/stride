@@ -210,7 +210,7 @@ namespace Xenko.Rendering
             if (accessor.BindingSlot == -1)
                 return parameter.DefaultValueMetadataT.DefaultValue;
 
-            return Get(GetAccessor(parameter, createIfNew));
+            return Get(accessor);
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace Xenko.Rendering
             if (accessor.BindingSlot == -1)
                 return parameter.DefaultValueMetadataT.DefaultValue;
 
-            return Get(GetAccessor(parameter));
+            return Get(accessor);
         }
 
         /// <summary>
@@ -315,6 +315,35 @@ namespace Xenko.Rendering
             }
 
             return values;
+        }
+
+        /// <summary>
+        /// Copies all blittable values of a given key to the specified <see cref="ParameterCollection"/>.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key">The key for the values to copy.</param>
+        /// <param name="destination">The collection to copy the values to.</param>
+        /// <param name="destinationKey">The key for the values of the destination collection.</param>
+        public unsafe void CopyTo<T>(ValueParameterKey<T> key, ParameterCollection destination, ValueParameterKey<T> destinationKey) where T : struct
+        {
+            var sourceParameter = GetAccessor(key);
+            var destParameter = destination.GetAccessor(destinationKey, sourceParameter.Count);
+            if (sourceParameter.Count > destParameter.Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
+
+            // Align to float4
+            var stride = (Utilities.SizeOf<T>() + 15) / 16 * 16;
+            var sizeInBytes = sourceParameter.Count * stride;
+
+            fixed (byte* sourceDataValues = DataValues)
+            fixed (byte* destDataValues = destination.DataValues)
+            {
+                var sourcePtr = (IntPtr)sourceDataValues + sourceParameter.Offset;
+                var destPtr = (IntPtr)destDataValues + destParameter.Offset;
+                Utilities.CopyMemory(destPtr, sourcePtr, sizeInBytes);
+            }
         }
 
         /// <summary>

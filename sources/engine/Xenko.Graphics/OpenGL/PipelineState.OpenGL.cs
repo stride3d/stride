@@ -101,7 +101,7 @@ namespace Xenko.Graphics
             base.OnDestroyed();
         }
 
-        struct VertexAttribsKey
+        struct VertexAttribsKey : IEquatable<VertexAttribsKey>
         {
             public VertexAttrib[] Attribs;
             public int Hash;

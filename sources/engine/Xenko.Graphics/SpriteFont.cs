@@ -269,7 +269,7 @@ namespace Xenko.Graphics
             var elementSize = new Vector2(
                 auxiliaryScaling.X * glyph.Subrect.Width / realVirtualResolutionRatio.X,
                 auxiliaryScaling.Y * glyph.Subrect.Height / realVirtualResolutionRatio.Y);
-            if (elementSize.Length() < MathUtil.ZeroTolerance) 
+            if (elementSize.LengthSquared() < MathUtil.ZeroTolerance) 
                 return;
 
             var xShift = x;

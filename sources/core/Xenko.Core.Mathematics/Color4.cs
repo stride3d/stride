@@ -82,7 +82,10 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The value that will be assigned to all components.</param>
         public Color4(float value)
         {
-            A = R = G = B = value;
+            R = value;
+            G = value;
+            B = value;
+            A = value;
         }
 
         /// <summary>

@@ -71,7 +71,7 @@ namespace Xenko.Graphics
                 throw new ArgumentNullException("texture");
 
             // Skip items with null size
-            if (elementSize.Length() < MathUtil.ZeroTolerance)
+            if (elementSize.LengthSquared() < MathUtil.ZeroTolerance)
                 return;
 
             // Calculate the information needed to draw.
