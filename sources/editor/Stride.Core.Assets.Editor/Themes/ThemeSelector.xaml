@@ -1,0 +1,11 @@
+<!--
+// ExpressionDark is the default/fallback theme.
+// When adding a new theme, ensure all themes:ThemeResourceDictionary in every *.xaml files
+// are updated to ensure the theme is correctly applied.
+-->
+<themes:ThemeResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                xmlns:themes="clr-namespace:Stride.Core.Presentation.Themes;assembly=Stride.Core.Presentation"
+                                Source="ExpressionDark/TableflowView.ExpressionDark.normalcolor.xaml"
+                                ExpressionDarkSource="ExpressionDark/TableflowView.ExpressionDark.normalcolor.xaml"
+                                DarkSteelSource="ExpressionDark/TableflowView.ExpressionDark.normalcolor.xaml">
+</themes:ThemeResourceDictionary>

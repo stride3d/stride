@@ -26,5 +26,7 @@ namespace Stride.Core.Presentation.Themes
         {
             obj.SetValue(IsDarkProperty, value);
         }
+
+        public static ThemeType CurrentTheme { get; set; }
     }
 }

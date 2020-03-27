@@ -20,7 +20,7 @@
 
   <ResourceDictionary.MergedDictionaries>
 
-    <ResourceDictionary Source="pack://application:,,,/Stride.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
+    <ResourceDictionary Source="pack://application:,,,/Stride.Core.Presentation;component/Themes/ThemeSelector.xaml"/>
 
     <!-- Include the view independant, color-scheme independant, theme resources -->
     <ResourceDictionary Source="Resources/ExpressionDark.normalcolor.Resources.xaml" />

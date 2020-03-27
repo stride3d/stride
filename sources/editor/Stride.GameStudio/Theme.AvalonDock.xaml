@@ -27,10 +27,6 @@
     <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml" />
   </ResourceDictionary.MergedDictionaries>
 
-  <SolidColorBrush x:Key="DarkDefaultBackground" Color="#101011" />
-  <SolidColorBrush x:Key="DarkDefaultForeground" Color="#0395D7" />
-  <SolidColorBrush x:Key="NormalDarkBackground" Color="#1A1A1D" />
-
   <avalonDockConverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
   <avalonDockConverters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
   <avalonDockConverters:AnchorSideToOrientationConverter x:Key="AnchorSideToOrientationConverter"/>

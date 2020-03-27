@@ -6,7 +6,7 @@
                     xmlns:diagnostics="clr-namespace:Stride.Core.Assets.Diagnostics;assembly=Stride.Core.Assets">
 
   <ResourceDictionary.MergedDictionaries>
-    <ResourceDictionary Source="/Stride.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
+    <ResourceDictionary Source="/Stride.Core.Presentation;component/Themes/ThemeSelector.xaml" />
     <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml" />
   </ResourceDictionary.MergedDictionaries>
   
