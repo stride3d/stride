@@ -57,7 +57,7 @@
 
       <GridSplitter Grid.Column="1" Width="5" ResizeBehavior="PreviousAndNext" VerticalAlignment="Stretch" />
 
-      <sd:PropertyView NameColumnSize="310" Grid.Column="2" ItemsSource="{Binding ViewModel.RootNode.Children}" BorderThickness="1" Background="{DynamicResource HoverBrush}" Padding="5">
+      <sd:PropertyView NameColumnSize="310" Grid.Column="2" ItemsSource="{Binding ViewModel.RootNode.Children}" BorderThickness="1" Background="{DynamicResource BackgroundBrush}" Padding="5">
         <sd:PropertyView.ItemContainerStyle>
           <Style BasedOn="{StaticResource {x:Type sd:PropertyViewItem}}" TargetType="sd:PropertyViewItem">
             <Setter Property="Background" Value="Transparent"/>
