@@ -45,7 +45,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Resources\Logo.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\Launcher.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>Stride.LauncherApp.Program</StartupObject>
@@ -57,7 +57,7 @@
     <Content Include="store.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Resource Include="Resources\Logo.ico" />
+    <Resource Include="Resources\Launcher.ico" />
     <None Include="App.config" />
     <None Include="Stride.LauncherApp.nuspec">
       <SubType>Designer</SubType>

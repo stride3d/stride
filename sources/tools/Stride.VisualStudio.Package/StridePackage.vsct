@@ -52,7 +52,7 @@
     <Buttons>
       <Button guid="guidStride_VisualStudio_PackageCmdSet" id="cmdStrideOpenWithGameStudio" priority="0x0100" type="Button">
         <Parent guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenuGroupGameStudio" />
-        <Icon guid="guidImages" id="bmpStride"/>
+        <Icon guid="guidVSPackage16" id="bmpStride"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Open with Game Studio</ButtonText>
@@ -105,7 +105,7 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used 
             inside a button definition. An important aspect of this declaration is that the element id 
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidImages" href="Resources\Images.png" usedList="bmpStride"/>
+      <Bitmap guid="guidVSPackage16" href="Resources\VSPackage16.png" usedList="bmpStride"/>
       
     </Bitmaps>
  
@@ -134,7 +134,7 @@
     
     
     
-    <GuidSymbol name="guidImages" value="{a873d334-36bd-4976-928b-870a5cb89f14}" >
+    <GuidSymbol name="guidVSPackage16" value="{a873d334-36bd-4976-928b-870a5cb89f14}" >
       <IDSymbol name="bmpStride" value="1" />
     </GuidSymbol>
   </Symbols>

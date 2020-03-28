@@ -101,14 +101,13 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Images.png" />
+    <None Include="Resources\VSPackage16.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Logo.ico">
+    <Content Include="Resources\VSPackage.ico">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="NShader\Common\ShaderMPLexer.lst" />
-    <Content Include="Resources\Package.ico" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="NShader\Common\GLSLKeywords.map" />

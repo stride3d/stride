@@ -194,7 +194,7 @@
                         <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True"/>
                       </ControlTemplate>
                     </Button.Template>
-                    <Image Source="{DynamicResource VectorEditorIcon}" Width="22" Opacity="0.5"/>
+                    <Image Source="{DynamicResource VectorEditorIcon}" Width="20" Margin="0,3,0,2"/>
                   </Button>
                   <TextBlock VerticalAlignment="Center" Text="{TemplateBinding Title}" Margin="0,4" FontSize="13"/>
                 </DockPanel>

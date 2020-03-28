@@ -64,7 +64,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Logo.ico" />
+    <None Include="Resources\ConnectionRouter.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ios-tcprelay\stride-ios-relay.py">

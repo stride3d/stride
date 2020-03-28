@@ -35,7 +35,7 @@
     <StartupObject>Stride.GameStudio.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Resources\Logo.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\GameStudio.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
@@ -111,7 +111,7 @@
   <ItemGroup>
     <Resource Include="Images\*.png" />
     <Resource Include="Resources\**\*.png" />
-    <Resource Include="Resources\Logo.ico" />
+    <Resource Include="Resources\GameStudio.ico" />
     <Compile Update="Resources\Strings\KeyGestures.Designer.cs">
       <DependentUpon>KeyGestures.resx</DependentUpon>
       <AutoGen>True</AutoGen>

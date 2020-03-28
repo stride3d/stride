@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
-    <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\GameIcon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <RootNamespace>JumpyJet</RootNamespace>
 

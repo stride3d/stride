@@ -29,23 +29,9 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="..\Stride.Graphics\OpenGL\OpenGLUtils.cs" Link="OpenGLUtils.cs" />
-    <Compile Update="Resources\GameResources.Designer.cs" Condition=" '$(StridePlatform)' == 'Windows'">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>GameResources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Graphics\Stride.Graphics.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\GameResources.resx" Condition=" '$(StridePlatform)' == 'Windows'">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>GameResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Resources\Logo.ico" Condition=" '$(StridePlatform)' == 'Windows'" />
   </ItemGroup>
   <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />

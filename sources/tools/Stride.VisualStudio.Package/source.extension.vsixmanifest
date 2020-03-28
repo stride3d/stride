@@ -4,7 +4,7 @@
     <Identity Id="04d9ab62-ed21-4cd5-a8ee-0d15d877adbf" Version="3.0.9" Language="en-US" Publisher="Stride" />
     <DisplayName>Stride</DisplayName>
     <Description>Stride VisualStudio Package</Description>
-    <Icon>Logo.ico</Icon>
+    <Icon>Resources\VSPackage.ico</Icon>
   </Metadata>
   <Installation InstalledByMsi="false">
     <InstallationTarget Version="[15.0,17.0)" Id="Microsoft.VisualStudio.Community" />
