@@ -5,7 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:progress="clr-namespace:Xenko.Core.Assets.Editor.ViewModel.Progress"
-        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity" mc:Ignorable="d"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors" mc:Ignorable="d"
         Style="{DynamicResource WindowChromeStyle}" ShowInTaskbar="False"
         Title="{Binding Title}" Height="480" Width="640" d:DataContext="{d:DesignInstance progress:WorkProgressViewModel}">
   <Grid>

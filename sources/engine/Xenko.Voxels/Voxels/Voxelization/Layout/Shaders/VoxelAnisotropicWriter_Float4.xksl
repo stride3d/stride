@@ -1,0 +1,98 @@
+shader VoxelAnisotropicWriter_Float4 : VoxelLayout_Float4, NormalStream
+{
+    stream float4 axisXP;
+    stream float4 axisXN;
+    stream float4 axisYP;
+    stream float4 axisYN;
+    stream float4 axisZP;
+    stream float4 axisZN;
+    RWTexture3D<float4> DirectOutput;
+    compose VoxelFragmentPacker writer;
+
+    float maxBrightnessInv;
+    
+    compose VoxelModifierApplierAnisotropic Modifiers[];
+    override void InitializeDummy()
+    {
+        streams.axisXP = float4(0,0,0,0);
+        streams.axisYP = float4(0,0,0,0);
+        streams.axisZP = float4(0,0,0,0);
+        streams.axisXN = float4(0,0,0,0);
+        streams.axisYN = float4(0,0,0,0);
+        streams.axisZN = float4(0,0,0,0);
+    }
+    override void InitializeFromStreams(float4 original)
+    {
+        if (streams.normalWS.x > 0)
+            streams.axisXP = original * streams.normalWS.x;
+        else
+            streams.axisXN = original * -streams.normalWS.x;
+
+        if (streams.normalWS.y > 0)
+            streams.axisYP = original * streams.normalWS.y;
+        else
+            streams.axisYN = original * -streams.normalWS.y;
+
+        if (streams.normalWS.z > 0)
+            streams.axisZP = original * streams.normalWS.z;
+        else
+            streams.axisZN = original * -streams.normalWS.z;
+    }
+    float4 applyMaxBrightness(float4 col)
+    {
+        return float4(col.rgb * maxBrightnessInv, col.a);
+    }
+    override void DirectWrite(uint3 address, uint strideIndex, uint stride)
+    {
+        address.y += strideIndex * stride * 6;
+        float4 tempAxisXP = streams.axisXP;
+        float4 tempAxisXN = streams.axisXN;
+        float4 tempAxisYP = streams.axisYP;
+        float4 tempAxisYN = streams.axisYN;
+        float4 tempAxisZP = streams.axisZP;
+        float4 tempAxisZN = streams.axisZN;
+        foreach (var modifier in Modifiers)
+        {
+            modifier.Apply(tempAxisXP, tempAxisXN, tempAxisYP, tempAxisYN, tempAxisZP, tempAxisZN);
+        }
+        streams.axisXP = tempAxisXP;
+        streams.axisXN = tempAxisXN;
+        streams.axisYP = tempAxisYP;
+        streams.axisYN = tempAxisYN;
+        streams.axisZP = tempAxisZP;
+        streams.axisZN = tempAxisZN;
+        DirectOutput[address] = applyMaxBrightness(streams.axisXP);
+        address.y += stride;
+            DirectOutput[address] = applyMaxBrightness(streams.axisXN);
+        address.y += stride;
+            DirectOutput[address] = applyMaxBrightness(streams.axisYP);
+        address.y += stride;
+            DirectOutput[address] = applyMaxBrightness(streams.axisYN);
+        address.y += stride;
+            DirectOutput[address] = applyMaxBrightness(streams.axisZP);
+        address.y += stride;
+            DirectOutput[address] = applyMaxBrightness(streams.axisZN);
+    }
+    override void IndirectWrite(RWBuffer<uint> buffer, uint address)
+    {
+            writer.Write(buffer, address, streams.axisXP);
+            writer.Write(buffer, address, streams.axisXN);
+            writer.Write(buffer, address, streams.axisYP);
+            writer.Write(buffer, address, streams.axisYN);
+            writer.Write(buffer, address, streams.axisZP);
+            writer.Write(buffer, address, streams.axisZN);
+    }
+    override void InitializeFromBuffer(RWBuffer<uint> buffer, uint address)
+    {
+        writer.Read(buffer, address, streams.axisXP);
+        writer.Read(buffer, address, streams.axisXN);
+        writer.Read(buffer, address, streams.axisYP);
+        writer.Read(buffer, address, streams.axisYN);
+        writer.Read(buffer, address, streams.axisZP);
+        writer.Read(buffer, address, streams.axisZN);
+    }
+    override float4 SampleLocal()
+    {
+        return streams.axisXP;
+    }
+};

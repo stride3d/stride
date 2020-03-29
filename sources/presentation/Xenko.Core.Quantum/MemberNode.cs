@@ -93,9 +93,9 @@ namespace Xenko.Core.Quantum
             FinalizeChange?.Invoke(this, args);
         }
 
-        protected internal override void UpdateFromMember(object newValue, Index index)
+        protected internal override void UpdateFromMember(object newValue, NodeIndex index)
         {
-            if (index != Index.Empty) throw new ArgumentException(@"index must be Index.Empty.", nameof(Index));
+            if (index != NodeIndex.Empty) throw new ArgumentException(@"index must be Index.Empty.", nameof(NodeIndex));
             Update(newValue, false);
         }
 
@@ -111,10 +111,10 @@ namespace Xenko.Core.Quantum
             var containerValue = Parent.Retrieve();
             if (containerValue == null)
                 throw new InvalidOperationException("Container's value is null");
-            MemberDescriptor.Set(containerValue, newValue);
+            MemberDescriptor.Set(containerValue, ConvertValue(newValue, MemberDescriptor.Type));
 
             if (containerValue.GetType().GetTypeInfo().IsValueType)
-                ((GraphNodeBase)Parent).UpdateFromMember(containerValue, Index.Empty);
+                ((GraphNodeBase)Parent).UpdateFromMember(containerValue, NodeIndex.Empty);
 
             UpdateReferences();
             if (sendNotification)

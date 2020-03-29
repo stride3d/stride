@@ -651,5 +651,16 @@ namespace Xenko.Core.Mathematics
                 (float)Math.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap,
                 (float)Math.Round((value.W / gap), MidpointRounding.AwayFromZero) * gap);
         }
+
+        /// <summary>
+        /// Computes standard mathematical modulo (as opposed to remainder).
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="divisor">The divisor.</param>
+        /// <returns>A value between 0 and divisor. The result will have the same sign as divisor.</returns>
+        public static float Mod(float value, float divisor)
+        {
+            return ((value % divisor) + divisor) % divisor;
+        }
     }
 }

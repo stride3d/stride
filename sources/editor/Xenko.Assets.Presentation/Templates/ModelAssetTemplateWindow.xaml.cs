@@ -34,7 +34,7 @@ namespace Xenko.Assets.Presentation.Templates
 
             bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => true;
 
-            bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, Index index) => true;
+            bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => true;
         }
 
         private readonly DummyReferenceContainer referenceContainer = new DummyReferenceContainer();

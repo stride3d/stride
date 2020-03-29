@@ -40,7 +40,7 @@ namespace Xenko.Physics
             Matrix rotationMatrix;
             var oY = Vector3.Normalize(Normal);
             var oZ = Vector3.Cross(Vector3.UnitX, oY);
-            if (oZ.Length() > MathUtil.ZeroTolerance)
+            if (oZ.LengthSquared() > MathUtil.ZeroTolerance)
             {
                 oZ.Normalize();
                 var oX = Vector3.Cross(oY, oZ);

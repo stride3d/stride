@@ -80,7 +80,7 @@ namespace Xenko.Core.Assets.Quantum
         /// </summary>
         public event EventHandler<AssetPartChangeEventArgs> PartRemoved;
 
-        public abstract bool IsChildPartReference(IGraphNode node, Index index);
+        public abstract bool IsChildPartReference(IGraphNode node, NodeIndex index);
 
         /// <inheritdoc/>
         public override void Dispose()
@@ -161,7 +161,7 @@ namespace Xenko.Core.Assets.Quantum
             if (parent == null)
             {
                 var rootPartsNode = HierarchyNode[nameof(AssetCompositeHierarchyData<TAssetPartDesign, TAssetPart>.RootParts)].Target;
-                rootPartsNode.Add(child.Part, new Index(index));
+                rootPartsNode.Add(child.Part, new NodeIndex(index));
             }
             else
             {
@@ -185,7 +185,7 @@ namespace Xenko.Core.Assets.Quantum
             }
             else
             {
-                var index = new Index(Asset.Hierarchy.RootParts.IndexOf(partDesign.Part));
+                var index = new NodeIndex(Asset.Hierarchy.RootParts.IndexOf(partDesign.Part));
                 var rootPartsNode = HierarchyNode[nameof(AssetCompositeHierarchyData<TAssetPartDesign, TAssetPart>.RootParts)].Target;
                 rootPartsNode.Remove(partDesign.Part, index);
             }
@@ -744,7 +744,7 @@ namespace Xenko.Core.Assets.Quantum
         private void InsertPartInPartsCollection(AssetPartCollection<TAssetPartDesign, TAssetPart> newPartCollection, [NotNull] TAssetPartDesign rootPart)
         {
             var node = HierarchyNode[nameof(AssetCompositeHierarchyData<TAssetPartDesign, TAssetPart>.Parts)].Target;
-            node.Add(rootPart, new Index(rootPart.Part.Id));
+            node.Add(rootPart, new NodeIndex(rootPart.Part.Id));
             foreach (var childPart in Asset.EnumerateChildParts(rootPart.Part, false))
             {
                 var partDesign = newPartCollection[childPart.Id];
@@ -760,7 +760,7 @@ namespace Xenko.Core.Assets.Quantum
                 RemovePartFromPartsCollection(partDesign);
             }
             var node = HierarchyNode[nameof(AssetCompositeHierarchyData<TAssetPartDesign, TAssetPart>.Parts)].Target;
-            var index = new Index(rootPart.Part.Id);
+            var index = new NodeIndex(rootPart.Part.Id);
             node.Remove(rootPart, index);
         }
 

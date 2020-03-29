@@ -37,7 +37,7 @@ namespace Xenko.Core.Quantum
         public IReadOnlyCollection<IMemberNode> Members => (IReadOnlyCollection<IMemberNode>)childrenMap.Values;
 
         /// <inheritdoc/>
-        public IEnumerable<Index> Indices => GetIndices();
+        public IEnumerable<NodeIndex> Indices => GetIndices();
 
         /// <inheritdoc/>
         public bool IsEnumerable => Descriptor is CollectionDescriptor || Descriptor is DictionaryDescriptor;
@@ -73,15 +73,15 @@ namespace Xenko.Core.Quantum
         }
 
         /// <inheritdoc/>
-        public IObjectNode IndexedTarget(Index index)
+        public IObjectNode IndexedTarget(NodeIndex index)
         {
-            if (index == Index.Empty) throw new ArgumentException(@"index cannot be Index.Empty when invoking this method.", nameof(index));
+            if (index == NodeIndex.Empty) throw new ArgumentException(@"index cannot be Index.Empty when invoking this method.", nameof(index));
             if (ItemReferences == null) throw new InvalidOperationException(@"The node does not contain enumerable references.");
             return ItemReferences[index].TargetNode;
         }
 
         /// <inheritdoc/>
-        public void Update(object newValue, Index index)
+        public void Update(object newValue, NodeIndex index)
         {
             Update(newValue, index, true);
         }
@@ -94,7 +94,7 @@ namespace Xenko.Core.Quantum
             {
                 // Some collection (such as sets) won't add item at the end but at an arbitrary location.
                 // Better send a null index in this case than sending a wrong value.
-                var index = collectionDescriptor.IsList ? new Index(collectionDescriptor.GetCollectionCount(value)) : Index.Empty;
+                var index = collectionDescriptor.IsList ? new NodeIndex(collectionDescriptor.GetCollectionCount(value)) : NodeIndex.Empty;
                 var args = new ItemChangeEventArgs(this, index, ContentChangeType.CollectionAdd, null, newItem);
                 NotifyItemChanging(args);
                 collectionDescriptor.Add(value, newItem);
@@ -106,13 +106,13 @@ namespace Xenko.Core.Quantum
         }
 
         /// <inheritdoc/>
-        public void Add(object newItem, Index itemIndex)
+        public void Add(object newItem, NodeIndex itemIndex)
         {
             var collectionDescriptor = Descriptor as CollectionDescriptor;
             var dictionaryDescriptor = Descriptor as DictionaryDescriptor;
             if (collectionDescriptor != null)
             {
-                var index = collectionDescriptor.IsList ? itemIndex : Index.Empty;
+                var index = collectionDescriptor.IsList ? itemIndex : NodeIndex.Empty;
                 var args = new ItemChangeEventArgs(this, index, ContentChangeType.CollectionAdd, null, newItem);
                 NotifyItemChanging(args);
                 if (collectionDescriptor.GetCollectionCount(value) == itemIndex.Int || !collectionDescriptor.HasInsert)
@@ -140,7 +140,7 @@ namespace Xenko.Core.Quantum
         }
 
         /// <inheritdoc/>
-        public void Remove(object item, Index itemIndex)
+        public void Remove(object item, NodeIndex itemIndex)
         {
             if (itemIndex.IsEmpty) throw new ArgumentException(@"The given index should not be empty.", nameof(itemIndex));
             var args = new ItemChangeEventArgs(this, itemIndex, ContentChangeType.CollectionRemove, item, null);
@@ -170,9 +170,9 @@ namespace Xenko.Core.Quantum
         }
 
         /// <inheritdoc/>
-        protected internal override void UpdateFromMember(object newValue, Index index)
+        protected internal override void UpdateFromMember(object newValue, NodeIndex index)
         {
-            if (index == Index.Empty)
+            if (index == NodeIndex.Empty)
             {
                 throw new InvalidOperationException("An ObjectNode value cannot be modified after it has been constructed");
             }
@@ -196,9 +196,9 @@ namespace Xenko.Core.Quantum
             FinalizeChange?.Invoke(this, args);
         }
 
-        private void Update(object newValue, Index index, bool sendNotification)
+        private void Update(object newValue, NodeIndex index, bool sendNotification)
         {
-            if (index == Index.Empty)
+            if (index == NodeIndex.Empty)
                 throw new ArgumentException("index cannot be empty.");
             var oldValue = Retrieve(index);
             ItemChangeEventArgs itemArgs = null;
@@ -211,11 +211,11 @@ namespace Xenko.Core.Quantum
             var dictionaryDescriptor = Descriptor as DictionaryDescriptor;
             if (collectionDescriptor != null)
             {
-                collectionDescriptor.SetValue(Value, index.Int, newValue);
+                collectionDescriptor.SetValue(Value, index.Int, ConvertValue(newValue, collectionDescriptor.ElementType));
             }
             else if (dictionaryDescriptor != null)
             {
-                dictionaryDescriptor.SetValue(Value, index.Value, newValue);
+                dictionaryDescriptor.SetValue(Value, index.Value, ConvertValue(newValue, dictionaryDescriptor.ValueType));
             }
             else
                 throw new NotSupportedException("Unable to set the node value, the collection is unsupported");
@@ -233,7 +233,7 @@ namespace Xenko.Core.Quantum
             NodeContainer?.UpdateReferences(this);
         }
 
-        private IEnumerable<Index> GetIndices()
+        private IEnumerable<NodeIndex> GetIndices()
         {
             var enumRef = ItemReferences;
             if (enumRef != null)

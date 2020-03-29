@@ -110,7 +110,7 @@ namespace Xenko.Particles
         /// Particles will live for a number of seconds between these two values
         /// </summary>
         [DataMemberIgnore]
-        private Vector2 particleLifetime = new Vector2(1, 1);
+        private Vector2 particleLifetime = Vector2.One;
 
         /// <summary>
         /// If positive, forces particles to stay one frame more when they are about ot expire
@@ -659,7 +659,7 @@ namespace Xenko.Particles
             }
             else
             {
-                var posIdentity = new Vector3(0, 0, 0);
+                var posIdentity = Vector3.Zero;
                 var rotIdentity = Quaternion.Identity;
 
                 // Update sub-systems
@@ -985,7 +985,7 @@ namespace Xenko.Particles
 
             // If the particles are in world space they don't need to be fixed as their coordinates are already in world space
             // If the particles are in local space they need to be drawn in world space using the emitter's current location matrix
-            var posIdentity = new Vector3(0, 0, 0);
+            var posIdentity = Vector3.Zero;
             var rotIdentity = Quaternion.Identity;
             var scaleIdentity = 1f;
             if (simulationSpace == EmitterSimulationSpace.Local)

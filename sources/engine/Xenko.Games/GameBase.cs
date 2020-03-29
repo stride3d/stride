@@ -574,13 +574,16 @@ namespace Xenko.Games
                 RawTick(singleFrameElapsedTime, updateCount, drawLag / (float)TargetElapsedTime.Ticks, drawFrame);
 
                 var window = gamePlatform.MainWindow;
-                if (window.IsMinimized || window.Visible == false || (window.Focused == false && TreatNotFocusedLikeMinimized))
+                if (gamePlatform.IsBlockingRun) // throttle fps if Game.Tick() called from internal main loop
                 {
-                    MinimizedMinimumUpdateRate.Throttle(out _);
-                }
-                else
-                {
-                    WindowMinimumUpdateRate.Throttle(out _);
+                    if (window.IsMinimized || window.Visible == false || (window.Focused == false && TreatNotFocusedLikeMinimized))
+                    {
+                        MinimizedMinimumUpdateRate.Throttle(out _);
+                    }
+                    else
+                    {
+                        WindowMinimumUpdateRate.Throttle(out _);
+                    }
                 }
             }
             catch (Exception ex)

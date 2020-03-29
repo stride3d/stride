@@ -1,6 +1,6 @@
 ﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
@@ -19,10 +19,10 @@
     <Reference Include="System.ComponentModel.Composition" />
     <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
-    <PackageReference Include="System.Runtime" Version="4.3.0" />
+    <PackageReference Include="System.Runtime" Version="4.3.1" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
     <Reference Include="System.ServiceModel" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.7.0" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.10.0" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
@@ -35,6 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets.CompilerApp\Xenko.Core.Assets.CompilerApp.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Voxels\Xenko.Voxels.csproj" />
     <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation.Quantum\Xenko.Core.Presentation.Quantum.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Assets\Xenko.Assets.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Assets.Models\Xenko.Assets.Models.csproj" />
@@ -68,5 +69,5 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 </Project>

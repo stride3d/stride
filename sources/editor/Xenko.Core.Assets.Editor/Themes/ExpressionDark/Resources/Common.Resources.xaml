@@ -15,8 +15,7 @@
   **********************************************************************************-->
 
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:xcdg="http://schemas.xceed.com/wpf/xaml/datagrid">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <!-- Style applied to the Thumbs that are used to resize the columns and rows.
         The Thumb's template is an empty Grid with a Transparent background to
@@ -41,42 +40,8 @@
     </Setter>
   </Style>
 
-  <!-- ControlTemplated applied to the Button that is used in the DataRows
-        to expand/collapse Details. -->
-  <ControlTemplate x:Key="detailsExpanderButtonTemplate"
-                    TargetType="Button">
-    <ContentPresenter x:Name="expanderGlyphPresenter"
-                        Content="{x:Null}"
-                        ContentTemplate="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).CollapseGroupGlyph}" />
+  
 
-    <ControlTemplate.Triggers>
-      <Trigger Property="xcdg:DataGridControl.HasExpandedDetails"
-                  Value="False">
-        <Setter TargetName="expanderGlyphPresenter"
-                    Property="ContentTemplate"
-                    Value="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).ExpandGroupGlyph}" />
-      </Trigger>
-    </ControlTemplate.Triggers>
-  </ControlTemplate>
-
-  <!-- ControlTemplated applied to the ToggleButton that is used in the GroupHeaders
-        to expand/collapse groups. -->
-  <ControlTemplate x:Key="groupExpanderToggleButtonTemplate"
-                    TargetType="ToggleButton">
-
-    <ContentPresenter x:Name="expanderGlyphPresenter"
-                        Content="{x:Null}"
-                        ContentTemplate="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).CollapseGroupGlyph}" />
-
-    <ControlTemplate.Triggers>
-      <Trigger Property="IsChecked"
-                  Value="False">
-        <Setter TargetName="expanderGlyphPresenter"
-                    Property="ContentTemplate"
-                    Value="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).ExpandGroupGlyph}" />
-      </Trigger>
-    </ControlTemplate.Triggers>
-  </ControlTemplate>
 
   <DataTemplate x:Key="defaultGroupTemplate">
     <StackPanel Orientation="Horizontal"
@@ -118,109 +83,14 @@
     </DataTemplate.Triggers>
   </DataTemplate>
 
-  <DataTemplate x:Key="stickyGroupTemplate">
-    <DataTemplate.Resources>
-      <DataTemplate x:Key="detailedGroupItemContentTemplate">
-        <StackPanel Orientation="Horizontal"
-                        VerticalAlignment="Center">
+  
 
-          <ContentControl Content="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).Value}"
-                               ContentTemplate="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).ValueTemplate}"
-                               ContentTemplateSelector="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).ValueTemplateSelector}"
-                               TextBlock.FontWeight="Bold"
-                               VerticalAlignment="Center" />
+     
+  
 
-          <TextBlock Text=" ("
-                          VerticalAlignment="Center" />
-          <TextBlock Text="{Binding ItemCount}"
-                          VerticalAlignment="Center" />
-          <TextBlock Text=" "
-                          VerticalAlignment="Center" />
-          <TextBlock x:Name="suffixRun"
-                          Text="items"
-                          VerticalAlignment="Center" />
-          <TextBlock Text=")"
-                          VerticalAlignment="Center" />
+  
 
-        </StackPanel>
-
-        <DataTemplate.Triggers>
-          <DataTrigger Binding="{Binding ItemCount}"
-                            Value="1">
-            <Setter TargetName="suffixRun"
-                          Property="Text"
-                          Value="item" />
-          </DataTrigger>
-        </DataTemplate.Triggers>
-      </DataTemplate>
-
-      <DataTemplate x:Key="groupItemContentTemplate">
-        <ContentControl Content="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).Value}"
-                            ContentTemplate="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).ValueTemplate}"
-                            ContentTemplateSelector="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).ValueTemplateSelector}" />
-      </DataTemplate>
-
-      <DataTemplate x:Key="parentGroupTemplate">
-        <xcdg:GroupNavigationControl Group="{Binding}"
-                                          MainItemTemplate="{StaticResource groupItemContentTemplate}"
-                                          ItemTemplate="{StaticResource groupItemContentTemplate}" />
-      </DataTemplate>
-    </DataTemplate.Resources>
-
-    <StackPanel Orientation="Horizontal">
-      <ItemsControl ItemsSource="{Binding Path=ParentGroups}"
-                       ItemTemplate="{StaticResource parentGroupTemplate}"
-                       Focusable="False">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <StackPanel Orientation="Horizontal"
-                              IsItemsHost="True" />
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-      </ItemsControl>
-
-      <xcdg:GroupNavigationControl Group="{Binding}"
-                                       MainItemTemplate="{StaticResource detailedGroupItemContentTemplate}"
-                                       ItemTemplate="{StaticResource groupItemContentTemplate}" />
-    </StackPanel>
-  </DataTemplate>
-
-  <DataTemplate DataType="{x:Type xcdg:Group}">
-    <!-- This ContentControl must be focusable false to avoid getting the focus 
-           when performing KeyboardNavigation -->
-    <ContentControl x:Name="groupContentPresenter"
-                      Focusable="False"
-                      Content="{Binding}"
-                      ContentTemplate="{StaticResource defaultGroupTemplate}" />
-
-    <DataTemplate.Triggers>
-      <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).DataGridControl.View, Converter={x:Static xcdg:TypeToBooleanConverter.Singleton}, ConverterParameter={x:Type xcdg:TableflowView}}"
-                      Value="True">
-        <Setter Property="ContentTemplate"
-                    Value="{StaticResource stickyGroupTemplate}"
-                    TargetName="groupContentPresenter" />
-      </DataTrigger>
-    </DataTemplate.Triggers>
-  </DataTemplate>
-
-  <!-- Default DataTemplate for displaying a GroupLevelDescription (e.g. in a GroupByItem) -->
-  <DataTemplate DataType="{x:Type xcdg:GroupLevelDescription}">
-
-    <ContentPresenter Content="{Binding Title}"
-                        ContentTemplate="{Binding RelativeSource={RelativeSource TemplatedParent},Path=DataContext.TitleTemplate}" />
-
-  </DataTemplate>
-
-  <!-- ValueConverter that is used to do DataTriggers on Content properties to check if they are null. -->
-  <xcdg:NullToBooleanConverter x:Key="nullToBooleanConverter" />
-
-  <xcdg:IntAdditionConverter x:Key="intAdditionConverter" />
-
-  <!-- ValueConverter that is used to map GridLineThickness properties (of type double)
-        to Thickness structures that we can set to BorderThickness properties in the templates. -->
-  <xcdg:ThicknessConverter x:Key="thicknessConverter" />
-
-  <xcdg:EmptyStringToBooleanConverter x:Key="emptyStringToBooleanConverter" />
+ 
 
   <Thickness x:Key="cellPadding"
               Left="2"
@@ -362,138 +232,6 @@
                       Value="Visible">
         <DataTrigger.EnterActions>
           <BeginStoryboard Storyboard="{StaticResource loadingStoryboard}"
-                                Name="storyboard" />
-        </DataTrigger.EnterActions>
-        <DataTrigger.ExitActions>
-          <StopStoryboard BeginStoryboardName="storyboard" />
-          <RemoveStoryboard BeginStoryboardName="storyboard" />
-        </DataTrigger.ExitActions>
-      </DataTrigger>
-    </DataTemplate.Triggers>
-  </DataTemplate>
-
-  <DataTemplate x:Key="connectionStateErrorGlyph">
-    <DataTemplate.Resources>
-      <SolidColorBrush Color="Black"
-                          x:Key="backgroundBrushAdoners" />
-      <Storyboard x:Key="errorStoryboard"
-                     RepeatBehavior="Forever">
-        <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
-                                          Storyboard.TargetName="path"
-                                          Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)">
-          <SplineColorKeyFrame KeyTime="00:00:00"
-                                    Value="#FF970000" />
-          <SplineColorKeyFrame KeyTime="00:00:00.5000000"
-                                    Value="Red" />
-          <SplineColorKeyFrame KeyTime="00:00:01"
-                                    Value="#FF970000" />
-          <SplineColorKeyFrame KeyTime="00:00:01.5000000"
-                                    Value="Red" />
-          <SplineColorKeyFrame KeyTime="00:00:02"
-                                    Value="#FF970000" />
-        </ColorAnimationUsingKeyFrames>
-        <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
-                                          Storyboard.TargetName="path2"
-                                          Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)">
-          <SplineColorKeyFrame KeyTime="00:00:00"
-                                    Value="#FF970000" />
-          <SplineColorKeyFrame KeyTime="00:00:00.5000000"
-                                    Value="Red" />
-          <SplineColorKeyFrame KeyTime="00:00:01"
-                                    Value="#FF970000" />
-          <SplineColorKeyFrame KeyTime="00:00:01.5000000"
-                                    Value="Red" />
-          <SplineColorKeyFrame KeyTime="00:00:02"
-                                    Value="#FF970000" />
-        </ColorAnimationUsingKeyFrames>
-        <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
-                                          Storyboard.TargetName="path3"
-                                          Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)">
-          <SplineColorKeyFrame KeyTime="00:00:00"
-                                    Value="#FF970000" />
-          <SplineColorKeyFrame KeyTime="00:00:00.5000000"
-                                    Value="Red" />
-          <SplineColorKeyFrame KeyTime="00:00:01"
-                                    Value="#FF970000" />
-          <SplineColorKeyFrame KeyTime="00:00:01.5000000"
-                                    Value="Red" />
-          <SplineColorKeyFrame KeyTime="00:00:02"
-                                    Value="#FF970000" />
-        </ColorAnimationUsingKeyFrames>
-      </Storyboard>
-
-    </DataTemplate.Resources>
-    <Grid x:Name="rootLayout"
-            Background="Transparent">
-      <Canvas Width="27.466"
-                 Height="24.066">
-
-        <Canvas>
-          <Path x:Name="path"
-                     Fill="Black"
-                     Data="F1 M 17.067,3.300 C 17.067,5.123 15.589,6.600 13.767,6.600 C 11.944,6.600 10.467,5.123 10.467,3.300 C 10.467,1.478 11.944,0.000 13.767,0.000 C 15.589,0.000 17.067,1.478 17.067,3.300 Z"
-                     RenderTransformOrigin="0.5,0.5"
-                     Opacity="0.8">
-            <Path.RenderTransform>
-              <TransformGroup>
-                <ScaleTransform />
-                <SkewTransform />
-                <RotateTransform />
-                <TranslateTransform />
-              </TransformGroup>
-            </Path.RenderTransform>
-          </Path>
-          <Path x:Name="path2"
-                     Fill="Black"
-                     Data="F1 M 6.600,20.767 C 6.600,22.590 5.123,24.066 3.300,24.066 C 1.478,24.066 0.000,22.590 0.000,20.767 C 0.000,18.944 1.478,17.467 3.300,17.467 C 5.123,17.467 6.600,18.944 6.600,20.767 Z"
-                     RenderTransformOrigin="0.5,0.5"
-                     Opacity="0.8">
-            <Path.RenderTransform>
-              <TransformGroup>
-                <ScaleTransform />
-                <SkewTransform />
-                <RotateTransform />
-                <TranslateTransform />
-              </TransformGroup>
-            </Path.RenderTransform>
-          </Path>
-          <Path x:Name="path3"
-                     Fill="Black"
-                     Data="F1 M 27.466,20.767 C 27.466,22.590 25.989,24.066 24.167,24.066 C 22.344,24.066 20.867,22.590 20.867,20.767 C 20.867,18.944 22.344,17.467 24.167,17.467 C 25.989,17.467 27.466,18.944 27.466,20.767 Z"
-                     RenderTransformOrigin="0.5,0.5"
-                     Opacity="0.8">
-            <Path.RenderTransform>
-              <TransformGroup>
-                <ScaleTransform />
-                <SkewTransform />
-                <RotateTransform />
-                <TranslateTransform />
-              </TransformGroup>
-            </Path.RenderTransform>
-          </Path>
-        </Canvas>
-      </Canvas>
-      <Grid.ToolTip>
-        <ToolTip x:Name="errorToolTip"
-                     Visibility="Collapsed">
-          <ContentPresenter />
-        </ToolTip>
-      </Grid.ToolTip>
-    </Grid>
-    <DataTemplate.Triggers>
-      <DataTrigger Binding="{Binding}"
-                      Value="Error">
-        <Setter TargetName="rootLayout"
-                    Property="Visibility"
-                    Value="Visible" />
-        <Setter Property="Visibility"
-                    TargetName="errorToolTip"
-                    Value="Visible" />
-        <Setter TargetName="errorToolTip"
-                    Property="Content"
-                    Value="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).DataGridControl.ConnectionError}" />
-        <DataTrigger.EnterActions>
-          <BeginStoryboard Storyboard="{StaticResource errorStoryboard}"
                                 Name="storyboard" />
         </DataTrigger.EnterActions>
         <DataTrigger.ExitActions>

@@ -26,14 +26,14 @@ namespace Xenko.Core.Assets.Quantum
 
         public struct NodeOverride
         {
-            public NodeOverride(IAssetNode overriddenNode, Index overriddenIndex, OverrideTarget target)
+            public NodeOverride(IAssetNode overriddenNode, NodeIndex overriddenIndex, OverrideTarget target)
             {
                 Node = overriddenNode;
                 Index = overriddenIndex;
                 Target = target;
             }
             public readonly IAssetNode Node;
-            public readonly Index Index;
+            public readonly NodeIndex Index;
             public readonly OverrideTarget Target;
         }
 
@@ -211,7 +211,7 @@ namespace Xenko.Core.Assets.Quantum
             ReconcileWithBase(RootNode);
         }
 
-        private void ReconcileWithBase([NotNull] IAssetNode rootNode, Dictionary<IGraphNode, Index> nodesToReset = null)
+        private void ReconcileWithBase([NotNull] IAssetNode rootNode, Dictionary<IGraphNode, NodeIndex> nodesToReset = null)
         {
             // Two passes: first pass will reconcile almost everything, but skip object reference.
             // The reason is that the target of the reference might not exist yet (might need to be reconcilied)
@@ -230,18 +230,18 @@ namespace Xenko.Core.Assets.Quantum
         /// </summary>
         /// <param name="rootNode">The node for which to reset overrides.</param>
         /// <param name="indexToReset">The index of the override to reset in this node, if relevant.</param>
-        internal void ResetAllOverridesRecursively([NotNull] IAssetNode rootNode, Index indexToReset)
+        internal void ResetAllOverridesRecursively([NotNull] IAssetNode rootNode, NodeIndex indexToReset)
         {
-            if (rootNode is IAssetMemberNode && indexToReset != Index.Empty) throw new ArgumentException(@"The index must be empty when invoking this method on a member node.", nameof(indexToReset));
+            if (rootNode is IAssetMemberNode && indexToReset != NodeIndex.Empty) throw new ArgumentException(@"The index must be empty when invoking this method on a member node.", nameof(indexToReset));
 
             // We first use a visitor to reset recursively all overrides
-            var nodesToReset = new Dictionary<IGraphNode, Index>();
+            var nodesToReset = new Dictionary<IGraphNode, NodeIndex>();
 
             IGraphNode visitRoot = null;
             var memberNode = rootNode as AssetMemberNode;
             if (memberNode != null)
             {
-                if (indexToReset != Index.Empty) throw new InvalidOperationException("Expecting empty index when resetting a member node.");
+                if (indexToReset != NodeIndex.Empty) throw new InvalidOperationException("Expecting empty index when resetting a member node.");
                 visitRoot = memberNode.Target;
                 nodesToReset.Add(rootNode, indexToReset);
             }
@@ -249,7 +249,7 @@ namespace Xenko.Core.Assets.Quantum
             var objectNode = rootNode as AssetObjectNode;
             if (objectNode != null)
             {
-                if (indexToReset != Index.Empty)
+                if (indexToReset != NodeIndex.Empty)
                 {
                     nodesToReset.Add(rootNode, indexToReset);
                     visitRoot = objectNode.IsReference ? objectNode.IndexedTarget(indexToReset) : null;
@@ -265,7 +265,7 @@ namespace Xenko.Core.Assets.Quantum
             {
                 var visitor = new AssetGraphVisitorBase(Definition);
                 // If we're in scenario where rootNode is an object node and index is not empty, we might already have the node in the dictionary so let's check this in Visiting
-                visitor.Visiting += (node, path) => { if (!nodesToReset.ContainsKey(node)) nodesToReset.Add(node, Index.Empty); };
+                visitor.Visiting += (node, path) => { if (!nodesToReset.ContainsKey(node)) nodesToReset.Add(node, NodeIndex.Empty); };
                 visitor.Visit(rootNode);
             }
             // Then we reconcile (recursively) with the base.
@@ -329,10 +329,10 @@ namespace Xenko.Core.Assets.Quantum
         }
 
         [CanBeNull]
-        private static IAssetNode ResolveObjectPath([NotNull] IAssetNode rootNode, [NotNull] YamlAssetPath path, out Index index, out bool resolveOnIndex)
+        private static IAssetNode ResolveObjectPath([NotNull] IAssetNode rootNode, [NotNull] YamlAssetPath path, out NodeIndex index, out bool resolveOnIndex)
         {
             var currentNode = rootNode;
-            index = Index.Empty;
+            index = NodeIndex.Empty;
             resolveOnIndex = false;
             for (var i = 0; i < path.Elements.Count; i++)
             {
@@ -341,7 +341,7 @@ namespace Xenko.Core.Assets.Quantum
                 {
                     case YamlAssetPath.ElementType.Member:
                     {
-                        index = Index.Empty;
+                        index = NodeIndex.Empty;
                         resolveOnIndex = false;
                         if (currentNode.IsReference)
                         {
@@ -357,7 +357,7 @@ namespace Xenko.Core.Assets.Quantum
                     }
                     case YamlAssetPath.ElementType.Index:
                     {
-                        index = new Index(item.Value);
+                        index = new NodeIndex(item.Value);
                         resolveOnIndex = true;
                         var memberNode = currentNode as IMemberNode;
                         if (memberNode == null) throw new InvalidOperationException($"An IMemberNode was expected when processing the path [{path}]");
@@ -366,7 +366,7 @@ namespace Xenko.Core.Assets.Quantum
                         {
                             var objNode = currentNode as IObjectNode;
                             if (objNode == null) throw new InvalidOperationException($"An IObjectNode was expected when processing the path [{path}]");
-                            currentNode = (IAssetNode)objNode.IndexedTarget(new Index(item.Value));
+                            currentNode = (IAssetNode)objNode.IndexedTarget(new NodeIndex(item.Value));
                         }
                         break;
                     }
@@ -374,7 +374,7 @@ namespace Xenko.Core.Assets.Quantum
                     {
                         var ids = CollectionItemIdHelper.GetCollectionItemIds(currentNode.Retrieve());
                         var key = ids.GetKey(item.AsItemId());
-                        index = new Index(key);
+                        index = new NodeIndex(key);
                         resolveOnIndex = false;
                         var memberNode = currentNode as IMemberNode;
                         if (memberNode == null) throw new InvalidOperationException($"An IMemberNode was expected when processing the path [{path}]");
@@ -383,7 +383,7 @@ namespace Xenko.Core.Assets.Quantum
                         {
                             var objNode = currentNode as IObjectNode;
                             if (objNode == null) throw new InvalidOperationException($"An IObjectNode was expected when processing the path [{path}]");
-                            currentNode = (IAssetNode)objNode.IndexedTarget(new Index(key));
+                            currentNode = (IAssetNode)objNode.IndexedTarget(new NodeIndex(key));
                         }
                         break;
                     }
@@ -427,7 +427,7 @@ namespace Xenko.Core.Assets.Quantum
 
             foreach (var overrideInfo in overrides)
             {
-                var node = ResolveObjectPath(rootNode, overrideInfo.Key, out Index index, out bool overrideOnKey);
+                var node = ResolveObjectPath(rootNode, overrideInfo.Key, out NodeIndex index, out bool overrideOnKey);
                 // The node is unreachable, skip this override.
                 if (node == null)
                     continue;
@@ -469,7 +469,7 @@ namespace Xenko.Core.Assets.Quantum
                     if (memberNode != null && memberNode.IsContentOverridden())
                     {
                         memberNode.OverrideContent(false);
-                        clearedOverrides.Add(new NodeOverride(memberNode, Index.Empty, OverrideTarget.Content));
+                        clearedOverrides.Add(new NodeOverride(memberNode, NodeIndex.Empty, OverrideTarget.Content));
                     }
                     if (objectNode != null)
                     {
@@ -532,7 +532,7 @@ namespace Xenko.Core.Assets.Quantum
         }
 
         // TODO: this method is should be called in every scenario of ReconcileWithBase, it is not the case yet.
-        protected virtual bool CanUpdate(IAssetNode node, ContentChangeType changeType, Index index, object value)
+        protected virtual bool CanUpdate(IAssetNode node, ContentChangeType changeType, NodeIndex index, object value)
         {
             return true;
         }
@@ -744,7 +744,7 @@ namespace Xenko.Core.Assets.Quantum
             BaseContentChanged?.Invoke(e, node);
         }
 
-        private void ReconcileWithBaseNode(IAssetNode assetNode, bool reconcileObjectReference, Dictionary<IGraphNode, Index> nodesToReset)
+        private void ReconcileWithBaseNode(IAssetNode assetNode, bool reconcileObjectReference, Dictionary<IGraphNode, NodeIndex> nodesToReset)
         {
             var memberNode = assetNode as AssetMemberNode;
             var objectNode = assetNode as IAssetObjectNodeInternal;
@@ -796,7 +796,7 @@ namespace Xenko.Core.Assets.Quantum
                     foreach (var index in objectNode.Indices)
                     {
                         // Skip overridden items, if they are not marked to be reset.
-                        if (objectNode.IsItemOverridden(index) || (nodesToReset != null && nodesToReset.TryGetValue(objectNode, out Index indexToReset) && indexToReset != index))
+                        if (objectNode.IsItemOverridden(index) || (nodesToReset != null && nodesToReset.TryGetValue(objectNode, out NodeIndex indexToReset) && indexToReset != index))
                             continue;
 
                         var itemId = objectNode.IndexToId(index);
@@ -841,7 +841,7 @@ namespace Xenko.Core.Assets.Quantum
                             continue;
                         }
 
-                        if (!objectNode.TryIdToIndex(itemId, out Index localIndex))
+                        if (!objectNode.TryIdToIndex(itemId, out NodeIndex localIndex))
                         {
                             // For dictionary, we might have a key collision, if so, we consider that the new value from the base is deleted in the instance.
                             var keyCollision = assetNode.Descriptor is DictionaryDescriptor && (objectNode.ItemReferences?.HasIndex(index) == true || objectNode.Indices.Any(x => index.Equals(x)));
@@ -881,7 +881,7 @@ namespace Xenko.Core.Assets.Quantum
                                 if (ShouldReconcileIndex(localIndex, index))
                                 {
                                     // Reconcile using a move (Remove + Add) of the key-value pair
-                                    var clonedIndex = new Index(CloneValueFromBase(index.Value, assetNode));
+                                    var clonedIndex = new NodeIndex(CloneValueFromBase(index.Value, assetNode));
                                     var localItemValue = assetNode.Retrieve(localIndex);
                                     objectNode.Remove(localItemValue, localIndex);
                                     objectNode.Add(localItemValue, clonedIndex);
@@ -914,19 +914,19 @@ namespace Xenko.Core.Assets.Quantum
                             var currentBaseIndex = baseIndex.Int - 1;
 
                             // Initialize the target index to zero, in case we don't find any better index.
-                            var localIndex = new Index(0);
+                            var localIndex = new NodeIndex(0);
 
                             // Find the first item of the base that also exists (in term of id) in the local node, iterating backward (from baseIndex to 0)
                             while (currentBaseIndex >= 0)
                             {
                                 // This should not happen since the currentBaseIndex comes from the base.
-                                if (!baseNode.TryIndexToId(new Index(currentBaseIndex), out ItemId baseId))
+                                if (!baseNode.TryIndexToId(new NodeIndex(currentBaseIndex), out ItemId baseId))
                                     throw new InvalidOperationException("Cannot find an identifier matching the index in the base collection");
 
                                 // If we have an matching item, we want to insert right after it
-                                if (objectNode.TryIdToIndex(baseId, out Index sameIndexInInstance))
+                                if (objectNode.TryIdToIndex(baseId, out NodeIndex sameIndexInInstance))
                                 {
-                                    localIndex = new Index(sameIndexInInstance.Int + 1);
+                                    localIndex = new NodeIndex(sameIndexInInstance.Int + 1);
                                     break;
                                 }
                                 currentBaseIndex--;
@@ -946,16 +946,16 @@ namespace Xenko.Core.Assets.Quantum
             }
         }
 
-        private bool ShouldReconcileMember([NotNull] IAssetMemberNode memberNode, bool reconcileObjectReference, Dictionary<IGraphNode, Index> nodesToReset)
+        private bool ShouldReconcileMember([NotNull] IAssetMemberNode memberNode, bool reconcileObjectReference, Dictionary<IGraphNode, NodeIndex> nodesToReset)
         {
             var localValue = memberNode.Retrieve();
             var baseValue = memberNode.BaseNode.Retrieve();
 
             // First rule: if the node is to be reset, we should reconcile.
-            var index = Index.Empty;
+            var index = NodeIndex.Empty;
             if (nodesToReset?.TryGetValue(memberNode, out index) ?? false)
             {
-                return index == Index.Empty;
+                return index == NodeIndex.Empty;
             }
 
             // Second rule: if the node is overridden, we shouldn't reconcile.
@@ -990,16 +990,16 @@ namespace Xenko.Core.Assets.Quantum
             return !Equals(localValue, baseValue);
         }
 
-        private bool ShouldReconcileItem([NotNull] IAssetObjectNode node, Index localIndex, Index baseIndex, bool reconcileObjectReference, Dictionary<IGraphNode, Index> nodesToReset)
+        private bool ShouldReconcileItem([NotNull] IAssetObjectNode node, NodeIndex localIndex, NodeIndex baseIndex, bool reconcileObjectReference, Dictionary<IGraphNode, NodeIndex> nodesToReset)
         {
             var localValue = node.Retrieve(localIndex);
             var baseValue = node.BaseNode.Retrieve(baseIndex);
 
             // First rule: if the node is to be reset, we should reconcile.
-            var index = Index.Empty;
+            var index = NodeIndex.Empty;
             if (nodesToReset?.TryGetValue(node, out index) ?? false)
             {
-                return index == Index.Empty || index == localIndex;
+                return index == NodeIndex.Empty || index == localIndex;
             }
 
             // Second rule: if the node is overridden, we shouldn't reconcile.
@@ -1034,7 +1034,7 @@ namespace Xenko.Core.Assets.Quantum
             return !Equals(localValue, baseValue);
         }
 
-        private static bool ShouldReconcileIndex(Index localIndex, Index baseIndex)
+        private static bool ShouldReconcileIndex(NodeIndex localIndex, NodeIndex baseIndex)
         {
             return !Equals(localIndex, baseIndex);
         }

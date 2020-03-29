@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:xunit.runner.xenko.ViewModels;assembly=xunit.runner.xenko"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="xunit.runner.xenko.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="XUnit Runner (Xenko)">
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel/>
+  </Design.DataContext>
+
+  <DockPanel DataContext="{Binding Tests}">
+    <CheckBox DockPanel.Dock="Top" Content="Interactive Mode" IsChecked="{Binding IsInteractiveMode}"/>
+    <ProgressBar Value="{Binding TestCompletion}" DockPanel.Dock="Top" />
+    <TreeView Items="{Binding TestCases}">
+      <TreeView.DataTemplates>
+        <TreeDataTemplate ItemsSource="{Binding Children}">
+          <StackPanel Orientation="Horizontal">
+            <Menu>
+              <MenuItem Header="▶" FontFamily="Segoe UI Symbol" Foreground="Green" Command="{Binding RunTest}" IsEnabled="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, Path=!DataContext.RunningTests}"/>
+            </Menu>
+            <TextBlock Text="✘" FontFamily="Segoe UI Symbol" IsVisible="{Binding Failed}" Foreground="Red" />
+            <TextBlock Text="✔" FontFamily="Segoe UI Symbol" IsVisible="{Binding Succeeded}" Foreground="Green" />
+            <TextBlock Text="⭮" FontFamily="Segoe UI Symbol" IsVisible="{Binding Running}" Foreground="Blue" />
+            <TextBlock Text="{Binding DisplayName}" />
+            <TextBlock Text="(Running)" IsVisible="{Binding Running}" />
+          </StackPanel>
+        </TreeDataTemplate>
+      </TreeView.DataTemplates>
+      <TreeView.Styles>
+        <Style Selector="TreeViewItem">
+          <!-- Start expanded -->
+          <Setter Property="IsExpanded" Value="True" />
+        </Style>
+      </TreeView.Styles>
+    </TreeView>
+  </DockPanel>
+</Window>

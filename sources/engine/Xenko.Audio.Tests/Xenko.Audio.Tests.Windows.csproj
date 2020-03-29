@@ -1,33 +1,21 @@
 ﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <RootNamespace>Xenko.Audio.Tests</RootNamespace>
+    <TargetFrameworks>net461</TargetFrameworks>
     <AssemblyName>Xenko.Audio.Tests</AssemblyName>
-    <TargetFramework>net461</TargetFramework>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <RootNamespace>Xenko.Audio.Tests</RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
     <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoPlatform>Windows</XenkoPlatform>
-    <XenkoBuildProfile>Windows</XenkoBuildProfile>
-    <XenkoPackageGuid>{637e7e88-bc09-4ddd-95eb-00114fd32e5e}</XenkoPackageGuid>
-    <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">Direct3D11</XenkoGraphicsApi>
-    <XenkoOutputFolder>Tests\$(AssemblyName)</XenkoOutputFolder>
+    <XenkoCompileAssets>true</XenkoCompileAssets>
+    <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
   </PropertyGroup>
   <PropertyGroup>
-    <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)Xenko.Audio.Tests.xkpkg</XenkoCurrentPackagePath>
-    <OutputPath>..\..\..\Bin\$(XenkoPlatformFullName)\$(XenkoOutputFolder)</OutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(XenkoPlatformFullName)-$(XenkoGraphicsApi)\$(Configuration)</IntermediateOutputPath>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>Xenko.Audio.Tests.LaunchProgram</StartupObject>
+    <StartupObject>xunit.runner.xenko.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.xenko\xunit.runner.xenko.csproj" />
     <ProjectReference Include="..\..\..\sources\engine\Xenko.Engine\Xenko.Engine.csproj">
       <Project>{C121A566-555E-42B9-9B0A-1696529A9088}</Project>
       <Name>Xenko.Engine</Name>
@@ -92,10 +80,6 @@
     <None Include="AudioAssets\wave2.xksnd" />
     <None Include="Xenko.Audio.Tests.xkpkg" />
   </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
   <Import Project="..\Xenko.Shared\Refactor\Xenko.Refactor.projitems" Label="Shared" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
   <Import Project="..\..\targets\Xenko.UnitTests.targets" />
 </Project>

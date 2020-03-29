@@ -93,8 +93,10 @@ namespace Xenko.Core.Assets.CompilerApp
 
                 projectSession = projectSessionResult.Session;
 
-                // Check build configuration
-                var package = projectSession.LocalPackages.Last();
+                // Find loaded package (either xkpkg or csproj) -- otherwise fallback to first one
+                var packageFile = (UFile)builderOptions.PackageFile;
+                var package = projectSession.LocalPackages.FirstOrDefault(x => x.FullPath == packageFile || (x.Container is SolutionProject project && project.FullPath == packageFile))
+                    ?? projectSession.LocalPackages.First();
 
                 // Setup variables
                 var buildDirectory = builderOptions.BuildDirectory;
@@ -113,7 +115,8 @@ namespace Xenko.Core.Assets.CompilerApp
                 {
                     Platform = builderOptions.Platform,
                     CompilationContext = typeof(AssetCompilationContext),
-                    BuildConfiguration = builderOptions.ProjectConfiguration
+                    BuildConfiguration = builderOptions.ProjectConfiguration,
+                    Package = package,
                 };
 
                 // Command line properties
@@ -136,8 +139,12 @@ namespace Xenko.Core.Assets.CompilerApp
                 // Setup the remote process build
                 var remoteBuilderHelper = new PackageBuilderRemoteHelper(projectSession.AssemblyContainer, builderOptions);
 
-                // Create the builder
                 var indexName = "index." + package.Meta.Name;
+                // Add runtime identifier (if any) to avoid clash when building multiple at the same time (this happens when using ExtrasBuildEachRuntimeIdentifier feature of MSBuild.Sdk.Extras)
+                if (builderOptions.Properties.TryGetValue("RuntimeIdentifier", out var runtimeIdentifier))
+                    indexName += $".{runtimeIdentifier}";
+
+                // Create the builder
                 builder = new Builder(builderOptions.Logger, buildDirectory, indexName) { ThreadCount = builderOptions.ThreadCount, TryExecuteRemote = remoteBuilderHelper.TryExecuteRemote };
 
                 builder.MonitorPipeNames.AddRange(builderOptions.MonitorPipeNames);

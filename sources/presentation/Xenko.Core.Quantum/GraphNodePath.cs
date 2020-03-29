@@ -42,18 +42,18 @@ namespace Xenko.Core.Quantum
         {
             public readonly ElementType Type;
             public readonly string Name;
-            public readonly Index Index;
+            public readonly NodeIndex Index;
             public readonly Guid Guid;
 
             private NodePathElement(string value)
             {
                 Name = value;
-                Index = Index.Empty;
+                Index = NodeIndex.Empty;
                 Guid = Guid.Empty;
                 Type = ElementType.Member;
             }
 
-            private NodePathElement(Index value)
+            private NodePathElement(NodeIndex value)
             {
                 Name = null;
                 Index = value;
@@ -64,7 +64,7 @@ namespace Xenko.Core.Quantum
             private NodePathElement(Guid value)
             {
                 Name = null;
-                Index = Index.Empty;
+                Index = NodeIndex.Empty;
                 Guid = value;
                 Type = ElementType.Target;
             }
@@ -81,7 +81,7 @@ namespace Xenko.Core.Quantum
                 return new NodePathElement(Guid.NewGuid());
             }
 
-            public static NodePathElement CreateIndex(Index index)
+            public static NodePathElement CreateIndex(NodeIndex index)
             {
                 return new NodePathElement(index);
             }
@@ -313,10 +313,10 @@ namespace Xenko.Core.Quantum
         public NodeAccessor GetAccessor()
         {
             if (path.Count == 0)
-                return new NodeAccessor(RootNode, Index.Empty);
+                return new NodeAccessor(RootNode, NodeIndex.Empty);
 
             var lastItem = path[path.Count - 1];
-            return lastItem.Type == ElementType.Index ? new NodeAccessor(GetParent().GetNode(), lastItem.Index) : new NodeAccessor(GetNode(), Index.Empty);
+            return lastItem.Type == ElementType.Index ? new NodeAccessor(GetParent().GetNode(), lastItem.Index) : new NodeAccessor(GetNode(), NodeIndex.Empty);
         }
 
         /// <summary>
@@ -359,18 +359,18 @@ namespace Xenko.Core.Quantum
 
         public void PushTarget() => PushElement(null, ElementType.Target);
 
-        public void PushIndex(Index index) => PushElement(index, ElementType.Index);
+        public void PushIndex(NodeIndex index) => PushElement(index, ElementType.Index);
 
         public void Pop() => path.RemoveAt(path.Count - 1);
 
         // TODO: Switch to tuple return as soon as we have C# 7.0
         [NotNull]
-        public static GraphNodePath From(IGraphNode root, [NotNull] MemberPath memberPath, out Index index)
+        public static GraphNodePath From(IGraphNode root, [NotNull] MemberPath memberPath, out NodeIndex index)
         {
             if (memberPath == null) throw new ArgumentNullException(nameof(memberPath));
 
             var result = new GraphNodePath(root);
-            index = Index.Empty;
+            index = NodeIndex.Empty;
             var memberPathItems = memberPath.Decompose();
             for (int i = 0; i < memberPathItems.Count; i++)
             {
@@ -382,7 +382,7 @@ namespace Xenko.Core.Quantum
                 }
                 else if (memberPathItem.GetIndex() != null)
                 {
-                    var localIndex = new Index(memberPathItem.GetIndex());
+                    var localIndex = new NodeIndex(memberPathItem.GetIndex());
 
                     if (lastItem)
                     {
@@ -472,9 +472,9 @@ namespace Xenko.Core.Quantum
                     path.Add(NodePathElement.CreateTarget());
                     break;
                 case ElementType.Index:
-                    if (!(elementValue is Index))
+                    if (!(elementValue is NodeIndex))
                         throw new ArgumentException("The value must be an Index when type is ElementType.Index.");
-                    path.Add(NodePathElement.CreateIndex((Index)elementValue));
+                    path.Add(NodePathElement.CreateIndex((NodeIndex)elementValue));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type));

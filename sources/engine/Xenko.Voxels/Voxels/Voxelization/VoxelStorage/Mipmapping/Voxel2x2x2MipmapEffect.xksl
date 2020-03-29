@@ -1,0 +1,13 @@
+﻿namespace Xenko.Rendering.Voxels
+{
+    partial effect Voxel2x2x2MipmapEffect
+    {
+        using params Voxel2x2x2MipmapKeys;
+        
+        mixin Voxel2x2x2Mipmap;
+        if (Voxel2x2x2MipmapKeys.mipmapper!=null)
+        {
+            mixin compose mipmapper = Voxel2x2x2MipmapKeys.mipmapper;
+        }
+    };
+}

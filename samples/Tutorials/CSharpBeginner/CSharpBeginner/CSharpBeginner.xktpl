@@ -1,0 +1,11 @@
+!TemplateSample
+Id: B12AF970-1F11-4BC8-9571-3B4DA9E20F06
+Name: "C# Beginner"
+Scope: Session
+Description: Tutorial project which teaches you the basics about C# with Xenko
+FullDescription: This tutorial project contains various scenes that teach you the very basics of developing games with the Xenko game engine
+Group: Tutorials
+Icon: ../../.xktpl/CSharpBeginner.png
+DefaultOutputName: CSharpBeginner
+Screenshots:
+    - .xktpl/screenshot.jpg

@@ -4,13 +4,13 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using Xenko.Core.Annotations;
 
 namespace Xenko.Core.Presentation.Interactivity
 {
     /// <summary>
-    /// A collection of behavior that synchronize with the System.Windows.Interactivity.Interaction.Behaviors attached property.
+    /// A collection of behavior that synchronize with the Microsoft.Xaml.Behaviors.Interaction.Behaviors attached property.
     /// </summary>
     public class BehaviorCollection : ObservableCollection<Behavior>, IAttachedObject
     {
@@ -44,7 +44,7 @@ namespace Xenko.Core.Presentation.Interactivity
                 throw new InvalidOperationException("This BehaviorCollection has already been attached to a dependency object.");
 
             AssociatedObject = dependencyObject;
-            var behaviors = System.Windows.Interactivity.Interaction.GetBehaviors(dependencyObject);
+            var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(dependencyObject);
             foreach (var behavior in this)
             {
                 behaviors.Add(behavior);
@@ -55,7 +55,7 @@ namespace Xenko.Core.Presentation.Interactivity
         {
             if (AssociatedObject != null)
             {
-                var behaviors = System.Windows.Interactivity.Interaction.GetBehaviors(AssociatedObject);
+                var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(AssociatedObject);
                 foreach (var behavior in this)
                 {
                     behaviors.Remove(behavior);
@@ -69,7 +69,7 @@ namespace Xenko.Core.Presentation.Interactivity
             if (AssociatedObject == null)
                 return;
 
-            var behaviors = System.Windows.Interactivity.Interaction.GetBehaviors(AssociatedObject);
+            var behaviors = Microsoft.Xaml.Behaviors.Interaction.GetBehaviors(AssociatedObject);
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:

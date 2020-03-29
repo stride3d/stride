@@ -43,16 +43,17 @@ namespace Xenko.Graphics
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    renderTargets[i].BlendEnable = false;
-                    renderTargets[i].ColorSourceBlend = Blend.One;
-                    renderTargets[i].ColorDestinationBlend = Blend.Zero;
-                    renderTargets[i].ColorBlendFunction = BlendFunction.Add;
+                    ref var renderTarget = ref renderTargets[i];
+                    renderTarget.BlendEnable = false;
+                    renderTarget.ColorSourceBlend = Blend.One;
+                    renderTarget.ColorDestinationBlend = Blend.Zero;
+                    renderTarget.ColorBlendFunction = BlendFunction.Add;
 
-                    renderTargets[i].AlphaSourceBlend = Blend.One;
-                    renderTargets[i].AlphaDestinationBlend = Blend.Zero;
-                    renderTargets[i].AlphaBlendFunction = BlendFunction.Add;
+                    renderTarget.AlphaSourceBlend = Blend.One;
+                    renderTarget.AlphaDestinationBlend = Blend.Zero;
+                    renderTarget.AlphaBlendFunction = BlendFunction.Add;
 
-                    renderTargets[i].ColorWriteChannels = ColorWriteChannels.All;
+                    renderTarget.ColorWriteChannels = ColorWriteChannels.All;
                 }
             }
         }

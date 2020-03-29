@@ -137,8 +137,9 @@ namespace Xenko.UI.Panels
 
             for (var dim = 0; dim < 3; ++dim)
             {
-                if (float.IsNaN(absolutePosition[dim]) || !useAbsolutePosition && !float.IsNaN(relativePosition[dim]))
-                    absolutePosition[dim] = relativePosition[dim] == 0f ? 0f : relativePosition[dim] * parentSize[dim];
+                var relPos = relativePosition[dim];
+                if (float.IsNaN(absolutePosition[dim]) || !useAbsolutePosition && !float.IsNaN(relPos))
+                    absolutePosition[dim] = relPos == 0f ? 0f : relPos * parentSize[dim];
             }
 
             return absolutePosition;

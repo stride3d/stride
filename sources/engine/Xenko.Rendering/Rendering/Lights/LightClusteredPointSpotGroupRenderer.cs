@@ -76,7 +76,7 @@ namespace Xenko.Rendering.Lights
             spotGroup.SetViews(views);
         }
 
-        private bool CanRenderLight(RenderLight renderLight, ProcessLightsParameters parameters, bool hasNextRenderer)
+        private bool CanRenderLight(RenderLight renderLight, ref ProcessLightsParameters parameters, bool hasNextRenderer)
         {
             Texture projectionTexture = null;
             if (renderLight.Type is LightSpot spotLight) // TODO: PERFORMANCE: I would say that casting this for every light is slow, no?
@@ -108,18 +108,14 @@ namespace Xenko.Rendering.Lights
 
             // First, evaluate how many any which light we want to render (store them in selectedLightIndices)
             selectedLightIndices.Clear();
-            for (int i = 0; i < parameters.LightIndices.Count;)
+            for (int i = parameters.LightIndices.Count - 1; i >= 0; i--)
             {
+                // Looped in reverse for performance reason due to parameters.LightIndices.RemoveAt
                 int index = parameters.LightIndices[i];
                 var renderLight = parameters.LightCollection[index];
 
                 // Check if there might be a renderer that supports shadows instead (in that case skip the light)
-                if (!CanRenderLight(renderLight, parameters, hasNextRenderer)) // If the light projects a texture (we check for this because otherwise this renderer would "steal" the light from the spot light renderer which handle texture projection):    // TODO: Also check for texture projection renderer?
-                {
-                    // Skip this light
-                    i++;
-                }
-                else
+                if (CanRenderLight(renderLight, ref parameters, hasNextRenderer)) // If the light projects a texture (we check for this because otherwise this renderer would "steal" the light from the spot light renderer which handle texture projection):    // TODO: Also check for texture projection renderer?
                 {
                     selectedLightIndices.Add(index);
                     parameters.LightIndices.RemoveAt(i);
@@ -127,8 +123,10 @@ namespace Xenko.Rendering.Lights
             }
 
             group.AddView(parameters.ViewIndex, parameters.View, selectedLightIndices.Count);
-            foreach (var index in selectedLightIndices)
+            for (int i = selectedLightIndices.Count - 1; i >= 0; i--)
             {
+                // Since selectedLightIndices was populated in reverse, loop in reverse again to order it 'forward'
+                int index = selectedLightIndices[i];
                 // Add light to this group and remove it from the light indices
                 group.AddLight(parameters.LightCollection[index], null);
             }
@@ -279,9 +277,15 @@ namespace Xenko.Rendering.Lights
                 //}
 
                 // Initialize cluster with no light (-1)
-                for (int i = 0; i < maxClusterCount.X * maxClusterCount.Y * ClusterSlices; ++i)
                 {
-                    lightNodes.Add(new LightClusterLinkedNode(InternalLightType.Point, -1, -1));
+                    int totalLightNodes = maxClusterCount.X * maxClusterCount.Y * ClusterSlices;
+                    lightNodes.EnsureCapacity(totalLightNodes);
+                    var lightNodesArray = lightNodes.Items;
+                    for (int i = 0; i < totalLightNodes; ++i)
+                    {
+                        lightNodesArray[i] = new LightClusterLinkedNode(InternalLightType.Point, -1, -1);
+                    }
+                    lightNodes.Count = totalLightNodes;
                 }
 
                 // List of clusters moved by this light
@@ -328,7 +332,7 @@ namespace Xenko.Rendering.Lights
                     // TODO: culling (first do it on PointLight, then backport it to SpotLight and improve for SpotLight case)
                     // Find x/y ranges
                     Vector2 clipMin, clipMax;
-                    ComputeClipRegion(positionVS, radius, ref renderView.Projection, out clipMin, out clipMax);
+                    ComputeClipRegion(ref positionVS, radius, ref renderView.Projection, out clipMin, out clipMax);
 
                     var tileStartX = MathUtil.Clamp((int)((clipMin.X * 0.5f + 0.5f) * viewSize.X / ClusterSize), 0, clusterCountX);
                     var tileEndX = MathUtil.Clamp((int)((clipMax.X * 0.5f + 0.5f) * viewSize.X / ClusterSize) + 1, 0, clusterCountX);
@@ -384,7 +388,7 @@ namespace Xenko.Rendering.Lights
 
                     // Find x/y ranges
                     Vector2 clipMin, clipMax;
-                    ComputeClipRegion(positionVS, radius, ref renderView.Projection, out clipMin, out clipMax);
+                    ComputeClipRegion(ref positionVS, radius, ref renderView.Projection, out clipMin, out clipMax);
 
                     var tileStartX = MathUtil.Clamp((int)((clipMin.X * 0.5f + 0.5f) * viewSize.X / ClusterSize), 0, clusterCountX);
                     var tileEndX = MathUtil.Clamp((int)((clipMax.X * 0.5f + 0.5f) * viewSize.X / ClusterSize) + 1, 0, clusterCountX);
@@ -406,7 +410,7 @@ namespace Xenko.Rendering.Lights
                         //if (z != centerZ)
                         //{
                         //    var plane = z < centerZ ? zPlanes[z + 1] : -zPlanes[z];
-                        //    
+                        //
                         //    positionScreen = Plane.DotCoordinate(ref plane, ref positionScreen, out )
                         //}
 
@@ -453,7 +457,7 @@ namespace Xenko.Rendering.Lights
 
                     ComputeViewParameter(viewIndex);
 
-                    var renderViewInfo = renderViewInfos[viewIndex];
+                    ref var renderViewInfo = ref renderViewInfos[viewIndex];
 
                     // Update sizes
                     maxLightIndicesCount = Math.Max(maxLightIndicesCount, renderViewInfo.LightIndices.Count);
@@ -624,7 +628,7 @@ namespace Xenko.Rendering.Lights
                 if (lightNodes.Items[clusterIndex].LightIndex != -1)
                 {
                     var movedCluster = lightNodes.Items[clusterIndex];
-                    
+
                     // Try to check if same linked-list doesn't already exist
                     if (!movedClusters.TryGetValue(movedCluster, out nextNode))
                     {
@@ -695,7 +699,7 @@ namespace Xenko.Rendering.Lights
                 }
             }
 
-            private static void ComputeClipRegion(Vector3 lightPosView, float lightRadius, ref Matrix projection, out Vector2 clipMin, out Vector2 clipMax)
+            private static void ComputeClipRegion(ref Vector3 lightPosView, float lightRadius, ref Matrix projection, out Vector2 clipMin, out Vector2 clipMax)
             {
                 clipMin = new Vector2(-1.0f, -1.0f);
                 clipMax = new Vector2(1.0f, 1.0f);
@@ -755,7 +759,7 @@ namespace Xenko.Rendering.Lights
                 public Int2 ClusterCount;
             }
         }
-        
+
         private class PointSpotShaderGroupData : LightShaderGroupDynamic
         {
             public PointSpotShaderGroupData(RenderContext renderContext)

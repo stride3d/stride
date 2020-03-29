@@ -47,8 +47,8 @@ namespace Xenko.Core
             var type = typeof(T);
             lock (registeredService)
             {
-                if (registeredService.ContainsKey(type))
-                    return (T)registeredService[type];
+                if (registeredService.TryGetValue(type, out var service))
+                    return (T)service;
             }
 
             return null;

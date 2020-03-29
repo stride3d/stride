@@ -1,17 +1,5 @@
 {
   "runtimes": {
-    "win": {
-      "#import": [
-        "win-d3d11",
-        "any"
-      ]
-    },
-    "linux": {
-      "#import": [
-        "linux-opengl",
-        "unix"
-      ]
-    },
     "win-d3d11": {
       "#import": [
         "win"

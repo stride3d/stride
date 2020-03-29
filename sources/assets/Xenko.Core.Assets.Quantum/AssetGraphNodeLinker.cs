@@ -21,7 +21,7 @@ namespace Xenko.Core.Assets.Quantum
             return !propertyGraphDefinition.IsMemberTargetObjectReference(member, member.Retrieve()) && base.ShouldVisitMemberTarget(member);
         }
 
-        protected override bool ShouldVisitTargetItem([NotNull] IObjectNode collectionNode, Index index)
+        protected override bool ShouldVisitTargetItem([NotNull] IObjectNode collectionNode, NodeIndex index)
         {
             return !propertyGraphDefinition.IsTargetItemObjectReference(collectionNode, index, collectionNode.Retrieve(index)) && base.ShouldVisitTargetItem(collectionNode, index);
         }

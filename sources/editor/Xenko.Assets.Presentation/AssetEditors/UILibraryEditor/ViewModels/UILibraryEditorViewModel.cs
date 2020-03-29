@@ -119,7 +119,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.UILibraryEditor.ViewModels
         private void UpdatePublicUIElementsEntry(Guid rootId, [CanBeNull] string name)
         {
             var node = NodeContainer.GetNode((UILibraryAsset)Asset.Asset)[nameof(UILibraryAsset.PublicUIElements)].Target;
-            var index = new Index(rootId);
+            var index = new NodeIndex(rootId);
 
             using (var transaction = UndoRedoService.CreateTransaction())
             {

@@ -29,7 +29,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Text;
 using Xenko.Core.Annotations;
 using Xenko.Core.Native;
@@ -41,43 +40,20 @@ namespace Xenko.Core
     /// </summary>
     public static class Utilities
     {
-#if XENKO_PLATFORM_UWP
-        public static unsafe void CopyMemory(IntPtr dest, IntPtr src, int sizeInBytesToCopy)
-        {
-            Interop.memcpy((void*)dest, (void*)src, sizeInBytesToCopy);
-        }
-#else
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
-        private const string MemcpyDll = "msvcrt.dll";
-#elif XENKO_PLATFORM_ANDROID
-        private const string MemcpyDll = "libc.so";
-#elif XENKO_PLATFORM_UNIX
-        // We do not specifiy the .so extension as libc.so on Linux
-        // is actually not a .so files but a script. Using just libc
-        // will automatically find the corresponding .so.
-        private const string MemcpyDll = "libc";
-#elif XENKO_PLATFORM_IOS
-        private const string MemcpyDll = ObjCRuntime.Constants.SystemLibrary;
-#else
-#   error Unsupported platform
-#endif
-        [DllImport(MemcpyDll, EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)]
-#if !XENKO_RUNTIME_CORECLR
-        [SuppressUnmanagedCodeSecurity]
-#endif
-        private static extern IntPtr CopyMemory(IntPtr dest, IntPtr src, ulong sizeInBytesToCopy);
-
         /// <summary>
         /// Copy memory.
         /// </summary>
         /// <param name="dest">The destination memory location</param>
         /// <param name="src">The source memory location.</param>
         /// <param name="sizeInBytesToCopy">The count.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void CopyMemory(IntPtr dest, IntPtr src, int sizeInBytesToCopy)
         {
-            CopyMemory(dest, src, (ulong)sizeInBytesToCopy);
+            unsafe
+            {
+                Buffer.MemoryCopy((void*)src, (void*)dest, sizeInBytesToCopy, sizeInBytesToCopy);
+            }
         }
-#endif
 
         /// <summary>
         /// Compares two block of memory.
@@ -657,6 +633,31 @@ namespace Xenko.Core
             return second.Keys.All(first.ContainsKey);
         }
 
+        /// <summary>
+        /// Compares two collection, element by elements.
+        /// </summary>
+        /// <param name="first">The collection to compare from.</param>
+        /// <param name="second">The colllection to compare to.</param>
+        /// <returns>True if lists are identical (but not necessarily in the same order). False otherwise.</returns>
+        /// <remarks>Concrete SortedList is favored over interface to avoid enumerator object allocation.</remarks>
+        public static bool Compare<TKey, TValue>(Collections.SortedList<TKey, TValue> first, Collections.SortedList<TKey, TValue> second)
+        {
+            if (ReferenceEquals(first, second)) return true;
+            if (ReferenceEquals(first, null) || ReferenceEquals(second, null)) return false;
+            if (first.Count != second.Count) return false;
+
+            var comparer = EqualityComparer<TValue>.Default;
+
+            foreach (var keyValue in first)
+            {
+                TValue secondValue;
+                if (!second.TryGetValue(keyValue.Key, out secondValue)) return false;
+                if (!comparer.Equals(keyValue.Value, secondValue)) return false;
+            }
+
+            return true;
+        }
+
         public static bool Compare<T>(T[] left, T[] right)
         {
             if (ReferenceEquals(left, right))
@@ -708,6 +709,33 @@ namespace Xenko.Core
             // the exact number of elements
             if (count != left.Count)
                 return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Compares two list, element by elements.
+        /// </summary>
+        /// <param name="left">The list to compare from.</param>
+        /// <param name="right">The colllection to compare to.</param>
+        /// <returns>True if lists are sequentially equal. False otherwise.</returns>
+        /// <remarks>Concrete List is favored over interface to avoid enumerator object allocation.</remarks>
+        public static bool Compare<T>(List<T> left, List<T> right)
+        {
+            if (ReferenceEquals(left, right))
+                return true;
+            if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
+                return false;
+
+            if (left.Count != right.Count)
+                return false;
+
+            var comparer = EqualityComparer<T>.Default;
+            for (int i = 0; i < left.Count; i++)
+            {
+                if (!comparer.Equals(left[i], right[i]))
+                    return false;
+            }
 
             return true;
         }

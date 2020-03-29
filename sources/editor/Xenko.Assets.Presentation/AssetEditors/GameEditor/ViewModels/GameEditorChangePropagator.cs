@@ -96,7 +96,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels
         protected virtual async Task<bool> PropagatePartReference(IGraphNode gameSideNode, object value, INodeChangeEventArgs e)
         {
             // If the change is an addition or removal of a part in the asset, it shouldn't be handled by the propagator.
-            var index = (e as ItemChangeEventArgs)?.Index ?? Index.Empty;
+            var index = (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty;
             if (((AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>)Owner.Asset.PropertyGraph).IsChildPartReference(e.Node, index))
             {
                 // But we should still return that the change correspond to a part reference.
@@ -164,7 +164,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels
                 if (gameSideNode == null)
                     throw new InvalidOperationException("Unable to retrieve the game-side node");
 
-                var index = (e as ItemChangeEventArgs)?.Index ?? Index.Empty;
+                var index = (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty;
                 if (!AssetRegistry.IsContentType(e.Node.Descriptor.GetInnerCollectionType()))
                 {
                     if (e.Node.Type.IsValueType)
@@ -228,7 +228,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels
             });
         }
 
-        private static object RetrieveValue(IGraphNode node, object value, ContentChangeType changeType, Index index)
+        private static object RetrieveValue(IGraphNode node, object value, ContentChangeType changeType, NodeIndex index)
         {
             switch (changeType)
             {
@@ -244,7 +244,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels
             }
         }
 
-        protected static void UpdateGameSideContent(IGraphNode gameSideNode, object value, ContentChangeType changeType, Index index)
+        protected static void UpdateGameSideContent(IGraphNode gameSideNode, object value, ContentChangeType changeType, NodeIndex index)
         {
             switch (changeType)
             {
@@ -266,7 +266,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels
             }
         }
 
-        private async Task UpdateGameSideReference([NotNull] AssetCompositeEditorViewModel editor, [NotNull] IGraphNode gameSideNode, ContentChangeType changeType, object oldValue, object newValue, Index index)
+        private async Task UpdateGameSideReference([NotNull] AssetCompositeEditorViewModel editor, [NotNull] IGraphNode gameSideNode, ContentChangeType changeType, object oldValue, object newValue, NodeIndex index)
         {
             if (editor == null) throw new ArgumentNullException(nameof(editor));
 

@@ -1,0 +1,32 @@
+﻿namespace Xenko.Rendering.Voxels
+{
+    shader Voxel2x2x2Mipmap : Math, Texturing, ComputeShaderBase
+    {
+        stage float3 ReadOffset;
+        stage float3 WriteOffset;
+        stage Texture3D<half4> ReadTex;
+        stage RWTexture3D<half4> WriteTex;
+
+        compose Voxel2x2x2Mipmapper mipmapper;
+
+        override void Compute()
+        {
+            uint3 pos = streams.DispatchThreadId;
+
+            uint3 posR = pos * 2 + (int3)ReadOffset;
+
+            float4 fragmentSum = mipmapper.Mipmap(
+                ReadTex.Load(int4(posR, 0)),
+                ReadTex.Load(int4(posR + uint3(1, 0, 0), 0)),
+                ReadTex.Load(int4(posR + uint3(1, 1, 0), 0)),
+                ReadTex.Load(int4(posR + uint3(1, 0, 1), 0)),
+                ReadTex.Load(int4(posR + uint3(0, 1, 1), 0)),
+                ReadTex.Load(int4(posR + uint3(0, 1, 0), 0)),
+                ReadTex.Load(int4(posR + uint3(0, 0, 1), 0)),
+                ReadTex.Load(int4(posR + uint3(1, 1, 1), 0))
+            );
+
+            WriteTex[pos + WriteOffset] = fragmentSum;
+        }
+    };
+}

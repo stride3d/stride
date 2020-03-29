@@ -1,0 +1,52 @@
+namespace Xenko.Rendering.Voxels
+{
+    shader BufferToTexture : LocalSamples, ComputeShaderBase, VoxelPositionStream, DataPacking
+    {
+        stage RWBuffer<uint> VoxelFragments;
+        
+        stage float3 clipMapResolution;
+
+        stage float  storageUints;
+
+        stage uint  clipOffset;
+
+        compose VoxelAttribute AttributesTemp[];
+        compose VoxelAttribute AttributesIndirect[];
+
+        #ifndef IndirectStoreMacro
+            #define IndirectStoreMacro
+            #define IndirectReadAndStoreMacro
+        #endif
+
+        override void Compute()
+        {
+            int3 clipMapResolutionI = (int3)clipMapResolution;
+
+            uint3 pos = streams.DispatchThreadId.xyz;
+            pos.y = pos.y % clipMapResolutionI.y;
+            uint clipIndex = clipOffset + streams.DispatchThreadId.y/clipMapResolutionI.y;
+
+            streams.PositionVXPS = pos;
+            streams.VoxelVolumeSize = clipMapResolutionI;
+
+            uint wStride = clipMapResolutionI.x * clipMapResolutionI.y * clipMapResolutionI.z;
+            uint VoxelFragmentsIndex = clipIndex * wStride + pos.x + pos.y * clipMapResolutionI.x + pos.z * clipMapResolutionI.x * clipMapResolutionI.y;
+            VoxelFragmentsIndex *= (uint)storageUints;
+
+            uint yStride = clipMapResolutionI.x * (uint)storageUints;
+            uint initialVoxelFragmentsIndex = VoxelFragmentsIndex;
+
+
+
+            foreach (var attr in AttributesTemp)
+                attr.InitializeDummy();
+            foreach (var attr in AttributesIndirect)
+                attr.InitializeDummy();
+
+            IndirectReadAndStoreMacro
+
+            foreach (var attr in AttributesIndirect)
+                attr.DirectWrite(streams.PositionVXPS, clipIndex, (int)clipMapResolutionI.y);
+        }
+    };
+}

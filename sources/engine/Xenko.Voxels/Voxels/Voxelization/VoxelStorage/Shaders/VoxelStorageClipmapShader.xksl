@@ -1,0 +1,105 @@
+shader VoxelStorageClipmapShader : VoxelStorageShader, Texturing, ShaderBaseStream, Transformation
+{
+    cbuffer PerView.VoxelizerStorer
+    {
+        float3 clipMapResolution;
+        //#ifdef singleClip
+            float clipPos;
+            float3 clipScale;
+            float3 clipOffset;
+        //#else
+            float clipMapCount;
+            float4 perClipMapOffsetScale[20];
+        //#endif
+        float storageUints;
+    }
+    rgroup PerView.VoxelizerStorer
+    {
+        RWBuffer<uint> fragmentsBuffer;
+    }
+    compose VoxelAttribute AttributesTemp[];
+    compose VoxelAttribute AttributesDirect[];
+    compose VoxelAttribute AttributesIndirect[];
+
+    #ifdef singleClip
+        #define clipScaleIn clipScale
+        #define clipOffsetIn clipOffset
+        #define clipPosIn ((uint)clipPos)
+    #else
+        stage stream uint clipIndex;
+        #define clipScaleIn perClipMapOffsetScale[streams.clipIndex].w
+        #define clipOffsetIn perClipMapOffsetScale[streams.clipIndex].xyz
+        #define clipPosIn ((streams.clipIndex) * clipMapResolutionI.x * clipMapResolutionI.y * clipMapResolutionI.z)
+    #endif
+
+    #ifndef IndirectStoreMacro
+        #define IndirectStoreMacro
+    #endif
+
+    override bool MightStoreFragments()
+    {
+        float3 texPos = streams.PositionWS.xyz * clipScaleIn + clipOffsetIn;
+        return dot(texPos - saturate(texPos), float3(1, 1, 1)) == 0;
+    }
+    override void StoreFragments()
+    {
+        int3 clipMapResolutionI = (int3)clipMapResolution;
+
+        float3 texPos = streams.PositionWS.xyz * clipScaleIn + clipOffsetIn;
+
+        streams.PositionVXS = texPos;
+        streams.VoxelVolumeSize = clipMapResolution;
+        streams.PositionVXPS = int3(floor(saturate(texPos) * clipMapResolution));
+
+        int3 pixelPos = streams.PositionVXPS;
+
+        uint index = clipPosIn + pixelPos.x + pixelPos.y * clipMapResolutionI.x + pixelPos.z * clipMapResolutionI.x * clipMapResolutionI.y;
+
+        uint writeindex = index * (uint)storageUints;
+
+        foreach (var attr in AttributesTemp)
+        {
+            attr.InitializeFromStreams();
+        }
+
+        foreach (var attr in AttributesDirect)
+        {
+            attr.InitializeFromStreams();
+        }
+
+        foreach (var attr in AttributesIndirect)
+        {
+            attr.InitializeFromStreams();
+        }
+        
+        //See VoxelStorageClipmaps.cs Line #307 and Line #425
+        IndirectStoreMacro
+    }
+    #ifndef singleClip
+        override void GenerateTriangles(triangle Input input[3], inout TriangleStream<Output> triangleStream)
+        {
+            method.InitializeFromTriangle(input);
+            int3 clipMapResolutionI = (int3)clipMapResolution;
+
+            for (streams.clipIndex = 0; streams.clipIndex < clipMapCount; streams.clipIndex++)
+            {
+                [unroll]
+                for (int i = 0; i < 3 ; i ++)
+                {
+                    streams = input[i];
+                    streams.ShadingPosition.xyz = mul(float4(streams.PositionWS.xyz * clipScaleIn + clipOffsetIn, 1),Transformation.View).xyz;
+                    streams.ShadingPosition.xyz = streams.ShadingPosition.xyz * 2 - 1;
+                    method.Append(triangleStream);
+                }
+                method.RestartStrip(triangleStream);
+            }
+        }
+    #else
+        override void PrepareVertex()
+        {
+            method.PrepareVertex();
+            streams.ShadingPosition.xyz = mul(float4(streams.PositionWS.xyz * clipScaleIn + clipOffsetIn, 1),Transformation.View).xyz;
+            streams.ShadingPosition.xyz = streams.ShadingPosition.xyz * 2 - 1;
+        }
+    #endif
+};

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-01-11 23:17:07+0900\n"
-"PO-Revision-Date: 2019-03-24 02:39+0000\n"
+"PO-Revision-Date: 2019-10-02 01:56+0000\n"
 "Last-Translator: Allan Nordhøy <epost@anotheragency.no>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/xenko/"
 "assetspresentation/nb_NO/>\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.6-dev\n"
+"X-Generator: Weblate 3.9-dev\n"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
 msgctxt "Message"
@@ -185,12 +185,12 @@ msgstr "Sentrer kamerafokus til utvalg"
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:53
 msgctxt "Settings"
 msgid "Snap selection to the grid"
-msgstr ""
+msgstr "Fest utvalg til rutenettet"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:57
 msgctxt "Settings"
 msgid "Switch to translation mode"
-msgstr ""
+msgstr "Bytt til oversettelsesmodus"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:61
 msgctxt "Settings"
@@ -211,17 +211,17 @@ msgstr "Bytt til neste dingsemodus"
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:73
 msgctxt "Settings"
 msgid "Default snap distance for translation"
-msgstr ""
+msgstr "Forvalgt festedistanse for oversettelse"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:77
 msgctxt "Settings"
 msgid "Default snap angle for rotation"
-msgstr ""
+msgstr "Forvalgt festevinkel for rotasjon"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:81
 msgctxt "Settings"
 msgid "Default snap factor for scale"
-msgstr ""
+msgstr "Forvalgt festefaktor for skala"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:85
 msgctxt "Settings"
@@ -453,7 +453,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:258
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:211
 msgid "Loading..."
-msgstr ""
+msgstr "Laster inn…"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:262
 msgid "Unloading..."
@@ -644,7 +644,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:660
 msgctxt "Button"
 msgid "Front"
-msgstr ""
+msgstr "Skrift"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:662
 msgctxt "Button"
@@ -716,13 +716,14 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:516
 msgctxt "Button"
 msgid "Resume"
-msgstr ""
+msgstr "Fortsett"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:861
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:518
+#, fuzzy
 msgctxt "Button"
 msgid "Copy error to clipboard"
-msgstr ""
+msgstr "Kunne ikke kopiere til utklippstavle"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:13
 msgid "Select an entity"
@@ -756,7 +757,7 @@ msgstr "Handling"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:50
 msgctxt "Menu"
 msgid "Delete selection"
-msgstr ""
+msgstr "Slett utvalg"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:202
 msgid "Render stages:"
@@ -787,7 +788,7 @@ msgstr ""
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:253
 msgid "No suggestions"
-msgstr ""
+msgstr "Ingen forslag"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:53
 msgctxt "Button"
@@ -962,7 +963,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:49
 msgctxt "Menu"
 msgid "Ungroup"
-msgstr ""
+msgstr "Opphev gruppering"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:53
 msgctxt "Menu"
@@ -1161,8 +1162,9 @@ msgid "Colors"
 msgstr "Farger"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:417
+#, fuzzy
 msgid "Guideline"
-msgstr ""
+msgstr "Ledelinje"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:433
 msgid "Highlight"
@@ -1249,26 +1251,26 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:101
 msgctxt "ToolTip"
 msgid "First key"
-msgstr ""
+msgstr "Første tast"
 
 #: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:104
 msgctxt "ToolTip"
 msgid "Previous key"
-msgstr ""
+msgstr "Forrige tast"
 
 #: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:107
 msgctxt "ToolTip"
 msgid "Next key"
-msgstr ""
+msgstr "Neste tast"
 
 #: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:110
 msgctxt "ToolTip"
 msgid "Last key"
-msgstr ""
+msgstr "Siste tast"
 
 #: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:117
 msgid "Key"
-msgstr ""
+msgstr "Tast"
 
 #: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:120
 msgid "Value"
@@ -1282,12 +1284,12 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:169
 msgctxt "Menu"
 msgid "Add point"
-msgstr ""
+msgstr "Legg til punkt"
 
 #: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:172
 msgctxt "Menu"
 msgid "Delete selected points"
-msgstr ""
+msgstr "Slett valgte punkter"
 
 #: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:174
 msgctxt "Menu"
@@ -1311,7 +1313,7 @@ msgstr ""
 
 #: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:10
 msgid "Create a game..."
-msgstr ""
+msgstr "Opprett et spill…"
 
 #: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:21
 #: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:23

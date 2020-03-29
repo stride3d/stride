@@ -57,7 +57,7 @@ public:
 	}
 
 	/*!***************************************************************************
-	@brief      constructor from ordinary array.
+	@brief      Constructor from ordinary array.
 	@param[in]	pArray		an ordinary array
 	@param[in]	uiSize		number of elements passed
 	*****************************************************************************/
@@ -73,7 +73,7 @@ public:
 	}
 
 	/*!***************************************************************************
-	@brief      constructor from a capacity and initial value.
+	@brief      Constructor from a capacity and initial value.
 	@param[in]	uiSize		initial capacity
 	@param[in]	val			value to populate with
 	*****************************************************************************/
@@ -192,7 +192,7 @@ public:
 	}
 
 	/*!***************************************************************************
-	@brief      Changes the array to the new size
+	@brief      Changes the array to the new size.
 	@param[in]	uiSize		New size of array
 	*****************************************************************************/
 	EPVRTError Resize(const unsigned int uiSize)
@@ -207,7 +207,7 @@ public:
 	}
 
 	/*!***************************************************************************
-	@brief      Expands array to new capacity
+	@brief      Expands array to new capacity.
 	@param[in]	uiSize		New capacity of array
 	*****************************************************************************/
 	EPVRTError SetCapacity(const unsigned int uiSize)
@@ -274,7 +274,7 @@ public:
 	}
 
 	/*!***************************************************************************
-	@brief      assignment operator.
+	@brief      Assignment operator.
 	@param[in]	other	The CPVRTArray needing copied
 	*****************************************************************************/
 	CPVRTArray& operator=(const CPVRTArray<T>& other)
@@ -286,7 +286,7 @@ public:
 	}
 
 	/*!***************************************************************************
-	@brief      appends an existing CPVRTArray on to this one.
+	@brief      Appends an existing CPVRTArray on to this one.
 	@param[in]	other		the array to append.
 	*****************************************************************************/
 	CPVRTArray& operator+=(const CPVRTArray<T>& other)
@@ -304,30 +304,30 @@ public:
 
 	/*!***************************************************************************
 	@brief      Indexed access into array. Note that this has no error
-				checking whatsoever
+				checking whatsoever.
 	@param[in]	uiIndex	index of element in array
 	@return 	the element indexed
 	*****************************************************************************/
 	T& operator[](const unsigned int uiIndex)
 	{
-		_ASSERT(uiIndex < m_uiCapacity);
+		_ASSERT(uiIndex < m_uiSize);
 		return m_pArray[uiIndex];
 	}
 
 	/*!***************************************************************************
-	@brief      Indexed access into array. Note that this has no error checking whatsoever
+	@brief      Indexed access into array. Note that this has no error checking whatsoever.
 	@param[in]	uiIndex	    index of element in array
 	@return 	The element indexed
 	*****************************************************************************/
 	const T& operator[](const unsigned int uiIndex) const
 	{
-		_ASSERT(uiIndex < m_uiCapacity);
+		_ASSERT(uiIndex < m_uiSize);
 		return m_pArray[uiIndex];
 	}
 
 	/*!***************************************************************************
 	@return 	Size of array
-	@brief      Gives current size of array/number of elements
+	@brief      Gives current size of array/number of elements.
 	*****************************************************************************/
 	unsigned int GetSize() const
 	{
@@ -335,7 +335,7 @@ public:
 	}
 
 	/*!***************************************************************************
-	@brief      Gives the default size of array/number of elements
+	@brief      Gives the default size of array/number of elements.
 	@return 	Default size of array
 	*****************************************************************************/
 	static unsigned int GetDefaultSize()
@@ -344,7 +344,7 @@ public:
 	}
 
 	/*!***************************************************************************
-	@brief      Gives current allocated size of array/number of elements
+	@brief      Gives current allocated size of array/number of elements.
 	@return 	Capacity of array
 	*****************************************************************************/
 	unsigned int GetCapacity() const
@@ -422,7 +422,7 @@ public:
 	}
 
 	/*!***************************************************************************
-	@brief    	Removes the last element. Simply decrements the size value
+	@brief    	Removes the last element. Simply decrements the size value.
 	@return 	success or failure
 	*****************************************************************************/
 	virtual EPVRTError RemoveLast()
@@ -446,7 +446,7 @@ protected:
 	};
 
 	/*!***************************************************************************
-	 @brief     Internal sort algorithm
+	 @brief     Internal sort algorithm.
 	 @param[in]	first		The beginning index of the array
 	 @param[in]	last		The last index of the array
 	 @param[in]	predicate	A functor object to perform the comparison
@@ -465,7 +465,7 @@ protected:
 	}
 
 	/*!***************************************************************************
-	 @brief     Internal sort algorithm - in-place merge method
+	 @brief     Internal sort algorithm - in-place merge method.
 	 @param[in]	first		The beginning index of the array
 	 @param[in]	middle		The middle index of the array
 	 @param[in]	last		The last index of the array
@@ -512,7 +512,7 @@ protected:
 	}
 
 	/*!***************************************************************************
-	 @brief     Internal sort algorithm - returns the bounded index of the range
+	 @brief     Internal sort algorithm - returns the bounded index of the range.
 	 @param[in]	first		The beginning index of the array
 	 @param[in]	last		The last index of the array
 	 @param[in]	v           Comparison object
@@ -543,7 +543,7 @@ protected:
 
 	/*!***************************************************************************
 	 @brief     Internal sort algorithm - rotates the contents of the array such
-	            that the middle becomes the first element
+	            that the middle becomes the first element.
 	 @param[in]	first		The beginning index of the array
 	 @param[in]	middle		The middle index of the array
 	 @param[in]	last        The last index of the array
@@ -634,7 +634,7 @@ public:
 	}
 
 	/*!***************************************************************************
-	@brief      Removes the last element. Simply decrements the size value
+	@brief      Removes the last element. Simply decrements the size value.
 	@return 	success or failure
 	*****************************************************************************/
 	virtual EPVRTError RemoveLast()

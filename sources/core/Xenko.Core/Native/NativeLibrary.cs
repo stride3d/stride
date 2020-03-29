@@ -33,11 +33,11 @@ namespace Xenko.Core
         public static void PreloadLibrary(string libraryName, Type owner)
         {
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
+            NormalizeLibName(ref libraryName);
             lock (LoadedLibraries)
             {
                 // If already loaded, just exit as we want to load it just once
-                var libraryNameNormalized = libraryName.ToLowerInvariant();
-                if (LoadedLibraries.ContainsKey(libraryNameNormalized))
+                if (LoadedLibraries.ContainsKey(libraryName))
                 {
                     return;
                 }
@@ -52,20 +52,44 @@ namespace Xenko.Core
                     cpu = IntPtr.Size == 8 ? "x64" : "x86";
 
                 // We are trying to load the dll from a shadow path if it is already registered, otherwise we use it directly from the folder
-                var dllFolder = NativeLibraryInternal.GetShadowPathForNativeDll(libraryName);
-                if (dllFolder == null)
-                    dllFolder = Path.Combine(Path.GetDirectoryName(owner.GetTypeInfo().Assembly.Location), cpu);
-                if (!Directory.Exists(dllFolder))
-                    dllFolder = Path.Combine(Environment.CurrentDirectory, cpu);
-                var libraryFilename = Path.Combine(dllFolder, libraryName);
-                var result = LoadLibrary(libraryFilename);
-
-                if (result == IntPtr.Zero)
+                string basePath;
                 {
-                    throw new InvalidOperationException($"Could not load native library {libraryName} from path [{libraryFilename}] using CPU architecture {cpu}.");
+                    var dllFolder = NativeLibraryInternal.GetShadowPathForNativeDll(libraryName);
+                    if (dllFolder == null)
+                        dllFolder = Path.Combine(Path.GetDirectoryName(owner.GetTypeInfo().Assembly.Location), cpu);
+                    if (!Directory.Exists(dllFolder))
+                        dllFolder = Path.Combine(Environment.CurrentDirectory, cpu);
+                    var libraryFilename = Path.Combine(dllFolder, libraryName);
+                    basePath = libraryFilename;
+
+                    if (File.Exists(libraryFilename))
+                    {
+                        var result = LoadLibrary(libraryFilename);
+                        if (result != IntPtr.Zero)
+                        {
+                            LoadedLibraries.Add(libraryName.ToLowerInvariant(), result);
+                            return;
+                        }
+                    }
                 }
 
-                LoadedLibraries.Add(libraryName.ToLowerInvariant(), result);
+                // Attempt to load it from PATH
+                foreach (var p in Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator))
+                {
+                    var libraryFilename = Path.Combine(p, libraryName);
+
+                    if (File.Exists(libraryFilename))
+                    {
+                        var result = LoadLibrary(libraryFilename);
+                        if (result != IntPtr.Zero)
+                        {
+                            LoadedLibraries.Add(libraryName.ToLowerInvariant(), result);
+                            return;
+                        }
+                    }
+                }
+
+                throw new InvalidOperationException($"Could not load native library {libraryName} from path [{basePath}] using CPU architecture {cpu}.");
             }
 #endif
         }
@@ -77,15 +101,14 @@ namespace Xenko.Core
         public static void UnLoad(string libraryName)
         {
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
+            NormalizeLibName(ref libraryName);
             lock (LoadedLibraries)
             {
-                var libName = libraryName.ToLowerInvariant();
-
                 IntPtr libHandle;
-                if (LoadedLibraries.TryGetValue(libName, out libHandle))
+                if (LoadedLibraries.TryGetValue(libraryName, out libHandle))
                 {
                     FreeLibrary(libHandle);
-                    LoadedLibraries.Remove(libName);
+                    LoadedLibraries.Remove(libraryName);
                 }
             }
 #endif
@@ -107,6 +130,17 @@ namespace Xenko.Core
             }
 #endif
         }
+
+#if XENKO_PLATFORM_WINDOWS_DESKTOP
+        private static void NormalizeLibName(ref string libName)
+        {
+            libName = libName.ToLowerInvariant();
+            if (libName.EndsWith(".dll") == false)
+            {
+                libName += ".dll";
+            }
+        }
+#endif
 
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
         private const string SYSINFO_FILE = "kernel32.dll";

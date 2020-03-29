@@ -52,7 +52,7 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands
             var assetNodePresenter = nodePresenter as IAssetNodePresenter;
             var dictionaryDescriptor = (DictionaryDescriptor)nodePresenter.Descriptor;
             var value = nodePresenter.Value;
-            var newKey = dictionaryDescriptor.KeyType != typeof(string) ? new Index(Activator.CreateInstance(dictionaryDescriptor.KeyType)) : GenerateStringKey(value, dictionaryDescriptor, parameter as string);
+            var newKey = dictionaryDescriptor.KeyType != typeof(string) ? new NodeIndex(Activator.CreateInstance(dictionaryDescriptor.KeyType)) : GenerateStringKey(value, dictionaryDescriptor, parameter as string);
 
             var newItem = dictionaryDescriptor.ValueType.Default();
             var instance = CreateInstance(dictionaryDescriptor.ValueType);
@@ -87,7 +87,7 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands
             return ObjectFactoryRegistry.NewInstance(type);
         }
 
-        internal static Index GenerateStringKey(object dictionary, ITypeDescriptor descriptor, string baseValue)
+        internal static NodeIndex GenerateStringKey(object dictionary, ITypeDescriptor descriptor, string baseValue)
         {
             // TODO: use a dialog service and popup a message when the given key is invalid
             const string defaultKey = "Key";
@@ -103,7 +103,7 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands
                 baseValue = baseName + " " + ++i;
             }
 
-            return new Index(baseValue);
+            return new NodeIndex(baseValue);
         }
     }
 }

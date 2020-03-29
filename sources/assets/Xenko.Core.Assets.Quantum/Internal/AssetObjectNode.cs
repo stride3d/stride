@@ -35,13 +35,13 @@ namespace Xenko.Core.Assets.Quantum.Internal
         [CanBeNull]
         public IGraphNode GetContent([NotNull] string key) => ex.GetContent(key);
 
-        public void ResetOverrideRecursively() => ex.ResetOverrideRecursively(Index.Empty);
+        public void ResetOverrideRecursively() => ex.ResetOverrideRecursively(NodeIndex.Empty);
 
-        public void ResetOverrideRecursively(Index indexToReset) => ex.ResetOverrideRecursively(indexToReset);
+        public void ResetOverrideRecursively(NodeIndex indexToReset) => ex.ResetOverrideRecursively(indexToReset);
 
-        public void OverrideItem(bool isOverridden, Index index) => ex.OverrideItem(isOverridden, index);
+        public void OverrideItem(bool isOverridden, NodeIndex index) => ex.OverrideItem(isOverridden, index);
 
-        public void OverrideKey(bool isOverridden, Index index) => ex.OverrideKey(isOverridden, index);
+        public void OverrideKey(bool isOverridden, NodeIndex index) => ex.OverrideKey(isOverridden, index);
 
         public void OverrideDeletedItem(bool isOverridden, ItemId deletedId) => ex.OverrideDeletedItem(isOverridden, deletedId);
 
@@ -49,39 +49,39 @@ namespace Xenko.Core.Assets.Quantum.Internal
 
         public void Restore(object restoredItem, ItemId id) => ex.Restore(restoredItem, id);
 
-        public void Restore(object restoredItem, Index index, ItemId id) => ex.Restore(restoredItem, index, id);
+        public void Restore(object restoredItem, NodeIndex index, ItemId id) => ex.Restore(restoredItem, index, id);
 
-        public void RemoveAndDiscard(object item, Index itemIndex, ItemId id) => ex.RemoveAndDiscard(item, itemIndex, id);
+        public void RemoveAndDiscard(object item, NodeIndex itemIndex, ItemId id) => ex.RemoveAndDiscard(item, itemIndex, id);
 
-        public OverrideType GetItemOverride(Index index) => ex.GetItemOverride(index);
+        public OverrideType GetItemOverride(NodeIndex index) => ex.GetItemOverride(index);
 
-        public OverrideType GetKeyOverride(Index index) => ex.GetKeyOverride(index);
+        public OverrideType GetKeyOverride(NodeIndex index) => ex.GetKeyOverride(index);
 
-        public bool IsItemInherited(Index index) => ex.IsItemInherited(index);
+        public bool IsItemInherited(NodeIndex index) => ex.IsItemInherited(index);
 
-        public bool IsKeyInherited(Index index) => ex.IsKeyInherited(index);
+        public bool IsKeyInherited(NodeIndex index) => ex.IsKeyInherited(index);
 
-        public bool IsItemOverridden(Index index) => ex.IsItemOverridden(index);
+        public bool IsItemOverridden(NodeIndex index) => ex.IsItemOverridden(index);
 
         public bool IsItemOverriddenDeleted(ItemId id) => ex.IsItemOverriddenDeleted(id);
 
-        public bool IsKeyOverridden(Index index) => ex.IsKeyOverridden(index);
+        public bool IsKeyOverridden(NodeIndex index) => ex.IsKeyOverridden(index);
 
-        public IEnumerable<Index> GetOverriddenItemIndices() => ex.GetOverriddenItemIndices();
+        public IEnumerable<NodeIndex> GetOverriddenItemIndices() => ex.GetOverriddenItemIndices();
 
-        public IEnumerable<Index> GetOverriddenKeyIndices() => ex.GetOverriddenKeyIndices();
+        public IEnumerable<NodeIndex> GetOverriddenKeyIndices() => ex.GetOverriddenKeyIndices();
 
-        public ItemId IndexToId(Index index) => ex.IndexToId(index);
+        public ItemId IndexToId(NodeIndex index) => ex.IndexToId(index);
 
-        public bool TryIndexToId(Index index, out ItemId id) => ex.TryIndexToId(index, out id);
+        public bool TryIndexToId(NodeIndex index, out ItemId id) => ex.TryIndexToId(index, out id);
 
         public bool HasId(ItemId id) => ex.HasId(id);
 
-        public Index IdToIndex(ItemId id) => ex.IdToIndex(id);
+        public NodeIndex IdToIndex(ItemId id) => ex.IdToIndex(id);
 
-        public bool TryIdToIndex(ItemId id, out Index index) => ex.TryIdToIndex(id, out index);
+        public bool TryIdToIndex(ItemId id, out NodeIndex index) => ex.TryIdToIndex(id, out index);
 
-        IAssetObjectNode IAssetObjectNode.IndexedTarget(Index index) => (IAssetObjectNode)IndexedTarget(index);
+        IAssetObjectNode IAssetObjectNode.IndexedTarget(NodeIndex index) => (IAssetObjectNode)IndexedTarget(index);
 
         void IAssetObjectNodeInternal.DisconnectOverriddenDeletedItem(ItemId deletedId) => ex.DisconnectOverriddenDeletedItem(deletedId);
 

@@ -1,0 +1,36 @@
+﻿namespace Xenko.Rendering.Voxels
+{
+    shader VoxelIsotropicSampler : IVoxelSampler, Texturing
+    {
+        compose VoxelStorageTextureShader storage;
+        cbuffer PerView.Lighting
+        {
+            float maxBrightness;
+        }
+
+        override float4 ComputeLocal(float3 position)
+        {
+            return float4(0,0,0,1);
+        }
+        override float4 Sample(float3 position, float3 normal, float diameter)
+        {
+            return storage.Sample(position, diameter, 0) * float4(maxBrightness, maxBrightness, maxBrightness, 1.0);
+        }
+        override float4 SampleNearestMip(float3 position, float3 normal, float diameter)
+        {
+            return storage.SampleNearestMip(position, diameter, 0) * float4(maxBrightness, maxBrightness, maxBrightness, 1.0);
+        }
+        override float4 SampleByMipNearestMip(float3 position, float3 normal, float diameter)
+        {
+            return storage.SampleByMipNearestMip(position, diameter, 0) * float4(maxBrightness, maxBrightness, maxBrightness, 1.0);
+        }
+        override float4 SampleRaw(float3 pos, float mipmap, int textureID, int axis)
+        {
+            return storage.SampleRaw(pos,mipmap,textureID,axis);
+        }
+        override float VoxelSize()
+        {
+            return storage.VoxelSize();
+        }
+    };
+}

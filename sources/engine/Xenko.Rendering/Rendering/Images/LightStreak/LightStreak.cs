@@ -260,7 +260,7 @@ namespace Xenko.Rendering.Images
             colorAberration.Y = (float)MathUtil.Lerp(1.0, ColorAberrationCoefficients.Y, ColorAberrationStrength);
             colorAberration.Z = (float)MathUtil.Lerp(1.0, ColorAberrationCoefficients.Z, ColorAberrationStrength);
 
-            lightStreakEffect.Parameters.Set(LightStreakShaderKeys.ColorAberrationCoefficients, colorAberration);
+            lightStreakEffect.Parameters.Set(LightStreakShaderKeys.ColorAberrationCoefficients, ref colorAberration);
 
             for (int streak = 0; streak < StreakCount; streak++)
             {

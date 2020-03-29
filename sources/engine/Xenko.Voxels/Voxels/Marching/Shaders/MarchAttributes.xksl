@@ -1,0 +1,4 @@
+﻿shader MarchAttributes
+{
+    stage compose IVoxelSampler AttributeSamplers[];
+};

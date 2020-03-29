@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using Xenko.Core.Presentation.Behaviors;
 
 namespace Xenko.Core.Presentation.Graph.Behaviors

@@ -8,12 +8,12 @@ namespace Xenko.Core.Assets.Quantum.Tests.Helpers
 {
     public static class AssetNodeInternalExtensions
     {
-        public static OverrideType GetItemOverride(this IAssetNode node, Index index)
+        public static OverrideType GetItemOverride(this IAssetNode node, NodeIndex index)
         {
             return ((IAssetObjectNodeInternal)node).GetItemOverride(index);
         }
 
-        public static OverrideType GetKeyOverride(this IAssetNode node, Index index)
+        public static OverrideType GetKeyOverride(this IAssetNode node, NodeIndex index)
         {
             return ((IAssetObjectNodeInternal)node).GetKeyOverride(index);
         }

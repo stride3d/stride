@@ -146,14 +146,13 @@ namespace Xenko.Rendering.Lights
                 {
                     specularCubemapLevels = specularCubemap.MipLevels;
                 }
-                var sphericalColors = diffuseParameters.GetValues(SphericalHarmonicsEnvironmentColorKeys.SphericalColors);
 
                 // global parameters
                 parameters.Set(intensityKey, intensity);
                 parameters.Set(skyMatrixKey, skyMatrix);
 
                 // This need to be working with new system
-                parameters.Set(sphericalColorsKey, sphericalColors);
+                diffuseParameters.CopyTo(SphericalHarmonicsEnvironmentColorKeys.SphericalColors, parameters, sphericalColorsKey);
                 parameters.Set(specularCubeMapkey, specularCubemap);
                 parameters.Set(specularMipCountKey, specularCubemapLevels);
             }

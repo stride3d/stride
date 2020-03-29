@@ -38,6 +38,11 @@ namespace Xenko.Games
         /// </summary>
         public AppContextType ContextType { get; protected set; }
 
+        /// <summary>
+        /// Indicating whether the user will call the main loop. E.g. Xenko is used as a library.
+        /// </summary>
+        public bool IsUserManagingRun { get; protected set; }
+
         // TODO: remove these requested values.
 
         /// <summary>

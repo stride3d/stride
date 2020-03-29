@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Windows;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using Xenko.Core.Transactions;
 using Xenko.Core.Presentation.Controls;
 using Xenko.Core.Presentation.Services;

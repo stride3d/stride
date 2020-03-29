@@ -46,10 +46,33 @@ namespace Xenko.Core.Serialization.Contents
         Task<T> LoadAsync<T>(string url, ContentManagerLoaderSettings settings = null) where T : class;
 
         /// <summary>
+        /// Gets a previously loaded asset from its URL.
+        /// </summary>
+        /// <typeparam name="T">The type of asset to retrieve.</typeparam>
+        /// <param name="url">The URL of the asset to retrieve.</param>
+        /// <returns>The loaded asset, or <c>null</c> if the asset has not been loaded.</returns>
+        /// <remarks>This function does not increase the reference count on the asset.</remarks>
+        T Get<T>(string url) where T : class;
+
+        /// <summary>
+        /// Gets whether an asset with the given URL is currently loaded.
+        /// </summary>
+        /// <param name="url">The URL to check.</param>
+        /// <param name="loadedManuallyOnly">If <c>true</c>, this method will return true only if an asset with the given URL has been manually loaded via <see cref="Load"/>, and not if the asset has been only loaded indirectly from another asset.</param>
+        /// <returns><c>True</c> if an asset with the given URL is currently loaded, <c>false</c> otherwise.</returns>
+        bool IsLoaded(string url, bool loadedManuallyOnly = false);
+
+        /// <summary>
         /// Unloads the specified object.
         /// </summary>
         /// <param name="obj">The object to unload.</param>
         void Unload(object obj);
+
+        /// <summary>
+        /// Unloads the asset at the specified URL.
+        /// </summary>
+        /// <param name="url">The URL.</param>
+        void Unload(string url);
 
         /// <summary>
         /// Gets the serializer.

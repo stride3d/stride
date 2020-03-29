@@ -171,7 +171,7 @@ namespace Xenko.Rendering.Sprites
 
                 var sourceRegion = sprite.Region;
                 var texture = sprite.Texture;
-                var color = renderSprite.Color;                
+                var color = renderSprite.Color;
                 if (isPicking) // TODO move this code corresponding to picking out of the runtime code.
                 {
                     var compId = RuntimeIdHelper.ToRuntimeId(renderSprite.Source);
@@ -188,13 +188,19 @@ namespace Xenko.Rendering.Sprites
                 {
                     worldMatrix = viewInverse;
 
+                    var worldMatrixRow1 = worldMatrix.Row1;
+                    var worldMatrixRow2 = worldMatrix.Row2;
+
                     // remove scale of the camera
-                    worldMatrix.Row1 /= ((Vector3)viewInverse.Row1).Length();
-                    worldMatrix.Row2 /= ((Vector3)viewInverse.Row2).Length();
+                    worldMatrixRow1 /= ((Vector3)viewInverse.Row1).Length();
+                    worldMatrixRow2 /= ((Vector3)viewInverse.Row2).Length();
 
                     // set the scale of the object
-                    worldMatrix.Row1 *= ((Vector3)renderSprite.WorldMatrix.Row1).Length();
-                    worldMatrix.Row2 *= ((Vector3)renderSprite.WorldMatrix.Row2).Length();
+                    worldMatrixRow1 *= ((Vector3)renderSprite.WorldMatrix.Row1).Length();
+                    worldMatrixRow2 *= ((Vector3)renderSprite.WorldMatrix.Row2).Length();
+
+                    worldMatrix.Row1 = worldMatrixRow1;
+                    worldMatrix.Row2 = worldMatrixRow2;
 
                     // set the position
                     worldMatrix.TranslationVector = renderSprite.WorldMatrix.TranslationVector;

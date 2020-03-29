@@ -69,7 +69,7 @@ namespace Xenko.Core.Assets.Quantum.Internal
         /// <inheritdoc/>
         public void ResetOverrideRecursively()
         {
-            PropertyGraph.ResetAllOverridesRecursively(this, Index.Empty);
+            PropertyGraph.ResetAllOverridesRecursively(this, NodeIndex.Empty);
         }
 
         private void ContentChanged(object sender, [NotNull] MemberNodeChangeEventArgs e)

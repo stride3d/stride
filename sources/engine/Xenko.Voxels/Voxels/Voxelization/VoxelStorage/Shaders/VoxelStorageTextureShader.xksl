@@ -1,0 +1,8 @@
+shader VoxelStorageTextureShader
+{
+    float4 Sample(float3 pos, float diameter, int axis){ return float4(0, 1, 0, 0); }
+    float4 SampleNearestMip(float3 pos, float diameter, int axis){ return float4(0, 1, 0, 0); }
+    float4 SampleByMipNearestMip(float3 pos, float mipmap, int axis){ return float4(0, 1, 0, 0); }
+    float4 SampleRaw(float3 pos, float mipmap, int textureID, int axis){ return float4(1, 0, 0, 0); }
+    float VoxelSize(){ return 1.0; };
+};

@@ -102,7 +102,7 @@ namespace Xenko.Graphics
 
         private bool EqualsByRef(ref DataBox other)
         {
-            return DataPointer.Equals(other.DataPointer) && RowPitch == other.RowPitch && SlicePitch == other.SlicePitch;
+            return DataPointer == other.DataPointer && RowPitch == other.RowPitch && SlicePitch == other.SlicePitch;
         }
     }
 }

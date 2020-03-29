@@ -4,7 +4,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Windows.Controls;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using Xenko.Core.Annotations;
 
 namespace Xenko.Core.Presentation.Behaviors

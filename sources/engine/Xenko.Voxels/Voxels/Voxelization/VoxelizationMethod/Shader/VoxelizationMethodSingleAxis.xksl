@@ -1,0 +1,20 @@
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Xenko.Rendering.Voxels
+{
+    /// <summary>
+    /// Voxelization, projects to axis of largest area and writes fragments to buffer
+    /// </summary>
+    shader VoxelizationMethodSingleAxis : VoxelizationMethod, Math, Transformation, ShaderBase, NormalStream, PositionStream4, VoxelPositionStream
+    {
+        centroid stream float3 centroidPositionWS;
+        override void PrepareFragment()
+        {
+            streams.PositionWS = float4(streams.centroidPositionWS,1);
+        }
+        override void PrepareVertex()
+        {
+            streams.centroidPositionWS = streams.PositionWS.xyz;
+        }
+    };
+}

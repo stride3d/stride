@@ -88,7 +88,7 @@ namespace Xenko.TextureConverter.TexLibraries
 
         public void StartLibrary(TexImage image)
         {
-            if (image.LibraryData.ContainsKey(this) && ((DxtTextureLibraryData)image.LibraryData[this]).DxtImages[0].pixels.Equals(image.Data)) return;
+            if (image.LibraryData.TryGetValue(this, out var libData) && ((DxtTextureLibraryData)libData).DxtImages[0].pixels.Equals(image.Data)) return;
 
             DxtTextureLibraryData libraryData = new DxtTextureLibraryData();
             image.LibraryData[this] = libraryData;
@@ -167,7 +167,7 @@ namespace Xenko.TextureConverter.TexLibraries
 
         public void Execute(TexImage image, IRequest request)
         {
-            DxtTextureLibraryData libraryData = image.LibraryData.ContainsKey(this) ? (DxtTextureLibraryData)image.LibraryData[this] : null;
+            DxtTextureLibraryData libraryData = image.LibraryData.TryGetValue(this, out var libData) ? (DxtTextureLibraryData)libData : null;
 
             switch (request.Type)
             {

@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Xenko.DebugTools"
              xmlns:controls="clr-namespace:Xenko.Presentation.Controls;assembly=Xenko.Presentation"
-             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:b="clr-namespace:Xenko.Presentation.Behaviors;assembly=Xenko.Presentation"
              xmlns:localBehaviors="clr-namespace:Xenko.DebugTools.Behaviors"
              xmlns:mkex="clr-namespace:Xenko.Presentation.MarkupExtensions;assembly=Xenko.Presentation"

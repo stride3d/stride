@@ -18,7 +18,7 @@ namespace Xenko.Core.Assets.Editor.Quantum
         private readonly OverrideType previousOverride;
         private readonly ItemId itemId;
 
-        public AssetContentValueChangeOperation(IAssetNode node, ContentChangeType changeType, Index index, object oldValue, object newValue, OverrideType previousOverride, OverrideType newOverride, ItemId itemId, IEnumerable<IDirtiable> dirtiables)
+        public AssetContentValueChangeOperation(IAssetNode node, ContentChangeType changeType, NodeIndex index, object oldValue, object newValue, OverrideType previousOverride, OverrideType newOverride, ItemId itemId, IEnumerable<IDirtiable> dirtiables)
             : base(node, changeType, index, oldValue, newValue, dirtiables)
         {
             this.previousOverride = previousOverride;
@@ -98,7 +98,7 @@ namespace Xenko.Core.Assets.Editor.Quantum
                 if (ChangeType != ContentChangeType.CollectionAdd)
                 {
                     // For value change or remove, we just need to indicate that the value is not overridden anymore
-                    if (Index == Index.Empty)
+                    if (Index == NodeIndex.Empty)
                     {
                         ((IAssetMemberNode)Node).OverrideContent(false);
                     }
@@ -123,7 +123,7 @@ namespace Xenko.Core.Assets.Editor.Quantum
             base.Redo();
             if (!newOverride.HasFlag(OverrideType.New) && Node.BaseNode != null)
             {
-                if (Index != Index.Empty)
+                if (Index != NodeIndex.Empty)
                 ((IAssetObjectNode)Node).ResetOverrideRecursively(Index);
                 else
                     Node.ResetOverrideRecursively();

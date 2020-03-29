@@ -15,18 +15,7 @@
   **********************************************************************************-->
 
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:markup="clr-namespace:Xceed.Utils.Wpf.Markup;assembly=Xceed.Wpf.DataGrid">
-
-  <ResourceDictionary.MergedDictionaries>
-
-    <!-- Include the standard graphics -->
-    <markup:XceedResourceDictionary XceedSource="/Xceed.Wpf.DataGrid;component\themes/Common/Graphics.xaml" />
-
-    <!-- Needs Windows8 Resources -->
-    <ResourceDictionary Source="ExpressionDark.normalcolor.Resources.xaml" />
-
-  </ResourceDictionary.MergedDictionaries>
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <DataTemplate x:Key="AscendingSortGlyph">
     <Canvas Height="4"

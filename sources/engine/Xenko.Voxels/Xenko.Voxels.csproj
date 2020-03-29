@@ -1,0 +1,31 @@
+<Project>
+  <PropertyGroup>
+    <XenkoAssemblySign>true</XenkoAssemblySign>
+    <XenkoRuntime>true</XenkoRuntime>
+    <XenkoRuntimeNetStandard>true</XenkoRuntimeNetStandard>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <XenkoPlatformDependent>true</XenkoPlatformDependent>
+    <XenkoBuildTags>*</XenkoBuildTags>
+    <XenkoPackAssets>true</XenkoPackAssets>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
+    <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj" />
+    <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
+    <ProjectReference Include="..\Xenko.Rendering\Xenko.Rendering.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

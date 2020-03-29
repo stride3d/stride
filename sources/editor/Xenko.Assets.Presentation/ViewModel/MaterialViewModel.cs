@@ -27,7 +27,7 @@ namespace Xenko.Assets.Presentation.ViewModel
         public static Type RootNodeType => typeof(MaterialAsset);
 
         [Obsolete]
-        protected override void OnAssetPropertyChanged(string propertyName, IGraphNode node, Index index, object oldValue, object newValue)
+        protected override void OnAssetPropertyChanged(string propertyName, IGraphNode node, NodeIndex index, object oldValue, object newValue)
         {
             base.OnAssetPropertyChanged(propertyName, node, index, oldValue, newValue);
             if (!PropertyGraph.UpdatingPropertyFromBase)
@@ -105,7 +105,7 @@ namespace Xenko.Assets.Presentation.ViewModel
                     if (parameterType == null)
                         continue;
 
-                    var index = new Index(generic.Name.Text);
+                    var index = new NodeIndex(generic.Name.Text);
                     if (genericsNode.Indices.Any(x => Equals(x, index)))
                     {
                         var value = genericsNode.Retrieve(index);
@@ -131,7 +131,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             }
 
             // Remove all generics that we don't have anymore
-            keysToRemove.Select(x => new Index(x)).ForEach(x => genericsNode.Remove(genericsNode.Retrieve(x), x));
+            keysToRemove.Select(x => new NodeIndex(x)).ForEach(x => genericsNode.Remove(genericsNode.Retrieve(x), x));
         }
 
         private void UpdateCompositionNodes<T>(ShaderClassType shader, ComputeShaderClassBase<T> node, IObjectNode ownerNode)
@@ -147,7 +147,7 @@ namespace Xenko.Assets.Presentation.ViewModel
                     // ComputeColor only
                     if (member.Type.Name.Text == "ComputeColor")
                     {
-                        var index = new Index(member.Name.Text);
+                        var index = new NodeIndex(member.Name.Text);
                         if (compositionNodesNode.Indices.Any(x => Equals(x, index)))
                         {
                             // This composition node already exists, keep it in the list
@@ -163,7 +163,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             }
 
             // Remove all composition nodes that we don't have anymore
-            keysToRemove.Select(x => new Index(x)).ForEach(x => compositionNodesNode.Remove(compositionNodesNode.Retrieve(x), x));
+            keysToRemove.Select(x => new NodeIndex(x)).ForEach(x => compositionNodesNode.Remove(compositionNodesNode.Retrieve(x), x));
         }
     }
 }

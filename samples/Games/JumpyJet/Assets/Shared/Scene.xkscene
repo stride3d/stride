@@ -85,8 +85,9 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    a941cd713c0995458f02918f1c0258bd: !JumpyJet.PipesScript,JumpyJet.Game
-                        Id: 71cd41a9-093c-4595-8f02-918f1c0258bd
+                    a124a98b8ada02d77a29033b4c58dcc8: !JumpyJet.PipesScript,JumpyJet.Game
+                        Id: a3abb282-de05-4800-b279-e562372a4185
+                        PipePrefabUrl: ce7c2b81-110c-4150-bf9a-d902b03b3d41:Pipe Set
         -   Entity:
                 Id: fb0a2c4b-0ae0-47c0-a222-089448e7890c
                 Name: Character

@@ -91,7 +91,7 @@ namespace Xenko.Particles.Initializers
         /// </userdoc>
         [DataMember(40)]
         [Display("Velocity max")]
-        public Vector3 VelocityMax { get; set; } = new Vector3(1, 1, 1);
+        public Vector3 VelocityMax { get; set; } = Vector3.One;
 
         /// <summary>
         /// Should this Particle Module's bounds be displayed as a debug draw

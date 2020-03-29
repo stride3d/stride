@@ -124,8 +124,8 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestReferenceEnumerable(memberNode.Target.ItemReferences, container.Instances);
 
             Assert.Equal(container.Instances, memberNode.Retrieve());
-            Assert.Equal(instance1, memberNode.Retrieve(new Index(0)));
-            Assert.Equal(instance2, memberNode.Retrieve(new Index(1)));
+            Assert.Equal(instance1, memberNode.Retrieve(new NodeIndex(0)));
+            Assert.Equal(instance2, memberNode.Retrieve(new NodeIndex(1)));
 
             var reference1 = memberNode.Target.ItemReferences.First();
             Helper.TestMemberNode(reference1.TargetNode, reference1.TargetNode.Members.First(), instance1, instance1.Name, nameof(TestObject.Name), false);
@@ -151,8 +151,8 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestReferenceEnumerable(memberNode.Target.ItemReferences, container.Instances);
 
             Assert.Equal(container.Instances, memberNode.Retrieve());
-            Assert.Null(memberNode.Retrieve(new Index(0)));
-            Assert.Null(memberNode.Retrieve(new Index(1)));
+            Assert.Null(memberNode.Retrieve(new NodeIndex(0)));
+            Assert.Null(memberNode.Retrieve(new NodeIndex(1)));
         }
 
         /// <summary>
@@ -174,11 +174,11 @@ namespace Xenko.Core.Quantum.Tests
 
             // Update item 0 to a new instance and item 1 to null
             var newInstance = new TestObject { Name = "Test3" };
-            memberNode.Target.Update(newInstance, new Index(0));
-            memberNode.Target.Update(null, new Index(1));
+            memberNode.Target.Update(newInstance, new NodeIndex(0));
+            memberNode.Target.Update(null, new NodeIndex(1));
             Assert.Equal(container.Instances, memberNode.Retrieve());
-            Assert.Equal(newInstance, memberNode.Retrieve(new Index(0)));
-            Assert.Null(memberNode.Retrieve(new Index(1)));
+            Assert.Equal(newInstance, memberNode.Retrieve(new NodeIndex(0)));
+            Assert.Null(memberNode.Retrieve(new NodeIndex(1)));
             Helper.TestReferenceEnumerable(memberNode.Target.ItemReferences, container.Instances);
 
             var newReference = memberNode.Target.ItemReferences;

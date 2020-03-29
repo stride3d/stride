@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using Xenko.Core.Annotations;
 using Xenko.Core.Extensions;
 

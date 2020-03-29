@@ -71,16 +71,6 @@ namespace Xenko.Graphics
                 actualMultisampleCount = MultisampleCount.X2;
             }
 
-            if (GraphicsDevice.Platform == GraphicsPlatform.OpenGLES
-#if XENKO_GRAPHICS_API_OPENGLES
-                && deviceRoot.IsOpenGLES2   // No MSAA support on OpenGL ES 2.
-#endif
-                )
-            {
-                actualMultisampleCount = MultisampleCount.None;
-                logger.Error("Multisampling is not supported on OpenGL ES 2.");
-            }
-
             for (int i = 0; i < mapFeaturesPerFormat.Length; i++)
             {
                 // TODO: This ignores the supported multisample capabilities of each render target format. But I don't know how to query this in OpenGL (assuming it's even possible at all).
@@ -112,18 +102,8 @@ namespace Xenko.Graphics
             }
 
 #if XENKO_GRAPHICS_API_OPENGLES
-            var isOpenGLES3 = deviceRoot.currentVersion >= 300;
-
-            deviceRoot.HasDepth24 = isOpenGLES3 || SupportedExtensions.Contains("GL_OES_depth24");
-            deviceRoot.HasPackedDepthStencilExtension = isOpenGLES3 || SupportedExtensions.Contains("GL_OES_packed_depth_stencil");
             deviceRoot.HasExtTextureFormatBGRA8888 = SupportedExtensions.Contains("GL_EXT_texture_format_BGRA8888")
                                        || SupportedExtensions.Contains("GL_APPLE_texture_format_BGRA8888");
-            deviceRoot.HasTextureFloat = isOpenGLES3 || SupportedExtensions.Contains("GL_OES_texture_float");
-            deviceRoot.HasTextureHalf = isOpenGLES3 || SupportedExtensions.Contains("GL_OES_texture_half_float");
-            deviceRoot.HasRenderTargetFloat = isOpenGLES3 || SupportedExtensions.Contains("GL_EXT_color_buffer_float");
-            deviceRoot.HasRenderTargetHalf = isOpenGLES3 || SupportedExtensions.Contains("GL_EXT_color_buffer_half_float");
-            deviceRoot.HasVAO = isOpenGLES3 || SupportedExtensions.Contains("GL_OES_vertex_array_object");
-            deviceRoot.HasTextureRG = isOpenGLES3 || SupportedExtensions.Contains("GL_EXT_texture_rg");
             deviceRoot.HasKhronosDebug = deviceRoot.currentVersion >= 320 || SupportedExtensions.Contains("GL_KHR_debug");
             deviceRoot.HasTimerQueries = SupportedExtensions.Contains("GL_EXT_disjoint_timer_query");
 
@@ -133,23 +113,19 @@ namespace Xenko.Graphics
             //deviceRoot.HasTextureBuffers = (deviceRoot.version >= 320)
             //                            || (deviceRoot.version >= 310 && SupportedExtensions.Contains("GL_EXT_texture_buffer"));
 
-            HasSRgb = isOpenGLES3 || SupportedExtensions.Contains("GL_EXT_sRGB");
-
             // Compute shaders available in OpenGL ES 3.1
-            HasComputeShaders = isOpenGLES3 && deviceRoot.currentVersion >= 1;
+            HasComputeShaders = deviceRoot.currentVersion >= 310;
             HasDoublePrecision = false;
 
-            HasDepthAsSRV = isOpenGLES3;
-            HasDepthAsReadOnlyRT = isOpenGLES3;
-            HasMultisampleDepthAsSRV = isOpenGLES3;
+            HasDepthAsSRV = true;
+            HasDepthAsReadOnlyRT = true;
+            HasMultisampleDepthAsSRV = true;
 
             deviceRoot.HasDepthClamp = SupportedExtensions.Contains("GL_ARB_depth_clamp");
   
             // TODO: from 3.1: draw indirect, separate shader object
             // TODO: check tessellation & geometry shaders: GL_ANDROID_extension_pack_es31a
 #else
-            deviceRoot.HasVAO = true;
-
             deviceRoot.HasDXT = SupportedExtensions.Contains("GL_EXT_texture_compression_s3tc");
             deviceRoot.HasTextureBuffers = true;
             deviceRoot.HasKhronosDebug = deviceRoot.currentVersion >= 430 || SupportedExtensions.Contains("GL_KHR_debug");
@@ -159,11 +135,11 @@ namespace Xenko.Graphics
             HasComputeShaders = deviceRoot.version >= 430;
             HasDoublePrecision = SupportedExtensions.Contains("GL_ARB_vertex_attrib_64bit");
 
-            HasDepthAsSRV = deviceRoot.version >= 300;
-            HasDepthAsReadOnlyRT = deviceRoot.version >= 300;
-            HasMultisampleDepthAsSRV = deviceRoot.version >= 300;
+            HasDepthAsSRV = true;
+            HasDepthAsReadOnlyRT = true;
+            HasMultisampleDepthAsSRV = true;
 
-            deviceRoot.HasDepthClamp = deviceRoot.version >= 300;
+            deviceRoot.HasDepthClamp = true;
 
             // TODO: from 4.0: tessellation, draw indirect
             // TODO: from 4.1: separate shader object

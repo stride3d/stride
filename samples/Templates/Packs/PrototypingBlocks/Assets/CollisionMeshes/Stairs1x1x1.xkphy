@@ -1,6 +1,6 @@
 !ColliderShapeAsset
 Id: f1034796-324c-4a40-a626-3d57b1d87fbf
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Xenko: 3.0.0.0}
 Tags: []
 ColliderShapes:
     dd1b93604c80c24fa67766d259000d5f: !ConvexHullColliderShapeDesc
@@ -9,12 +9,13 @@ ColliderShapes:
         Model: ef7ac5ee-fbc4-4990-aa48-a7e60f283326:Models/Stairs1x1x1
         LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
         LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-        SimpleWrap: true
         Scaling: {X: 1.0, Y: 1.0, Z: 1.0}
-        Depth: 10
-        PosSampling: 10
-        AngleSampling: 10
-        PosRefine: 5
-        AngleRefine: 5
-        Alpha: 0.01
-        Threshold: 0.01
+        Decomposition:
+            Depth: 10
+            PosSampling: 10
+            AngleSampling: 10
+            PosRefine: 5
+            AngleRefine: 5
+            Alpha: 0.01
+            Threshold: 0.01
+            Enabled: false

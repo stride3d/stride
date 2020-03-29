@@ -141,6 +141,51 @@ namespace Xenko.Assets
                         }
                     }
 
+                    // Change shader generated file from .cs to .xksl.cs or .xkfx.cs
+                    if (dependency.Version.MinVersion < new PackageVersion("3.2.0.1-beta02"))
+                    {
+                        // Find xksl files
+                        var shaderFiles = project.Items.Where(x => x.ItemType == "None" && (x.EvaluatedInclude.EndsWith(".xksl", StringComparison.InvariantCultureIgnoreCase) || x.EvaluatedInclude.EndsWith(".xkfx", StringComparison.InvariantCultureIgnoreCase)) && x.HasMetadata("Generator"));
+
+                        foreach (var shaderFile in shaderFiles)
+                        {
+                            var shaderFilePath = Path.Combine(projectFullPath.GetFullDirectory(), new UFile(shaderFile.EvaluatedInclude));
+                            var oldGeneratedFilePath = Path.ChangeExtension(shaderFilePath, ".cs");
+
+                            if (File.Exists(oldGeneratedFilePath))
+                            {
+                                File.Move(oldGeneratedFilePath, shaderFilePath + ".cs");
+
+                                // Update project (directly with Xml since it is an Update element, not an Include)
+                                foreach (var csElement in project.Xml.ItemGroups.SelectMany(x => x.Items).Where(x => new UFile(x.Update) == new UFile(Path.ChangeExtension(shaderFile.EvaluatedInclude, ".cs"))))
+                                {
+                                    csElement.Update = shaderFile.EvaluatedInclude + ".cs";
+                                    isProjectDirty = true;
+                                }
+                                // I think we should have only Update, not Include, but let's do that just in case
+                                foreach (var csElement in project.Xml.ItemGroups.SelectMany(x => x.Items).Where(x => new UFile(x.Include) == new UFile(Path.ChangeExtension(shaderFile.EvaluatedInclude, ".cs"))))
+                                {
+                                    csElement.Include = shaderFile.EvaluatedInclude + ".cs";
+                                    isProjectDirty = true;
+                                }
+
+                                if (shaderFile.EvaluatedInclude.EndsWith(".xkfx", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    shaderFile.GetMetadata("Generator").UnevaluatedValue = "XenkoEffectCodeGenerator";
+                                    isProjectDirty = true;
+                                }
+
+                                // Also update LastGenOutput
+                                var lastGenOutputMetadata = shaderFile.GetMetadata("LastGenOutput");
+                                if (lastGenOutputMetadata != null && !lastGenOutputMetadata.IsImported)
+                                {
+                                    lastGenOutputMetadata.UnevaluatedValue = new UFile(shaderFile.EvaluatedInclude + ".cs").GetFileName();
+                                    isProjectDirty = true;
+                                }
+                            }
+                        }
+                    }
+
                     if (isProjectDirty)
                         project.Save();
 

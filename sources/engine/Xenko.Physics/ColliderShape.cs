@@ -48,8 +48,7 @@ namespace Xenko.Physics
         {
             //cache matrices used to translate the position from and to physics engine / gfx engine
             PositiveCenterMatrix = Matrix.RotationQuaternion(LocalRotation) * (Parent == null ? Matrix.Translation(LocalOffset * cachedScaling) : Matrix.Translation(LocalOffset));
-            NegativeCenterMatrix = PositiveCenterMatrix;
-            NegativeCenterMatrix.Invert();
+            Matrix.Invert(ref PositiveCenterMatrix, out NegativeCenterMatrix);
         }
 
         /// <summary>

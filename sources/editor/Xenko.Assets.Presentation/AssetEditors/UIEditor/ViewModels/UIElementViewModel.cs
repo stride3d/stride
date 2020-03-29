@@ -170,7 +170,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.UIEditor.ViewModels
             node.PushTarget();
             node.PushMember(nameof(UIAsset.Hierarchy.Parts));
             node.PushTarget();
-            node.PushIndex(new Index(Id.ObjectId));
+            node.PushIndex(new NodeIndex(Id.ObjectId));
             node.PushMember(nameof(UIElementDesign.UIElement));
             node.PushTarget();
             return node;
@@ -248,13 +248,13 @@ namespace Xenko.Assets.Presentation.AssetEditors.UIEditor.ViewModels
         protected T GetDependencyPropertyValue<T>(UIElement element, PropertyKey<T> property)
         {
             var dependencyPropertiesNode = Editor.NodeContainer.GetOrCreateNode(element)[nameof(UIElement.DependencyProperties)];
-            return (T)dependencyPropertiesNode.Retrieve(new Index(property));
+            return (T)dependencyPropertiesNode.Retrieve(new NodeIndex(property));
         }
 
         protected bool RemoveDependencyProperty(UIElement element, PropertyKey property)
         {
             var dependencyPropertiesNode = Editor.NodeContainer.GetOrCreateNode(element)[nameof(UIElement.DependencyProperties)].Target;
-            var propertyIndex = new Index(property);
+            var propertyIndex = new NodeIndex(property);
             if (!dependencyPropertiesNode.Indices.Contains(propertyIndex))
                 return false;
 
@@ -266,7 +266,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.UIEditor.ViewModels
         protected void SetDependencyPropertyValue<T>(UIElement element, PropertyKey<T> property, T value)
         {
             var dependencyPropertiesNode = Editor.NodeContainer.GetOrCreateNode(element)[nameof(UIElement.DependencyProperties)].Target;
-            var propertyIndex = new Index(property);
+            var propertyIndex = new NodeIndex(property);
             if (!dependencyPropertiesNode.Indices.Contains(propertyIndex))
             {
                 // Note: update would probably work, but we want to remove the property when Undo
@@ -317,6 +317,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.UIEditor.ViewModels
             return assetPropertyProvider.ShouldConstructMember(member);
         }
 
-        bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, Index index) => ((IPropertyProviderViewModel)Asset).ShouldConstructItem(collection, index);
+        bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => ((IPropertyProviderViewModel)Asset).ShouldConstructItem(collection, index);
     }
 }

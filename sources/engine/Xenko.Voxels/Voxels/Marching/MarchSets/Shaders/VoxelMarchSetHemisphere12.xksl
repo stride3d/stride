@@ -1,0 +1,53 @@
+﻿shader VoxelMarchSetHemisphere12 : VoxelMarchSet
+{
+    cbuffer PerView.Lighting
+    {
+        float offset;
+    }
+    compose VoxelMarchMethod Marcher;
+    override float4 March(float3 rayPos, float3 rayDir)
+    {
+        float3 tan = normalize(cross(rayDir, normalize(float3(1, 1, 1))));
+        float3 bitan = cross(tan, rayDir);
+        float3x3 tangentMatrix = float3x3(tan, bitan, rayDir);
+
+        float3 startPos = rayPos + rayDir * Marcher.StepSize() * offset;
+
+        float4 reflLighting = float4(0, 0, 0, 0);
+        
+        //Dot products of rays
+        float central = 0.84;
+        float outer = 0.22;
+        float sum = (central*4+outer*8);
+        central /= sum;
+        outer /= sum;
+
+        rayDir = mul(float3(-0.38, -0.37, 0.84), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * central;
+        rayDir = mul(float3(-0.31, 0.43, 0.84), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * central;
+        rayDir = mul(float3(0.36, 0.39, 0.84), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * central;
+        rayDir = mul(float3(0.36, -0.39, 0.84), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * central;
+
+        rayDir = mul(float3(-0.87, 0.41, 0.22), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+        rayDir = mul(float3(-0.35, 0.90, 0.22), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+        rayDir = mul(float3(0.40, 0.88, 0.22), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+        rayDir = mul(float3(0.92, 0.31, 0.22), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+        rayDir = mul(float3(0.87, -0.43, 0.22), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+        rayDir = mul(float3(0.30, -0.92, 0.22), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+        rayDir = mul(float3(-0.43, -0.87, 0.22), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+        rayDir = mul(float3(-0.93, -0.28, 0.22), tangentMatrix);
+        reflLighting += Marcher.March(startPos, rayDir) * outer;
+
+        return reflLighting;
+    }
+};

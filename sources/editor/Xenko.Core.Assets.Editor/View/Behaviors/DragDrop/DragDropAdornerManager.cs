@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Documents;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using System.Windows.Media;
 using Xenko.Core.Annotations;
 using Xenko.Core.Extensions;
@@ -42,7 +42,7 @@ namespace Xenko.Core.Assets.Editor.View.Behaviors
             // There is no public way to get the BehaviorCollection only if it exists, without creating it if it does not.
             var behaviorsPropertyFieldInfo = typeof(Interaction).GetField("BehaviorsProperty", BindingFlags.NonPublic | BindingFlags.Static);
             if (behaviorsPropertyFieldInfo == null)
-                throw new MissingFieldException("The BehaviorsProperty static field is missing on the class System.Windows.Interactivity. This version of the assembly is not supported.");
+                throw new MissingFieldException("The BehaviorsProperty static field is missing on the class Microsoft.Xaml.Behaviors. This version of the assembly is not supported.");
 
             BehaviorsProperty = (DependencyProperty)behaviorsPropertyFieldInfo.GetValue(null);
         }

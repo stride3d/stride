@@ -4,32 +4,10 @@
     <RootNamespace>MaterialShader</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Xenko.Core" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
-    <PackageReference Include="Xenko.Engine" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.Particles" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.UI" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Effects\ComputeColorWave.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>ComputeColorWave.cs</LastGenOutput>
-    </None>
-    <Compile Update="Effects\ComputeColorWave.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>ComputeColorWave.xksl</DependentUpon>
-    </Compile>
-    <None Include="Effects\ComputeColorWaveNormal.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>ComputeColorWaveNormal.cs</LastGenOutput>
-    </None>
-    <Compile Update="Effects\ComputeColorWaveNormal.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>ComputeColorWaveNormal.xksl</DependentUpon>
-    </Compile>
+    <PackageReference Include="Xenko.Core" Version="3.2.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="3.2.0.1-beta01" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
+    <PackageReference Include="Xenko.Engine" Version="3.2.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Particles" Version="3.2.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.UI" Version="3.2.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
 </Project>

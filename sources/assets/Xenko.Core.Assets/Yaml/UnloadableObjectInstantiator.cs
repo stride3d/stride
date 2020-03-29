@@ -39,7 +39,7 @@ namespace Xenko.Core.Yaml
                     var asmName = new AssemblyName($"YamlProxy_{Guid.NewGuid():N}");
 
                     // Create assembly (in memory)
-                    var asmBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(asmName, AssemblyBuilderAccess.Run);
+                    var asmBuilder = AssemblyBuilder.DefineDynamicAssembly(asmName, AssemblyBuilderAccess.Run);
                     var moduleBuilder = asmBuilder.DefineDynamicModule("DynamicModule");
 
                     // Create type
@@ -107,7 +107,7 @@ namespace Xenko.Core.Yaml
                     // User-registered callbacks
                     ProcessProxyType?.Invoke(baseType, typeBuilder);
 
-                    proxyType = typeBuilder.CreateType();
+                    proxyType = typeBuilder.CreateTypeInfo();
                     proxyTypes.Add(baseType, proxyType);
                 }
             }

@@ -67,30 +67,23 @@ namespace Xenko.Core.Assets
                     if (project.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharp || project.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharpNewSystem)
                     {
                         var projectPath = project.FullPath;
-                        var packagePath = Path.ChangeExtension(projectPath, Package.PackageFileExtension);
-                        if (File.Exists(packagePath))
-                        {
-                            var projectAssetsJsonPath = Path.Combine(Path.GetDirectoryName(projectPath), @"obj", LockFileFormat.AssetsFileName);
+                        var projectAssetsJsonPath = Path.Combine(Path.GetDirectoryName(projectPath), @"obj", LockFileFormat.AssetsFileName);
 #if !XENKO_LAUNCHER
-                            if (!File.Exists(projectAssetsJsonPath))
-                            {
-                                var log = new LoggerResult();
-                                await VSProjectHelper.RestoreNugetPackages(log, projectPath);
-                            }
+                        if (!File.Exists(projectAssetsJsonPath))
+                        {
+                            var log = new LoggerResult();
+                            await VSProjectHelper.RestoreNugetPackages(log, projectPath);
+                        }
 #endif
-                            if (File.Exists(projectAssetsJsonPath))
+                        if (File.Exists(projectAssetsJsonPath))
+                        {
+                            var format = new LockFileFormat();
+                            var projectAssets = format.Read(projectAssetsJsonPath);
+                            foreach (var library in projectAssets.Libraries)
                             {
-                                if (File.Exists(projectAssetsJsonPath))
+                                if ((library.Type == "package" || library.Type == "project") && library.Name == "Xenko.Engine")
                                 {
-                                    var format = new LockFileFormat();
-                                    var projectAssets = format.Read(projectAssetsJsonPath);
-                                    foreach (var library in projectAssets.Libraries)
-                                    {
-                                        if (library.Type == "package" && library.Name == "Xenko.Engine")
-                                        {
-                                            return new PackageVersion((string)library.Version.ToString());
-                                        }
-                                    }
+                                    return new PackageVersion((string)library.Version.ToString());
                                 }
                             }
                         }

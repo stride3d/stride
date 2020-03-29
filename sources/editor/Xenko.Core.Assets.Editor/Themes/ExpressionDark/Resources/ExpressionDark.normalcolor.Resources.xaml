@@ -15,8 +15,7 @@
   **********************************************************************************-->
 
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:xcdg="http://schemas.xceed.com/wpf/xaml/datagrid">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <SolidColorBrush x:Key="gridLineBrush"
                     Color="Gray" />
@@ -39,29 +38,4 @@
   <Pen x:Key="dropMarkPen"
         Brush="{StaticResource dropMarkBrush}"
         Thickness="7" />
-
-  <!--**************************
-    * TEMPLATE: ScrollTip
-    ************************** -->
-  <ControlTemplate x:Key="scrollTipTemplate"
-                    TargetType="{x:Type xcdg:ScrollTip}">
-
-    <Grid VerticalAlignment="{TemplateBinding VerticalAlignment}"
-            HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
-
-      <Border BorderThickness="1,1,1,1"
-                 BorderBrush="{TemplateBinding BorderBrush}"
-                 Background="{TemplateBinding Background}">
-
-        <ContentPresenter VerticalAlignment="Center"
-                              HorizontalAlignment="Right"
-                              Margin="5"
-                              TextElement.Foreground="{TemplateBinding TextElement.Foreground}"
-                              Content="{TemplateBinding Content}"
-                              ContentTemplate="{TemplateBinding ContentTemplate}"
-                              ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}" />
-      </Border>
-    </Grid>
-  </ControlTemplate>
-
 </ResourceDictionary>

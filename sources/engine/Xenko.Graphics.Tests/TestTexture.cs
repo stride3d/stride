@@ -518,10 +518,6 @@ namespace Xenko.Graphics.Tests
                     foreach (var destinationStaged in destinationIsStaged)
                     {
                         var pixelFormats = new List<PixelFormat> { PixelFormat.R8G8B8A8_UNorm, PixelFormat.R8G8B8A8_UNorm_SRgb, PixelFormat.R8_UNorm };
-#if XENKO_GRAPHICS_API_OPENGLES
-                        if (!game.GraphicsDevice.HasTextureRG)
-                            pixelFormats.Remove(PixelFormat.R8_UNorm);
-#endif
 
                         foreach (var pixelFormat in pixelFormats)
                         {

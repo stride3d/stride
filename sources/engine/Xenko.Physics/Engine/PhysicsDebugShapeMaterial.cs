@@ -43,10 +43,11 @@ namespace Xenko.Physics
             });
 
             // set the color to the material
-            material.Passes[0].Parameters.Set(MaterialKeys.DiffuseValue, new Color4(color).ToColorSpace(device.ColorSpace));
+            var materialColor = new Color4(color).ToColorSpace(device.ColorSpace);
+            material.Passes[0].Parameters.Set(MaterialKeys.DiffuseValue, ref materialColor);
 
             material.Passes[0].Parameters.Set(MaterialKeys.EmissiveIntensity, intensity);
-            material.Passes[0].Parameters.Set(MaterialKeys.EmissiveValue, new Color4(color).ToColorSpace(device.ColorSpace));
+            material.Passes[0].Parameters.Set(MaterialKeys.EmissiveValue, ref materialColor);
 
             return material;
         }

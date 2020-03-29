@@ -115,14 +115,14 @@ namespace Xenko.Rendering.Compositing
                 drawContext.CommandList.SetStencilReference(0);
 
                 // Apply the effect
-                bakeLightProbes.Parameters.Set(BakeLightProbeShaderKeys.MatrixTransform, renderView.ViewProjection);
+                bakeLightProbes.Parameters.Set(BakeLightProbeShaderKeys.MatrixTransform, ref renderView.ViewProjection);
                 bakeLightProbes.Apply(drawContext.GraphicsContext);
 
                 /*int tetrahedrawGridSize = 5;
                 Vector3 tetrahedraMin = new Vector3(-12.0f);
                 Vector3 tetrahedraMax = new Vector3(12.0f);
                 var lightprobePositions = new Vector3[tetrahedrawGridSize*tetrahedrawGridSize*tetrahedrawGridSize];
-    
+
                 for (int i = 0; i < lightprobePositions.Length; ++i)
                 {
                     lightprobePositions[i] = new Vector3(
@@ -130,12 +130,11 @@ namespace Xenko.Rendering.Compositing
                         MathUtil.Lerp(tetrahedraMin.Y, tetrahedraMax.Y, (float)((i/tetrahedrawGridSize)%tetrahedrawGridSize)/(tetrahedrawGridSize - 1)),
                         MathUtil.Lerp(tetrahedraMin.Z, tetrahedraMax.Z, (float)(i%tetrahedrawGridSize)/(tetrahedrawGridSize - 1)));
                 }
-    
+
                 var tetra = new BowyerWatsonTetrahedralization();
                 var tetraResult = tetra.Compute(lightprobePositions);*/
 
-                Matrix viewInverse = renderView.View;
-                viewInverse.Invert();
+                Matrix.Invert(ref renderView.View, out var viewInverse);
 
                 var eye = new Vector3(viewInverse.M41, viewInverse.M42, viewInverse.M43);
 

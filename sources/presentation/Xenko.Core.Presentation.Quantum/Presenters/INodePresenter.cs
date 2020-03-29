@@ -39,7 +39,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
 
         bool IsVisible { get; set; }
 
-        Index Index { get; }
+        NodeIndex Index { get; }
 
         ITypeDescriptor Descriptor { get; }
 
@@ -61,9 +61,9 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
 
         void AddItem(object value);
 
-        void AddItem(object value, Index index);
+        void AddItem(object value, NodeIndex index);
 
-        void RemoveItem(object value, Index index);
+        void RemoveItem(object value, NodeIndex index);
 
         // TODO: this should probably be removed, UpdateValue should be called on the corresponding child node presenter itself
 

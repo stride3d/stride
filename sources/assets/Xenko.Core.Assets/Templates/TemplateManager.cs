@@ -59,7 +59,7 @@ namespace Xenko.Core.Assets.Templates
         /// <returns>A sequence containing all registered template descriptions.</returns>
         public static IEnumerable<TemplateDescription> FindTemplates(PackageSession session = null)
         {
-            var packages = session?.Packages.Concat(ExtraPackages) ?? ExtraPackages;
+            var packages = session?.Packages.Concat(ExtraPackages).Distinct(DistinctPackagePathComparer.Default) ?? ExtraPackages;
             // TODO this will not work if the same package has different versions
             return packages.SelectMany(package => package.Templates).OrderBy(tpl => tpl.Order).ThenBy(tpl => tpl.Name).ToList();
         }
@@ -117,6 +117,30 @@ namespace Xenko.Core.Assets.Templates
                 }
             }
             return null;
+        }
+
+        private class DistinctPackagePathComparer : IEqualityComparer<Package>
+        {
+            private static DistinctPackagePathComparer defaultInstance;
+            public static DistinctPackagePathComparer Default
+            {
+                get
+                {
+                    if (defaultInstance == null)
+                        defaultInstance = new DistinctPackagePathComparer();
+                    return defaultInstance;
+                }
+            }
+
+            public bool Equals(Package x, Package y)
+            {
+                return x.FullPath == y.FullPath;
+            }
+
+            public int GetHashCode(Package obj)
+            {
+                return obj.FullPath.GetHashCode();
+            }
         }
     }
 }

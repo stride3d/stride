@@ -86,10 +86,10 @@ namespace Xenko.Graphics.Font
             return CharacterToGlyph.ContainsKey(c);
         }
 
-        protected override Glyph GetGlyph(CommandList commandList, char character, ref Vector2 fontSize, bool dumb, out Vector2 fixScaling)
+        protected override Glyph GetGlyph(CommandList commandList, char character, in Vector2 fontSize, bool dumb, out Vector2 fixScaling)
         {
             Glyph glyph = null;
-            fixScaling = new Vector2(1, 1);
+            fixScaling = Vector2.One;
 
             if (!CharacterToGlyph.ContainsKey(character))
                 Logger.Warning($"Character '{character}' is not available in the static font character map");

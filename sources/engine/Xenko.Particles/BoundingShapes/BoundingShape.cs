@@ -30,8 +30,8 @@ namespace Xenko.Particles.BoundingShapes
         public virtual bool TryGetDebugDrawShape(out DebugDrawShape debugDrawShape, out Vector3 translation, out Quaternion rotation, out Vector3 scale)
         {
             debugDrawShape = DebugDrawShape.None;
-            scale = new Vector3(1, 1, 1);
-            translation = new Vector3(0, 0, 0);
+            scale = Vector3.One;
+            translation = Vector3.Zero;
             rotation = Quaternion.Identity;
             return false;
         }

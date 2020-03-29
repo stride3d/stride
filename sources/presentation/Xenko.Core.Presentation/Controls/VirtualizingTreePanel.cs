@@ -40,7 +40,7 @@ namespace Xenko.Core.Presentation.Controls
             public void AddOrChange(int level, double size)
             {
                 List<CachedSize> levelList;
-                if (cache.ContainsKey(level)) { levelList = cache[level]; }
+                if (cache.TryGetValue(level, out var cachedLevels)) { levelList = cachedLevels; }
                 else
                 {
                     levelList = new List<CachedSize>(5);
@@ -98,9 +98,9 @@ namespace Xenko.Core.Presentation.Controls
 
             public bool ContainsItems(int level)
             {
-                if (cache.ContainsKey(level))
+                if (cache.TryGetValue(level, out var cachedLevel))
                 {
-                    return cache[level].Count > 0;
+                    return cachedLevel.Count > 0;
                 }
 
                 return false;
@@ -113,10 +113,10 @@ namespace Xenko.Core.Presentation.Controls
 
             public double GetEstimate(int level)
             {
-                if (cache.ContainsKey(level))
+                if (cache.TryGetValue(level, out var cachedLevel))
                 {
                     var maxUsedSize = new CachedSize { OccuranceCounter = 0 };
-                    foreach (var s in cache[level])
+                    foreach (var s in cachedLevel)
                     {
                         if (maxUsedSize.OccuranceCounter < s.OccuranceCounter) maxUsedSize = s;
                     }

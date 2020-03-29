@@ -227,10 +227,18 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
             float targetedScale = GetTargetedScale(cameraService);
 
             // Now scale the matrix so the gizmo always has the same on-screen size:
-            worldMatrix.Row1 *= targetedScale / worldMatrix.Row1.Length();    // Normalize the axes and scale them by "targetedScale".
-            worldMatrix.Row2 *= targetedScale / worldMatrix.Row2.Length();
-            worldMatrix.Row3 *= targetedScale / worldMatrix.Row3.Length();
-           
+            var worldMatrixRow1 = worldMatrix.Row1;
+            var worldMatrixRow2 = worldMatrix.Row2;
+            var worldMatrixRow3 = worldMatrix.Row3;
+
+            worldMatrixRow1 *= targetedScale / worldMatrixRow1.Length();    // Normalize the axes and scale them by "targetedScale".
+            worldMatrixRow2 *= targetedScale / worldMatrixRow2.Length();
+            worldMatrixRow3 *= targetedScale / worldMatrixRow3.Length();
+
+            worldMatrix.Row1 = worldMatrixRow1;
+            worldMatrix.Row2 = worldMatrixRow2;
+            worldMatrix.Row3 = worldMatrixRow3;
+
             GizmoRootEntity.Transform.UseTRS = false;
             GizmoRootEntity.Transform.LocalMatrix = worldMatrix;
             GizmoRootEntity.Transform.UpdateWorldMatrix();

@@ -41,11 +41,6 @@ namespace Xenko.Games
         }
 
         /// <summary>
-        /// The is running delegate
-        /// </summary>
-        public bool IsUserManagingRun { get; protected set; }
-
-        /// <summary>
         /// Gets the run loop to be called when <see cref="IsUserManagingRun"/> is true.
         /// </summary>
         /// <value>The run loop.</value>

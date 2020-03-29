@@ -44,7 +44,7 @@ namespace Xenko.Particles.Initializers
             var dirField = pool.GetField(ParticleFields.Direction);
             if (dirField.IsValid())
             {
-                var zeroDirection = new Vector3(0, 0, 0);
+                var zeroDirection = Vector3.Zero;
                 for (var i = startIdx; i != endIdx;)
                 {
                     var particle = pool.FromIndex(i);
@@ -81,7 +81,7 @@ namespace Xenko.Particles.Initializers
             var velField = pool.GetField(ParticleFields.Velocity);
             if (velField.IsValid())
             {
-                var zeroVelocity = new Vector3(0, 0, 0);
+                var zeroVelocity = Vector3.Zero;
                 for (var i = startIdx; i != endIdx;)
                 {
                     var particle = pool.FromIndex(i);
@@ -133,7 +133,7 @@ namespace Xenko.Particles.Initializers
         }
 
         [DataMemberIgnore]
-        public Vector3 WorldPosition { get; private set; } = new Vector3(0, 0, 0);
+        public Vector3 WorldPosition { get; private set; } = Vector3.Zero;
         [DataMemberIgnore]
         public Quaternion WorldRotation { get; private set; } = Quaternion.Identity;
         [DataMemberIgnore]

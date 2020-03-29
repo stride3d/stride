@@ -174,7 +174,7 @@ namespace Xenko.Core.Quantum
                     {
                         var objectNode = (IObjectNode)e.Node;
                         IGraphNode addedNode;
-                        Index index;
+                        NodeIndex index;
                         var arg = (ItemChangeEventArgs)e;
                         if (!arg.Index.IsEmpty)
                         {

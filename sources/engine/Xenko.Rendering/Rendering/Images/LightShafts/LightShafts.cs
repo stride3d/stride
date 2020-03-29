@@ -160,7 +160,7 @@ namespace Xenko.Rendering.Images
 
             var renderView = context.RenderContext.RenderView;
             var viewInverse = Matrix.Invert(renderView.View);
-            lightShaftsParameters.Set(TransformationKeys.ViewInverse, viewInverse);
+            lightShaftsParameters.Set(TransformationKeys.ViewInverse, ref viewInverse);
             lightShaftsParameters.Set(TransformationKeys.Eye, new Vector4(viewInverse.TranslationVector, 1));
 
             // Setup parameters for Z reconstruction
@@ -251,7 +251,7 @@ namespace Xenko.Rendering.Images
 
                 // Additive blend pass
                 Color3 lightColor = lightShaft.Light2.ComputeColor(context.GraphicsDevice.ColorSpace, lightShaft.Light.Intensity);
-                applyLightEffectShader.Parameters.Set(AdditiveLightShaderKeys.LightColor, lightColor);
+                applyLightEffectShader.Parameters.Set(AdditiveLightShaderKeys.LightColor, ref lightColor);
                 applyLightEffectShader.Parameters.Set(AdditiveLightEffectKeys.Color, needsColorLightBuffer);
                 applyLightEffectShader.SetInput(lightBuffer);
                 applyLightEffectShader.Draw(context);
@@ -412,7 +412,7 @@ namespace Xenko.Rendering.Images
 
                     // Update parameters for the minmax shader
                     Matrix worldViewProjection = Matrix.Multiply(volume.World, viewProjection);
-                    minmaxVolumeEffectShader.Parameters.Set(VolumeMinMaxShaderKeys.WorldViewProjection, worldViewProjection);
+                    minmaxVolumeEffectShader.Parameters.Set(VolumeMinMaxShaderKeys.WorldViewProjection, ref worldViewProjection);
 
                     foreach (var mesh in volume.Model.Meshes)
                     {

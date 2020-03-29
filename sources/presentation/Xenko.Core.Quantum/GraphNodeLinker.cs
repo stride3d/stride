@@ -80,7 +80,7 @@ namespace Xenko.Core.Quantum
                 return linker.ShouldVisitMemberTarget(memberNode) && base.ShouldVisitMemberTarget(memberNode);
             }
 
-            protected internal override bool ShouldVisitTargetItem(IObjectNode collectionNode, Index index)
+            protected internal override bool ShouldVisitTargetItem(IObjectNode collectionNode, NodeIndex index)
             {
                 return linker.ShouldVisitTargetItem(collectionNode, index) && base.ShouldVisitTargetItem(collectionNode, index);
             }
@@ -117,7 +117,7 @@ namespace Xenko.Core.Quantum
             return true;
         }
 
-        protected virtual bool ShouldVisitTargetItem(IObjectNode collectionNode, Index index)
+        protected virtual bool ShouldVisitTargetItem(IObjectNode collectionNode, NodeIndex index)
         {
             return true;
         }
@@ -160,7 +160,7 @@ namespace Xenko.Core.Quantum
         /// <remarks>
         /// The source reference can either be directly the <see cref="IGraphNode.TargetReference"/> of the source node if this reference is
         /// an <see cref="ObjectReference"/>, or one of the reference contained inside <see cref="IGraphNode.ItemReferences"/> if this reference
-        /// is a <see cref="ReferenceEnumerable"/>. The <see cref="Index"/> property indicates the index of the reference in this case.
+        /// is a <see cref="ReferenceEnumerable"/>. The <see cref="NodeIndex"/> property indicates the index of the reference in this case.
         /// The default implementation returns a reference in the target node that matches the index of the source reference, if available.
         /// </remarks>
         // TODO: turn back protected!

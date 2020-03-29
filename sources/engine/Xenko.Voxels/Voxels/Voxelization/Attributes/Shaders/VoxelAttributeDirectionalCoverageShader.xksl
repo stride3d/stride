@@ -1,0 +1,54 @@
+shader VoxelAttributeDirectionalCoverageShader : VoxelAttribute, ShaderBaseStream, NormalStream, DataPacking
+{
+    stream uint Voxel_Coverage;
+    stream float3 Voxel_CoverageResolved;
+    stream uint coverage : SV_Coverage;
+
+    RWTexture3D<float3> DirectOutput;
+
+    override void InitializeDummy()
+    {
+        streams.Voxel_Coverage = 0;
+        streams.Voxel_CoverageResolved = float3(0,0,0);
+    }
+    override void InitializeFromStreams()
+    {
+        uint shift = 0;
+        float xdot = abs(streams.normalWS.x);
+        float ydot = abs(streams.normalWS.y);
+        float zdot = abs(streams.normalWS.z);
+        if (xdot > ydot && xdot > zdot)
+            shift = 0;
+        if (ydot > xdot && ydot > zdot)
+            shift = 8;
+        if (zdot > ydot && zdot > xdot)
+            shift = 16;
+        streams.Voxel_Coverage = uint(streams.coverage)<<shift;
+    }
+    override void DirectWrite(uint3 address, uint strideIndex, uint stride)
+    {
+        address.y += strideIndex * stride;
+        DirectOutput[address] = streams.Voxel_CoverageResolved;
+    }
+    override void IndirectWrite(RWBuffer<uint> buffer, uint address)
+    {
+        uint unusedOut;
+        InterlockedOr(buffer[address], streams.Voxel_Coverage, unusedOut);
+        address++;
+    }
+    override void InitializeFromBuffer(RWBuffer<uint> buffer, uint address, uint2 base_stride)
+    {
+        streams.Voxel_Coverage = buffer[address];
+        address++;
+
+        uint3 coverage = UnpackByte3ToUint3(streams.Voxel_Coverage);
+        streams.Voxel_CoverageResolved = (float3(countbits(coverage.x),countbits(coverage.y),countbits(coverage.z)))/8.0;
+    }
+    float3 GetResolved(){
+        return streams.Voxel_CoverageResolved; 
+    }
+    override float4 SampleLocal()
+    {
+        return float4(streams.Voxel_CoverageResolved, 1.0);
+    }
+};

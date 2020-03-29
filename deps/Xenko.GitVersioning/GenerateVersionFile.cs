@@ -34,6 +34,8 @@ namespace Xenko.GitVersioning
         [Output]
         public string NuGetVersion { get; set; }
 
+        public string NuGetVersionSuffixOverride { get; set; }
+
         public string SpecialVersion { get; set; }
 
         public bool SpecialVersionGitHeight { get; set; }
@@ -71,6 +73,9 @@ namespace Xenko.GitVersioning
             var publicVersion = publicVersionMatch.Success ? publicVersionMatch.Groups[1].Value : "0.0.0.0";
             var versionSuffix = versionSuffixMatch.Success ? versionSuffixMatch.Groups[1].Value : string.Empty;
 
+            if (NuGetVersionSuffixOverride != null)
+                versionSuffix = NuGetVersionSuffixOverride;
+
             // Patch NuGetVersion
             if (SpecialVersion != null)
                 versionSuffix += SpecialVersion;
@@ -97,7 +102,7 @@ namespace Xenko.GitVersioning
                 {
                     // Compute version based on Git info
                     var height = Nerdbank.GitVersioning.GitExtensions.GetVersionHeight(repo, VersionFile.ItemSpec);
-                    versionSuffix += height.ToString("D4");
+                    versionSuffix += $"-{height.ToString("D4")}";
                 }
 
                 // Replace NuGetVersionSuffix

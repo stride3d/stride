@@ -117,7 +117,7 @@ namespace Xenko.Core.Presentation.Dirtiables
                 }
 
                 // Update its dirty status according to the computed flag and a previously determinated update (from dependencies)
-                dirtiablesToUpdate[dirtiable] = dirtiablesToUpdate.ContainsKey(dirtiable) ? dirtiablesToUpdate[dirtiable] || isDirty : isDirty;
+                dirtiablesToUpdate[dirtiable] = dirtiablesToUpdate.TryGetValue(dirtiable, out var dirtiableIsDirty) ? dirtiableIsDirty || isDirty : isDirty;
             }
 
             // Finally propagate the update
