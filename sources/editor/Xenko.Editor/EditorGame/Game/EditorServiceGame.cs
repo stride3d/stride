@@ -1,6 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.BuildEngine;
 using Xenko.Core.IO;
@@ -8,6 +9,7 @@ using Xenko.Core.Mathematics;
 using Xenko.Editor.Build;
 using Xenko.Editor.Engine;
 using Xenko.Games;
+using Xenko.Games.Time;
 using Xenko.Graphics;
 using Xenko.Rendering.Compositing;
 
@@ -44,9 +46,48 @@ namespace Xenko.Editor.EditorGame.Game
 
         public static readonly Color EditorBackgroundColorHdr = new Color(61, 61, 61, 255);
 
+        private static readonly TimeSpan GameHiddenNextUpdateTime = TimeSpan.FromSeconds(1);
+
+        private readonly TimerTick gameHiddenUpdateTimer = new TimerTick();
+        private TimeSpan gameHiddenUpdateTimeElapsed = TimeSpan.Zero;
+        private bool isEditorHidden = false;
+        private bool prevForceOneUpdatePerDraw;
+        private bool isFirstDrawCall = true;    // We need to call BeginDraw at least once to ensure graphics context is generated
+
         public EditorGameServiceRegistry EditorServices { get; private set; }
 
         public IGameSettingsAccessor PackageSettings { get; set; }
+
+        /// <summary>
+        /// True if the game is not visible in the editor which will stop rendering and
+        /// throttle game updates.
+        /// </summary>
+        /// <remarks>
+        /// Used when game is not visible in the editor (eg. hidden inside a tab control).
+        /// We only throttle updates instead of completely suspending the game because a game exit command is done
+        /// within the ScriptSystem, so we must be able to run this system.
+        /// </remarks>
+        public bool IsEditorHidden
+        {
+            get { return isEditorHidden; }
+            set
+            {
+                gameHiddenUpdateTimer.Reset();
+                gameHiddenUpdateTimeElapsed = TimeSpan.Zero;
+                isEditorHidden = value;
+                if (isEditorHidden)
+                {
+                    // In case the editor is set to IsFixedTimeStep, we need to ensure when the game
+                    // updates while we're throttling it only updates once instead of trying to 'catch up' on update calls.
+                    prevForceOneUpdatePerDraw = ForceOneUpdatePerDraw;
+                    ForceOneUpdatePerDraw = true;
+                }
+                else
+                {
+                    ForceOneUpdatePerDraw = prevForceOneUpdatePerDraw;  // Restore the previous setting
+                }
+            }
+        }
 
         /// <summary>
         /// True if game is faulted (not running).
@@ -117,6 +158,20 @@ namespace Xenko.Editor.EditorGame.Game
             if (Faulted)
                 return;
 
+            if (IsEditorHidden)
+            {
+                gameHiddenUpdateTimer.Tick();
+                gameHiddenUpdateTimeElapsed += gameHiddenUpdateTimer.ElapsedTime;
+                if (gameHiddenUpdateTimeElapsed < GameHiddenNextUpdateTime)
+                {
+                    return;
+                }
+                else
+                {
+                    gameHiddenUpdateTimeElapsed = TimeSpan.Zero;    // It doesn't matter how much it exceeded the threshold, taking longer than one second is ok since it's hidden
+                }
+            }
+
             try
             {
                 base.Update(gameTime);
@@ -133,11 +188,22 @@ namespace Xenko.Editor.EditorGame.Game
             }
         }
 
+        protected override bool BeginDraw()
+        {
+            if (IsEditorHidden && !isFirstDrawCall)
+            {
+                // While it's hidden do not prepare the graphics context
+                return false;
+            }
+            isFirstDrawCall = false;
+            return base.BeginDraw();
+        }
+
         /// <inheritdoc />
         protected override void Draw(GameTime gameTime)
         {
             // Keep going only if last exception has been "resolved"
-            if (Faulted)
+            if (Faulted || IsEditorHidden)
                 return;
 
             try
