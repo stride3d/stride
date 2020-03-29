@@ -50,7 +50,7 @@ namespace Xenko.Core.Mathematics
         public Vector3 Center;
 
         /// <summary>
-        /// The radious of the sphere.
+        /// The radius of the sphere.
         /// </summary>
         public float Radius;
 
