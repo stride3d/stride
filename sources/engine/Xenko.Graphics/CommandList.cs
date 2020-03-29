@@ -75,7 +75,7 @@ namespace Xenko.Graphics
 
             // Setup empty scissors
             scissorsDirty = true;
-            for (int i = 0; i < viewports.Length; i++)
+            for (int i = 0; i < scissors.Length; i++)
                 scissors[i] = new Rectangle();
 
             // Setup the default render target
