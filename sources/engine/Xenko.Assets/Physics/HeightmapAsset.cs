@@ -23,7 +23,6 @@ namespace Xenko.Assets.Physics
         /// <summary>
         /// Parameters to convert pixels to heights.
         /// </summary>
-        /// <remarks>HeightType size should be greater than or equal to source type size(R channel size).</remarks>
         [DataMember(10)]
         [Display("Height", category: "Convert", Expand = ExpandRule.Always)]
         [NotNull]
