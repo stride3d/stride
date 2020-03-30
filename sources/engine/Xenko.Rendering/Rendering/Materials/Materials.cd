@@ -6,92 +6,15 @@
       <Method Name="MaterialAttributes" Hidden="true" />
       <Method Name="Visit" Hidden="true" />
     </Members>
-    <AssociationLine Name="Tessellation" Type="Xenko.Rendering.Materials.IMaterialTessellationFeature" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="2.438" Y="4.812" />
-        <Point X="2.438" Y="11.596" />
-        <Point X="3.5" Y="11.596" />
-      </Path>
-    </AssociationLine>
-    <AssociationLine Name="Displacement" Type="Xenko.Rendering.Materials.IMaterialDisplacementFeature" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="2.562" Y="4.812" />
-        <Point X="2.562" Y="10.096" />
-        <Point X="3.5" Y="10.096" />
-      </Path>
-    </AssociationLine>
-    <AssociationLine Name="Surface" Type="Xenko.Rendering.Materials.IMaterialSurfaceFeature" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="2.812" Y="4.812" />
-        <Point X="2.812" Y="7.096" />
-        <Point X="3.5" Y="7.096" />
-      </Path>
-    </AssociationLine>
-    <AssociationLine Name="MicroSurface" Type="Xenko.Rendering.Materials.IMaterialMicroSurfaceFeature" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="2.688" Y="4.812" />
-        <Point X="2.688" Y="8.596" />
-        <Point X="3.5" Y="8.596" />
-      </Path>
-    </AssociationLine>
-    <AssociationLine Name="Diffuse" Type="Xenko.Rendering.Materials.IMaterialDiffuseFeature" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="2.312" Y="4.812" />
-        <Point X="2.312" Y="14.346" />
-        <Point X="3.5" Y="14.346" />
-      </Path>
-    </AssociationLine>
-    <AssociationLine Name="DiffuseModel" Type="Xenko.Rendering.Materials.IMaterialDiffuseModelFeature" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="2.062" Y="4.812" />
-        <Point X="2.062" Y="19.096" />
-        <Point X="3.5" Y="19.096" />
-      </Path>
-    </AssociationLine>
-    <AssociationLine Name="Specular" Type="Xenko.Rendering.Materials.IMaterialSpecularFeature" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="2.188" Y="4.812" />
-        <Point X="2.188" Y="15.846" />
-        <Point X="3.5" Y="15.846" />
-      </Path>
-    </AssociationLine>
-    <AssociationLine Name="SpecularModel" Type="Xenko.Rendering.Materials.IMaterialSpecularModelFeature" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="1.812" Y="4.812" />
-        <Point X="1.812" Y="22.346" />
-        <Point X="3.25" Y="22.346" />
-      </Path>
-    </AssociationLine>
-    <AssociationLine Name="Occlusion" Type="Xenko.Rendering.Materials.IMaterialOcclusionFeature" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="1.688" Y="4.812" />
-        <Point X="1.688" Y="23.596" />
-        <Point X="3.25" Y="23.596" />
-      </Path>
-    </AssociationLine>
-    <AssociationLine Name="Emissive" Type="Xenko.Rendering.Materials.IMaterialEmissiveFeature" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="1.938" Y="4.812" />
-        <Point X="1.938" Y="20.596" />
-        <Point X="3.5" Y="20.596" />
-      </Path>
-    </AssociationLine>
-    <AssociationLine Name="Transparency" Type="Xenko.Rendering.Materials.IMaterialTransparencyFeature" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="1.562" Y="4.812" />
-        <Point X="1.562" Y="25.096" />
-        <Point X="3.25" Y="25.096" />
-      </Path>
-    </AssociationLine>
     <AssociationLine Name="Overrides" Type="Xenko.Rendering.Materials.MaterialOverrides" FixedFromPoint="true" FixedToPoint="true">
       <Path>
-        <Point X="3" Y="4.75" />
-        <Point X="4" Y="4.75" />
+        <Point X="3" Y="4.656" />
+        <Point X="4" Y="4.656" />
         <Point X="4" Y="5.5" />
       </Path>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>BEAACABAAQgAAAQAAgAAAAAEAACgAAAAAAAAACABAAA=</HashCode>
+      <HashCode>BEAACEBAAQgAAIQAAgBAAAAEAADgAAAAAAAAACABAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialAttributes.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -113,7 +36,7 @@
   <Class Name="Xenko.Rendering.Materials.MaterialBlendLayer" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="8.5" Y="5.5" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AEAAAAAAAQAAAIQAAAAAAAQAQACAAAAAAAAAAEAAAAA=</HashCode>
+      <HashCode>AEAAAAAAAQAAAIQAAAAAAAQAQACAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialBlendLayer.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -127,7 +50,7 @@
       <Compartment Name="Methods" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAIQAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialBlendLayers.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -135,7 +58,7 @@
   <Class Name="Xenko.Rendering.Materials.MaterialDiffuseLambertModelFeature" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="6.25" Y="18.75" Width="2.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAABAAAQAgAAAAAAAAAAgAIAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAABAAAAAAgAAAAAAAAAAgAIAAAAAAAABAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialDiffuseLambertModelFeature.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -143,7 +66,7 @@
   <Class Name="Xenko.Rendering.Materials.MaterialDiffuseMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="6.75" Y="14" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAEAAAAAAAAAAAQAAAABAAAAAAAAABAAAAAAAAAAQAA=</HashCode>
+      <HashCode>AAEAAAAAAAAAAAAAAAABAAAAAAAAABAAAAAAAABAQAA=</HashCode>
       <FileName>Rendering\Materials\MaterialDiffuseMapFeature.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -151,7 +74,7 @@
   <Class Name="Xenko.Rendering.Materials.MaterialDisplacementMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="6.75" Y="9.75" Width="2.5" />
     <TypeIdentifier>
-      <HashCode>AAAQAAAAAAAAAAQAAAAAAAAIAAAAAgAAAAgACAAAAAA=</HashCode>
+      <HashCode>AAAQAAAAAAAAAAAAAAAAAAAIAAAAAgAAAAgACABAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialDisplacementMapFeature.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -159,7 +82,7 @@
   <Class Name="Xenko.Rendering.Materials.MaterialEmissiveMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="6.25" Y="20.25" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAQAAAAAAABAAAQAgQgBAAAIAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAQAAAAAAAAAAAAAgQgBAAAIAAAAAAAAAAAAAABAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialEmissiveMapFeature.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -167,7 +90,7 @@
   <Class Name="Xenko.Rendering.Materials.MaterialGlossinessMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="6.75" Y="8.5" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAAAAEAAAAAAAAQAAAABAAEAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAEAAAAAAAAAAAAABAAEAAAAABAAAAAAAAABAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialGlossinessMapFeature.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -175,7 +98,7 @@
   <Class Name="Xenko.Rendering.Materials.MaterialMetalnessMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="9.25" Y="15.5" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AACAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialMetalnessMapFeature.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -183,7 +106,7 @@
   <Class Name="Xenko.Rendering.Materials.MaterialNormalMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="6.75" Y="7" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAIABQAQAABAAAAAAAAAAAAAAAACAAAAAA=</HashCode>
+      <HashCode>ABAAAQAAAAAIABAAQAABAAAAAAAAAAAAAAAACABAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialNormalMapFeature.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -191,7 +114,7 @@
   <Class Name="Xenko.Rendering.Materials.MaterialOcclusionMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="6.25" Y="23.75" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AFAAAAAAAAAAAAQAAACBAAAAAABAAAAAAECQAAAAAAA=</HashCode>
+      <HashCode>AFAAAAAAAAAAAAAAAACBAAAAAABAAAAAAECQAABAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialOcclusionMapFeature.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -206,7 +129,7 @@
   <Class Name="Xenko.Rendering.Materials.MaterialSpecularMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="6.75" Y="15.5" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAQAAAABgAAIAAAgAAAABAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAABgAAIAAAgAAAABAAAAABAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialSpecularMapFeature.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -233,22 +156,8 @@
       <Compartment Name="Properties" Collapsed="true" />
       <Compartment Name="Methods" Collapsed="true" />
     </Compartments>
-    <AssociationLine Name="Visibility" Type="Xenko.Rendering.Materials.IMaterialSpecularMicrofacetVisibilityFunction" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="13.625" Y="22.562" />
-        <Point X="13.625" Y="27.346" />
-        <Point X="15.25" Y="27.346" />
-      </Path>
-    </AssociationLine>
-    <AssociationLine Name="NormalDistribution" Type="Xenko.Rendering.Materials.IMaterialSpecularMicrofacetNormalDistributionFunction" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="13.938" Y="22.562" />
-        <Point X="13.938" Y="25.096" />
-        <Point X="15.25" Y="25.096" />
-      </Path>
-    </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AEAAAAAAAABAAAQAgAAAAAAAAAAAAIAAAAACAAAAAAI=</HashCode>
+      <HashCode>AEAAAAACABAAAAAAgAAAAAAAAAAAAIAAAAACAABAAAI=</HashCode>
       <FileName>Rendering\Materials\MaterialSpecularMicroFacetModelFeature.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -349,29 +258,29 @@
   <Class Name="Xenko.Rendering.Materials.MaterialTessellationBaseFeature" Collapsed="true">
     <Position X="6.75" Y="11.25" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AACAAAAACAAAAIQAAAAAAAQAAAAAAAQCAAAAAAAAAAA=</HashCode>
-      <FileName>Rendering\Materials\MaterialTesselationBaseFeature.cs</FileName>
+      <HashCode>AACEAAAACAAAAIAAAAAAAAQAAAAAAAACAAAAAABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialTessellationBaseFeature.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="Xenko.Rendering.Materials.MaterialTessellationFlatFeature" Collapsed="true">
     <Position X="5" Y="12.5" Width="2.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialTessellationFlatFeature.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Xenko.Rendering.Materials.MaterialTessellationPNFeature" Collapsed="true">
     <Position X="8.25" Y="12.5" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialTessellationPNFeature.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Xenko.Rendering.Materials.MaterialTransparencyAdditiveFeature" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="6.25" Y="25.25" Width="2.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAEAAAAQABAAAAASAAAAAABAAAAAAAAIAAAA=</HashCode>
+      <HashCode>AAAAAAAAAEAAAAAABAAAAASAAAAAABAAAAAAAAJAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialTransparencyAdditiveFeature.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -379,7 +288,7 @@
   <Class Name="Xenko.Rendering.Materials.MaterialTransparencyCutoffFeature" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="9.25" Y="25.25" Width="2.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAACAAAQABAAAAAQAAAAAABEAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAACAAAAABAAAAAQAAAAAABEAAAAAAABAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialTransparencyCutoffFeature.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -387,14 +296,14 @@
   <Class Name="Xenko.Rendering.Material" Collapsed="true">
     <Position X="13.75" Y="5.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAgAABEAAgCAAAAAAAAAAAAAAAAAAAIAAEAAAAAA=</HashCode>
+      <HashCode>AAAgAAAAAEAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\Material.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Xenko.Rendering.Materials.MaterialDescriptor" Collapsed="true">
     <Position X="5" Y="4.25" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAQAAAAAAAEAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAQAAAQAAAAQAAAAAAAEAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\Materials\MaterialDescriptor.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -429,7 +338,7 @@
       </Path>
     </InheritanceLine>
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAEAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAQAAAAQAAAAAAAEAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\Materials\IMaterialDescriptor.cs</FileName>
     </TypeIdentifier>
   </Interface>
@@ -488,7 +397,7 @@
       </Path>
     </InheritanceLine>
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\Materials\IMaterialFeature.cs</FileName>
     </TypeIdentifier>
   </Interface>
@@ -539,7 +448,7 @@
   <Interface Name="Xenko.Rendering.Materials.IMaterialShadingModelFeature" Collapsed="true">
     <Position X="9" Y="17" Width="2.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\Materials\IMaterialShadingModelFeature.cs</FileName>
     </TypeIdentifier>
   </Interface>
@@ -556,6 +465,8 @@
       <Path>
         <Point X="28.375" Y="22.562" />
         <Point X="28.375" Y="23.125" />
+        <Point X="18.708" Y="23.125" Type="JumpStart" />
+        <Point X="18.542" Y="23.125" Type="JumpEnd" />
         <Point X="16.875" Y="23.125" />
         <Point X="16.875" Y="23.5" />
       </Path>
@@ -578,6 +489,8 @@
       <Path>
         <Point X="28.375" Y="22.562" />
         <Point X="28.375" Y="24.45" />
+        <Point X="18.708" Y="24.45" Type="JumpStart" />
+        <Point X="18.542" Y="24.45" Type="JumpEnd" />
         <Point X="17.25" Y="24.45" />
         <Point X="17.25" Y="24.75" />
       </Path>

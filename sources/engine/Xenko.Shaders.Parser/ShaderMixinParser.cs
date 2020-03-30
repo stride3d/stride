@@ -135,7 +135,7 @@ namespace Xenko.Shaders.Parser
                 moduleMixinInfo.Log.CopyTo(parsingResult);
 
                 var ast = moduleMixinInfo.MixinAst;
-                var shaderClassSource = moduleMixinInfo.ShaderSource as ShaderClassSource;
+                var shaderClassSource = moduleMixinInfo.ShaderSource as ShaderClassCode;
                 // If we have a ShaderClassSource and it is not an inline one, then we can store the hash sources
                 if (ast != null && shaderClassSource != null)
                 {
@@ -362,7 +362,7 @@ namespace Xenko.Shaders.Parser
             }
 
 
-            if (shaderSource is ShaderClassSource)
+            if (shaderSource is ShaderClassCode)
             {
                 var finalModule = compilationContext.GetModuleMixinFromShaderSource(shaderSource);
 

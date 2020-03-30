@@ -148,7 +148,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 foreach (var composition in ((ShaderMixinSource)shaderSource).Compositions)
                     ExtendLibrary(composition.Value, newMacros, mixinToAnalyze);
             }
-            else if (shaderSource is ShaderClassSource)
+            else if (shaderSource is ShaderClassCode)
                 mixinToAnalyze.Add(GetModuleMixinInfo(shaderSource, macros));
             else if (shaderSource is ShaderArraySource)
             {
@@ -261,9 +261,9 @@ namespace Xenko.Shaders.Parser.Mixins
         {
             ModuleMixinInfo mixinInfo = null;
             
-            if (shaderSource is ShaderClassSource)
+            if (shaderSource is ShaderClassCode)
             {
-                var shaderClassSource = shaderSource as ShaderClassSource;
+                var shaderClassSource = shaderSource as ShaderClassCode;
                 mixinInfo = new ModuleMixinInfo { ShaderSource = shaderClassSource, Macros = macros };
                 LoadMixinFromClassSource(mixinInfo);
             }
@@ -305,7 +305,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="mixinInfo">the ModuleMixinInfo</param>
         private void LoadMixinFromClassSource(ModuleMixinInfo mixinInfo)
         {
-            var classSource = (ShaderClassSource)mixinInfo.ShaderSource;
+            var classSource = (ShaderClassCode)mixinInfo.ShaderSource;
 
             // If we allow to parse non instantiated generics, put empty generic arguments to let the ShaderLoader correctly expand the class
             var shaderClass = ShaderLoader.LoadClassSource(classSource, mixinInfo.Macros, mixinInfo.Log, AllowNonInstantiatedGenerics);

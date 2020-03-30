@@ -82,8 +82,8 @@ namespace Xenko.Rendering.Materials.ComputeColors
 
         public override ShaderSource GenerateShaderSource(ShaderGeneratorContext context, MaterialComputeColorKeys baseKeys)
         {
-            var leftShaderSource = LeftChild.GenerateShaderSource(context, baseKeys);
-            var rightShaderSource = RightChild.GenerateShaderSource(context, baseKeys);
+            var leftShaderSource = LeftChild?.GenerateShaderSource(context, baseKeys);
+            var rightShaderSource = RightChild?.GenerateShaderSource(context, baseKeys);
 
             var shaderSource = new ShaderClassSource(GetCorrespondingShaderSourceName(Operator));
             var mixin = new ShaderMixinSource();

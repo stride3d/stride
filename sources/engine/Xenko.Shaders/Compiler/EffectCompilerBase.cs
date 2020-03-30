@@ -47,7 +47,7 @@ namespace Xenko.Shaders.Compiler
             else
             {
                 mixinToCompile = shaderSource as ShaderMixinSource;
-                var shaderClassSource = shaderSource as ShaderClassSource;
+                var shaderClassSource = shaderSource as ShaderClassCode;
 
                 if (shaderClassSource != null)
                 {

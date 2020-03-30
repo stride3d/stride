@@ -13,66 +13,74 @@ using Xenko.Core.Serialization;
 namespace Xenko.Shaders
 {
     /// <summary>
-    /// A shader class based on .xksl file, used for mixin.
+    /// A shader class based on source code string, used for mixin.
     /// </summary>
-    [DataContract("ShaderClassSource")]
-    public sealed class ShaderClassSource : ShaderClassCode, IEquatable<ShaderClassSource>
+    [DataContract("ShaderClassString")]
+    public sealed class ShaderClassString : ShaderClassCode, IEquatable<ShaderClassString>
     {
+        /// <summary>
+        /// Gets the source code of this shader class as string, XKSL syntax.
+        /// </summary>
+        /// <value>The source code of the shader class.</value>
+        public string ShaderSourceCode { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ShaderClassSource"/> class.
+        /// Initializes a new instance of the <see cref="ShaderClassString"/> class.
         /// </summary>
-        public ShaderClassSource()
+        public ShaderClassString()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ShaderClassSource"/> class.
+        /// Initializes a new instance of the <see cref="ShaderClassString"/> class.
         /// </summary>
         /// <param name="className">Name of the class.</param>
-        public ShaderClassSource(string className)
-            : this(className, null)
+        public ShaderClassString(string className, string shaderSourceCode)
+            : this(className, shaderSourceCode, null)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ShaderClassSource"/> class.
+        /// Initializes a new instance of the <see cref="ShaderClassString"/> class.
         /// </summary>
         /// <param name="className">Name of the class.</param>
         /// <param name="genericArguments">The generic parameters.</param>
-        public ShaderClassSource(string className, params string[] genericArguments)
+        public ShaderClassString(string className, string shaderSourceCode, params string[] genericArguments)
         {
             ClassName = className;
+            ShaderSourceCode = shaderSourceCode;
             GenericArguments = genericArguments;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ShaderClassSource"/> class.
+        /// Initializes a new instance of the <see cref="ShaderClassString"/> class.
         /// </summary>
         /// <param name="className">Name of the class.</param>
         /// <param name="genericArguments">The generic parameters.</param>
-        public ShaderClassSource(string className, params object[] genericArguments)
+        public ShaderClassString(string className, string shaderSourceCode, params object[] genericArguments)
         {
             ClassName = className;
+            ShaderSourceCode = shaderSourceCode;
+
             if (genericArguments != null)
             {
                 GenericArguments = new string[genericArguments.Length];
                 for (int i = 0; i < genericArguments.Length; ++i)
                 {
                     var genArg = genericArguments[i];
-                    if (genArg is bool)
-                        GenericArguments[i] = ((bool)genArg) ? "true" : "false";
+                    if (genArg is bool boolArg)
+                        GenericArguments[i] = boolArg ? "true" : "false";
                     else
                         GenericArguments[i] = genArg == null ? "null" : Convert.ToString(genArg, CultureInfo.InvariantCulture);
                 }
             }
         }
 
-        public bool Equals(ShaderClassSource shaderClassSource)
+        public bool Equals(ShaderClassString shaderClassString)
         {
-            if (ReferenceEquals(null, shaderClassSource)) return false;
-            if (ReferenceEquals(this, shaderClassSource)) return true;
-            return string.Equals(ClassName, shaderClassSource.ClassName) && Utilities.Compare(GenericArguments, shaderClassSource.GenericArguments);
+            if (ReferenceEquals(null, shaderClassString)) return false;
+            if (ReferenceEquals(this, shaderClassString)) return true;
+            return string.Equals(ClassName, shaderClassString.ClassName) && Utilities.Compare(GenericArguments, shaderClassString.GenericArguments);
         }
 
         public override bool Equals(object obj)
@@ -80,7 +88,7 @@ namespace Xenko.Shaders
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != GetType()) return false;
-            return Equals((ShaderClassSource)obj);
+            return Equals((ShaderClassString)obj);
         }
 
         public override int GetHashCode()
@@ -100,22 +108,12 @@ namespace Xenko.Shaders
 
         public override object Clone()
         {
-            return new ShaderClassSource(ClassName, GenericArguments = GenericArguments != null ? GenericArguments.ToArray() : null);
+            return new ShaderClassString(ClassName, ShaderSourceCode, GenericArguments = GenericArguments != null ? GenericArguments.ToArray() : null);
         }
         
         public override string ToString()
         {
             return ToClassName();
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="System.String"/> to <see cref="ShaderClassSource"/>.
-        /// </summary>
-        /// <param name="className">Name of the class.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator ShaderClassSource(string className)
-        {
-            return new ShaderClassSource(className);
         }
     }
 }
