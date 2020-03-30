@@ -67,13 +67,13 @@ namespace Xenko.Shaders.Parser.Mixins
         }
 
         /// <summary>
-        /// Tests if this instance is a <see cref="ShaderClassSource"/> of the specified type name 
+        /// Tests if this instance is a <see cref="ShaderClassCode"/> of the specified type name 
         /// </summary>
         /// <param name="typeName">The type name to test</param>
         /// <returns><c>true</c> if same type name</returns>
         public bool IsShaderClass(string typeName)
         {
-            var classSource = ShaderSource as ShaderClassSource;
+            var classSource = ShaderSource as ShaderClassCode;
             if (classSource == null)
             {
                 return false;

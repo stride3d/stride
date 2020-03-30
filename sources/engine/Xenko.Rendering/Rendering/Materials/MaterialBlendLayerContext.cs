@@ -155,14 +155,14 @@ namespace Xenko.Rendering.Materials
             // the streams coming from the material layers
             foreach (var streamInitializer in stageContext.StreamInitializers)
             {
-                mixin.Mixins.Add(streamInitializer);
+                mixin.Mixins.Add(new ShaderClassSource(streamInitializer));
             }
             stageContext.StreamInitializers.Clear();
 
             // the streams specific to a stage
             // TODO: Use StreamInitializers instead of streams initializers hardcoded in MaterialPixelShadingStream.ResetStream
             if (stage == MaterialShaderStage.Pixel)
-                mixin.Mixins.Add("MaterialPixelShadingStream");
+                mixin.Mixins.Add(new ShaderClassSource("MaterialPixelShadingStream"));
 
             return mixin;
         }

@@ -12,7 +12,7 @@ using Xenko.Core.Annotations;
 namespace Xenko.Shaders
 {
     /// <summary>
-    /// A mixin performing a combination of <see cref="ShaderClassSource"/> and other mixins.
+    /// A mixin performing a combination of <see cref="ShaderClassCode"/> and other mixins.
     /// </summary>
     [DataContract("ShaderMixinSource")]
     [NonIdentifiableCollectionItems]
@@ -23,7 +23,7 @@ namespace Xenko.Shaders
         /// </summary>
         public ShaderMixinSource()
         {
-            Mixins = new List<ShaderClassSource>();
+            Mixins = new List<ShaderClassCode>();
             Compositions = new Core.Collections.SortedList<string, ShaderSource>();
             Macros = new List<ShaderMacro>();
         }
@@ -51,7 +51,7 @@ namespace Xenko.Shaders
         /// </summary>
         /// <value>The mixins.</value>
         [DataMember(10)]
-        public List<ShaderClassSource> Mixins { get; set; }
+        public List<ShaderClassCode> Mixins { get; set; }
 
         /// <summary>
         /// Gets or sets the compositions.
@@ -133,7 +133,7 @@ namespace Xenko.Shaders
                 throw new ArgumentNullException("parent", $"Cannot deep clone mixin [{Name}] from a null parent");
 
             foreach (var mixin in parent.Mixins)
-                Mixins.Add((ShaderClassSource)mixin.Clone());
+                Mixins.Add((ShaderClassCode)mixin.Clone());
             Macros.AddRange(parent.Macros);
             foreach (var shaderBasic in parent.Compositions)
             {
@@ -176,7 +176,7 @@ namespace Xenko.Shaders
         {
             var newMixin = (ShaderMixinSource)MemberwiseClone();
             newMixin.Compositions = Compositions == null ? null : ToSortedList(Compositions.Select(x => new KeyValuePair<string, ShaderSource>(x.Key, (ShaderSource)x.Value.Clone())));
-            newMixin.Mixins = Mixins == null ? null : Mixins.Select(x => (ShaderClassSource)x.Clone()).ToList();
+            newMixin.Mixins = Mixins == null ? null : Mixins.Select(x => (ShaderClassCode)x.Clone()).ToList();
             newMixin.Macros = Macros == null ? null : new List<ShaderMacro>(Macros.ToArray());
             return newMixin;
         }

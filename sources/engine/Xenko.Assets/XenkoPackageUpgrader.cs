@@ -40,6 +40,24 @@ namespace Xenko.Assets
 
         public override bool Upgrade(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage, IList<PackageLoadingAssetFile> assetFiles)
         {
+            if (dependency.Version.MinVersion < new PackageVersion("3.1.0.2-beta01"))
+            {
+                foreach (var assetFile in assetFiles)
+                {
+                    // Add new generic parameter to ShadowMapReceiverDirectional in effect log
+                    if (assetFile.FilePath.GetFileExtension() == ".xkeffectlog")
+                    {
+                        var assetContent = assetFile.AssetContent ?? File.ReadAllBytes(assetFile.FilePath.FullPath);
+                        var assetContentString = System.Text.Encoding.UTF8.GetString(assetContent);
+                        var newAssetContentString = System.Text.RegularExpressions.Regex.Replace(assetContentString, @"([ ]*)-   ClassName:", "$1- !ShaderClassSource\r\n$1    ClassName:");
+                        if (assetContentString != newAssetContentString)
+                        {
+                            // Need replacement, update with replaced text
+                            assetFile.AssetContent = System.Text.Encoding.UTF8.GetBytes(newAssetContentString);
+                        }
+                    }
+                }
+            }
             return true;
         }
 

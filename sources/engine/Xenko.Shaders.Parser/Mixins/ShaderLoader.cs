@@ -92,7 +92,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="autoGenericInstances"></param>
         /// <returns>A ShaderClassType or null if there was some errors.</returns>
         /// <exception cref="System.ArgumentNullException">shaderClassSource</exception>
-        public LoadedShaderClassType LoadClassSource(ShaderClassSource shaderClassSource, Xenko.Core.Shaders.Parser.ShaderMacro[] shaderMacros, LoggerResult log, bool autoGenericInstances)
+        public LoadedShaderClassType LoadClassSource(ShaderClassCode shaderClassSource, Xenko.Core.Shaders.Parser.ShaderMacro[] shaderMacros, LoggerResult log, bool autoGenericInstances)
         {
             if (shaderClassSource == null) throw new ArgumentNullException("shaderClassSource");
 
@@ -103,7 +103,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 foreach (var gen in shaderClassSource.GenericArguments)
                     generics += "___" + gen;
             }
-            var shaderClassType = LoadShaderClass(shaderClassSource.ClassName, generics, log, shaderMacros);
+            var shaderClassType = LoadShaderClass(shaderClassSource, generics, log, shaderMacros);
 
             if (shaderClassType == null)
                 return null;
@@ -275,7 +275,7 @@ namespace Xenko.Shaders.Parser.Mixins
             return (Expression)result.Root.AstNode;
         }
 
-        private LoadedShaderClassType LoadShaderClass(ShaderClassSource classSource, string generics, LoggerResult log, Xenko.Core.Shaders.Parser.ShaderMacro[] macros = null)
+        private LoadedShaderClassType LoadShaderClass(ShaderClassCode classSource, string generics, LoggerResult log, Xenko.Core.Shaders.Parser.ShaderMacro[] macros = null)
         {
             var type = classSource.ClassName;
             if (type == null) throw new ArgumentNullException("type");
@@ -291,8 +291,14 @@ namespace Xenko.Shaders.Parser.Mixins
                     return shaderClass;
                 }
 
-                // Load file
-                var shaderSource = SourceManager.LoadShaderSource(type);
+                ShaderSourceManager.ShaderSourceWithHash shaderSource;
+
+                // Load shader source code
+                if (classSource is ShaderClassString shaderClassString)
+                    shaderSource = SourceManager.LoadShaderSource(type, shaderClassString.ShaderSourceCode);
+                else
+                    shaderSource = SourceManager.LoadShaderSource(type);
+
                 string preprocessedSource;
                 try
                 {
@@ -405,7 +411,7 @@ namespace Xenko.Shaders.Parser.Mixins
             return shaderClassType.Name.Text + (shaderClassType.GenericParameters == null ? string.Empty : "_" + string.Join("_", shaderClassType.GenericParameters.Select(x => x.ToString().Replace('.', '_'))));
         }
 
-        private static string GenerateGenericClassName(ShaderClassSource source)
+        private static string GenerateGenericClassName(ShaderClassCode source)
         {
             // Generate class name
             if (source.GenericArguments != null && source.GenericArguments.Length > 0)

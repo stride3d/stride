@@ -17,7 +17,7 @@
   <Class Name="Xenko.Rendering.Materials.ComputeColors.ComputeBinaryColor" Collapsed="true">
     <Position X="8" Y="5.75" Width="2.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAQAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\Materials\ComputeColors\ComputeBinaryColor.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -33,7 +33,7 @@
   <Class Name="Xenko.Rendering.Materials.ComputeColors.ComputeColor" Collapsed="true">
     <Position X="2" Y="7" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAEAAAAAAAEAAAAAAAAAAAAAAAAAAIAAAAAAAA=</HashCode>
+      <HashCode>IAAAAAAEAAAAAIAEIAAAAAAABAAAAAAAAAIAAAAAAAA=</HashCode>
       <FileName>Rendering\Materials\ComputeColors\ComputeColor.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -49,7 +49,7 @@
   <Class Name="Xenko.Rendering.Materials.ComputeColors.ComputeFloat4" Collapsed="true">
     <Position X="2" Y="8.25" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAEAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>IAAAAAAEAAQAAAAEIAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\Materials\ComputeColors\ComputeFloat4.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -72,14 +72,14 @@
   <Class Name="Xenko.Rendering.Materials.ComputeColors.ComputeShaderClassBase&lt;T&gt;" Collapsed="true">
     <Position X="9.75" Y="4.25" Width="2" />
     <TypeIdentifier>
-      <HashCode>AACAAAAGAACIAAAEACAAAAAAAQAQQAAAAAAEgAAAgAA=</HashCode>
+      <HashCode>AAAAAAAGAAAAAAAEACAAAAAAAAAAQAAAAAAEAAAAgAA=</HashCode>
       <FileName>Rendering\Materials\ComputeColors\ComputeShaderClassBase.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Xenko.Rendering.Materials.ComputeColors.ComputeShaderClassColor" Collapsed="true">
     <Position X="12" Y="5.75" Width="2.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAgAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\Materials\ComputeColors\ComputeShaderClassColor.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -95,14 +95,14 @@
   <Class Name="Xenko.Rendering.Materials.ComputeColors.ComputeTextureBase" Collapsed="true">
     <Position X="4.25" Y="5.75" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAEAAAQAAAEAAIAAAAAAAACAAAQAAIAIAIAgAA=</HashCode>
+      <HashCode>AAAAAAAUAAAQAIAEAAIgAAAAAAACAAAQAAIAIAIAgAA=</HashCode>
       <FileName>Rendering\Materials\ComputeColors\ComputeTextureBase.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Xenko.Rendering.Materials.ComputeColors.ComputeTextureColor" Collapsed="true">
     <Position X="5.5" Y="7" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>IAAIAAAQAgAQAAAAIAAAAAAAAAAAAAAAAAAAAAEAAAA=</HashCode>
       <FileName>Rendering\Materials\ComputeColors\ComputeTextureColor.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -110,24 +110,24 @@
   <Class Name="Xenko.Rendering.Materials.ComputeColors.ComputeTextureScalar" Collapsed="true">
     <Position X="5.5" Y="8.25" Width="2" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAgAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAIAAAwAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\Materials\ComputeColors\ComputeTextureScalar.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Xenko.Rendering.Materials.ComputeColors.ComputeStreamBase" Collapsed="true">
+  <Class Name="Xenko.Rendering.Materials.ComputeColors.ComputeVertexStreamBase" Collapsed="true">
     <Position X="14.25" Y="4.25" Width="2" />
     <TypeIdentifier>
       <HashCode>AAAEAAAEAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Rendering\Materials\ComputeColors\ComputeStreamBase.cs</FileName>
+      <FileName>Rendering\Materials\ComputeColors\ComputeVertexStreamBase.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Xenko.Rendering.Materials.ComputeColors.ComputeStreamColor" Collapsed="true">
+  <Class Name="Xenko.Rendering.Materials.ComputeColors.ComputeVertexStreamScalar" Collapsed="true">
     <Position X="16" Y="5.75" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Rendering\Materials\ComputeColors\ComputeStreamColor.cs</FileName>
+      <HashCode>AAAEAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeVertexStreamScalar.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
@@ -156,15 +156,15 @@
   <Interface Name="Xenko.Rendering.Materials.IComputeColor" Collapsed="true">
     <Position X="2.75" Y="1.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\Materials\IComputeColor.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Interface Name="Xenko.Rendering.Materials.ComputeColors.IComputeStream" Collapsed="true">
-    <Position X="5" Y="1.75" Width="1.5" />
+  <Interface Name="Xenko.Rendering.Materials.ComputeColors.IComputeVertexStream" Collapsed="true">
+    <Position X="5" Y="1.75" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Rendering\Materials\ComputeColors\IComputeStream.cs</FileName>
+      <FileName>Rendering\Materials\ComputeColors\IComputeVertexStream.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Font Name="Segoe UI" Size="9" />

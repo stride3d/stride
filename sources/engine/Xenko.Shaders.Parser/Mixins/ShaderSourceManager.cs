@@ -112,16 +112,21 @@ namespace Xenko.Shaders.Parser.Mixins
         /// Loads the shader source with the specified type name.
         /// </summary>
         /// <param name="type">The typeName.</param>
+        /// <param name="shaderSourceCode">Optional shader source code. Can be use for shaders that don't have a source file</param>
         /// <returns>ShaderSourceWithHash.</returns>
         /// <exception cref="System.IO.FileNotFoundException">If the file was not found</exception>
-        public ShaderSourceWithHash LoadShaderSource(string type)
+        public ShaderSourceWithHash LoadShaderSource(string type, string shaderSourceCode = null)
         {
             lock (locker)
             {
-                // Load file
                 ShaderSourceWithHash shaderSource;
                 if (!loadedShaderSources.TryGetValue(type, out shaderSource))
                 {
+                    // Load from string
+                    if (!string.IsNullOrWhiteSpace(shaderSourceCode))
+                        return CreateShaderSourceWithHash(type, shaderSourceCode);
+
+                    // Load file
                     var sourceUrl = FindFilePath(type);
                     if (sourceUrl != null)
                     {

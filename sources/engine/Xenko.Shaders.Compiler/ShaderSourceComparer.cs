@@ -28,10 +28,10 @@ namespace Xenko.Shaders.Compiler
             if (x.GetType() != y.GetType())
                 return false;
 
-            if (x is ShaderClassSource)
+            if (x is ShaderClassCode)
             {
-                var x1 = (ShaderClassSource)x;
-                var y1 = (ShaderClassSource)y;
+                var x1 = (ShaderClassCode)x;
+                var y1 = (ShaderClassCode)y;
                 return x1.ClassName == y1.ClassName
                        && ArrayExtensions.ArraysEqual(x1.GenericArguments, y1.GenericArguments);
             }
@@ -59,9 +59,9 @@ namespace Xenko.Shaders.Compiler
 
             unchecked
             {
-                if (obj is ShaderClassSource)
+                if (obj is ShaderClassCode)
                 {
-                    var obj1 = (ShaderClassSource)obj;
+                    var obj1 = (ShaderClassCode)obj;
                     return obj1.ClassName.GetHashCode()
                            ^ ArrayExtensions.ComputeHash(obj1.GenericArguments);
                 }

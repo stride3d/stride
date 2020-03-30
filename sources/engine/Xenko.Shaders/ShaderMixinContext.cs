@@ -288,18 +288,17 @@ namespace Xenko.Shaders
                 return;
             }
 
-            var shaderMixinSource = shaderSource as ShaderMixinSource;
-            if (shaderMixinSource != null)
+            if (shaderSource is ShaderMixinSource shaderMixinSource)
             {
                 mixinTree.CloneFrom(shaderMixinSource);
             }
-            else if (shaderSource is ShaderClassSource)
+            else if (shaderSource is ShaderClassCode shaderClassCode)
             {
-                mixinTree.Mixins.Add((ShaderClassSource)shaderSource);
+                mixinTree.Mixins.Add(shaderClassCode);
             }
-            else if (shaderSource is ShaderMixinGeneratorSource)
+            else if (shaderSource is ShaderMixinGeneratorSource mixinGeneratorSource)
             {
-                Mixin(mixinTree, ((ShaderMixinGeneratorSource)shaderSource).Name);
+                Mixin(mixinTree, mixinGeneratorSource.Name);
             }
             else
             {

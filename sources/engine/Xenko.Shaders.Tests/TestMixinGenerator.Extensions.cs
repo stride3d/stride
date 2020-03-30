@@ -39,7 +39,7 @@ namespace Xenko.Shaders.Tests
 
             Assert.True(source != null, $"Source composition for key [{key}] cannot be null");
 
-            var classSource = source as ShaderClassSource;
+            var classSource = source as ShaderClassCode;
             if (classSource != null)
             {
                 var sourceString = classSource.ToClassName();
