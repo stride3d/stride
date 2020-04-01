@@ -18,6 +18,7 @@ namespace Xenko.UI.Controls
     /// Represents a slider element.
     /// </summary>
     [DataContract(nameof(Slider))]
+    [DataContractMetadataType(typeof(SliderMetadata))]
     [Display(category: InputCategory)]
     public class Slider : UIElement
     {
@@ -255,8 +256,8 @@ namespace Xenko.UI.Controls
         public bool ShouldSnapToTicks
         {
             get { return shouldSnapToTicks; }
-            set 
-            { 
+            set
+            {
                 shouldSnapToTicks = value;
                 Value = Value; // snap if enabled
             }
@@ -287,7 +288,7 @@ namespace Xenko.UI.Controls
                 InvalidateMeasure();
             }
         }
-        
+
         /// <summary>
         /// Gets a value that indicates whether the is currently touched down.
         /// </summary>
@@ -335,7 +336,7 @@ namespace Xenko.UI.Controls
 
         private float CalculateIncreamentValue()
         {
-            return shouldSnapToTicks ? Math.Max(Step, (Maximum - Minimum)/TickFrequency) : Step;
+            return shouldSnapToTicks ? Math.Max(Step, (Maximum - Minimum) / TickFrequency) : Step;
         }
 
         protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
@@ -369,7 +370,7 @@ namespace Xenko.UI.Controls
             nameof(ValueChanged),
             RoutingStrategy.Bubble,
             typeof(Slider));
-        
+
         /// <summary>
         /// The class handler of the event <see cref="ValueChanged"/>.
         /// This method can be overridden in inherited classes to perform actions common to all instances of a class.
@@ -390,7 +391,7 @@ namespace Xenko.UI.Controls
         protected override void OnTouchDown(TouchEventArgs args)
         {
             base.OnTouchDown(args);
-            
+
             SetValueFromTouchPosition(args.WorldPosition);
             IsTouchedDown = true;
         }
@@ -438,7 +439,7 @@ namespace Xenko.UI.Controls
             var axis = (int)Orientation;
             var offsets = TrackStartingOffsets;
             var elementSize = RenderSize[axis];
-            var touchPosition = touchPostionWorld[axis] - WorldMatrixInternal[12 + axis] + elementSize/2;
+            var touchPosition = touchPostionWorld[axis] - WorldMatrixInternal[12 + axis] + elementSize / 2;
             var ratio = (touchPosition - offsets.X) / (elementSize - offsets.X - offsets.Y);
             Value = MathUtil.Lerp(Minimum, Maximum, Orientation == Orientation.Vertical ^ IsDirectionReversed ? 1 - ratio : ratio);
         }
@@ -476,6 +477,18 @@ namespace Xenko.UI.Controls
                 trackBackgroundSprite.SizeChanged += InvalidateMeasure;
                 trackBackgroundSprite.BorderChanged += InvalidateMeasure;
             }
+        }
+
+        private class SliderMetadata
+        {
+            [DefaultValue(true)]
+            public bool CanBeHitByUser { get; }
+
+            [DefaultValue(HorizontalAlignment.Center)]
+            public HorizontalAlignment HorizontalAlignment { get; }
+
+            [DefaultValue(VerticalAlignment.Center)]
+            public VerticalAlignment VerticalAlignment { get; }
         }
     }
 }

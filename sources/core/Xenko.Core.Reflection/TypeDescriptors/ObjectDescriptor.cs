@@ -17,7 +17,7 @@ namespace Xenko.Core.Reflection
     public class ObjectDescriptor : ITypeDescriptor
     {
         protected static readonly string SystemCollectionsNamespace = typeof(int).Namespace;
-        public static readonly Func<object, bool> ShouldSerializeDefault = o => true;
+        public static readonly ShouldSerializePredicate ShouldSerializeDefault = (obj, parentTypeMemberDesc) => true;
         private static readonly List<IMemberDescriptor> EmptyMembers = new List<IMemberDescriptor>();
 
         private readonly ITypeDescriptorFactory factory;
@@ -136,7 +136,7 @@ namespace Xenko.Core.Reflection
             var memberList = PrepareMembers();
 
             // Sort members by name
-            // This is to make sure that properties/fields for an object 
+            // This is to make sure that properties/fields for an object
             // are always displayed in the same order
             if (keyComparer != null)
             {
@@ -196,6 +196,22 @@ namespace Xenko.Core.Reflection
             }
 
             var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
+
+            var metadataTypeAttributes = Type.GetCustomAttributes<DataContractMetadataTypeAttribute>(inherit: true);
+            var metadataClassMemberInfos = metadataTypeAttributes.Any() ? new List<(MemberInfo MemberInfo, Type MemberType)>() : null;
+            foreach (var metadataTypeAttr in metadataTypeAttributes)
+            {
+                var metadataType = metadataTypeAttr.MetadataClassType;
+                metadataClassMemberInfos.AddRange(from propertyInfo in metadataType.GetProperties(bindingFlags)
+                                                  where propertyInfo.CanRead && propertyInfo.GetIndexParameters().Length == 0 && IsMemberToVisit(propertyInfo)
+                                                  select (propertyInfo as MemberInfo, propertyInfo.PropertyType));
+
+                // Add all public fields
+                metadataClassMemberInfos.AddRange(from fieldInfo in metadataType.GetFields(bindingFlags)
+                                                  where fieldInfo.IsPublic && IsMemberToVisit(fieldInfo)
+                                                  select (fieldInfo as MemberInfo, fieldInfo.FieldType));
+            }
+
             // TODO: we might want an option to disable non-public.
             if (Category == DescriptorCategory.Object)
                 bindingFlags |= BindingFlags.NonPublic;
@@ -204,15 +220,15 @@ namespace Xenko.Core.Reflection
                               where propertyInfo.CanRead && propertyInfo.GetIndexParameters().Length == 0 && IsMemberToVisit(propertyInfo)
                               select new PropertyDescriptor(factory.Find(propertyInfo.PropertyType), propertyInfo, NamingConvention.Comparer)
                               into member
-                              where PrepareMember(member)
-                              select member).Cast<IMemberDescriptor>().ToList();
+                              where PrepareMember(member, metadataClassMemberInfos?.FirstOrDefault(x => x.MemberInfo.Name == member.OriginalName && x.MemberType == member.Type).MemberInfo)
+                              select member as IMemberDescriptor).ToList();
 
             // Add all public fields
             memberList.AddRange(from fieldInfo in Type.GetFields(bindingFlags)
                                 where fieldInfo.IsPublic && IsMemberToVisit(fieldInfo)
                                 select new FieldDescriptor(factory.Find(fieldInfo.FieldType), fieldInfo, NamingConvention.Comparer)
                                 into member
-                                where PrepareMember(member)
+                                where PrepareMember(member, metadataClassMemberInfos?.FirstOrDefault(x => x.MemberInfo.Name == member.OriginalName && x.MemberType == member.Type).MemberInfo)
                                 select member);
 
             // Allows adding dynamic members per type
@@ -221,7 +237,7 @@ namespace Xenko.Core.Reflection
             return memberList;
         }
 
-        protected virtual bool PrepareMember(MemberDescriptorBase member)
+        protected virtual bool PrepareMember(MemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
         {
             var memberType = member.Type;
 
@@ -229,9 +245,15 @@ namespace Xenko.Core.Reflection
             member.Mode = DefaultMemberMode;
             member.Mask = 1;
 
+            var attributes = AttributeRegistry.GetAttributes(member.MemberInfo);
+            if (metadataClassMemberInfo != null)
+            {
+                var metadataAttributes = AttributeRegistry.GetAttributes(metadataClassMemberInfo);
+                attributes.InsertRange(0, metadataAttributes);
+            }
 
             // Gets the style
-            var styleAttribute = AttributeRegistry.GetAttribute<DataStyleAttribute>(member.MemberInfo);
+            var styleAttribute = attributes.FirstOrDefault(x => x is DataStyleAttribute) as DataStyleAttribute;
             if (styleAttribute != null)
             {
                 member.Style = styleAttribute.Style;
@@ -239,7 +261,7 @@ namespace Xenko.Core.Reflection
             }
 
             // Handle member attribute
-            var memberAttribute = AttributeRegistry.GetAttribute<DataMemberAttribute>(member.MemberInfo);
+            var memberAttribute = attributes.FirstOrDefault(x => x is DataMemberAttribute) as DataMemberAttribute;
             if (memberAttribute != null)
             {
                 ((IMemberDescriptor)member).Mask = memberAttribute.Mask;
@@ -267,14 +289,14 @@ namespace Xenko.Core.Reflection
             }
 
             // Process all attributes just once instead of getting them one by one
-            var attributes = AttributeRegistry.GetAttributes(member.MemberInfo);
             DefaultValueAttribute defaultValueAttribute = null;
             foreach (var attribute in attributes)
             {
                 var valueAttribute = attribute as DefaultValueAttribute;
                 if (valueAttribute != null)
                 {
-                    defaultValueAttribute = valueAttribute;
+                    // If we've already found one, don't overwrite it
+                    defaultValueAttribute = defaultValueAttribute ?? valueAttribute;
                     continue;
                 }
 
@@ -291,7 +313,6 @@ namespace Xenko.Core.Reflection
                     }
                 }
             }
-
 
             // If it's a private member, check it has a YamlMemberAttribute on it
             if (!member.IsPublic)
@@ -321,10 +342,11 @@ namespace Xenko.Core.Reflection
             //	  otherwise => true
             var shouldSerialize = Type.GetMethod("ShouldSerialize" + member.OriginalName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             if (shouldSerialize != null && shouldSerialize.ReturnType == typeof(bool) && member.ShouldSerialize == null)
-                member.ShouldSerialize = obj => (bool)shouldSerialize.Invoke(obj, EmptyObjectArray);
+                member.ShouldSerialize = (obj, parentTypeMemberDesc) => (bool)shouldSerialize.Invoke(obj, EmptyObjectArray);
 
             if (defaultValueAttribute != null && member.ShouldSerialize == null && !emitDefaultValues)
             {
+                member.DefaultValueAttribute = defaultValueAttribute;
                 object defaultValue = defaultValueAttribute.Value;
                 Type defaultType = defaultValue?.GetType();
                 if (defaultType != null && defaultType.IsNumeric() && defaultType != memberType)
@@ -337,7 +359,20 @@ namespace Xenko.Core.Reflection
                     {
                     }
                 }
-                member.ShouldSerialize = obj => !Equals(defaultValue, member.Get(obj));
+                member.ShouldSerialize = (obj, parentTypeMemberDesc) =>
+                {
+                    if (parentTypeMemberDesc?.HasDefaultValue ?? false)
+                    {
+                        var parentDefaultValue = parentTypeMemberDesc.DefaultValue;
+                        if (parentDefaultValue != null)
+                        {
+                                // The parent class holding this object type has defined it's own default value for this type
+                                var parentDefaultValueMemberValue = member.Get(parentDefaultValue); // This is the real default value for this object
+                                return !Equals(parentDefaultValueMemberValue, member.Get(obj));
+                        }
+                    }
+                    return !Equals(defaultValue, member.Get(obj));
+                };
             }
 
             if (member.ShouldSerialize == null)

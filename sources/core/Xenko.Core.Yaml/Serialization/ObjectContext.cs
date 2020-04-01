@@ -39,11 +39,14 @@ namespace Xenko.Core.Yaml.Serialization
         /// <param name="serializerContext">The serializer context.</param>
         /// <param name="instance">The instance.</param>
         /// <param name="descriptor">The descriptor.</param>
-        public ObjectContext(SerializerContext serializerContext, object instance, ITypeDescriptor descriptor) : this()
+        public ObjectContext(SerializerContext serializerContext, object instance, ITypeDescriptor descriptor,
+            ITypeDescriptor parentTypeDescriptor = null, IMemberDescriptor parentTypeMemberDescriptor = null) : this()
         {
             SerializerContext = serializerContext;
             Instance = instance;
             Descriptor = descriptor;
+            ParentTypeDescriptor = parentTypeDescriptor;
+            ParentTypeMemberDescriptor = parentTypeMemberDescriptor;
             Properties = new PropertyContainer();
         }
 
@@ -85,6 +88,16 @@ namespace Xenko.Core.Yaml.Serialization
         /// The expected type descriptor.
         /// </summary>
         public ITypeDescriptor Descriptor { get; set; }
+
+        /// <summary>
+        /// The type descriptor of the parent of the instance type.
+        /// </summary>
+        public ITypeDescriptor ParentTypeDescriptor { get; set; }
+
+        /// <summary>
+        /// The type descriptor of the parent's member that generates this type of instance.
+        /// </summary>
+        public IMemberDescriptor ParentTypeMemberDescriptor { get; set; }
 
         /// <summary>
         /// The tag used when serializing.

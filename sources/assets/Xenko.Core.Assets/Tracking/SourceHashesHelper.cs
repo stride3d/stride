@@ -112,7 +112,14 @@ namespace Xenko.Core.Assets.Tracking
         {
             public const int DefaultOrder = int.MaxValue;
 
-            public static readonly SourceHashesDynamicMember Default = new SourceHashesDynamicMember { ShouldSerialize = x => { var asset = x as Asset; return asset != null && TryGet(asset, AbsoluteSourceHashesKey)?.Count > 0; } };
+            public static readonly SourceHashesDynamicMember Default = new SourceHashesDynamicMember
+            {
+                ShouldSerialize = (x, parentTypeMemberDesc) =>
+                {
+                    var asset = x as Asset;
+                    return asset != null && TryGet(asset, AbsoluteSourceHashesKey)?.Count > 0;
+                }
+            };
 
             static SourceHashesDynamicMember()
             {

@@ -2,12 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
+using Xenko.Core;
+using Xenko.UI.Attributes;
 
 namespace Xenko.UI.Controls
 {
     /// <summary>
     /// A <see cref="Button"/> whose <see cref="ContentControl.Content"/> are the <see cref="Button.PressedImage"/> and <see cref="Button.NotPressedImage"/>.
     /// </summary>
+    [DataContractMetadataType(typeof(ImageButtonMetadata))]
     [DebuggerDisplay("ImageButton - Name={Name}")]
     [Obsolete("Use Button with SizeToContent set to false.")]
     public class ImageButton : Button
@@ -16,7 +19,7 @@ namespace Xenko.UI.Controls
 
         public ImageButton()
         {
-            Padding = Thickness.UniformCuboid(0);
+            Padding = Thickness.UniformCuboid(0);  // Warning: this must also match in ImageButtonMetadata
             base.Content = contentImageElement;
 
             MouseOverStateChanged += (sender, args) => UpdateContentImage();
@@ -56,6 +59,12 @@ namespace Xenko.UI.Controls
 
                 UpdateContentImage();
             }
+        }
+
+        private class ImageButtonMetadata
+        {
+            [DefaultThicknessValue(0, 0, 0, 0)]
+            public Thickness Padding { get; }
         }
     }
 }
