@@ -8,6 +8,7 @@ using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
 using Xenko.Graphics;
+using Xenko.UI.Attributes;
 
 namespace Xenko.UI.Controls
 {
@@ -15,6 +16,7 @@ namespace Xenko.UI.Controls
     /// Represents a Windows button control, which reacts to the Click event.
     /// </summary>
     [DataContract(nameof(Button))]
+    [DataContractMetadataType(typeof(ButtonMetadata))]
     [DebuggerDisplay("Button - Name={Name}")]
     public class Button : ButtonBase
     {
@@ -28,7 +30,7 @@ namespace Xenko.UI.Controls
         public Button()
         {
             DrawLayerNumber += 1; // (button design image)
-            Padding = new Thickness(10, 5, 10, 7);
+            Padding = new Thickness(10, 5, 10, 7);  // Warning: this must also match in ButtonMetadata
 
             MouseOverStateChanged += (sender, args) => InvalidateButtonImage();
         }
@@ -191,11 +193,17 @@ namespace Xenko.UI.Controls
         {
             InvalidateButtonImage();
         }
-        
+
         private void InvalidateButtonImage()
         {
             if (!sizeToContent)
                 InvalidateMeasure();
+        }
+
+        private class ButtonMetadata
+        {
+            [DefaultThicknessValue(10, 5, 10, 7)]
+            public Thickness Padding { get; }
         }
     }
 }

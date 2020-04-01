@@ -14,6 +14,7 @@ namespace Xenko.UI.Controls
     /// Represents a modal element that puts an overlay upon the underneath elements and freeze their input.
     /// </summary>
     [DataContract(nameof(ModalElement))]
+    [DataContractMetadataType(typeof(ModalElementMetadata))]
     [DebuggerDisplay("ModalElement - Name={Name}")]
     [Display(category: null)]
     public class ModalElement : ButtonBase
@@ -42,8 +43,8 @@ namespace Xenko.UI.Controls
         {
             OverlayColorInternal = new Color(0, 0, 0, 0.6f);
             DrawLayerNumber += 1; // (overlay)
-            VerticalAlignment = VerticalAlignment.Center;
-            HorizontalAlignment = HorizontalAlignment.Center;
+            VerticalAlignment = VerticalAlignment.Center;       // Warning: this must also match in ModalElementMetadata
+            HorizontalAlignment = HorizontalAlignment.Center;   // Warning: this must also match in ModalElementMetadata
         }
 
         /// <summary>
@@ -97,8 +98,17 @@ namespace Xenko.UI.Controls
 
             var virtualResolution = LayoutingContext.VirtualResolution;
             var worldmatrix = Matrix.Identity;
-            
+
             return CollisionHelper.RayIntersectsRectangle(ref ray, ref worldmatrix, ref virtualResolution, 2, out intersectionPoint);
+        }
+
+        private class ModalElementMetadata
+        {
+            [DefaultValue(HorizontalAlignment.Center)]
+            public HorizontalAlignment HorizontalAlignment { get; }
+
+            [DefaultValue(VerticalAlignment.Center)]
+            public VerticalAlignment VerticalAlignment { get; }
         }
     }
 }

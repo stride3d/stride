@@ -12,11 +12,12 @@ using Xenko.Games;
 namespace Xenko.UI.Controls
 {
     /// <summary>
-    /// Represents a scroll viewer. 
+    /// Represents a scroll viewer.
     /// A scroll viewer element has an infinite virtual size defined by its <see cref="ScrollingMode"/>.
     /// The user can move in that virtual size by touching and panning on the screen.
     /// </summary>
     [DataContract(nameof(ScrollViewer))]
+    [DataContractMetadataType(typeof(ScrollViewerMetadata))]
     [DebuggerDisplay("ScrollViewer - Name={Name}")]
     public class ScrollViewer : ContentControl
     {
@@ -175,14 +176,14 @@ namespace Xenko.UI.Controls
         protected IScrollAnchorInfo ContentAsAnchorInfo { get; private set; }
 
         /// <summary>
-        /// The current scroll position (in virtual pixels) of the <see cref="ScrollViewer"/>. 
+        /// The current scroll position (in virtual pixels) of the <see cref="ScrollViewer"/>.
         /// That is, the position of the left-top-front corner of the <see cref="ScrollViewer"/> in its <see cref="Content"/>.
         /// </summary>
         /// <remarks>
         /// <para>If the <see cref="Content"/> of the scroll viewer implements the <see cref="IScrollInfo"/> interface,
         /// the <see cref="ScrollPosition"/> will be <value>0</value> in all directions where <see cref="IScrollInfo.CanScroll"/> is true.</para>
-        /// <para>Note that <see cref="ScrollPosition"/> is valid only when <see cref="UIElement.IsArrangeValid"/> is <value>true</value>. 
-        /// If <see cref="UIElement.IsArrangeValid"/> is <value>false</value>, <see cref="ScrollPosition"/> contains the position of the scrolling 
+        /// <para>Note that <see cref="ScrollPosition"/> is valid only when <see cref="UIElement.IsArrangeValid"/> is <value>true</value>.
+        /// If <see cref="UIElement.IsArrangeValid"/> is <value>false</value>, <see cref="ScrollPosition"/> contains the position of the scrolling
         /// before the action that actually invalidated the layout.</para>
         /// </remarks>
         public Vector3 ScrollPosition => -ScrollOffsets;
@@ -216,8 +217,8 @@ namespace Xenko.UI.Controls
                 SetVisualParent(bar, this);
             }
 
-            CanBeHitByUser = TouchScrollingEnabled;
-            ClipToBounds = true;
+            CanBeHitByUser = TouchScrollingEnabled;     // Warning: this must also match in ScrollViewerMetadata
+            ClipToBounds = true;                        // Warning: this must also match in ScrollViewerMetadata
         }
 
         /// <summary>
@@ -490,10 +491,10 @@ namespace Xenko.UI.Controls
         }
 
         /// <summary>
-        /// Try to scroll to the provided position (in virtual pixels). 
+        /// Try to scroll to the provided position (in virtual pixels).
         /// If the provided translation is too important, it is clamped.
         /// </summary>
-        /// <remarks>Note that the computational cost of <see cref="ScrollTo"/> can be greatly higher than <see cref="ScrollOf"/> 
+        /// <remarks>Note that the computational cost of <see cref="ScrollTo"/> can be greatly higher than <see cref="ScrollOf"/>
         /// when scrolling is delegated to a <see cref="Content"/> virtualizing its items. When possible, prefer call to <see cref="ScrollOf"/></remarks>
         /// <param name="scrollAbsolutePosition">The scroll offsets to apply</param>
         /// <param name="stopScrolling">Indicate if the scrolling should be stopped after the scroll action.</param>
@@ -539,7 +540,7 @@ namespace Xenko.UI.Controls
         }
 
         /// <summary>
-        /// Try to scroll of the provided scrolling translation value from the current position. 
+        /// Try to scroll of the provided scrolling translation value from the current position.
         /// If the provided translation is too important, it is clamped.
         /// </summary>
         /// <param name="scrollTranslation">The scroll translation to perform (in virtual pixels)</param>
@@ -677,7 +678,7 @@ namespace Xenko.UI.Controls
                 // arrange the child
                 VisualContent.Arrange(childSizeWithoutPadding, IsCollapsed);
 
-                // update the scrolling bars 
+                // update the scrolling bars
                 UpdateScrollingBarsSize();
 
                 // update the scrolling
@@ -870,7 +871,7 @@ namespace Xenko.UI.Controls
         }
 
         /// <summary>
-        /// Called by an <see cref="IScrollInfo"/> interface that is attached to a <see cref="ScrollViewer"/> when the value of any scrolling property size changes. 
+        /// Called by an <see cref="IScrollInfo"/> interface that is attached to a <see cref="ScrollViewer"/> when the value of any scrolling property size changes.
         /// Scrolling properties include offset, extent, or viewport.
         /// </summary>
         public void InvalidateScrollInfo()
@@ -895,6 +896,15 @@ namespace Xenko.UI.Controls
         public void InvalidateAnchorInfo()
         {
             // currently nothing to do here.
+        }
+
+        private class ScrollViewerMetadata
+        {
+            [DefaultValue(true)]
+            public bool CanBeHitByUser { get; }
+
+            [DefaultValue(true)]
+            public bool ClipToBounds { get; }
         }
     }
 }

@@ -138,15 +138,15 @@ namespace Xenko.Core.Yaml.Tests
             Assert.Equal("property1", instance.Property);
 
             // Check ShouldSerialize
-            Assert.True(descriptor[nameof(TestObject.Name)].ShouldSerialize(instance));
+            Assert.True(descriptor[nameof(TestObject.Name)].ShouldSerialize(instance, null));
 
-            Assert.False(descriptor[nameof(TestObject.Value)].ShouldSerialize(instance));
+            Assert.False(descriptor[nameof(TestObject.Value)].ShouldSerialize(instance, null));
             instance.Value = 1;
-            Assert.True(descriptor[nameof(TestObject.Value)].ShouldSerialize(instance));
+            Assert.True(descriptor[nameof(TestObject.Value)].ShouldSerialize(instance, null));
 
-            Assert.False(descriptor[nameof(TestObject.DefaultValue)].ShouldSerialize(instance));
+            Assert.False(descriptor[nameof(TestObject.DefaultValue)].ShouldSerialize(instance, null));
             instance.DefaultValue++;
-            Assert.True(descriptor[nameof(TestObject.DefaultValue)].ShouldSerialize(instance));
+            Assert.True(descriptor[nameof(TestObject.DefaultValue)].ShouldSerialize(instance, null));
 
             // Check HasSet
             Assert.True(descriptor[nameof(TestObject.Collection)].HasSet);
