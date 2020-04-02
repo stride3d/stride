@@ -176,18 +176,6 @@ namespace Xenko.Rendering
         }
 
         /// <summary>
-        /// Gets pointer to directly copy blittable values.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="parameter"></param>
-        /// <returns></returns>
-        public unsafe IntPtr GetValuePointer<T>(ValueParameter<T> parameter) where T : struct
-        {
-            fixed (byte* dataValues = DataValues)
-                return (IntPtr)dataValues + parameter.Offset;
-        }
-
-        /// <summary>
         /// Sets an object.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -300,21 +288,26 @@ namespace Xenko.Rendering
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <returns></returns>
-        public T[] GetValues<T>(ValueParameterKey<T> key) where T : struct
+        public unsafe T[] GetValues<T>(ValueParameterKey<T> key) where T : struct
         {
             var parameter = GetAccessor(key);
-            var data = GetValuePointer(parameter);
 
             // Align to float4
             var stride = (Utilities.SizeOf<T>() + 15) / 16 * 16;
             var values = new T[parameter.Count];
-            for (int i = 0; i < values.Length; ++i)
-            {
-                Utilities.Read(data, ref values[i]);
-                data += stride;
-            }
 
-            return values;
+            fixed (byte* dataValues = DataValues)
+            {
+                var dataPtr = (IntPtr)dataValues + parameter.Offset;
+
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    Utilities.Read(dataPtr, ref values[i]);
+                    dataPtr += stride;
+                }
+
+                return values;
+            }
         }
 
         /// <summary>
@@ -375,11 +368,10 @@ namespace Xenko.Rendering
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
-        /// <param name="values"></param>
-        public void Set<T>(ValueParameter<T> parameter, int count, ref T firstValue) where T : struct
+        /// <param name="count"></param>
+        /// <param name="firstValue"></param>
+        public unsafe void Set<T>(ValueParameter<T> parameter, int count, ref T firstValue) where T : struct
         {
-            var data = GetValuePointer(parameter);
-
             // Align to float4
             var stride = (Utilities.SizeOf<T>() + 15) / 16 * 16;
             var elementCount = parameter.Count;
@@ -388,13 +380,18 @@ namespace Xenko.Rendering
                 throw new IndexOutOfRangeException();
             }
 
-            var value = Interop.Pin(ref firstValue);
-            for (int i = 0; i < count; ++i)
+            fixed (byte* dataValues = DataValues)
             {
-                Utilities.Write(data, ref value);
-                data += stride;
+                var dataPtr = (IntPtr)dataValues + parameter.Offset;
 
-                value = Interop.IncrementPinned(value);
+                var value = Interop.Pin(ref firstValue);
+                for (int i = 0; i < count; ++i)
+                {
+                    Utilities.Write(dataPtr, ref value);
+                    dataPtr += stride;
+
+                    value = Interop.IncrementPinned(value);
+                }
             }
         }
 
