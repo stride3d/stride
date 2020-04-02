@@ -12,7 +12,6 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
     <XenkoAssemblyProcessorOptions>--auto-module-initializer</XenkoAssemblyProcessorOptions>
     <XenkoPlatformDependent>true</XenkoPlatformDependent>

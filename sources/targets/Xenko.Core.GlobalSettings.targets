@@ -119,18 +119,6 @@
     <DefineConstants>$(XenkoPlatformDefines);$(DefineConstants)</DefineConstants>
     <DefineConstants Condition="'$(XenkoNETRuntimeDefines)' != ''">$(DefineConstants);$(XenkoNETRuntimeDefines)</DefineConstants>
   </PropertyGroup>
-
-  <!-- Signing -->
-  <PropertyGroup Condition=" '$(XenkoOpenSourceSign)' == 'true'">
-    <XenkoSign>true</XenkoSign>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(XenkoAssemblySign)' == 'true' And '$(XenkoSign)' == 'true'">
-    <DefineConstants>$(DefineConstants);XENKO_SIGNED</DefineConstants>
-    <SignAssembly>true</SignAssembly>
-    <DelaySign Condition="'$(XenkoOpenSourceSign)' == 'true'">true</DelaySign>
-    <AssemblyOriginatorKeyFile Condition="'$(XenkoOpenSourceSign)' != 'true'">$(SolutionDir)xenko.snk</AssemblyOriginatorKeyFile>
-    <AssemblyOriginatorKeyFile Condition="'$(XenkoOpenSourceSign)' == 'true'">$(SolutionDir)xenko.public.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
   
   <!-- SourceLink -->
   <ItemGroup>

@@ -1,7 +1,6 @@
 ﻿<Project>
 
   <PropertyGroup>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoRuntime>true</XenkoRuntime>
     <XenkoNativeOutputName>libxenkonavigation</XenkoNativeOutputName>
   </PropertyGroup>

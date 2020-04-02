@@ -57,21 +57,6 @@
 
   </PropertyGroup>
   
-  <!-- On Windows, let's sign the assemblies with fake strong signing (OpenSource Signing, OSS),
-       so that people can compile Xenko themself and still use the editor which expect strongly signed assemblies.
-    -->
-  <!-- Signing -->
-  <PropertyGroup Condition=" '$(XenkoOpenSourceSign)' == 'true'">
-    <XenkoSign>true</XenkoSign>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(XenkoAssemblySign)' == 'true' And '$(XenkoSign)' == 'true'">
-    <DefineConstants>$(DefineConstants);XENKO_SIGNED</DefineConstants>
-    <SignAssembly>true</SignAssembly>
-    <DelaySign Condition="'$(XenkoOpenSourceSign)' == 'true'">true</DelaySign>
-    <AssemblyOriginatorKeyFile Condition="'$(XenkoOpenSourceSign)' != 'true'">$(SolutionDir)xenko.snk</AssemblyOriginatorKeyFile>
-    <AssemblyOriginatorKeyFile Condition="'$(XenkoOpenSourceSign)' == 'true'">$(SolutionDir)xenko.public.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
-  
   <PropertyGroup>
     <XenkoCommonDependenciesDir>$(XenkoPackageXenko)\deps\</XenkoCommonDependenciesDir>
   </PropertyGroup>

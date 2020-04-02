@@ -1,7 +1,4 @@
 <Project>
-  <PropertyGroup>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
-  </PropertyGroup>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
