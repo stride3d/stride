@@ -96,8 +96,16 @@ namespace Xenko.Core.Reflection
             }
             else if (type.IsArray)
             {
-                // array[]
-                descriptor = new ArrayDescriptor(this, type, emitDefaultValues, namingConvention);
+                if (type.GetArrayRank() == 1)
+                {
+                    // array[] - only single dimension array is supported
+                    descriptor = new ArrayDescriptor(this, type, emitDefaultValues, namingConvention);
+                }
+                else
+                {
+                    // multi-dimension array to be treated as a 'standard' object
+                    descriptor = new ObjectDescriptor(this, type, emitDefaultValues, namingConvention);
+                }
             }
             else if (NullableDescriptor.IsNullable(type))
             {

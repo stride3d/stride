@@ -1343,7 +1343,7 @@
   <xk:DefaultTemplateProvider x:Key="ObjectPropertyTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="None">
     <DataTemplate DataType="qvm:NodeViewModel">
       <TextBlock Margin="2,0" VerticalAlignment="Center" x:Name="DefaultTextBlock"
-                       Text="{xk:PriorityBinding {Binding AttributeDisplayName, Mode=OneWay}, {Binding NodeValue, Mode=OneWay, Converter={xk:ObjectToTypeName}}}"/>
+                       Text="{xk:PriorityBinding {Binding AttributeDisplayName, Mode=OneWay}, {Binding NodeValue, Mode=OneWay, StringFormat={xk:Localize {}{0} (Not supported)}, Converter={xk:ObjectToTypeName}}}"/>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
           <Setter TargetName="DefaultTextBlock" Property="Text" Value="{xk:Localize (Different values)}"/>
