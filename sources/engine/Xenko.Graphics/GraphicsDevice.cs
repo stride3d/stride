@@ -15,8 +15,6 @@ namespace Xenko.Graphics
     /// </summary>
     public partial class GraphicsDevice : ComponentBase
     {
-        public static readonly int ThreadCount = 1; //AppConfig.GetConfiguration<Config>("RenderSystem").ThreadCount;
-
         internal readonly Dictionary<PipelineStateDescriptionWithHash, PipelineState> CachedPipelineStates = new Dictionary<PipelineStateDescriptionWithHash, PipelineState>();
 
         internal readonly Dictionary<SamplerStateDescription, SamplerState> CachedSamplerStates = new Dictionary<SamplerStateDescription, SamplerState>();

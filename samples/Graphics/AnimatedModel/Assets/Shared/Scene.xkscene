@@ -103,8 +103,8 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
-                                ComputeTransmittance: false
                                 BiasParameters: {}
+                                ComputeTransmittance: false
                         Intensity: 0.6
         -   Entity:
                 Id: bb7065d2-498a-45d7-b4b1-0bb1a573cc69
@@ -158,8 +158,8 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
-                                ComputeTransmittance: false
                                 BiasParameters: {}
+                                ComputeTransmittance: false
                         Intensity: 0.6
         -   Entity:
                 Id: df07ee24-de65-4561-8f4a-da086654e07b

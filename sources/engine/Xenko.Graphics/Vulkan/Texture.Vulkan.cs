@@ -313,7 +313,7 @@ namespace Xenko.Graphics
 
                 // Image barrier
                 var initialBarrier = new ImageMemoryBarrier(NativeImage, ImageLayout.Undefined, ImageLayout.TransferDestinationOptimal, AccessFlags.None, AccessFlags.TransferWrite, new ImageSubresourceRange(NativeImageAspect));
-                commandBuffer.PipelineBarrier(PipelineStageFlags.TopOfPipe, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 1, &bufferMemoryBarrier, 1, &initialBarrier);
+                commandBuffer.PipelineBarrier(PipelineStageFlags.Host, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 1, &bufferMemoryBarrier, 1, &initialBarrier);
 
                 // Copy data boxes to upload buffer
                 var copies = new BufferImageCopy[dataBoxes.Length];

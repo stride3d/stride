@@ -13,6 +13,7 @@ namespace Xenko.UI.Controls
     /// Represents the base primitive for all the button-like controls
     /// </summary>
     [DataContract(nameof(ButtonBase))]
+    [DataContractMetadataType(typeof(ButtonBaseMetadata))]
     [DebuggerDisplay("ButtonBase - Name={Name}")]
     [Display(category: InputCategory)]
     public abstract class ButtonBase : ContentControl
@@ -27,7 +28,7 @@ namespace Xenko.UI.Controls
         /// </summary>
         protected ButtonBase()
         {
-            CanBeHitByUser = true;
+            CanBeHitByUser = true;  // Warning: this must also match in ButtonBaseMetadata
         }
 
         /// <summary>
@@ -73,7 +74,7 @@ namespace Xenko.UI.Controls
             if (ClickMode == ClickMode.Press)
                 RaiseEvent(new RoutedEventArgs(ClickEvent));
         }
-        
+
         protected override void OnTouchUp(TouchEventArgs args)
         {
             base.OnTouchUp(args);
@@ -100,12 +101,18 @@ namespace Xenko.UI.Controls
         {
 
         }
-        
+
         private static void ClickClassHandler(object sender, RoutedEventArgs args)
         {
             var buttonBase = (ButtonBase)sender;
 
             buttonBase.OnClick(args);
+        }
+
+        private class ButtonBaseMetadata
+        {
+            [DefaultValue(true)]
+            public bool CanBeHitByUser { get; set; }
         }
     }
 }

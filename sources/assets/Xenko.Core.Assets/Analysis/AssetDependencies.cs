@@ -295,8 +295,8 @@ namespace Xenko.Core.Assets.Analysis
                 dictionary = new Dictionary<AssetId, AssetLink>();
 
             var id = contentLink.Element.Id;
-            if (dictionary.ContainsKey(id))
-                contentLink.Type |= dictionary[id].Type;
+            if (dictionary.TryGetValue(id, out var existingLink))
+                contentLink.Type |= existingLink.Type;
 
             dictionary[id] = contentLink;
         }

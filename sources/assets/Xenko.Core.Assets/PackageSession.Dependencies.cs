@@ -271,37 +271,7 @@ namespace Xenko.Core.Assets
                 }
             }
 
-            project.FlattenedDependencies.Clear();
-            project.DirectDependencies.Clear();
-            var projectAssetsJsonPath = Path.Combine(project.FullPath.GetFullDirectory(), @"obj", LockFileFormat.AssetsFileName);
-            if (File.Exists(projectAssetsJsonPath))
-            {
-                var format = new LockFileFormat();
-                var projectAssets = format.Read(projectAssetsJsonPath);
-
-                // Update dependencies
-                foreach (var library in projectAssets.Libraries)
-                {
-                    project.FlattenedDependencies.Add(new Dependency(library.Name, library.Version.ToPackageVersion(), library.Type == "project" ? DependencyType.Project : DependencyType.Package) { MSBuildProject = library.Type == "project" ? library.MSBuildProject : null });
-                }
-
-                foreach (var projectReference in projectAssets.PackageSpec.RestoreMetadata.TargetFrameworks.First().ProjectReferences)
-                {
-                    var projectName = new UFile(projectReference.ProjectUniqueName).GetFileNameWithoutExtension();
-                    project.DirectDependencies.Add(new DependencyRange(projectName, null, DependencyType.Project) { MSBuildProject = projectReference.ProjectPath });
-                }
-
-                foreach (var dependency in projectAssets.PackageSpec.TargetFrameworks.First().Dependencies)
-                {
-                    if (dependency.AutoReferenced)
-                        continue;
-                    project.DirectDependencies.Add(new DependencyRange(dependency.Name, dependency.LibraryRange.VersionRange.ToPackageVersionRange(), DependencyType.Package));
-                }
-
-                // Load dependency (if external)
-
-                // Compute output path
-            }
+            UpdateDependencies(project, true, true);
 
             // 1. Load store package
             foreach (var projectDependency in project.FlattenedDependencies)
@@ -324,7 +294,7 @@ namespace Xenko.Core.Assets
                     if (file != null && File.Exists(file))
                     {
                         // Load package
-                        var loadedProject = LoadProject(log, file, true, loadParameters);
+                        var loadedProject = LoadProject(log, file, loadParameters);
                         loadedProject.Package.Meta.Name = projectDependency.Name;
                         loadedProject.Package.Meta.Version = projectDependency.Version;
                         Projects.Add(loadedProject);
@@ -362,6 +332,48 @@ namespace Xenko.Core.Assets
             if (!packageDependencyErrors)
             {
                 package.State = PackageState.DependenciesReady;
+            }
+        }
+
+        public static void UpdateDependencies(SolutionProject project, bool directDependencies, bool flattenedDependencies)
+        {
+            if (flattenedDependencies)
+                project.FlattenedDependencies.Clear();
+            if (directDependencies)
+                project.DirectDependencies.Clear();
+            var projectAssetsJsonPath = Path.Combine(project.FullPath.GetFullDirectory(), @"obj", LockFileFormat.AssetsFileName);
+            if (File.Exists(projectAssetsJsonPath))
+            {
+                var format = new LockFileFormat();
+                var projectAssets = format.Read(projectAssetsJsonPath);
+
+                // Update dependencies
+                if (flattenedDependencies)
+                {
+                    foreach (var library in projectAssets.Libraries)
+                    {
+                        var projectDependency = new Dependency(library.Name, library.Version.ToPackageVersion(), library.Type == "project" ? DependencyType.Project : DependencyType.Package) { MSBuildProject = library.Type == "project" ? library.MSBuildProject : null };
+                        project.FlattenedDependencies.Add(projectDependency);
+                        // Try to resolve package if already loaded
+                        projectDependency.Package = project.Session.Packages.Find(projectDependency);
+                    }
+                }
+
+                if (directDependencies)
+                {
+                    foreach (var projectReference in projectAssets.PackageSpec.RestoreMetadata.TargetFrameworks.First().ProjectReferences)
+                    {
+                        var projectName = new UFile(projectReference.ProjectUniqueName).GetFileNameWithoutExtension();
+                        project.DirectDependencies.Add(new DependencyRange(projectName, null, DependencyType.Project) { MSBuildProject = projectReference.ProjectPath });
+                    }
+
+                    foreach (var dependency in projectAssets.PackageSpec.TargetFrameworks.First().Dependencies)
+                    {
+                        if (dependency.AutoReferenced)
+                            continue;
+                        project.DirectDependencies.Add(new DependencyRange(dependency.Name, dependency.LibraryRange.VersionRange.ToPackageVersionRange(), DependencyType.Package));
+                    }
+                }
             }
         }
 

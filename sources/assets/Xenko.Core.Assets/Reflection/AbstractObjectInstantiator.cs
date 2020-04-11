@@ -38,7 +38,7 @@ namespace Xenko.Core.Reflection
                     var asmName = new AssemblyName($"ConcreteObject_{Guid.NewGuid():N}");
 
                     // Create assembly (in memory)
-                    var asmBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(asmName, AssemblyBuilderAccess.Run);
+                    var asmBuilder = AssemblyBuilder.DefineDynamicAssembly(asmName, AssemblyBuilderAccess.Run);
                     var moduleBuilder = asmBuilder.DefineDynamicModule("DynamicModule");
 
                     // Define type
@@ -46,7 +46,7 @@ namespace Xenko.Core.Reflection
                     InitializeTypeBuilderFromType(typeBuilder, baseType);
 
                     // Create type
-                    constructedType = typeBuilder.CreateType();
+                    constructedType = typeBuilder.CreateTypeInfo();
                     ConstructedTypes.Add(baseType, constructedType);
 
                 }

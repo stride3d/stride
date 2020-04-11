@@ -69,7 +69,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewMo
 
             protected override void VisitMemberTarget(IMemberNode node)
             {
-                ProcessReferences(node, Index.Empty, node.Type);
+                ProcessReferences(node, NodeIndex.Empty, node.Type);
                 base.VisitMemberTarget(node);
             }
 
@@ -79,7 +79,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewMo
                 base.VisitItemTargets(node);
             }
 
-            private void ProcessReferences(IGraphNode node, Index index, Type type)
+            private void ProcessReferences(IGraphNode node, NodeIndex index, Type type)
             {
                 if (node == null)
                     return;
@@ -90,14 +90,14 @@ namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewMo
                     if (!((node as IMemberNode)?.MemberDescriptor.HasSet ?? true))
                         return;
 
-                    var value = index == Index.Empty ? node.Retrieve() : node.Retrieve(index);
+                    var value = index == NodeIndex.Empty ? node.Retrieve() : node.Retrieve(index);
 
                     // Hide inlined renderers which don't have nodes
                     if ((value != null) && ((value as ISharedRenderer) == null))
                         return;
 
                     var path = CurrentPath.Clone();
-                    if (index != Index.Empty)
+                    if (index != NodeIndex.Empty)
                         path.PushIndex(index);
                     externalReferences.Add(new SharedRendererReferenceKey(path, node.Type), value as ISharedRenderer);
                 }

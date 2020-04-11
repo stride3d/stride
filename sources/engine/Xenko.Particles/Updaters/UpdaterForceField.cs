@@ -108,7 +108,7 @@ namespace Xenko.Particles.Modules
         /// </userdoc>
         [DataMember(100)]
         [Display("Fixed force")]
-        public Vector3 ForceFixed { get; set; } = new Vector3(0, 0, 0);
+        public Vector3 ForceFixed { get; set; } = Vector3.Zero;
 
         /// <inheritdoc />
         public override unsafe void Update(float dt, ParticlePool pool)
@@ -186,8 +186,8 @@ namespace Xenko.Particles.Modules
                 return base.TryGetDebugDrawShape(out debugDrawShape, out translation, out rotation, out scale);
 
             rotation = Quaternion.Identity;
-            scale = new Vector3(1, 1, 1);
-            translation = new Vector3(0, 0, 0);
+            scale = Vector3.One;
+            translation = Vector3.Zero;
 
             debugDrawShape = FieldShape?.GetDebugDrawShape(out translation, out rotation, out scale) ?? DebugDrawShape.None;
 

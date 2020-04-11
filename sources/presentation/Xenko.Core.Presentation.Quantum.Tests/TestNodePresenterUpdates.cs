@@ -122,7 +122,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var context = BuildContext(instance);
             var presenter = context.Factory.CreateNodeHierarchy(context.RootNode, new GraphNodePath(context.RootNode));
 
-            presenter.Children[1].AddItem("ddd", new Index(2));
+            presenter.Children[1].AddItem("ddd", new NodeIndex(2));
             Assert.Equal(typeof(List<string>), presenter.Children[1].Type);
             Assert.Equal(instance.List, presenter.Children[1].Value);
             Assert.Equal(3, presenter.Children[1].Children.Count);
@@ -139,7 +139,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             Assert.Equal(instance.List[1], presenter.Children[1].Children[1].Value);
             Assert.Equal(instance.List[2], presenter.Children[1].Children[2].Value);
 
-            presenter.Children[1].AddItem("eee", new Index(1));
+            presenter.Children[1].AddItem("eee", new NodeIndex(1));
             Assert.Equal(typeof(List<string>), presenter.Children[1].Type);
             Assert.Equal(instance.List, presenter.Children[1].Value);
             Assert.Equal(4, presenter.Children[1].Children.Count);
@@ -160,7 +160,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             Assert.Equal(instance.List[2], presenter.Children[1].Children[2].Value);
             Assert.Equal(instance.List[3], presenter.Children[1].Children[3].Value);
 
-            presenter.Children[1].AddItem("fff", new Index(0));
+            presenter.Children[1].AddItem("fff", new NodeIndex(0));
             Assert.Equal(typeof(List<string>), presenter.Children[1].Type);
             Assert.Equal(instance.List, presenter.Children[1].Value);
             Assert.Equal(5, presenter.Children[1].Children.Count);
@@ -193,7 +193,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var context = BuildContext(instance);
             var presenter = context.Factory.CreateNodeHierarchy(context.RootNode, new GraphNodePath(context.RootNode));
 
-            presenter.Children[1].RemoveItem("fff", new Index(4));
+            presenter.Children[1].RemoveItem("fff", new NodeIndex(4));
             Assert.Equal(typeof(List<string>), presenter.Children[1].Type);
             Assert.Equal(4, presenter.Children[1].Children.Count);
             Assert.Equal(instance.List, presenter.Children[1].Value);
@@ -214,7 +214,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             Assert.Equal(instance.List[2], presenter.Children[1].Children[2].Value);
             Assert.Equal(instance.List[3], presenter.Children[1].Children[3].Value);
 
-            presenter.Children[1].RemoveItem("bbb", new Index(0));
+            presenter.Children[1].RemoveItem("bbb", new NodeIndex(0));
             Assert.Equal(typeof(List<string>), presenter.Children[1].Type);
             Assert.Equal(3, presenter.Children[1].Children.Count);
             Assert.Equal(instance.List, presenter.Children[1].Value);
@@ -231,7 +231,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             Assert.Equal(instance.List[1], presenter.Children[1].Children[1].Value);
             Assert.Equal(instance.List[2], presenter.Children[1].Children[2].Value);
 
-            presenter.Children[1].RemoveItem("ddd", new Index(1));
+            presenter.Children[1].RemoveItem("ddd", new NodeIndex(1));
             Assert.Equal(typeof(List<string>), presenter.Children[1].Type);
             Assert.Equal(2, presenter.Children[1].Children.Count);
             Assert.Equal(instance.List, presenter.Children[1].Value);
@@ -244,7 +244,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             Assert.Equal(instance.List[0], presenter.Children[1].Children[0].Value);
             Assert.Equal(instance.List[1], presenter.Children[1].Children[1].Value);
 
-            presenter.Children[1].RemoveItem("eee", new Index(1));
+            presenter.Children[1].RemoveItem("eee", new NodeIndex(1));
             Assert.Equal(typeof(List<string>), presenter.Children[1].Type);
             Assert.Equal(1, presenter.Children[1].Children.Count);
             Assert.Equal(instance.List, presenter.Children[1].Value);
@@ -253,7 +253,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             Assert.Equal(typeof(string), presenter.Children[1].Children[0].Type);
             Assert.Equal(instance.List[0], presenter.Children[1].Children[0].Value);
 
-            presenter.Children[1].RemoveItem("ccc", new Index(0));
+            presenter.Children[1].RemoveItem("ccc", new NodeIndex(0));
             Assert.Equal(typeof(List<string>), presenter.Children[1].Type);
             Assert.Equal(0, presenter.Children[1].Children.Count);
             Assert.Equal(instance.List, presenter.Children[1].Value);
@@ -319,7 +319,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var context = BuildContext(instance);
             var presenter = context.Factory.CreateNodeHierarchy(context.RootNode, new GraphNodePath(context.RootNode));
 
-            presenter.Children[1].AddItem(new Types.SimpleType { String = "ddd" }, new Index(2));
+            presenter.Children[1].AddItem(new Types.SimpleType { String = "ddd" }, new NodeIndex(2));
             Assert.Equal(typeof(List<Types.SimpleType>), presenter.Children[1].Type);
             Assert.Equal(instance.List, presenter.Children[1].Value);
             Assert.Equal(3, presenter.Children[1].Children.Count);
@@ -339,7 +339,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             Assert.Equal(instance.List[1], presenter.Children[1].Children[1].Value);
             Assert.Equal(instance.List[2], presenter.Children[1].Children[2].Value);
 
-            presenter.Children[1].AddItem(new Types.SimpleType { String = "eee" }, new Index(1));
+            presenter.Children[1].AddItem(new Types.SimpleType { String = "eee" }, new NodeIndex(1));
             Assert.Equal(typeof(List<Types.SimpleType>), presenter.Children[1].Type);
             Assert.Equal(instance.List, presenter.Children[1].Value);
             Assert.Equal(4, presenter.Children[1].Children.Count);
@@ -364,7 +364,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             Assert.Equal(instance.List[2], presenter.Children[1].Children[2].Value);
             Assert.Equal(instance.List[3], presenter.Children[1].Children[3].Value);
 
-            presenter.Children[1].AddItem(new Types.SimpleType { String = "fff" }, new Index(0));
+            presenter.Children[1].AddItem(new Types.SimpleType { String = "fff" }, new NodeIndex(0));
             Assert.Equal(typeof(List<Types.SimpleType>), presenter.Children[1].Type);
             Assert.Equal(instance.List, presenter.Children[1].Value);
             Assert.Equal(5, presenter.Children[1].Children.Count);
@@ -402,7 +402,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var context = BuildContext(instance);
             var presenter = context.Factory.CreateNodeHierarchy(context.RootNode, new GraphNodePath(context.RootNode));
 
-            presenter.Children[1].RemoveItem(instance.List[4], new Index(4));
+            presenter.Children[1].RemoveItem(instance.List[4], new NodeIndex(4));
             Assert.Equal(typeof(List<Types.SimpleType>), presenter.Children[1].Type);
             Assert.Equal(4, presenter.Children[1].Children.Count);
             Assert.Equal(instance.List, presenter.Children[1].Value);
@@ -425,7 +425,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             Assert.Equal(instance.List[2], presenter.Children[1].Children[2].Value);
             Assert.Equal(instance.List[3], presenter.Children[1].Children[3].Value);
 
-            presenter.Children[1].RemoveItem("bbb", new Index(0));
+            presenter.Children[1].RemoveItem("bbb", new NodeIndex(0));
             Assert.Equal(typeof(List<Types.SimpleType>), presenter.Children[1].Type);
             Assert.Equal(3, presenter.Children[1].Children.Count);
             Assert.Equal(instance.List, presenter.Children[1].Value);
@@ -445,7 +445,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             Assert.Equal(instance.List[1], presenter.Children[1].Children[1].Value);
             Assert.Equal(instance.List[2], presenter.Children[1].Children[2].Value);
 
-            presenter.Children[1].RemoveItem("ddd", new Index(1));
+            presenter.Children[1].RemoveItem("ddd", new NodeIndex(1));
             Assert.Equal(typeof(List<Types.SimpleType>), presenter.Children[1].Type);
             Assert.Equal(2, presenter.Children[1].Children.Count);
             Assert.Equal(instance.List, presenter.Children[1].Value);
@@ -460,7 +460,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             Assert.Equal(instance.List[0], presenter.Children[1].Children[0].Value);
             Assert.Equal(instance.List[1], presenter.Children[1].Children[1].Value);
 
-            presenter.Children[1].RemoveItem("eee", new Index(1));
+            presenter.Children[1].RemoveItem("eee", new NodeIndex(1));
             Assert.Equal(typeof(List<Types.SimpleType>), presenter.Children[1].Type);
             Assert.Equal(1, presenter.Children[1].Children.Count);
             Assert.Equal(instance.List, presenter.Children[1].Value);
@@ -470,7 +470,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             Assert.Equal(typeof(string), presenter.Children[1].Children[0].Children[0].Type);
             Assert.Equal(instance.List[0], presenter.Children[1].Children[0].Value);
 
-            presenter.Children[1].RemoveItem("ccc", new Index(0));
+            presenter.Children[1].RemoveItem("ccc", new NodeIndex(0));
             Assert.Equal(typeof(List<Types.SimpleType>), presenter.Children[1].Type);
             Assert.Equal(0, presenter.Children[1].Children.Count);
             Assert.Equal(instance.List, presenter.Children[1].Value);

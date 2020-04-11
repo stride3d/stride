@@ -13,11 +13,15 @@ namespace Xenko.Updater
     {
         public readonly IntPtr Getter;
         public readonly IntPtr Setter;
+        public readonly bool VirtualDispatchGetter;
+        public readonly bool VirtualDispatchSetter;
 
-        protected UpdatableProperty(IntPtr getter, IntPtr setter)
+        protected UpdatableProperty(IntPtr getter, bool virtualDispatchGetter, IntPtr setter, bool virtualDispatchSetter)
         {
             Getter = getter;
             Setter = setter;
+            VirtualDispatchGetter = virtualDispatchGetter;
+            VirtualDispatchSetter = virtualDispatchSetter;
         }
 
         /// <summary>

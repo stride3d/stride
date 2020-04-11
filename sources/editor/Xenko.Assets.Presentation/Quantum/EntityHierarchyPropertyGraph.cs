@@ -35,13 +35,13 @@ namespace Xenko.Assets.Presentation.Quantum
         }
 
         /// <inheritdoc/>
-        public override bool IsChildPartReference(IGraphNode node, Index index)
+        public override bool IsChildPartReference(IGraphNode node, NodeIndex index)
         {
             return (node as IObjectNode)?.Type == typeof(TransformComponent.TransformChildrenCollection);
         }
 
         /// <inheritdoc/>
-        protected override bool CanUpdate(IAssetNode node, ContentChangeType changeType, Index index, object value)
+        protected override bool CanUpdate(IAssetNode node, ContentChangeType changeType, NodeIndex index, object value)
         {
             // Check if we are in the component collection of an entity (where we actually add new components)
             if (IsComponentForComponentCollection(node, value) && changeType == ContentChangeType.CollectionAdd)
@@ -76,7 +76,7 @@ namespace Xenko.Assets.Presentation.Quantum
             if (IsComponentForComponentCollection(node, value) && value is TransformComponent)
             {
                 // We never clone TransformComponent, we cannot replace them. Instead, return the existing one.
-                var transformComponent = (TransformComponent)node.Retrieve(new Index(0));
+                var transformComponent = (TransformComponent)node.Retrieve(new NodeIndex(0));
                 // We still reset the Entity to null to make sure it works nicely with reconcilation, etc.
                 transformComponent.Entity = null;
                 return transformComponent;
@@ -96,7 +96,7 @@ namespace Xenko.Assets.Presentation.Quantum
         protected override void AddChildPartToParentPart(Entity parentPart, Entity childPart, int index)
         {
             var node = Container.NodeContainer.GetNode(parentPart.Transform);
-            node[nameof(TransformComponent.Children)].Target.Add(childPart.Transform, new Index(index));
+            node[nameof(TransformComponent.Children)].Target.Add(childPart.Transform, new NodeIndex(index));
         }
 
         /// <inheritdoc />
@@ -105,7 +105,7 @@ namespace Xenko.Assets.Presentation.Quantum
             var transformNode = Container.NodeContainer.GetNode(parentPart.Transform);
             var reference = parentPart.Transform.Children.Single(x => x.Entity.Id == childPart.Id);
             var childrenNode = transformNode[nameof(TransformComponent.Children)].Target;
-            var index = new Index(parentPart.Transform.Children.IndexOf(reference));
+            var index = new NodeIndex(parentPart.Transform.Children.IndexOf(reference));
             var item = childrenNode.Retrieve(index);
             childrenNode.Remove(item, index);
         }

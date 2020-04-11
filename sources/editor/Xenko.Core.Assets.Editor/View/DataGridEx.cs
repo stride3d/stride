@@ -11,10 +11,16 @@ using System.Windows.Input;
 using Xenko.Core.Extensions;
 using Xenko.Core.Presentation.Extensions;
 
-using Xceed.Wpf.DataGrid;
-
 namespace Xenko.Core.Assets.Editor.View
 {
+    /// <summary>
+    /// Xenko generic wpf data grid. Left empty for future development on a generic datagrid.
+    /// </summary>
+    public class DataGridEx : DataGrid
+    {
+
+    }
+
     /// <summary>
     /// This class wraps the <see cref="TextSearch"/> class, making accessible all members that are required to make the feature work.
     /// <see cref="TextSearch"/> is massively internal, making this feature impossible to implement by default on custom controls.
@@ -95,14 +101,6 @@ namespace Xenko.Core.Assets.Editor.View
 
         }
 
-        public static int FindMatchingPrefix(DataGridEx dataGridEx, string primaryTextPath, string prefix, string nextChar, int startItemIndex, bool lookForFallbackMatchToo, ref bool wasNewCharUsed)
-        {
-            var parameters = new object[] { dataGridEx, primaryTextPath, prefix, nextChar, startItemIndex, lookForFallbackMatchToo, wasNewCharUsed };
-            var result = (int)FindMatchingPrefixMethod.Invoke(null, parameters);
-            wasNewCharUsed = (bool)parameters[6];
-            return result;
-        }
-
         public void AddCharToPrefix(string nextChar)
         {
             AddCharToPrefixMethod.Invoke(textSearch, new object[] { nextChar });
@@ -111,72 +109,6 @@ namespace Xenko.Core.Assets.Editor.View
         public void ResetTimeout()
         {
             ResetTimeoutMethod.Invoke(textSearch, new object[] { });
-        }
-    }
-
-    /// <summary>
-    /// An implementation of DataGrid class that inherits from Xceed DataGridControl and add support for <see cref="TextSearch"/>.
-    /// </summary>
-    public class DataGridEx : DataGridControl
-    {
-        /// <inheritdoc/>
-        protected override void OnTextInput(TextCompositionEventArgs e)
-        {
-            base.OnTextInput(e);
-            if (string.IsNullOrEmpty(e.Text) || !IsTextSearchEnabled || !Equals(e.Source, this) && !Equals(ItemsControlFromItemContainer(e.Source as DependencyObject), this))
-                return;
-
-            var textSearch = TextSearchWrapper.EnsureInstance(this);
-            if (textSearch == null)
-                return;
-
-            DoSearch(textSearch, e.Text);
-            e.Handled = true;
-        }
-
-        /// <summary>
-        /// This method reimplements DoSearch from <see cref="TextSearch"/>.
-        /// </summary>
-        /// <param name="textSearch"></param>
-        /// <param name="nextChar"></param>
-        private void DoSearch(TextSearchWrapper textSearch, string nextChar)
-        {
-            bool lookForFallbackMatchToo = false;
-            int startItemIndex = 0;
-            ItemCollection items = Items;
-            if (textSearch.IsActive)
-                startItemIndex = textSearch.MatchedItemIndex;
-            if (textSearch._charsEntered.Count > 0 && string.Compare(textSearch._charsEntered[textSearch._charsEntered.Count - 1], nextChar, true, TextSearchWrapper.GetCulture(this)) == 0)
-                lookForFallbackMatchToo = true;
-            string primaryTextPath = TextSearchWrapper.GetPrimaryTextPath(this);
-            bool wasNewCharUsed = false;
-            int matchingPrefix = TextSearchWrapper.FindMatchingPrefix(this, primaryTextPath, textSearch.Prefix, nextChar, startItemIndex, lookForFallbackMatchToo, ref wasNewCharUsed);
-            if (matchingPrefix != -1)
-            {
-                if (!textSearch.IsActive || matchingPrefix != startItemIndex)
-                {
-                    if (SelectedItem != items[matchingPrefix])
-                    {
-                        SelectedItem = items[matchingPrefix];
-                        BringItemIntoView(SelectedItem);
-                        UpdateLayout();
-                        var container = GetContainerFromItem(SelectedItem) as DataRow;
-                        if (container != null)
-                        {
-                            var cellToFocus = container.FindVisualChildrenOfType<DataCell>().FirstOrDefault(x => x.Focusable);
-                            if (cellToFocus != null)
-                                Keyboard.Focus(cellToFocus);
-                        }
-                    }
-                    textSearch.MatchedItemIndex = matchingPrefix;
-                }
-                if (wasNewCharUsed)
-                    textSearch.AddCharToPrefix(nextChar);
-                if (!textSearch.IsActive)
-                    textSearch.IsActive = true;
-            }
-            if (textSearch.IsActive)
-                textSearch.ResetTimeout();
         }
     }
 }

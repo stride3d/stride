@@ -1,6 +1,6 @@
 <Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
@@ -19,33 +19,21 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
-    <PackageReference Include="AvalonEdit" Version="5.0.4" />
-    <PackageReference Include="System.Reactive.Linq" Version="4.1.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="2.10.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.10.0" />
-    <Reference Include="QuickGraph">
-      <HintPath>$(XenkoCommonDependenciesDir)GraphX\QuickGraph.dll</HintPath>
-    </Reference>
-    <Reference Include="GraphX.PCL.Common">
-      <HintPath>$(XenkoCommonDependenciesDir)GraphX\GraphX.PCL.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="GraphX.WPF.Controls">
-      <HintPath>$(XenkoCommonDependenciesDir)GraphX\GraphX.WPF.Controls.dll</HintPath>
-    </Reference>
+    <PackageReference Include="AvalonEdit" Version="6.0.0" />
+    <PackageReference Include="System.Reactive.Linq" Version="4.2.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="3.4.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.4.0" />
     <Reference Include="RoslynPad.Editor.Windows">
-      <HintPath>$(XenkoCommonDependenciesDir)RoslynPad\RoslynPad.Editor.Windows.dll</HintPath>
+      <HintPath>$(XenkoCommonDependenciesDir)RoslynPad\net462\RoslynPad.Editor.Windows.dll</HintPath>
     </Reference>
     <Reference Include="RoslynPad.Roslyn.Windows">
-      <HintPath>$(XenkoCommonDependenciesDir)RoslynPad\RoslynPad.Roslyn.Windows.dll</HintPath>
+      <HintPath>$(XenkoCommonDependenciesDir)RoslynPad\net462\RoslynPad.Roslyn.Windows.dll</HintPath>
     </Reference>
     <Reference Include="RoslynPad.Roslyn">
-      <HintPath>$(XenkoCommonDependenciesDir)RoslynPad\RoslynPad.Roslyn.dll</HintPath>
+      <HintPath>$(XenkoCommonDependenciesDir)RoslynPad\net462\RoslynPad.Roslyn.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Windows.Interactivity">
-      <HintPath>$(XenkoCommonDependenciesDir)ExpressionBlendSDK\System.Windows.Interactivity.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
@@ -57,6 +45,7 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="..\Xenko.Samples.Templates\ThisPackageVersion.cs" Link="ThisPackageVersion.cs" />
     <None Include="app.config" />
     <None Include="*.cd" />
     <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" />
@@ -81,8 +70,8 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
-	  <None Remove="EditorPackage\buildpath\**" />
-	  <None Remove="EditorPackage\outputpath\**" />
+    <None Remove="EditorPackage\buildpath\**" />
+    <None Remove="EditorPackage\outputpath\**" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets.Quantum\Xenko.Core.Assets.Quantum.csproj" />
@@ -126,19 +115,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\*.cur" />
   </ItemGroup>
-  <!-- Shaders -->
-  <ItemGroup>
-    <Compile Update="Shaders\*.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>%(Filename).xkfx</DependentUpon>
-    </Compile>
-    <None Include="Shaders\*.xkfx">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>%(Filename).cs</LastGenOutput>
-    </None>
-  </ItemGroup>
   <!-- Templates -->
   <ItemGroup>
     <Compile Remove="Templates\Core\**" />
@@ -147,7 +123,7 @@
     <None Include="Templates\Assets\**" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>

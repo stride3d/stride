@@ -1,0 +1,12 @@
+shader VoxelModifierApplierOpacifyAnisotropicPaired : VoxelModifierApplierAnisotropicPaired
+{
+    [Link("VoxelModifierApplierOpacifyIsotropic.Amount")]
+    float Amount;
+
+    override void Apply(inout float4 X, inout float4 Y, inout float4 Z)
+    {
+        X.a *= Amount;
+        Y.a *= Amount;
+        Z.a *= Amount;
+    }
+};

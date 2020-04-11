@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,36 +13,20 @@ using System.Windows.Input;
 using Xenko.Core.Assets.Diagnostics;
 using Xenko.Core.Assets.Editor.ViewModel;
 using Xenko.Core.Diagnostics;
-
-using Xceed.Wpf.DataGrid;
+using Xenko.Core.Presentation.Collections;
 
 namespace Xenko.Core.Assets.Editor.View.Controls
 {
     /// <summary>
     /// This control displays a collection of <see cref="ILogMessage"/> in a grid.
     /// </summary>
-    [TemplatePart(Name = "PART_LogGridView", Type = typeof(DataGridControl))]
-    [TemplatePart(Name = "PART_PreviousResult", Type = typeof(ButtonBase))]
-    [TemplatePart(Name = "PART_NextResult", Type = typeof(ButtonBase))]
-    [TemplatePart(Name = "PART_GridLogViewerCollectionSourceContainer", Type = typeof(FrameworkElement))]   
+    [TemplatePart(Name = "PART_LogGridView", Type = typeof(DataGridEx))] 
     public class GridLogViewer : Control
     {
-        private int currentResult;
-
         /// <summary>
         /// The <see cref="DataGridControl"/> used to display log messages.
         /// </summary>
-        private DataGridControl logGridView;
-
-        /// <summary>
-        /// The <see cref="ButtonBase"/> used to navigate to the previous search result.
-        /// </summary>
-        private ButtonBase previousResultButton;
-
-        /// <summary>
-        /// The <see cref="ButtonBase"/> used to navigate to the next search result.
-        /// </summary>
-        private ButtonBase nextResultButton;
+        private DataGridEx logGridView;
 
         static GridLogViewer()
         {
@@ -51,37 +36,12 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         /// <summary>
         /// Identifies the <see cref="LogMessages"/> dependency property.
         /// </summary>
-        public static readonly DependencyProperty LogMessagesProperty = DependencyProperty.Register("LogMessages", typeof(ICollection<ILogMessage>), typeof(GridLogViewer), new PropertyMetadata(null));
+        public static readonly DependencyProperty LogMessagesProperty = DependencyProperty.Register("LogMessages", typeof(ObservableList<ILogMessage>), typeof(GridLogViewer), new PropertyMetadata(null));
 
         /// <summary>
         /// Identifies the <see cref="IsToolBarVisible"/> dependency property.
         /// </summary>
         public static readonly DependencyProperty IsToolBarVisibleProperty = DependencyProperty.Register("IsToolBarVisible", typeof(bool), typeof(GridLogViewer), new PropertyMetadata(true));
-
-        /// <summary>
-        /// Identifies the <see cref="CanFilterLog"/> dependency property.
-        /// </summary>
-        public static readonly DependencyProperty CanFilterLogProperty = DependencyProperty.Register("CanFilterLog", typeof(bool), typeof(GridLogViewer), new PropertyMetadata(true));
-
-        /// <summary>
-        /// Identifies the <see cref="CanSearchLog"/> dependency property.
-        /// </summary>
-        public static readonly DependencyProperty CanSearchLogProperty = DependencyProperty.Register("CanSearchLog", typeof(bool), typeof(GridLogViewer), new PropertyMetadata(true));
-
-        /// <summary>
-        /// Identifies the <see cref="SearchToken"/> dependency property.
-        /// </summary>
-        public static readonly DependencyProperty SearchTokenProperty = DependencyProperty.Register("SearchToken", typeof(string), typeof(GridLogViewer), new PropertyMetadata("", SearchTokenChanged));
-
-        /// <summary>
-        /// Identifies the <see cref="SearchMatchCase"/> dependency property.
-        /// </summary>
-        public static readonly DependencyProperty SearchMatchCaseProperty = DependencyProperty.Register("SearchMatchCase", typeof(bool), typeof(GridLogViewer), new PropertyMetadata(false, SearchTokenChanged));
-
-        /// <summary>
-        /// Identifies the <see cref="SearchMatchWord"/> dependency property.
-        /// </summary>
-        public static readonly DependencyProperty SearchMatchWordProperty = DependencyProperty.Register("SearchMatchWord", typeof(bool), typeof(GridLogViewer), new PropertyMetadata(false, SearchTokenChanged));
 
         /// <summary>
         /// Identifies the <see cref="ShowDebugMessages"/> dependency property.
@@ -126,37 +86,14 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         /// <summary>
         /// Gets or sets the collection of <see cref="ILogMessage"/> to display.
         /// </summary>
-        public ICollection<ILogMessage> LogMessages { get { return (ICollection<ILogMessage>)GetValue(LogMessagesProperty); } set { SetValue(LogMessagesProperty, value); } }
+        public ObservableList<ILogMessage> LogMessages { get { return (ObservableList<ILogMessage>)GetValue(LogMessagesProperty); } set { SetValue(LogMessagesProperty, value); } }
+
+        public ObservableList<ILogMessage> FilteredLogMessages { get; set; } = new ObservableList<ILogMessage>();
 
         /// <summary>
         /// Gets or sets whether the tool bar should be visible.
         /// </summary>
         public bool IsToolBarVisible { get { return (bool)GetValue(IsToolBarVisibleProperty); } set { SetValue(IsToolBarVisibleProperty, value); } }
-
-        /// <summary>
-        /// Gets or sets whether it is possible to filter the log text.
-        /// </summary>
-        public bool CanFilterLog { get { return (bool)GetValue(CanFilterLogProperty); } set { SetValue(CanFilterLogProperty, value); } }
-
-        /// <summary>
-        /// Gets or sets whether it is possible to search the log text.
-        /// </summary>
-        public bool CanSearchLog { get { return (bool)GetValue(CanSearchLogProperty); } set { SetValue(CanSearchLogProperty, value); } }
-
-        /// <summary>
-        /// Gets or sets the current search token.
-        /// </summary>
-        public string SearchToken { get { return (string)GetValue(SearchTokenProperty); } set { SetValue(SearchTokenProperty, value); } }
-
-        /// <summary>
-        /// Gets or sets whether the search result should match the case.
-        /// </summary>
-        public bool SearchMatchCase { get { return (bool)GetValue(SearchMatchCaseProperty); } set { SetValue(SearchMatchCaseProperty, value); } }
-
-        /// <summary>
-        /// Gets or sets whether the search result should match whole words only.
-        /// </summary>
-        public bool SearchMatchWord { get { return (bool)GetValue(SearchMatchWordProperty); } set { SetValue(SearchMatchWordProperty, value); } }
 
         /// <summary>
         /// Gets or sets whether the log viewer should display debug messages.
@@ -203,35 +140,11 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         {
             base.OnApplyTemplate();
 
-            logGridView = GetTemplateChild("PART_LogGridView") as DataGridControl;
+            logGridView = GetTemplateChild("PART_LogGridView") as DataGridEx;
             if (logGridView == null)
                 throw new InvalidOperationException("A part named 'PART_LogGridView' must be present in the ControlTemplate, and must be of type 'DataGridControl'.");
 
-            previousResultButton = GetTemplateChild("PART_PreviousResult") as ButtonBase;
-            if (previousResultButton == null)
-                throw new InvalidOperationException("A part named 'PART_PreviousResult' must be present in the ControlTemplate, and must be of type 'ButtonBase'.");
-
-            nextResultButton = GetTemplateChild("PART_NextResult") as ButtonBase;
-            if (nextResultButton == null)
-                throw new InvalidOperationException("A part named 'PART_NextResult' must be present in the ControlTemplate, and must be of type 'ButtonBase'.");
-
-            var sourceContainer = GetTemplateChild("PART_GridLogViewerCollectionSourceContainer") as FrameworkElement;
-            if (sourceContainer == null)
-                throw new InvalidOperationException("A part named 'PART_GridLogViewerCollectionSourceContainer' must be present in the ControlTemplate, and must be of type 'FrameworkElement'.");
-
-            var source = sourceContainer.Resources["GridLogViewerCollectionSource"];
-            if (!(source is DataGridCollectionViewSourceBase))
-                throw new InvalidOperationException("The 'PART_GridLogViewerCollectionSourceContainer' must be contain a 'GridLogViewerCollectionSource' resource that is the source of the collection view for the DataGridControl.");
-
-            ((DataGridCollectionViewSourceBase)source).Filter += FilterHandler;
             logGridView.MouseDoubleClick += GridMouseDoubleClick;
-            previousResultButton.Click += PreviousResultClicked;
-            nextResultButton.Click += NextResultClicked;
-        }
-
-        private void FilterHandler(object value, FilterEventArgs e)
-        {
-            e.Accepted = FilterMethod(e.Item);
         }
 
         private void GridMouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -254,173 +167,27 @@ namespace Xenko.Core.Assets.Editor.View.Controls
                 if (asset != null)
                     Session.ActiveAssetView.SelectAssetCommand.Execute(asset);
             }
+
         }
-
-        private void SelectFirstOccurrence()
-        {
-            currentResult = 0;
-            var token = SearchToken;
-            if (!string.IsNullOrEmpty(token))
-            {
-                var message = LogMessages.FirstOrDefault(Match);
-                logGridView.SelectedItem = message;
-                if (message != null)
-                {
-                    logGridView.BringItemIntoView(message);
-                }
-            }
-        }
-
-        private void SelectPreviousOccurrence()
-        {
-            var token = SearchToken;
-            if (!string.IsNullOrEmpty(token))
-            {
-                var message = FindPreviousMessage();
-                logGridView.SelectedItem = message;
-                if (message != null)
-                {
-                    logGridView.BringItemIntoView(message);
-                }
-                else
-                    logGridView.SelectedItem = null;
-            }
-        }
-
-        private void SelectNextOccurrence()
-        {
-            var token = SearchToken;
-            if (!string.IsNullOrEmpty(token))
-            {
-                var message = FindNextMessage();
-                logGridView.SelectedItem = message;
-                if (message != null)
-                {
-                    logGridView.BringItemIntoView(message);
-                }
-            }
-        }
-
-        private ILogMessage FindPreviousMessage()
-        {
-            int count = 0;
-            ILogMessage lastMessage = null;
-            --currentResult;
-            foreach (var message in LogMessages.Where(Match))
-            {
-                lastMessage = message;
-
-                if (count == currentResult)
-                {
-                    return message;
-                }
-                ++count;
-            }
-            currentResult = Math.Max(0, count - 1);
-            return lastMessage;
-        }
-
-        private ILogMessage FindNextMessage()
-        {
-            int count = 0;
-            ILogMessage firstMessage = null;
-            ++currentResult;
-            foreach (var message in LogMessages.Where(Match))
-            {
-                if (firstMessage == null)
-                    firstMessage = message;
-
-                if (count == currentResult)
-                {
-                    return message;
-                }
-                ++count;
-            }
-            currentResult = 0;
-            return firstMessage;
-        }
-
-        private bool Match(ILogMessage message)
-        {
-            if (Match(message.Text))
-                return true;
-
-            var assetMessage = message as AssetSerializableLogMessage;
-            return assetMessage != null && Match(assetMessage.AssetUrl.FullPath);
-        }
-
-        private bool Match(string text)
-        {
-            var token = SearchToken;
-            var stringComparison = SearchMatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            int index = text.IndexOf(token, stringComparison);
-            if (index < 0)
-                return false;
-
-            if (SearchMatchWord && text.Length > 1)
-            {
-                if (index > 0)
-                {
-                    char c = text[index - 1];
-                    if (char.IsLetterOrDigit(c))
-                        return false;
-                }
-                if (index + token.Length < text.Length)
-                {
-                    char c = text[index + token.Length];
-                    if (char.IsLetterOrDigit(c))
-                        return false;
-                }
-            }
-            return true;
-        }
-
         private static void FilterPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var logViewer = (GridLogViewer)d;
             logViewer.ApplyFilters();
         }
 
-        /// <summary>
-        /// Raised when the <see cref="SearchToken"/> property is changed.
-        /// </summary>
-        private static void SearchTokenChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var logViewer = (GridLogViewer)d;
-            logViewer.SelectFirstOccurrence();
-        }
-
-        private void PreviousResultClicked(object sender, RoutedEventArgs e)
-        {
-            SelectPreviousOccurrence();
-        }
-
-        private void NextResultClicked(object sender, RoutedEventArgs e)
-        {
-            SelectNextOccurrence();
-        }
-
+        
         private void ApplyFilters()
         {
             if (logGridView == null || logGridView.ItemsSource == null)
                 return;
-
-            if (!(logGridView.ItemsSource is DataGridCollectionView))
-                throw new InvalidOperationException("The item source of the part 'PART_LogGridView' must be a 'DataGridCollectionView'.");
-
-            var view = (DataGridCollectionView)logGridView.ItemsSource;
-            view.Refresh();
-        }
-
-        private bool FilterMethod(object msg)
-        {
-            var message = (ILogMessage)msg;
-            return (ShowDebugMessages && message.Type == LogMessageType.Debug)
-                 || (ShowVerboseMessages && message.Type == LogMessageType.Verbose)
-                 || (ShowInfoMessages && message.Type == LogMessageType.Info)
-                 || (ShowWarningMessages && message.Type == LogMessageType.Warning)
-                 || (ShowErrorMessages && message.Type == LogMessageType.Error)
-                 || (ShowFatalMessages && message.Type == LogMessageType.Fatal);
+            this.FilteredLogMessages.Clear();
+            this.FilteredLogMessages.AddRange(this.LogMessages.Where(x =>
+            x.IsDebug() && ShowDebugMessages ||
+            x.IsError() && ShowErrorMessages ||
+            x.IsFatal() && ShowFatalMessages ||
+            x.IsInfo() && ShowInfoMessages ||
+            x.IsVerbose() && ShowVerboseMessages ||
+            x.IsWarning() && ShowWarningMessages));
         }
     }
 }

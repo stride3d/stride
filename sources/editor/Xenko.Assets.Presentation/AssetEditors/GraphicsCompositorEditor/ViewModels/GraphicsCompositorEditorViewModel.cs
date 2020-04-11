@@ -290,7 +290,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewMo
                         continue;
 
                     // Remove
-                    var itemIndex = new Index(index);
+                    var itemIndex = new NodeIndex(index);
                     sharedRenderersNode.Remove(viewModel.GetSharedRenderer(), itemIndex);
                 }
 
@@ -328,7 +328,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewMo
                     Asset.PropertyGraph.ClearReferencesToObjects(renderStage.Id.Yield());
 
                     // Remove
-                    var itemIndex = new Index(index);
+                    var itemIndex = new NodeIndex(index);
                     renderStagesNode.Remove(renderStage, itemIndex);
                 }
 
@@ -365,7 +365,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewMo
                     // Do not clear references to this object - camera slots in the scene asset should not change automatically!
 
                     // Remove
-                    var itemIndex = new Index(index);
+                    var itemIndex = new NodeIndex(index);
                     cameraSlotsNode.Remove(viewModel, itemIndex);
                 }
 
@@ -405,7 +405,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewMo
                         continue;
 
                     // Remove
-                    var itemIndex = new Index(index);
+                    var itemIndex = new NodeIndex(index);
                     renderFeaturesNode.Remove(renderFeature, itemIndex);
                 }
 

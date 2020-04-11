@@ -1,0 +1,10 @@
+!SpriteFont
+Id: f7f1e44e-6a57-4b1f-818e-21711622883f
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+FontSource: !FileFontProvider
+    Source: !file ../../Resources/UI/OpenSans/OpenSans-Regular.ttf
+FontType: !RuntimeRasterizedSpriteFontType {}
+DefaultCharacter: '@'
+Spacing: 1.0
+LineSpacing: 1.0

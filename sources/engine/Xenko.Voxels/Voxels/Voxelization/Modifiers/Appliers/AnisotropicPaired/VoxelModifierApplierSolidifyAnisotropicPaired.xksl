@@ -1,0 +1,10 @@
+shader VoxelModifierApplierSolidifyAnisotropicPaired<int SolidityAttributeID> : VoxelModifierApplierAnisotropicPaired, LocalSamples
+{
+    override void Apply(inout float4 X, inout float4 Y, inout float4 Z)
+    {
+        float Solidity = streams.LocalSample[SolidityAttributeID].a;
+        X.a = max(Solidity, X.a);
+        Y.a = max(Solidity, Y.a);
+        Z.a = max(Solidity, Z.a);
+    }
+};

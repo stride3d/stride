@@ -17,9 +17,9 @@ namespace Xenko.Editor.EditorGame.ContentLoader
         private struct ReferenceAccessor
         {
             private readonly IGraphNode contentNode;
-            private readonly Index index;
+            private readonly NodeIndex index;
 
-            public ReferenceAccessor(IGraphNode contentNode, Index index)
+            public ReferenceAccessor(IGraphNode contentNode, NodeIndex index)
             {
                 this.contentNode = contentNode;
                 this.index = index;
@@ -27,7 +27,7 @@ namespace Xenko.Editor.EditorGame.ContentLoader
 
             public void Update(object newValue)
             {
-                if (index == Index.Empty)
+                if (index == NodeIndex.Empty)
                 {
                     ((IMemberNode)contentNode).Update(newValue);
                 }
@@ -89,7 +89,7 @@ namespace Xenko.Editor.EditorGame.ContentLoader
             }
         }
 
-        public async Task PushContentReference(AbsoluteId referencerId, AssetId contentId, IGraphNode contentNode, Index index)
+        public async Task PushContentReference(AbsoluteId referencerId, AssetId contentId, IGraphNode contentNode, NodeIndex index)
         {
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())
@@ -129,7 +129,7 @@ namespace Xenko.Editor.EditorGame.ContentLoader
             }
         }
 
-        public async Task ClearContentReference(AbsoluteId referencerId, AssetId contentId, IGraphNode contentNode, Index index)
+        public async Task ClearContentReference(AbsoluteId referencerId, AssetId contentId, IGraphNode contentNode, NodeIndex index)
         {
             gameDispatcher.EnsureAccess();
             using (await loader.LockDatabaseAsynchronously())

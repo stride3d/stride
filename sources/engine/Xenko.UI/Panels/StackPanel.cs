@@ -677,8 +677,9 @@ namespace Xenko.UI.Panels
             {
                 currentSize += GetSafeChildSize(elementIndex, axis);
 
-                visibleChildren.Add(Children[elementIndex]);
-                SetVisualParent(Children[elementIndex], this);
+                var child = Children[elementIndex];
+                visibleChildren.Add(child);
+                SetVisualParent(child, this);
                 ++elementIndex;
             }
 

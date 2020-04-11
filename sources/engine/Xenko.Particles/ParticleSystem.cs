@@ -173,7 +173,7 @@ namespace Xenko.Particles
         /// Translation of the ParticleSystem. Usually inherited directly from the ParticleSystemComponent or can be directly set.
         /// </userdoc>
         [DataMemberIgnore]
-        public Vector3 Translation = new Vector3(0, 0, 0);
+        public Vector3 Translation = Vector3.Zero;
 
         /// <summary>
         /// Rotation of the ParticleSystem, expressed as a quaternion rotation. Usually inherited directly from the ParticleSystemComponent or can be directly set.

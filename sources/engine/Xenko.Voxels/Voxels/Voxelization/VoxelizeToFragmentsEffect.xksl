@@ -1,0 +1,24 @@
+﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Xenko.Rendering.Materials;
+using Xenko.Rendering.Voxels;
+
+namespace Xenko.Rendering.Voxels
+{
+    partial effect VoxelizeToFragmentsEffect
+    {
+        using params MaterialKeys;
+        using params VoxelizeToFragmentsKeys;
+
+        mixin VoxelizeToFragments;
+        if (VoxelizeToFragmentsKeys.Storage!=null)
+        {
+            mixin compose Storage = (VoxelizeToFragmentsKeys.Storage);
+        }
+        if (VoxelizeToFragmentsKeys.RequireGeometryShader == true)
+        {
+            mixin macro RequireGeometryShader = true;
+            mixin macro VoxelizeToFragmentsKeys.GeometryShaderMaxVertexCount;
+        }
+    };
+}

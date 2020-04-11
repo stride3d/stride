@@ -174,14 +174,14 @@ namespace Xenko.Core.Quantum
         {
             if (isMember)
             {
-                return !IsPrimitiveType(type) ? Reference.CreateReference(value, type, Index.Empty, true) : null;
+                return !IsPrimitiveType(type) ? Reference.CreateReference(value, type, NodeIndex.Empty, true) : null;
             }
 
             var descriptor = TypeDescriptorFactory.Find(value?.GetType());
             if (descriptor is CollectionDescriptor || descriptor is DictionaryDescriptor)
             {
                 var valueType = GetElementValueType(descriptor);
-                return !IsPrimitiveType(valueType) ? Reference.CreateReference(value, type, Index.Empty, false) : null;
+                return !IsPrimitiveType(valueType) ? Reference.CreateReference(value, type, NodeIndex.Empty, false) : null;
             }
 
             return null;

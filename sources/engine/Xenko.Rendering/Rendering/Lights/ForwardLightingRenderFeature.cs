@@ -413,7 +413,7 @@ namespace Xenko.Rendering.Lights
                     if (renderNode.RenderEffect.State != RenderEffectState.Normal)
                         return;
 
-                    var drawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
+                    var drawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
                     if (drawLayout == null)
                         return;
 

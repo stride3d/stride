@@ -36,6 +36,7 @@ using Xenko.VisualStudio.Commands;
 
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using VsShell = Microsoft.VisualStudio.Shell.VsShellUtilities;
+using Task = System.Threading.Tasks.Task;
 using EnvDTE;
 using Xenko.VisualStudio;
 
@@ -242,7 +243,7 @@ namespace NShader
             return base.GetColorizer(buffer);
         }
 
-        public override void OnIdle(bool periodic)
+        public override async void OnIdle(bool periodic)
         {
             var source = GetCurrentNShaderSource();
             if (source != null)
@@ -263,24 +264,22 @@ namespace NShader
                         var text = source.GetText();
                         var sourcePath = source.GetFilePath();
 
+                        var projectFile = LocateProject(sourcePath);
+
                         Trace.WriteLine(string.Format("Parsing Change: {0} Time: {1}", source.ChangeCount, DateTime.Now));
-                        var thread = new System.Threading.Thread(
-                            () =>
+                        try
+                        {
+                            var result = await Task.Run(() => AnalyzeAndGoToDefinition(projectFile, text, new RawSourceSpan(sourcePath, 1, 1))).ConfigureAwait(true);
+                            OutputAnalysisMessages(result, source);
+                        }
+                        catch (Exception ex)
+                        {
+                            lock (errorListProvider)
                             {
-                                try
-                                {
-                                    var result = AnalyzeAndGoToDefinition(text, new RawSourceSpan(sourcePath, 1, 1));
-                                    OutputAnalysisMessages(result, source);
-                                }
-                                catch (Exception ex)
-                                {
-                                    lock (errorListProvider)
-                                    {
-                                        errorListProvider.Tasks.Add(new ErrorTask(ex.InnerException ?? ex));
-                                    }
-                                }
-                            });
-                        thread.Start();
+                                errorListProvider.Tasks.Add(new ErrorTask(ex.InnerException ?? ex));
+                            }
+                        }
+
                     }
                 }
             }
@@ -288,16 +287,22 @@ namespace NShader
             base.OnIdle(periodic);
         }
 
-        public RawShaderNavigationResult AnalyzeAndGoToDefinition(string text, RawSourceSpan span)
+        public string LocateProject(string sourcePath)
         {
             // Try to locate containing project
             var dte = (DTE)GetService(typeof(DTE));
-            var projectItem = dte.Solution.FindProjectItem(span.File);
+            var projectItem = dte.Solution.FindProjectItem(sourcePath);
             string projectFile = null;
             if (projectItem != null && projectItem.ContainingProject != null && !string.IsNullOrEmpty(projectItem.ContainingProject.FileName))
             {
                 projectFile = projectItem.ContainingProject.FileName;
             }
+
+            return projectFile;
+        }
+
+        public RawShaderNavigationResult AnalyzeAndGoToDefinition(string projectFile, string text, RawSourceSpan span)
+        {
             return XenkoCommandsProxy.GetProxy()?.AnalyzeAndGoToDefinition(projectFile, text, span) ?? new RawShaderNavigationResult();
         }
 
@@ -428,7 +433,7 @@ namespace NShader
 
         private void NavigateToSourceError(object sender, EventArgs e)
         {
-            var task = sender as Task;
+            var task = sender as Microsoft.VisualStudio.Shell.Task;
             if (task != null)
             {
                 GoToLocation(new RawSourceSpan(task.Document, task.Line + 1, task.Column + 1), null, false);

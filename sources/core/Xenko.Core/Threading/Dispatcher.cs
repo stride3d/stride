@@ -42,7 +42,7 @@ namespace Xenko.Core.Threading
                 else
                 {
                     var state = BatchState.Acquire();
-                    state.StartInclusive = fromInclusive;
+                    state.WorkDone = state.StartInclusive = fromInclusive;
 
                     try
                     {
@@ -54,8 +54,12 @@ namespace Xenko.Core.Threading
                         Fork(toExclusive, batchSize, MaxDegreeOfParallelism, action, state);
 
                         // Wait for all workers to finish
-                        if (state.ActiveWorkerCount != 0)
+                        if (state.WorkDone < toExclusive)
                             state.Finished.WaitOne();
+
+                        var ex = Interlocked.Exchange(ref state.ExceptionThrown, null);
+                        if (ex != null)
+                            throw ex;
                     }
                     finally
                     {
@@ -87,7 +91,7 @@ namespace Xenko.Core.Threading
                 else
                 {
                     var state = BatchState.Acquire();
-                    state.StartInclusive = fromInclusive;
+                    state.WorkDone = state.StartInclusive = fromInclusive;
 
                     try
                     {
@@ -99,8 +103,12 @@ namespace Xenko.Core.Threading
                         Fork(toExclusive, batchSize, MaxDegreeOfParallelism, initializeLocal, action, finalizeLocal, state);
 
                         // Wait for all workers to finish
-                        if (state.ActiveWorkerCount != 0)
+                        if (state.WorkDone < toExclusive)
                             state.Finished.WaitOne();
+
+                        var ex = Interlocked.Exchange(ref state.ExceptionThrown, null);
+                        if (ex != null)
+                            throw ex;
                     }
                     finally
                     {
@@ -145,8 +153,12 @@ namespace Xenko.Core.Threading
                     Fork(collection, batchSize, MaxDegreeOfParallelism, action, state);
 
                     // Wait for all workers to finish
-                    if (state.ActiveWorkerCount != 0)
+                    if (state.WorkDone < collection.Count)
                         state.Finished.WaitOne();
+
+                    var ex = Interlocked.Exchange(ref state.ExceptionThrown, null);
+                    if (ex != null)
+                        throw ex;
                 }
                 finally
                 {
@@ -175,8 +187,12 @@ namespace Xenko.Core.Threading
                     Fork(collection, batchSize, MaxDegreeOfParallelism, initializeLocal, action, finalizeLocal, state);
 
                     // Wait for all workers to finish
-                    if (state.ActiveWorkerCount != 0)
+                    if (state.WorkDone < collection.Count)
                         state.Finished.WaitOne();
+
+                    var ex = Interlocked.Exchange(ref state.ExceptionThrown, null);
+                    if (ex != null)
+                        throw ex;
                 }
                 finally
                 {
@@ -225,8 +241,12 @@ namespace Xenko.Core.Threading
             // Kick off another worker if there's any work left
             if (maxDegreeOfParallelism > 1 && state.StartInclusive + batchSize < collection.Count)
             {
-                state.AddReference();
-                ThreadPool.Instance.QueueWorkItem(() => Fork(collection, batchSize, maxDegreeOfParallelism - 1, action, state));
+                int workToSchedule = maxDegreeOfParallelism - 1;
+                for (int i = 0; i < workToSchedule; i++)
+                {
+                    state.AddReference();
+                }
+                ThreadPool.Instance.QueueWorkItem(() => Fork(collection, batchSize, 0, action, state), workToSchedule);
             }
 
             try
@@ -235,20 +255,30 @@ namespace Xenko.Core.Threading
                 int newStart;
                 while ((newStart = Interlocked.Add(ref state.StartInclusive, batchSize)) - batchSize < collection.Count)
                 {
-                    // TODO: Reuse enumerator when processing multiple batches synchronously
-                    var start = newStart - batchSize;
-                    ExecuteBatch(collection, newStart - batchSize, Math.Min(collection.Count, newStart) - start, action);
+                    try
+                    {
+                        // TODO: Reuse enumerator when processing multiple batches synchronously
+                        var start = newStart - batchSize;
+                        ExecuteBatch(collection, newStart - batchSize, Math.Min(collection.Count, newStart) - start, action);
+                    }
+                    finally
+                    {
+                        if (Interlocked.Add(ref state.WorkDone, batchSize) >= collection.Count)
+                        {
+                             // Don't wait for other threads to wake up and signal the BatchState, release as soon as work is finished
+                            state.Finished.Set();
+                        }
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Interlocked.Exchange(ref state.ExceptionThrown, e);
+                throw;
             }
             finally
             {
                 state.Release();
-
-                // If this was the last batch, signal
-                if (Interlocked.Decrement(ref state.ActiveWorkerCount) == 0)
-                {
-                    state.Finished.Set();
-                }
             }
         }
 
@@ -267,8 +297,12 @@ namespace Xenko.Core.Threading
             // Kick off another worker if there's any work left
             if (maxDegreeOfParallelism > 1 && state.StartInclusive + batchSize < collection.Count)
             {
-                state.AddReference();
-                ThreadPool.Instance.QueueWorkItem(() => Fork(collection, batchSize, maxDegreeOfParallelism - 1, initializeLocal, action, finalizeLocal, state));
+                int workToSchedule = maxDegreeOfParallelism - 1;
+                for (int i = 0; i < workToSchedule; i++)
+                {
+                    state.AddReference();
+                }
+                ThreadPool.Instance.QueueWorkItem(() => Fork(collection, batchSize, 0, initializeLocal, action, finalizeLocal, state), workToSchedule);
             }
 
             try
@@ -277,20 +311,30 @@ namespace Xenko.Core.Threading
                 int newStart;
                 while ((newStart = Interlocked.Add(ref state.StartInclusive, batchSize)) - batchSize < collection.Count)
                 {
-                    // TODO: Reuse enumerator when processing multiple batches synchronously
-                    var start = newStart - batchSize;
-                    ExecuteBatch(collection, newStart - batchSize, Math.Min(collection.Count, newStart) - start, initializeLocal, action, finalizeLocal);
+                    try
+                    {
+                        // TODO: Reuse enumerator when processing multiple batches synchronously
+                        var start = newStart - batchSize;
+                        ExecuteBatch(collection, newStart - batchSize, Math.Min(collection.Count, newStart) - start, initializeLocal, action, finalizeLocal);
+                    }
+                    finally
+                    {
+                        if (Interlocked.Add(ref state.WorkDone, batchSize) >= collection.Count)
+                        {
+                             // Don't wait for other threads to wake up and signal the BatchState, release as soon as work is finished
+                            state.Finished.Set();
+                        }
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Interlocked.Exchange(ref state.ExceptionThrown, e);
+                throw;
             }
             finally
             {
                 state.Release();
-
-                // If this was the last batch, signal
-                if (Interlocked.Decrement(ref state.ActiveWorkerCount) == 0)
-                {
-                    state.Finished.Set();
-                }
             }
         }
 
@@ -338,8 +382,12 @@ namespace Xenko.Core.Threading
             // Kick off another worker if there's any work left
             if (maxDegreeOfParallelism > 1 && state.StartInclusive + batchSize < endExclusive)
             {
-                state.AddReference();
-                ThreadPool.Instance.QueueWorkItem(() => Fork(endExclusive, batchSize, maxDegreeOfParallelism - 1, action, state));
+                int workToSchedule = maxDegreeOfParallelism - 1;
+                for (int i = 0; i < workToSchedule; i++)
+                {
+                    state.AddReference();
+                }
+                ThreadPool.Instance.QueueWorkItem(() => Fork(endExclusive, batchSize, 0, action, state), workToSchedule);
             }
 
             try
@@ -348,18 +396,28 @@ namespace Xenko.Core.Threading
                 int newStart;
                 while ((newStart = Interlocked.Add(ref state.StartInclusive, batchSize)) - batchSize < endExclusive)
                 {
-                    ExecuteBatch(newStart - batchSize, Math.Min(endExclusive, newStart), action);
+                    try
+                    {
+                        ExecuteBatch(newStart - batchSize, Math.Min(endExclusive, newStart), action);
+                    }
+                    finally
+                    {
+                        if (Interlocked.Add(ref state.WorkDone, batchSize) >= endExclusive)
+                        {
+                             // Don't wait for other threads to wake up and signal the BatchState, release as soon as work is finished
+                            state.Finished.Set();
+                        }
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Interlocked.Exchange(ref state.ExceptionThrown, e);
+                throw;
             }
             finally
             {
                 state.Release();
-
-                // If this was the last batch, signal
-                if (Interlocked.Decrement(ref state.ActiveWorkerCount) == 0)
-                {
-                    state.Finished.Set();
-                }
             }
         }
 
@@ -378,8 +436,12 @@ namespace Xenko.Core.Threading
             // Kick off another worker if there's any work left
             if (maxDegreeOfParallelism > 1 && state.StartInclusive + batchSize < endExclusive)
             {
-                state.AddReference();
-                ThreadPool.Instance.QueueWorkItem(() => Fork(endExclusive, batchSize, maxDegreeOfParallelism - 1, initializeLocal, action, finalizeLocal, state));
+                int workToSchedule = maxDegreeOfParallelism - 1;
+                for (int i = 0; i < workToSchedule; i++)
+                {
+                    state.AddReference();
+                }
+                ThreadPool.Instance.QueueWorkItem(() => Fork(endExclusive, batchSize, 0, initializeLocal, action, finalizeLocal, state), workToSchedule);
             }
 
             try
@@ -388,18 +450,28 @@ namespace Xenko.Core.Threading
                 int newStart;
                 while ((newStart = Interlocked.Add(ref state.StartInclusive, batchSize)) - batchSize < endExclusive)
                 {
-                    ExecuteBatch(newStart - batchSize, Math.Min(endExclusive, newStart), initializeLocal, action, finalizeLocal);
+                    try
+                    {
+                        ExecuteBatch(newStart - batchSize, Math.Min(endExclusive, newStart), initializeLocal, action, finalizeLocal);
+                    }
+                    finally
+                    {
+                        if (Interlocked.Add(ref state.WorkDone, batchSize) >= endExclusive)
+                        {
+                            // Don't wait for other threads to wake up and signal the BatchState, release as soon as work is finished
+                            state.Finished.Set();
+                        }
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Interlocked.Exchange(ref state.ExceptionThrown, e);
+                throw;
             }
             finally
             {
                 state.Release();
-
-                // If this was the last batch, signal
-                if (Interlocked.Decrement(ref state.ActiveWorkerCount) == 0)
-                {
-                    state.Finished.Set();
-                }
             }
         }
 
@@ -605,7 +677,11 @@ namespace Xenko.Core.Threading
 
             public int StartInclusive;
 
+            public int WorkDone;
+
             public int ActiveWorkerCount;
+
+            public Exception ExceptionThrown;
 
             [NotNull]
             public static BatchState Acquire()
@@ -614,6 +690,8 @@ namespace Xenko.Core.Threading
                 state.referenceCount = 1;
                 state.ActiveWorkerCount = 0;
                 state.StartInclusive = 0;
+                state.WorkDone = 0;
+                state.ExceptionThrown = null;
                 state.Finished.Reset();
                 return state;
             }

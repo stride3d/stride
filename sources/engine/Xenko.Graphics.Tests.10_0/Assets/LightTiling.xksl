@@ -9,7 +9,7 @@ namespace Xenko.Rendering.Lights
         {
             float3 Position;
             float Radius;
-        }
+        };
 
 
 
@@ -67,5 +67,5 @@ namespace Xenko.Rendering.Lights
                 FilteredLightIndicesBuffer[FilteredLightIndicesCount] = -1;
             }
         }
-    }
+    };
 }

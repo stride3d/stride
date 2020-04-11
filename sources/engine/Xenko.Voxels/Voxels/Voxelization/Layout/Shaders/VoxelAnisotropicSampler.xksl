@@ -1,0 +1,54 @@
+﻿namespace Xenko.Rendering.Voxels
+{
+    shader VoxelAnisotropicSampler : IVoxelSampler, Texturing
+    {
+        compose VoxelStorageTextureShader storage;
+        cbuffer PerView.Lighting
+        {
+            float maxBrightness;
+        }
+        
+        float4 applyMaxBrightness(float4 col)
+        {
+            return float4(col.rgb * maxBrightness, col.a);
+        }
+        override float4 Sample(float3 position, float3 normal, float diameter)
+        {
+            float4 sum = float4(0,0,0,0);
+
+            sum  = storage.Sample(position, diameter, normal.x > 0 ? 0 : 1) * abs(normal.x);
+            sum += storage.Sample(position, diameter, normal.y > 0 ? 2 : 3) * abs(normal.y);
+            sum += storage.Sample(position, diameter, normal.z > 0 ? 4 : 5) * abs(normal.z);
+
+            return applyMaxBrightness(sum);
+        }
+        override float4 SampleNearestMip(float3 position, float3 normal, float diameter)
+        {
+            float4 sum = float4(0, 0, 0, 0);
+
+            sum  = storage.SampleNearestMip(position, diameter, normal.x > 0 ? 0 : 1) * abs(normal.x);
+            sum += storage.SampleNearestMip(position, diameter, normal.y > 0 ? 2 : 3) * abs(normal.y);
+            sum += storage.SampleNearestMip(position, diameter, normal.z > 0 ? 4 : 5) * abs(normal.z);
+
+            return applyMaxBrightness(sum);
+        }
+        override float4 SampleByMipNearestMip(float3 position, float3 normal, float diameter)
+        {
+            float4 sum = float4(0, 0, 0, 0);
+
+            sum  = storage.SampleByMipNearestMip(position, diameter, normal.x > 0 ? 0 : 1) * abs(normal.x);
+            sum += storage.SampleByMipNearestMip(position, diameter, normal.y > 0 ? 2 : 3) * abs(normal.y);
+            sum += storage.SampleByMipNearestMip(position, diameter, normal.z > 0 ? 4 : 5) * abs(normal.z);
+
+            return applyMaxBrightness(sum);
+        }
+        override float4 SampleRaw(float3 pos, float mipmap, int textureID, int axis)
+        {
+            return storage.SampleRaw(pos, mipmap, textureID, axis);
+        }
+        override float VoxelSize()
+        {
+            return storage.VoxelSize();
+        }
+    };
+}

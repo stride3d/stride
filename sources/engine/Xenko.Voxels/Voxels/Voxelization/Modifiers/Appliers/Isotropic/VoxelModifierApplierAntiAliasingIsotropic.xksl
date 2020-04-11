@@ -1,0 +1,8 @@
+shader VoxelModifierApplierAntiAliasingIsotropic<int DirectionalOpacityAttributeID> : VoxelModifierApplierIsotropic, LocalSamples
+{
+    override void Apply(inout float4 center)
+    {
+        float3 PlaneCoverage = streams.LocalSample[DirectionalOpacityAttributeID].xyz;
+        center *= max(PlaneCoverage.x, max(PlaneCoverage.y, PlaneCoverage.z));
+    }
+};

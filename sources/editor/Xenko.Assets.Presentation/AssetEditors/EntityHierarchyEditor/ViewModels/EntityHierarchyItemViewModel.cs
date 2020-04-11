@@ -634,7 +634,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModel
                     node.Update(folderName);
                     // This is a bit hackish, but the entity should be currently disconnected from any asset (since we're going to add it), so we need to manually create an action item for the folder change.
                     // TODO: update the folder after insert, and subscribe to changes in EntityDesignData.Folder from EntityViewModel to propagate folder change at that level
-                    var actionItem = new ContentValueChangeOperation(node, ContentChangeType.ValueChange, Index.Empty, oldValue, folderName, Asset.Dirtiables);
+                    var actionItem = new ContentValueChangeOperation(node, ContentChangeType.ValueChange, NodeIndex.Empty, oldValue, folderName, Asset.Dirtiables);
                     Asset.ServiceProvider.Get<IUndoRedoService>().PushOperation(actionItem);
                     Asset.AssetHierarchyPropertyGraph.AddPartToAsset(hierarchy.Parts, movedEntity, (Owner as EntityViewModel)?.AssetSideEntity, index++);
                     moved = true;
@@ -657,7 +657,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModel
                     visitor.Visit(asset.PropertyGraph.RootNode);
                     FixupObjectReferences.FixupReferences(asset.Asset, visitor.Result, referenceableObjects, true, (memberPath, _, value) =>
                     {
-                        var graphPath = GraphNodePath.From(asset.PropertyGraph.RootNode, memberPath, out Index i);
+                        var graphPath = GraphNodePath.From(asset.PropertyGraph.RootNode, memberPath, out NodeIndex i);
                         var node = graphPath.GetNode();
                         if (node is IMemberNode memberNode)
                         {

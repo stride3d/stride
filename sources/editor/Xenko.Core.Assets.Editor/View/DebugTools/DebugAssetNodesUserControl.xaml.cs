@@ -74,11 +74,11 @@ namespace Xenko.Core.Assets.Editor.View.DebugTools
         private readonly HashSet<IGraphNode> registeredNodes;
 
         public DebugAssetChildNodeViewModel(IViewModelServiceProvider serviceProvider, IGraphNode node, HashSet<IGraphNode> registeredNodes)
-            : this(serviceProvider, node, Index.Empty, null, LinkRoot, registeredNodes)
+            : this(serviceProvider, node, NodeIndex.Empty, null, LinkRoot, registeredNodes)
         {
         }
 
-        private DebugAssetChildNodeViewModel(IViewModelServiceProvider serviceProvider, IGraphNode node, Index index, ItemId? itemId, string linkFromParent, HashSet<IGraphNode> registeredNodes)
+        private DebugAssetChildNodeViewModel(IViewModelServiceProvider serviceProvider, IGraphNode node, NodeIndex index, ItemId? itemId, string linkFromParent, HashSet<IGraphNode> registeredNodes)
             : base(serviceProvider, node)
         {
             this.registeredNodes = registeredNodes;
@@ -92,7 +92,7 @@ namespace Xenko.Core.Assets.Editor.View.DebugTools
                 Base = new DebugAssetBaseNodeViewModel(serviceProvider, baseNode);
         }
 
-        public Index Index { get; }
+        public NodeIndex Index { get; }
 
         public ItemId? ItemId { get; }
 
@@ -114,7 +114,7 @@ namespace Xenko.Core.Assets.Editor.View.DebugTools
                 {
                     foreach (var child in objNode.Members)
                     {
-                        list.Add(new DebugAssetChildNodeViewModel(ServiceProvider, child, Index.Empty, null, LinkChild, registeredNodes));
+                        list.Add(new DebugAssetChildNodeViewModel(ServiceProvider, child, NodeIndex.Empty, null, LinkChild, registeredNodes));
                     }
                 }
                 if (Node.IsReference)

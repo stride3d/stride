@@ -68,6 +68,22 @@ namespace Xenko.Graphics
             }
         }
 
+        public static bool ConvertPrimitiveRestart(PrimitiveType primitiveType)
+        {
+            switch (primitiveType)
+            {
+                case PrimitiveType.PointList:
+                case PrimitiveType.LineList:
+                case PrimitiveType.TriangleList:
+                case PrimitiveType.LineListWithAdjacency:
+                case PrimitiveType.TriangleListWithAdjacency:
+                case PrimitiveType.PatchList:
+                    return false;
+                default:
+                    return true;
+            }
+        }
+
         public static ShaderStageFlags Convert(ShaderStage stage)
         {
             switch (stage)

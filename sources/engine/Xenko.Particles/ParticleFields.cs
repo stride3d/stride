@@ -13,17 +13,17 @@ namespace Xenko.Particles
         /// <summary>
         /// Particle position in 3D space
         /// </summary>
-        public static readonly ParticleFieldDescription<Vector3> Position       = new ParticleFieldDescription<Vector3>("Position", new Vector3(0, 0, 0));
+        public static readonly ParticleFieldDescription<Vector3> Position       = new ParticleFieldDescription<Vector3>("Position", Vector3.Zero);
 
         /// <summary>
         /// Particle position from the last frame in 3D space, updated every frame if the particle has a Position field
         /// </summary>
-        public static readonly ParticleFieldDescription<Vector3> OldPosition    = new ParticleFieldDescription<Vector3>("OldPosition", new Vector3(0, 0, 0));
+        public static readonly ParticleFieldDescription<Vector3> OldPosition    = new ParticleFieldDescription<Vector3>("OldPosition", Vector3.Zero);
 
         /// <summary>
         /// Particle direction, or offset, in 3D space, calculated from the particle's position
         /// </summary>
-        public static readonly ParticleFieldDescription<Vector3> Direction      = new ParticleFieldDescription<Vector3>("Direction", new Vector3(0, 0, 0));
+        public static readonly ParticleFieldDescription<Vector3> Direction      = new ParticleFieldDescription<Vector3>("Direction", Vector3.Zero);
 
         /// <summary>
         /// Quaternion rotation, for particles which have rotation in 3D
@@ -41,7 +41,7 @@ namespace Xenko.Particles
         /// <summary>
         /// Particle velocity in 3D space
         /// </summary>
-        public static readonly ParticleFieldDescription<Vector3> Velocity       = new ParticleFieldDescription<Vector3>("Velocity", new Vector3(0, 0, 0));
+        public static readonly ParticleFieldDescription<Vector3> Velocity       = new ParticleFieldDescription<Vector3>("Velocity", Vector3.Zero);
         public static readonly ParticleFieldDescription<Vector3> Speed          = Velocity;
 
         /// <summary>

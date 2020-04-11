@@ -20,34 +20,29 @@ namespace Xenko.Core.Assets.Editor.View
     {
         private readonly SessionViewModel session;
 
-        private readonly List<PackageViewModel> selectedPackages = new List<PackageViewModel>();
+        private readonly List<PickablePackageViewModel> selectedPackages = new List<PickablePackageViewModel>();
 
         public PackagePickerWindow(SessionViewModel session)
         {
             this.session = session;
             InitializeComponent();
-            Packages = new List<PackageViewModel>();
+            Packages = new List<PickablePackageViewModel>();
             DataContext = this;
             Width = Math.Min(Width, SystemParameters.WorkArea.Width);
             Height = Math.Min(Height, SystemParameters.WorkArea.Height);
         }
 
-        public List<PackageViewModel> Packages { get; set; }
+        public List<PickablePackageViewModel> Packages { get; set; }
 
         public bool AllowMultiSelection { get; set; }
 
-        public Func<PackageViewModel, bool> Filter { get; set; }
+        public Func<PickablePackageViewModel, bool> Filter { get; set; }
         
-        IReadOnlyCollection<PackageViewModel> IPackagePickerDialog.SelectedPackages => selectedPackages;
+        IReadOnlyCollection<PickablePackageViewModel> IPackagePickerDialog.SelectedPackages => selectedPackages;
 
         public override async Task<DialogResult> ShowModal()
         {
-            foreach (var package in session.LocalPackages)
-            {
-                if (Filter == null || Filter(package))
-                    Packages.Add(package);
-            }
-            foreach (var package in session.StorePackages)
+            foreach (var package in await session.SuggestPackagesToAdd())
             {
                 if (Filter == null || Filter(package))
                     Packages.Add(package);
@@ -59,7 +54,7 @@ namespace Xenko.Core.Assets.Editor.View
 
             if (Result == Presentation.Services.DialogResult.Ok)
             {
-                selectedPackages.AddRange(PackageListBox.SelectedItems.Cast<PackageViewModel>());
+                selectedPackages.AddRange(PackageListBox.SelectedItems.Cast<PickablePackageViewModel>());
             }
             return Result;
         }

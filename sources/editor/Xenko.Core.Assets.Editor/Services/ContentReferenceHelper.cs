@@ -35,6 +35,11 @@ namespace Xenko.Core.Assets.Editor.Services
         {
             if (asset != null)
             {
+                if (UrlReferenceHelper.IsUrlReferenceType(referenceType))
+                {
+                    return AttachedReferenceManager.CreateProxyObject(referenceType, asset.Id, asset.Url);
+                }
+
                 if (AssetRegistry.IsContentType(referenceType))
                 {
                     var assetType = asset.AssetItem.Asset.GetType();

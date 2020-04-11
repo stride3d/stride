@@ -1,0 +1,42 @@
+shader VoxelIsotropicWriter_Float4 : VoxelLayout_Float4
+{
+    stream float4 center;
+    RWTexture3D<float4> DirectOutput;
+    compose VoxelFragmentPacker writer;
+    
+    float maxBrightnessInv;
+
+    compose VoxelModifierApplierIsotropic Modifiers[];
+    override void InitializeDummy()
+    {
+        streams.center = float4(0,0,0,0);
+    }
+    override void InitializeFromStreams(float4 original)
+    {
+        streams.center = original;
+    }
+    override void DirectWrite(uint3 address, uint strideIndex, uint stride)
+    {
+        address.y += strideIndex * stride;
+        float4 tempcenter = streams.center;
+        foreach (var modifier in Modifiers)
+        {
+            modifier.Apply(tempcenter);
+        }
+        streams.center = tempcenter;
+
+        DirectOutput[address] = float4(streams.center.rgb * maxBrightnessInv, streams.center.a);
+    }
+    override void IndirectWrite(RWBuffer<uint> buffer, uint address)
+    {
+        writer.Write(buffer, address, streams.center);
+    }
+    override void InitializeFromBuffer(RWBuffer<uint> buffer, uint address)
+    {
+        writer.Read(buffer, address, streams.center);
+    }
+    override float4 SampleLocal()
+    {
+        return streams.center;
+    }
+};

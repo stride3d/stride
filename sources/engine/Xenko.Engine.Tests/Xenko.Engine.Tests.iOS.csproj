@@ -1,8 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
-  </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--Import Local Pre Settings for the solution being loaded -->
   <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
@@ -25,7 +22,6 @@
     <XenkoOutputFolder>Tests\$(XenkoGraphicsApi)\$(AssemblyName)</XenkoOutputFolder>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>

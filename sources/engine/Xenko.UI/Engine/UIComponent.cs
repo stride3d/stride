@@ -27,7 +27,7 @@ namespace Xenko.Engine
         public UIComponent()
         {
             Resolution = new Vector3(DefaultWidth, DefaultHeight, DefaultDepth);
-            Size = new Vector3(1, 1, 1);
+            Size = Vector3.One;
         }
 
         /// <summary>

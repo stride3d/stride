@@ -45,7 +45,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             // TODO: Cleanup references to this variable
 
             // Remove
-            var itemIndex = new Index(index);
+            var itemIndex = new NodeIndex(index);
             propertiesContent.Remove(property, itemIndex);
         }
 
@@ -64,7 +64,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             // TODO: Cleanup references to this function
 
             // Remove
-            var itemIndex = new Index(index);
+            var itemIndex = new NodeIndex(index);
             methodsContent.Remove(method, itemIndex);
         }
 

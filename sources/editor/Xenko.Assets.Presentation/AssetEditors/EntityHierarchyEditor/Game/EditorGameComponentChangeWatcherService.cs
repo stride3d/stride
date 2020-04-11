@@ -68,9 +68,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
         private void UnregisterComponent(EntityComponent component)
         {
-            if (component != null && registeredListeners.ContainsKey(component))
+            if (component != null && registeredListeners.TryGetValue(component, out var listener))
             {
-                var listener = registeredListeners[component];
                 listener.ValueChanged -= ComponentPropertyChanged;
                 listener.ItemChanged -= ComponentPropertyChanged;
                 listener.Dispose();

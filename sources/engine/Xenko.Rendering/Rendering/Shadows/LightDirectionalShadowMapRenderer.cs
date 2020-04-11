@@ -121,8 +121,7 @@ namespace Xenko.Rendering.Shadows
 
             // TODO: Min and Max distance can be auto-computed from readback from Z buffer
 
-            var viewToWorld = sourceView.View;
-            viewToWorld.Invert();
+            Matrix.Invert(ref sourceView.View, out var viewToWorld);
 
             // Update the frustum infos
             UpdateFrustum(sourceView);
@@ -221,7 +220,7 @@ namespace Xenko.Rendering.Shadows
                     if (shadow.StabilizationMode == LightShadowMapStabilizationMode.ViewSnapping)
                     {
                         // Snap camera to texel units (so that shadow doesn't jitter when light doesn't change direction but camera is moving)
-                        // Technique from ShaderX7 - Practical Cascaded Shadows Maps -  p310-311 
+                        // Technique from ShaderX7 - Practical Cascaded Shadows Maps -  p310-311
                         var shadowMapHalfSize = lightShadowMap.Size * 0.5f;
                         float x = (float)Math.Ceiling(Vector3.Dot(target, upDirection) * shadowMapHalfSize / radius) * radius / shadowMapHalfSize;
                         float y = (float)Math.Ceiling(Vector3.Dot(target, side) * shadowMapHalfSize / radius) * radius / shadowMapHalfSize;
@@ -326,12 +325,10 @@ namespace Xenko.Rendering.Shadows
 
         private void UpdateFrustum(RenderView renderView)
         {
-            var projectionToView = renderView.Projection;
-            projectionToView.Invert();
+            Matrix.Invert(ref renderView.Projection, out var projectionToView);
 
             // Compute frustum-dependent variables (common for all shadow maps)
-            var projectionToWorld = renderView.ViewProjection;
-            projectionToWorld.Invert();
+            Matrix.Invert(ref renderView.ViewProjection, out var projectionToWorld);
 
             // Transform Frustum corners in World Space (8 points) - algorithm is valid only if the view matrix does not do any kind of scale/shear transformation
             for (int i = 0; i < 8; ++i)

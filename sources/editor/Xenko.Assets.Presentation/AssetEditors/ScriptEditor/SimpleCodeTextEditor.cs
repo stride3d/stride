@@ -7,7 +7,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using RoslynPad.Editor;
-using RoslynPad.Roslyn.AutomaticCompletion;
 using RoslynPad.Roslyn.BraceMatching;
 using RoslynPad.Roslyn.Diagnostics;
 using RoslynPad.Roslyn.QuickInfo;
@@ -31,7 +30,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
 
         private BraceMatcherHighlightRenderer braceMatcherHighlighter;
         private IBraceMatchingService braceMatchingService;
-        private IBraceCompletionProvider braceCompletionProvider;
         private CancellationTokenSource braceMatchingCts;
 
         public static readonly StyledProperty<ImageSource> ContextActionsIconProperty = CommonProperty.Register<SimpleCodeTextEditor, ImageSource>(
@@ -70,7 +68,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
             TextArea.TextView.BackgroundRenderers.Add(textMarkerService);
             TextArea.TextView.LineTransformers.Add(textMarkerService);
             TextArea.Caret.PositionChanged += CaretOnPositionChanged;
-            TextArea.TextEntered += OnTextEntered;
 
             // Syntax highlighting
             var classificationHighlightColors = new ClassificationHighlightColorsDark();
@@ -92,7 +89,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
             // Brace matching
             braceMatcherHighlighter = new BraceMatcherHighlightRenderer(TextArea.TextView, classificationHighlightColors);
             braceMatchingService = workspace.Host.GetService<IBraceMatchingService>();
-            braceCompletionProvider = workspace.Host.GetService<IBraceCompletionProvider>();
             AsyncToolTipRequest = ProcessAsyncToolTipRequest;
         }
 
@@ -103,7 +99,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
         {
             // Caret/brace matching
             TextArea.Caret.PositionChanged -= CaretOnPositionChanged;
-            TextArea.TextEntered -= OnTextEntered;
 
             // Syntax highlighting
             TextArea.TextView.LineTransformers.Remove(syntaxHighlightingColorizer);
@@ -240,14 +235,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
             }
 
             return false;
-        }
-
-        private void OnTextEntered(object sender, TextCompositionEventArgs e)
-        {
-            if (e.Text.Length == 1)
-            {
-                braceCompletionProvider.TryComplete(workspace.Host.GetDocument(documentId), CaretOffset);
-            }
         }
 
         private static Color GetDiagnosticsColor(DiagnosticData diagnosticData)

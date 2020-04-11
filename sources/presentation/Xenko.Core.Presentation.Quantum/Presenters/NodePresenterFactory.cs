@@ -87,7 +87,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
             return new MemberNodePresenter(this, propertyProvider, parentPresenter, member);
         }
 
-        protected virtual bool ShouldCreateItemPresenter([NotNull] INodePresenter parent, [NotNull] IObjectNode collectionNode, Index index, [CanBeNull] IPropertyProviderViewModel propertyProvider)
+        protected virtual bool ShouldCreateItemPresenter([NotNull] INodePresenter parent, [NotNull] IObjectNode collectionNode, NodeIndex index, [CanBeNull] IPropertyProviderViewModel propertyProvider)
         {
             if (parent == null) throw new ArgumentNullException(nameof(parent));
             if (collectionNode == null) throw new ArgumentNullException(nameof(collectionNode));
@@ -96,7 +96,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
         }
 
         [NotNull]
-        protected virtual IInitializingNodePresenter CreateItem(IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter containerPresenter, [NotNull] IObjectNode containerNode, Index index)
+        protected virtual IInitializingNodePresenter CreateItem(IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter containerPresenter, [NotNull] IObjectNode containerNode, NodeIndex index)
         {
             if (containerPresenter == null) throw new ArgumentNullException(nameof(containerPresenter));
             if (containerNode == null) throw new ArgumentNullException(nameof(containerNode));

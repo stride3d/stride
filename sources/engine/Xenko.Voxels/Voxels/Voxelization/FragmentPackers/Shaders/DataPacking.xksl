@@ -1,0 +1,96 @@
+﻿shader DataPacking
+{
+    uint FloatToUnsignedFloatWExponent5(float num, int mantissa)
+    {
+        uint fltInt32 = asuint(num);
+        int offset = (23-mantissa);
+        int bitdepth = mantissa+5;
+        int bias = 15;//pow(2,5 - 1) - 1;
+        int biascounter = 0x38000000;//(127-bias)<<23;
+
+        if (((fltInt32 & 0x7f800000) >> offset) <= (biascounter >> offset))
+            return 0;
+
+        uint fltInt16    =  (((fltInt32 & 0x7fffffff) >> offset) - (biascounter >> offset)) & (0xFFFFFFFF >> (32-bitdepth));
+        
+        return fltInt16;
+    }
+    float UnsignedFloatWExponent5ToFloat(uint num, int mantissa)
+    {
+        uint fltInt16 = num;
+        int offset = (23-mantissa);
+        int bitdepth = mantissa+5;
+        int bias = pow(2,5 - 1) - 1;
+        int biascounter = (127-bias)<<23;
+
+        if (num==0)
+            return 0;
+
+        uint fltInt32        = ((fltInt16) << offset) + 0x38000000;
+
+        return asfloat(fltInt32);
+    }
+    uint Float3ToR11G11B10(float3 num)
+    {
+        return FloatToUnsignedFloatWExponent5(num.r, 6) | (FloatToUnsignedFloatWExponent5(num.g, 6)<<11) | (FloatToUnsignedFloatWExponent5(num.b, 5)<<22);
+    }
+    float3 R11G11B10ToFloat3(uint num)
+    {
+        float3 ret;
+        ret.r = UnsignedFloatWExponent5ToFloat(num & (0xFFFFFFFF>>(32-11)),6);
+        ret.g = UnsignedFloatWExponent5ToFloat((num>>11) & (0xFFFFFFFF>>(32-11)),6);
+        ret.b = UnsignedFloatWExponent5ToFloat((num>>22),5);
+        return ret;
+    }
+    uint FloatToHalfFloat(float num)
+    {
+        uint fltInt32 = asuint(num);
+
+        if (((fltInt32 & 0x7f800000) >> 13) <= (0x38000000 >> 13))
+            return 0;
+
+        uint fltInt16    =  (((fltInt32 & 0x7fffffff) >> 13) - (0x38000000 >> 13)) & 0x00007fff;
+        fltInt16    |= ((fltInt32 & 0x80000000) >> 16);
+
+        return fltInt16;
+    }
+    float HalfFloatToFloat(uint num)
+    {
+        if (num==0)
+            return 0;
+
+        uint fltInt16 = num;
+
+        uint fltInt32    =  ((fltInt16 & 0x00008000) << 16);
+        fltInt32        |= ((fltInt16 & 0x00007fff) << 13) + 0x38000000;
+
+        return asfloat(fltInt32);
+    }
+    uint PackFloat2ToHalfFloat2(float2 num)
+    {
+        return FloatToHalfFloat(num.r) | (FloatToHalfFloat(num.g)<<16);
+    }
+    float2 UnpackHalfFloat2ToFloat2(uint num)
+    {
+        return float2(  HalfFloatToFloat(num & 0x0000ffff),
+                        HalfFloatToFloat(num >> 16)         );
+    }
+
+    uint3 UnpackByte3ToUint3(uint num)
+    {
+        return uint3(
+            num & 0x000000ff,
+            (num >> 8) & 0x000000ff,
+            (num >> 16) & 0x000000ff
+        );
+    }
+
+    uint FloatUnormToUint(float num)
+    {
+        return (uint)(num * 4294967295.0);
+    }
+    float UintToFloatUnorm(uint num)
+    {
+        return float(num) / 4294967295.0;
+    }
+};

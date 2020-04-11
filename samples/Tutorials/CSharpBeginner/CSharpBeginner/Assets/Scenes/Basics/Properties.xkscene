@@ -1,0 +1,72 @@
+!SceneAsset
+Id: 0a019d87-d943-4543-9b51-a4016200dff9
+SerializedVersion: {Xenko: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Parent: 3ed06063-5bdf-4f8e-9090-47bcaba297e5:Scenes/MainScene
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 557b8f7d-38c7-426d-8ce1-801203b646dc
+        - ref!! 4c059b4f-75ee-4b2a-ade1-550c457d8778
+        - ref!! 636e4147-1c07-48ee-84a9-8eada7a402ea
+    Parts:
+        -   Entity:
+                Id: 4c059b4f-75ee-4b2a-ade1-550c457d8778
+                Name: PropertiesDemo
+                Components:
+                    f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
+                        Id: ce773a1c-6587-4ed0-8696-e15712862314
+                        Position: {X: 4.669279, Y: 0.0, Z: -0.5959847}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    2152a9e53f38eda816420f34eb39f036: !CSharpBeginner.Code.PropertiesDemo,CSharpBeginner.Game
+                        Id: 02e7fda4-24b3-437d-9641-1fcecdf1c8e4
+                        SomeBoolean: true
+                        SomeFloat: 5.6
+                        SomeInteger: 10
+                        SomeString: Hello world
+                        SomeColor: {R: 255, G: 0, B: 0, A: 255}
+                        SomeVector2: {X: 1.0, Y: 2.0}
+                        SomeVector3: {X: 1.0, Y: 2.0, Z: 3.0}
+                        SomeVector4: {X: 1.0, Y: 2.0, Z: 3.0, W: 4.0}
+                        SomeEntity: ref!! 636e4147-1c07-48ee-84a9-8eada7a402ea
+                        StringList:
+                            d66098c323c01599e678936dc192de01: Xenko
+                            dc275836a690f9a8597d790971eb7cba: C#
+                            15c0b66dc450cc05d7c4b00e0f877a47: Beginner
+                        EntityList:
+                            b6444d59f1bbf1938a7b92fec2d5f622: ref!! 557b8f7d-38c7-426d-8ce1-801203b646dc
+                            f6a55668f0d169b3c12737267c43227b: ref!! 636e4147-1c07-48ee-84a9-8eada7a402ea
+        -   Entity:
+                Id: 557b8f7d-38c7-426d-8ce1-801203b646dc
+                Name: Camera
+                Components:
+                    d5dd94550dc377d8b1703c74aae2cee5: !TransformComponent
+                        Id: 36bd614a-ad82-44aa-9485-544d2460d396
+                        Position: {X: 2.848712, Y: 1.71186864, Z: -0.5935446}
+                        Rotation: {X: -0.09229596, Y: -0.7010574, Z: -0.09229596, W: 0.7010574}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f1cc2f84c67fbd3cc50a22dd0ef605a5: !CameraComponent
+                        Id: f6b0b765-51b7-4e5a-a548-e8579bc60a9d
+                        Enabled: false
+                        Name: 
+                        Projection: Perspective
+                        VerticalFieldOfView: 75.0
+                        Slot: c9cb3666-f711-498c-9878-292e79ed7993
+        -   Entity:
+                Id: 636e4147-1c07-48ee-84a9-8eada7a402ea
+                Name: Ladder
+                Components:
+                    aedd4d34b5c09232532756da2bb7869c: !TransformComponent
+                        Id: 481ba60f-1b8f-4244-a236-65949ada8de0
+                        Position: {X: 4.60558558, Y: 0.967293859, Z: 0.335279882}
+                        Rotation: {X: 0.0, Y: -0.707106769, Z: 0.0, W: 0.707106769}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    58b03148957d6725dc07a6fd45db1f02: !ModelComponent
+                        Id: a7daf452-c9c7-441a-99a2-7e3710448962
+                        Model: f381ed79-1e17-4ddd-b99b-eb700b626f42:Models/Ladder0x2x0handle
+                        Materials: {}

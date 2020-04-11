@@ -38,8 +38,7 @@ namespace Xenko.Rendering
 
         public override unsafe void GenerateSortKey(RenderView renderView, RenderViewStage renderViewStage, SortKey* sortKeys)
         {
-            Matrix viewInverse = renderView.View;
-            viewInverse.Invert();
+            Matrix.Invert(ref renderView.View, out var viewInverse);
             var plane = new Plane(viewInverse.Forward, Vector3.Dot(viewInverse.TranslationVector, viewInverse.Forward)); // TODO: Point-normal-constructor seems wrong. Check.
 
             var renderNodes = renderViewStage.RenderNodes;

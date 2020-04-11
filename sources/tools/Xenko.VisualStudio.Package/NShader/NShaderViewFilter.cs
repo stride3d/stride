@@ -90,7 +90,8 @@ namespace NShader
                     Column = column + 1,
                     Line = line + 1
                 };
-                var result = langService.AnalyzeAndGoToDefinition(text, location);
+                var projectFile = langService.LocateProject(location.File);
+                var result = langService.AnalyzeAndGoToDefinition(projectFile, text, location);
                 langService.OutputAnalysisAndGotoLocation(result, TextView);
             }
             catch (Exception)

@@ -1,11 +1,10 @@
 ﻿<Project>
   <PropertyGroup>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoRuntime>true</XenkoRuntime>
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <XenkoBuildTags>*</XenkoBuildTags>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
@@ -22,7 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Shaders.Parser\Xenko.Shaders.Parser.csproj" />
-    <PackageReference Include="SharpDX.D3DCompiler" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP'" />
+    <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP'" />
   </ItemGroup>
   <ItemGroup Condition="'$(XenkoPlatform)' == 'Windows'">
     <XenkoNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">
@@ -45,5 +44,5 @@
   </ItemGroup>
   <Import Project="..\..\shared\Xenko.Core.ShellHelper\Xenko.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 </Project>

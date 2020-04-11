@@ -68,7 +68,7 @@ namespace Xenko.Core.Quantum
         /// </summary>
         /// <param name="item">The item to insert.</param>
         /// <param name="index">The index of the item to insert.</param>
-        public void Insert(object item, Index index)
+        public void Insert(object item, NodeIndex index)
         {
             var targetNode = GetTargetNode();
             if (targetNode == null)
@@ -81,7 +81,7 @@ namespace Xenko.Core.Quantum
         /// </summary>
         /// <param name="item">The item to remove.</param>
         /// <param name="index">The index of the item to remove.</param>
-        public void Remove(object item, Index index)
+        public void Remove(object item, NodeIndex index)
         {
             var targetNode = GetTargetNode();
             if (targetNode == null)
@@ -180,7 +180,7 @@ namespace Xenko.Core.Quantum
         [CanBeNull]
         protected abstract IObjectNode GetTargetNode();
 
-        protected static bool IsIndexExisting([NotNull] IGraphNode node, Index index)
+        protected static bool IsIndexExisting([NotNull] IGraphNode node, NodeIndex index)
         {
             if (node.IsReference)
             {
@@ -207,7 +207,7 @@ namespace Xenko.Core.Quantum
             return false;
         }
 
-        protected static bool IsIndexValid([NotNull] IGraphNode node, Index index)
+        protected static bool IsIndexValid([NotNull] IGraphNode node, NodeIndex index)
         {
             if (node.IsReference)
             {
@@ -227,7 +227,7 @@ namespace Xenko.Core.Quantum
             return false;
         }
 
-        protected static bool UpdateCollection([NotNull] IObjectNode node, object value, Index index)
+        protected static bool UpdateCollection([NotNull] IObjectNode node, object value, NodeIndex index)
         {
             if (IsIndexExisting(node, index))
             {
@@ -254,7 +254,7 @@ namespace Xenko.Core.Quantum
         {
             if (indexes.Length == 1)
             {
-                var index = new Index(indexes[0]);
+                var index = new NodeIndex(indexes[0]);
                 if (IsIndexExisting(Node, index))
                 {
                     result = new DynamicIndexedNode(Node, index);
@@ -269,7 +269,7 @@ namespace Xenko.Core.Quantum
         {
             if (indexes.Length == 1)
             {
-                var index = new Index(indexes[0]);
+                var index = new NodeIndex(indexes[0]);
                 return UpdateCollection((IObjectNode)Node, value, index);
             }
             return false;
@@ -288,9 +288,9 @@ namespace Xenko.Core.Quantum
 
     internal class DynamicIndexedNode : DynamicNode
     {
-        private readonly Index index;
+        private readonly NodeIndex index;
 
-        internal DynamicIndexedNode(IGraphNode node, Index index)
+        internal DynamicIndexedNode(IGraphNode node, NodeIndex index)
             : base(node)
         {
             this.index = index;
@@ -301,7 +301,7 @@ namespace Xenko.Core.Quantum
             var targetNode = GetTargetNode();
             if (indexes.Length == 1 && targetNode != null)
             {
-                var nextIndex = new Index(indexes[0]);
+                var nextIndex = new NodeIndex(indexes[0]);
                 if (IsIndexExisting(targetNode, nextIndex))
                 {
                     result = new DynamicIndexedNode(targetNode, nextIndex);
@@ -317,7 +317,7 @@ namespace Xenko.Core.Quantum
             var targetNode = GetTargetNode();
             if (indexes.Length == 1 && targetNode != null)
             {
-                var nextIndex = new Index(indexes[0]);
+                var nextIndex = new NodeIndex(indexes[0]);
                 return UpdateCollection((IObjectNode)Node, value, nextIndex);
             }
             return false;

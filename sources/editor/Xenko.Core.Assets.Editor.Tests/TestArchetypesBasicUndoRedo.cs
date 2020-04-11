@@ -36,7 +36,7 @@ namespace Xenko.Core.Assets.Editor.Tests
                     // Don't create action items if the change comes from the Base
                     if (!propertyGraph.UpdatingPropertyFromBase)
                     {
-                        var index = (e as ItemChangeEventArgs)?.Index ?? Index.Empty;
+                        var index = (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty;
                         var overrideChange = new AssetContentValueChangeOperation((IAssetNode)e.Node, e.ChangeType, index, e.OldValue, e.NewValue, e.PreviousOverride, e.NewOverride, e.ItemId, Enumerable.Empty<IDirtiable>());
                         undoRedoService.PushOperation(overrideChange);
                     }

@@ -1,0 +1,7 @@
+!Texture
+Id: 11885e0d-3260-4b62-a0fd-d5f908fa3e8f
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: !file ../../Resources/UI/btn_normal.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

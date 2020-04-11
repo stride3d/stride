@@ -40,38 +40,23 @@ namespace Xenko.Games
     {
         #region Fields
 
-        private readonly GameTime updateTime;
-        private readonly GameTime drawTime;
-        private readonly TimerTick playTimer;
-        private readonly TimerTick updateTimer;
-        private readonly int[] lastUpdateCount;
-        private readonly float updateCountAverageSlowLimit;
         private readonly GamePlatform gamePlatform;
-        private TimeSpan singleFrameUpdateTime;
         private IGraphicsDeviceService graphicsDeviceService;
         protected IGraphicsDeviceManager graphicsDeviceManager;
         private ResumeManager resumeManager;
         private bool isEndRunRequired;
-        private bool isExiting;
         private bool suppressDraw;
         private bool beginDrawOk;
 
-        private TimeSpan totalUpdateTime;
-        private TimeSpan totalDrawTime;
         private readonly TimeSpan maximumElapsedTime;
         private TimeSpan accumulatedElapsedGameTime;
-        private TimeSpan lastFrameElapsedGameTime;
-        private int nextLastUpdateCountIndex;
-        private bool drawRunningSlowly;
         private bool forceElapsedTimeToZero;
 
-        private readonly TimerTick timer;
+        private readonly TimerTick autoTickTimer;
 
         protected readonly ILogger Log;
 
         private bool isMouseVisible;
-
-        internal bool SlowDownDrawCalls;
 
         internal object TickLock = new object();
 
@@ -86,28 +71,18 @@ namespace Xenko.Games
         {
             // Internals
             Log = GlobalLogger.GetLogger(GetType().GetTypeInfo().Name);
-            updateTime = new GameTime();
-            drawTime = new GameTime();
-            playTimer = new TimerTick();
-            updateTimer = new TimerTick();
-            totalUpdateTime = new TimeSpan();
-            timer = new TimerTick();
+            UpdateTime = new GameTime();
+            DrawTime = new GameTime();
+            autoTickTimer = new TimerTick();
             IsFixedTimeStep = false;
             maximumElapsedTime = TimeSpan.FromMilliseconds(500.0);
             TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
-            lastUpdateCount = new int[4];
-            nextLastUpdateCountIndex = 0;
             
             TreatNotFocusedLikeMinimized = true;
-            WindowMinimumUpdateRate      = new ThreadThrottler(TimeSpan.FromSeconds(0d));
-            MinimizedMinimumUpdateRate   = new ThreadThrottler(TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 15)); // by default 15 updates per second while minimized
+            WindowMinimumUpdateRate = new ThreadThrottler(TimeSpan.FromSeconds(0d));
+            MinimizedMinimumUpdateRate = new ThreadThrottler(TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 15)); // by default 15 updates per second while minimized
 
-            // Calculate the updateCountAverageSlowLimit (assuming moving average is >=3 )
-            // Example for a moving average of 4:
-            // updateCountAverageSlowLimit = (2 * 2 + (4 - 2)) / 4 = 1.5f
-            const int BadUpdateCountTime = 2; // number of bad frame (a bad frame is a frame that has at least 2 updates)
-            var maxLastCount = 2 * Math.Min(BadUpdateCountTime, lastUpdateCount.Length);
-            updateCountAverageSlowLimit = (float)(maxLastCount + (lastUpdateCount.Length - maxLastCount)) / lastUpdateCount.Length;
+            isMouseVisible = true;
 
             // Externals
             Services = new ServiceRegistry();
@@ -165,49 +140,26 @@ namespace Xenko.Games
         #region Public Properties
 
         /// <summary>
-        /// Gets the current update time from the start of the game.
+        /// The total and delta time to be used for logic running in the update loop.
         /// </summary>
-        /// <value>The current update time.</value>
-        public GameTime UpdateTime
-        {
-            get
-            {
-                return updateTime;
-            }
-        }
+        public GameTime UpdateTime { get; }
 
         /// <summary>
-        /// Gets the current draw time from the start of the game.
+        /// The total and delta time to be used for logic running in the draw loop.
         /// </summary>
-        /// <value>The current update time.</value>
-        public GameTime DrawTime
-        {
-            get
-            {
-                return drawTime;
-            }
-        }
+        public GameTime DrawTime { get; }
 
         /// <summary>
-        /// Gets the draw interpolation factor, which is (<see cref="UpdateTime"/> - <see cref="DrawTime"/>) / <see cref="TargetElapsedTime"/>.
-        /// If <see cref="IsFixedTimeStep"/> is false, it will be 0 as <see cref="UpdateTime"/> and <see cref="DrawTime"/> will be equal.
+        /// Is used when we draw without running an update beforehand, so when both <see cref="IsFixedTimeStep"/> 
+        /// and <see cref="IsDrawDesynchronized"/> are set.<br/>
+        /// It returns a number between 0 and 1 which represents the current position our DrawTime is in relation 
+        /// to the previous and next step.<br/>
+        /// 0.5 would mean that we are rendering at a time halfway between the previous and next fixed-step.
         /// </summary>
         /// <value>
         /// The draw interpolation factor.
         /// </value>
         public float DrawInterpolationFactor { get; private set; }
-
-        /// <summary>
-        /// Gets the play time, can be changed to match to the time of the current rendering scene.
-        /// </summary>
-        /// <value>The play time.</value>
-        public TimerTick PlayTime
-        {
-            get
-            {
-                return playTimer;
-            }
-        }
 
         /// <summary>
         /// Gets the <see cref="ContentManager"/>.
@@ -235,7 +187,7 @@ namespace Xenko.Games
         public GraphicsContext GraphicsContext { get; private set; }
 
         /// <summary>
-        /// Gets or sets the inactive sleep time.
+        /// Gets or sets the time between each <see cref="Tick"/> when <see cref="IsActive"/> is false.
         /// </summary>
         /// <value>The inactive sleep time.</value>
         public TimeSpan InactiveSleepTime { get; set; }
@@ -247,7 +199,14 @@ namespace Xenko.Games
         public bool IsActive { get; private set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this instance is fixed time step.
+        /// Gets a value indicating whether this instance is exiting.
+        /// </summary>
+        /// <value><c>true</c> if this instance is exiting; otherwise, <c>false</c>.</value>
+        public bool IsExiting{ get; private set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the elapsed time between each update should be constant,
+        /// see <see cref="TargetElapsedTime"/> to configure the duration.
         /// </summary>
         /// <value><c>true</c> if this instance is fixed time step; otherwise, <c>false</c>.</value>
         public bool IsFixedTimeStep { get; set; }
@@ -259,12 +218,10 @@ namespace Xenko.Games
         protected internal bool ForceOneUpdatePerDraw { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether draw can happen as fast as possible, even when <see cref="IsFixedTimeStep"/> is set.
+        /// When <see cref="IsFixedTimeStep"/> is set, is it allowed to render frames between two steps when we have time to do so.
         /// </summary>
-        /// <value><c>true</c> if this instance allows desychronized drawing; otherwise, <c>false</c>.</value>
+        /// <value><c>true</c> if this instance's drawing is desychronized ; otherwise, <c>false</c>.</value>
         public bool IsDrawDesynchronized { get; set; }
-
-        public bool EarlyExit { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the mouse should be visible.
@@ -274,15 +231,15 @@ namespace Xenko.Games
         {
             get
             {
-                return isMouseVisible;
+                return Window?.IsMouseVisible ?? isMouseVisible;
             }
-
             set
             {
                 isMouseVisible = value;
-                if (Window != null)
+                var window = Window;
+                if (window != null)
                 {
-                    Window.IsMouseVisible = value;
+                    window.IsMouseVisible = value;
                 }
             }
         }
@@ -294,7 +251,7 @@ namespace Xenko.Games
         public LaunchParameters LaunchParameters { get; private set; }
 
         /// <summary>
-        /// Gets a value indicating whether is running.
+        /// Gets a value indicating whether this instance is running.
         /// </summary>
         public bool IsRunning { get; private set; }
 
@@ -306,15 +263,16 @@ namespace Xenko.Games
         public ServiceRegistry Services { get; }
 
         /// <summary>
-        /// Gets or sets the target elapsed time, this is the duration of each tick/update 
+        /// Gets or sets the target elapsed time, this is the duration of each tick/update
         /// when <see cref="IsFixedTimeStep"/> is enabled.
         /// </summary>
         /// <value>The target elapsed time.</value>
         public TimeSpan TargetElapsedTime { get; set; }
 
         /// <summary>
-        /// Access to the throttler used to set the minimum time allowed between each updates, 
-        /// set it's <see cref="ThreadThrottler.MinimumElapsedTime"/> to TimeSpan.FromSeconds(1d / yourFramePerSeconds) to control the maximum frames per second.
+        /// Access to the throttler used to set the minimum time allowed between each updates,
+        /// set it's <see cref="ThreadThrottler.MinimumElapsedTime"/> to TimeSpan.FromSeconds(1d / yourFramePerSeconds)
+        /// to control the maximum frames per second.
         /// </summary>
         public ThreadThrottler WindowMinimumUpdateRate { get; }
 
@@ -328,6 +286,11 @@ namespace Xenko.Games
         /// Considers windows without user focus like a minimized window for <see cref="MinimizedMinimumUpdateRate"/> 
         /// </summary>
         public bool TreatNotFocusedLikeMinimized { get; set; }
+
+        /// <summary>
+        /// Should this instance still render/draw when the window is minimized. Updates are still going to run regardless of the value set.
+        /// </summary>
+        public bool DrawWhileMinimized { get; set; }
 
         /// <summary>
         /// Gets the abstract window.
@@ -352,8 +315,6 @@ namespace Xenko.Games
         /// </summary>
         public string FullPlatformName => gamePlatform.FullName;
 
-        public GameState State { get; set; }
-
         #endregion
 
         internal EventHandler<GameUnhandledExceptionEventArgs> UnhandledExceptionInternal
@@ -368,7 +329,7 @@ namespace Xenko.Games
         /// </summary>
         public void Exit()
         {
-            isExiting = true;
+            IsExiting = true;
             gamePlatform.Exit();
         }
 
@@ -378,9 +339,6 @@ namespace Xenko.Games
         public void ResetElapsedTime()
         {
             forceElapsedTimeToZero = true;
-            drawRunningSlowly = false;
-            Array.Clear(lastUpdateCount, 0, lastUpdateCount.Length);
-            nextLastUpdateCountIndex = 0;
         }
 
         internal void InitializeBeforeRun()
@@ -420,20 +378,14 @@ namespace Xenko.Games
 
                     BeginRun();
 
-                    timer.Reset();
-                    updateTime.Reset(totalUpdateTime);
+                    autoTickTimer.Reset();
+                    UpdateTime.Reset(UpdateTime.Total);
 
                     // Run the first time an update
-                    updateTimer.Reset();
                     using (Profiler.Begin(GameProfilingKeys.GameUpdate))
                     {
-                        Update(updateTime);
+                        Update(UpdateTime);
                     }
-                    updateTimer.Tick();
-                    singleFrameUpdateTime += updateTimer.ElapsedTime;
-
-                    // Reset PlayTime
-                    playTimer.Reset();
 
                     // Unbind Graphics Context without presenting
                     EndDraw(false);
@@ -529,16 +481,8 @@ namespace Xenko.Games
         {
             lock (TickLock)
             {
-                TickInternal();
-            }
-        }
-
-        private void TickInternal()
-        {
-            try
-            {
                 // If this instance is existing, then don't make any further update/draw
-                if (isExiting)
+                if (IsExiting)
                 {
                     CheckEndRun();
                     return;
@@ -551,16 +495,21 @@ namespace Xenko.Games
                     return;
                 }
 
+                RawTickProducer();
+            }
+        }
+
+        /// <summary>
+        /// Calls <see cref="RawTick"/> automatically based on this game's setup, override it to implement your own system.
+        /// </summary>
+        protected virtual void RawTickProducer()
+        {
+            try
+            {
                 // Update the timer
-                timer.Tick();
+                autoTickTimer.Tick();
 
-                // Update the playTimer timer
-                playTimer.Tick();
-
-                // Measure updateTimer
-                updateTimer.Reset();
-
-                var elapsedAdjustedTime = timer.ElapsedTimeWithPause;
+                var elapsedAdjustedTime = autoTickTimer.ElapsedTimeWithPause;
 
                 if (forceElapsedTimeToZero)
                 {
@@ -573,10 +522,16 @@ namespace Xenko.Games
                     elapsedAdjustedTime = maximumElapsedTime;
                 }
 
-                bool suppressNextDraw = true;
+                bool drawFrame = true;
                 int updateCount = 1;
                 var singleFrameElapsedTime = elapsedAdjustedTime;
                 var drawLag = 0L;
+
+                if (suppressDraw || Window.IsMinimized && DrawWhileMinimized == false)
+                {
+                    drawFrame = false;
+                    suppressDraw = false;
+                }
 
                 if (IsFixedTimeStep)
                 {
@@ -603,96 +558,32 @@ namespace Xenko.Games
                     if (IsDrawDesynchronized)
                     {
                         drawLag = accumulatedElapsedGameTime.Ticks % TargetElapsedTime.Ticks;
-                        suppressNextDraw = false;
                     }
                     else if (updateCount == 0)
                     {
+                        drawFrame = false;
                         // If there is no need for update, then exit
                         return;
                     }
-
-                    // Calculate a moving average on updateCount
-                    lastUpdateCount[nextLastUpdateCountIndex] = updateCount;
-                    float updateCountMean = 0;
-                    for (int i = 0; i < lastUpdateCount.Length; i++)
-                    {
-                        updateCountMean += lastUpdateCount[i];
-                    }
-
-                    updateCountMean /= lastUpdateCount.Length;
-                    nextLastUpdateCountIndex = (nextLastUpdateCountIndex + 1) % lastUpdateCount.Length;
-
-                    // Test when we are running slowly
-                    drawRunningSlowly = updateCountMean > updateCountAverageSlowLimit;
 
                     // We are going to call Update updateCount times, so we can substract this from accumulated elapsed game time
                     accumulatedElapsedGameTime = new TimeSpan(accumulatedElapsedGameTime.Ticks - (updateCount * TargetElapsedTime.Ticks));
                     singleFrameElapsedTime = TargetElapsedTime;
                 }
-                else
+
+                RawTick(singleFrameElapsedTime, updateCount, drawLag / (float)TargetElapsedTime.Ticks, drawFrame);
+
+                var window = gamePlatform.MainWindow;
+                if (gamePlatform.IsBlockingRun) // throttle fps if Game.Tick() called from internal main loop
                 {
-                    Array.Clear(lastUpdateCount, 0, lastUpdateCount.Length);
-                    nextLastUpdateCountIndex = 0;
-                    drawRunningSlowly = false;
-                }
-
-                bool beginDrawSuccessful = false;
-                try
-                {
-                    beginDrawSuccessful = BeginDraw();
-
-                    // Reset the time of the next frame
-                    for (lastFrameElapsedGameTime = TimeSpan.Zero; updateCount > 0 && !isExiting; updateCount--)
+                    if (window.IsMinimized || window.Visible == false || (window.Focused == false && TreatNotFocusedLikeMinimized))
                     {
-                        updateTime.Update(totalUpdateTime, singleFrameElapsedTime, singleFrameUpdateTime, drawRunningSlowly, true);
-                        try
-                        {
-                            UpdateAndProfile(updateTime);
-                            if (EarlyExit)
-                                return;
-
-                            // If there is no exception, then we can draw the frame
-                            suppressNextDraw &= suppressDraw;
-                            suppressDraw = false;
-                        }
-                        finally
-                        {
-                            lastFrameElapsedGameTime += singleFrameElapsedTime;
-                            totalUpdateTime += singleFrameElapsedTime;
-                        }
+                        MinimizedMinimumUpdateRate.Throttle(out _);
                     }
-
-                    // End measuring update time
-                    updateTimer.Tick();
-                    singleFrameUpdateTime += updateTimer.ElapsedTime;
-
-                    // Update game time just before calling draw
-                    //updateTime.Update(totalUpdateTime, singleFrameElapsedTime, singleFrameUpdateTime, drawRunningSlowly, true);
-
-                    if (!suppressNextDraw)
+                    else
                     {
-                        totalDrawTime = TimeSpan.FromTicks(totalUpdateTime.Ticks + drawLag);
-                        DrawInterpolationFactor = drawLag / (float)TargetElapsedTime.Ticks;
-                        DrawFrame();
+                        WindowMinimumUpdateRate.Throttle(out _);
                     }
-
-                    singleFrameUpdateTime = TimeSpan.Zero;
-                }
-                finally
-                {
-                    if (beginDrawSuccessful)
-                    {
-                        using (Profiler.Begin(GameProfilingKeys.GameEndDraw))
-                        {
-                            EndDraw(true);
-                            if (gamePlatform.MainWindow.IsMinimized || gamePlatform.MainWindow.Visible == false || (gamePlatform.MainWindow.Focused == false && TreatNotFocusedLikeMinimized))
-                                MinimizedMinimumUpdateRate.Throttle(out _);
-                            else
-                                WindowMinimumUpdateRate.Throttle(out _);
-                        }
-                    }
-
-                    CheckEndRun();
                 }
             }
             catch (Exception ex)
@@ -702,9 +593,78 @@ namespace Xenko.Games
             }
         }
 
+        /// <summary>
+        /// Call this method within your overriden <see cref="RawTickProducer"/> to update and draw the game yourself. <br/>
+        /// As this version is manual, there are a lot of functionallity purposefully skipped: <br/>
+        /// clamping elapsed time to a maximum, skipping drawing when the window is minimized, <see cref="ResetElapsedTime"/>, <see cref="SuppressDraw"/>, <see cref="IsFixedTimeStep"/>, <br/>
+        /// <see cref="IsDrawDesynchronized"/>, <see cref="MinimizedMinimumUpdateRate"/> / <see cref="WindowMinimumUpdateRate"/> / <see cref="TreatNotFocusedLikeMinimized"/>.
+        /// </summary>
+        /// <param name="elapsedTimePerUpdate">
+        /// The amount of time passed between each update of the game's system, 
+        /// the total time passed would be <paramref name="elapsedTimePerUpdate"/> * <paramref name="updateCount"/>.
+        /// </param>
+        /// <param name="updateCount">
+        /// The amount of updates that will be executed on the game's systems.
+        /// </param>
+        /// <param name="drawInterpolationFactor">
+        /// See <see cref="DrawInterpolationFactor"/>
+        /// </param>
+        /// <param name="skipDrawFrame">
+        /// Do not draw for this tick.
+        /// </param>
+        protected void RawTick(TimeSpan elapsedTimePerUpdate, int updateCount = 1, float drawInterpolationFactor = 0, bool drawFrame = true)
+        {
+            bool beginDrawSuccessful = false;
+            TimeSpan totalElapsedTime = TimeSpan.Zero;
+            try
+            {
+                beginDrawSuccessful = BeginDraw();
+
+                // Reset the time of the next frame
+                for (int i = 0; i < updateCount && !IsExiting; i++)
+                {
+                    UpdateTime.Update(UpdateTime.Total + elapsedTimePerUpdate, elapsedTimePerUpdate, true);
+                    using (Profiler.Begin(GameProfilingKeys.GameUpdate))
+                    {
+                        Update(UpdateTime);
+                    }
+                    totalElapsedTime += elapsedTimePerUpdate;
+                }
+
+                if (drawFrame && !IsExiting && GameSystems.IsFirstUpdateDone)
+                {
+                    DrawInterpolationFactor = drawInterpolationFactor;
+                    DrawTime.Update(DrawTime.Total + totalElapsedTime, totalElapsedTime, true);
+
+                    var profilingDraw = Profiler.Begin(GameProfilingKeys.GameDrawFPS);
+                    var profiler = Profiler.Begin(GameProfilingKeys.GameDraw);
+
+                    GraphicsDevice.FrameTriangleCount = 0;
+                    GraphicsDevice.FrameDrawCalls = 0;
+
+                    Draw(DrawTime);
+
+                    profiler.End("Triangle count: {0}", GraphicsDevice.FrameTriangleCount);
+                    profilingDraw.End("Frame = {0}, Update = {1:0.000}ms, Draw = {2:0.000}ms, FPS = {3:0.00}", DrawTime.FrameCount, UpdateTime.TimePerFrame.TotalMilliseconds, DrawTime.TimePerFrame.TotalMilliseconds, DrawTime.FramePerSecond);
+                }
+            }
+            finally
+            {
+                if (beginDrawSuccessful)
+                {
+                    using (Profiler.Begin(GameProfilingKeys.GameEndDraw))
+                    {
+                        EndDraw(true);
+                    }
+                }
+
+                CheckEndRun();
+            }
+        }
+
         private void CheckEndRun()
         {
-            if (isExiting && IsRunning && isEndRunRequired)
+            if (IsExiting && IsRunning && isEndRunRequired)
             {
                 EndRun();
                 IsRunning = false;
@@ -716,7 +676,59 @@ namespace Xenko.Games
         #region Methods
 
         /// <summary>
-        /// Starts the drawing of a frame. This method is followed by calls to Draw and EndDraw.
+        /// Called after all components are initialized, before the game loop starts.
+        /// </summary>
+        protected virtual void BeginRun()
+        {
+        }
+
+        /// <summary>Called after the game loop has stopped running before exiting.</summary>
+        protected virtual void EndRun()
+        {
+        }
+
+        protected override void Destroy()
+        {
+            base.Destroy();
+
+            lock (this)
+            {
+                if (Window != null && Window.IsActivated) // force the window to be in an correct state during destroy (Deactivated events are sometimes dropped on windows)
+                {
+                    Window.OnPause();
+                }
+
+                var array = new IGameSystemBase[GameSystems.Count];
+                GameSystems.CopyTo(array, 0);
+                for (int i = 0; i < array.Length; i++)
+                {
+                    var disposable = array[i] as IDisposable;
+                    if (disposable != null)
+                    {
+                        disposable.Dispose();
+                    }
+                }
+
+                // Reset graphics context
+                GraphicsContext = null;
+
+                var disposableGraphicsManager = graphicsDeviceManager as IDisposable;
+                if (disposableGraphicsManager != null)
+                {
+                    disposableGraphicsManager.Dispose();
+                }
+
+                DisposeGraphicsDeviceEvents();
+
+                if (gamePlatform != null)
+                {
+                    gamePlatform.Release();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Starts the drawing of a frame. This method is followed by calls to <see cref="Update"/>, <see cref="Draw"/> and <see cref="EndDraw"/>.
         /// </summary>
         /// <returns><c>true</c> to continue drawing, false to not call <see cref="Draw"/> and <see cref="EndDraw"/></returns>
         protected virtual bool BeginDraw()
@@ -759,51 +771,6 @@ namespace Xenko.Games
         }
 
         /// <summary>
-        /// Called after all components are initialized but before the first update in the game loop.
-        /// </summary>
-        protected virtual void BeginRun()
-        {
-        }
-
-        protected override void Destroy()
-        {
-            base.Destroy();
-
-            lock (this)
-            {
-                if (Window != null && Window.IsActivated) // force the window to be in an correct state during destroy (Deactivated events are sometimes dropped on windows)
-                    Window.OnPause();
-
-                var array = new IGameSystemBase[GameSystems.Count];
-                GameSystems.CopyTo(array, 0);
-                for (int i = 0; i < array.Length; i++)
-                {
-                    var disposable = array[i] as IDisposable;
-                    if (disposable != null)
-                    {
-                        disposable.Dispose();
-                    }
-                }
-
-                // Reset graphics context
-                GraphicsContext = null;
-
-                var disposableGraphicsManager = graphicsDeviceManager as IDisposable;
-                if (disposableGraphicsManager != null)
-                {
-                    disposableGraphicsManager.Dispose();
-                }
-
-                DisposeGraphicsDeviceEvents();
-
-                if (gamePlatform != null)
-                {
-                    gamePlatform.Release();
-                }
-            }
-        }
-
-        /// <summary>
         /// Reference page contains code sample.
         /// </summary>
         /// <param name="gameTime">
@@ -825,7 +792,7 @@ namespace Xenko.Games
             }
         }
 
-        /// <summary>Ends the drawing of a frame. This method is preceeded by calls to Draw and BeginDraw.</summary>
+        /// <summary>Ends the drawing of a frame. This method will always be preceeded by calls to <see cref="BeginDraw"/> and perhaps <see cref="Draw"/> depending on if we had to do so. </summary>
         protected virtual void EndDraw(bool present)
         {
             if (beginDrawOk)
@@ -850,12 +817,18 @@ namespace Xenko.Games
             }
         }
 
-        /// <summary>Called after the game loop has stopped running before exiting.</summary>
-        protected virtual void EndRun()
+        /// <summary>
+        /// Reference page contains links to related conceptual articles.
+        /// </summary>
+        /// <param name="gameTime">
+        /// Time passed since the last call to Update.
+        /// </param>
+        protected virtual void Update(GameTime gameTime)
         {
+            GameSystems.Update(gameTime);
         }
 
-        /// <summary>Called after the Game is created, but before GraphicsDevice is available and before LoadContent(). Reference page contains code sample.</summary>
+        /// <summary>Called after the Game is created, but before <see cref="GraphicsDevice"/> is available and before LoadContent(). Reference page contains code sample.</summary>
         protected virtual void Initialize()
         {
             GameSystems.Initialize();
@@ -864,11 +837,6 @@ namespace Xenko.Games
         internal virtual void LoadContentInternal()
         {
             GameSystems.LoadContent();
-        }
-
-        internal bool IsExiting()
-        {
-            return isExiting;
         }
 
         /// <summary>
@@ -908,7 +876,7 @@ namespace Xenko.Games
 
         private void GamePlatformOnWindowCreated(object sender, EventArgs eventArgs)
         {
-            IsMouseVisible = true;
+            Window.IsMouseVisible = isMouseVisible;
             OnWindowCreated();
         }
 
@@ -928,28 +896,6 @@ namespace Xenko.Games
         protected virtual void UnloadContent()
         {
             GameSystems.UnloadContent();
-        }
-
-        /// <summary>
-        /// Reference page contains links to related conceptual articles.
-        /// </summary>
-        /// <param name="gameTime">
-        /// Time passed since the last call to Update.
-        /// </param>
-        protected virtual void Update(GameTime gameTime)
-        {
-            GameSystems.Update(gameTime);
-        }
-
-        private void UpdateAndProfile(GameTime gameTime)
-        {
-            updateTimer.Reset();
-            using (Profiler.Begin(GameProfilingKeys.GameUpdate))
-            {
-                Update(gameTime);
-            }
-            updateTimer.Tick();
-            singleFrameUpdateTime += updateTimer.ElapsedTime;
         }
 
         private void GamePlatform_Activated(object sender, EventArgs e)
@@ -973,35 +919,6 @@ namespace Xenko.Games
         private void GamePlatform_Exiting(object sender, EventArgs e)
         {
             OnExiting(this, EventArgs.Empty);
-        }
-
-        private void DrawFrame()
-        {
-            if (SlowDownDrawCalls && (UpdateTime.FrameCount & 1) == 1) // skip the draw call about one frame over two.
-                return;
-
-            try
-            {
-                if (!isExiting && GameSystems.IsFirstUpdateDone && !Window.IsMinimized)
-                {
-                    drawTime.Update(totalDrawTime, lastFrameElapsedGameTime, singleFrameUpdateTime, drawRunningSlowly, true);
-
-                    var profilingDraw = Profiler.Begin(GameProfilingKeys.GameDrawFPS);
-                    var profiler = Profiler.Begin(GameProfilingKeys.GameDraw);
-
-                    GraphicsDevice.FrameTriangleCount = 0;
-                    GraphicsDevice.FrameDrawCalls = 0;
-
-                    Draw(drawTime);
-
-                    profiler.End("Triangle count: {0}", GraphicsDevice.FrameTriangleCount);
-                    profilingDraw.End("Frame = {0}, Update = {1:0.000}ms, Draw = {2:0.000}ms, FPS = {3:0.00}", drawTime.FrameCount, updateTime.TimePerFrame.TotalMilliseconds, drawTime.TimePerFrame.TotalMilliseconds, drawTime.FramePerSecond);
-                }
-            }
-            finally
-            {
-                lastFrameElapsedGameTime = TimeSpan.Zero;
-            }
         }
 
         private void SetupGraphicsDeviceEvents()
@@ -1053,9 +970,6 @@ namespace Xenko.Games
 
         private void GraphicsDeviceService_DeviceDisposing(object sender, EventArgs e)
         {
-            // TODO: Unload all assets
-            //Content.UnloadAll();
-
             if (GameSystems.State == GameSystemState.ContentLoaded)
             {
                 UnloadContent();
@@ -1068,16 +982,12 @@ namespace Xenko.Games
 
         private void GraphicsDeviceService_DeviceReset(object sender, EventArgs e)
         {
-            // TODO: ResumeManager?
-            //throw new NotImplementedException();
             resumeManager.OnReload();
             resumeManager.OnRecreate();
         }
 
         private void GraphicsDeviceService_DeviceResetting(object sender, EventArgs e)
         {
-            // TODO: ResumeManager?
-            //throw new NotImplementedException();
             resumeManager.OnDestroyed();
         }
 

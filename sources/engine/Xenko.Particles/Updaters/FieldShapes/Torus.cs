@@ -13,7 +13,7 @@ namespace Xenko.Particles.Updaters.FieldShapes
     {
         public override DebugDrawShape GetDebugDrawShape(out Vector3 pos, out Quaternion rot, out Vector3 scl)
         {
-            pos = new Vector3(0, 0, 0);
+            pos = Vector3.Zero;
             rot = Quaternion.Identity;
             scl = new Vector3(2 * BigRadius, 2 * BigRadius, 2 * BigRadius); // The default torus for drawing has a small radius of 0.5f
             return DebugDrawShape.Torus;

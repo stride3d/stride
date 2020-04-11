@@ -278,8 +278,8 @@ MyObjects:
             var basePropertyNode = context.BaseGraph.RootNode[nameof(Types.MyAsset2.MyStrings)];
             var derivedPropertyNode = context.DerivedGraph.RootNode[nameof(Types.MyAsset2.MyStrings)];
 
-            basePropertyNode.Target.Update("MyBaseString", new Index(1));
-            derivedPropertyNode.Target.Update("MyDerivedString", new Index(0));
+            basePropertyNode.Target.Update("MyBaseString", new NodeIndex(1));
+            derivedPropertyNode.Target.Update("MyDerivedString", new NodeIndex(0));
             SerializationHelper.SerializeAndCompare(context.BaseAssetItem, context.BaseGraph, SimpleCollectionUpdateBaseYaml, false);
             SerializationHelper.SerializeAndCompare(context.DerivedAssetItem, context.DerivedGraph, SimpleCollectionUpdateDerivedYaml, true);
         }
@@ -295,16 +295,16 @@ MyObjects:
 
             Assert.Equal(2, context.BaseAsset.MyStrings.Count);
             Assert.Equal(2, context.DerivedAsset.MyStrings.Count);
-            Assert.Equal("String1", basePropertyNode.Retrieve(new Index(0)));
-            Assert.Equal("MyBaseString", basePropertyNode.Retrieve(new Index(1)));
-            Assert.Equal("MyDerivedString", derivedPropertyNode.Retrieve(new Index(0)));
-            Assert.Equal("MyBaseString", derivedPropertyNode.Retrieve(new Index(1)));
+            Assert.Equal("String1", basePropertyNode.Retrieve(new NodeIndex(0)));
+            Assert.Equal("MyBaseString", basePropertyNode.Retrieve(new NodeIndex(1)));
+            Assert.Equal("MyDerivedString", derivedPropertyNode.Retrieve(new NodeIndex(0)));
+            Assert.Equal("MyBaseString", derivedPropertyNode.Retrieve(new NodeIndex(1)));
             Assert.Equal(OverrideType.Base, basePropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(1)));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(1)));
             Assert.Equal(OverrideType.Base, derivedPropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(1)));
+            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(1)));
             Assert.NotSame(baseIds, derivedIds);
             Assert.Equal(2, baseIds.KeyCount);
             Assert.Equal(0, baseIds.DeletedCount);
@@ -325,8 +325,8 @@ MyObjects:
             var basePropertyNode = context.BaseGraph.RootNode[nameof(Types.MyAsset3.MyDictionary)];
             var derivedPropertyNode = context.DerivedGraph.RootNode[nameof(Types.MyAsset3.MyDictionary)];
 
-            basePropertyNode.Target.Update("MyBaseString", new Index("Key2"));
-            derivedPropertyNode.Target.Update("MyDerivedString", new Index("Key1"));
+            basePropertyNode.Target.Update("MyBaseString", new NodeIndex("Key2"));
+            derivedPropertyNode.Target.Update("MyDerivedString", new NodeIndex("Key1"));
             SerializationHelper.SerializeAndCompare(context.BaseAssetItem, context.BaseGraph, SimpleDictionaryUpdateBaseYaml, false);
             SerializationHelper.SerializeAndCompare(context.DerivedAssetItem, context.DerivedGraph, SimpleDictionaryUpdateDerivedYaml, true);
 
@@ -338,16 +338,16 @@ MyObjects:
 
             Assert.Equal(2, context.BaseAsset.MyDictionary.Count);
             Assert.Equal(2, context.DerivedAsset.MyDictionary.Count);
-            Assert.Equal("String1", basePropertyNode.Retrieve(new Index("Key1")));
-            Assert.Equal("MyBaseString", basePropertyNode.Retrieve(new Index("Key2")));
-            Assert.Equal("MyDerivedString", derivedPropertyNode.Retrieve(new Index("Key1")));
-            Assert.Equal("MyBaseString", derivedPropertyNode.Retrieve(new Index("Key2")));
+            Assert.Equal("String1", basePropertyNode.Retrieve(new NodeIndex("Key1")));
+            Assert.Equal("MyBaseString", basePropertyNode.Retrieve(new NodeIndex("Key2")));
+            Assert.Equal("MyDerivedString", derivedPropertyNode.Retrieve(new NodeIndex("Key1")));
+            Assert.Equal("MyBaseString", derivedPropertyNode.Retrieve(new NodeIndex("Key2")));
             Assert.Equal(OverrideType.Base, basePropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index("Key1")));
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index("Key2")));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex("Key1")));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex("Key2")));
             Assert.Equal(OverrideType.Base, derivedPropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new Index("Key1")));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index("Key2")));
+            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new NodeIndex("Key1")));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex("Key2")));
             Assert.NotSame(baseIds, derivedIds);
             Assert.Equal(2, baseIds.KeyCount);
             Assert.Equal(0, baseIds.DeletedCount);
@@ -368,16 +368,16 @@ MyObjects:
 
             Assert.Equal(2, context.BaseAsset.MyDictionary.Count);
             Assert.Equal(2, context.DerivedAsset.MyDictionary.Count);
-            Assert.Equal("String1", basePropertyNode.Retrieve(new Index("Key1")));
-            Assert.Equal("MyBaseString", basePropertyNode.Retrieve(new Index("Key2")));
-            Assert.Equal("MyDerivedString", derivedPropertyNode.Retrieve(new Index("Key1")));
-            Assert.Equal("MyBaseString", derivedPropertyNode.Retrieve(new Index("Key2")));
+            Assert.Equal("String1", basePropertyNode.Retrieve(new NodeIndex("Key1")));
+            Assert.Equal("MyBaseString", basePropertyNode.Retrieve(new NodeIndex("Key2")));
+            Assert.Equal("MyDerivedString", derivedPropertyNode.Retrieve(new NodeIndex("Key1")));
+            Assert.Equal("MyBaseString", derivedPropertyNode.Retrieve(new NodeIndex("Key2")));
             Assert.Equal(OverrideType.Base, basePropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index("Key1")));
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index("Key2")));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex("Key1")));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex("Key2")));
             Assert.Equal(OverrideType.Base, derivedPropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new Index("Key1")));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index("Key2")));
+            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new NodeIndex("Key1")));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex("Key2")));
             Assert.NotSame(baseIds, derivedIds);
             Assert.Equal(2, baseIds.KeyCount);
             Assert.Equal(0, baseIds.DeletedCount);
@@ -400,8 +400,8 @@ MyObjects:
             var basePropertyNode = context.BaseGraph.RootNode[nameof(Types.MyAsset2.Struct)].Target[nameof(Types.MyAsset2.MyStrings)];
             var derivedPropertyNode = context.DerivedGraph.RootNode[nameof(Types.MyAsset2.Struct)].Target[nameof(Types.MyAsset2.MyStrings)];
 
-            basePropertyNode.Target.Update("MyBaseString", new Index(1));
-            derivedPropertyNode.Target.Update("MyDerivedString", new Index(0));
+            basePropertyNode.Target.Update("MyBaseString", new NodeIndex(1));
+            derivedPropertyNode.Target.Update("MyDerivedString", new NodeIndex(0));
             SerializationHelper.SerializeAndCompare(context.BaseAssetItem, context.BaseGraph, CollectionInStructBaseYaml, false);
             SerializationHelper.SerializeAndCompare(context.DerivedAssetItem, context.DerivedGraph, CollectionInStructDerivedYaml, true);
         }
@@ -417,16 +417,16 @@ MyObjects:
 
             Assert.Equal(2, context.BaseAsset.Struct.MyStrings.Count);
             Assert.Equal(2, context.DerivedAsset.Struct.MyStrings.Count);
-            Assert.Equal("String1", basePropertyNode.Retrieve(new Index(0)));
-            Assert.Equal("MyBaseString", basePropertyNode.Retrieve(new Index(1)));
-            Assert.Equal("MyDerivedString", derivedPropertyNode.Retrieve(new Index(0)));
-            Assert.Equal("MyBaseString", derivedPropertyNode.Retrieve(new Index(1)));
+            Assert.Equal("String1", basePropertyNode.Retrieve(new NodeIndex(0)));
+            Assert.Equal("MyBaseString", basePropertyNode.Retrieve(new NodeIndex(1)));
+            Assert.Equal("MyDerivedString", derivedPropertyNode.Retrieve(new NodeIndex(0)));
+            Assert.Equal("MyBaseString", derivedPropertyNode.Retrieve(new NodeIndex(1)));
             Assert.Equal(OverrideType.Base, basePropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(1)));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(1)));
             Assert.Equal(OverrideType.Base, derivedPropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(1)));
+            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(1)));
             Assert.NotSame(baseIds, derivedIds);
             Assert.Equal(2, baseIds.KeyCount);
             Assert.Equal(0, baseIds.DeletedCount);
@@ -469,22 +469,22 @@ MyObjects:
 
             Assert.Equal(3, context.BaseAsset.MyStrings.Count);
             Assert.Equal(4, context.DerivedAsset.MyStrings.Count);
-            Assert.Equal("String1", basePropertyNode.Retrieve(new Index(0)));
-            Assert.Equal("String2", basePropertyNode.Retrieve(new Index(1)));
-            Assert.Equal("String4", basePropertyNode.Retrieve(new Index(2)));
-            Assert.Equal("String1", derivedPropertyNode.Retrieve(new Index(0)));
-            Assert.Equal("String2", derivedPropertyNode.Retrieve(new Index(1)));
-            Assert.Equal("String4", derivedPropertyNode.Retrieve(new Index(2)));
-            Assert.Equal("String3", derivedPropertyNode.Retrieve(new Index(3)));
+            Assert.Equal("String1", basePropertyNode.Retrieve(new NodeIndex(0)));
+            Assert.Equal("String2", basePropertyNode.Retrieve(new NodeIndex(1)));
+            Assert.Equal("String4", basePropertyNode.Retrieve(new NodeIndex(2)));
+            Assert.Equal("String1", derivedPropertyNode.Retrieve(new NodeIndex(0)));
+            Assert.Equal("String2", derivedPropertyNode.Retrieve(new NodeIndex(1)));
+            Assert.Equal("String4", derivedPropertyNode.Retrieve(new NodeIndex(2)));
+            Assert.Equal("String3", derivedPropertyNode.Retrieve(new NodeIndex(3)));
             Assert.Equal(OverrideType.Base, basePropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(1)));
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(2)));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(1)));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(2)));
             Assert.Equal(OverrideType.Base, derivedPropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(1)));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(2)));
-            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new Index(3)));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(1)));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(2)));
+            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(3)));
             Assert.Equal(3, baseIds.KeyCount);
             Assert.Equal(0, baseIds.DeletedCount);
             Assert.Equal(4, derivedIds.KeyCount);
@@ -506,8 +506,8 @@ MyObjects:
             var derivedPropertyNode = context.DerivedGraph.RootNode[nameof(Types.MyAsset3.MyDictionary)];
 
             // Update derived and check
-            derivedPropertyNode.Target.Add("String3", new Index("Key3"));
-            basePropertyNode.Target.Add("String4", new Index("Key4"));
+            derivedPropertyNode.Target.Add("String3", new NodeIndex("Key3"));
+            basePropertyNode.Target.Add("String4", new NodeIndex("Key4"));
 
             var derivedIds = CollectionItemIdHelper.GetCollectionItemIds(context.DerivedAsset.MyDictionary);
             var expectedBaseYaml = string.Format(SimpleDictionaryAddBaseYaml.Replace("{}", "{{}}"), baseIds["Key4"]);
@@ -529,22 +529,22 @@ MyObjects:
 
             Assert.Equal(3, context.BaseAsset.MyDictionary.Count);
             Assert.Equal(4, context.DerivedAsset.MyDictionary.Count);
-            Assert.Equal("String1", basePropertyNode.Retrieve(new Index("Key1")));
-            Assert.Equal("String2", basePropertyNode.Retrieve(new Index("Key2")));
-            Assert.Equal("String4", basePropertyNode.Retrieve(new Index("Key4")));
-            Assert.Equal("String1", derivedPropertyNode.Retrieve(new Index("Key1")));
-            Assert.Equal("String2", derivedPropertyNode.Retrieve(new Index("Key2")));
-            Assert.Equal("String3", derivedPropertyNode.Retrieve(new Index("Key3")));
-            Assert.Equal("String4", derivedPropertyNode.Retrieve(new Index("Key4")));
+            Assert.Equal("String1", basePropertyNode.Retrieve(new NodeIndex("Key1")));
+            Assert.Equal("String2", basePropertyNode.Retrieve(new NodeIndex("Key2")));
+            Assert.Equal("String4", basePropertyNode.Retrieve(new NodeIndex("Key4")));
+            Assert.Equal("String1", derivedPropertyNode.Retrieve(new NodeIndex("Key1")));
+            Assert.Equal("String2", derivedPropertyNode.Retrieve(new NodeIndex("Key2")));
+            Assert.Equal("String3", derivedPropertyNode.Retrieve(new NodeIndex("Key3")));
+            Assert.Equal("String4", derivedPropertyNode.Retrieve(new NodeIndex("Key4")));
             Assert.Equal(OverrideType.Base, basePropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index("Key1")));
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index("Key2")));
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index("Key4")));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex("Key1")));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex("Key2")));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex("Key4")));
             Assert.Equal(OverrideType.Base, derivedPropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index("Key1")));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index("Key2")));
-            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new Index("Key3")));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index("Key4")));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex("Key1")));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex("Key2")));
+            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new NodeIndex("Key3")));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex("Key4")));
             Assert.NotSame(baseIds, derivedIds);
             Assert.Equal(3, baseIds.KeyCount);
             Assert.Equal(0, baseIds.DeletedCount);
@@ -568,8 +568,8 @@ MyObjects:
             var basePropertyNode = context.BaseGraph.RootNode[nameof(Types.MyAsset4.MyObjects)];
             var derivedPropertyNode = context.DerivedGraph.RootNode[nameof(Types.MyAsset4.MyObjects)];
 
-            basePropertyNode.Target.Update(new Types.SomeObject { Value = "MyBaseString" }, new Index(1));
-            derivedPropertyNode.Target.Update(new Types.SomeObject { Value = "MyDerivedString" }, new Index(0));
+            basePropertyNode.Target.Update(new Types.SomeObject { Value = "MyBaseString" }, new NodeIndex(1));
+            derivedPropertyNode.Target.Update(new Types.SomeObject { Value = "MyDerivedString" }, new NodeIndex(0));
             SerializationHelper.SerializeAndCompare(context.BaseAssetItem, context.BaseGraph, ObjectCollectionUpdateBaseYaml, false);
             SerializationHelper.SerializeAndCompare(context.DerivedAssetItem, context.DerivedGraph, ObjectCollectionUpdateDerivedYaml, true);
         }
@@ -585,20 +585,20 @@ MyObjects:
 
             Assert.Equal(2, context.BaseAsset.MyObjects.Count);
             Assert.Equal(2, context.DerivedAsset.MyObjects.Count);
-            Assert.Equal("String1", ((Types.SomeObject)basePropertyNode.Retrieve(new Index(0))).Value);
-            Assert.Equal("MyBaseString", ((Types.SomeObject)basePropertyNode.Retrieve(new Index(1))).Value);
-            Assert.Equal("MyDerivedString", ((Types.SomeObject)derivedPropertyNode.Retrieve(new Index(0))).Value);
-            Assert.Equal("MyBaseString", ((Types.SomeObject)derivedPropertyNode.Retrieve(new Index(1))).Value);
+            Assert.Equal("String1", ((Types.SomeObject)basePropertyNode.Retrieve(new NodeIndex(0))).Value);
+            Assert.Equal("MyBaseString", ((Types.SomeObject)basePropertyNode.Retrieve(new NodeIndex(1))).Value);
+            Assert.Equal("MyDerivedString", ((Types.SomeObject)derivedPropertyNode.Retrieve(new NodeIndex(0))).Value);
+            Assert.Equal("MyBaseString", ((Types.SomeObject)derivedPropertyNode.Retrieve(new NodeIndex(1))).Value);
             Assert.Equal(OverrideType.Base, basePropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(1)));
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new Index(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new Index(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(1)));
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new NodeIndex(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new NodeIndex(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
             Assert.Equal(OverrideType.Base, derivedPropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(1)));
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new Index(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new Index(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(1)));
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new NodeIndex(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new NodeIndex(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
             Assert.NotSame(baseIds, derivedIds);
             Assert.Equal(2, baseIds.KeyCount);
             Assert.Equal(0, baseIds.DeletedCount);
@@ -641,28 +641,28 @@ MyObjects:
 
             Assert.Equal(3, context.BaseAsset.MyObjects.Count);
             Assert.Equal(4, context.DerivedAsset.MyObjects.Count);
-            Assert.Equal("String1", ((Types.SomeObject)basePropertyNode.Retrieve(new Index(0))).Value);
-            Assert.Equal("String2", ((Types.SomeObject)basePropertyNode.Retrieve(new Index(1))).Value);
-            Assert.Equal("String4", ((Types.SomeObject)basePropertyNode.Retrieve(new Index(2))).Value);
-            Assert.Equal("String1", ((Types.SomeObject)derivedPropertyNode.Retrieve(new Index(0))).Value);
-            Assert.Equal("String2", ((Types.SomeObject)derivedPropertyNode.Retrieve(new Index(1))).Value);
-            Assert.Equal("String4", ((Types.SomeObject)derivedPropertyNode.Retrieve(new Index(2))).Value);
-            Assert.Equal("String3", ((Types.SomeObject)derivedPropertyNode.Retrieve(new Index(3))).Value);
+            Assert.Equal("String1", ((Types.SomeObject)basePropertyNode.Retrieve(new NodeIndex(0))).Value);
+            Assert.Equal("String2", ((Types.SomeObject)basePropertyNode.Retrieve(new NodeIndex(1))).Value);
+            Assert.Equal("String4", ((Types.SomeObject)basePropertyNode.Retrieve(new NodeIndex(2))).Value);
+            Assert.Equal("String1", ((Types.SomeObject)derivedPropertyNode.Retrieve(new NodeIndex(0))).Value);
+            Assert.Equal("String2", ((Types.SomeObject)derivedPropertyNode.Retrieve(new NodeIndex(1))).Value);
+            Assert.Equal("String4", ((Types.SomeObject)derivedPropertyNode.Retrieve(new NodeIndex(2))).Value);
+            Assert.Equal("String3", ((Types.SomeObject)derivedPropertyNode.Retrieve(new NodeIndex(3))).Value);
             Assert.Equal(OverrideType.Base, basePropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(1)));
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new Index(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new Index(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new Index(2)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(1)));
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new NodeIndex(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new NodeIndex(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new NodeIndex(2)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
             Assert.Equal(OverrideType.Base, derivedPropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(1)));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(2)));
-            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new Index(3)));
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new Index(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new Index(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new Index(2)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new Index(3)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(1)));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(2)));
+            Assert.Equal(OverrideType.New, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(3)));
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new NodeIndex(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new NodeIndex(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new NodeIndex(2)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new NodeIndex(3)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
             Assert.NotSame(baseIds, derivedIds);
             Assert.Equal(3, baseIds.KeyCount);
             Assert.Equal(0, baseIds.DeletedCount);
@@ -684,8 +684,8 @@ MyObjects:
             var basePropertyNode = context.BaseGraph.RootNode[nameof(Types.MyAsset4.MyObjects)];
             var derivedPropertyNode = context.DerivedGraph.RootNode[nameof(Types.MyAsset4.MyObjects)];
 
-            basePropertyNode.Target.IndexedTarget(new Index(1))[nameof(Types.SomeObject.Value)].Update("MyBaseString");
-            derivedPropertyNode.Target.IndexedTarget(new Index(0))[nameof(Types.SomeObject.Value)].Update("MyDerivedString");
+            basePropertyNode.Target.IndexedTarget(new NodeIndex(1))[nameof(Types.SomeObject.Value)].Update("MyBaseString");
+            derivedPropertyNode.Target.IndexedTarget(new NodeIndex(0))[nameof(Types.SomeObject.Value)].Update("MyDerivedString");
             SerializationHelper.SerializeAndCompare(context.BaseAssetItem, context.BaseGraph, ObjectCollectionPropertyUpdateBaseYaml, false);
             SerializationHelper.SerializeAndCompare(context.DerivedAssetItem, context.DerivedGraph, ObjectCollectionPropertyUpdateDerivedYaml, true);
         }
@@ -701,20 +701,20 @@ MyObjects:
 
             Assert.Equal(2, context.BaseAsset.MyObjects.Count);
             Assert.Equal(2, context.DerivedAsset.MyObjects.Count);
-            Assert.Equal("String1", ((Types.SomeObject)basePropertyNode.Retrieve(new Index(0))).Value);
-            Assert.Equal("MyBaseString", ((Types.SomeObject)basePropertyNode.Retrieve(new Index(1))).Value);
-            Assert.Equal("MyDerivedString", ((Types.SomeObject)derivedPropertyNode.Retrieve(new Index(0))).Value);
-            Assert.Equal("MyBaseString", ((Types.SomeObject)derivedPropertyNode.Retrieve(new Index(1))).Value);
+            Assert.Equal("String1", ((Types.SomeObject)basePropertyNode.Retrieve(new NodeIndex(0))).Value);
+            Assert.Equal("MyBaseString", ((Types.SomeObject)basePropertyNode.Retrieve(new NodeIndex(1))).Value);
+            Assert.Equal("MyDerivedString", ((Types.SomeObject)derivedPropertyNode.Retrieve(new NodeIndex(0))).Value);
+            Assert.Equal("MyBaseString", ((Types.SomeObject)derivedPropertyNode.Retrieve(new NodeIndex(1))).Value);
             Assert.Equal(OverrideType.Base, basePropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(1)));
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new Index(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new Index(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(1)));
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new NodeIndex(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new NodeIndex(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
             Assert.Equal(OverrideType.Base, derivedPropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(1)));
-            Assert.Equal(OverrideType.New, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new Index(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new Index(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(1)));
+            Assert.Equal(OverrideType.New, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new NodeIndex(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new NodeIndex(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
             Assert.NotSame(baseIds, derivedIds);
             Assert.Equal(2, baseIds.KeyCount);
             Assert.Equal(0, baseIds.DeletedCount);
@@ -732,12 +732,12 @@ MyObjects:
             var basePropertyNode = context.BaseGraph.RootNode[nameof(Types.MyAsset8.MyObjects)];
             var derivedPropertyNode = context.DerivedGraph.RootNode[nameof(Types.MyAsset8.MyObjects)];
             // Manually link base of non-identifiable items - this simulates a scenario similar to prefabs
-            context.DerivedGraph.RegisterCustomBaseLink(derivedPropertyNode.Target.IndexedTarget(new Index(0)), basePropertyNode.Target.IndexedTarget(new Index(0)));
-            context.DerivedGraph.RegisterCustomBaseLink(derivedPropertyNode.Target.IndexedTarget(new Index(1)), basePropertyNode.Target.IndexedTarget(new Index(1)));
+            context.DerivedGraph.RegisterCustomBaseLink(derivedPropertyNode.Target.IndexedTarget(new NodeIndex(0)), basePropertyNode.Target.IndexedTarget(new NodeIndex(0)));
+            context.DerivedGraph.RegisterCustomBaseLink(derivedPropertyNode.Target.IndexedTarget(new NodeIndex(1)), basePropertyNode.Target.IndexedTarget(new NodeIndex(1)));
             context.DerivedGraph.RefreshBase();
 
-            basePropertyNode.Target.IndexedTarget(new Index(1))[nameof(Types.SomeObject.Value)].Update("MyBaseString");
-            derivedPropertyNode.Target.IndexedTarget(new Index(0))[nameof(Types.SomeObject.Value)].Update("MyDerivedString");
+            basePropertyNode.Target.IndexedTarget(new NodeIndex(1))[nameof(Types.SomeObject.Value)].Update("MyBaseString");
+            derivedPropertyNode.Target.IndexedTarget(new NodeIndex(0))[nameof(Types.SomeObject.Value)].Update("MyDerivedString");
             SerializationHelper.SerializeAndCompare(context.BaseAssetItem, context.BaseGraph, NonIdentifiableObjectCollectionPropertyUpdateBaseYaml, false);
             SerializationHelper.SerializeAndCompare(context.DerivedAssetItem, context.DerivedGraph, NonIdentifiableObjectCollectionPropertyUpdateDerivedYaml, true);
         }
@@ -749,26 +749,26 @@ MyObjects:
             var basePropertyNode = context.BaseGraph.RootNode[nameof(Types.MyAsset8.MyObjects)];
             var derivedPropertyNode = context.DerivedGraph.RootNode[nameof(Types.MyAsset8.MyObjects)];
             // Manually link base of non-identifiable items - this simulates a scenario similar to prefabs
-            context.DerivedGraph.RegisterCustomBaseLink(derivedPropertyNode.Target.IndexedTarget(new Index(0)), basePropertyNode.Target.IndexedTarget(new Index(0)));
-            context.DerivedGraph.RegisterCustomBaseLink(derivedPropertyNode.Target.IndexedTarget(new Index(1)), basePropertyNode.Target.IndexedTarget(new Index(1)));
+            context.DerivedGraph.RegisterCustomBaseLink(derivedPropertyNode.Target.IndexedTarget(new NodeIndex(0)), basePropertyNode.Target.IndexedTarget(new NodeIndex(0)));
+            context.DerivedGraph.RegisterCustomBaseLink(derivedPropertyNode.Target.IndexedTarget(new NodeIndex(1)), basePropertyNode.Target.IndexedTarget(new NodeIndex(1)));
             context.DerivedGraph.RefreshBase();
 
             Assert.Equal(2, context.BaseAsset.MyObjects.Count);
             Assert.Equal(2, context.DerivedAsset.MyObjects.Count);
-            Assert.Equal("String1", ((Types.SomeObject)basePropertyNode.Retrieve(new Index(0))).Value);
-            Assert.Equal("MyBaseString", ((Types.SomeObject)basePropertyNode.Retrieve(new Index(1))).Value);
-            Assert.Equal("MyDerivedString", ((Types.SomeObject)derivedPropertyNode.Retrieve(new Index(0))).Value);
-            Assert.Equal("MyBaseString", ((Types.SomeObject)derivedPropertyNode.Retrieve(new Index(1))).Value);
+            Assert.Equal("String1", ((Types.SomeObject)basePropertyNode.Retrieve(new NodeIndex(0))).Value);
+            Assert.Equal("MyBaseString", ((Types.SomeObject)basePropertyNode.Retrieve(new NodeIndex(1))).Value);
+            Assert.Equal("MyDerivedString", ((Types.SomeObject)derivedPropertyNode.Retrieve(new NodeIndex(0))).Value);
+            Assert.Equal("MyBaseString", ((Types.SomeObject)derivedPropertyNode.Retrieve(new NodeIndex(1))).Value);
             Assert.Equal(OverrideType.Base, basePropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new Index(1)));
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new Index(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new Index(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, basePropertyNode.Target.GetItemOverride(new NodeIndex(1)));
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new NodeIndex(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)basePropertyNode.Target.ItemReferences[new NodeIndex(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
             Assert.Equal(OverrideType.Base, derivedPropertyNode.GetContentOverride());
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(0)));
-            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new Index(1)));
-            Assert.Equal(OverrideType.New, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new Index(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
-            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new Index(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(0)));
+            Assert.Equal(OverrideType.Base, derivedPropertyNode.Target.GetItemOverride(new NodeIndex(1)));
+            Assert.Equal(OverrideType.New, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new NodeIndex(0)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
+            Assert.Equal(OverrideType.Base, ((AssetMemberNode)derivedPropertyNode.Target.ItemReferences[new NodeIndex(1)].TargetNode[nameof(Types.SomeObject.Value)]).GetContentOverride());
         }
 
         [Fact]
@@ -819,7 +819,7 @@ Value*: OverriddenString
 ";
             var asset = new Types.MyAsset4 { MyObjects = { new Types.SomeObject { Value = "String1" }, new Types.SomeObject { Value = "String2" } } };
             var context = DeriveAssetTest<Types.MyAsset4, Types.MyAssetBasePropertyGraph>.DeriveAsset(asset);
-            var derivedPropertyNode = (AssetObjectNode)context.DerivedGraph.RootNode[nameof(Types.MyAsset4.MyObjects)].Target.IndexedTarget(new Index(1));
+            var derivedPropertyNode = (AssetObjectNode)context.DerivedGraph.RootNode[nameof(Types.MyAsset4.MyObjects)].Target.IndexedTarget(new NodeIndex(1));
             derivedPropertyNode[nameof(Types.SomeObject.Value)].Update("OverriddenString");
             var expectedPath = new YamlAssetPath();
             expectedPath.PushMember(nameof(Types.SomeObject.Value));

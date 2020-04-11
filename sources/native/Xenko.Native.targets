@@ -12,8 +12,6 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <XenkoNativeAndroidGCC>-nostdlib -ldl -lstdc++ -lc -lm</XenkoNativeAndroidGCC>
-    
     <!--Use "-v" to debug the tooling -->
     <XenkoNativeToolingDebug></XenkoNativeToolingDebug> 
     
@@ -133,7 +131,7 @@
     <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\x64\%(XenkoNativeCFile.Filename).obj&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot;  -fms-extensions -DWINDOWS_DESKTOP -target x86_64-pc-windows-msvc" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)\WindowsProjects\WindowsDesktop\WindowsDesktop.vcxproj" Targets="Build" Properties="XenkoNativeOutputName=$(XenkoNativeOutputName);XenkoNativeOutputDir=$(XenkoNativeOutputPath)x64;XenkoDependenciesDir=$(XenkoDependenciesDir);XenkoNativePathLibs=libNativePath.lib $(XenkoNativePathLibs);XenkoNativeProjectFolder=$(ProjectDir);XenkoNativeProjectObjFolder=$(OutputObjectPath)\x64;Configuration=$(Configuration);Platform=x64" StopOnFirstFailure="true" />
 
-    <SignFile Condition="'$(XenkoSignTool)' == 'true'" CertificateThumbprint="6969a724bf72c0b69e31c44bdd22dc11e5272bba" SigningTarget="%(XenkoNativeOutput.Identity)" TimestampUrl="http://timestamp.globalsign.com/scripts/timstamp.dll" />
+    <SignFile Condition="'$(XenkoSign)' == 'true'" CertificateThumbprint="edad2b260091eacffbc42859d0339c74b263bfec" SigningTarget="%(XenkoNativeOutput.Identity)" TimestampUrl="http://timestamp.globalsign.com/scripts/timstamp.dll" />
 	
     <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
     <Delete Files="@(IntermediateAssembly)"/>
@@ -196,39 +194,42 @@
     <Delete Files="@(XenkoNativePathLibs2->'$(XenkoNativeOutputPath)\%(Filename).a', ' ')" />
   </Target>
 
-  <!-- RELEASE.TXT does not seem to exist anymore
-  <PropertyGroup Condition="Exists('$(AndroidNdkDirectory)\RELEASE.TXT')">
-    <XenkoNativeAndroidIs64Bit Condition="'$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText(`$(AndroidNdkDirectory)\RELEASE.TXT`)), `r\d\d\w?\s\(64-bit\)`).Success)' == 'true'">-x86_64</XenkoNativeAndroidIs64Bit>
-    <XenkoNativeAndroidIs64Bit Condition="'$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText(`$(AndroidNdkDirectory)\RELEASE.TXT`)), `r\d\d\w?\s\(64-bit\)`).Success)' == 'false'"></XenkoNativeAndroidIs64Bit>
-  </PropertyGroup>
-  -->
-  
-  <PropertyGroup>
-    <XenkoNativeAndroidIs64Bit>-x86_64</XenkoNativeAndroidIs64Bit>
-  </PropertyGroup>
-  
   <Target Name="CompileNativeClang_Android" Inputs="@(XenkoNativeCFile);@(XenkoNativeHFile)" Outputs="@(XenkoNativeOutput)" Condition="'$(XenkoPlatform)' == 'Android' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_XenkoRegisterNativeOutputs">
     <Error Text="The AndroidNdkDirectory environment variable is not set!" Condition="'$(AndroidNdkDirectory)' == ''" />
+    <PropertyGroup>
+      <XenkoNativeAndroidClang>-lc++abi -lm --sysroot=&quot;$(AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows-x86_64\sysroot&quot;</XenkoNativeAndroidClang>
+
+      <_XenkoNativeAndroidNdkSourceProperties Condition="Exists('$(AndroidNdkDirectory)\source.properties')">$([System.IO.File]::ReadAllText('$(AndroidNdkDirectory)\source.properties'))</_XenkoNativeAndroidNdkSourceProperties>
+      <XenkoNativeAndroidNdkVersion>$([System.Text.RegularExpressions.Regex]::Match($(_XenkoNativeAndroidNdkSourceProperties), `Pkg\.Revision = (.*)`).Groups[1].Value)</XenkoNativeAndroidNdkVersion>
+      <XenkoNativeAndroidNdkVersionMinimum>19.0</XenkoNativeAndroidNdkVersionMinimum>
+
+      <!-- Android NDK version is equivalent to minSdkVersion; note: 64 bits exist only from platform version 21 -->
+      <XenkoNativeAndroidPlatformVersion32>16</XenkoNativeAndroidPlatformVersion32>
+      <XenkoNativeAndroidPlatformVersion64>21</XenkoNativeAndroidPlatformVersion64>
+    </PropertyGroup>
+
+    <Error Condition="'$(XenkoNativeAndroidNdkVersion)' == ''" Text="Could not figure out Android NDK version from $(AndroidNdkDirectory). There should be a source.properties file with Pkg.Revision properly set." />
+    <Error Condition="$([System.Version]::Parse('$(XenkoNativeAndroidNdkVersionMinimum)').CompareTo($([System.Version]::Parse('$(XenkoNativeAndroidNdkVersion)')))) >= 0" Text="The Android NDK version is too old. Found: $(XenkoNativeAndroidNdkVersion), Expected: $(XenkoNativeAndroidNdkVersionMinimum), Location: $(AndroidNdkDirectory)" />
 
     <MakeDir Directories="$(XenkoNativeOutputPath)\armeabi-v7a"/>
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target armv7-none-android" />
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target armv7-none-android" />
-    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\arm-linux-androideabi-4.9\prebuilt\windows$(XenkoNativeAndroidIs64Bit)\bin\arm-linux-androideabi-gcc.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\armeabi-v7a\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_armeabi-v7a.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-9\arch-arm&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\armeabi-v7a\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\armeabi-v7a\libNativePath.a&quot; $(XenkoNativeAndroidGCC)" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=armv7-linux-android$(XenkoNativeAndroidPlatformVersion32)" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=armv7-linux-android$(XenkoNativeAndroidPlatformVersion32)" />
+    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\armeabi-v7a\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_armeabi-v7a.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-9\arch-arm&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\armeabi-v7a\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\armeabi-v7a\libNativePath.a&quot; $(XenkoNativeAndroidClang) --target=armv7-linux-android$(XenkoNativeAndroidPlatformVersion32)" />
 
     <MakeDir Directories="$(XenkoNativeOutputPath)\arm64-v8a"/>
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target aarch64-none-android" />
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target aarch64-none-android" />
-    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\aarch64-linux-android-4.9\prebuilt\windows$(XenkoNativeAndroidIs64Bit)\bin\aarch64-linux-android-gcc.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\arm64-v8a\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_arm64-v8a.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-21\arch-arm64&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\arm64-v8a\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\arm64-v8a\libNativePath.a&quot; $(XenkoNativeAndroidGCC)" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=aarch64-linux-android$(XenkoNativeAndroidPlatformVersion64)" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=aarch64-linux-android$(XenkoNativeAndroidPlatformVersion64)" />
+    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\arm64-v8a\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_arm64-v8a.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-21\arch-arm64&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\arm64-v8a\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\arm64-v8a\libNativePath.a&quot; $(XenkoNativeAndroidClang) --target=aarch64-linux-android$(XenkoNativeAndroidPlatformVersion64)" />
 
     <MakeDir Directories="$(XenkoNativeOutputPath)\x86"/>
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target i386-none-android" />
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target i386-none-android" />
-    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\x86-4.9\prebuilt\windows$(XenkoNativeAndroidIs64Bit)\bin\i686-linux-android-gcc.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\x86\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-9\arch-x86&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\x86\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\x86\libNativePath.a&quot; $(XenkoNativeAndroidGCC)" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=i386-linux-android$(XenkoNativeAndroidPlatformVersion32)" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=i386-linux-android$(XenkoNativeAndroidPlatformVersion32)" />
+    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\x86\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-9\arch-x86&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\x86\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\x86\libNativePath.a&quot; $(XenkoNativeAndroidClang) --target=i386-linux-android$(XenkoNativeAndroidPlatformVersion32)" />
     
     <MakeDir Directories="$(XenkoNativeOutputPath)\x86_64"/>
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target x86_64-none-android" />
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target x86_64-none-android" />
-    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\x86_64-4.9\prebuilt\windows$(XenkoNativeAndroidIs64Bit)\bin\x86_64-linux-android-gcc.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\x86_64\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86_64.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-21\arch-x86_64&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\x86_64\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\x86_64\libNativePath.a&quot; $(XenkoNativeAndroidGCC)" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=x86_64-linux-android$(XenkoNativeAndroidPlatformVersion64)" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -fPIC --target=x86_64-linux-android$(XenkoNativeAndroidPlatformVersion64)" />
+    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\llvm\prebuilt\windows-x86_64\bin\clang.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\x86_64\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86_64.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-21\arch-x86_64&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\x86_64\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\x86_64\libNativePath.a&quot; $(XenkoNativeAndroidClang) --target=x86_64-linux-android$(XenkoNativeAndroidPlatformVersion64)" />
 
     <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
     <Delete Files="@(IntermediateAssembly)"/>

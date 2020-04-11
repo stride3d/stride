@@ -13,104 +13,13 @@
     <XenkoBuildTags>*</XenkoBuildTags>
     <XenkoPackAssets>true</XenkoPackAssets>
   </PropertyGroup>
-  <Choose>
-    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-      <ItemGroup Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-      </ItemGroup>
-    </When>
-  </Choose>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Update="Shaders\ComputeColorWhite.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>ComputeColorWhite.xksl</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\ParticleBaseEffect.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>ParticleBaseEffect.xkfx</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\ParticleColor.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>ParticleColor.xksl</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\ParticleColorStream.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>ParticleColorStream.xksl</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\ParticleComputeColorShader.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>ParticleComputeColorShader.xksl</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\ParticleEffect.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>ParticleEffect.xkfx</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\ParticleUtilities.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>ParticleUtilities.xksl</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\ParticleBase.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>ParticleBase.xksl</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shaders\ComputeColorWhite.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>ComputeColorWhite.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\ParticleBase.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>ParticleBase.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\ParticleBaseEffect.xkfx">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>ParticleBaseEffect.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\ParticleColor.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>ParticleColor.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\ParticleColorStream.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>ParticleColorStream.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\ParticleComputeColorShader.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>ParticleComputeColorShader.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\ParticleEffect.xkfx">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>ParticleEffect.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\ParticleUtilities.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>ParticleUtilities.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Docs\VertexAttributes.txt" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

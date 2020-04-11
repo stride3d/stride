@@ -42,7 +42,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewMo
             var path = new GraphNodePath(Editor.Session.AssetNodeContainer.GetNode(Editor.Asset.Asset));
             path.PushMember(nameof(GraphicsCompositorAsset.SharedRenderers));
             path.PushTarget();
-            path.PushIndex(new Index(Editor.Asset.Asset.SharedRenderers.IndexOf(sharedRenderer)));
+            path.PushIndex(new NodeIndex(Editor.Asset.Asset.SharedRenderers.IndexOf(sharedRenderer)));
             return path;
         }
     }

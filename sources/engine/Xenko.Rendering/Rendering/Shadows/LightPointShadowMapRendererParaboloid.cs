@@ -164,7 +164,7 @@ namespace Xenko.Rendering.Shadows
             // Apply light position
             view = Matrix.Translation(-shadowMapTexture.RenderLight.Position);
 
-            // Apply mapping plane rotatation
+            // Apply mapping plane rotation
             view *= pointShadowMapTexture.ForwardMatrix;
 
             if (index == 0)

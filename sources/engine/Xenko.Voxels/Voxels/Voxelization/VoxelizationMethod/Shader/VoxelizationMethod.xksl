@@ -1,0 +1,17 @@
+shader VoxelizationMethod : VoxelPositionStream, PositionStream4, ShaderBaseStream
+{
+    void PrepareFragment(){ }
+    void PrepareVertex(){ }
+
+    void InitializeFromTriangle(triangle Input input[3]) { }
+
+    void Append(inout TriangleStream<Output> triangleStream)
+    {
+        streams.ShadingPosition.z = streams.ShadingPosition.z * 0.5 + 0.5;
+        triangleStream.Append(streams);
+    }
+    void RestartStrip(inout TriangleStream<Output> triangleStream)
+    {
+        triangleStream.RestartStrip();
+    }
+};

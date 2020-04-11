@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoRuntime>true</XenkoRuntime>
   </PropertyGroup>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -15,7 +14,6 @@
     <XenkoBuildTags>*</XenkoBuildTags>
     <XenkoBulletPlatform></XenkoBulletPlatform> <!--Empty by default, only iOS needs special care-->
     <XenkoBulletPlatform Condition="'$(XenkoPlatform)' == 'iOS'">iOS</XenkoBulletPlatform>
-    <XenkoBulletSignedDir Condition="'$(XenkoSign)' == 'true'">Signed\</XenkoBulletSignedDir>
     <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>
   <ItemGroup>
@@ -26,7 +24,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </XenkoContent>
     <Reference Include="BulletSharp">
-      <HintPath>..\..\..\deps\BulletPhysics\$(XenkoBulletPlatform)\$(XenkoBulletSignedDir)BulletSharp.NetStandard.dll</HintPath>
+      <HintPath>..\..\..\deps\BulletPhysics\$(XenkoBulletPlatform)\BulletSharp.NetStandard.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -38,7 +36,7 @@
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>

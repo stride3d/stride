@@ -26,4 +26,13 @@
       <Compile Include="@(XenkoSharedAssemblyFile->'$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.NuGet.cs')" />
     </ItemGroup>
   </Target>
+
+  <!-- Make sure xksl/xkfx are properly setup with code generator; also mark generated code file as dependent -->
+  <ItemGroup>
+    <Compile Update="**\*.xksl.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.xksl" Generator="XenkoShaderKeyGenerator" />
+    <Compile Update="**\*.xkfx.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.xkfx" Generator="XenkoEffectCodeGenerator" />
+  </ItemGroup>
+
 </Project>

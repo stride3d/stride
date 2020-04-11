@@ -92,6 +92,7 @@ namespace Xenko.Games
             gameForm.MouseLeave += GameWindowForm_MouseLeave;
 
             gameForm.Resize += OnClientSizeChanged;
+            gameForm.Unload += OnClosing;
         }
 
         internal override void Run()

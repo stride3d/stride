@@ -30,7 +30,7 @@ namespace Xenko.Core.Yaml
 
         public override object ReadMemberValue(ref ObjectContext objectContext, IMemberDescriptor memberDescriptor, object memberValue, Type memberType)
         {
-            var memberObjectContext = new ObjectContext(objectContext.SerializerContext, memberValue, objectContext.SerializerContext.FindTypeDescriptor(memberType));
+            var memberObjectContext = new ObjectContext(objectContext.SerializerContext, memberValue, objectContext.SerializerContext.FindTypeDescriptor(memberType), objectContext.Descriptor, memberDescriptor);
 
             var member = memberDescriptor as MemberDescriptorBase;
             if (member != null && objectContext.Settings.Attributes.GetAttribute<NonIdentifiableCollectionItemsAttribute>(member.MemberInfo) != null)
@@ -48,7 +48,7 @@ namespace Xenko.Core.Yaml
 
         public override void WriteMemberValue(ref ObjectContext objectContext, IMemberDescriptor memberDescriptor, object memberValue, Type memberType)
         {
-            var memberObjectContext = new ObjectContext(objectContext.SerializerContext, memberValue, objectContext.SerializerContext.FindTypeDescriptor(memberType))
+            var memberObjectContext = new ObjectContext(objectContext.SerializerContext, memberValue, objectContext.SerializerContext.FindTypeDescriptor(memberType), objectContext.Descriptor, memberDescriptor)
             {
                 ScalarStyle = memberDescriptor.ScalarStyle,
             };
@@ -153,9 +153,9 @@ namespace Xenko.Core.Yaml
         {
             var path = GetCurrentPath(ref objectContext, true);
             path.PushIndex(index);
-            var itemObjectcontext = new ObjectContext(objectContext.SerializerContext, item, objectContext.SerializerContext.FindTypeDescriptor(itemType));
-            SetCurrentPath(ref itemObjectcontext, path);
-            WriteYaml(ref itemObjectcontext);
+            var itemObjectContext = new ObjectContext(objectContext.SerializerContext, item, objectContext.SerializerContext.FindTypeDescriptor(itemType));
+            SetCurrentPath(ref itemObjectContext, path);
+            WriteYaml(ref itemObjectContext);
         }
 
         public override object ReadDictionaryKey(ref ObjectContext objectContext, Type keyType)
@@ -285,9 +285,9 @@ namespace Xenko.Core.Yaml
             {
                 path.PushIndex(key);
             }
-            var itemObjectcontext = new ObjectContext(objectContext.SerializerContext, value, objectContext.SerializerContext.FindTypeDescriptor(valueType));
-            SetCurrentPath(ref itemObjectcontext, path);
-            WriteYaml(ref itemObjectcontext);
+            var itemObjectContext = new ObjectContext(objectContext.SerializerContext, value, objectContext.SerializerContext.FindTypeDescriptor(valueType));
+            SetCurrentPath(ref itemObjectContext, path);
+            WriteYaml(ref itemObjectContext);
         }
 
         public override bool ShouldSerialize(IMemberDescriptor member, ref ObjectContext objectContext)

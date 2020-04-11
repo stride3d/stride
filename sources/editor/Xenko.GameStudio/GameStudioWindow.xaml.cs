@@ -24,6 +24,7 @@ using Xenko.Core.Presentation.Extensions;
 using Xenko.Core.Presentation.Interop;
 using Xenko.Core.Presentation.Windows;
 using Xenko.Core.Translation;
+using Xceed.Wpf.AvalonDock.Layout;
 #if DEBUG
 using Xenko.Assets.Presentation.Test;
 #endif
@@ -178,6 +179,33 @@ namespace Xenko.GameStudio
             e.Cancel = true;
             // This method will shutdown the application if the session has been successfully closed.
             SaveAndClose().Forget();
+        }
+
+        internal void RegisterAssetPreview(LayoutAnchorable assetPreviewAnchorable)
+        {
+            // We listen to the events here instead of via xaml because DockingLayoutManager essentially breaks
+            // the entire docking control and OnEventCommandBehavior.CommandParameter binding would not
+            // get restored properly, due to not being able to rebind to a control.
+            assetPreviewAnchorable.IsSelectedChanged += OnAssetPreviewAnchorable_IsSelectedChanged;
+            UpdateAssetPreviewAnchorable(assetPreviewAnchorable);
+        }
+
+        internal void UnregisterAssetPreview(LayoutAnchorable assetPreviewAnchorable)
+        {
+            assetPreviewAnchorable.IsSelectedChanged -= OnAssetPreviewAnchorable_IsSelectedChanged;
+        }
+
+        private void OnAssetPreviewAnchorable_IsSelectedChanged(object sender, EventArgs e)
+        {
+            if (sender is LayoutAnchorable anchorable)
+            {
+                UpdateAssetPreviewAnchorable(anchorable);
+            }
+        }
+
+        private void UpdateAssetPreviewAnchorable(LayoutAnchorable anchorable)
+        {
+            (Editor as GameStudioViewModel)?.Preview?.RenderPreviewCommand?.Execute(anchorable.IsSelected);
         }
 
         private void InitializeWindowSize()

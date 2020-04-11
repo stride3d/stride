@@ -56,7 +56,7 @@ namespace Xenko.Particles.Initializers
         /// </userdoc>
         [DataMember(40)]
         [Display("Position max")]
-        public Vector3 PositionMax { get; set; } = new Vector3(1, 1, 1);
+        public Vector3 PositionMax { get; set; } = Vector3.One;
 
 
         /// <inheritdoc />
@@ -106,7 +106,7 @@ namespace Xenko.Particles.Initializers
             // Interpolation - if parent particle has OldPosition field
             var stepF = 0f;
             var stepTotal = 0f;
-            var positionDistance = new Vector3(0, 0, 0);
+            var positionDistance = Vector3.Zero;
 
             var i = startIdx;
             while (i != endIdx)
@@ -122,7 +122,7 @@ namespace Xenko.Particles.Initializers
 
                 if (parentParticlesCount > 0)
                 {
-                    var parentParticlePosition = new Vector3(0, 0, 0);
+                    var parentParticlePosition = Vector3.Zero;
 
                     // Spawn is fixed - parent particles have spawned a very specific number of children each
                     if (spawnControlField.IsValid())

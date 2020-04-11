@@ -13,7 +13,7 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters
 {
     public class AssetItemNodePresenter : ItemNodePresenter, IAssetNodePresenter
     {
-        public AssetItemNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter parent, [NotNull] IAssetObjectNode container, Index index)
+        public AssetItemNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter parent, [NotNull] IAssetObjectNode container, NodeIndex index)
             : base(factory, propertyProvider, parent, container, index)
         {
         }

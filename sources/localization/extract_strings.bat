@@ -19,7 +19,7 @@ rem Xenko.GameStudio.pot
 
 rem Update po files
 FOR %%B IN (Xenko.Core.Presentation Xenko.Assets.Presentation Xenko.Core.Assets.Editor Xenko.GameStudio) DO (
-  FOR %%A IN (ja fr es de ru zh_HANS-CN) DO (
+  FOR %%A IN (ja fr es de ru zh_HANS-CN it ko) DO (
     %MSGMERGE% -U %%A\%%B.%%A.po %%B.pot
   )
 )

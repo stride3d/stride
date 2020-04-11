@@ -470,7 +470,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewMo
                 var targetContent = item.GetNodePath().GetNode();
                 var propertyContainer = new PropertyContainer();
                 AttachPropertiesForPaste(ref propertyContainer, item);
-                var nodeAccessor = new NodeAccessor(targetContent, Index.Empty);
+                var nodeAccessor = new NodeAccessor(targetContent, NodeIndex.Empty);
                 foreach (var pasteItem in pasteResult.Items)
                 {
                     await (pasteItem.Processor?.Paste(pasteItem, item.Asset.PropertyGraph, ref nodeAccessor, ref propertyContainer) ?? Task.CompletedTask);

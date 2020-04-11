@@ -143,8 +143,8 @@ namespace Xenko.Core.Assets.Editor.Services
     {
         bool AllowMultiSelection { get; set; }
 
-        Func<PackageViewModel, bool> Filter { get; set; }
+        Func<PickablePackageViewModel, bool> Filter { get; set; }
 
-        IReadOnlyCollection<PackageViewModel> SelectedPackages { get; }
+        IReadOnlyCollection<PickablePackageViewModel> SelectedPackages { get; }
     }
 }

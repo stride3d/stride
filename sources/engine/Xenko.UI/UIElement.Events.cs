@@ -98,6 +98,19 @@ namespace Xenko.UI
             }
         }
 
+        /// <summary>
+        /// Gets or sets whether this element requires a mouse over check.
+        /// </summary>
+        /// <remarks>
+        /// By default, the engine does not check whether <see cref="MouseOverState"/>
+        /// of the element is changed while the cursor is still. This behavior is 
+        /// overriden when this parameter is set to true, which forces the engine to
+        /// check for changes of <see cref="MouseOverState"/>.
+        /// The engine sets this to true when the layout of the element changes.
+        /// </remarks>
+        [DataMemberIgnore]
+        public bool RequiresMouseOverUpdate { get; set; }
+
         internal void PropagateRoutedEvent(RoutedEventArgs e)
         {
             var routedEvent = e.RoutedEvent;
@@ -112,7 +125,7 @@ namespace Xenko.UI
                 classHandler.Invoke(this, e);
 
             // Trigger instance handlers
-            if (eventsToHandlers.ContainsKey(routedEvent))
+            if (eventsToHandlers.TryGetValue(routedEvent, out var handlers))
             {
                 // get a list of handler from the pool where we can copy the handler to trigger
                 if (RoutedEventHandlerInfoListPool.Count == 0)
@@ -120,7 +133,7 @@ namespace Xenko.UI
                 var pooledList = RoutedEventHandlerInfoListPool.Dequeue();
 
                 // copy the RoutedEventHandlerEventInfo list into a list of the pool in order to be able to modify the handler list in the handler itself
-                pooledList.AddRange(eventsToHandlers[routedEvent]);
+                pooledList.AddRange(handlers);
 
                 // iterate on the pooled list to invoke handlers
                 foreach (var handlerInfo in pooledList)

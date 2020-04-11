@@ -7,7 +7,7 @@
                     xmlns:mwt="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero"
                     xmlns:interactivity="clr-namespace:Xenko.Core.Presentation.Interactivity"
                     xmlns:behaviors="clr-namespace:Xenko.Core.Presentation.Behaviors"
-                    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:xk="http://schemas.xenko.com/xaml/presentation"
                     mc:Ignorable="d">
 

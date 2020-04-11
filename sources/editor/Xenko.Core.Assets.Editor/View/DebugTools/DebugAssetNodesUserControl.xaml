@@ -60,7 +60,7 @@
           <DataTrigger Binding="{Binding Registered}" Value="False">
             <Setter Property="Foreground" TargetName="TextBlock" Value="Red"/>
           </DataTrigger>
-          <DataTrigger Binding="{Binding Index}" Value="{x:Static q:Index.Empty}">
+          <DataTrigger Binding="{Binding Index}" Value="{x:Static q:NodeIndex.Empty}">
             <Setter Property="Text" TargetName="IndexRun" Value=""/>
           </DataTrigger>
           <DataTrigger Binding="{Binding ItemId}" Value="{x:Null}">

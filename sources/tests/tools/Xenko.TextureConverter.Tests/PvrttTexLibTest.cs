@@ -44,7 +44,6 @@ namespace Xenko.TextureConverter.Tests
         public void CanHandleRequestTest()
         {
             TexImage image = TestTools.Load(library, "TextureArray_WMipMaps_PVRTC2_4bpp.pvr");
-            Assert.True(library.CanHandleRequest(image, new CompressingRequest(Xenko.Graphics.PixelFormat.PVRTC_II_4bpp)));
             Assert.True(library.CanHandleRequest(image, new DecompressingRequest(false)));
             Assert.True(library.CanHandleRequest(image, new LoadingRequest("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", false)));
             Assert.True(library.CanHandleRequest(image, new MipMapsGenerationRequest(Filter.MipMapGeneration.Linear)));
@@ -72,8 +71,6 @@ namespace Xenko.TextureConverter.Tests
 
 
         [Theory(Skip = "Need check")]
-        [InlineData("TextureArray_WMipMaps_RGBA8888.pvr", Xenko.Graphics.PixelFormat.PVRTC_II_4bpp)]
-        [InlineData("TextureCube_WMipMaps_RGBA8888.pvr", Xenko.Graphics.PixelFormat.PVRTC_II_4bpp)]
         [InlineData("TextureArray_WMipMaps_RGBA8888.pvr", Xenko.Graphics.PixelFormat.ETC2_RGBA)]
         [InlineData("TextureCube_WMipMaps_RGBA8888.pvr", Xenko.Graphics.PixelFormat.ETC2_RGBA)]
         public void CompressTest(string file, Xenko.Graphics.PixelFormat format)

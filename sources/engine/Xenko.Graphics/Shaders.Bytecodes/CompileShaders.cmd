@@ -1,8 +1,8 @@
 @echo off
 setlocal
 set XenkoSdkDir=%~dp0..\..\..\..\
-set XenkoSdkBinDir=%XenkoSdkDir%Bin\Windows\
-%XenkoSdkBinDir%Xenko.Core.Assets.CompilerApp.exe --profile=Windows --platform=Windows --output-path=%~dp0obj\app_data --build-path=%~dp0obj\build_app_data --package-file=Graphics.xkpkg
-%XenkoSdkBinDir%Xenko.Core.Assets.CompilerApp.exe --profile=Windows-OpenGL --platform=Windows --output-path=%~dp0obj\app_data --build-path=%~dp0obj\build_app_data --package-file=Graphics.xkpkg
-%XenkoSdkBinDir%Xenko.Core.Assets.CompilerApp.exe --profile=Windows-OpenGLES --platform=Windows --output-path=%~dp0obj\app_data --build-path=%~dp0obj\build_app_data --package-file=Graphics.xkpkg
-%XenkoSdkBinDir%Xenko.Core.Assets.CompilerApp.exe --profile=Windows-Vulkan --platform=Windows --output-path=%~dp0obj\app_data --build-path=%~dp0obj\build_app_data --package-file=Graphics.xkpkg
+set XenkoAssetCompiler=%XenkoSdkDir%sources\assets\Xenko.Core.Assets.CompilerApp\bin\Debug\net472\Xenko.Core.Assets.CompilerApp.exe
+%XenkoAssetCompiler% --platform=Windows --property:RuntimeIdentifier=win --output-path=%~dp0obj\app_data --build-path=%~dp0obj\build_app_data --package-file=Graphics.xkpkg
+%XenkoAssetCompiler% --platform=Windows --property:RuntimeIdentifier=win-opengl --output-path=%~dp0obj\app_data --build-path=%~dp0obj\build_app_data --package-file=Graphics.xkpkg
+%XenkoAssetCompiler% --platform=Windows --property:RuntimeIdentifier=win-opengles --output-path=%~dp0obj\app_data --build-path=%~dp0obj\build_app_data --package-file=Graphics.xkpkg
+%XenkoAssetCompiler% --platform=Windows --property:RuntimeIdentifier=win-vulkan --output-path=%~dp0obj\app_data --build-path=%~dp0obj\build_app_data --package-file=Graphics.xkpkg

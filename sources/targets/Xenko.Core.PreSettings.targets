@@ -45,9 +45,6 @@
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';UWP;'))">$(XenkoRuntimeTargetFrameworks);uap10.0.16299</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';Android;'))">$(XenkoRuntimeTargetFrameworks);monoandroid81</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';iOS;'))">$(XenkoRuntimeTargetFrameworks);xamarinios10</XenkoRuntimeTargetFrameworks>
-    <XenkoRuntimeTargetFrameworks>$([MSBuild]::Unescape($(XenkoRuntimeTargetFrameworks.Trim(';'))))</XenkoRuntimeTargetFrameworks>
-    <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
-    <TargetFramework Condition="'$(XenkoBuildDoc)' == 'true' And '$(TargetFramework)' == ''">$(TargetFrameworks.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</TargetFramework>
 
     <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoPlatforms.Contains(';Windows;'))">$(XenkoRuntimeIdentifiers);win</XenkoRuntimeIdentifiers>
     <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoPlatforms.Contains(';Linux;'))">$(XenkoRuntimeIdentifiers);linux</XenkoRuntimeIdentifiers>
@@ -65,10 +62,14 @@
     <!-- Otherwise compute fallback -->
     <XenkoRuntimeIdentifier Condition="'$(XenkoRuntimeIdentifiers)' != '' And '$(XenkoRuntimeIdentifier)' == ''">$(XenkoRuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</XenkoRuntimeIdentifier>
 
+    <XenkoRuntimeTargetFrameworks>$([MSBuild]::Unescape($(XenkoRuntimeTargetFrameworks.Trim(';'))))</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeIdentifiers>$([MSBuild]::Unescape($(XenkoRuntimeIdentifiers.Trim(';'))))</XenkoRuntimeIdentifiers>
 
+    <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers Condition="'$(XenkoRuntimeIdentifiers)' != ''">$(XenkoRuntimeIdentifiers)</RuntimeIdentifiers>
-
+	
+    <!-- docfx doesn't like if there is no TargetFramework/RuntimeIdentifier set by default -->
+    <TargetFramework Condition="'$(XenkoBuildDoc)' == 'true' And '$(TargetFramework)' == ''">$(TargetFrameworks.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</TargetFramework>
     <RuntimeIdentifier Condition="'$(XenkoBuildDoc)' == 'true' And '$(RuntimeIdentifier)' == ''">$(XenkoRuntimeIdentifier)</RuntimeIdentifier>
 
     <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
@@ -124,6 +125,7 @@
   <Target Name="_XenkoIncludeRefAssemblies" Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == $(RuntimeIdentifiers.Split(';')[0])">
     <ItemGroup>
       <TfmSpecificPackageFile Include="@(IntermediateAssembly)" PackagePath="ref/$(TargetFramework)" />
+      <TfmSpecificPackageFile Include="@(DocFileItem)" PackagePath="ref/$(TargetFramework)" />
     </ItemGroup>
   </Target>
 

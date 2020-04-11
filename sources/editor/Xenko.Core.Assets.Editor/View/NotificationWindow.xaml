@@ -1,7 +1,7 @@
 <Window x:Class="Xenko.Core.Assets.Editor.View.NotificationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:xk="http://schemas.xenko.com/xaml/presentation"
         Title="{xk:Localize Notification}" Width="300" SizeToContent="Height" ShowInTaskbar="False"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent">

@@ -5,52 +5,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Xenko.Core" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
-    <PackageReference Include="Xenko.Engine" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.Particles" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.UI" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Effects\FogEffect.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>FogEffect.cs</LastGenOutput>
-    </None>
-    <Compile Update="Effects\FogEffect.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>FogEffect.xksl</DependentUpon>
-    </Compile>
-    <None Include="Effects\SpaceEscapeEffectMain.xkfx">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>SpaceEscapeEffectMain.cs</LastGenOutput>
-    </None>
-    <Compile Update="Effects\SpaceEscapeEffectMain.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>SpaceEscapeEffectMain.xkfx</DependentUpon>
-    </Compile>
-    <None Include="Effects\TransformationBendWorld.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>TransformationBendWorld.cs</LastGenOutput>
-    </None>
-    <Compile Update="Effects\TransformationBendWorld.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>TransformationBendWorld.xksl</DependentUpon>
-    </Compile>
-    <None Include="Effects\TransformationTextureUV.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>TransformationTextureUV.cs</LastGenOutput>
-    </None>
-    <Compile Update="Effects\TransformationTextureUV.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>TransformationTextureUV.xksl</DependentUpon>
-    </Compile>
+    <PackageReference Include="Xenko.Core" Version="3.2.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="3.2.0.1-beta01" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
+    <PackageReference Include="Xenko.Engine" Version="3.2.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Particles" Version="3.2.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.UI" Version="3.2.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
 </Project>

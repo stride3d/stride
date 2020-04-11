@@ -1,0 +1,28 @@
+namespace Xenko.Rendering.Voxels.Debug
+{
+    shader VoxelVisualizationRawShader : ImageEffectShader
+    {
+        compose IVoxelSampler Attribute;
+        float2 range;
+        float rangeOffset;
+        float mip;
+
+        stage override float4 Shading()
+        {
+            float2 offsetRange = range + float(abs(range.y-range.x) * rangeOffset).xx;
+            float2 screenPos = streams.TexCoord.xy;
+            screenPos.y = 1.0 - screenPos.y;
+
+            float4 color = float4(0, 0, 0, 0);
+            for (int i = 0; i < 200; i++)
+            {
+                color += Attribute.SampleRaw(float3(streams.TexCoord.x, lerp(offsetRange.x, offsetRange.y, (float)i / 200.0), streams.TexCoord.y), mip-1, (mip>0)?1:0, 0) * (1.0 - color.a);
+                if (color.a > 0.99)
+                {
+                    break;
+                }
+            }
+            return color.xyzz + float4(0.1, 0.1, 0.1, 1.0) * (1.0 - color.a);
+        }
+    };
+}

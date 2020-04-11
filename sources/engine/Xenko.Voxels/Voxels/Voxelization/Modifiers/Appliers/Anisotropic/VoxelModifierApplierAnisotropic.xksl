@@ -1,0 +1,7 @@
+﻿shader VoxelModifierApplierAnisotropic
+{
+    void Apply(inout float4 XP, inout float4 XN, inout float4 YP, inout float4 YN, inout float4 ZP, inout float4 ZN){ }
+    void Apply(inout float3 XP, inout float3 XN, inout float3 YP, inout float3 YN, inout float3 ZP, inout float3 ZN){ }
+    void Apply(inout float2 XP, inout float2 XN, inout float2 YP, inout float2 YN, inout float2 ZP, inout float2 ZN){ }
+    void Apply(inout float XP, inout float XN, inout float YP, inout float YN, inout float ZP, inout float ZN){ }
+};

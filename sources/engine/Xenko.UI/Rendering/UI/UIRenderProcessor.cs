@@ -8,7 +8,7 @@ using Xenko.Rendering;
 namespace Xenko.Rendering.UI
 {
     /// <summary>
-    /// The processor in charge of updating and drawing the entities having sprite components.
+    /// The processor in charge of updating and drawing the entities having UI components.
     /// </summary>
     public class UIRenderProcessor : EntityProcessor<UIComponent, RenderUIElement>, IEntityComponentRenderProcessor
     {

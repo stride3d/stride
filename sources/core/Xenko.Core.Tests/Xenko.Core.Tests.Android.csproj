@@ -3,7 +3,6 @@
   <PropertyGroup>
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <AndroidApplication>true</AndroidApplication>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
   </PropertyGroup>
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
@@ -29,8 +28,8 @@
     <AndroidResource Label="Xenko.DoNotSync" Include="Resources\Drawable\Icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

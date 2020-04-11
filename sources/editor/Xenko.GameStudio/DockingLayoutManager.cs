@@ -15,6 +15,7 @@ using Xenko.Core.Presentation.Extensions;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
+using Microsoft.Xaml.Behaviors;
 
 namespace Xenko.GameStudio
 {
@@ -190,14 +191,31 @@ namespace Xenko.GameStudio
         {
             // Save the binding expressions of all the current anchorables
             var bindings = new Dictionary<string, List<BindingInfo>>();
+            var contentIdToBehaviors = new Dictionary<string, Behavior[]>();
             foreach (var anchorable in AvalonDockHelper.GetAllAnchorables(DockingManager).Where(x => !string.IsNullOrEmpty(x.ContentId)))
             {
                 var titleBindingInfo = BindingInfo.FromBindingExpression(BindingOperations.GetBindingExpression(anchorable, LayoutContent.TitleProperty));
                 var isVisibleBindingInfo = BindingInfo.FromBindingExpression(BindingOperations.GetBindingExpression(anchorable, AvalonDockHelper.IsVisibleProperty));
                 bindings.Add(anchorable.ContentId, new List<BindingInfo> { titleBindingInfo, isVisibleBindingInfo });
+
+                // Save behaviors, although complex bindings (eg. nested bindings) will not be restored properly...
+                var behaviorCollection = Interaction.GetBehaviors(anchorable);
+                if (behaviorCollection.Count > 0)
+                {
+                    var pendingBehaviours = behaviorCollection.ToArray();
+                    behaviorCollection.Clear();
+                    contentIdToBehaviors.Add(anchorable.ContentId, pendingBehaviours);
+                }
             }
             // Unregister docking manager
             AvalonDockHelper.UnregisterDockingManager(DockingManager);
+            // This is a bit of a hack, but we need to do this with AssetPreview due to how bad the LayoutAnchorable is on determining
+            // if it's actually visible or not.
+            var assetPreviewAnchorable = AvalonDockHelper.GetAllAnchorables(DockingManager).FirstOrDefault(x => string.Equals(x.ContentId, "AssetPreview"));
+            if (assetPreviewAnchorable != null)
+            {
+                gameStudioWindow.UnregisterAssetPreview(assetPreviewAnchorable);
+            }
             // Deserialize the string
             using (var stream = new MemoryStream())
             {
@@ -219,9 +237,26 @@ namespace Xenko.GameStudio
                         BindingOperations.SetBinding(anchorable, bindingInfo.Property, bindingInfo.Binding);
                     }
                 }
+
+                if (contentIdToBehaviors.TryGetValue(anchorable.ContentId, out var pendingBehaviours))
+                {
+                    // Restore behaviors
+                    var behaviorCollection = Interaction.GetBehaviors(anchorable);
+                    foreach (var b in pendingBehaviours)
+                    {
+                        b.Attach(anchorable);
+                        behaviorCollection.Add(b);
+                    }
+                }
             }
             // Re-register docking manager with new layout
             AvalonDockHelper.RegisterDockingManager(session.ServiceProvider, DockingManager);
+            // Hack: need to get AssetPreview and register handlers again
+            assetPreviewAnchorable = AvalonDockHelper.GetAllAnchorables(DockingManager).FirstOrDefault(x => string.Equals(x.ContentId, "AssetPreview"));
+            if (assetPreviewAnchorable != null)
+            {
+                gameStudioWindow.RegisterAssetPreview(assetPreviewAnchorable);
+            }
         }
 
         private string GetDockingLayout()

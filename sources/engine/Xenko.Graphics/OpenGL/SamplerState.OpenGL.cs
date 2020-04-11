@@ -110,22 +110,16 @@ namespace Xenko.Graphics
 
         internal void Apply(bool hasMipmap, SamplerState oldSamplerState, TextureTarget target)
         {
-#if XENKO_GRAPHICS_API_OPENGLES
-            // TODO: support texture array, 3d and cube
-            if (!GraphicsDevice.IsOpenGLES2)
-#endif
-            {
-                if (Description.MinMipLevel != oldSamplerState.Description.MinMipLevel)
-                    GL.TexParameter(target, TextureParameterName.TextureMinLod, Description.MinMipLevel);
-                if (Description.MaxMipLevel != oldSamplerState.Description.MaxMipLevel)
-                    GL.TexParameter(target, TextureParameterName.TextureMaxLod, Description.MaxMipLevel);
-                if (textureWrapR != oldSamplerState.textureWrapR)
-                    GL.TexParameter(target, TextureParameterName.TextureWrapR, (int)textureWrapR);
-                if (compareMode != oldSamplerState.compareMode)
-                    GL.TexParameter(target, TextureParameterName.TextureCompareMode, (int)compareMode);
-                if (compareFunc != oldSamplerState.compareFunc)
-                    GL.TexParameter(target, TextureParameterName.TextureCompareFunc, (int)compareFunc);
-            }
+            if (Description.MinMipLevel != oldSamplerState.Description.MinMipLevel)
+                GL.TexParameter(target, TextureParameterName.TextureMinLod, Description.MinMipLevel);
+            if (Description.MaxMipLevel != oldSamplerState.Description.MaxMipLevel)
+                GL.TexParameter(target, TextureParameterName.TextureMaxLod, Description.MaxMipLevel);
+            if (textureWrapR != oldSamplerState.textureWrapR)
+                GL.TexParameter(target, TextureParameterName.TextureWrapR, (int)textureWrapR);
+            if (compareMode != oldSamplerState.compareMode)
+                GL.TexParameter(target, TextureParameterName.TextureCompareMode, (int)compareMode);
+            if (compareFunc != oldSamplerState.compareFunc)
+                GL.TexParameter(target, TextureParameterName.TextureCompareFunc, (int)compareFunc);
 
 #if !XENKO_GRAPHICS_API_OPENGLES
             if (borderColor != oldSamplerState.borderColor)

@@ -24,7 +24,6 @@
     <MandroidI18n />
     <JavaMaximumHeapSize />
     <JavaOptions />
-    <XenkoAssemblySign>true</XenkoAssemblySign>
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
     <XenkoPlatform>Android</XenkoPlatform>
     <XenkoBuildProfile>Android</XenkoBuildProfile>

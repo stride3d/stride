@@ -22,7 +22,7 @@ namespace Xenko.Core.Quantum.References
         /// <param name="objectValue">A data object to reference. Can be null.</param>
         /// <param name="objectType">The type of data object to reference.</param>
         /// <param name="index">The index of this reference in its parent reference, if it is a <see cref="ReferenceEnumerable"/>.</param>
-        internal ObjectReference(object objectValue, [NotNull] Type objectType, Index index)
+        internal ObjectReference(object objectValue, [NotNull] Type objectType, NodeIndex index)
         {
             Reference.CheckReferenceCreationSafeGuard();
             if (objectType == null) throw new ArgumentNullException(nameof(objectType));
@@ -41,9 +41,9 @@ namespace Xenko.Core.Quantum.References
         public object ObjectValue => TargetNode != null ? TargetNode.Retrieve() : orphanObject;
 
         /// <summary>
-        /// Gets the index of this reference in its parent collection. If the reference is not in a collection, this will return <see cref="Quantum.Index.Empty"/>.
+        /// Gets the index of this reference in its parent collection. If the reference is not in a collection, this will return <see cref="Quantum.NodeIndex.Empty"/>.
         /// </summary>
-        public Index Index { get; }
+        public NodeIndex Index { get; }
 
         /// <summary>
         /// Gets the <see cref="Guid"/> of the model node targeted by this reference, if available.
@@ -51,17 +51,17 @@ namespace Xenko.Core.Quantum.References
         public Guid TargetGuid { get; private set; }
 
         /// <inheritdoc/>
-        public bool HasIndex(Index index)
+        public bool HasIndex(NodeIndex index)
         {
             return index.IsEmpty;
         }
 
         public void Refresh(IGraphNode ownerNode, NodeContainer nodeContainer)
         {
-            Refresh(ownerNode, nodeContainer, Index.Empty);
+            Refresh(ownerNode, nodeContainer, NodeIndex.Empty);
         }
 
-        internal void Refresh([NotNull] IGraphNode ownerNode, NodeContainer nodeContainer, Index index)
+        internal void Refresh([NotNull] IGraphNode ownerNode, NodeContainer nodeContainer, NodeIndex index)
         {
             var objectValue = ownerNode.Retrieve(index);
 
@@ -103,7 +103,7 @@ namespace Xenko.Core.Quantum.References
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"{{{(Index != Index.Empty? $"[{Index.Value}]" : "")} -> {TargetNode}}}";
+            return $"{{{(Index != NodeIndex.Empty? $"[{Index.Value}]" : "")} -> {TargetNode}}}";
         }
 
         /// <summary>

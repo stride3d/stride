@@ -33,19 +33,19 @@ namespace Xenko.GameStudio.Tests
             var target = new Entity();
             var propertyGraph = CreateScene(source, target);
             var copiedText = Copy(propertyGraph, source.Get<ModelComponent>());
-            PasteIntoEntity(propertyGraph, copiedText, typeof(ModelComponent), target, Index.Empty, false);
+            PasteIntoEntity(propertyGraph, copiedText, typeof(ModelComponent), target, NodeIndex.Empty, false);
             Assert.Equal(2, target.Components.Count);
             Assert.True(target.Components[0] is TransformComponent);
             Assert.True(target.Components[1] is ModelComponent);
             Assert.False(target.Get<ModelComponent>().IsShadowCaster);
         }
 
-        private void PasteIntoEntity(AssetPropertyGraph propertyGraph, string copiedText, Type componentType, Entity entity, Index index, bool replace)
+        private void PasteIntoEntity(AssetPropertyGraph propertyGraph, string copiedText, Type componentType, Entity entity, NodeIndex index, bool replace)
         {
-            if (index == Index.Empty)
-                Paste(propertyGraph, copiedText, componentType, typeof(EntityComponent), x => x["Hierarchy"].Target["Parts"].Target.IndexedTarget(new Index(entity.Id))["Entity"].Target["Components"], index, replace);
+            if (index == NodeIndex.Empty)
+                Paste(propertyGraph, copiedText, componentType, typeof(EntityComponent), x => x["Hierarchy"].Target["Parts"].Target.IndexedTarget(new NodeIndex(entity.Id))["Entity"].Target["Components"], index, replace);
             else
-                Paste(propertyGraph, copiedText, componentType, typeof(EntityComponent), x => x["Hierarchy"].Target["Parts"].Target.IndexedTarget(new Index(entity.Id))["Entity"].Target["Components"].Target, index, replace);
+                Paste(propertyGraph, copiedText, componentType, typeof(EntityComponent), x => x["Hierarchy"].Target["Parts"].Target.IndexedTarget(new NodeIndex(entity.Id))["Entity"].Target["Components"].Target, index, replace);
         }
 
         private string Copy(AssetPropertyGraph propertyGraph, object assetValue)
@@ -55,7 +55,7 @@ namespace Xenko.GameStudio.Tests
             return copiedText;
         }
 
-        private void Paste(AssetPropertyGraph propertyGraph, string copiedText, Type deserializedType, Type expectedType, Func<IObjectNode, IGraphNode> targetNodeResolver, Index index, bool replace)
+        private void Paste(AssetPropertyGraph propertyGraph, string copiedText, Type deserializedType, Type expectedType, Func<IObjectNode, IGraphNode> targetNodeResolver, NodeIndex index, bool replace)
         {
             var asset = propertyGraph.RootNode.Retrieve();
             Assert.True(service.CanPaste(copiedText, asset.GetType(), expectedType));

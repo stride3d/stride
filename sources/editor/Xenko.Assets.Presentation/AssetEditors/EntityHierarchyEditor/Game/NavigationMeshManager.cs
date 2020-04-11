@@ -42,7 +42,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         {
             foreach (var pair in Meshes)
             {
-                await loader.Manager.ClearContentReference(referencerId, pair.Key, meshesNode, new Index(pair.Key));
+                await loader.Manager.ClearContentReference(referencerId, pair.Key, meshesNode, new NodeIndex(pair.Key));
             }
             await loader.Manager.RemoveReferencer(referencerId);
         }
@@ -64,7 +64,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 return Task.CompletedTask;
 
             Meshes.Add(assetId, new NavigationMesh());
-            return loader.Manager.PushContentReference(referencerId, assetId, meshesNode, new Index(assetId));
+            return loader.Manager.PushContentReference(referencerId, assetId, meshesNode, new NodeIndex(assetId));
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 throw new InvalidOperationException();
 
             Meshes.Remove(assetId);
-            return loader.Manager.ClearContentReference(referencerId, assetId, meshesNode, new Index(assetId));
+            return loader.Manager.ClearContentReference(referencerId, assetId, meshesNode, new NodeIndex(assetId));
         }
     }
 }

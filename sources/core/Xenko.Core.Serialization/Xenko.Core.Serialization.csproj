@@ -1,6 +1,5 @@
 ﻿<Project>
   <PropertyGroup>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoRuntime>true</XenkoRuntime>
     <XenkoRuntimeNetStandard>true</XenkoRuntimeNetStandard>
   </PropertyGroup>

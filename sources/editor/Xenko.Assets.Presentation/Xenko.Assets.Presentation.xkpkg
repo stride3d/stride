@@ -32,6 +32,7 @@ TemplateFolders:
         - !file Templates/Assets/Misc/DefaultGameSettings.xktpl
         - !file Templates/Assets/Misc/DefaultGraphicsCompositorLevel10.xktpl
         - !file Templates/Assets/Misc/DefaultGraphicsCompositorLevel9.xktpl
+        - !file Templates/Assets/Misc/DefaultGraphicsCompositorVoxels.xktpl
         - !file Templates/Assets/Misc/DefaultRawAsset.xktpl
         - !file Templates/Assets/Misc/DefaultSkybox.xktpl
         - !file Templates/Assets/Models/DefaultModel.xktpl

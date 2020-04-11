@@ -26,6 +26,8 @@ namespace Xenko.Graphics
         private SharpDX.Direct3D11.OutputMergerStage outputMerger;
 
         private readonly SharpDX.Direct3D11.RenderTargetView[] currentRenderTargetViews = new SharpDX.Direct3D11.RenderTargetView[SimultaneousRenderTargetCount];
+        private          int currentRenderTargetViewsActiveCount = 0;
+        private readonly SharpDX.Direct3D11.UnorderedAccessView[] currentUARenderTargetViews = new SharpDX.Direct3D11.UnorderedAccessView[SimultaneousRenderTargetCount];
         private readonly SharpDX.Direct3D11.CommonShaderStage[] shaderStages = new SharpDX.Direct3D11.CommonShaderStage[StageCount];
         private readonly Buffer[] constantBuffers = new Buffer[StageCount * ConstantBufferCount];
         private readonly SamplerState[] samplerStates = new SamplerState[StageCount * SamplerStateCount];
@@ -89,6 +91,8 @@ namespace Xenko.Graphics
                 unorderedAccessViews[i] = null;
             for (int i = 0; i < currentRenderTargetViews.Length; i++)
                 currentRenderTargetViews[i] = null;
+            for (int i = 0; i < currentUARenderTargetViews.Length; i++)
+                currentUARenderTargetViews[i] = null;
 
             // Since nothing can be drawn in default state, no need to set anything (another SetPipelineState should happen before)
             currentPipelineState = GraphicsDevice.DefaultPipelineState;
@@ -101,6 +105,8 @@ namespace Xenko.Graphics
         {
             for (int i = 0; i < currentRenderTargetViews.Length; i++)
                 currentRenderTargetViews[i] = null;
+            for (int i = 0; i < currentUARenderTargetViews.Length; i++)
+                currentUARenderTargetViews[i] = null;
             outputMerger.ResetTargets();
         }
 
@@ -113,6 +119,8 @@ namespace Xenko.Graphics
         /// <exception cref="System.ArgumentNullException">renderTargetViews</exception>
         private void SetRenderTargetsImpl(Texture depthStencilBuffer, int renderTargetCount, Texture[] renderTargets)
         {
+            currentRenderTargetViewsActiveCount = renderTargetCount;
+
             for (int i = 0; i < renderTargetCount; i++)
                 currentRenderTargetViews[i] = renderTargets[i].NativeRenderTargetView;
 
@@ -256,6 +264,30 @@ namespace Xenko.Graphics
         }
 
         /// <summary>
+        ///     Sets an unordered access view to the shader pipeline, without affecting ones that are already set.
+        /// </summary>
+        /// <param name="slot">The binding slot.</param>
+        /// <param name="shaderResourceView">The shader resource view.</param>
+        /// <param name="view">The native unordered access view.</param>
+        /// <param name="uavInitialOffset">The Append/Consume buffer offset. See SetUnorderedAccessView for more details.</param>
+        internal void OMSetSingleUnorderedAccessView(int slot, SharpDX.Direct3D11.UnorderedAccessView view, int uavInitialOffset)
+        {
+            currentUARenderTargetViews[slot] = view;
+
+            int remainingSlots = currentUARenderTargetViews.Length - currentRenderTargetViewsActiveCount;
+
+            var uavs = new SharpDX.Direct3D11.UnorderedAccessView[remainingSlots];
+            Array.Copy(currentUARenderTargetViews, currentRenderTargetViewsActiveCount, uavs, 0, remainingSlots);
+
+            var uavInitialCounts = new int[remainingSlots];
+            for (int i = 0; i < remainingSlots; i++)
+                uavInitialCounts[i] = -1;
+            uavInitialCounts[slot - currentRenderTargetViewsActiveCount] = uavInitialOffset;
+
+            outputMerger.SetUnorderedAccessViews(currentRenderTargetViewsActiveCount, uavs, uavInitialCounts);
+        }
+
+        /// <summary>
         /// Sets an unordered access view to the shader pipeline.
         /// </summary>
         /// <param name="stage">The stage.</param>
@@ -268,14 +300,24 @@ namespace Xenko.Graphics
         /// <exception cref="System.ArgumentException">Invalid stage.;stage</exception>
         internal void SetUnorderedAccessView(ShaderStage stage, int slot, GraphicsResource unorderedAccessView, int uavInitialOffset)
         {
-            if (stage != ShaderStage.Compute)
+            if (stage != ShaderStage.Compute && stage != ShaderStage.Pixel)
                 throw new ArgumentException("Invalid stage.", "stage");
 
             var view = unorderedAccessView?.NativeUnorderedAccessView;
-            if (unorderedAccessViews[slot] != view)
+            if (stage == ShaderStage.Compute)
             {
-                unorderedAccessViews[slot] = view;
-                NativeDeviceContext.ComputeShader.SetUnorderedAccessView(slot, view, uavInitialOffset);
+                if (unorderedAccessViews[slot] != view)
+                {
+                    unorderedAccessViews[slot] = view;
+                    NativeDeviceContext.ComputeShader.SetUnorderedAccessView(slot, view, uavInitialOffset);
+                }
+            }
+            else
+            {
+                if (currentUARenderTargetViews[slot] != view)
+                {
+                    OMSetSingleUnorderedAccessView(slot, view, uavInitialOffset);
+                }
             }
         }
 
@@ -295,6 +337,13 @@ namespace Xenko.Graphics
                 {
                     unorderedAccessViews[slot] = null;
                     NativeDeviceContext.ComputeShader.SetUnorderedAccessView(slot, null);
+                }
+            }
+            for (int slot = 0; slot < SimultaneousRenderTargetCount; slot++)
+            {
+                if (currentUARenderTargetViews[slot] == view)
+                {
+                    OMSetSingleUnorderedAccessView(slot, null, -1);
                 }
             }
         }

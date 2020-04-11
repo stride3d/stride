@@ -58,7 +58,7 @@ namespace Xenko.Particles.ShapeBuilders
 
             // Check if the draw space is identity - in this case we don't need to transform the position, scale and rotation vectors
             var trsIdentity = (spaceScale == 1f);
-            trsIdentity = trsIdentity && (spaceTranslation.Equals(new Vector3(0, 0, 0)));
+            trsIdentity = trsIdentity && (spaceTranslation.Equals(Vector3.Zero));
             trsIdentity = trsIdentity && (spaceRotation.Equals(Quaternion.Identity));
 
 
@@ -81,7 +81,7 @@ namespace Xenko.Particles.ShapeBuilders
                 }
 
                 // Use half size to make a Size = 1 result in a Billboard of 1m x 1m
-                var unitX = invViewX * (particleSize * 0.5f); 
+                var unitX = invViewX * (particleSize * 0.5f);
                 var unitY = invViewY * (particleSize * 0.5f);
 
                 // Particle rotation. Positive value means clockwise rotation.
@@ -98,7 +98,7 @@ namespace Xenko.Particles.ShapeBuilders
 
 
                 var particlePos = centralPos - unitX + unitY;
-                var uvCoord = new Vector2(0, 0);
+                var uvCoord = Vector2.Zero;
                 // 0f 0f
                 bufferState.SetAttribute(posAttribute, (IntPtr) (&particlePos));
                 bufferState.SetAttribute(texAttribute, (IntPtr) (&uvCoord));

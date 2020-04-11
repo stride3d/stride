@@ -1,0 +1,81 @@
+namespace Xenko.Rendering.Voxels
+{
+    shader BufferToTextureColumns : LocalSamples, ComputeShaderBase, VoxelPositionStream, DataPacking
+    {
+        [Link("BufferToTexture.VoxelFragments")]
+        stage RWBuffer<uint> VoxelFragments;
+
+        [Link("BufferToTexture.clipMapResolution")]
+        stage float3 clipMapResolution;
+
+        [Link("BufferToTexture.storageUints")]
+        stage float storageUints;
+
+        [Link("BufferToTexture.clipOffset")]
+        stage uint clipOffset;
+
+        
+        compose VoxelAttribute AttributesTemp[];
+        compose VoxelAttribute AttributesIndirect[];
+
+        #ifndef IndirectStoreMacro
+            #define IndirectStoreMacro
+            #define IndirectReadAndStoreMacro
+        #endif
+
+        override void Compute()
+        {
+            int3 clipMapResolutionI = (int3)clipMapResolution;
+            
+            uint3 pos = streams.DispatchThreadId.xyz;
+            uint clipIndex = streams.DispatchThreadId.y + clipOffset;
+
+            pos.y = 0;
+            streams.PositionVXPS = pos;
+            streams.VoxelVolumeSize = clipMapResolutionI;
+
+            uint wStride = clipMapResolutionI.x * clipMapResolutionI.y * clipMapResolutionI.z;
+            uint VoxelFragmentsIndex = clipIndex * wStride + pos.x + pos.y * clipMapResolutionI.x + pos.z * clipMapResolutionI.x * clipMapResolutionI.y;
+            VoxelFragmentsIndex *= (uint)storageUints;
+
+            uint yStride = clipMapResolutionI.x * (uint)storageUints;
+            uint initialVoxelFragmentsIndex = VoxelFragmentsIndex;
+
+            foreach (var attr in AttributesTemp)
+                attr.InitializeDummy();
+            foreach (var attr in AttributesIndirect)
+                attr.InitializeDummy();
+
+            IndirectStoreMacro
+
+            VoxelFragmentsIndex += (uint)storageUints * clipMapResolutionI.x;
+
+            foreach (var attr in AttributesIndirect)
+                attr.DirectWrite(streams.PositionVXPS, clipIndex, (int)clipMapResolutionI.y);
+
+            streams.PositionVXPS.y++;
+            for (int i = 0; streams.PositionVXPS.y < clipMapResolutionI.y-1 ; streams.PositionVXPS.y ++)
+            {
+                uint VoxelFragmentsIndexOld = VoxelFragmentsIndex;
+
+                //See VoxelStorageClipmaps.cs Line #307
+                IndirectReadAndStoreMacro
+
+                foreach (var attr in AttributesIndirect)
+                    attr.DirectWrite(streams.PositionVXPS, clipIndex, (int)clipMapResolutionI.y);
+
+                VoxelFragmentsIndex = VoxelFragmentsIndexOld + (uint)storageUints * clipMapResolutionI.x;
+            }
+            foreach (var attr in AttributesTemp)
+                attr.InitializeDummy();
+
+            foreach (var attr in AttributesIndirect)
+                attr.InitializeDummy();
+
+            IndirectStoreMacro
+
+            foreach (var attr in AttributesIndirect)
+                attr.DirectWrite(streams.PositionVXPS, clipIndex, (int)clipMapResolutionI.y);
+        }
+    };
+}

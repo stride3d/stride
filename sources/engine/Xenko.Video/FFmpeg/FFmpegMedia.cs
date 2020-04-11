@@ -107,7 +107,7 @@ namespace Xenko.Video.FFmpeg
         }
 
         [CanBeNull]
-        public StreamInfo GetStreamInfo(VideoStream stream) => currentStreams.ContainsKey(stream) ? currentStreams[stream] : null;
+        public StreamInfo GetStreamInfo(VideoStream stream) => currentStreams.TryGetValue(stream, out var streamInfo) ? streamInfo : null;
 
         /// <summary>
         /// Opens this media.
@@ -357,7 +357,7 @@ namespace Xenko.Video.FFmpeg
                     {
                         if (ret == ffmpeg.AVERROR_EOF)
                             return FrameExtractionStatus.ReachEOF;
-                        
+
                         Logger.Error($"Could not read frame. Error code={ret.ToString("X8")}.");
                         Logger.Error(GetErrorMessage(ret));
                         return FrameExtractionStatus.Failed;
@@ -418,7 +418,7 @@ namespace Xenko.Video.FFmpeg
                         ffmpeg.sws_scale(pConvertContext, pFrame->data, pFrame->linesize, 0, outputImage.Height, dstData, dstLinesize);
                         outputImage.Timestamp = pDecodedFrame->pts;
                     }
-                    
+
                     return FrameExtractionStatus.Succeeded;
                 }
                 finally

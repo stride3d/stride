@@ -63,8 +63,8 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
-                                ComputeTransmittance: false
                                 BiasParameters: {}
+                                ComputeTransmittance: false
         -   Entity:
                 Id: 820d34a8-2971-4381-abfa-2965d94ec672
                 Name: Splash
@@ -78,7 +78,7 @@ Hierarchy:
                     a7872780eefdc542b4880d3c4b46f129: !UIElementLink.SplashScript,UIElementLink.Game
                         Id: 802787a7-fdee-42c5-b488-0d3c4b46f129
                         SplashScreenImages: e8e2f386-e79e-4875-993f-8bdaf0ef72c5:SplashScreenImages
-                        NextScene: TiltedScreen
+                        NextScene: 0bbdf1ab-bb41-46c5-86ef-4f2635d65c6a:TiltedScreen
                     f6b6b1a8d48a8045bd940370455f3450: !UIComponent
                         Id: a8b1b6f6-8ad4-4580-bd94-0370455f3450
                         Page: null
@@ -152,8 +152,8 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true

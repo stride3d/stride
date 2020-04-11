@@ -1,0 +1,30 @@
+﻿shader VoxelMarchBeam<int steps, float stepScale, float beamDiameter> : VoxelMarchMethod, VoxelRadiusMarchMethod, MarchAttributes
+{
+    #ifndef AttributeID
+        #define AttributeID 0
+    #endif
+    override float4 March(float3 rayPos, float3 rayDir)
+    {
+        return MarchRadius(rayPos, rayDir, 1.0);
+    }
+    override float4 MarchRadius(float3 rayPos, float3 rayDir, float radiusScale)
+    {
+        float voxelSize = AttributeSamplers[AttributeID].VoxelSize();
+        float dist = voxelSize;
+        float4 light = float4(0.0, 0.0, 0.0, 0.0);
+
+        for (int i = 0; i < steps; i++)
+        {
+            float size = beamDiameter * radiusScale;
+            float3 pos = rayPos + rayDir * dist;
+
+            light += AttributeSamplers[AttributeID].Sample(pos, -rayDir, AttributeSamplers[AttributeID].VoxelSize() * size) * saturate(1.0 - light.a);
+
+            dist += AttributeSamplers[AttributeID].VoxelSize() * stepScale;
+        }
+        return light;
+    }
+    
+    override float StepSize() { return AttributeSamplers[AttributeID].VoxelSize(); }
+    override float StepSizeRadius(float radiusScale) { return radiusScale * AttributeSamplers[AttributeID].VoxelSize(); }
+};

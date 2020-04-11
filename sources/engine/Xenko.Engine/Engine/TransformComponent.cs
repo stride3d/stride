@@ -204,6 +204,10 @@ namespace Xenko.Engine
                 var oldParent = Parent;
                 if (oldParent == value)
                     return;
+                
+                // SceneValue must be null if we have a parent
+                if( Entity.SceneValue != null )
+                    Entity.Scene = null;
 
                 var previousScene = oldParent?.Entity?.Scene;
                 var newScene = value?.Entity?.Scene;
@@ -250,8 +254,7 @@ namespace Xenko.Engine
                 var scene = Entity?.Scene;
                 if (scene != null)
                 {
-                    var inverseSceneTransform = scene.WorldMatrix;
-                    inverseSceneTransform.Invert();
+                    Matrix.Invert(ref scene.WorldMatrix, out var inverseSceneTransform);
                     Matrix.Multiply(ref WorldMatrix, ref inverseSceneTransform, out LocalMatrix);
                 }
                 else
@@ -262,8 +265,7 @@ namespace Xenko.Engine
             else
             {
                 //We are not root so we need to derive the local matrix as well
-                var inverseParent = Parent.WorldMatrix;
-                inverseParent.Invert();
+                Matrix.Invert(ref Parent.WorldMatrix, out var inverseParent);
                 Matrix.Multiply(ref WorldMatrix, ref inverseParent, out LocalMatrix);
             }
         }
@@ -295,8 +297,6 @@ namespace Xenko.Engine
             }
             else
             {
-                WorldMatrix = LocalMatrix;
-
                 var scene = Entity?.Scene;
                 if (scene != null)
                 {
@@ -305,7 +305,11 @@ namespace Xenko.Engine
                         scene.UpdateWorldMatrix();
                     }
 
-                    Matrix.Multiply(ref WorldMatrix, ref scene.WorldMatrix, out WorldMatrix);
+                    Matrix.Multiply(ref LocalMatrix, ref scene.WorldMatrix, out WorldMatrix);
+                }
+                else
+                {
+                    WorldMatrix = LocalMatrix;
                 }
             }
 

@@ -77,7 +77,11 @@ namespace Xenko.Core.Reflection
         /// <value>The member information.</value>
         public MemberInfo MemberInfo { get; }
 
-        public Func<object, bool> ShouldSerialize { get; set; }
+        public ShouldSerializePredicate ShouldSerialize { get; set; }
+
+        public System.ComponentModel.DefaultValueAttribute DefaultValueAttribute { get; set; }
+        public bool HasDefaultValue => DefaultValueAttribute != null;
+        public object DefaultValue => DefaultValueAttribute.Value;
 
         public List<string> AlternativeNames { get; set; }
 

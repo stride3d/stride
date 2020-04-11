@@ -39,7 +39,7 @@ namespace Xenko.Assets.Presentation.View.Behaviors
 
         /// <summary>
         /// The reference from which deltas are calculated.
-        /// When null, <see cref="System.Windows.Interactivity.Behavior.AssociatedObject"/> will be used instead.
+        /// When null, <see cref="Microsoft.Xaml.Behaviors.Behavior.AssociatedObject"/> will be used instead.
         /// </summary>
         public UIElement Reference { get { return (UIElement)GetValue(ReferenceProperty); } set { SetValue(ReferenceProperty, value); } }
 

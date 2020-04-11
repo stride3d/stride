@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using Xenko.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Xenko.Core;
 using Xenko.Core.Extensions;
@@ -21,14 +21,15 @@ namespace Xenko.Core.Assets.Editor.View.Behaviors
     public class PropertyViewAutoExpandNodesBehavior : Behavior<PropertyView>
     {
         private readonly List<PropertyViewItem> expandedItems = new List<PropertyViewItem>();
-        private readonly HashSet<string> expandedPropertyPaths = new HashSet<string>();
-        private readonly HashSet<string> collapsedPropertyPaths = new HashSet<string>();
+        // These are static so that we remember their state for the entire session.
+        private static readonly HashSet<string> expandedPropertyPaths = new HashSet<string>();
+        private static readonly HashSet<string> collapsedPropertyPaths = new HashSet<string>();
 
         /// <summary>
         /// Identifies the <see cref="ViewModel"/> dependency property.
         /// </summary>
         public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register(nameof(ViewModel), typeof(GraphViewModel), typeof(PropertyViewAutoExpandNodesBehavior), new PropertyMetadata(null, OnViewModelChanged));
-        
+
         /// <summary>
         /// Gets or sets the <see cref="GraphViewModel"/> associated to this behavior.
         /// </summary>
@@ -166,27 +167,37 @@ namespace Xenko.Core.Assets.Editor.View.Behaviors
                         item.SetCurrentValue(ExpandableItemsControl.IsExpandedProperty, false);
                         break;
                     case ExpandRule.Once:
-                        // Expand nodes that have this rule only if they have never been collapsed previously
-                        var propertyPath = GetNode(item).DisplayPath;
-                        if (!collapsedPropertyPaths.Contains(propertyPath))
                         {
-                            item.SetCurrentValue(ExpandableItemsControl.IsExpandedProperty, true);
-                            break;
+                            // Expand nodes that have this rule only if they have never been collapsed previously
+                            var propertyPath = GetNode(item).DisplayPath;
+                            if (!collapsedPropertyPaths.Contains(propertyPath))
+                            {
+                                item.SetCurrentValue(ExpandableItemsControl.IsExpandedProperty, true);
+                                break;
+                            }
                         }
                         goto default;
                     default:
-                        // If the node is an only child, let's expand it
-                        if (node.Parent.Children.Count == 1)
                         {
-                            item.SetCurrentValue(ExpandableItemsControl.IsExpandedProperty, true);
-                            // And keep a track of it, in case it has some siblings incoming
-                            expandedItems.Add(item);
-                        }
-                        else
-                        {
-                            // If one of its siblings has been expanded because it was an only child at the time it was created, let's unexpand it.
-                            // This will prevent to always have the first item expanded since the property items are generated as soon as a child is added.
-                            expandedItems.Where(x => GetNode(x).Parent == node.Parent).ForEach(x => x.SetCurrentValue(ExpandableItemsControl.IsExpandedProperty, false));
+                            // If the node was saved as expanded, persist this behavior
+                            var propertyPath = GetNode(item).DisplayPath;
+                            if (expandedPropertyPaths.Contains(propertyPath))
+                            {
+                                item.SetCurrentValue(ExpandableItemsControl.IsExpandedProperty, true);
+                            }
+                            else if (node.Parent.Children.Count == 1)
+                            {
+                                // If the node is an only child, let's expand it
+                                item.SetCurrentValue(ExpandableItemsControl.IsExpandedProperty, true);
+                                // And keep a track of it, in case it has some siblings incoming
+                                expandedItems.Add(item);
+                            }
+                            else
+                            {
+                                // If one of its siblings has been expanded because it was an only child at the time it was created, let's unexpand it.
+                                // This will prevent to always have the first item expanded since the property items are generated as soon as a child is added.
+                                expandedItems.Where(x => GetNode(x).Parent == node.Parent).ForEach(x => x.SetCurrentValue(ExpandableItemsControl.IsExpandedProperty, false));
+                            }
                         }
                         break;
                 }

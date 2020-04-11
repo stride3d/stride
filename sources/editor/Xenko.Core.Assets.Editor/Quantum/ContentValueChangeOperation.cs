@@ -13,11 +13,11 @@ namespace Xenko.Core.Assets.Editor.Quantum
     public class ContentValueChangeOperation : DirtyingOperation, IMergeableOperation
     {
         protected readonly IGraphNode Node;
-        protected Index Index;
+        protected NodeIndex Index;
         protected object PreviousValue;
         protected object NewValue;
 
-        public ContentValueChangeOperation(IGraphNode node, ContentChangeType changeType, Index index, object previousValue, object newValue, IEnumerable<IDirtiable> dirtiables)
+        public ContentValueChangeOperation(IGraphNode node, ContentChangeType changeType, NodeIndex index, object previousValue, object newValue, IEnumerable<IDirtiable> dirtiables)
             : base(dirtiables)
         {
             Node = node;
@@ -106,7 +106,7 @@ namespace Xenko.Core.Assets.Editor.Quantum
         /// <inheritdoc/>
         protected override void FreezeContent()
         {
-            Index = Index.Empty;
+            Index = NodeIndex.Empty;
             PreviousValue = null;
             NewValue = null;
         }

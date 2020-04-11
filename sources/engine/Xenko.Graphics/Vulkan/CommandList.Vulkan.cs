@@ -334,7 +334,7 @@ namespace Xenko.Graphics
                 {
                     case DescriptorType.SampledImage:
                         var texture = heapObject.Value as Texture;
-                        descriptorData->ImageInfo = new DescriptorImageInfo { ImageView = texture?.NativeImageView ?? ImageView.Null, ImageLayout = ImageLayout.ShaderReadOnlyOptimal };
+                        descriptorData->ImageInfo = new DescriptorImageInfo { ImageView = texture?.NativeImageView ?? GraphicsDevice.EmptyTexture.NativeImageView, ImageLayout = ImageLayout.ShaderReadOnlyOptimal };
                         write->ImageInfo = new IntPtr(descriptorData);
                         break;
 
@@ -352,7 +352,7 @@ namespace Xenko.Graphics
 
                     case DescriptorType.UniformTexelBuffer:
                         buffer = heapObject.Value as Buffer;
-                        descriptorData->BufferView = buffer?.NativeBufferView ?? GraphicsDevice.EmptyTexelBuffer.NativeBufferView;
+                        descriptorData->BufferView = buffer?.NativeBufferView ?? (mapping.ResourceElementIsInteger ? GraphicsDevice.EmptyTexelBufferInt.NativeBufferView : GraphicsDevice.EmptyTexelBufferFloat.NativeBufferView);
                         write->TexelBufferView = new IntPtr(descriptorData);
                         break;
 
@@ -701,12 +701,12 @@ namespace Xenko.Graphics
                 clearRange.AspectMask |= ImageAspectFlags.Stencil & depthStencilBuffer.NativeImageAspect;
 
             var memoryBarrier = new ImageMemoryBarrier(depthStencilBuffer.NativeImage, depthStencilBuffer.NativeLayout, ImageLayout.TransferDestinationOptimal, depthStencilBuffer.NativeAccessMask, AccessFlags.TransferWrite, barrierRange);
-            currentCommandList.NativeCommandBuffer.PipelineBarrier(PipelineStageFlags.TopOfPipe, PipelineStageFlags.TopOfPipe, DependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+            currentCommandList.NativeCommandBuffer.PipelineBarrier(depthStencilBuffer.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
 
             currentCommandList.NativeCommandBuffer.ClearDepthStencilImage(depthStencilBuffer.NativeImage, ImageLayout.TransferDestinationOptimal, new ClearDepthStencilValue(depth, stencil), 1, &clearRange);
 
             memoryBarrier = new ImageMemoryBarrier(depthStencilBuffer.NativeImage, ImageLayout.TransferDestinationOptimal, depthStencilBuffer.NativeLayout, AccessFlags.TransferWrite, depthStencilBuffer.NativeAccessMask, barrierRange);
-            currentCommandList.NativeCommandBuffer.PipelineBarrier(PipelineStageFlags.TopOfPipe, PipelineStageFlags.TopOfPipe, DependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+            currentCommandList.NativeCommandBuffer.PipelineBarrier(PipelineStageFlags.Transfer, depthStencilBuffer.NativePipelineStageMask, DependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
 
             depthStencilBuffer.IsInitialized = true;
         }
@@ -726,12 +726,12 @@ namespace Xenko.Graphics
             var clearRange = new ImageSubresourceRange(ImageAspectFlags.Color, (uint)renderTarget.ArraySlice, (uint)renderTarget.ArraySize, (uint)renderTarget.MipLevel, (uint)renderTarget.MipLevels);
 
             var memoryBarrier = new ImageMemoryBarrier(renderTarget.NativeImage, renderTarget.NativeLayout, ImageLayout.TransferDestinationOptimal, renderTarget.NativeAccessMask, AccessFlags.TransferWrite, clearRange);
-            currentCommandList.NativeCommandBuffer.PipelineBarrier(PipelineStageFlags.TopOfPipe, PipelineStageFlags.TopOfPipe, DependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+            currentCommandList.NativeCommandBuffer.PipelineBarrier(renderTarget.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
 
             currentCommandList.NativeCommandBuffer.ClearColorImage(renderTarget.NativeImage, ImageLayout.TransferDestinationOptimal, ColorHelper.Convert(color), 1, &clearRange);
 
             memoryBarrier = new ImageMemoryBarrier(renderTarget.NativeImage, ImageLayout.TransferDestinationOptimal, renderTarget.NativeLayout, AccessFlags.TransferWrite, renderTarget.NativeAccessMask, clearRange);
-            currentCommandList.NativeCommandBuffer.PipelineBarrier(PipelineStageFlags.TopOfPipe, PipelineStageFlags.TopOfPipe, DependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+            currentCommandList.NativeCommandBuffer.PipelineBarrier(PipelineStageFlags.Transfer, renderTarget.NativePipelineStageMask, DependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
 
             renderTarget.IsInitialized = true;
         }
@@ -847,7 +847,7 @@ namespace Xenko.Graphics
                     imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier(destinationParent.NativeImage, destinationTexture.NativeLayout, ImageLayout.TransferDestinationOptimal, destinationTexture.NativeAccessMask, AccessFlags.TransferWrite, new ImageSubresourceRange(destinationParent.NativeImageAspect));
                 }
 
-                currentCommandList.NativeCommandBuffer.PipelineBarrier(sourceTexture.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                currentCommandList.NativeCommandBuffer.PipelineBarrier(sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
 
                 // Copy
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
@@ -936,7 +936,7 @@ namespace Xenko.Graphics
                     imageBarrierCount++;
                 }
 
-                currentCommandList.NativeCommandBuffer.PipelineBarrier(PipelineStageFlags.Transfer, sourceTexture.NativePipelineStageMask, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                currentCommandList.NativeCommandBuffer.PipelineBarrier(PipelineStageFlags.Transfer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
             }
             else
             {
@@ -1015,7 +1015,7 @@ namespace Xenko.Graphics
                     imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier(destinationParent.NativeImage, destinationParent.NativeLayout, ImageLayout.TransferDestinationOptimal, destinationParent.NativeAccessMask, AccessFlags.TransferWrite, new ImageSubresourceRange(destinationParent.NativeImageAspect));
                 }
 
-                currentCommandList.NativeCommandBuffer.PipelineBarrier(sourceTexture.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                currentCommandList.NativeCommandBuffer.PipelineBarrier(sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
 
                 // Copy
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
@@ -1110,7 +1110,7 @@ namespace Xenko.Graphics
                     imageBarrierCount++;
                 }
 
-                currentCommandList.NativeCommandBuffer.PipelineBarrier(PipelineStageFlags.Transfer, sourceTexture.NativePipelineStageMask, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                currentCommandList.NativeCommandBuffer.PipelineBarrier(PipelineStageFlags.Transfer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
             }
             else
             {
@@ -1184,7 +1184,7 @@ namespace Xenko.Graphics
                 var subresourceRange = new ImageSubresourceRange(ImageAspectFlags.Color, (uint)arraySlice, 1, (uint)mipSlice, 1);
 
                 var memoryBarrier = new ImageMemoryBarrier(texture.NativeImage, texture.NativeLayout, ImageLayout.TransferDestinationOptimal, texture.NativeAccessMask, AccessFlags.TransferWrite, subresourceRange);
-                currentCommandList.NativeCommandBuffer.PipelineBarrier(texture.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 1, &uploadBufferMemoryBarrier, 1, &memoryBarrier);
+                currentCommandList.NativeCommandBuffer.PipelineBarrier(texture.NativePipelineStageMask | PipelineStageFlags.Host, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 1, &uploadBufferMemoryBarrier, 1, &memoryBarrier);
 
                 // TODO VULKAN: Handle depth-stencil (NOTE: only supported on graphics queue)
                 // TODO VULKAN: Handle non-packed pitches
@@ -1218,7 +1218,7 @@ namespace Xenko.Graphics
 
                     memoryBarriers[0] = uploadBufferMemoryBarrier;
                     memoryBarriers[1] = new BufferMemoryBarrier(buffer.NativeBuffer, buffer.NativeAccessMask, AccessFlags.TransferWrite, bufferCopy.DestinationOffset, bufferCopy.Size);
-                    currentCommandList.NativeCommandBuffer.PipelineBarrier(buffer.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 2, memoryBarriers, 0, null);
+                    currentCommandList.NativeCommandBuffer.PipelineBarrier(buffer.NativePipelineStageMask | PipelineStageFlags.Host, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 2, memoryBarriers, 0, null);
 
                     currentCommandList.NativeCommandBuffer.CopyBuffer(uploadResource, buffer.NativeBuffer, 1, &bufferCopy);
 

@@ -167,7 +167,7 @@ namespace Xenko.Core.Quantum
         /// <param name="index">The index of the item to evaluate.</param>
         /// <returns>True if the node of the item corresponding to the given index in the collection contained in the given node should be visited, false otherwise.</returns>
         /// <remarks>This method is invoked only when the given <see cref="IObjectNode"/> contains a collection with items being references.</remarks>
-        protected internal virtual bool ShouldVisitTargetItem([NotNull] IObjectNode collectionNode, Index index)
+        protected internal virtual bool ShouldVisitTargetItem([NotNull] IObjectNode collectionNode, NodeIndex index)
         {
             if (collectionNode == null) throw new ArgumentNullException(nameof(collectionNode));
             var target = collectionNode.IndexedTarget(index);

@@ -155,16 +155,19 @@ namespace Xenko.Assets.Presentation.AssetEditors.UIEditor.Game
                 var grid = parent as Grid;
                 if (grid != null)
                 {
+                    var actualColumnDefinitions = grid.ActualColumnDefinitions;
+                    var actualRowDefinitions = grid.ActualRowDefinitions;
+
                     var accWidth = 0.0f;
-                    for (var i = 0; i < colIndex && i < grid.ActualColumnDefinitions.Count; i++)
+                    for (var i = 0; i < colIndex && i < actualColumnDefinitions.Count; i++)
                     {
-                        var definition = grid.ActualColumnDefinitions[i];
+                        var definition = actualColumnDefinitions[i];
                         accWidth += definition.ActualSize;
                     }
                     var accHeight = 0.0f;
-                    for (var i = 0; i < rowIndex && i < grid.ActualRowDefinitions.Count; i++)
+                    for (var i = 0; i < rowIndex && i < actualRowDefinitions.Count; i++)
                     {
-                        var definition = grid.ActualRowDefinitions[i];
+                        var definition = actualRowDefinitions[i];
                         accHeight += definition.ActualSize;
                     }
                     rects.Parent = new RectangleF
@@ -172,15 +175,15 @@ namespace Xenko.Assets.Presentation.AssetEditors.UIEditor.Game
                         X = -accWidth, Y = -accHeight, Width = parent.ActualWidth, Height = parent.ActualHeight,
                     };
                     accWidth = 0.0f;
-                    for (var i = colIndex; i < colIndex + colSpan && i < grid.ActualColumnDefinitions.Count; i++)
+                    for (var i = colIndex; i < colIndex + colSpan && i < actualColumnDefinitions.Count; i++)
                     {
-                        var definition = grid.ActualColumnDefinitions[i];
+                        var definition = actualColumnDefinitions[i];
                         accWidth += definition.ActualSize;
                     }
                     accHeight = 0.0f;
-                    for (var i = rowIndex; i < rowIndex + rowSpan && i < grid.ActualRowDefinitions.Count; i++)
+                    for (var i = rowIndex; i < rowIndex + rowSpan && i < actualRowDefinitions.Count; i++)
                     {
-                        var definition = grid.ActualRowDefinitions[i];
+                        var definition = actualRowDefinitions[i];
                         accHeight += definition.ActualSize;
                     }
                     rects.Container = new RectangleF

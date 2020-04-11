@@ -1,6 +1,6 @@
 !GameSettingsAsset
 Id: 1A2E7C71-8DC5-4610-9F02-821605E48AB6
-SerializedVersion: {Xenko: 1.6.0-beta}
+SerializedVersion: {Xenko: 3.1.0.1}
 Tags: []
 Defaults:
     - !Xenko.Assets.EditorSettings,Xenko.Assets

@@ -35,6 +35,9 @@ namespace Xenko.Graphics
             DynamicState.StencilReference,
         };
 
+        // GLSL converter always outputs entry point main()
+        private static readonly byte[] defaultEntryPoint = Encoding.UTF8.GetBytes("main\0");
+
         internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
         {
             Description = pipelineStateDescription.Clone();
@@ -52,6 +55,9 @@ namespace Xenko.Graphics
 
             // Create shader stages
             Dictionary<int, string> inputAttributeNames;
+
+            // Note: important to pin this so that stages[x].Name is valid during this whole function
+            void* defaultEntryPointData = Interop.Fixed(defaultEntryPoint);
             var stages = CreateShaderStages(Description, out inputAttributeNames);
 
             var inputAttributes = new VertexInputAttributeDescription[Description.InputElements.Length];
@@ -101,7 +107,7 @@ namespace Xenko.Graphics
             {
                 StructureType = StructureType.PipelineInputAssemblyStateCreateInfo,
                 Topology = VulkanConvertExtensions.ConvertPrimitiveType(Description.PrimitiveType),
-                PrimitiveRestartEnable = true,
+                PrimitiveRestartEnable = VulkanConvertExtensions.ConvertPrimitiveRestart(Description.PrimitiveType),
             };
 
             // TODO VULKAN: Tessellation and multisampling
@@ -309,6 +315,8 @@ namespace Xenko.Graphics
             public int SourceBinding;
             public int DestinationBinding;
             public DescriptorType DescriptorType;
+            // Used for buffer/texture (to know what type to match)
+            public bool ResourceElementIsInteger;
         }
 
         internal List<DescriptorSetInfo> DescriptorBindingMapping;
@@ -363,7 +371,8 @@ namespace Xenko.Graphics
                             SourceSet = layoutIndex,
                             SourceBinding = sourceBinding,
                             DestinationBinding = destinationBinding,
-                            DescriptorType = VulkanConvertExtensions.ConvertDescriptorType(sourceEntry.Class, sourceEntry.Type)
+                            DescriptorType = VulkanConvertExtensions.ConvertDescriptorType(sourceEntry.Class, sourceEntry.Type),
+                            ResourceElementIsInteger = sourceEntry.ElementType != EffectParameterType.Float && sourceEntry.ElementType != EffectParameterType.Double,
                         });
                     }
                 }
@@ -399,16 +408,13 @@ namespace Xenko.Graphics
 
             inputAttributeNames = null;
 
-            // GLSL converter always outputs entry point main()
-            var entryPoint = Encoding.UTF8.GetBytes("main\0");
-
             for (int i = 0; i < stages.Length; i++)
             {
                 var shaderBytecode = BinarySerialization.Read<ShaderInputBytecode>(stages[i].Data);
                 if (stages[i].Stage == ShaderStage.Vertex)
                     inputAttributeNames = shaderBytecode.InputAttributeNames;
 
-                fixed (byte* entryPointPointer = &entryPoint[0])
+                fixed (byte* entryPointPointer = &defaultEntryPoint[0])
                 fixed (byte* codePointer = &shaderBytecode.Data[0])
                 {
                     // Create shader module

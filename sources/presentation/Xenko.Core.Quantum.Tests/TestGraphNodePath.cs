@@ -80,18 +80,18 @@ namespace Xenko.Core.Quantum.Tests
 
             path1 = new GraphNodePath(nodeContainer.GetOrCreateNode(obj));
             path1.PushMember(nameof(Class.ListMember));
-            path1.PushIndex(new Index(0));
+            path1.PushIndex(new NodeIndex(0));
             AssertAreEqual(path1.GetHashCode(), path2.GetHashCode());
             AssertAreNotEqual(path1, path2);
             path2 = new GraphNodePath(nodeContainer.GetOrCreateNode(obj));
             path2.PushMember(nameof(Class.ListMember));
-            path2.PushIndex(new Index(0));
+            path2.PushIndex(new NodeIndex(0));
             AssertAreEqual(path1.GetHashCode(), path2.GetHashCode());
             AssertAreEqual(path1, path2);
 
             path2 = new GraphNodePath(nodeContainer.GetOrCreateNode(obj));
             path2.PushMember(nameof(Class.ListMember));
-            path2.PushIndex(new Index(1));
+            path2.PushIndex(new NodeIndex(1));
             AssertAreEqual(path1.GetHashCode(), path2.GetHashCode());
             AssertAreNotEqual(path1, path2);
         }
@@ -120,7 +120,7 @@ namespace Xenko.Core.Quantum.Tests
             var path3 = path1.Clone();
             path3.PushMember(nameof(Class.ListMember));
             path3.PushTarget();
-            path3.PushIndex(new Index(1));
+            path3.PushIndex(new NodeIndex(1));
             path3.PushMember(nameof(Class.IntMember));
             clone = path3.Clone();
             AssertAreEqual(path3, clone);
@@ -155,7 +155,7 @@ namespace Xenko.Core.Quantum.Tests
             AssertAreEqual(path2.IsEmpty, clone.IsEmpty);
             var path3 = path1.Clone();
             path3.PushMember(nameof(Class.ListMember));
-            path3.PushIndex(new Index(1));
+            path3.PushIndex(new NodeIndex(1));
             path3.PushMember(nameof(Class.IntMember));
             clone = path3.Clone(newRoot);
             AssertAreNotEqual(path3, clone);
@@ -272,7 +272,7 @@ namespace Xenko.Core.Quantum.Tests
             var path = new GraphNodePath(rootNode);
             path.PushMember(nameof(Class.ListMember));
             path.PushTarget();
-            path.PushIndex(new Index(1));
+            path.PushIndex(new NodeIndex(1));
             var targetNode = nodeContainer.GetNode(obj.ListMember[1]);
             var nodes = new IGraphNode[] { rootNode, rootNode[nameof(Class.ListMember)], rootNode[nameof(Class.ListMember)].Target, targetNode };
             Assert.NotNull(targetNode);
@@ -296,7 +296,7 @@ namespace Xenko.Core.Quantum.Tests
             var path = new GraphNodePath(rootNode);
             path.PushMember(nameof(Class.ListMember));
             path.PushTarget();
-            path.PushIndex(new Index(1));
+            path.PushIndex(new NodeIndex(1));
             path.PushMember(nameof(Class.IntMember));
             var targetNode = nodeContainer.GetNode(obj.ListMember[1]);
             var intNode = targetNode[nameof(Class.IntMember)];
@@ -351,18 +351,18 @@ namespace Xenko.Core.Quantum.Tests
 
             path = new GraphNodePath(rootNode);
             path.PushMember(nameof(Class.ListMember));
-            path.PushIndex(new Index(1));
+            path.PushIndex(new NodeIndex(1));
             parentPath = new GraphNodePath(rootNode);
             parentPath.PushMember(nameof(Class.ListMember));
             AssertAreEqual(parentPath, path.GetParent());
 
             path = new GraphNodePath(rootNode);
             path.PushMember(nameof(Class.ListMember));
-            path.PushIndex(new Index(1));
+            path.PushIndex(new NodeIndex(1));
             path.PushMember(nameof(Class.IntMember));
             parentPath = new GraphNodePath(rootNode);
             parentPath.PushMember(nameof(Class.ListMember));
-            parentPath.PushIndex(new Index(1));
+            parentPath.PushIndex(new NodeIndex(1));
             AssertAreEqual(parentPath, path.GetParent());
         }
 

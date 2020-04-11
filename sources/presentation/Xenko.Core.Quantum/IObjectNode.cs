@@ -28,7 +28,7 @@ namespace Xenko.Core.Quantum
         /// <summary>
         /// Gets all the indices in the value of this content, if it is a collection. Otherwise, this property returns null.
         /// </summary>
-        IEnumerable<Index> Indices { get; }
+        IEnumerable<NodeIndex> Indices { get; }
 
         bool IsEnumerable { get; }
 
@@ -38,7 +38,7 @@ namespace Xenko.Core.Quantum
         /// <exception cref="InvalidOperationException">The node does not contain a sequence of references to some other nodes.</exception>
         /// <exception cref="ArgumentException">The index is empty.</exception>
         /// <exception cref="KeyNotFoundException">The index does not exist.</exception>
-        IObjectNode IndexedTarget(Index index);
+        IObjectNode IndexedTarget(NodeIndex index);
 
         /// <summary>
         /// Attempts to retrieve the child node of this <see cref="IGraphNode"/> that matches the given name.
@@ -52,7 +52,7 @@ namespace Xenko.Core.Quantum
         /// </summary>
         /// <param name="newValue">The new value to set.</param>
         /// <param name="index">The index where to update the value.</param>
-        void Update(object newValue, Index index);
+        void Update(object newValue, NodeIndex index);
 
         /// <summary>
         /// Adds a new item to this content, assuming the content is a collection.
@@ -65,13 +65,13 @@ namespace Xenko.Core.Quantum
         /// </summary>
         /// <param name="newItem">The new item to add to the collection.</param>
         /// <param name="itemIndex">The index at which the new item must be added.</param>
-        void Add(object newItem, Index itemIndex);
+        void Add(object newItem, NodeIndex itemIndex);
 
         /// <summary>
         /// Removes an item from this content, assuming the content is a collection.
         /// </summary>
         /// <param name="item">The item to remove.</param>
         /// <param name="itemIndex">The index from which the item must be removed.</param>
-        void Remove(object item, Index itemIndex);
+        void Remove(object item, NodeIndex itemIndex);
     }
 }

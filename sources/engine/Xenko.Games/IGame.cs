@@ -53,12 +53,6 @@ namespace Xenko.Games
         float DrawInterpolationFactor { get; }
 
         /// <summary>
-        /// Gets the play time, can be changed to match to the time of the current rendering scene.
-        /// </summary>
-        /// <value>The play time.</value>
-        TimerTick PlayTime { get; }
-
-        /// <summary>
         /// Gets or sets the <see cref="ContentManager"/>.
         /// </summary>
         /// <value>The content manager.</value>
@@ -146,11 +140,5 @@ namespace Xenko.Games
         /// </summary>
         /// <value>The window.</value>
         GameWindow Window { get; }
-
-        /// <summary>
-        /// Gets or sets the state.
-        /// </summary>
-        /// <value>The state.</value>
-        GameState State { get; set; }
     }
 }

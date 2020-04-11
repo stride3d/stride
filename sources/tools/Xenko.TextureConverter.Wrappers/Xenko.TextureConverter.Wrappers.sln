@@ -1,15 +1,14 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29326.143
 MinimumVisualStudioVersion = 15.0.26228.4
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AtitcWrapper", "AtitcWrapper\AtitcWrapper.vcxproj", "{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DxtWrapper", "DxtWrapper\DxtWrapper.vcxproj", "{29F41E6E-532D-440E-941B-0CD13EE96B6F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77} = {371B9FA9-4C90-4AC6-A123-ACED756D6C77}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreeImage.NET", "FreeImage.Net\FreeImage.NET.csproj", "{6598A7CD-8F27-4D3F-A675-5AE63113A7C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreeImage.NET", "FreeImage.Net\FreeImage.NET.csproj", "{6598A7CD-8F27-4D3F-A675-5AE63113A7C3}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PvrttWrapper", "PvrttWrapperC++\PvrttWrapperC++.vcxproj", "{B8B85886-0F82-4FF3-BCD5-8EAE7EA19EA5}"
 EndProject
@@ -34,32 +33,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Debug|Win32.ActiveCfg = Debug|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Debug|Win32.Build.0 = Debug|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Debug|x64.ActiveCfg = Debug|x64
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Debug|x64.Build.0 = Debug|x64
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Debug|x86.ActiveCfg = Debug|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Debug|x86.Build.0 = Debug|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Profile|Any CPU.ActiveCfg = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Profile|Mixed Platforms.ActiveCfg = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Profile|Mixed Platforms.Build.0 = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Profile|Win32.ActiveCfg = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Profile|Win32.Build.0 = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Profile|x64.ActiveCfg = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Profile|x86.ActiveCfg = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Profile|x86.Build.0 = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Release|Any CPU.ActiveCfg = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Release|Win32.ActiveCfg = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Release|Win32.Build.0 = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Release|x64.ActiveCfg = Release|x64
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Release|x64.Build.0 = Release|x64
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Release|x86.ActiveCfg = Release|Win32
-		{0CD6FFE0-3EAD-47A9-993C-9AF5B69FB0C3}.Release|x86.Build.0 = Release|Win32
 		{29F41E6E-532D-440E-941B-0CD13EE96B6F}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{29F41E6E-532D-440E-941B-0CD13EE96B6F}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{29F41E6E-532D-440E-941B-0CD13EE96B6F}.Debug|Mixed Platforms.Build.0 = Debug|Win32
@@ -172,5 +145,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {55A37447-CBBB-43A4-A6E5-1C7393F4A132}
 	EndGlobalSection
 EndGlobal

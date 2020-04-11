@@ -62,7 +62,7 @@ namespace Xenko.Graphics
             /// </summary>
             public TDrawInfo DrawInfo;
 
-            public ElementInfo(int vertexCount, int indexCount, ref TDrawInfo drawInfo, float depth = 0)
+            public ElementInfo(int vertexCount, int indexCount, in TDrawInfo drawInfo, float depth = 0)
             {
                 VertexCount = vertexCount;
                 IndexCount = indexCount;
@@ -417,13 +417,14 @@ namespace Xenko.Graphics
                 while (batchSize < count)
                 {
                     var spriteIndex = offset + batchSize;
+                    ref var spriteElementInfo = ref sprites[spriteIndex];
 
                     // How many sprites does the D3D vertex buffer have room for?
                     var remainingVertexSpace = ResourceContext.VertexCount - ResourceContext.VertexBufferPosition - vertexCount;
                     var remainingIndexSpace = ResourceContext.IndexCount - ResourceContext.IndexBufferPosition - indexCount;
 
-                    // if there is not enough place let for either the indices or vertices of the current element..., 
-                    if (sprites[spriteIndex].IndexCount > remainingIndexSpace || sprites[spriteIndex].VertexCount > remainingVertexSpace)
+                    // if there is not enough place left for either the indices or vertices of the current element...,
+                    if (spriteElementInfo.IndexCount > remainingIndexSpace || spriteElementInfo.VertexCount > remainingVertexSpace)
                     {
                         // if we haven't started the current batch yet, we restart at the beginning of the buffers.
                         if (batchSize == 0)
@@ -433,13 +434,13 @@ namespace Xenko.Graphics
                             continue;
                         }
 
-                        // else we perform the draw call and  batch remaining elements in next draw call.
+                        // else we perform the draw call and batch remaining elements in next draw call.
                         break;
                     }
 
                     ++batchSize;
-                    vertexCount += sprites[spriteIndex].VertexCount;
-                    indexCount += sprites[spriteIndex].IndexCount;
+                    vertexCount += spriteElementInfo.VertexCount;
+                    indexCount += spriteElementInfo.IndexCount;
                 }
 
                 // Sets the data directly to the buffer in memory
@@ -499,12 +500,13 @@ namespace Xenko.Graphics
                     for (var i = 0; i < batchSize; i++)
                     {
                         var spriteIndex = offset + i;
+                        ref var spriteElementInfo = ref sprites[spriteIndex];
 
-                        UpdateBufferValuesFromElementInfo(ref sprites[spriteIndex], vertexPointer, indexPointer, ResourceContext.VertexBufferPosition);
-                        
-                        ResourceContext.VertexBufferPosition += sprites[spriteIndex].VertexCount;
-                        vertexPointer += vertexStructSize * sprites[spriteIndex].VertexCount;
-                        indexPointer += indexStructSize * sprites[spriteIndex].IndexCount;
+                        UpdateBufferValuesFromElementInfo(ref spriteElementInfo, vertexPointer, indexPointer, ResourceContext.VertexBufferPosition);
+
+                        ResourceContext.VertexBufferPosition += spriteElementInfo.VertexCount;
+                        vertexPointer += vertexStructSize * spriteElementInfo.VertexCount;
+                        indexPointer += indexStructSize * spriteElementInfo.IndexCount;
                     }
 
                     GraphicsContext.CommandList.UnmapSubresource(mappedVertices);
@@ -522,7 +524,7 @@ namespace Xenko.Graphics
             }
         }
 
-        protected void Draw(Texture texture, ref ElementInfo elementInfo)
+        protected void Draw(Texture texture, in ElementInfo elementInfo)
         {
             // Make sure that Begin was called
             CheckBeginHasBeenCalled("draw");

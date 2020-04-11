@@ -51,7 +51,7 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters
             return new AssetMemberNodePresenter(this, propertyProvider, parentPresenter, assetNode);
         }
 
-        protected override IInitializingNodePresenter CreateItem(IPropertyProviderViewModel propertyProvider, INodePresenter containerPresenter, IObjectNode containerNode, Index index)
+        protected override IInitializingNodePresenter CreateItem(IPropertyProviderViewModel propertyProvider, INodePresenter containerPresenter, IObjectNode containerNode, NodeIndex index)
         {
             var assetNode = containerNode as IAssetObjectNode;
             if (assetNode == null) throw new ArgumentException($"Expected an {nameof(IAssetMemberNode)}.");

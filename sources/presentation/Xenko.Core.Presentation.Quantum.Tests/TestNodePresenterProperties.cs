@@ -50,7 +50,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var member = root[nameof(SimpleMember.FloatValue)];
             Assert.Equal(0, member.Children.Count);
             Assert.Equal(nameof(SimpleMember.FloatValue), member.DisplayName);
-            Assert.Equal(Index.Empty, member.Index);
+            Assert.Equal(NodeIndex.Empty, member.Index);
             Assert.False(member.IsEnumerable);
             Assert.False(member.IsReadOnly);
             Assert.True(member.IsVisible);
@@ -69,7 +69,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var member = root[nameof(SimpleMember.FloatValue)];
             Assert.Equal(0, member.Children.Count);
             Assert.Equal(nameof(SimpleMember.FloatValue), member.DisplayName);
-            Assert.Equal(Index.Empty, member.Index);
+            Assert.Equal(NodeIndex.Empty, member.Index);
             Assert.False(member.IsEnumerable);
             Assert.False(member.IsReadOnly);
             Assert.True(member.IsVisible);
@@ -88,7 +88,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var member = root[nameof(NestedMemberClass.MemberClass)];
             Assert.Equal(1, member.Children.Count);
             Assert.Equal(nameof(NestedMemberClass.MemberClass), member.DisplayName);
-            Assert.Equal(Index.Empty, member.Index);
+            Assert.Equal(NodeIndex.Empty, member.Index);
             Assert.False(member.IsEnumerable);
             Assert.False(member.IsReadOnly);
             Assert.True(member.IsVisible);
@@ -99,7 +99,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var innerMember = member[nameof(SimpleMember.FloatValue)];
             Assert.Equal(0, innerMember.Children.Count);
             Assert.Equal(nameof(SimpleMember.FloatValue), innerMember.DisplayName);
-            Assert.Equal(Index.Empty, innerMember.Index);
+            Assert.Equal(NodeIndex.Empty, innerMember.Index);
             Assert.False(innerMember.IsEnumerable);
             Assert.False(innerMember.IsReadOnly);
             Assert.True(innerMember.IsVisible);
@@ -118,7 +118,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var member = root[nameof(NestedMemberClass.MemberClass)];
             Assert.Equal(1, member.Children.Count);
             Assert.Equal(nameof(NestedMemberClass.MemberClass), member.DisplayName);
-            Assert.Equal(Index.Empty, member.Index);
+            Assert.Equal(NodeIndex.Empty, member.Index);
             Assert.False(member.IsEnumerable);
             Assert.True(member.IsReadOnly);
             Assert.True(member.IsVisible);
@@ -129,7 +129,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var innerMember = member[nameof(SimpleMember.FloatValue)];
             Assert.Equal(0, innerMember.Children.Count);
             Assert.Equal(nameof(SimpleMember.FloatValue), innerMember.DisplayName);
-            Assert.Equal(Index.Empty, innerMember.Index);
+            Assert.Equal(NodeIndex.Empty, innerMember.Index);
             Assert.False(innerMember.IsEnumerable);
             Assert.False(innerMember.IsReadOnly);
             Assert.True(innerMember.IsVisible);
@@ -148,7 +148,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var member = root[nameof(ListMember.List)];
             Assert.Equal(0, member.Children.Count);
             Assert.Equal(nameof(ListMember.List), member.DisplayName);
-            Assert.Equal(Index.Empty, member.Index);
+            Assert.Equal(NodeIndex.Empty, member.Index);
             Assert.True(member.IsEnumerable);
             Assert.False(member.IsReadOnly);
             Assert.True(member.IsVisible);
@@ -163,7 +163,7 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             member = root[nameof(ListMember.List)];
             Assert.Equal(0, member.Children.Count);
             Assert.Equal(nameof(ListMember.List), member.DisplayName);
-            Assert.Equal(Index.Empty, member.Index);
+            Assert.Equal(NodeIndex.Empty, member.Index);
             Assert.False(member.IsEnumerable);
             Assert.False(member.IsReadOnly);
             Assert.True(member.IsVisible);

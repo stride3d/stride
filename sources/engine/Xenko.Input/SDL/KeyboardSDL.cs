@@ -170,7 +170,8 @@ namespace Xenko.Input
                 map[SDL.SDL_Keycode.SDLK_INSERT] = Keys.Insert;
                 map[SDL.SDL_Keycode.SDLK_DELETE] = Keys.Delete;
                 map[SDL.SDL_Keycode.SDLK_HELP] = Keys.Help;
-                map[SDL.SDL_Keycode.SDLK_1] = Keys.D0;
+                map[SDL.SDL_Keycode.SDLK_0] = Keys.D0;
+                map[SDL.SDL_Keycode.SDLK_1] = Keys.D1;
                 map[SDL.SDL_Keycode.SDLK_2] = Keys.D2;
                 map[SDL.SDL_Keycode.SDLK_3] = Keys.D3;
                 map[SDL.SDL_Keycode.SDLK_4] = Keys.D4;
@@ -220,10 +221,10 @@ namespace Xenko.Input
                 map[SDL.SDL_Keycode.SDLK_KP_8] = Keys.NumPad8;
                 map[SDL.SDL_Keycode.SDLK_KP_9] = Keys.NumPad9;
                 map[SDL.SDL_Keycode.SDLK_KP_MULTIPLY] = Keys.Multiply;
-                map[SDL.SDL_Keycode.SDLK_PLUS] = Keys.Add;
+                map[SDL.SDL_Keycode.SDLK_PLUS] = Keys.OemPlus;
                 map[SDL.SDL_Keycode.SDLK_KP_PLUS] = Keys.Add;
                 map[SDL.SDL_Keycode.SDLK_SEPARATOR] = Keys.Separator;
-                map[SDL.SDL_Keycode.SDLK_MINUS] = Keys.Subtract;
+                map[SDL.SDL_Keycode.SDLK_MINUS] = Keys.OemMinus;
                 map[SDL.SDL_Keycode.SDLK_KP_MINUS] = Keys.Subtract;
                 map[SDL.SDL_Keycode.SDLK_DECIMALSEPARATOR] = Keys.Decimal;
                 map[SDL.SDL_Keycode.SDLK_KP_DECIMAL] = Keys.Decimal;
@@ -280,9 +281,7 @@ namespace Xenko.Input
                 //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.LaunchApplication2;
                 //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Oem1;
                 //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemSemicolon;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemPlus;
                 //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemComma;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemMinus;
                 //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemPeriod;
                 //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Oem2;
                 //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemQuestion;

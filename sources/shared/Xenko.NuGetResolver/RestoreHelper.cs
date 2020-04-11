@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Commands;
@@ -16,6 +15,7 @@ using NuGet.LibraryModel;
 using NuGet.ProjectModel;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using NuGet.RuntimeModel;
 using NuGet.Versioning;
 
 namespace Xenko.Core.Assets
@@ -25,42 +25,37 @@ namespace Xenko.Core.Assets
         public static List<string> ListAssemblies(RestoreRequest request, RestoreResult result)
         {
             var assemblies = new List<string>();
-            foreach (var library in result.LockFile.Libraries)
+
+            var lockFile = result.LockFile;
+            var packageFolder = lockFile.PackageFolders[0].Path;
+            var libPaths = new Dictionary<string, string>();
+            foreach (var lib in lockFile.Libraries)
             {
-                // Try several known path (note: order matters)
-                // TODO: Create a real sort
-                foreach (var startPattern in new[] { "runtimes/win-d3d11/lib/net4", "runtimes/win/lib/net4", "runtimes/any/lib/net4", "lib/net4", "lib/net35", "runtimes/win-d3d11/lib/netstandard2.", "runtimes/win/lib/netstandard2.", "runtimes/any/lib/netstandard2.", "lib/netstandard2.", "lib/netstandard1.", "lib/net10" })
+                libPaths.Add(lib.Name, Path.Combine(packageFolder, lib.Path.Replace('/', Path.DirectorySeparatorChar)));
+            }
+            var target = lockFile.Targets.Last();
+            foreach (var lib in target.Libraries)
+            {
+                var libPath = libPaths[lib.Name];
+                foreach (var a in lib.RuntimeAssemblies)
                 {
-                    foreach (var file in library.Files)
-                    {
-                        var extension = Path.GetExtension(file).ToLowerInvariant();
-                        // Try several known path (note: order matters)
-                        if (file.StartsWith(startPattern, StringComparison.InvariantCultureIgnoreCase)
-                            && (extension == ".dll" || extension == ".exe"))
-                        {
-                            assemblies.Add(Path.Combine(request.DependencyProviders.GlobalPackages.RepositoryRoot, library.Path, file));
-                        }
-                    }
+                    var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+                    assemblies.Add(assemblyFile);
+                }
+                foreach (var a in lib.RuntimeTargets)
+                {
+                    var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+                    assemblies.Add(assemblyFile);
                 }
             }
 
             return assemblies;
         }
 
-        public static async Task<(RestoreRequest, RestoreResult)> Restore(ILogger logger, string packageName, VersionRange versionRange)
+        public static async Task<(RestoreRequest, RestoreResult)> Restore(ILogger logger, NuGetFramework nugetFramework, string runtimeIdentifier, string packageName, VersionRange versionRange)
         {
             var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
 
-            var packageSourceProvider = new PackageSourceProvider(settings);
-
-            // not sure what these do, but it was in the NuGet command line.
-            var resourceProviders = new List<Lazy<INuGetResourceProvider>>();
-            resourceProviders.AddRange(Repository.Provider.GetCoreV3());
-
-            // Setup source provider as a V3 only.
-            var sourceRepositoryProvider = new SourceRepositoryProvider(settings, resourceProviders);
-
-            var installPath = SettingsUtility.GetGlobalPackagesFolder(settings);
             var assemblies = new List<string>();
 
             var projectPath = Path.Combine("XenkoNugetResolver.json");
@@ -79,7 +74,7 @@ namespace Xenko.Core.Assets
                 {
                     new TargetFrameworkInformation
                     {
-                        FrameworkName = NuGetFramework.Parse("net472"),
+                        FrameworkName = nugetFramework,
                     }
                 },
                 RestoreMetadata = new ProjectRestoreMetadata
@@ -88,13 +83,14 @@ namespace Xenko.Core.Assets
                     ProjectName = Path.GetFileNameWithoutExtension(projectPath),
                     ProjectStyle = ProjectStyle.PackageReference,
                     ProjectUniqueName = projectPath,
-                    OutputPath = Path.Combine(Path.GetTempPath(), $"XenkoNugetResolver-{packageName}-{versionRange.MinVersion.ToString()}"),
-                    OriginalTargetFrameworks = new[] { "net472" },
+                    OutputPath = Path.Combine(Path.GetTempPath(), $"XenkoNugetResolver-{packageName}-{versionRange.MinVersion.ToString()}-{nugetFramework.GetShortFolderName()}-{runtimeIdentifier}"),
+                    OriginalTargetFrameworks = new[] { nugetFramework.GetShortFolderName() },
                     ConfigFilePaths = settings.GetConfigFilePaths(),
                     PackagesPath = SettingsUtility.GetGlobalPackagesFolder(settings),
                     Sources = SettingsUtility.GetEnabledSources(settings).ToList(),
                     FallbackFolders = SettingsUtility.GetFallbackPackageFolders(settings).ToList()
                 },
+                RuntimeGraph = new RuntimeGraph(new[] { new RuntimeDescription(runtimeIdentifier) }),
             };
 
             using (var context = new SourceCacheContext())

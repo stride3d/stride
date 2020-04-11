@@ -47,46 +47,52 @@ namespace Xenko.Core.Mathematics
         public BoundingFrustum(ref Matrix matrix)
         {
             // Left
-            LeftPlane = Plane.Normalize(new Plane(
+            Plane.Normalize(
                 matrix.M14 + matrix.M11,
                 matrix.M24 + matrix.M21,
                 matrix.M34 + matrix.M31,
-                matrix.M44 + matrix.M41));
+                matrix.M44 + matrix.M41,
+                out LeftPlane);
 
             // Right
-            RightPlane = Plane.Normalize(new Plane(
+            Plane.Normalize(
                 matrix.M14 - matrix.M11,
                 matrix.M24 - matrix.M21,
                 matrix.M34 - matrix.M31,
-                matrix.M44 - matrix.M41));
+                matrix.M44 - matrix.M41,
+                out RightPlane);
 
             // Top
-            TopPlane = Plane.Normalize(new Plane(
+            Plane.Normalize(
                 matrix.M14 - matrix.M12,
                 matrix.M24 - matrix.M22,
                 matrix.M34 - matrix.M32,
-                matrix.M44 - matrix.M42));
+                matrix.M44 - matrix.M42,
+                out TopPlane);
 
             // Bottom
-            BottomPlane = Plane.Normalize(new Plane(
+            Plane.Normalize(
                 matrix.M14 + matrix.M12,
                 matrix.M24 + matrix.M22,
                 matrix.M34 + matrix.M32,
-                matrix.M44 + matrix.M42));
+                matrix.M44 + matrix.M42,
+                out BottomPlane);
 
             // Near
-            NearPlane = Plane.Normalize(new Plane(
+            Plane.Normalize(
                 matrix.M13,
                 matrix.M23,
                 matrix.M33,
-                matrix.M43));
+                matrix.M43,
+                out NearPlane);
 
             // Far
-            FarPlane = Plane.Normalize(new Plane(
+            Plane.Normalize(
                 matrix.M14 - matrix.M13,
                 matrix.M24 - matrix.M23,
                 matrix.M34 - matrix.M33,
-                matrix.M44 - matrix.M43));
+                matrix.M44 - matrix.M43,
+                out FarPlane);
         }
 
         /// <summary>

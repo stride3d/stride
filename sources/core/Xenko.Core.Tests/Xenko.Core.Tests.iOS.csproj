@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Platform)' == 'iPhone' ">
     <DebugSymbols>true</DebugSymbols>
@@ -38,8 +37,8 @@
     <Compile Include="..\..\tests\nunitlite\NUnitLiteLauncher.iPhone.cs" Label="Xenko.DoNotSync">
       <Link>NUnitLiteLauncher.iPhone.cs</Link>
     </Compile>
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

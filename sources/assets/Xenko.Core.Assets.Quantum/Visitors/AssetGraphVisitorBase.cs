@@ -31,7 +31,7 @@ namespace Xenko.Core.Assets.Quantum.Visitors
         }
 
         /// <inheritdoc/>
-        protected override bool ShouldVisitTargetItem(IObjectNode collectionNode, Index index)
+        protected override bool ShouldVisitTargetItem(IObjectNode collectionNode, NodeIndex index)
         {
             return base.ShouldVisitTargetItem(collectionNode, index) && !PropertyGraphDefinition.IsTargetItemObjectReference(collectionNode, index, collectionNode.Retrieve(index));
         }

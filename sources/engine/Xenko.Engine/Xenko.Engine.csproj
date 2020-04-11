@@ -1,12 +1,11 @@
 <Project>
 
   <PropertyGroup>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoRuntime>true</XenkoRuntime>
   </PropertyGroup>
 
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -20,6 +19,8 @@
     <RootNamespace>Xenko</RootNamespace>
     <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
     <XenkoPackAssets>true</XenkoPackAssets>
+    <!-- force generate Resource.designer.cs to namespace Xenko.Engine to fix issue #553 -->
+    <AndroidResgenNamespace>Xenko.Engine</AndroidResgenNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -46,8 +47,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.7.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.10.0" />
     <ProjectReference Include="..\Xenko.Audio\Xenko.Audio.csproj" />
     <ProjectReference Include="..\Xenko.Rendering\Xenko.Rendering.csproj" />
     <ProjectReference Include="..\Xenko.VirtualReality\Xenko.VirtualReality.csproj" />
@@ -65,7 +66,7 @@
     </When>
   </Choose>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

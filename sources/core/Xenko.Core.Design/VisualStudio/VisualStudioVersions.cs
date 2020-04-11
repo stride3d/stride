@@ -148,6 +148,17 @@ namespace Xenko.Core.VisualStudio
                             var nickname = inst2.GetProperties().GetValue("nickname") as string;
                             if (!string.IsNullOrEmpty(nickname))
                                 displayName = $"{displayName} ({nickname})";
+                            else
+                            {
+                                var installationName = inst2.GetInstallationName();
+                                // In case of Preview, we have:
+                                // "installationName": "VisualStudioPreview/16.4.0-pre.6.0+29519.161"
+                                // "channelId": "VisualStudio.16.Preview"
+                                if (installationName.Contains("Preview"))
+                                {
+                                    displayName = displayName + " (Preview)";
+                                }
+                            }
                         }
                         catch (COMException)
                         {

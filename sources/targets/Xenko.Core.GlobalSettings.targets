@@ -1,30 +1,10 @@
 <!-- Global settings used to configure the XenkoPlatform -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <Import Project="$(MSBuildThisFileDirectory)Xenko.PackageVersion.targets"/>
+  
   <!-- Sdk settings -->
   <PropertyGroup>
-    <!-- Customize GenerateAssemblyInfo -->
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-
-    <_XenkoSharedAssemblyInfoLines Condition="'$(XenkoPackageBuild)' == 'true'">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.NuGet.cs'))</_XenkoSharedAssemblyInfoLines>
-    <_XenkoSharedAssemblyInfoLines Condition="'$(XenkoPackageBuild)' != 'true'">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.cs'))</_XenkoSharedAssemblyInfoLines>
-    <XenkoPublicVersion>$([System.Text.RegularExpressions.Regex]::Match($(_XenkoSharedAssemblyInfoLines), `.*PublicVersion = \"(.*)\";.*`).Groups[1].Value)</XenkoPublicVersion>
-    <XenkoNuGetVersionSuffix>$([System.Text.RegularExpressions.Regex]::Match($(_XenkoSharedAssemblyInfoLines), `.*NuGetVersionSuffix = \"(.*)\";.*`).Groups[1].Value)</XenkoNuGetVersionSuffix>
-    <XenkoBuildMetadata>$([System.Text.RegularExpressions.Regex]::Match($(_XenkoSharedAssemblyInfoLines), `.*BuildMetadata = \"(.*)\";.*`).Groups[1].Value)</XenkoBuildMetadata>
-    <XenkoNuGetVersion>$(XenkoPublicVersion)$(XenkoNuGetVersionSuffix)$(XenkoBuildMetadata)</XenkoNuGetVersion>
-    
-    <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(XenkoNuGetVersion)</PackageVersion>
-    <PackageLicenseUrl>https://github.com/xenko3d/xenko/blob/master/LICENSE.md</PackageLicenseUrl>
-    <PackageProjectUrl>https://xenko.com</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/xenko3d/media/master/images/mainlogo/nuget/logo.png</PackageIconUrl>
-    <RepositoryUrl>https://github.com/xenko3d/xenko</RepositoryUrl>
-    <Copyright>Copyright © Xenko contributors and Silicon Studio Corp.</Copyright>
-    <Authors>Xenko contributors;Silicon Studio Corp.</Authors>
-    <PackageTags>Xenko;3D;gamedev;Game Engine;engine;games;D3D;OpenGL;Vulkan</PackageTags>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\bin\packages</PackageOutputPath>
-
     <!-- If we don't set it, default targets will add PlatformName in some cases -->
     <BaseOutputPath>bin\</BaseOutputPath>
     <OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
@@ -79,6 +59,10 @@
     <XenkoPlatformDefines>XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID;NET45</XenkoPlatformDefines>
     <AndroidStoreUncompressedFileExtensions />
     <MandroidI18n />
+    <!-- Avoid Xamarin.Android.Common.targets(519,3): error MSB4044: The "FilterAssemblies" task was not given a value for the required parameter "DesignTimeBuild". -->
+    <DesignTimeBuild Condition="'$(DesignTimeBuild)' == ''">False</DesignTimeBuild>
+    <!-- Use AssemblyName rather than RootNamespace for Resource class otherwise it might clash between some assemblies (i.e. Xenko and Xenko.Engine) -->
+    <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Android' And '$(OutputType)' == 'Exe' ">
     <AndroidApplication>true</AndroidApplication>
@@ -135,22 +119,10 @@
     <DefineConstants>$(XenkoPlatformDefines);$(DefineConstants)</DefineConstants>
     <DefineConstants Condition="'$(XenkoNETRuntimeDefines)' != ''">$(DefineConstants);$(XenkoNETRuntimeDefines)</DefineConstants>
   </PropertyGroup>
-
-  <!-- Signing -->
-  <PropertyGroup Condition=" '$(XenkoOpenSourceSign)' == 'true'">
-    <XenkoSign>true</XenkoSign>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(XenkoAssemblySign)' == 'true' And '$(XenkoSign)' == 'true'">
-    <DefineConstants>$(DefineConstants);XENKO_SIGNED</DefineConstants>
-    <SignAssembly>true</SignAssembly>
-    <DelaySign Condition="'$(XenkoOpenSourceSign)' == 'true'">true</DelaySign>
-    <AssemblyOriginatorKeyFile Condition="'$(XenkoOpenSourceSign)' != 'true'">$(SolutionDir)xenko.snk</AssemblyOriginatorKeyFile>
-    <AssemblyOriginatorKeyFile Condition="'$(XenkoOpenSourceSign)' == 'true'">$(SolutionDir)xenko.public.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
   
   <!-- SourceLink -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(XenkoProjectType)' == 'CSharp'" Version="1.0.0-beta-63127-02" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp'" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
 
   <!-- Copy the libcore.a and libfreetype.a libraries to the project root directory for future native link.

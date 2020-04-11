@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
+using Xenko.Core;
 using Xenko.VisualStudio.CodeGenerator;
 using Xenko.VisualStudio.Commands;
 
@@ -24,7 +25,14 @@ namespace Xenko.VisualStudio.Shaders
 
         protected override string GetDefaultExtension()
         {
-            return ".cs";
+            // Figure out extension (different in case of versions before 3.1.0.2-beta01)
+            if (XenkoCommandsProxy.CurrentPackageInfo.ExpectedVersion != null
+                && XenkoCommandsProxy.CurrentPackageInfo.ExpectedVersion < new PackageVersion("3.2.0.1-beta02"))
+            {
+                return ".cs";
+            }
+
+            return ".xksl.cs";
         }
 
         protected override byte[] GenerateCode(string inputFileName, string inputFileContent)

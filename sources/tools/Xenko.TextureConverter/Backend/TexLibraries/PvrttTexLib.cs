@@ -92,7 +92,7 @@ namespace Xenko.TextureConverter.TexLibraries
 
                 case RequestType.Rescaling:
                     Filter.Rescaling filter = ((RescalingRequest)request).Filter;
-                    return filter == Filter.Rescaling.Bicubic || filter == Filter.Rescaling.Bilinear || filter == Filter.Rescaling.Nearest; 
+                    return filter == Filter.Rescaling.Bicubic || filter == Filter.Rescaling.Bilinear || filter == Filter.Rescaling.Nearest;
 
                 case RequestType.PreMultiplyAlpha:
                 case RequestType.SwitchingChannels:
@@ -195,7 +195,7 @@ namespace Xenko.TextureConverter.TexLibraries
 
             image.SubImageArray = new TexImage.SubImage[imageCount];
             int ct = 0;
-            int rowPitch, slicePitch, height, width; 
+            int rowPitch, slicePitch, height, width;
 
             for (uint i = 0; i < image.FaceCount; ++i) // Recreating the sub images
             {
@@ -234,7 +234,7 @@ namespace Xenko.TextureConverter.TexLibraries
 
         public void Execute(TexImage image, IRequest request)
         {
-            PvrTextureLibraryData libraryData = image.LibraryData.ContainsKey(this) ? (PvrTextureLibraryData)image.LibraryData[this] : null;
+            PvrTextureLibraryData libraryData = image.LibraryData.TryGetValue(this, out var libData) ? (PvrTextureLibraryData)libData : null;
 
             switch (request.Type)
             {
@@ -548,8 +548,8 @@ namespace Xenko.TextureConverter.TexLibraries
 
                     var source = new IntPtr(image.Data.ToInt64() + sourceOffset);
                     var dest = new IntPtr(destPtr.ToInt64() + destOffset);
- 
-                    Core.Utilities.CopyMemory(dest, source, slice);       
+
+                    Core.Utilities.CopyMemory(dest, source, slice);
                 }
 
                 sourceRowOffset += slice * image.FaceCount;
@@ -756,16 +756,6 @@ namespace Xenko.TextureConverter.TexLibraries
                 case Xenko.Graphics.PixelFormat.B8G8R8A8_UNorm_SRgb:
                 case Xenko.Graphics.PixelFormat.B8G8R8A8_UNorm:
 
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGB:
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGBA:
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGB:
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGBA:
-                case Xenko.Graphics.PixelFormat.PVRTC_II_2bpp:
-                case Xenko.Graphics.PixelFormat.PVRTC_II_4bpp:
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGB_SRgb:
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGBA_SRgb:
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGB_SRgb:
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGBA_SRgb:
                 case Xenko.Graphics.PixelFormat.ETC1:
                 case Xenko.Graphics.PixelFormat.ETC2_RGB:
                 case Xenko.Graphics.PixelFormat.ETC2_RGB_SRgb:
@@ -792,22 +782,6 @@ namespace Xenko.TextureConverter.TexLibraries
         {
             switch (format)
             {
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGB:
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGB_SRgb:
-                    return 0;
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGBA:
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGBA_SRgb:
-                    return 1;
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGB:
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGB_SRgb:
-                    return 2;
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGBA:
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGBA_SRgb:
-                    return 3;
-                case Xenko.Graphics.PixelFormat.PVRTC_II_2bpp:
-                    return 4;
-                case Xenko.Graphics.PixelFormat.PVRTC_II_4bpp:
-                    return 5;
                 case Xenko.Graphics.PixelFormat.ETC1:
                     return 6;
                 case Xenko.Graphics.PixelFormat.ETC2_RGB:

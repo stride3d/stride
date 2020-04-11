@@ -40,7 +40,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
             new FaceData("Left", new Vector3(0, -MathUtil.PiOverTwo, 0)),
             new FaceData("Top", new Vector3(-MathUtil.PiOverTwo, 0, 0)),
             new FaceData("Bottom", new Vector3(MathUtil.PiOverTwo, 0, 0)),
-            new FaceData("Back", new Vector3(0, 0, 0)),
+            new FaceData("Back", Vector3.Zero),
             new FaceData("Front", new Vector3(0, MathUtil.Pi, 0))
         };
 

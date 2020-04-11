@@ -20,7 +20,7 @@ namespace Xenko.UI.Renderers
         // Note: use Id instead of element instance in order to avoid to keep dead UIelement alive.
         private readonly Dictionary<Guid, ElementRenderer> elementIdToRenderer = new Dictionary<Guid, ElementRenderer>();
 
-        /// <summary> 
+        /// <summary>
         /// Create a new instance of <see cref="RendererManager"/> with provided DefaultFactory
         /// </summary>
         /// <param name="defaultFactory"></param>
@@ -39,8 +39,8 @@ namespace Xenko.UI.Renderers
                 var currentType = element.GetType();
                 while (elementRenderer == null && currentType != null)
                 {
-                    if (typesToUserFactories.ContainsKey(currentType))
-                        elementRenderer = typesToUserFactories[currentType].TryCreateRenderer(element);
+                    if (typesToUserFactories.TryGetValue(currentType, out var rendererFactory))
+                        elementRenderer = rendererFactory.TryCreateRenderer(element);
 
                     currentType = currentType.GetTypeInfo().BaseType;
                 }

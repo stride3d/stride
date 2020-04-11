@@ -1,6 +1,6 @@
 !GameSettingsAsset
 Id: ee826f6c-55f8-4082-b5bd-9fc206888a73
-SerializedVersion: {Xenko: 2.1.0.3}
+SerializedVersion: {Xenko: 3.1.0.1}
 Tags: []
 DefaultScene: a8ddac34-2bf1-452c-bdf5-47e2d633e83a:SplashScene
 GraphicsCompositor: 028b9394-b500-4383-ad72-f4b813eaeccc:GraphicsCompositor
@@ -18,7 +18,7 @@ Defaults:
         TextureQuality: Fast
     - !Xenko.Audio.AudioEngineSettings,Xenko.Audio
         HrtfSupport: false
-    - !Xenko.Streaming.StreamingSettings,Xenko.Engine
+    - !Xenko.Streaming.StreamingSettings,Xenko.Rendering
         ManagerUpdatesInterval: 0:00:00:00.0330000
         ResourceLiveTimeout: 0:00:00:08.0000000
 Overrides: []

@@ -25,6 +25,7 @@ using Xenko.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Xenko.Editor;
 using Xenko.Engine;
 using Xenko.Core.Assets.Templates;
+using Xenko.Core.Packages;
 
 namespace Xenko.Assets.Presentation
 {
@@ -88,7 +89,7 @@ namespace Xenko.Assets.Presentation
         {
             // Load templates
             // Currently hardcoded, this will need to change with plugin system
-            foreach (var packageInfo in new[] { new { Name = "Xenko.Assets.Presentation", Version = XenkoVersion.NuGetVersion }, new { Name = "Xenko.SpriteStudio.Offline", Version = XenkoVersion.NuGetVersion }, new { Name = "Xenko.Samples.Templates", Version = XenkoVersion.NuGetVersionSuffix != string.Empty ? "3.1.0.1-beta02" : "3.1.0.1" } })
+            foreach (var packageInfo in new[] { new { Name = "Xenko.Assets.Presentation", Version = XenkoVersion.NuGetVersion }, new { Name = "Xenko.SpriteStudio.Offline", Version = XenkoVersion.NuGetVersion }, new { Name = "Xenko.Samples.Templates", Version = Xenko.Samples.Templates.ThisPackageVersion.Current } })
             {
                 var logger = new LoggerResult();
                 var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));
@@ -210,6 +211,16 @@ namespace Xenko.Assets.Presentation
             {
                 effectCompilerServerSession = new EffectCompilerServerSession(session);
             }
+
+            // Extra packages to display in "add reference" dialog
+            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.Engine.EntityComponent).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.UI.UIElement).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.Particles.Components.ParticleSystemComponent).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.Navigation.NavigationComponent).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.Physics.StaticColliderComponent).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.Video.VideoComponent).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.Voxels.Module).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.SpriteStudio.Runtime.SpriteStudioNodeLinkComponent).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
         }
 
         /// <inheritdoc />

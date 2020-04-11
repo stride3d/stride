@@ -1,0 +1,35 @@
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Xenko.Rendering.Voxels
+{
+    /// <summary>
+    /// Voxelization, projects to axis of largest area and writes fragments to buffer
+    /// </summary>
+    shader VoxelizeToFragments : Math, Transformation, ShaderBase, Texturing, NormalStream, PositionStream4, VoxelPositionStream, MaterialPixelStream, MaterialPixelShadingStream
+    {
+        compose VoxelStorageShader Storage;
+        override stage void PSMain()
+        {
+            Storage.PrepareFragments();
+            streams.IsFrontFace = true;
+            if (Storage.MightStoreFragments())
+            {
+                base.PSMain();
+                Storage.StoreFragments();
+                streams.ColorTarget = float4(0,0,0,0);
+            }
+        }
+        override stage void VSMain()
+        {
+            base.VSMain();
+            Storage.PrepareVertex();
+        }
+        #ifdef RequireGeometryShader
+            [maxvertexcount(GeometryShaderMaxVertexCount)]
+            void GSMain(triangle Input input[3], inout TriangleStream<Output> triangleStream)
+            {
+                Storage.GenerateTriangles(input, triangleStream);
+            }
+        #endif
+    };
+}

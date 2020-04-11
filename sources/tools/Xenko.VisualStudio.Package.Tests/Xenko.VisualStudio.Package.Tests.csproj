@@ -1,6 +1,6 @@
 ﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
@@ -38,7 +38,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="14.0.51107" />
     <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="14.0.51103" />
-    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="stdole" Version="7.0.3301">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </PackageReference>
@@ -55,7 +55,7 @@
     <ProjectReference Include="..\..\editor\Xenko.Assets.Presentation\Xenko.Assets.Presentation.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="TestGenerator.xksl">
+    <None Update="TestGenerator.xksl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -64,7 +64,7 @@
   </ItemGroup>
   <Import Project="..\Xenko.Core.VisualStudio\Xenko.Core.VisualStudio.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <Target Name="LocateDevenv" AfterTargets="PrepareForBuild">
     <!-- Compute and save VisualStudio path to a file so that it can be used when running the test. Note: ideally we should use a Task, but Visual Studio lock the files -->
     <Exec Command="&quot;..\..\core\Xenko.Core.Tasks\bin\$(Configuration)\$(TargetFrameworkTool)\Xenko.Core.Tasks.exe&quot; locate-devenv &quot;$(MSBuildBinPath)&quot;" ConsoleToMsBuild="true">

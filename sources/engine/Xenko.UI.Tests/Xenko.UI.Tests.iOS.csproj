@@ -18,7 +18,6 @@
     <XenkoPackageGuid>{b18707e8-1d26-49fc-9911-3834506d8149}</XenkoPackageGuid>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
   </PropertyGroup>
   <PropertyGroup>
     <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)Xenko.UI.Tests.xkpkg</XenkoCurrentPackagePath>

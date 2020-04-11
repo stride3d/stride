@@ -1,5 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -102,6 +104,11 @@ namespace Xenko.Core.Presentation.Controls
         /// </summary>
         public static readonly RoutedEvent CancelledEvent = EventManager.RegisterRoutedEvent("Cancelled", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(TextBox));
 
+        /// <summary>
+        /// Raised when TextBox Text to value binding fails during validation.
+        /// </summary>
+        public static readonly RoutedEvent TextToSourceValueConversionFailedEvent = EventManager.RegisterRoutedEvent("TextBindingFailed", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(TextBox));
+
         static TextBoxBase()
         {
             TextProperty.OverrideMetadata(typeof(TextBoxBase), new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault | FrameworkPropertyMetadataOptions.Journal, OnTextChanged, null, true, UpdateSourceTrigger.Explicit));
@@ -197,6 +204,11 @@ namespace Xenko.Core.Presentation.Controls
         /// </summary>
         public event RoutedEventHandler Cancelled { add { AddHandler(CancelledEvent, value); } remove { RemoveHandler(CancelledEvent, value); } }
 
+        /// <summary>
+        /// Raised when TextBox Text to value binding fails during validation.
+        /// </summary>
+        public event RoutedEventHandler TextToSourceValueConversionFailed { add { AddHandler(TextToSourceValueConversionFailedEvent, value); } remove { RemoveHandler(TextToSourceValueConversionFailedEvent, value); } }
+
         protected internal bool HasChangesToValidate { get; set; }
 
         /// <summary>
@@ -216,12 +228,27 @@ namespace Xenko.Core.Presentation.Controls
             if (cancelRoutedEventArgs.Cancel)
                 return;
 
+            if (!IsTextCompatibleWithValueBinding(Text))
+            {
+                var textBindingFailedArgs = new RoutedEventArgs(TextToSourceValueConversionFailedEvent);
+                RaiseEvent(textBindingFailedArgs);
+                // We allow this to continue through since it'll revert itself through later code.
+            }
+
             validating = true;
             var coercedText = CoerceTextForValidation(Text);
             SetCurrentValue(TextProperty, coercedText);
 
             BindingExpression expression = GetBindingExpression(TextProperty);
-            expression?.UpdateSource();
+            try
+            {
+                expression?.UpdateSource();
+            }
+            catch (TargetInvocationException ex) when (ex.InnerException is InvalidCastException)
+            {
+                var textBindingFailedArgs = new RoutedEventArgs(TextToSourceValueConversionFailedEvent);
+                RaiseEvent(textBindingFailedArgs);
+            }
 
             ClearUndoStack();
 
@@ -294,6 +321,14 @@ namespace Xenko.Core.Presentation.Controls
         /// </summary>
         protected virtual void OnCancelled()
         {
+        }
+
+        /// <summary>
+        /// Preliminary check during validation to see if the text is in a valid format.
+        /// </summary>
+        protected virtual bool IsTextCompatibleWithValueBinding(string text)
+        {
+            return true;
         }
 
         /// <summary>

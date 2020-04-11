@@ -27,6 +27,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor
         /// <inheritdoc/>
         bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => true;
 
-        bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, Index index) => true;
+        bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => true;
     }
 }

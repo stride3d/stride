@@ -293,7 +293,7 @@ namespace Xenko.Extensions
             meshData.PrimitiveType = PrimitiveType.PatchList.ControlPointCount(12);
         }
 
-        private struct EdgeKeyAEN
+        private struct EdgeKeyAEN : IEquatable<EdgeKeyAEN>
         {
             public readonly int PositionIndex0;
             public readonly int PositionIndex1;
@@ -307,6 +307,16 @@ namespace Xenko.Extensions
             public EdgeKeyAEN(EdgeAEN edge)
                 : this(edge.PositionIndex0, edge.PositionIndex1)
             {
+            }
+
+            public bool Equals(EdgeKeyAEN other)
+            {
+                return PositionIndex0 == other.PositionIndex0 && PositionIndex1 == other.PositionIndex1;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is EdgeKeyAEN key && Equals(key);
             }
 
             public override int GetHashCode()

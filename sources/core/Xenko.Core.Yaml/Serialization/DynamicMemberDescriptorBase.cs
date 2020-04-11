@@ -76,7 +76,10 @@ namespace Xenko.Core.Yaml.Serialization
 
         public ScalarStyle ScalarStyle { get; set; }
 
-        public Func<object, bool> ShouldSerialize { get; set; }
+        public ShouldSerializePredicate ShouldSerialize { get; set; }
+
+        public bool HasDefaultValue => false;
+        public object DefaultValue => throw new InvalidOperationException();
 
         public List<string> AlternativeNames { get; set; }
 

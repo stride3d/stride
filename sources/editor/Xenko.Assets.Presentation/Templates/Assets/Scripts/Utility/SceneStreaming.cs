@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
+using Xenko.Core.Serialization;
 using Xenko.Engine;
 using Xenko.Physics;
 
@@ -27,7 +28,7 @@ namespace ##Namespace##
         /// <summary>
         /// The url of the scene to load
         /// </summary>
-        public string Url { get; set; }
+        public UrlReference<Scene> Url { get; set; }
 
         /// <summary>
         /// The trigger volume. This should be a static collider, set to be a trigger
@@ -97,14 +98,14 @@ namespace ##Namespace##
                     if (shouldLoad)
                     {
                         // If we should load syncrhonously, just create a completed task and load 
-                        Instance = Content.Load<Scene>(Url);
+                        Instance = Content.Load(Url);
                         loadingTask = Task.FromResult(Instance);
                     }
                     else if (shouldPreLoad)
                     {
                         loadCancellation = new CancellationTokenSource();
 
-                        var localLoadingTask = loadingTask = Content.LoadAsync<Scene>(Url);
+                        var localLoadingTask = loadingTask = Content.LoadAsync(Url);
                         Script.AddTask(async () =>
                         {
                             await loadingTask;

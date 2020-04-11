@@ -118,7 +118,7 @@ namespace Xenko.Core.Assets
         /// </summary>
         /// <value><c>true</c> if this package is a system package; otherwise, <c>false</c>.</value>
         [DataMemberIgnore]
-        public bool IsSystem { get; internal set; }
+        public bool IsSystem => !(Container is SolutionProject);
 
         /// <summary>
         /// Gets or sets the metadata associated with this package.
@@ -273,6 +273,23 @@ namespace Xenko.Core.Assets
 
         [DataMemberIgnore]
         public string RootNamespace { get; private set; }
+
+        [DataMemberIgnore]
+        public bool IsImplicitProject
+        {
+            get
+            {
+                // To keep in sync with LoadProject() .csproj
+                // Note: Meta is ignored since it is supposedly "read-only" from csproj
+                return (AssetFolders.Count == 1 && AssetFolders.First().Path == "Assets"
+                    && ResourceFolders.Count == 1 && ResourceFolders.First() == "Resources"
+                    && OutputGroupDirectories.Count == 0
+                    && ExplicitFolders.Count == 0
+                    && Bundles.Count == 0
+                    && RootAssets.Count == 0
+                    && TemplateFolders.Count == 0);
+            }
+        }
 
         /// <summary>
         /// Adds an existing project to this package.
@@ -612,6 +629,14 @@ namespace Xenko.Core.Assets
                 }
                 else
                 {
+                    // Try to get version from NuGet folder
+                    var path = new UFile(filePath);
+                    var nuspecPath = UPath.Combine(path.GetFullDirectory().GetParent(), new UFile(path.GetFileNameWithoutExtension() + ".nuspec"));
+                    if (path.GetFullDirectory().GetDirectoryName() == "xenko" && File.Exists(nuspecPath)
+                        && PackageVersion.TryParse(path.GetFullDirectory().GetParent().GetDirectoryName(), out var packageVersion))
+                    {
+                        package.Meta.Version = packageVersion;
+                    }
                     return new StandalonePackage(package);
                 }
             }
