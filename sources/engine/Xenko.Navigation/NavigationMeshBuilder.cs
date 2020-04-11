@@ -438,7 +438,8 @@ namespace Xenko.Navigation
                 colliderData.Previous = null;
                 if (lastCache?.Objects.TryGetValue(colliderData.Component.Id, out colliderData.Previous) ?? false)
                 {
-                    if (colliderData.Previous.ParameterHash == colliderData.ParameterHash)
+                    if ((!colliderData.Component.AlwaysUpdateNaviMeshCache) &&
+                        (colliderData.Previous.ParameterHash == colliderData.ParameterHash))
                     {
                         // In this case, we don't need to recalculate the geometry for this shape, since it wasn't changed
                         // here we take the triangle mesh from the previous build as the current
@@ -466,7 +467,10 @@ namespace Xenko.Navigation
                 }
 
                 // Make sure shape is up to date
-                colliderData.Component.ComposeShape();
+                if (!NavigationMeshBuildUtils.HasLatestColliderShape(colliderData.Component))
+                {
+                    colliderData.Component.ComposeShape();
+                }
 
                 // Interate through all the colliders shapes while queueing all shapes in compound shapes to process those as well
                 Queue<ColliderShape> shapesToProcess = new Queue<ColliderShape>();
@@ -570,6 +574,50 @@ namespace Xenko.Navigation
                             }
 
                             entityNavigationMeshInputBuilder.AppendArrays(mesh.Vertices.ToArray(), indices, transform);
+                        }
+                        else if (shapeType == typeof(HeightfieldColliderShape))
+                        {
+                            var heightfield = (HeightfieldColliderShape)shape;
+
+                            var halfRange = (heightfield.MaxHeight - heightfield.MinHeight) * 0.5f;
+                            var offset = -(heightfield.MinHeight + halfRange);
+                            Matrix transform = Matrix.Translation(new Vector3(0, offset, 0)) * heightfield.PositiveCenterMatrix * entityWorldMatrix;
+
+                            var width = heightfield.HeightStickWidth - 1;
+                            var length = heightfield.HeightStickLength - 1;
+                            var mesh = GeometricPrimitive.Plane.New(width, length, width, length, normalDirection: NormalDirection.UpY, toLeftHanded: true);
+
+                            var arrayLength = heightfield.HeightStickWidth * heightfield.HeightStickLength;
+
+                            using (heightfield.LockToReadHeights())
+                            {
+                                switch (heightfield.HeightType)
+                                {
+                                    case HeightfieldTypes.Short:
+                                        if (heightfield.ShortArray == null) continue;
+                                        for (int i = 0; i < arrayLength; ++i)
+                                        {
+                                            mesh.Vertices[i].Position.Y = heightfield.ShortArray[i] * heightfield.HeightScale;
+                                        }
+                                        break;
+                                    case HeightfieldTypes.Byte:
+                                        if (heightfield.ByteArray == null) continue;
+                                        for (int i = 0; i < arrayLength; ++i)
+                                        {
+                                            mesh.Vertices[i].Position.Y = heightfield.ByteArray[i] * heightfield.HeightScale;
+                                        }
+                                        break;
+                                    case HeightfieldTypes.Float:
+                                        if (heightfield.FloatArray == null) continue;
+                                        for (int i = 0; i < arrayLength; ++i)
+                                        {
+                                            mesh.Vertices[i].Position.Y = heightfield.FloatArray[i];
+                                        }
+                                        break;
+                                }
+                            }
+
+                            entityNavigationMeshInputBuilder.AppendMeshData(mesh, transform);
                         }
                         else if (shapeType == typeof(CompoundColliderShape))
                         {

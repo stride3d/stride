@@ -31,6 +31,7 @@ namespace Xenko.Assets.Navigation
         {
             yield return new BuildDependencyInfo(typeof(SceneAsset), typeof(AssetCompilationContext), BuildDependencyType.CompileAsset);
             yield return new BuildDependencyInfo(typeof(ColliderShapeAsset), typeof(AssetCompilationContext), BuildDependencyType.CompileContent);
+            yield return new BuildDependencyInfo(typeof(HeightmapAsset), typeof(AssetCompilationContext), BuildDependencyType.CompileContent);
         }
 
         public override IEnumerable<ObjectUrl> GetInputFiles(AssetItem assetItem)
@@ -63,6 +64,21 @@ namespace Xenko.Assets.Navigation
                                     yield return new ObjectUrl(UrlType.Content, assetReference.Url);
                                 }
                             }
+                            else if (desc is HeightfieldColliderShapeDesc)
+                            {
+                                var heightfieldDesc = desc as HeightfieldColliderShapeDesc;
+                                var heightmapSource = heightfieldDesc?.HeightStickArraySource as HeightStickArraySourceFromHeightmap;
+
+                                if (heightmapSource?.Heightmap != null)
+                                {
+                                    var url = AttachedReferenceManager.GetUrl(heightmapSource.Heightmap);
+
+                                    if (!string.IsNullOrEmpty(url))
+                                    {
+                                        yield return new ObjectUrl(UrlType.Content, url);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -82,6 +98,7 @@ namespace Xenko.Assets.Navigation
         {
             private readonly ContentManager contentManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
             private readonly Dictionary<string, PhysicsColliderShape> loadedColliderShapes = new Dictionary<string, PhysicsColliderShape>();
+            private readonly Dictionary<string, object> loadedHeightfieldInitialDatas = new Dictionary<string, object>();
 
             private NavigationMesh oldNavigationMesh;
 
@@ -152,6 +169,10 @@ namespace Xenko.Assets.Navigation
                 
                 // Unload loaded collider shapes
                 foreach (var pair in loadedColliderShapes)
+                {
+                    contentManager.Unload(pair.Key);
+                }
+                foreach (var pair in loadedHeightfieldInitialDatas)
                 {
                     contentManager.Unload(pair.Key);
                 }
@@ -279,7 +300,7 @@ namespace Xenko.Assets.Navigation
                             {
                                 staticColliderDatas.Add(new StaticColliderData
                                 {
-                                    Component = colliderComponent
+                                    Component = colliderComponent,
                                 });
 
                                 if (colliderComponent.Enabled && !colliderComponent.IsTrigger && ((int)asset.IncludedCollisionGroups & (int)colliderComponent.CollisionGroup) != 0)
@@ -298,6 +319,23 @@ namespace Xenko.Assets.Navigation
                                                 loadedColliderShapes.Add(assetReference.Url, loadedColliderShape); // Store where we loaded the shapes from
                                             }
                                             shapeAssetDesc.Shape = loadedColliderShape;
+                                        }
+                                        else if (desc is HeightfieldColliderShapeDesc)
+                                        {
+                                            var heightfieldDesc = desc as HeightfieldColliderShapeDesc;
+                                            var heightmapSource = heightfieldDesc?.HeightStickArraySource as HeightStickArraySourceFromHeightmap;
+
+                                            if (heightmapSource?.Heightmap != null)
+                                            {
+                                                var assetReference = AttachedReferenceManager.GetAttachedReference(heightmapSource.Heightmap);
+                                                object loadedHeightfieldInitialData;
+                                                if (!loadedHeightfieldInitialDatas.TryGetValue(assetReference.Url, out loadedHeightfieldInitialData))
+                                                {
+                                                    loadedHeightfieldInitialData = contentManager.Load(typeof(Heightmap), assetReference.Url);
+                                                    loadedHeightfieldInitialDatas.Add(assetReference.Url, loadedHeightfieldInitialData);
+                                                }
+                                                heightmapSource.Heightmap = loadedHeightfieldInitialData as Heightmap;
+                                            }
                                         }
                                     }
                                 }

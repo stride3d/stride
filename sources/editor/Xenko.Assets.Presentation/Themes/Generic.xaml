@@ -397,4 +397,61 @@
       </Setter.Value>
     </Setter>
   </Style>
+
+  <Style TargetType="{x:Type views:HeightmapPreviewView}">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type views:HeightmapPreviewView}">
+          <DockPanel d:DataContext="{d:DesignInstance viewModel:HeightmapPreviewViewModel}">
+            <Grid Background="{StaticResource NormalBrush}" DockPanel.Dock="Top">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <DockPanel Grid.Row="0">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                  <Button Command="{Binding PreviewZoomOutCommand}" Background="Transparent" Margin="2">
+                    <Image Source="{StaticResource ImageZoomOut}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
+                  </Button>
+                  <Button Command="{Binding PreviewZoomInCommand}" Background="Transparent" Margin="2">
+                    <Image Source="{StaticResource ImageZoomIn}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
+                  </Button>
+                  <Button Command="{Binding PreviewScaleToRealSizeCommand}" Background="Transparent" Margin="2">
+                    <Image Source="{StaticResource ImageScaleOnRealSize}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
+                  </Button>
+                  <Button Command="{Binding PreviewFitOnScreenCommand}" Background="Transparent" Margin="2">
+                    <Image Source="{StaticResource ImageFitOnScreen}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
+                  </Button>
+                </StackPanel>
+              </DockPanel>
+            </Grid>
+            <StatusBar DockPanel.Dock="Bottom" Visibility="{Binding Session, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}">
+              <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="2*"/>
+                    </Grid.ColumnDefinitions>
+                  </Grid>
+                </ItemsPanelTemplate>
+              </StatusBar.ItemsPanel>
+              <StatusBarItem Grid.Column="0">
+                <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding SpriteScale, StringFormat={}{0:P}}"/>
+              </StatusBarItem>
+              <Separator Grid.Column="1"/>
+              <StatusBarItem Grid.Column="2">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewHeightmapWidth, StringFormat={xk:Localize W: {0}}}"/>
+                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewHeightmapLength, StringFormat={xk:Localize L: {0}}}"/>
+                </StackPanel>
+              </StatusBarItem>
+            </StatusBar>
+
+            <ContentPresenter x:Name="PART_XenkoView"/>
+          </DockPanel>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
 </ResourceDictionary>

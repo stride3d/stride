@@ -8,7 +8,6 @@ using Xenko.Core.Mathematics;
 using Xenko.Engine;
 using Xenko.Games;
 using Xenko.Graphics;
-using Xenko.Physics.Shapes;
 using Xenko.Rendering;
 
 namespace Xenko.Physics.Engine
@@ -65,7 +64,7 @@ namespace Xenko.Physics.Engine
             var unusedShapes = new List<ColliderShape>();
             foreach (var keyValuePair in updatableDebugMeshes)
             {
-                if (keyValuePair.Value != null && keyValuePair.Key.DebugEntity?.Scene != null)
+                if (keyValuePair.Value != null && keyValuePair.Key.DebugEntity?.Scene != null && keyValuePair.Key.InternalShape != null)
                 {
                     keyValuePair.Key.UpdateDebugPrimitive(Game.GraphicsContext.CommandList, keyValuePair.Value);
                 }
@@ -161,7 +160,7 @@ namespace Xenko.Physics.Engine
                     {
                         IDebugPrimitive debugPrimitive;
                         var type = shape.GetType();
-                        if (type == typeof(HeightfieldColliderShape))
+                        if (type == typeof(HeightfieldColliderShape) || type.BaseType == typeof(HeightfieldColliderShape))
                         {
                             if (!updatableDebugMeshCache.TryGetValue(shape, out debugPrimitive))
                             {

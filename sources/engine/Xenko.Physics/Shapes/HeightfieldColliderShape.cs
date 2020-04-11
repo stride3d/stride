@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Threading;
@@ -11,10 +12,33 @@ using Xenko.Graphics;
 using Xenko.Rendering;
 using Buffer = Xenko.Graphics.Buffer;
 
-namespace Xenko.Physics.Shapes
+namespace Xenko.Physics
 {
+    namespace Shapes
+    {
+        [Obsolete("This class will be deprecated. Use 'Xenko.Physics.HeightfieldColliderShape'.", false)]
+        public class HeightfieldColliderShape : Xenko.Physics.HeightfieldColliderShape
+        {
+            public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<short> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+                : base(heightStickWidth, heightStickLength, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
+            {
+            }
+            public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<byte> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+                : base(heightStickWidth, heightStickLength, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
+            {
+            }
+            public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<float> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+                : base(heightStickWidth, heightStickLength, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
+            {
+            }
+        }
+    }
+
     public class HeightfieldColliderShape : ColliderShape
     {
+        public static readonly int MinimumHeightStickWidth = 2;
+        public static readonly int MinimumHeightStickLength = 2;
+
         public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<short> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
             : this(heightStickWidth, heightStickLength, HeightfieldTypes.Short, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
         {
@@ -132,16 +156,86 @@ namespace Xenko.Physics.Shapes
             heightfieldDebugPrimitive.Update(commandList);
         }
 
+        private readonly ReaderWriterLockSlim lockSlim = new ReaderWriterLockSlim();
+
+        ~HeightfieldColliderShape()
+        {
+            lockSlim.Dispose();
+        }
+
         public override void Dispose()
         {
             base.Dispose();
 
-            ShortArray?.Dispose();
-            ShortArray = null;
-            ByteArray?.Dispose();
-            ByteArray = null;
-            FloatArray?.Dispose();
-            FloatArray = null;
+            using (LockToReadAndWriteHeights())
+            {
+                ShortArray?.Dispose();
+                ShortArray = null;
+                ByteArray?.Dispose();
+                ByteArray = null;
+                FloatArray?.Dispose();
+                FloatArray = null;
+            }
+        }
+
+        public HeightArrayLock LockToReadHeights()
+        {
+            return new HeightArrayLock(HeightArrayLock.LockTypes.Read, lockSlim);
+        }
+
+        public HeightArrayLock LockToReadAndWriteHeights()
+        {
+            return new HeightArrayLock(HeightArrayLock.LockTypes.ReadWrite, lockSlim);
+        }
+
+        public class HeightArrayLock : IDisposable
+        {
+            public enum LockTypes
+            {
+                Read = 0,
+                ReadWrite = 1,
+            }
+
+            private readonly ReaderWriterLockSlim readerWriterLockSlim;
+
+            internal HeightArrayLock(LockTypes lockType, ReaderWriterLockSlim lockSlim)
+            {
+                if (lockSlim == null)
+                {
+                    throw new ArgumentNullException(nameof(lockSlim));
+                }
+
+                readerWriterLockSlim = lockSlim;
+
+                switch (lockType)
+                {
+                    case LockTypes.Read:
+                        readerWriterLockSlim.EnterReadLock();
+                        break;
+                    case LockTypes.ReadWrite:
+                        readerWriterLockSlim.EnterWriteLock();
+                        break;
+                    default:
+                        throw new ArgumentException($"{ nameof(lockType) } is invalid type");
+                }
+            }
+
+            public void Unlock()
+            {
+                if (readerWriterLockSlim.IsReadLockHeld)
+                {
+                    readerWriterLockSlim.ExitReadLock();
+                }
+                else if (readerWriterLockSlim.IsWriteLockHeld)
+                {
+                    readerWriterLockSlim.ExitWriteLock();
+                }
+            }
+
+            public void Dispose()
+            {
+                Unlock();
+            }
         }
 
         public class HeightfieldDebugPrimitive : IDebugPrimitive
