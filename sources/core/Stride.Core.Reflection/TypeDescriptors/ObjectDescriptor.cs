@@ -213,7 +213,7 @@ namespace Stride.Core.Reflection
             }
 
             // TODO: we might want an option to disable non-public.
-            if (Category == DescriptorCategory.Object)
+            if (Category == DescriptorCategory.Object || Category == DescriptorCategory.NotSupportedObject)
                 bindingFlags |= BindingFlags.NonPublic;
 
             var memberList = (from propertyInfo in Type.GetProperties(bindingFlags)
