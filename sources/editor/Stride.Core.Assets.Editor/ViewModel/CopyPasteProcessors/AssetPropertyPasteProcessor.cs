@@ -93,6 +93,7 @@ namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
                     break;
                 case DescriptorCategory.Primitive:
                 case DescriptorCategory.Object:
+                case DescriptorCategory.NotSupportedObject:
                 case DescriptorCategory.Nullable:
                     result = ConvertForProperty(targetTypeDescriptor.Type, ref data);
                     break;

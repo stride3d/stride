@@ -96,7 +96,7 @@ namespace Stride.Core.Reflection
             }
             else if (type.IsArray)
             {
-                if (type.GetArrayRank() == 1)
+                if (type.GetArrayRank() == 1 && !type.GetElementType().IsArray)
                 {
                     // array[] - only single dimension array is supported
                     descriptor = new ArrayDescriptor(this, type, emitDefaultValues, namingConvention);
@@ -104,7 +104,7 @@ namespace Stride.Core.Reflection
                 else
                 {
                     // multi-dimension array to be treated as a 'standard' object
-                    descriptor = new ObjectDescriptor(this, type, emitDefaultValues, namingConvention);
+                    descriptor = new NotSupportedObjectDescriptor(this, type, emitDefaultValues, namingConvention);
                 }
             }
             else if (NullableDescriptor.IsNullable(type))
