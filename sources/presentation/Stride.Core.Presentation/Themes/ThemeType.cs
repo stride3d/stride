@@ -10,4 +10,18 @@ namespace Stride.Core.Presentation.Themes
         [Display("Dark Steel")]
         DarkSteel,
     }
+
+    public static class ThemeTypeExtensions
+    {
+        public static IconThemeSelector.ThemeBase GetThemeBase(this ThemeType themeType)
+        {
+            switch (themeType)
+            {
+                case ThemeType.ExpressionDark:
+                case ThemeType.DarkSteel:
+                default:
+                    return IconThemeSelector.ThemeBase.Dark;
+            }
+        }
+    }
 }

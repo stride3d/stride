@@ -37,6 +37,14 @@
 
   <Style TargetType="{x:Type avalonDockControls:ContextMenuEx}" BasedOn="{StaticResource {x:Type ContextMenu}}"/>
 
+  <Style x:Key="AvalonDock_SubTabItemTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding LayoutItem.IsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type avalonDockControls:LayoutAnchorableTabItem}}, Mode=OneWay}" Value="True">
+        <Setter Property="Foreground" Value="{StaticResource SubTabItemActiveForeground}"/>
+      </DataTrigger>
+    </Style.Triggers>
+  </Style>
+
   <!--DocumentPaneControlStyle-->
   <Style x:Key="AvalonDock_ThemeAero_DocumentPaneControlStyle" TargetType="{x:Type avalonDockControls:LayoutDocumentPaneControl}">
     <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
@@ -172,20 +180,15 @@
                   </Border>
                 </Grid>
                 <ControlTemplate.Triggers>
-                  <Trigger Property="Selector.IsSelected"
-                   Value="true">
-                    <Setter Property="BorderBrush"
-                Value="{StaticResource SolidBorderBrush}" />
-                    <Setter Property="Background"
-                Value="{StaticResource SelectedBackgroundBrush}" />
-                    <Setter Property="Panel.ZIndex"
-                                  Value="1" />
+                  <Trigger Property="Selector.IsSelected" Value="true">
+                    <Setter Property="BorderBrush" Value="{StaticResource SolidBorderBrush}" />
+                    <Setter Property="Background" Value="{StaticResource SelectedBackgroundBrush}" />
+                    <Setter Property="Panel.ZIndex" Value="1" />
                     <!--<Setter Property="Margin" Value="-1,0,-16,-1"/>
                     <Setter Property="Margin" TargetName="BdInternal" Value="0,0,0,-1"/>
                     <Setter Property="Margin" TargetName="splineBd" Value="0,0,0,-1.0"/>-->
                     <Setter Property="FontWeight" Value="Normal"/>
-                    <Setter Property="Panel.ZIndex"
-                                  Value="1" />
+                    <Setter Property="Panel.ZIndex" Value="1" />
                   </Trigger>
                   <MultiTrigger>
                     <MultiTrigger.Conditions>
@@ -289,12 +292,12 @@
               <ControlTemplate TargetType="{x:Type TabItem}">
                 <Grid SnapsToDevicePixels="true">
                   <Border x:Name="Bd"
-                   BorderBrush="{TemplateBinding BorderBrush}"
-                   Background="{TemplateBinding Background}"
-                   Padding="{TemplateBinding Padding}">
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          Background="{TemplateBinding Background}"
+                          Padding="{TemplateBinding Padding}">
                     <ContentPresenter
-                  x:Name="Content"
-                  ContentSource="Header"
+                                  x:Name="Content"
+                                  ContentSource="Header"
                                   HorizontalAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
                                   VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
                                   RecognizesAccessKey="True"
@@ -302,15 +305,10 @@
                   </Border>
                 </Grid>
                 <ControlTemplate.Triggers>
-                  <Trigger Property="Selector.IsSelected"
-               Value="true">
-                    <Setter Property="Background"
-            Value="{StaticResource DarkDefaultBackground}" />
-                    <Setter Property="Foreground"
-            Value="{StaticResource DarkDefaultForeground}" />
-                    <Setter Property="Panel.ZIndex"
-                              Value="1" />
-                    <Setter Property="TextBlock.Foreground" TargetName="Content" Value="{StaticResource DarkDefaultForeground}" />
+                  <Trigger Property="Selector.IsSelected" Value="true">
+                    <Setter Property="Background" Value="{StaticResource SubTabItemActiveBackground}" />
+                    <Setter Property="Panel.ZIndex" Value="1" />
+                    <Setter Property="TextBlock.Foreground" TargetName="Content" Value="{StaticResource SubTabItemActiveForeground}" />
                   </Trigger>
                   <MultiTrigger>
                     <MultiTrigger.Conditions>
@@ -631,7 +629,7 @@
   </Style>
 
   <DataTemplate x:Key="AvalonDock_ThemeAero_DocumentHeaderTemplate">
-    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" Style="{StaticResource AvalonDock_SubTabItemTextStyle}"/>
   </DataTemplate>
 
   <DataTemplate x:Key="AvalonDock_ThemeAero_AnchorableHeaderTemplate">
@@ -641,7 +639,8 @@
         <ColumnDefinition/>
       </Grid.ColumnDefinitions>
       <Image x:Name="icon" Source="{Binding IconSource, Converter={StaticResource NullToDoNothingConverter}}" Stretch="Uniform"/>
-      <TextBlock x:Name="title" Margin="4,0,0,0" Text="{Binding Title}" TextTrimming="CharacterEllipsis" Grid.Column="1"/>
+      <TextBlock x:Name="title" Margin="4,0,0,0" Text="{Binding Title}" TextTrimming="CharacterEllipsis"
+                 Grid.Column="1" Style="{StaticResource AvalonDock_SubTabItemTextStyle}"/>
     </Grid>
     <DataTemplate.Triggers>
       <DataTrigger Binding="{Binding IconSource}" Value="{x:Null}">
@@ -652,11 +651,11 @@
   </DataTemplate>
 
   <DataTemplate x:Key="AvalonDock_ThemeAero_DocumentTitleTemplate">
-    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" Style="{StaticResource AvalonDock_SubTabItemTextStyle}"/>
   </DataTemplate>
 
   <DataTemplate x:Key="AvalonDock_ThemeAero_AnchorableTitleTemplate">
-    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" Style="{StaticResource AvalonDock_SubTabItemTextStyle}" />
   </DataTemplate>
 
   <DataTemplate x:Key="AvalonDock_ThemeAero_IconContentTemplate">

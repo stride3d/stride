@@ -23,6 +23,15 @@
       </ResourceDictionary.MergedDictionaries>
       <DataTemplate x:Key="AvalonDock_GameStudio_TitleTemplate">
         <DockPanel LastChildFill="False">
+          <DockPanel.Resources>
+            <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding LayoutItem.IsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcad:LayoutDocumentTabItem}}, Mode=OneWay}" Value="True">
+                  <Setter Property="Foreground" Value="{StaticResource SelectedTextBrush}"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </DockPanel.Resources>
           <TextBlock Margin="3 0" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
           <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Center" VerticalAlignment="Top"
                      Visibility="{Binding Path=Content.DataContext.IsDirty, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}"
@@ -620,7 +629,8 @@
                     <TabItem DataContext="{Binding Debugging.BuildLog}">
                       <TabItem.Header>
                         <TextBlock FontWeight="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam},
-                                    ConverterParameter={x:Static FontWeights.Bold}, FallbackValue={x:Static FontWeights.Normal}}">
+                                    ConverterParameter={x:Static FontWeights.Bold}, FallbackValue={x:Static FontWeights.Normal}}"
+                                   Foreground="{StaticResource SelectedTextBrush}">
                                     <Run Text="{sd:Localize Build}"/>
                                     <Run Text="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam}, ConverterParameter=*}"/>
                         </TextBlock>
@@ -634,7 +644,8 @@
                     <TabItem DataContext="{Binding Debugging.LiveScriptingLog}" Visibility="Collapsed">
                       <TabItem.Header>
                         <TextBlock FontWeight="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam},
-                                    ConverterParameter={x:Static FontWeights.Bold}, FallbackValue={x:Static FontWeights.Normal}}">
+                                    ConverterParameter={x:Static FontWeights.Bold}, FallbackValue={x:Static FontWeights.Normal}}"
+                                   Foreground="{StaticResource SelectedTextBrush}">
                                     <Run Text="{sd:Localize Live-scripting}"/>
                                     <Run Text="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam}, ConverterParameter=*}"/>
                         </TextBlock>
@@ -749,7 +760,6 @@
                                        ItemsSource="{Binding Session.ActiveProperties.ViewModel.RootNode.Children}"
                                        Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={sd:VisibleOrCollapsed}}">
                       <sd:PropertyView.Resources>
-                        <SolidColorBrush x:Key="ItemHoverBrush" Color="#FF525252" />
                         <RoutedUICommand x:Key="ReplaceCommand" Text="Replace">
                           <RoutedUICommand.InputGestures>
                             <KeyGesture>Ctrl+Shift+V</KeyGesture>
@@ -838,7 +848,7 @@
                               <Setter Property="Highlightable" Value="False"/>
                             </DataTrigger>
                             <Trigger Property="IsHovered" Value="True">
-                              <Setter Property="Background" Value="{StaticResource ItemHoverBrush}"/>
+                              <Setter Property="Background" Value="{StaticResource PropertyGridItemHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsFocused" Value="True">
                               <Setter Property="Background" Value="{StaticResource NormalBrush}"/>
@@ -918,6 +928,15 @@
         </xcad:LayoutRoot>
       </xcad:DockingManager>
       <StatusBar Grid.Row="2" Background="#007ACC" Visibility="{Binding Session, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
+        <StatusBar.Resources>
+          <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="Foreground" Value="{StaticResource SelectedTextBrush}"/>
+          </Style>
+          <Style x:Key="StatusBarSeparatorStyle" TargetType="{x:Type Separator}" BasedOn="{StaticResource {x:Type Separator}}">
+            <Setter Property="Background" Value="{StaticResource SelectedTextBrush}"/>
+            <Setter Property="Opacity" Value="0.25"/>
+          </Style>
+        </StatusBar.Resources>
         <StatusBar.ItemsPanel>
           <ItemsPanelTemplate>
             <Grid>
@@ -932,15 +951,17 @@
             </Grid>
           </ItemsPanelTemplate>
         </StatusBar.ItemsPanel>
-        <StatusBarItem Grid.Column="0" Content="{Binding Status.CurrentStatus}"/>
-        <Separator Grid.Column="1"/>
+        <StatusBarItem Grid.Column="0">
+          <TextBlock Margin="5,0" Text="{Binding Status.CurrentStatus}"/>
+        </StatusBarItem>
+        <Separator Grid.Column="1" Style="{StaticResource StatusBarSeparatorStyle}"/>
         <StatusBarItem Grid.Column="2">
           <TextBlock>
             <Run Text="{sd:Localize {}{0} item, Plural={}{0} items, Count={Binding Session.ActiveAssetView.FilteredContent.Count, Mode=OneWay}, IsStringFormat=True, Context=StatusBar}"/>
             <Run Text="{sd:Localize ({0} selected), Plural=({0} selected), Count={Binding Session.ActiveAssetView.SelectedContent.Count, Mode=OneWay}, IsStringFormat=True, Context=StatusBar}"/>
           </TextBlock>
         </StatusBarItem>
-        <Separator Grid.Column="3"/>
+        <Separator Grid.Column="3" Style="{StaticResource StatusBarSeparatorStyle}"/>
         <StatusBarItem Grid.Column="4" HorizontalContentAlignment="Right">
           <TextBlock Margin="5,0" Text="{Binding Status.CurrentJob.Message}"/>
         </StatusBarItem>

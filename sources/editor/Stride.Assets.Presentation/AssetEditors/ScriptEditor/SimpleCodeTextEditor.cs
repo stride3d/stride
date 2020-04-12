@@ -10,6 +10,7 @@ using RoslynPad.Editor;
 using RoslynPad.Roslyn.BraceMatching;
 using RoslynPad.Roslyn.Diagnostics;
 using RoslynPad.Roslyn.QuickInfo;
+using Stride.Core.Presentation.Themes;
 
 namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 {
@@ -70,7 +71,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
             TextArea.Caret.PositionChanged += CaretOnPositionChanged;
 
             // Syntax highlighting
-            var classificationHighlightColors = new ClassificationHighlightColorsDark();
+            var classificationHighlightColors = ThemeController.CurrentTheme.GetThemeBase() == IconThemeSelector.ThemeBase.Dark ? new ClassificationHighlightColorsDark() : new ClassificationHighlightColors();
             syntaxHighlightingColorizer = new RoslynHighlightingColorizer(documentId, workspace.Host, classificationHighlightColors);
             TextArea.TextView.LineTransformers.Insert(0, syntaxHighlightingColorizer);
 

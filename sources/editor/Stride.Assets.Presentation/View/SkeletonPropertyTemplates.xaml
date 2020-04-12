@@ -28,7 +28,7 @@
                 Command="{Binding SkeletonNodePreserveAll}" CommandParameter="{sd:False}"/>
           </UniformGrid>
           <!-- Difference from HeaderReadOnlyProperty ends here -->
-          <ToggleButton DockPanel.Dock="Left" Template="{StaticResource DarkExpanderToggleButton}" Width="16" Height="16"
+          <ToggleButton DockPanel.Dock="Left" Template="{StaticResource TreeExpanderToggleButton}" Width="16" Height="16"
                         IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=sd:PropertyViewItem}}"
                         Visibility="{Binding VisibleChildrenCount, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}"/>
           <StackPanel Orientation="Horizontal" Margin="8,0,0,0">

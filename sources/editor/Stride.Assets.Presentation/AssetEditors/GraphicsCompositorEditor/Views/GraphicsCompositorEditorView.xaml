@@ -22,7 +22,7 @@
       <Style TargetType="sd:EditableContentListBox" BasedOn="{StaticResource {x:Type ListBox}}"/>
 
       <DataTemplate DataType="{x:Type vm:SharedRendererOutputSlotViewModel}">
-        <TextBlock Text="{Binding Name}"/>
+        <TextBlock Text="{Binding Name}" Foreground="{StaticResource GraphicsCompositorNodeTextBrush}"/>
       </DataTemplate>
 
       <Style x:Key="AddRenderFeatureComboBox" BasedOn="{StaticResource AddItemComboBox}" TargetType="ComboBox">
@@ -70,7 +70,7 @@
                 </Grid.RowDefinitions>
 
                 <Border Grid.Row="0" x:Name="PART_vertexTitle" Background="{TemplateBinding TitleBackground}" BorderBrush="{TemplateBinding TitleBorderBrush}" CornerRadius="{TemplateBinding TitleBorderCornerRadius}" Padding="{TemplateBinding TitlePadding}">
-                  <TextBlock x:Name="PART_vertexName" Text="{Binding Block.Title}" HorizontalAlignment="Center" FontWeight="Bold" Padding="10,0,10,0" />
+                  <TextBlock x:Name="PART_vertexName" Text="{Binding Block.Title}" HorizontalAlignment="Center" Foreground="{StaticResource GraphicsCompositorNodeTextBrush}" FontWeight="Bold" Padding="10,0,10,0" />
                 </Border>
 
                 <Border Grid.Row="1" x:Name="PART_vertexContent" Background="{TemplateBinding ContentBackground}" BorderBrush="{TemplateBinding ContentBorderBrush}" CornerRadius="{TemplateBinding ContentBorderCornerRadius}" Padding="{TemplateBinding ContentPadding}">

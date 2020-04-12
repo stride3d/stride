@@ -47,7 +47,7 @@ namespace Stride.Core.Presentation.MarkupExtensions
             {
                 image.Source = new DrawingImage()
                 {
-                    Drawing = ImageThemingUtilities.TransformDrawing((source as DrawingImage)?.Drawing, IconThemeSelector.KnownThemes.Dark.GetIconTheme())
+                    Drawing = ImageThemingUtilities.TransformDrawing((source as DrawingImage)?.Drawing, ThemeController.CurrentTheme.GetThemeBase().GetIconTheme())
                 };
             }
 

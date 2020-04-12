@@ -20,7 +20,7 @@ namespace Stride.Core.Presentation.Themes
             {
                 img.Source = new DrawingImage
                 {
-                    Drawing = ImageThemingUtilities.TransformDrawing(drawingImage.Drawing, IconThemeSelector.KnownThemes.Dark.GetIconTheme())
+                    Drawing = ImageThemingUtilities.TransformDrawing(drawingImage.Drawing, ThemeController.CurrentTheme.GetThemeBase().GetIconTheme())
                 };
             }
         }

@@ -16,7 +16,7 @@ namespace Stride.Core.Presentation.MarkupExtensions
     {
         public ThemedSourceExtension() { }
 
-        public ThemedSourceExtension(ImageSource source, KnownThemes theme)
+        public ThemedSourceExtension(ImageSource source, ThemeBase theme)
         {
             Source = source;
             Theme = theme.GetIconTheme();

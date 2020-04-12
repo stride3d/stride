@@ -10,20 +10,20 @@ namespace Stride.Core.Presentation.Themes
     /// </summary>
     public static class IconThemeSelector
     {
-        public enum KnownThemes
+        public enum ThemeBase
         {
             Light,
             Dark
         }
 
-        public static IconTheme GetIconTheme(this KnownThemes theme)
+        public static IconTheme GetIconTheme(this ThemeBase theme)
         {
             switch (theme)
             {
-                case KnownThemes.Dark:
+                case ThemeBase.Dark:
                     return new IconTheme("Dark", Color.FromRgb(16, 16, 17));
 
-                case KnownThemes.Light: 
+                case ThemeBase.Light:
                     return new IconTheme("Light", Color.FromRgb(245, 245, 245));
 
                 default:
