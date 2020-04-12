@@ -5,10 +5,15 @@ namespace Stride.Core.Presentation.Themes
 {
     public enum ThemeType
     {
+        // Dark themes
         [Display("Expression Dark (Default)")]
         ExpressionDark,
         [Display("Dark Steel")]
         DarkSteel,
+
+        // Light themes
+        [Display("Light Steel Blue (Experimental)")]
+        LightSteelBlue,
     }
 
     public static class ThemeTypeExtensions
@@ -21,6 +26,9 @@ namespace Stride.Core.Presentation.Themes
                 case ThemeType.DarkSteel:
                 default:
                     return IconThemeSelector.ThemeBase.Dark;
+
+                case ThemeType.LightSteelBlue:
+                    return IconThemeSelector.ThemeBase.Light;
             }
         }
     }

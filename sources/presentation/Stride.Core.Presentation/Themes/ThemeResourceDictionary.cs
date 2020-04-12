@@ -9,6 +9,7 @@ namespace Stride.Core.Presentation.Themes
     {
         private Uri expressionDarkSource;
         private Uri darkSteelSource;
+        private Uri expressionLightSource;
 
         // New themes are added here as new properties.
 
@@ -24,6 +25,12 @@ namespace Stride.Core.Presentation.Themes
             set => SetValue(ref darkSteelSource, value);
         }
 
+        public Uri LightSteelBlueSource
+        {
+            get => expressionLightSource;
+            set => SetValue(ref expressionLightSource, value);
+        }
+
         public void UpdateSource(ThemeType themeType)
         {
             switch (themeType)
@@ -36,6 +43,11 @@ namespace Stride.Core.Presentation.Themes
                 case ThemeType.DarkSteel:
                     if (DarkSteelSource != null)
                         Source = DarkSteelSource;
+                    break;
+
+                case ThemeType.LightSteelBlue:
+                    if (LightSteelBlueSource != null)
+                        Source = LightSteelBlueSource;
                     break;
             }
         }

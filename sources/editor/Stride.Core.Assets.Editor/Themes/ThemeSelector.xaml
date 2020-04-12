@@ -7,5 +7,6 @@
                                 xmlns:themes="clr-namespace:Stride.Core.Presentation.Themes;assembly=Stride.Core.Presentation"
                                 Source="ExpressionDark/TableflowView.ExpressionDark.normalcolor.xaml"
                                 ExpressionDarkSource="ExpressionDark/TableflowView.ExpressionDark.normalcolor.xaml"
-                                DarkSteelSource="ExpressionDark/TableflowView.ExpressionDark.normalcolor.xaml">
+                                DarkSteelSource="ExpressionDark/TableflowView.ExpressionDark.normalcolor.xaml"
+                                LightSteelBlueSource="ExpressionDark/TableflowView.ExpressionDark.normalcolor.xaml">
 </themes:ThemeResourceDictionary>
