@@ -212,7 +212,7 @@
                   <Slider.Template>
                     <ControlTemplate TargetType="{x:Type Slider}">
                       <Grid x:Name="GridRoot" Focusable="False" MinHeight="{TemplateBinding MinHeight}">
-                        <Border Margin="0" x:Name="Border" Height="4" CornerRadius="2" Background="{DynamicResource LightBrush}" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1,1,1,1" />
+                        <Border Margin="0" x:Name="Border" Height="4" CornerRadius="2" Background="{DynamicResource DropdownButtonBackgroundBrush}" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1,1,1,1" />
                         <Track x:Name="PART_Track">
                           <Track.Thumb>
                             <Thumb Style="{DynamicResource NuclearSliderThumb}" Foreground="{x:Null}" Width="12" Height="{TemplateBinding ActualHeight}"/>

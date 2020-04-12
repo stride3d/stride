@@ -197,7 +197,7 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
-          <ToggleButton Grid.Column="1" Template="{StaticResource DarkExpanderToggleButton}" Width="12" Height="12" HorizontalAlignment="Left"
+          <ToggleButton Grid.Column="1" Template="{StaticResource TreeExpanderToggleButton}" Width="12" Height="12" HorizontalAlignment="Left"
                                         IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=sd:PropertyViewItem}}"
                                         Visibility="{Binding VisibleChildrenCount, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}"/>
           <TextBlock x:Name="PropertyNameBlock" Grid.Column="2" Text="{Binding DisplayName}" HorizontalAlignment="Stretch" VerticalAlignment="Center"
@@ -271,7 +271,7 @@
             </i:Interaction.Behaviors>
           </ComboBox>
         </StackPanel>
-        <ToggleButton DockPanel.Dock="Left" Template="{StaticResource DarkExpanderToggleButton}" Width="16" Height="16"
+        <ToggleButton DockPanel.Dock="Left" Template="{StaticResource PropertyGridHeaderExpanderToggleButton}" Width="16" Height="16"
                                     IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=sd:PropertyViewItem}}"
                                     Visibility="{Binding VisibleChildrenCount, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}"/>
         <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
@@ -282,7 +282,8 @@
           <Image Source="{Binding NodeValue, Converter={sd:Chained {sd:ObjectToType}, {cvt:TypeToResource}}}" MaxWidth="16" MaxHeight="16"
                             RenderOptions.BitmapScalingMode="NearestNeighbor" Margin="0,0,4,0"/>
           <TextBlock x:Name="HeaderTextBlock" FontSize="16" TextTrimming="CharacterEllipsis"
-                     Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                     Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"
+                     Foreground="{StaticResource SelectedTextBrush}"/>
         </StackPanel>
       </DockPanel>
       <i:Interaction.Behaviors>

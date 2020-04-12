@@ -19,8 +19,9 @@
   <Color x:Key="MainColor">#FF595959</Color>
   <Color x:Key="HoverColor">#FF393939</Color>
   <Color x:Key="DefaultColor">#FF9BB1C5</Color>
-  <SolidColorBrush x:Key="LightBrush" Color="#FF333333" />
+  <SolidColorBrush x:Key="DropdownButtonBackgroundBrush" Color="#FF333333" />
   <SolidColorBrush x:Key="ComboBoxBackground" Color="#212125" />
+  <SolidColorBrush x:Key="ComboBoxItemHoverBackground" Color="#3399FF"/>
 
   <Color x:Key="TopGradientSelectColor">#FFFFFFFF</Color>
   <Color x:Key="BottomGradientSelectColor">#FF737373</Color>
@@ -28,9 +29,12 @@
   <Color x:Key="BlackColor">#FF000000</Color>
   <Color x:Key="WhiteColor">#FFFFFFFF</Color>
 
-  <SolidColorBrush x:Key="DarkDefaultBackground" Color="#101011" />
-  <SolidColorBrush x:Key="DarkDefaultForeground" Color="#0395D7" />
-  <SolidColorBrush x:Key="NormalDarkBackground" Color="#1A1A1D" />
+  <Color x:Key="LoadingAssetMessageFromColor">#FF00FF70</Color>
+  <SolidColorBrush x:Key="LoadingAssetMessageFromBrush" Color="{StaticResource LoadingAssetMessageFromColor}" />
+  <Color x:Key="LoadingAssetMessageToColor">White</Color>
+
+  <SolidColorBrush x:Key="SubTabItemActiveBackground" Color="#101011" />
+  <SolidColorBrush x:Key="SubTabItemActiveForeground" Color="#EBEBEB" />
 
   <SolidColorBrush x:Key="BackgroundBrush" Color="#1A1A1D"/>
   <SolidColorBrush x:Key="TextBrush" Color="#E6E6E6" />
@@ -39,10 +43,11 @@
   <SolidColorBrush x:Key="NormalBorderBrush" Color="#FF333333" />
   <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}" />
   <SolidColorBrush x:Key="GlyphBrush" Color="#FFD1D1D1" />
+  <SolidColorBrush x:Key="GlyphHeaderBrush" Color="#FFD1D1D1" />
 
-  <SolidColorBrush x:Key="ScrollbarBackgroundNormal" Color="#161616" />
-  <SolidColorBrush x:Key="ScrollbarThumbNormal" Color="#333333" />
-  <SolidColorBrush x:Key="ScrollbarThumbHover" Color="#6F6F73" />
+  <SolidColorBrush x:Key="ScrollBarBackgroundNormalBrush" Color="#161616" />
+  <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="White" />
+  <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Color="White" />
 
   <SolidColorBrush x:Key="PressedBrush" Color="#7E000000"/>
 
@@ -55,6 +60,7 @@
   <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#101011" />
 
   <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#3399FF"/>
+  <SolidColorBrush x:Key="SelectedTextBrush" Color="#E6E6E6"/>
 
   <Color x:Key="EmphasisGreenColor">#FF8ABB2E</Color>
   <SolidColorBrush x:Key="EmphasisGreenBrush" Color="{StaticResource EmphasisGreenColor}"/>
@@ -81,6 +87,7 @@
   <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="#FF333333"/>
   <SolidColorBrush x:Key="ButtonHoverBackgroundBrush" Color="#3E3E40"/>
   <SolidColorBrush x:Key="MenuHoverBrush" Color="#333334"/>
+  <SolidColorBrush x:Key="PropertyGridItemHoverBrush" Color="#FF525252" />
 
   <SolidColorBrush x:Key="CheckBoxBorderFocusBrush" Color="#FFE5E5E5"/>
   <SolidColorBrush x:Key="HoverTextBorderBrush" Color="#FF6A6A6A"/>
@@ -105,6 +112,19 @@
   <SolidColorBrush x:Key="MenuBlueGlyphs" Color="#007ACC" />
 
   <DropShadowBitmapEffect x:Key="PopupDropShadow" ShadowDepth="1.5" Softness="0.15" />
+
+  <SolidColorBrush x:Key="CodeEditorBackgroundBrush" Color="#FF1E1E1E" />
+
+  <SolidColorBrush x:Key="GraphicsCompositorNodeTextBrush" Color="#EBEBEB" />
+
+  <!--TextLogViewer colors-->
+  <SolidColorBrush x:Key="TextLogDebugBrush" Color="DarkGray"/>
+  <SolidColorBrush x:Key="TextLogVerboseBrush" Color="White"/>
+  <SolidColorBrush x:Key="TextLogInfoBrush" Color="LightGreen"/>
+  <SolidColorBrush x:Key="TextLogWarningBrush" Color="Gold"/>
+  <SolidColorBrush x:Key="TextLogErrorBrush" Color="Tomato"/>
+  <SolidColorBrush x:Key="TextLogFatalBrush" Color="Red"/>
+
   <!-- EXPRESSION COMMON VALUES -->
 
   <LinearGradientBrush x:Key="ShineBrush" EndPoint="0.5,0.971" StartPoint="0.5,0.042">

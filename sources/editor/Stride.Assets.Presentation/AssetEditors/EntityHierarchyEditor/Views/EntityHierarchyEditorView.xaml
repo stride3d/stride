@@ -249,12 +249,15 @@
                   <DataTrigger Binding="{Binding Owner.IsLoaded, Mode=OneWay}" Value="{sd:False}">
                     <Setter Property="Foreground" Value="{StaticResource UnloadedColor}"/>
                   </DataTrigger>
+                  <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type sd:TreeViewItem}}, Mode=OneWay}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource SelectedTextBrush}"/>
+                  </DataTrigger>
                 </Style.Triggers>
               </Style>
               <!-- Loading style -->
               <Style x:Key="LoadingStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyElementViewModel}">
                 <Setter Property="Margin" Value="4,0"/>
-                <Setter Property="Foreground" Value="#FF00FF70" />
+                <Setter Property="Foreground" Value="{StaticResource LoadingAssetMessageFromBrush}" />
                 <Setter Property="Text" Value="{sd:Localize Loading...}" />
                 <Setter Property="Visibility" Value="{Binding IsLoading, Mode=OneWay, Converter={sd:VisibleOrCollapsed}}" />
                 <Style.Triggers>
@@ -264,7 +267,8 @@
                   <EventTrigger RoutedEvent="TextBlock.Loaded">
                     <BeginStoryboard>
                       <Storyboard>
-                        <ColorAnimation From="#FF00FF70" To="White" Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" BeginTime="0:0:0.3" Duration="0:0:0.2" AutoReverse="True" RepeatBehavior="Forever"/>
+                        <ColorAnimation From="{StaticResource LoadingAssetMessageFromColor}" To="{StaticResource LoadingAssetMessageToColor}"
+                                        Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" BeginTime="0:0:0.3" Duration="0:0:0.2" AutoReverse="True" RepeatBehavior="Forever"/>
                       </Storyboard>
                     </BeginStoryboard>
                   </EventTrigger>
@@ -746,12 +750,13 @@
                             ToolTip="{sd:Localize Show or hide selection mask, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
               <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
               <TextBlock Text="{sd:Localize Loading assets...}" Visibility="{Binding CompilingAssets, Converter={sd:VisibleOrCollapsed}}"
-                         VerticalAlignment="Center" FontWeight="Bold" Foreground="#FF00FF70">
+                         VerticalAlignment="Center" FontWeight="Bold" Foreground="{StaticResource LoadingAssetMessageFromBrush}">
                 <TextBlock.Triggers>
                   <EventTrigger RoutedEvent="TextBlock.Loaded">
                     <BeginStoryboard>
                       <Storyboard>
-                        <ColorAnimation From="#FF00FF70" To="White" Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" BeginTime="0:0:0.3" Duration="0:0:0.2" AutoReverse="True" RepeatBehavior="Forever"/>
+                        <ColorAnimation From="{StaticResource LoadingAssetMessageFromColor}" To="{StaticResource LoadingAssetMessageToColor}"
+                                        Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" BeginTime="0:0:0.3" Duration="0:0:0.2" AutoReverse="True" RepeatBehavior="Forever"/>
                       </Storyboard>
                     </BeginStoryboard>
                   </EventTrigger>

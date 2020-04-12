@@ -48,8 +48,6 @@
     </Setter>
   </Style>
 
-  <SolidColorBrush x:Key="CodeEditorBackgroundBrush" Color="#FF1E1E1E" />
-
   <HierarchicalDataTemplate DataType="{x:Type codeFixes:CodeFixCollection}" ItemsSource="{Binding Fixes, Mode=OneTime}">
     <TextBlock Text="{Binding Provider, Mode=OneTime}" />
   </HierarchicalDataTemplate>
@@ -201,25 +199,25 @@
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type ListBoxItem}">
           <Border Name="Bd"
-					        Background="{TemplateBinding Background}"
-					        BorderBrush="{TemplateBinding BorderBrush}"
-					        BorderThickness="{TemplateBinding BorderThickness}"
-					        Padding="{TemplateBinding Padding}"
-					        SnapsToDevicePixels="true">
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  Padding="{TemplateBinding Padding}"
+                  SnapsToDevicePixels="true">
             <ContentPresenter
-							HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-							VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-							SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
           </Border>
           <!-- Simplified triggers:
-						 we don't want a gray selection background when the ListBox doesn't have focus
-					-->
+             we don't want a gray selection background when the ListBox doesn't have focus
+          -->
           <ControlTemplate.Triggers>
             <Trigger Property="IsSelected" Value="true">
               <Setter Property="Background"
-							        Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                      Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
               <Setter Property="Foreground"
-							        Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
+                      Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
             </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -246,9 +244,9 @@
               <Setter TargetName="PART_ListBox" Property="Template">
                 <Setter.Value>
                   <ControlTemplate>
-                    <Border CornerRadius="2" 
-			                      BorderBrush="{TemplateBinding BorderBrush}"
-			                      BorderThickness="{TemplateBinding BorderThickness}">
+                    <Border CornerRadius="2"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
                       <ListBoxItem Style="{StaticResource CompletionListBoxItem}">
                         <TextBlock Text="{sd:Localize No suggestions}"/>
                       </ListBoxItem>
