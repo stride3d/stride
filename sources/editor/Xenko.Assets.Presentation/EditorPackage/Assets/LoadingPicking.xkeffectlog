@@ -18,7 +18,8 @@ UsedParameters:
                                     - Material.DiffuseValue
                         Macros: []
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                     - !ShaderMixinSource
                         Compositions:
                             surfaces: !ShaderArraySource
@@ -29,16 +30,20 @@ UsedParameters:
                                             - false
                         Macros: []
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
         Macros: []
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Compositions: {}
         Macros: []
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightConstantWhite
@@ -63,7 +68,8 @@ UsedParameters:
                                     - Material.TextureOffset
                         Macros: []
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                     - !ShaderMixinSource
                         Compositions:
                             surfaces: !ShaderArraySource
@@ -74,20 +80,25 @@ UsedParameters:
                                             - false
                         Macros: []
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
         Macros: []
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Compositions: {}
         Macros: []
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Lighting.DirectLightGroups: []
     Lighting.EnvironmentLights:
         - !ShaderMixinSource
             Compositions: {}
             Macros: []
             Mixins:
-                -   ClassName: LightConstantWhite
+                - !ShaderClassSource
+                    ClassName: LightConstantWhite

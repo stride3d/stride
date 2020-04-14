@@ -12,8 +12,10 @@ UsedParameters:
         Compositions: {}
         Macros: []
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
         Name: null
     Material.PixelStageSurfaceFilter: null
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
@@ -33,7 +35,8 @@ UsedParameters:
                                     - Material.TextureOffset
                         Macros: []
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                         Name: null
                     - !ShaderMixinSource
                         Compositions:
@@ -45,11 +48,13 @@ UsedParameters:
                                             - false
                         Macros: []
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
                         Name: null
         Macros: []
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
         Name: null
     Material.TessellationShader: null
     Material.VertexStageSurfaceShaders: null
@@ -70,8 +75,10 @@ UsedParameters:
         Compositions: {}
         Macros: []
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
         Name: null
     Material.PixelStageSurfaceFilter: null
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
@@ -91,7 +98,8 @@ UsedParameters:
                                     - Material.TextureOffset
                         Macros: []
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                         Name: null
                     - !ShaderMixinSource
                         Compositions:
@@ -103,11 +111,13 @@ UsedParameters:
                                             - false
                         Macros: []
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
                         Name: null
         Macros: []
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
         Name: null
     Material.TessellationShader: null
     Material.VertexStageSurfaceShaders: null

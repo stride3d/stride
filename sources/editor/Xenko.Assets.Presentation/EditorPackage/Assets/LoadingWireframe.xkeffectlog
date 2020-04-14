@@ -13,7 +13,8 @@ UsedParameters:
                                 GenericArguments:
                                     - Material.DiffuseValue
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                     - !ShaderMixinSource
                         Compositions:
                             surfaces: !ShaderArraySource
@@ -23,13 +24,17 @@ UsedParameters:
                                         GenericArguments:
                                             - false
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightConstantWhite
@@ -53,7 +58,8 @@ UsedParameters:
                                     - Material.TextureScale
                                     - Material.TextureOffset
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                     - !ShaderMixinSource
                         Compositions:
                             surfaces: !ShaderArraySource
@@ -63,18 +69,23 @@ UsedParameters:
                                         GenericArguments:
                                             - false
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Lighting.DirectLightGroups: []
     Lighting.EnvironmentLights:
         - !ShaderMixinSource
             Mixins:
-                -   ClassName: LightConstantWhite
+                - !ShaderClassSource
+                    ClassName: LightConstantWhite
 ---
 !EffectCompileRequest
 EffectName: XenkoEditorForwardShadingEffect.Wireframe
@@ -99,7 +110,8 @@ UsedParameters:
                                     - Material.TextureScale
                                     - Material.TextureOffset
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                     - !ShaderMixinSource
                         Compositions:
                             surfaces: !ShaderArraySource
@@ -109,13 +121,17 @@ UsedParameters:
                                         GenericArguments:
                                             - false
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightConstantWhite

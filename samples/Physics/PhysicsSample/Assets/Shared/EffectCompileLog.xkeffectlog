@@ -4,20 +4,23 @@ EffectName: XenkoForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
         Compositions:
             layers: !ShaderArraySource
                 Values:
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                         Compositions:
                             diffuseMap: !ShaderClassSource
                                 ClassName: ComputeColorConstantColorLink
                                 GenericArguments: [Material.DiffuseValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceNormalMap
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceNormalMap
                                 GenericArguments: [false, true]
                         Compositions:
                             normalMap: !ShaderClassSource
@@ -25,7 +28,8 @@ UsedParameters:
                                 GenericArguments: [Material.NormalMap, TEXCOORD0, Material.Sampler.i0, rgba, Material.TextureScale, Material.TextureOffset]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceGlossinessMap
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceGlossinessMap
                                 GenericArguments: [false]
                         Compositions:
                             glossinessMap: !ShaderClassSource
@@ -33,7 +37,8 @@ UsedParameters:
                                 GenericArguments: [Material.GlossinessValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matSpecular, rgb]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -41,7 +46,8 @@ UsedParameters:
                                 GenericArguments: [Material.SpecularValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matSpecularIntensity, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -49,7 +55,8 @@ UsedParameters:
                                 GenericArguments: [Material.SpecularIntensityValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matAmbientOcclusion, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -57,7 +64,8 @@ UsedParameters:
                                 GenericArguments: [Material.AmbientOcclusionMap, TEXCOORD0, Material.Sampler.i0, r, Material.TextureScale.i1, Material.TextureOffset.i1]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matAmbientOcclusionDirectLightingFactor, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -65,7 +73,8 @@ UsedParameters:
                                 GenericArguments: [Material.AmbientOcclusionDirectLightingFactorValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matCavity, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -73,7 +82,8 @@ UsedParameters:
                                 GenericArguments: [Material.CavityValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matCavityDiffuse, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -81,7 +91,8 @@ UsedParameters:
                                 GenericArguments: [Material.CavityDiffuseValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matCavitySpecular, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -89,12 +100,14 @@ UsedParameters:
                                 GenericArguments: [Material.CavitySpecularValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matEmissive, rgba]
                         Compositions:
                             computeColorSource: !ShaderMixinSource
                                 Mixins:
-                                    -   ClassName: ComputeColorMultiply
+                                    - !ShaderClassSource
+                                        ClassName: ComputeColorMultiply
                                 Compositions:
                                     color1: !ShaderClassSource
                                         ClassName: ComputeColorTextureScaledOffsetDynamicSampler
@@ -104,7 +117,8 @@ UsedParameters:
                                         GenericArguments: [Material.EmissiveValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matEmissiveIntensity, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -112,7 +126,8 @@ UsedParameters:
                                 GenericArguments: [Material.EmissiveIntensity]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
                         Compositions:
                             surfaces: !ShaderArraySource
                                 Values:
@@ -121,7 +136,8 @@ UsedParameters:
                                         GenericArguments: [false]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceShadingSpecularMicrofacet
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceShadingSpecularMicrofacet
                                         Compositions:
                                             environmentFunction: !ShaderClassSource
                                                 ClassName: MaterialSpecularMicrofacetEnvironmentGGXLUT
@@ -136,8 +152,10 @@ UsedParameters:
                         GenericArguments: [false]
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Material.HasNormalMap: true
     Lighting.DirectLightGroups: []
     Lighting.EnvironmentLights:
@@ -149,20 +167,23 @@ EffectName: XenkoForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
         Compositions:
             layers: !ShaderArraySource
                 Values:
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                         Compositions:
                             diffuseMap: !ShaderClassSource
                                 ClassName: ComputeColorConstantColorLink
                                 GenericArguments: [Material.DiffuseValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceNormalMap
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceNormalMap
                                 GenericArguments: [false, true]
                         Compositions:
                             normalMap: !ShaderClassSource
@@ -170,7 +191,8 @@ UsedParameters:
                                 GenericArguments: [Material.NormalMap, TEXCOORD0, Material.Sampler.i0, rgba, Material.TextureScale, Material.TextureOffset]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceGlossinessMap
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceGlossinessMap
                                 GenericArguments: [false]
                         Compositions:
                             glossinessMap: !ShaderClassSource
@@ -178,7 +200,8 @@ UsedParameters:
                                 GenericArguments: [Material.GlossinessValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matSpecular, rgb]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -186,7 +209,8 @@ UsedParameters:
                                 GenericArguments: [Material.SpecularValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matSpecularIntensity, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -194,7 +218,8 @@ UsedParameters:
                                 GenericArguments: [Material.SpecularIntensityValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matAmbientOcclusion, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -202,7 +227,8 @@ UsedParameters:
                                 GenericArguments: [Material.AmbientOcclusionMap, TEXCOORD0, Material.Sampler.i0, r, Material.TextureScale.i1, Material.TextureOffset.i1]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matAmbientOcclusionDirectLightingFactor, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -210,7 +236,8 @@ UsedParameters:
                                 GenericArguments: [Material.AmbientOcclusionDirectLightingFactorValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matCavity, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -218,7 +245,8 @@ UsedParameters:
                                 GenericArguments: [Material.CavityValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matCavityDiffuse, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -226,7 +254,8 @@ UsedParameters:
                                 GenericArguments: [Material.CavityDiffuseValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matCavitySpecular, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -234,7 +263,8 @@ UsedParameters:
                                 GenericArguments: [Material.CavitySpecularValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
                         Compositions:
                             surfaces: !ShaderArraySource
                                 Values:
@@ -243,7 +273,8 @@ UsedParameters:
                                         GenericArguments: [false]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceShadingSpecularMicrofacet
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceShadingSpecularMicrofacet
                                         Compositions:
                                             environmentFunction: !ShaderClassSource
                                                 ClassName: MaterialSpecularMicrofacetEnvironmentGGXLUT
@@ -255,7 +286,8 @@ UsedParameters:
                                                 ClassName: MaterialSpecularMicrofacetNormalDistributionGGX
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matBlend, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -263,20 +295,23 @@ UsedParameters:
                                 GenericArguments: [Material.BlendMap, TEXCOORD0, Material.Sampler.i0, a, Material.TextureScale.i5, Material.TextureOffset.i5]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceShadingBlend
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceShadingBlend
                         Compositions:
                             layers: !ShaderArraySource
                                 Values:
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceDiffuse
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceDiffuse
                                         Compositions:
                                             diffuseMap: !ShaderClassSource
                                                 ClassName: ComputeColorConstantColorLink
                                                 GenericArguments: [Material.DiffuseValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceNormalMap
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceNormalMap
                                                 GenericArguments: [false, true]
                                         Compositions:
                                             normalMap: !ShaderClassSource
@@ -284,7 +319,8 @@ UsedParameters:
                                                 GenericArguments: [Material.NormalMap.i1, TEXCOORD0, Material.Sampler.i0, rgba, Material.TextureScale.i2, Material.TextureOffset.i2]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceGlossinessMap
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceGlossinessMap
                                                 GenericArguments: [false]
                                         Compositions:
                                             glossinessMap: !ShaderClassSource
@@ -292,7 +328,8 @@ UsedParameters:
                                                 GenericArguments: [Material.GlossinessValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matSpecular, rgb]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -300,7 +337,8 @@ UsedParameters:
                                                 GenericArguments: [Material.SpecularValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matSpecularIntensity, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -308,7 +346,8 @@ UsedParameters:
                                                 GenericArguments: [Material.SpecularIntensityValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matAmbientOcclusion, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -316,7 +355,8 @@ UsedParameters:
                                                 GenericArguments: [Material.AmbientOcclusionMap.i1, TEXCOORD0, Material.Sampler.i0, r, Material.TextureScale.i3, Material.TextureOffset.i3]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matAmbientOcclusionDirectLightingFactor, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -324,7 +364,8 @@ UsedParameters:
                                                 GenericArguments: [Material.AmbientOcclusionDirectLightingFactorValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matCavity, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -332,7 +373,8 @@ UsedParameters:
                                                 GenericArguments: [Material.CavityValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matCavityDiffuse, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -340,7 +382,8 @@ UsedParameters:
                                                 GenericArguments: [Material.CavityDiffuseValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matCavitySpecular, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -348,12 +391,14 @@ UsedParameters:
                                                 GenericArguments: [Material.CavitySpecularValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matEmissive, rgba]
                                         Compositions:
                                             computeColorSource: !ShaderMixinSource
                                                 Mixins:
-                                                    -   ClassName: ComputeColorMultiply
+                                                    - !ShaderClassSource
+                                                        ClassName: ComputeColorMultiply
                                                 Compositions:
                                                     color1: !ShaderClassSource
                                                         ClassName: ComputeColorTextureScaledOffsetDynamicSampler
@@ -363,7 +408,8 @@ UsedParameters:
                                                         GenericArguments: [Material.EmissiveValue]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matEmissiveIntensity, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -371,7 +417,8 @@ UsedParameters:
                                                 GenericArguments: [Material.EmissiveIntensity]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceLightingAndShading
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceLightingAndShading
                                         Compositions:
                                             surfaces: !ShaderArraySource
                                                 Values:
@@ -380,7 +427,8 @@ UsedParameters:
                                                         GenericArguments: [false]
                                                     - !ShaderMixinSource
                                                         Mixins:
-                                                            -   ClassName: MaterialSurfaceShadingSpecularMicrofacet
+                                                            - !ShaderClassSource
+                                                                ClassName: MaterialSurfaceShadingSpecularMicrofacet
                                                         Compositions:
                                                             environmentFunction: !ShaderClassSource
                                                                 ClassName: MaterialSpecularMicrofacetEnvironmentGGXLUT
@@ -395,8 +443,10 @@ UsedParameters:
                                         GenericArguments: [false]
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Material.HasNormalMap: true
     Lighting.DirectLightGroups: []
     Lighting.EnvironmentLights:
@@ -412,20 +462,23 @@ EffectName: XenkoForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
         Compositions:
             layers: !ShaderArraySource
                 Values:
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                         Compositions:
                             diffuseMap: !ShaderClassSource
                                 ClassName: ComputeColorTextureScaledOffsetDynamicSampler
                                 GenericArguments: [Material.DiffuseMap, TEXCOORD0, Material.Sampler.i0, rgba, Material.TextureScale, Material.TextureOffset]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
                         Compositions:
                             surfaces: !ShaderArraySource
                                 Values:
@@ -434,12 +487,15 @@ UsedParameters:
                                         GenericArguments: [false]
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Lighting.DirectLightGroups:
         - !ShaderMixinSource
             Mixins:
-                -   ClassName: LightDirectionalGroup
+                - !ShaderClassSource
+                    ClassName: LightDirectionalGroup
                     GenericArguments: [1]
     Lighting.EnvironmentLights:
         - !ShaderClassSource
@@ -450,20 +506,23 @@ EffectName: XenkoForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
         Compositions:
             layers: !ShaderArraySource
                 Values:
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                         Compositions:
                             diffuseMap: !ShaderClassSource
                                 ClassName: ComputeColorConstantColorLink
                                 GenericArguments: [Material.DiffuseValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
                         Compositions:
                             surfaces: !ShaderArraySource
                                 Values:
@@ -472,8 +531,10 @@ UsedParameters:
                                         GenericArguments: [false]
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Lighting.DirectLightGroups: []
     Lighting.EnvironmentLights:
         - !ShaderClassSource
@@ -484,20 +545,23 @@ EffectName: XenkoForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
         Compositions:
             layers: !ShaderArraySource
                 Values:
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                         Compositions:
                             diffuseMap: !ShaderClassSource
                                 ClassName: ComputeColorConstantColorLink
                                 GenericArguments: [Material.DiffuseValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matDiffuseSpecularAlphaBlend, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -505,7 +569,8 @@ UsedParameters:
                                 GenericArguments: [Material.DiffuseSpecularAlphaBlendValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matAlphaBlendColor, rgb]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -513,7 +578,8 @@ UsedParameters:
                                 GenericArguments: [Material.AlphaBlendColorValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
                         Compositions:
                             surfaces: !ShaderArraySource
                                 Values:
@@ -524,8 +590,10 @@ UsedParameters:
                         ClassName: MaterialSurfaceDiffuseSpecularAlphaBlendColor
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Lighting.DirectLightGroups: []
     Lighting.EnvironmentLights:
         - !ShaderClassSource
@@ -536,20 +604,23 @@ EffectName: XenkoForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
         Compositions:
             layers: !ShaderArraySource
                 Values:
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                         Compositions:
                             diffuseMap: !ShaderClassSource
                                 ClassName: ComputeColorConstantColorLink
                                 GenericArguments: [Material.DiffuseValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceNormalMap
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceNormalMap
                                 GenericArguments: [false, true]
                         Compositions:
                             normalMap: !ShaderClassSource
@@ -557,7 +628,8 @@ UsedParameters:
                                 GenericArguments: [Material.NormalMap, TEXCOORD0, Material.Sampler.i0, rgba, Material.TextureScale, Material.TextureOffset]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceGlossinessMap
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceGlossinessMap
                                 GenericArguments: [false]
                         Compositions:
                             glossinessMap: !ShaderClassSource
@@ -565,7 +637,8 @@ UsedParameters:
                                 GenericArguments: [Material.GlossinessValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matSpecular, rgb]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -573,7 +646,8 @@ UsedParameters:
                                 GenericArguments: [Material.SpecularValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matSpecularIntensity, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -581,7 +655,8 @@ UsedParameters:
                                 GenericArguments: [Material.SpecularIntensityValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matAmbientOcclusion, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -589,7 +664,8 @@ UsedParameters:
                                 GenericArguments: [Material.AmbientOcclusionMap, TEXCOORD0, Material.Sampler.i0, r, Material.TextureScale.i1, Material.TextureOffset.i1]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matAmbientOcclusionDirectLightingFactor, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -597,7 +673,8 @@ UsedParameters:
                                 GenericArguments: [Material.AmbientOcclusionDirectLightingFactorValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matCavity, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -605,7 +682,8 @@ UsedParameters:
                                 GenericArguments: [Material.CavityValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matCavityDiffuse, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -613,7 +691,8 @@ UsedParameters:
                                 GenericArguments: [Material.CavityDiffuseValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matCavitySpecular, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -621,12 +700,14 @@ UsedParameters:
                                 GenericArguments: [Material.CavitySpecularValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matEmissive, rgba]
                         Compositions:
                             computeColorSource: !ShaderMixinSource
                                 Mixins:
-                                    -   ClassName: ComputeColorMultiply
+                                    - !ShaderClassSource
+                                        ClassName: ComputeColorMultiply
                                 Compositions:
                                     color1: !ShaderClassSource
                                         ClassName: ComputeColorTextureScaledOffsetDynamicSampler
@@ -636,7 +717,8 @@ UsedParameters:
                                         GenericArguments: [Material.EmissiveValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matEmissiveIntensity, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -644,7 +726,8 @@ UsedParameters:
                                 GenericArguments: [Material.EmissiveIntensity]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
                         Compositions:
                             surfaces: !ShaderArraySource
                                 Values:
@@ -653,7 +736,8 @@ UsedParameters:
                                         GenericArguments: [false]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceShadingSpecularMicrofacet
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceShadingSpecularMicrofacet
                                         Compositions:
                                             environmentFunction: !ShaderClassSource
                                                 ClassName: MaterialSpecularMicrofacetEnvironmentGGXLUT
@@ -668,8 +752,10 @@ UsedParameters:
                         GenericArguments: [false]
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Material.HasNormalMap: true
     Lighting.DirectLightGroups: []
     Lighting.EnvironmentLights:
@@ -687,20 +773,23 @@ EffectName: XenkoForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
         Compositions:
             layers: !ShaderArraySource
                 Values:
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                         Compositions:
                             diffuseMap: !ShaderClassSource
                                 ClassName: ComputeColorConstantColorLink
                                 GenericArguments: [Material.DiffuseValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceNormalMap
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceNormalMap
                                 GenericArguments: [false, true]
                         Compositions:
                             normalMap: !ShaderClassSource
@@ -708,7 +797,8 @@ UsedParameters:
                                 GenericArguments: [Material.NormalMap, TEXCOORD0, Material.Sampler.i0, rgba, Material.TextureScale, Material.TextureOffset]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceGlossinessMap
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceGlossinessMap
                                 GenericArguments: [false]
                         Compositions:
                             glossinessMap: !ShaderClassSource
@@ -716,7 +806,8 @@ UsedParameters:
                                 GenericArguments: [Material.GlossinessValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matSpecular, rgb]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -724,7 +815,8 @@ UsedParameters:
                                 GenericArguments: [Material.SpecularValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matSpecularIntensity, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -732,7 +824,8 @@ UsedParameters:
                                 GenericArguments: [Material.SpecularIntensityValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matAmbientOcclusion, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -740,7 +833,8 @@ UsedParameters:
                                 GenericArguments: [Material.AmbientOcclusionMap, TEXCOORD0, Material.Sampler.i0, r, Material.TextureScale.i1, Material.TextureOffset.i1]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matAmbientOcclusionDirectLightingFactor, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -748,7 +842,8 @@ UsedParameters:
                                 GenericArguments: [Material.AmbientOcclusionDirectLightingFactorValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matCavity, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -756,7 +851,8 @@ UsedParameters:
                                 GenericArguments: [Material.CavityValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matCavityDiffuse, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -764,7 +860,8 @@ UsedParameters:
                                 GenericArguments: [Material.CavityDiffuseValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matCavitySpecular, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -772,7 +869,8 @@ UsedParameters:
                                 GenericArguments: [Material.CavitySpecularValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
                         Compositions:
                             surfaces: !ShaderArraySource
                                 Values:
@@ -781,7 +879,8 @@ UsedParameters:
                                         GenericArguments: [false]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceShadingSpecularMicrofacet
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceShadingSpecularMicrofacet
                                         Compositions:
                                             environmentFunction: !ShaderClassSource
                                                 ClassName: MaterialSpecularMicrofacetEnvironmentGGXLUT
@@ -793,7 +892,8 @@ UsedParameters:
                                                 ClassName: MaterialSpecularMicrofacetNormalDistributionGGX
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matBlend, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -801,20 +901,23 @@ UsedParameters:
                                 GenericArguments: [Material.BlendMap, TEXCOORD0, Material.Sampler.i0, a, Material.TextureScale.i5, Material.TextureOffset.i5]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceShadingBlend
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceShadingBlend
                         Compositions:
                             layers: !ShaderArraySource
                                 Values:
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceDiffuse
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceDiffuse
                                         Compositions:
                                             diffuseMap: !ShaderClassSource
                                                 ClassName: ComputeColorConstantColorLink
                                                 GenericArguments: [Material.DiffuseValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceNormalMap
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceNormalMap
                                                 GenericArguments: [false, true]
                                         Compositions:
                                             normalMap: !ShaderClassSource
@@ -822,7 +925,8 @@ UsedParameters:
                                                 GenericArguments: [Material.NormalMap.i1, TEXCOORD0, Material.Sampler.i0, rgba, Material.TextureScale.i2, Material.TextureOffset.i2]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceGlossinessMap
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceGlossinessMap
                                                 GenericArguments: [false]
                                         Compositions:
                                             glossinessMap: !ShaderClassSource
@@ -830,7 +934,8 @@ UsedParameters:
                                                 GenericArguments: [Material.GlossinessValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matSpecular, rgb]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -838,7 +943,8 @@ UsedParameters:
                                                 GenericArguments: [Material.SpecularValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matSpecularIntensity, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -846,7 +952,8 @@ UsedParameters:
                                                 GenericArguments: [Material.SpecularIntensityValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matAmbientOcclusion, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -854,7 +961,8 @@ UsedParameters:
                                                 GenericArguments: [Material.AmbientOcclusionMap.i1, TEXCOORD0, Material.Sampler.i0, r, Material.TextureScale.i3, Material.TextureOffset.i3]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matAmbientOcclusionDirectLightingFactor, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -862,7 +970,8 @@ UsedParameters:
                                                 GenericArguments: [Material.AmbientOcclusionDirectLightingFactorValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matCavity, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -870,7 +979,8 @@ UsedParameters:
                                                 GenericArguments: [Material.CavityValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matCavityDiffuse, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -878,7 +988,8 @@ UsedParameters:
                                                 GenericArguments: [Material.CavityDiffuseValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matCavitySpecular, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -886,12 +997,14 @@ UsedParameters:
                                                 GenericArguments: [Material.CavitySpecularValue.i1]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matEmissive, rgba]
                                         Compositions:
                                             computeColorSource: !ShaderMixinSource
                                                 Mixins:
-                                                    -   ClassName: ComputeColorMultiply
+                                                    - !ShaderClassSource
+                                                        ClassName: ComputeColorMultiply
                                                 Compositions:
                                                     color1: !ShaderClassSource
                                                         ClassName: ComputeColorTextureScaledOffsetDynamicSampler
@@ -901,7 +1014,8 @@ UsedParameters:
                                                         GenericArguments: [Material.EmissiveValue]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                                 GenericArguments: [matEmissiveIntensity, r]
                                         Compositions:
                                             computeColorSource: !ShaderClassSource
@@ -909,7 +1023,8 @@ UsedParameters:
                                                 GenericArguments: [Material.EmissiveIntensity]
                                     - !ShaderMixinSource
                                         Mixins:
-                                            -   ClassName: MaterialSurfaceLightingAndShading
+                                            - !ShaderClassSource
+                                                ClassName: MaterialSurfaceLightingAndShading
                                         Compositions:
                                             surfaces: !ShaderArraySource
                                                 Values:
@@ -918,7 +1033,8 @@ UsedParameters:
                                                         GenericArguments: [false]
                                                     - !ShaderMixinSource
                                                         Mixins:
-                                                            -   ClassName: MaterialSurfaceShadingSpecularMicrofacet
+                                                            - !ShaderClassSource
+                                                                ClassName: MaterialSurfaceShadingSpecularMicrofacet
                                                         Compositions:
                                                             environmentFunction: !ShaderClassSource
                                                                 ClassName: MaterialSpecularMicrofacetEnvironmentGGXLUT
@@ -933,8 +1049,10 @@ UsedParameters:
                                         GenericArguments: [false]
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Material.HasNormalMap: true
     Lighting.DirectLightGroups: []
     Lighting.EnvironmentLights:
@@ -952,20 +1070,23 @@ EffectName: XenkoForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
         Compositions:
             layers: !ShaderArraySource
                 Values:
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                         Compositions:
                             diffuseMap: !ShaderClassSource
                                 ClassName: ComputeColorTextureScaledOffsetDynamicSampler
                                 GenericArguments: [Material.DiffuseMap, TEXCOORD0, Material.Sampler.i0, rgba, Material.TextureScale, Material.TextureOffset]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
                         Compositions:
                             surfaces: !ShaderArraySource
                                 Values:
@@ -974,12 +1095,15 @@ UsedParameters:
                                         GenericArguments: [false]
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Lighting.DirectLightGroups:
         - !ShaderMixinSource
             Mixins:
-                -   ClassName: LightDirectionalGroup
+                - !ShaderClassSource
+                    ClassName: LightDirectionalGroup
                     GenericArguments: [1]
     Lighting.EnvironmentLights:
         - !ShaderClassSource
@@ -996,20 +1120,23 @@ EffectName: XenkoForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
         Compositions:
             layers: !ShaderArraySource
                 Values:
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                         Compositions:
                             diffuseMap: !ShaderClassSource
                                 ClassName: ComputeColorConstantColorLink
                                 GenericArguments: [Material.DiffuseValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
                         Compositions:
                             surfaces: !ShaderArraySource
                                 Values:
@@ -1018,8 +1145,10 @@ UsedParameters:
                                         GenericArguments: [false]
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Lighting.DirectLightGroups: []
     Lighting.EnvironmentLights:
         - !ShaderClassSource
@@ -1036,20 +1165,23 @@ EffectName: XenkoForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
         Compositions:
             layers: !ShaderArraySource
                 Values:
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceDiffuse
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceDiffuse
                         Compositions:
                             diffuseMap: !ShaderClassSource
                                 ClassName: ComputeColorConstantColorLink
                                 GenericArguments: [Material.DiffuseValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matDiffuseSpecularAlphaBlend, r]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -1057,7 +1189,8 @@ UsedParameters:
                                 GenericArguments: [Material.DiffuseSpecularAlphaBlendValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments: [matAlphaBlendColor, rgb]
                         Compositions:
                             computeColorSource: !ShaderClassSource
@@ -1065,7 +1198,8 @@ UsedParameters:
                                 GenericArguments: [Material.AlphaBlendColorValue]
                     - !ShaderMixinSource
                         Mixins:
-                            -   ClassName: MaterialSurfaceLightingAndShading
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceLightingAndShading
                         Compositions:
                             surfaces: !ShaderArraySource
                                 Values:
@@ -1076,8 +1210,10 @@ UsedParameters:
                         ClassName: MaterialSurfaceDiffuseSpecularAlphaBlendColor
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
     Lighting.DirectLightGroups: []
     Lighting.EnvironmentLights:
         - !ShaderClassSource

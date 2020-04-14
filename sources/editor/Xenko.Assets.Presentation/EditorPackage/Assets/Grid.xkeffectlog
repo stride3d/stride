@@ -25,10 +25,12 @@ UsedParameters:
                                             - Material.TextureOffset
                                 Macros: []
                                 Mixins:
-                                    -   ClassName: ComputeColorMultiply
+                                    - !ShaderClassSource
+                                        ClassName: ComputeColorMultiply
                         Macros: []
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments:
                                     - matEmissive
                                     - rgba
@@ -40,7 +42,8 @@ UsedParameters:
                                     - Material.EmissiveIntensity
                         Macros: []
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments:
                                     - matEmissiveIntensity
                                     - r
@@ -52,7 +55,8 @@ UsedParameters:
                                     - Material.DiffuseSpecularAlphaBlendValue
                         Macros: []
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments:
                                     - matDiffuseSpecularAlphaBlend
                                     - r
@@ -64,7 +68,8 @@ UsedParameters:
                                     - Material.AlphaBlendColorValue
                         Macros: []
                         Mixins:
-                            -   ClassName: MaterialSurfaceSetStreamFromComputeColor
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
                                 GenericArguments:
                                     - matAlphaBlendColor
                                     - rgb
@@ -76,10 +81,13 @@ UsedParameters:
                         ClassName: MaterialSurfaceDiffuseSpecularAlphaBlendColor
         Macros: []
         Mixins:
-            -   ClassName: MaterialSurfaceArray
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
     Material.PixelStageStreamInitializer: !ShaderMixinSource
         Compositions: {}
         Macros: []
         Mixins:
-            -   ClassName: MaterialStream
-            -   ClassName: MaterialPixelShadingStream
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream
