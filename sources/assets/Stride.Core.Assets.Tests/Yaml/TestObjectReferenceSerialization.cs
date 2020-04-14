@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xunit;
-using Xenko.Core.Assets.Serializers;
-using Xenko.Core.Assets.Tests.Helpers;
-using Xenko.Core.Assets.Yaml;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml;
+using Stride.Core.Assets.Serializers;
+using Stride.Core.Assets.Tests.Helpers;
+using Stride.Core.Assets.Yaml;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml;
 
-namespace Xenko.Core.Assets.Tests.Yaml
+namespace Stride.Core.Assets.Tests.Yaml
 {
     public class TestObjectReferenceSerialization
     {
@@ -58,7 +58,7 @@ namespace Xenko.Core.Assets.Tests.Yaml
             public IReferenceable Referenceable4 { get; set; }            
         }
 
-        private const string ExpandedObjectYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Container,Xenko.Core.Assets.Tests
+        private const string ExpandedObjectYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Container,Stride.Core.Assets.Tests
 Referenceable1:
     Id: 00000001-0001-0000-0100-000001000000
     Value: Test
@@ -67,7 +67,7 @@ Referenceable3: null
 Referenceable4: null
 ";
 
-        private const string ConcreteReferenceConcreteObjectYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Container,Xenko.Core.Assets.Tests
+        private const string ConcreteReferenceConcreteObjectYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Container,Stride.Core.Assets.Tests
 Referenceable1:
     Id: 00000001-0001-0000-0100-000001000000
     Value: Test
@@ -76,34 +76,34 @@ Referenceable3: null
 Referenceable4: null
 ";
 
-        private const string AbstractReferenceConcreteObjectYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Container,Xenko.Core.Assets.Tests
+        private const string AbstractReferenceConcreteObjectYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Container,Stride.Core.Assets.Tests
 Referenceable1:
     Id: 00000001-0001-0000-0100-000001000000
     Value: Test
 Referenceable2: null
-Referenceable3: !Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Xenko.Core.Assets.Tests ref!! 00000001-0001-0000-0100-000001000000
+Referenceable3: !Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Stride.Core.Assets.Tests ref!! 00000001-0001-0000-0100-000001000000
 Referenceable4: null
 ";
 
-        private const string ConcreteReferenceAbstractObjectYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Container,Xenko.Core.Assets.Tests
+        private const string ConcreteReferenceAbstractObjectYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Container,Stride.Core.Assets.Tests
 Referenceable1: null
 Referenceable2: ref!! 00000001-0001-0000-0100-000001000000
-Referenceable3: !Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Xenko.Core.Assets.Tests
+Referenceable3: !Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Stride.Core.Assets.Tests
     Id: 00000001-0001-0000-0100-000001000000
     Value: Test
 Referenceable4: null
 ";
 
-        private const string AbstractReferenceAbstractObjectYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Container,Xenko.Core.Assets.Tests
+        private const string AbstractReferenceAbstractObjectYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Container,Stride.Core.Assets.Tests
 Referenceable1: null
 Referenceable2: null
-Referenceable3: !Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Xenko.Core.Assets.Tests
+Referenceable3: !Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Stride.Core.Assets.Tests
     Id: 00000001-0001-0000-0100-000001000000
     Value: Test
-Referenceable4: !Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Xenko.Core.Assets.Tests ref!! 00000001-0001-0000-0100-000001000000
+Referenceable4: !Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Stride.Core.Assets.Tests ref!! 00000001-0001-0000-0100-000001000000
 ";
 
-        private const string ConcreteReferenceableListYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+CollectionContainer,Xenko.Core.Assets.Tests
+        private const string ConcreteReferenceableListYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+CollectionContainer,Stride.Core.Assets.Tests
 ConcreteRefList:
     01000000010000000100000001000000: ref!! 00000001-0001-0000-0100-000001000000
     02000000020000000200000002000000:
@@ -114,18 +114,18 @@ ConcreteRefDictionary: {}
 AbstractRefDictionary: {}
 ";
 
-        private const string AbstractReferenceableListYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+CollectionContainer,Xenko.Core.Assets.Tests
+        private const string AbstractReferenceableListYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+CollectionContainer,Stride.Core.Assets.Tests
 ConcreteRefList: {}
 AbstractRefList:
-    01000000010000000100000001000000: !Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Xenko.Core.Assets.Tests ref!! 00000001-0001-0000-0100-000001000000
-    02000000020000000200000002000000: !Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Xenko.Core.Assets.Tests
+    01000000010000000100000001000000: !Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Stride.Core.Assets.Tests ref!! 00000001-0001-0000-0100-000001000000
+    02000000020000000200000002000000: !Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Stride.Core.Assets.Tests
         Id: 00000001-0001-0000-0100-000001000000
         Value: Test
 ConcreteRefDictionary: {}
 AbstractRefDictionary: {}
 ";
 
-        private const string ConcreteReferenceableDictionaryYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+CollectionContainer,Xenko.Core.Assets.Tests
+        private const string ConcreteReferenceableDictionaryYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+CollectionContainer,Stride.Core.Assets.Tests
 ConcreteRefList: {}
 AbstractRefList: {}
 ConcreteRefDictionary:
@@ -136,18 +136,18 @@ ConcreteRefDictionary:
 AbstractRefDictionary: {}
 ";
 
-        private const string AbstractReferenceableDictionaryYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+CollectionContainer,Xenko.Core.Assets.Tests
+        private const string AbstractReferenceableDictionaryYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+CollectionContainer,Stride.Core.Assets.Tests
 ConcreteRefList: {}
 AbstractRefList: {}
 ConcreteRefDictionary: {}
 AbstractRefDictionary:
-    01000000010000000100000001000000~Item1: !Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Xenko.Core.Assets.Tests ref!! 00000001-0001-0000-0100-000001000000
-    02000000020000000200000002000000~Item2: !Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Xenko.Core.Assets.Tests
+    01000000010000000100000001000000~Item1: !Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Stride.Core.Assets.Tests ref!! 00000001-0001-0000-0100-000001000000
+    02000000020000000200000002000000~Item2: !Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Stride.Core.Assets.Tests
         Id: 00000001-0001-0000-0100-000001000000
         Value: Test
 ";
 
-        private const string ConcreteNonIdentifiableReferenceableListYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+NonIdentifiableCollectionContainer,Xenko.Core.Assets.Tests
+        private const string ConcreteNonIdentifiableReferenceableListYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+NonIdentifiableCollectionContainer,Stride.Core.Assets.Tests
 ConcreteRefList:
     - ref!! 00000001-0001-0000-0100-000001000000
     -   Id: 00000001-0001-0000-0100-000001000000
@@ -157,18 +157,18 @@ ConcreteRefDictionary: {}
 AbstractRefDictionary: {}
 ";
 
-        private const string AbstractNonIdentifiableReferenceableListYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+NonIdentifiableCollectionContainer,Xenko.Core.Assets.Tests
+        private const string AbstractNonIdentifiableReferenceableListYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+NonIdentifiableCollectionContainer,Stride.Core.Assets.Tests
 ConcreteRefList: []
 AbstractRefList:
-    - !Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Xenko.Core.Assets.Tests ref!! 00000001-0001-0000-0100-000001000000
-    - !Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Xenko.Core.Assets.Tests
+    - !Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Stride.Core.Assets.Tests ref!! 00000001-0001-0000-0100-000001000000
+    - !Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Stride.Core.Assets.Tests
         Id: 00000001-0001-0000-0100-000001000000
         Value: Test
 ConcreteRefDictionary: {}
 AbstractRefDictionary: {}
 ";
 
-        private const string ConcreteNonIdentifiableReferenceableDictionaryYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+NonIdentifiableCollectionContainer,Xenko.Core.Assets.Tests
+        private const string ConcreteNonIdentifiableReferenceableDictionaryYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+NonIdentifiableCollectionContainer,Stride.Core.Assets.Tests
 ConcreteRefList: []
 AbstractRefList: []
 ConcreteRefDictionary:
@@ -179,13 +179,13 @@ ConcreteRefDictionary:
 AbstractRefDictionary: {}
 ";
 
-        private const string AbstractNonIdentifiableReferenceableDictionaryYaml = @"!Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+NonIdentifiableCollectionContainer,Xenko.Core.Assets.Tests
+        private const string AbstractNonIdentifiableReferenceableDictionaryYaml = @"!Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+NonIdentifiableCollectionContainer,Stride.Core.Assets.Tests
 ConcreteRefList: []
 AbstractRefList: []
 ConcreteRefDictionary: {}
 AbstractRefDictionary:
-    Item1: !Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Xenko.Core.Assets.Tests ref!! 00000001-0001-0000-0100-000001000000
-    Item2: !Xenko.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Xenko.Core.Assets.Tests
+    Item1: !Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Stride.Core.Assets.Tests ref!! 00000001-0001-0000-0100-000001000000
+    Item2: !Stride.Core.Assets.Tests.Yaml.TestObjectReferenceSerialization+Referenceable,Stride.Core.Assets.Tests
         Id: 00000001-0001-0000-0100-000001000000
         Value: Test
 ";

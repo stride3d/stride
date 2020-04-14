@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Engine;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Engine;
 
-namespace Xenko.Editor.EditorGame.Game
+namespace Stride.Editor.EditorGame.Game
 {
     /// <summary>
     /// Base interface for services that handle specific features of a <see cref="Game"/> instantiated for an asset editor.

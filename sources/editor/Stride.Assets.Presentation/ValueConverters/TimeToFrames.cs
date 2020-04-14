@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Globalization;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Presentation.ValueConverters;
-using Xenko.Editor.Build;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Presentation.ValueConverters;
+using Stride.Editor.Build;
 
-namespace Xenko.Assets.Presentation.ValueConverters
+namespace Stride.Assets.Presentation.ValueConverters
 {
     /// <summary>
     /// This value converter will convert any numeric value to integer. <see cref="ConvertBack"/> is supported and

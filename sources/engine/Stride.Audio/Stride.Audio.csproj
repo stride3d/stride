@@ -1,22 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <XenkoNativeOutputName>libxenkoaudio</XenkoNativeOutputName>
-    <XenkoRuntime>true</XenkoRuntime>
+    <StrideNativeOutputName>libstrideaudio</StrideNativeOutputName>
+    <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoPlatformDependent>true</XenkoPlatformDependent>
-    <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StridePlatformDependent>true</StridePlatformDependent>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(XenkoPlatform)' == 'Android'">
-    <!-- <DefineConstants>XENKO_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants> -->
-    <DefineConstants>XENKO_VIDEO_MEDIACODEC;$(DefineConstants)</DefineConstants>
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Android'">
+    <!-- <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants> -->
+    <DefineConstants>STRIDE_VIDEO_MEDIACODEC;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
   <Choose>
     <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
@@ -28,13 +28,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj" />
-    <ProjectReference Include="..\Xenko\Xenko.csproj" />
+    <ProjectReference Include="..\Stride.Native\Stride.Native.csproj" />
+    <ProjectReference Include="..\Stride\Stride.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Native\Celt.cpp" />
-    <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="Xenko.Audio.dll.config" />
-    <None Include="Xenko.Native.Libs.targets">
+    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.Audio.dll.config" />
+    <None Include="Stride.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
@@ -51,6 +51,6 @@
     <None Include="Native\XAudio2.cpp" />
   </ItemGroup>
   <ItemGroup />
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 </Project>

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Animations;
-using Xenko.Input;
-using Xenko.Engine;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Animations;
+using Stride.Input;
+using Stride.Engine;
 
 namespace ##Namespace##
 {

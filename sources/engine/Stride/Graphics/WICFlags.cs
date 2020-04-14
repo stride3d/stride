@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
@@ -72,10 +72,10 @@
 // cannot change. To the extent permitted under your local laws, the 
 // contributors exclude the implied warranties of merchantability, fitness for a
 // particular purpose and non-infringement.
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
 using System;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     [Flags]
     internal enum WICFlags

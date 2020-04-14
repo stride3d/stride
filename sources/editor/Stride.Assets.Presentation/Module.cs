@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Runtime.CompilerServices;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core;
-using Xenko.Core.Reflection;
-using Xenko.Core.Translation;
-using Xenko.Core.Translation.Providers;
-using Xenko.Assets.Entities;
-using Xenko.Assets.Presentation.Templates;
-using Xenko.Assets.SpriteFont;
-using Xenko.Rendering;
-using Xenko.Rendering.Materials;
+using Stride.Core.Assets.Quantum;
+using Stride.Core;
+using Stride.Core.Reflection;
+using Stride.Core.Translation;
+using Stride.Core.Translation.Providers;
+using Stride.Assets.Entities;
+using Stride.Assets.Presentation.Templates;
+using Stride.Assets.SpriteFont;
+using Stride.Rendering;
+using Stride.Rendering.Materials;
 
-namespace Xenko.Assets.Presentation
+namespace Stride.Assets.Presentation
 {
     internal class Module
     {
@@ -27,7 +27,7 @@ namespace Xenko.Assets.Presentation
             // We need access to the AssetQuantumRegistry from the SessionTemplateGenerator so for now we register graph types in the module initializer.
             AssetQuantumRegistry.RegisterAssembly(typeof(Module).Assembly);
             // Register default template
-            XenkoTemplates.Register();
+            StrideTemplates.Register();
             // Initialize translation
             TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider());
         }

@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX || XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX || STRIDE_PLATFORM_UWP
 using System;
 using System.IO;
 using System.Linq;
 
-namespace Xenko.Core.IO
+namespace Stride.Core.IO
 {
     /// <summary>
     /// A file system implementation for IVirtualFileProvider.

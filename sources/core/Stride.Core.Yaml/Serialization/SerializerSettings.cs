@@ -46,11 +46,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Schemas;
-using Xenko.Core.Yaml.Serialization.Serializers;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Schemas;
+using Stride.Core.Yaml.Serialization.Serializers;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Settings used to configure serialization and control how objects are encoded into YAML.

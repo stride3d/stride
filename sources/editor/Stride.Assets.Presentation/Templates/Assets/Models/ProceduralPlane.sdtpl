@@ -6,6 +6,6 @@ Scope: Asset
 Description: A procedurally-generated plane
 Group: Model
 Order: 20
-Icon: ..\.xktpl\ProceduralPlane.png
+Icon: ..\.sdtpl\ProceduralPlane.png
 DefaultOutputName: Plane
 FactoryTypeName: ProceduralModelPlaneFactory

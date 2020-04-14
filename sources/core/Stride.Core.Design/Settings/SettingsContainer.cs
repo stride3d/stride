@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Xenko.Core.Annotations;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Yaml;
-using Xenko.Core.Yaml.Events;
+using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Yaml;
+using Stride.Core.Yaml.Events;
 
-namespace Xenko.Core.Settings
+namespace Stride.Core.Settings
 {
     /// <summary>
     /// A container object that contains a collection of <see cref="SettingsKey"/>. Each settings key can store a corresponding value into a <see cref="SettingsProfile"/>.

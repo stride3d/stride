@@ -43,7 +43,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Allows an object to customize how it is serialized and deserialized.

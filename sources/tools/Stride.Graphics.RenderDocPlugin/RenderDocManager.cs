@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 using Microsoft.Win32;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public class RenderDocManager
     {
@@ -92,7 +92,7 @@ namespace Xenko.Graphics
         private static IntPtr GetDevicePointer(GraphicsDevice graphicsDevice)
         {
             var devicePointer = IntPtr.Zero;
-#if XENKO_GRAPHICS_API_DIRECT3D11 || XENKO_GRAPHICS_API_DIRECT3D12
+#if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_DIRECT3D12
             if (graphicsDevice != null)
                 devicePointer = ((SharpDX.CppObject)SharpDXInterop.GetNativeDevice(graphicsDevice)).NativePointer;
 #endif

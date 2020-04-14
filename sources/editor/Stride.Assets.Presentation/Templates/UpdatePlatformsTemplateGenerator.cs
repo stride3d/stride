@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -7,19 +7,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.Windows;
-using Xenko.Core.ProjectTemplating;
-using Xenko.Assets.Templates;
-using Xenko.Graphics;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Templates;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Windows;
+using Stride.Core.ProjectTemplating;
+using Stride.Assets.Templates;
+using Stride.Graphics;
 
-namespace Xenko.Assets.Presentation.Templates
+namespace Stride.Assets.Presentation.Templates
 {
     /// <summary>
     /// This generator will update the platforms of a given package.

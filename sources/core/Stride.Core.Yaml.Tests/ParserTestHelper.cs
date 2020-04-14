@@ -43,16 +43,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using Xenko.Core.Yaml.Events;
-using Xenko.Core.Yaml.Tokens;
-using AnchorAlias = Xenko.Core.Yaml.Events.AnchorAlias;
-using DocumentEnd = Xenko.Core.Yaml.Events.DocumentEnd;
-using DocumentStart = Xenko.Core.Yaml.Events.DocumentStart;
-using Scalar = Xenko.Core.Yaml.Events.Scalar;
-using StreamEnd = Xenko.Core.Yaml.Events.StreamEnd;
-using StreamStart = Xenko.Core.Yaml.Events.StreamStart;
+using Stride.Core.Yaml.Events;
+using Stride.Core.Yaml.Tokens;
+using AnchorAlias = Stride.Core.Yaml.Events.AnchorAlias;
+using DocumentEnd = Stride.Core.Yaml.Events.DocumentEnd;
+using DocumentStart = Stride.Core.Yaml.Events.DocumentStart;
+using Scalar = Stride.Core.Yaml.Events.Scalar;
+using StreamEnd = Stride.Core.Yaml.Events.StreamEnd;
+using StreamStart = Stride.Core.Yaml.Events.StreamStart;
 
-namespace Xenko.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests
 {
     public class ParserTestHelper : YamlTest
     {

@@ -1,22 +1,22 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Resources.Strings;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core;
-using Xenko.Core.Reflection;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.Windows;
-using Xenko.Core.Translation;
-using Xenko.Assets.Scripts;
-using EditorViewModel = Xenko.Core.Assets.Editor.ViewModel.EditorViewModel;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Resources.Strings;
+using Stride.Core.Assets.Templates;
+using Stride.Core;
+using Stride.Core.Reflection;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Windows;
+using Stride.Core.Translation;
+using Stride.Assets.Scripts;
+using EditorViewModel = Stride.Core.Assets.Editor.ViewModel.EditorViewModel;
 using System.Linq;
 
-namespace Xenko.Assets.Presentation.Templates
+namespace Stride.Assets.Presentation.Templates
 {
     public class ScriptTemplateGenerator : AssetTemplateGenerator
     {
@@ -99,7 +99,7 @@ namespace Xenko.Assets.Presentation.Templates
                 parameters.Tags.Set(ClassNameKey, window.ClassName);
                 parameters.Description = window.ScriptTemplate;
 
-                var ask = Xenko.Core.Assets.Editor.Settings.EditorSettings.AskBeforeSavingNewScripts.GetValue();
+                var ask = Stride.Core.Assets.Editor.Settings.EditorSettings.AskBeforeSavingNewScripts.GetValue();
                 if (ask)
                 {
                     var buttons = DialogHelper.CreateButtons(new[]
@@ -108,13 +108,13 @@ namespace Xenko.Assets.Presentation.Templates
                         Tr._p("Button", "Cancel")
                     }, 1, 2);
                     var message = Tr._p("Message", "You can't use scripts until you save them. Do you want to save now?");
-                    var checkedMessage = Xenko.Core.Assets.Editor.Settings.EditorSettings.AlwaysSaveNewScriptsWithoutAsking;
+                    var checkedMessage = Stride.Core.Assets.Editor.Settings.EditorSettings.AlwaysSaveNewScriptsWithoutAsking;
                     var result = await EditorViewModel.Instance.ServiceProvider.Get<IDialogService>().CheckedMessageBox(message, false, checkedMessage, buttons, MessageBoxImage.Question);
 
                     if (result.IsChecked == true)
                     {
-                        Xenko.Core.Assets.Editor.Settings.EditorSettings.AskBeforeSavingNewScripts.SetValue(false);
-                        Xenko.Core.Assets.Editor.Settings.EditorSettings.Save();
+                        Stride.Core.Assets.Editor.Settings.EditorSettings.AskBeforeSavingNewScripts.SetValue(false);
+                        Stride.Core.Assets.Editor.Settings.EditorSettings.Save();
                     }
                     parameters.Tags.Set(SaveSessionKey, result.Result == 1);
                 }

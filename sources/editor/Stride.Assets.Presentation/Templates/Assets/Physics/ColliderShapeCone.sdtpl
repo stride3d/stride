@@ -5,6 +5,6 @@ Name: Cone
 Scope: Asset
 Description: A cone-shaped collider
 Group: Physics
-Icon: ..\.xktpl\ColliderCone.png
+Icon: ..\.sdtpl\ColliderCone.png
 DefaultOutputName: ColliderCone
 FactoryTypeName: ColliderShapeConeFactory

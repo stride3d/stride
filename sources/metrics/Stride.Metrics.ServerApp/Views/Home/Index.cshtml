@@ -2,14 +2,14 @@
     ViewBag.Title = "Metrics";
 }
 
-<div class="row xenko-metrics" ng-app="chart-metrics" ng-controller="MetricsCtrl">
+<div class="row stride-metrics" ng-app="chart-metrics" ng-controller="MetricsCtrl">
     <div class="col-xs-12"><hr></div>
     <div class="col-xs-12 v-divider"><h1>Installations</h1></div>
 
     <div class="col-md-6">
         <h1>Total Installs</h1>
         <canvas class="chart chart-line" data="installs_trend.values" labels="installs_trend.labels"></canvas>
-        <p>Total incremental count of Xenko installations.</p>
+        <p>Total incremental count of Stride installations.</p>
     </div>
 
     <div class="col-md-6">
@@ -33,19 +33,19 @@
     <div class="col-md-6">
         <h1>Retain percentage</h1>
         <canvas class="chart chart-line" data="retain_percent.values" labels="retain_percent.labels" series="retain_percent.series"></canvas>
-        <p>Total percent of users not quitting Xenko per month.</p>
+        <p>Total percent of users not quitting Stride per month.</p>
     </div>
     
     <div class="col-md-6">
-        <h1>Xenko downloads per Month</h1>
-        <canvas class="chart chart-line" data="xenko_downloads_month.values" labels="xenko_downloads_month.labels" series="xenko_downloads_month.series" colours="xenko_downloads_month.colours"></canvas>
-        <p>Total number of completed downloads of Xenko in a month.</p>
+        <h1>Stride downloads per Month</h1>
+        <canvas class="chart chart-line" data="stride_downloads_month.values" labels="stride_downloads_month.labels" series="stride_downloads_month.series" colours="stride_downloads_month.colours"></canvas>
+        <p>Total number of completed downloads of Stride in a month.</p>
     </div>
     
     <div class="col-md-6">
         <h1>VS plug-in downloads per Month</h1>
         <canvas class="chart chart-line" data="vsx_downloads_month.values" labels="vsx_downloads_month.labels" series="vsx_downloads_month.series" colours="vsx_downloads_month.colours"></canvas>
-        <p>Total number of completed downloads of the Xenko VS plug-in in a month.</p>
+        <p>Total number of completed downloads of the Stride VS plug-in in a month.</p>
     </div>
 
     <div class="col-xs-12"><hr>
@@ -111,7 +111,7 @@
     <div class="col-md-6">
         <h1>Usage Per Version</h1>
         <canvas class="chart chart-bar" data="usage_per_version.values" labels="usage_per_version.labels" l></canvas>
-        <p>Xenko version usage per month in the last 30 days.</p>
+        <p>Stride version usage per month in the last 30 days.</p>
     </div>
 
     <div class="col-md-6">
@@ -415,7 +415,7 @@
                 };
             });
 
-            $http.get('/api/get-xenko-downloads').success(function (data) {
+            $http.get('/api/get-stride-downloads').success(function (data) {
                 var labels = [];
                 var values1 = [];
                 var values2 = [];
@@ -437,7 +437,7 @@
                     }
                     else values2.push(data[i].count);
                 }
-                $scope.xenko_downloads_month = {
+                $scope.stride_downloads_month = {
                     series: ["Total Downloads Per Month", "Including Current Month Prediction"],
                     colours: [{ fillColor: ["#00FFFF", "#FFFF00"] }],
                     labels: labels,

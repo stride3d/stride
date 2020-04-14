@@ -1,5 +1,5 @@
 ﻿ /*
- * Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+ * Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 
  * Copyright (C) 2012 Jorge Jimenez (jorge@iryoku.com)
  * Copyright (C) 2012 Diego Gutierrez (diegog@unizar.es)
@@ -89,7 +89,7 @@
  * If you've got any doubts, just contact us!
  */
 
-namespace Xenko.Rendering.SubsurfaceScattering
+namespace Stride.Rendering.SubsurfaceScattering
 {
     /// <summary>
     /// The Separable Subsurface Scattering shader based on https://github.com/iryoku/separable-sss.
@@ -198,7 +198,7 @@ namespace Xenko.Rendering.SubsurfaceScattering
                 // previously initialized, to enable optimization of the second pass
                 bool initStencil,
 
-                // Xenko: The material index used to access the correct scattering kernel.
+                // Stride: The material index used to access the correct scattering kernel.
                 uint materialIndex)
         {
             // Fetch color of current pixel:

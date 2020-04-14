@@ -1,6 +1,6 @@
 ---
 !EffectCompileRequest
-EffectName: XenkoEditorForwardShadingEffect.Wireframe
+EffectName: StrideEditorForwardShadingEffect.Wireframe
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Compositions:
@@ -40,7 +40,7 @@ UsedParameters:
             ClassName: LightConstantWhite
 ---
 !EffectCompileRequest
-EffectName: XenkoEditorForwardShadingEffect.Wireframe
+EffectName: StrideEditorForwardShadingEffect.Wireframe
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Compositions:
@@ -88,7 +88,7 @@ UsedParameters:
                     ClassName: LightConstantWhite
 ---
 !EffectCompileRequest
-EffectName: XenkoEditorForwardShadingEffect.Wireframe
+EffectName: StrideEditorForwardShadingEffect.Wireframe
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true

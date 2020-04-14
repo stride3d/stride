@@ -1,6 +1,6 @@
-using Xenko.Core.Assets;
+using Stride.Core.Assets;
 
-namespace Xenko.Assets.Templates
+namespace Stride.Assets.Templates
 {
     /// <summary>
     /// Represents a <see cref="SolutionPlatform"/> with some additional parameters (such as <see cref="SolutionPlatformTemplate"/>), as selected in <see cref="NewGameTemplateGenerator"/> or <see cref="UpdatePlatformsTemplateGenerator"/>.

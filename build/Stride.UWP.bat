@@ -1,2 +1,2 @@
-set XenkoPlatforms=Windows;UWP
-Xenko.Runtime.sln
+set StridePlatforms=Windows;UWP
+Stride.Runtime.sln

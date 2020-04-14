@@ -1,6 +1,6 @@
 !SpriteSheet
 Id: ec9e0716-82d5-4e35-8b4d-83fbc35d4c56
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: UI
 ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
@@ -16,7 +16,7 @@ Sprites:
         BorderColor: {R: 0, G: 0, B: 0, A: 0}
     04b66b2410b092469f5112c373877268:
         Source: ../../Resources/ui_tex.png
-        Name: xenko_sample_text_bg
+        Name: stride_sample_text_bg
         TextureRegion: {X: 647, Y: 837, Width: 592, Height: 133}
         Center: {X: 0.0, Y: 0.0}
         Borders: {X: 178.0, Y: 13.0, Z: 178.0, W: 13.0}

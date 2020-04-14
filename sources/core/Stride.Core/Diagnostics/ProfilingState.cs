@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Xenko.Core.Diagnostics
+namespace Stride.Core.Diagnostics
 {
     /// <summary>
     /// A profiler state contains information of a portion of code being profiled. See remarks.

@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 
-using Xenko.Core.Serialization;
+using Stride.Core.Serialization;
 
-namespace Xenko.Core.Assets.Serializers
+namespace Stride.Core.Assets.Serializers
 {
     /// <summary>
     /// A fake serializer used for cloning invariant objects. 

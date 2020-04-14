@@ -3,11 +3,11 @@
 ## Introduction
 
 ### Rationale
-Currently (Xenko 2.1) the editor is mostly available in English, although there is very partial support for Japanese. Ideally Xenko should be available in a range of languages, starting with English and Japanese. Other languages will probably be be easy to add later if needed.
+Currently (Stride 2.1) the editor is mostly available in English, although there is very partial support for Japanese. Ideally Stride should be available in a range of languages, starting with English and Japanese. Other languages will probably be be easy to add later if needed.
 
 Supporting multiple languages not only covers every text or tooltip that appear in the UI of the editor, but also error messages, logs and the documentation (we have plan to integrate part of the documentation directly in the Game Studio).
 
-We want also to simplify the workflow of translating the application so that future updates and fixes can be easily integrated. The translation itself will probably be done by an external contractor that doesn't necessarily have technical knowledge of Xenko.
+We want also to simplify the workflow of translating the application so that future updates and fixes can be easily integrated. The translation itself will probably be done by an external contractor that doesn't necessarily have technical knowledge of Stride.
 
 And finally, we should have a solution that is flexible enough so that translations can be added/updated without recompiling. This could allow third-party or community-based translation for languages that we won't officially support but that might add value for some people.
 
@@ -368,12 +368,12 @@ Notes:
 ##### Saving
 By convention the name of the catalog file should match the name of the template with the addition of the target language (in [IETF language tag](https://en.wikipedia.org/wiki/IETF_language_tag) format). It should also be saved in a folder corresponding to that language.
 
-For example the Japanese catalog for `Xenko.GameStudio` should be named **Xenko.GameStudio.ja.po** and saved in a **ja/** folder.
+For example the Japanese catalog for `Stride.GameStudio` should be named **Stride.GameStudio.ja.po** and saved in a **ja/** folder.
 
 ### Import
 
 #### Supported import formats
-For the moment we only support **.po** and **.resx** files compiled into satellite assemblies. However the `Xenko.Core.Translation` library is flexible and can be extended to support additional providers. This could include CSV (not necessarily compiled), XLIFF, **.mo** files (which is another kind of compiled **.po**). This could also be considered for asset translation (e.g. **.xktpl**) where we externalize the translations into files that can be distributed separately and loaded/discovered using a dedicated provider.
+For the moment we only support **.po** and **.resx** files compiled into satellite assemblies. However the `Stride.Core.Translation` library is flexible and can be extended to support additional providers. This could include CSV (not necessarily compiled), XLIFF, **.mo** files (which is another kind of compiled **.po**). This could also be considered for asset translation (e.g. **.sdtpl**) where we externalize the translations into files that can be distributed separately and loaded/discovered using a dedicated provider.
 
 #### Compilation to satellite assemblies
 **.po** files can be compiled into a satellite assemblies that the `GettextTranslationProvider` (and under the hood the `GNU.Gettext` library) will use to retrieve translations for a given language. It it a similar mechanism to the satellite assemblies generated from the **.resx files**. In fact `GettextResourceManager` inherits from `ResourceManager` with additional support for capabilities provided by Gettext such as context and plurals.
@@ -414,7 +414,7 @@ Usage:
 
 The command needs to find a C# compiler in the path (in our case csc that can be found in the Roslyn folder under the *MSBuild* installation).
 
-In Xenko's projects file, a command line similar to the following one is used:
+In Stride's projects file, a command line similar to the following one is used:
 
 ```
 Path=$(MSBuildBinPath)\Roslyn;$(Path)
@@ -425,7 +425,7 @@ Remarks:
 
 * By convention, the **.po** filenames are suffixed by the [IETF language tag](https://en.wikipedia.org/wiki/IETF_language_tag) (e.g. "en" for English, "fr" for French, "ja" for Japanese). Note that the same tags are recognized by the .Net `CultureInfo` class.
 * The generated satellite assemblies must be located into a dedicated subfolder relative to where the executable is (same rule as with assemblies generated from **.resx** files). The command line already takes care of it through the `-d` argument.
-* The generated satellite assemblies are named after the corresponding assembly that is localized, suffixed by ".Messages" (then by ".resources" as is the convention for satellites). For example for **Xenko.GameStudio.exe** the satellite assembly is named **Xenko.GameStudio.Messages.resources.dll**
+* The generated satellite assemblies are named after the corresponding assembly that is localized, suffixed by ".Messages" (then by ".resources" as is the convention for satellites). For example for **Stride.GameStudio.exe** the satellite assembly is named **Stride.GameStudio.Messages.resources.dll**
 
 ### Update
 When developers add or remove the strings that can be localized, the same workflow as described above must be run. Because it includes changes in both the original assemblies and the satellite assemblies, it implies that a new version of the product must be released.
@@ -434,7 +434,7 @@ There are some cases though were we might just want to correct typos, without ad
 
 If only a few corrections are needed, there is another alternative. The localizable strings present in the code (**.cs** or **.xaml** file) are considered as *neutral* language, not as *English*. So there is a way to provide an English translation to them. While that may sound a bit silly (those strings are already in English), it is a nice hack to make quick fixes.
 
-Consider this: instead of fixing in code, rebuilding the whole product and updating all translations and then releasing the whole as a brand new Xenko version, developers just need to follow the same workflow as with any other language but by creating an English translation instead (e.g. **Xenko.GameStudio.en.po**). Then just fix the entries that need fixing and generate a satellite assembly (e.g. **Xenko.GameStudio.Messages.resources.dll**) and distribute it. Tell the users to copy it into a **en/** folder in **Bin/Windows** of Xenko installation and voilà! At runtime when the English language is selected (which is the default), the translation system will pick-up this satellite assembly and uses its entries as a translation for English.
+Consider this: instead of fixing in code, rebuilding the whole product and updating all translations and then releasing the whole as a brand new Stride version, developers just need to follow the same workflow as with any other language but by creating an English translation instead (e.g. **Stride.GameStudio.en.po**). Then just fix the entries that need fixing and generate a satellite assembly (e.g. **Stride.GameStudio.Messages.resources.dll**) and distribute it. Tell the users to copy it into a **en/** folder in **Bin/Windows** of Stride installation and voilà! At runtime when the English language is selected (which is the default), the translation system will pick-up this satellite assembly and uses its entries as a translation for English.
 
 ## Implementation details
 
@@ -447,7 +447,7 @@ This class inherits from `System.Resources.ResourceManager`. Instances of this c
 #### `GettextResourceSet` class
 This class inherits from `System.Resources.ResourceSet`. Instances of this class will be generated from **.po** files and compiled into satellite assemblies. A resource set is a big hashtable of strings with the original localized string as key and the translated string as value.
 
-### `Xenko.Core.Translation` assembly
+### `Stride.Core.Translation` assembly
 This assembly contains the translation API that developers will use.
 
 #### `ITranslationProvider` class
@@ -540,7 +540,7 @@ Writing `TranslationManager.Instance.GetString()` for every call to the translat
 | `_p(context, text)`                 | `GetParticularString(context, text)`                      |
 | `_pn(context, text, textPlural, count)` | `GetParticularPluralString(context, text, textPlural, count)` |
 
-### `Xenko.Core.Translation.Presentation` assembly
+### `Stride.Core.Translation.Presentation` assembly
 
 This assembly enables the support of localization in **.xaml** files.
 
@@ -574,12 +574,12 @@ The `LocalizeExtension` described above can only localize static strings and can
 
 Note that for the localization to work, the bound value must match one of the localized string.
 
-### `Xenko.Core.Translation.Extractor` standalone
+### `Stride.Core.Translation.Extractor` standalone
 The extractor is a standalone command line that can be used to retrieve all *localizable* strings from **.cs** and **.xaml** source file and generate a template **.pot** file.
 
 The usage of the command line is 
 ```
-Xenko.Core.Translation.Extractor[.exe] [options] [inputfile | filemask] ...
+Stride.Core.Translation.Extractor[.exe] [options] [inputfile | filemask] ...
 ```
 
  with the following options: 
@@ -594,13 +594,13 @@ Xenko.Core.Translation.Extractor[.exe] [options] [inputfile | filemask] ...
 * `-v` or `--verbose`: More verbose message in the command prompt.
 * `-h` or `--help`: Display usage and exit.
 
-For example to extract the strings for the `Xenko.GameStudio` project, the command line is:
+For example to extract the strings for the `Stride.GameStudio` project, the command line is:
 
 ```
-Xenko.Core.Translation.Extractor -D ..\editor\Xenko.GameStudio -d Xenko.GameStudio -r -C -x *.Designer.cs *.xaml *.cs
+Stride.Core.Translation.Extractor -D ..\editor\Stride.GameStudio -d Stride.GameStudio -r -C -x *.Designer.cs *.xaml *.cs
 ```
 
-It will look into all **.xaml** and **.cs** files in the whole project (*recursive* option) except the file matching the **\*.Designer.cs** pattern and output the extracted strings into `Xenko.GameStudio.pot` (*domain-name* option). Existing comments will be preserved.
+It will look into all **.xaml** and **.cs** files in the whole project (*recursive* option) except the file matching the **\*.Designer.cs** pattern and output the extracted strings into `Stride.GameStudio.pot` (*domain-name* option). Existing comments will be preserved.
 
 Notes:
 * Internally it uses the C#-port of the Gettext library, retrieved from the seemingly non-longer maintained [Gettext for .NET/Mono](https://sourceforge.net/projects/gettextnet/) (last update 2016-05-08). Note that the source code is provided under the LGPL v2 license so if we make modifications we need to publish it under the same license. Maybe we should fork it (and publish it on GitHub) to be on the safe side.

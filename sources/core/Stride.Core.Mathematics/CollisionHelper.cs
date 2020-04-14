@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // -----------------------------------------------------------------------------
@@ -28,7 +28,7 @@
 */
 using System;
 
-namespace Xenko.Core.Mathematics
+namespace Stride.Core.Mathematics
 {
     /*
      * This class is organized so that the least complex objects come first so that the least
@@ -140,7 +140,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines the closest point between a <see cref="Xenko.Core.Mathematics.Plane"/> and a point.
+        /// Determines the closest point between a <see cref="Stride.Core.Mathematics.Plane"/> and a point.
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <param name="point">The point to test.</param>
@@ -158,7 +158,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines the closest point between a <see cref="Xenko.Core.Mathematics.BoundingBox"/> and a point.
+        /// Determines the closest point between a <see cref="Stride.Core.Mathematics.BoundingBox"/> and a point.
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <param name="point">The point to test.</param>
@@ -174,12 +174,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines the closest point between a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> and a point.
+        /// Determines the closest point between a <see cref="Stride.Core.Mathematics.BoundingSphere"/> and a point.
         /// </summary>
         /// <param name="sphere">The bounding sphere.</param>
         /// <param name="point">The point to test.</param>
         /// <param name="result">When the method completes, contains the closest point between the two objects;
-        /// or, if the point is directly in the center of the sphere, contains <see cref="Xenko.Core.Mathematics.Vector3.Zero"/>.</param>
+        /// or, if the point is directly in the center of the sphere, contains <see cref="Stride.Core.Mathematics.Vector3.Zero"/>.</param>
         public static void ClosestPointSpherePoint(ref BoundingSphere sphere, ref Vector3 point, out Vector3 result)
         {
             //Source: Jorgy343
@@ -198,12 +198,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines the closest point between a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> and a <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Determines the closest point between a <see cref="Stride.Core.Mathematics.BoundingSphere"/> and a <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="sphere1">The first sphere to test.</param>
         /// <param name="sphere2">The second sphere to test.</param>
         /// <param name="result">When the method completes, contains the closest point between the two objects;
-        /// or, if the point is directly in the center of the sphere, contains <see cref="Xenko.Core.Mathematics.Vector3.Zero"/>.</param>
+        /// or, if the point is directly in the center of the sphere, contains <see cref="Stride.Core.Mathematics.Vector3.Zero"/>.</param>
         /// <remarks>
         /// If the two spheres are overlapping, but not directly ontop of each other, the closest point
         /// is the 'closest' point of intersection. This can also be considered is the deepest point of
@@ -227,7 +227,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines the distance between a <see cref="Xenko.Core.Mathematics.Plane"/> and a point.
+        /// Determines the distance between a <see cref="Stride.Core.Mathematics.Plane"/> and a point.
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <param name="point">The point to test.</param>
@@ -243,7 +243,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines the distance between a <see cref="Xenko.Core.Mathematics.BoundingBox"/> and a point.
+        /// Determines the distance between a <see cref="Stride.Core.Mathematics.BoundingBox"/> and a point.
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <param name="point">The point to test.</param>
@@ -274,7 +274,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines the distance between a <see cref="Xenko.Core.Mathematics.BoundingBox"/> and a <see cref="Xenko.Core.Mathematics.BoundingBox"/>.
+        /// Determines the distance between a <see cref="Stride.Core.Mathematics.BoundingBox"/> and a <see cref="Stride.Core.Mathematics.BoundingBox"/>.
         /// </summary>
         /// <param name="box1">The first box to test.</param>
         /// <param name="box2">The second box to test.</param>
@@ -326,7 +326,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines the distance between a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> and a point.
+        /// Determines the distance between a <see cref="Stride.Core.Mathematics.BoundingSphere"/> and a point.
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <param name="point">The point to test.</param>
@@ -344,7 +344,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines the distance between a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> and a <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Determines the distance between a <see cref="Stride.Core.Mathematics.BoundingSphere"/> and a <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="sphere1">The first sphere to test.</param>
         /// <param name="sphere2">The second sphere to test.</param>
@@ -362,7 +362,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Ray"/> and a point.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Ray"/> and a point.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="point">The point to test.</param>
@@ -392,12 +392,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Ray"/> and a <see cref="Xenko.Core.Mathematics.Ray"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Ray"/> and a <see cref="Stride.Core.Mathematics.Ray"/>.
         /// </summary>
         /// <param name="ray1">The first ray to test.</param>
         /// <param name="ray2">The second ray to test.</param>
         /// <param name="point">When the method completes, contains the point of intersection,
-        /// or <see cref="Xenko.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+        /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersect.</returns>
         /// <remarks>
         /// This method performs a ray vs ray intersection test based on the following formula
@@ -490,7 +490,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Ray"/> and a <see cref="Xenko.Core.Mathematics.Plane"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Ray"/> and a <see cref="Stride.Core.Mathematics.Plane"/>.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="plane">The plane to test.</param>
@@ -530,12 +530,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Ray"/> and a <see cref="Xenko.Core.Mathematics.Plane"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Ray"/> and a <see cref="Stride.Core.Mathematics.Plane"/>.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="plane">The plane to test</param>
         /// <param name="point">When the method completes, contains the point of intersection,
-        /// or <see cref="Xenko.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+        /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
         public static bool RayIntersectsPlane(ref Ray ray, ref Plane plane, out Vector3 point)
         {
@@ -554,7 +554,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Ray"/> and a triangle.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Ray"/> and a triangle.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="vertex1">The first vertex of the triangle to test.</param>
@@ -661,14 +661,14 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Ray"/> and a triangle.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Ray"/> and a triangle.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="vertex1">The first vertex of the triangle to test.</param>
         /// <param name="vertex2">The second vertex of the triangle to test.</param>
         /// <param name="vertex3">The third vertex of the triangle to test.</param>
         /// <param name="point">When the method completes, contains the point of intersection,
-        /// or <see cref="Xenko.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+        /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
         public static bool RayIntersectsTriangle(ref Ray ray, ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3, out Vector3 point)
         {
@@ -782,7 +782,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Ray"/> and a <see cref="Xenko.Core.Mathematics.BoundingBox"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Ray"/> and a <see cref="Stride.Core.Mathematics.BoundingBox"/>.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="box">The box to test.</param>
@@ -894,12 +894,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Ray"/> and a <see cref="Xenko.Core.Mathematics.Plane"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Ray"/> and a <see cref="Stride.Core.Mathematics.Plane"/>.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="box">The box to test.</param>
         /// <param name="point">When the method completes, contains the point of intersection,
-        /// or <see cref="Xenko.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+        /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
         public static bool RayIntersectsBox(ref Ray ray, ref BoundingBox box, out Vector3 point)
         {
@@ -915,7 +915,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Ray"/> and a <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Ray"/> and a <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="sphere">The sphere to test.</param>
@@ -956,12 +956,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Ray"/> and a <see cref="Xenko.Core.Mathematics.BoundingSphere"/>. 
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Ray"/> and a <see cref="Stride.Core.Mathematics.BoundingSphere"/>. 
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="sphere">The sphere to test.</param>
         /// <param name="point">When the method completes, contains the point of intersection,
-        /// or <see cref="Xenko.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+        /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
         public static bool RayIntersectsSphere(ref Ray ray, ref BoundingSphere sphere, out Vector3 point)
         {
@@ -977,7 +977,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Plane"/> and a point.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Plane"/> and a point.
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <param name="point">The point to test.</param>
@@ -998,7 +998,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Plane"/> and a <see cref="Xenko.Core.Mathematics.Plane"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Plane"/> and a <see cref="Stride.Core.Mathematics.Plane"/>.
         /// </summary>
         /// <param name="plane1">The first plane to test.</param>
         /// <param name="plane2">The second plane to test.</param>
@@ -1020,12 +1020,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Plane"/> and a <see cref="Xenko.Core.Mathematics.Plane"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Plane"/> and a <see cref="Stride.Core.Mathematics.Plane"/>.
         /// </summary>
         /// <param name="plane1">The first plane to test.</param>
         /// <param name="plane2">The second plane to test.</param>
         /// <param name="line">When the method completes, contains the line of intersection
-        /// as a <see cref="Xenko.Core.Mathematics.Ray"/>, or a zero ray if there was no intersection.</param>
+        /// as a <see cref="Stride.Core.Mathematics.Ray"/>, or a zero ray if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
         /// <remarks>
         /// Although a ray is set to have an origin, the ray returned by this method is really
@@ -1066,7 +1066,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Plane"/> and a triangle.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Plane"/> and a triangle.
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <param name="vertex1">The first vertex of the triangle to test.</param>
@@ -1092,7 +1092,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Plane"/> and a <see cref="Xenko.Core.Mathematics.BoundingBox"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Plane"/> and a <see cref="Stride.Core.Mathematics.BoundingBox"/>.
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <param name="box">The box to test.</param>
@@ -1127,7 +1127,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.Plane"/> and a <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.Plane"/> and a <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <param name="sphere">The sphere to test.</param>
@@ -1152,7 +1152,7 @@ namespace Xenko.Core.Mathematics
 
         /* This implentation is wrong
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.BoundingBox"/> and a triangle.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.BoundingBox"/> and a triangle.
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <param name="vertex1">The first vertex of the triangle to test.</param>
@@ -1175,7 +1175,7 @@ namespace Xenko.Core.Mathematics
         */
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.BoundingBox"/> and a <see cref="Xenko.Core.Mathematics.BoundingBox"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.BoundingBox"/> and a <see cref="Stride.Core.Mathematics.BoundingBox"/>.
         /// </summary>
         /// <param name="box1">The first box to test.</param>
         /// <param name="box2">The second box to test.</param>
@@ -1195,7 +1195,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.BoundingBox"/> and a <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.BoundingBox"/> and a <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <param name="sphere">The sphere to test.</param>
@@ -1213,7 +1213,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> and a triangle.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.BoundingSphere"/> and a triangle.
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <param name="vertex1">The first vertex of the triangle to test.</param>
@@ -1236,7 +1236,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether there is an intersection between a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> and a <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Determines whether there is an intersection between a <see cref="Stride.Core.Mathematics.BoundingSphere"/> and a <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="sphere1">First sphere to test.</param>
         /// <param name="sphere2">Second sphere to test.</param>
@@ -1248,7 +1248,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether a <see cref="Xenko.Core.Mathematics.BoundingBox"/> contains a point.
+        /// Determines whether a <see cref="Stride.Core.Mathematics.BoundingBox"/> contains a point.
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <param name="point">The point to test.</param>
@@ -1267,7 +1267,7 @@ namespace Xenko.Core.Mathematics
 
         /* This implentation is wrong
         /// <summary>
-        /// Determines whether a <see cref="Xenko.Core.Mathematics.BoundingBox"/> contains a triangle.
+        /// Determines whether a <see cref="Stride.Core.Mathematics.BoundingBox"/> contains a triangle.
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <param name="vertex1">The first vertex of the triangle to test.</param>
@@ -1291,7 +1291,7 @@ namespace Xenko.Core.Mathematics
         */
 
         /// <summary>
-        /// Determines whether a <see cref="Xenko.Core.Mathematics.BoundingBox"/> contains a <see cref="Xenko.Core.Mathematics.BoundingBox"/>.
+        /// Determines whether a <see cref="Stride.Core.Mathematics.BoundingBox"/> contains a <see cref="Stride.Core.Mathematics.BoundingBox"/>.
         /// </summary>
         /// <param name="box1">The first box to test.</param>
         /// <param name="box2">The second box to test.</param>
@@ -1318,7 +1318,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether a <see cref="Xenko.Core.Mathematics.BoundingBox"/> contains a <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Determines whether a <see cref="Stride.Core.Mathematics.BoundingBox"/> contains a <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <param name="sphere">The sphere to test.</param>
@@ -1343,7 +1343,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> contains a point.
+        /// Determines whether a <see cref="Stride.Core.Mathematics.BoundingSphere"/> contains a point.
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <param name="point">The point to test.</param>
@@ -1357,7 +1357,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> contains a triangle.
+        /// Determines whether a <see cref="Stride.Core.Mathematics.BoundingSphere"/> contains a triangle.
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <param name="vertex1">The first vertex of the triangle to test.</param>
@@ -1383,7 +1383,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> contains a <see cref="Xenko.Core.Mathematics.BoundingBox"/>.
+        /// Determines whether a <see cref="Stride.Core.Mathematics.BoundingSphere"/> contains a <see cref="Stride.Core.Mathematics.BoundingBox"/>.
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <param name="box">The box to test.</param>
@@ -1456,7 +1456,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> contains a <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Determines whether a <see cref="Stride.Core.Mathematics.BoundingSphere"/> contains a <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="sphere1">The first sphere to test.</param>
         /// <param name="sphere2">The second sphere to test.</param>

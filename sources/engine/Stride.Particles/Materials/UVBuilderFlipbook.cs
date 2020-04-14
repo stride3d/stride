@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Particles.Sorters;
-using Xenko.Particles.VertexLayouts;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Particles.Sorters;
+using Stride.Particles.VertexLayouts;
 
-namespace Xenko.Particles.Materials
+namespace Stride.Particles.Materials
 {
     /// <summary>
     /// Animates the texture coordinates in a flipbook fashion, based on the particle's life

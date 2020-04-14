@@ -1,29 +1,29 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.Assets.Editor.Extensions;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.BuildEngine;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.Presentation.Controls;
-using Xenko.Core.Presentation.Services;
-using Xenko.Assets;
-using Xenko.Editor.Build;
-using Xenko.Editor.Engine;
-using Xenko.Games;
-using Xenko.Graphics;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.Assets.Editor.Extensions;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.BuildEngine;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.Controls;
+using Stride.Core.Presentation.Services;
+using Stride.Assets;
+using Stride.Editor.Build;
+using Stride.Editor.Engine;
+using Stride.Games;
+using Stride.Graphics;
 
-namespace Xenko.Editor.Preview
+namespace Stride.Editor.Preview
 {
     public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
     {
@@ -71,7 +71,7 @@ namespace Xenko.Editor.Preview
             previewCompileContext.SetGameSettingsAsset(previewGameSettings);
             previewCompileContext.CompilationContext = typeof(PreviewCompilationContext);
 
-            previewGameThread = new Thread(SafeAction.Wrap(XenkoUIThread)) { IsBackground = true, Name = "PreviewGame Thread" };
+            previewGameThread = new Thread(SafeAction.Wrap(StrideUIThread)) { IsBackground = true, Name = "PreviewGame Thread" };
             previewGameThread.SetApartmentState(ApartmentState.STA);
             previewGameThread.Start();
 
@@ -130,7 +130,7 @@ namespace Xenko.Editor.Preview
             }
         }
 
-        private void XenkoUIThread()
+        private void StrideUIThread()
         {
             gameForm = new EmbeddedGameForm { TopLevel = false, Visible = false };
             windowHandle = gameForm.Handle;
@@ -199,7 +199,7 @@ namespace Xenko.Editor.Preview
             return previewCompiler.Prepare(previewCompileContext, asset);
         }
 
-        public FrameworkElement GetXenkoView()
+        public FrameworkElement GetStrideView()
         {
             return !IsDisposed ? host : null;
         }

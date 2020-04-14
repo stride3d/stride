@@ -1,8 +1,8 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #include "stdafx.h"
-#include "../Xenko.Assimp.Translation/Extension.h"
-#include "../Xenko.Importer.Common/ImporterUtils.h"
+#include "../Stride.Assimp.Translation/Extension.h"
+#include "../Stride.Importer.Common/ImporterUtils.h"
 
 #include <string>
 #include <map>
@@ -13,30 +13,30 @@ using namespace System::Collections;
 using namespace System::Collections::Generic;
 using namespace System::Diagnostics;
 using namespace System::IO;
-using namespace Xenko;
-using namespace Xenko::Core;
-using namespace Xenko::Core::Diagnostics;
-using namespace Xenko::Core::IO;
-using namespace Xenko::Core::Mathematics;
-using namespace Xenko::Core::Serialization;
-using namespace Xenko::Core::Serialization::Contents;
-using namespace Xenko::Assets::Materials;
-using namespace Xenko::Rendering;
-using namespace Xenko::Rendering::Materials;
-using namespace Xenko::Rendering::Materials::ComputeColors;
-using namespace Xenko::AssimpNet;
-using namespace Xenko::AssimpNet::Material;
-using namespace Xenko::Animations;
-using namespace Xenko::Engine;
-using namespace Xenko::Extensions;
-using namespace Xenko::Graphics;
-using namespace Xenko::Graphics::Data;
-using namespace Xenko::Shaders;
+using namespace Stride;
+using namespace Stride::Core;
+using namespace Stride::Core::Diagnostics;
+using namespace Stride::Core::IO;
+using namespace Stride::Core::Mathematics;
+using namespace Stride::Core::Serialization;
+using namespace Stride::Core::Serialization::Contents;
+using namespace Stride::Assets::Materials;
+using namespace Stride::Rendering;
+using namespace Stride::Rendering::Materials;
+using namespace Stride::Rendering::Materials::ComputeColors;
+using namespace Stride::AssimpNet;
+using namespace Stride::AssimpNet::Material;
+using namespace Stride::Animations;
+using namespace Stride::Engine;
+using namespace Stride::Extensions;
+using namespace Stride::Graphics;
+using namespace Stride::Graphics::Data;
+using namespace Stride::Shaders;
 
 using namespace Assimp;
-using namespace Xenko::Importer::Common;
+using namespace Stride::Importer::Common;
 
-namespace Xenko { namespace Importer { namespace AssimpNET {
+namespace Stride { namespace Importer { namespace AssimpNET {
 
 public ref class MaterialInstantiation
 {
@@ -715,7 +715,7 @@ private:
 		return animationData;
 	}
 
-	ComputeTextureColor^ GetTextureReferenceNode(String^ vfsOutputPath, String^ sourceTextureFile, size_t textureUVSetIndex, Vector2 textureUVscaling, TextureAddressMode addressModeU, TextureAddressMode addressModeV, MaterialAsset^ finalMaterial, Xenko::Core::Diagnostics::Logger^ logger)
+	ComputeTextureColor^ GetTextureReferenceNode(String^ vfsOutputPath, String^ sourceTextureFile, size_t textureUVSetIndex, Vector2 textureUVscaling, TextureAddressMode addressModeU, TextureAddressMode addressModeV, MaterialAsset^ finalMaterial, Stride::Core::Diagnostics::Logger^ logger)
 	{
 		// TODO: compare with FBX importer - see if there could be some conflict between texture names
 		auto textureValue = TextureLayerGenerator::GenerateMaterialTextureNode(vfsOutputPath, sourceTextureFile, textureUVSetIndex, textureUVscaling, addressModeU, addressModeV, Logger);
@@ -736,7 +736,7 @@ private:
 		return textureValue;
 	}
 
-	IComputeColor^ GenerateOneTextureTypeLayers(aiMaterial* pMat, aiTextureType textureType, int& textureCount, Xenko::Assets::Materials::MaterialAsset^ finalMaterial)
+	IComputeColor^ GenerateOneTextureTypeLayers(aiMaterial* pMat, aiTextureType textureType, int& textureCount, Stride::Assets::Materials::MaterialAsset^ finalMaterial)
 	{
 		AssimpNet::Material::Stack^ stack = NetTranslation::Materials::convertAssimpStackCppToCs(pMat, textureType);
 		int set;
@@ -875,7 +875,7 @@ private:
 		}
 	}
 
-	void BuildLayeredSurface(aiMaterial* pMat, bool hasBaseColor, bool hasBaseValue, Color4 baseColor, float baseValue, aiTextureType textureType, Xenko::Assets::Materials::MaterialAsset^ finalMaterial)
+	void BuildLayeredSurface(aiMaterial* pMat, bool hasBaseColor, bool hasBaseValue, Color4 baseColor, float baseValue, aiTextureType textureType, Stride::Assets::Materials::MaterialAsset^ finalMaterial)
 	{
 		auto nbTextures = pMat->GetTextureCount(textureType);
 		
@@ -991,8 +991,8 @@ private:
 		}
 
 		//// ---------------------------------------------------------------------------------
-  //      // Iterate on all custom Xenko Properties and add them to the mesh.
-  //      // Key must be in the format: Xenko_KeyName
+  //      // Iterate on all custom Stride Properties and add them to the mesh.
+  //      // Key must be in the format: Stride_KeyName
   //      // ---------------------------------------------------------------------------------
 		//for(unsigned int i = 0; i<pMaterial->mNumProperties; ++i)
 		//{
@@ -1003,8 +1003,8 @@ private:
   //              int index = propertyName->IndexOf('_');
   //              propertyName = propertyName->Substring(index);
   //              propertyName = propertyName->Replace('_','.');
-  //              // TODO Xenko Change name 
-  //              propertyName = gcnew String("Xenko.Rendering") + propertyName;
+  //              // TODO Stride Change name 
+  //              propertyName = gcnew String("Stride.Rendering") + propertyName;
 
 		//		switch (pProp->mDataLength)
 		//		{

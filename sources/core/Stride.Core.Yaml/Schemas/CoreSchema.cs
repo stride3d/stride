@@ -46,7 +46,7 @@
 using System;
 using System.Globalization;
 
-namespace Xenko.Core.Yaml.Schemas
+namespace Stride.Core.Yaml.Schemas
 {
     /// <summary>
     /// Implements the Core schema. <see cref="http://www.yaml.org/spec/1.2/spec.html#id2804356" />

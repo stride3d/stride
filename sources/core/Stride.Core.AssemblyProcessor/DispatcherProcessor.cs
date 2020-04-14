@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -12,14 +12,14 @@ using Mono.Cecil.Rocks;
 using FieldAttributes = Mono.Cecil.FieldAttributes;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 
-namespace Xenko.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor
 {
     internal class DispatcherProcessor : IAssemblyDefinitionProcessor
     {
         private readonly Dictionary<TypeDefinition, ClosureInfo> closures = new Dictionary<TypeDefinition, ClosureInfo>();
         private bool isInitialized;
 
-        private ModuleDefinition xenkoCoreModule;
+        private ModuleDefinition strideCoreModule;
         private MethodReference funcConstructor;
 
         private MethodReference interlockedIncrementMethod;
@@ -50,15 +50,15 @@ namespace Xenko.Core.AssemblyProcessor
 
             var mscorlibAssembly = CecilExtensions.FindCorlibAssembly(context.Assembly);
 
-            xenkoCoreModule = context.Assembly.GetXenkoCoreModule();
-            pooledClosureType = context.Assembly.MainModule.ImportReference(xenkoCoreModule.GetType("Xenko.Core.Threading.IPooledClosure"));
+            strideCoreModule = context.Assembly.GetStrideCoreModule();
+            pooledClosureType = context.Assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Threading.IPooledClosure"));
 
             // Func type and it's contructor
             var funcType = mscorlibAssembly.MainModule.GetTypeResolved("System.Func`1");
             funcConstructor = context.Assembly.MainModule.ImportReference(funcType.Methods.FirstOrDefault(x => x.Name == ".ctor"));
 
             // Pool type and it's constructor
-            var poolTypeDefinition = xenkoCoreModule.GetType("Xenko.Core.Threading.ConcurrentPool`1");
+            var poolTypeDefinition = strideCoreModule.GetType("Stride.Core.Threading.ConcurrentPool`1");
             poolType = context.Assembly.MainModule.ImportReference(poolTypeDefinition);
             poolConstructor = context.Assembly.MainModule.ImportReference(poolTypeDefinition.Methods.FirstOrDefault(x => x.Name == ".ctor"));
             poolAcquireMethod = context.Assembly.MainModule.ImportReference(poolTypeDefinition.Methods.FirstOrDefault(x => x.Name == "Acquire"));
@@ -112,7 +112,7 @@ namespace Xenko.Core.AssemblyProcessor
                             var parameter = calledMethod.Parameters[parameterIndex];
 
                             // Parameter must be decorated with PooledAttribute
-                            if (parameter.CustomAttributes.All(x => x.AttributeType.FullName != "Xenko.Core.Threading.PooledAttribute"))
+                            if (parameter.CustomAttributes.All(x => x.AttributeType.FullName != "Stride.Core.Threading.PooledAttribute"))
                                 continue;
 
                             // Parameter must be a delegate

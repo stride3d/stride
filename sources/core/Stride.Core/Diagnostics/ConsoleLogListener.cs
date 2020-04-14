@@ -1,25 +1,25 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using Xenko.Core.Annotations;
-#if XENKO_PLATFORM_ANDROID
+using Stride.Core.Annotations;
+#if STRIDE_PLATFORM_ANDROID
 using Android.Util;
 #endif
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
 using Microsoft.Win32.SafeHandles;
 #endif
 
-namespace Xenko.Core.Diagnostics
+namespace Stride.Core.Diagnostics
 {
     /// <summary>
     /// A <see cref="LogListener"/> implementation redirecting its output to the default OS console. If console is not supported message are output to <see cref="Debug"/>
     /// </summary>
     public class ConsoleLogListener : LogListener
     {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
         private bool isConsoleActive;
 #endif
 
@@ -48,8 +48,8 @@ namespace Xenko.Core.Diagnostics
             // Make sure the console is opened when the debugger is not attached
             EnsureConsole();
 
-#if XENKO_PLATFORM_ANDROID
-            const string appliName = "Xenko";
+#if STRIDE_PLATFORM_ANDROID
+            const string appliName = "Stride";
             var exceptionMsg = GetExceptionText(logMessage);
             var messageText = GetDefaultText(logMessage);
             if (!string.IsNullOrEmpty(exceptionMsg))
@@ -76,11 +76,11 @@ namespace Xenko.Core.Diagnostics
                     break;
             }
             return;
-#else // XENKO_PLATFORM_ANDROID
+#else // STRIDE_PLATFORM_ANDROID
 
             var exceptionMsg = GetExceptionText(logMessage);
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
             // save initial console color
             var initialColor = Console.ForegroundColor;
 
@@ -116,7 +116,7 @@ namespace Xenko.Core.Diagnostics
                 }
             }
 
-#if !XENKO_PLATFORM_UWP
+#if !STRIDE_PLATFORM_UWP
             // Log the actual message
             Console.WriteLine(GetDefaultText(logMessage));
             if (!string.IsNullOrEmpty(exceptionMsg))
@@ -125,15 +125,15 @@ namespace Xenko.Core.Diagnostics
             }
 #endif
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
 
             // revert console initial color
             Console.ForegroundColor = initialColor;
 #endif
-#endif // !XENKO_PLATFORM_ANDROID
+#endif // !STRIDE_PLATFORM_ANDROID
         }
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
 
         // TODO: MOVE THIS CODE OUT IN A SEPARATE CLASS
 

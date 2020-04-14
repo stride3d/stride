@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands;
-using Xenko.Core.Assets.Editor.View.Behaviors;
-using Xenko.Core.Reflection;
-using Xenko.Core.Presentation.Quantum;
-using Xenko.Core.Presentation.Quantum.ViewModels;
-using Xenko.Core.Presentation.Services;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Core.Assets.Editor.View.Behaviors;
+using Stride.Core.Reflection;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Presentation.Services;
 
-namespace Xenko.Core.Assets.Editor.ViewModel
+namespace Stride.Core.Assets.Editor.ViewModel
 {
     public class ReorderCollectionItemViewModel : IReorderItemViewModel
     {

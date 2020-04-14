@@ -1,8 +1,8 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Provides tag discovery from a type and type discovery from a tag.

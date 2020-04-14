@@ -6,6 +6,6 @@ Scope: Asset
 Description: A 3D model asset imported from a source file. You can also import materials and textures it references
 Group: Model
 Order: -100
-Icon: ..\.xktpl\ProceduralModel.png
+Icon: ..\.sdtpl\ProceduralModel.png
 DefaultOutputName: Model
 ImportSource: true

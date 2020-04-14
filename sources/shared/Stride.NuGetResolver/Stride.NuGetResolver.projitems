@@ -6,7 +6,7 @@
     <SharedGUID>00b72ed7-00e9-47f7-868d-8162027cd068</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Xenko.NuGetResolver</Import_RootNamespace>
+    <Import_RootNamespace>Stride.NuGetResolver</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)NuGetAssemblyResolver.cs" />

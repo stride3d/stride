@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Collections;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Storage;
-using Xenko.Graphics;
-using Xenko.Rendering.Images;
-using Xenko.Rendering.Lights;
-using Xenko.Rendering.Shadows;
-using Xenko.Rendering.SubsurfaceScattering;
-using Xenko.VirtualReality;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Core.Storage;
+using Stride.Graphics;
+using Stride.Rendering.Images;
+using Stride.Rendering.Lights;
+using Stride.Rendering.Shadows;
+using Stride.Rendering.SubsurfaceScattering;
+using Stride.VirtualReality;
 
-namespace Xenko.Rendering.Compositing
+namespace Stride.Rendering.Compositing
 {
     /// <summary>
     /// Renders your game. It should use current <see cref="RenderContext.RenderView"/> and <see cref="CameraComponentRendererExtensions.GetCurrentCamera"/>.
@@ -147,7 +147,7 @@ namespace Xenko.Rendering.Compositing
                     logger.Warning("Multisample count of " + (int)MSAALevel + " samples not supported. Falling back to highest supported sample count of " + (int)actualMultisampleCount + " samples.");
                 }
 
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
                 // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
                 actualMultisampleCount = MultisampleCount.None;
 #endif
@@ -241,7 +241,7 @@ namespace Xenko.Rendering.Compositing
             {
                 if (PostEffects.RequiresNormalBuffer)
                 {
-#if XENKO_PLATFORM_ANDROID || XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
                     renderOutputValidator.Add<NormalTargetSemantic>(PixelFormat.R16G16B16A16_Float);
 #else
                     renderOutputValidator.Add<NormalTargetSemantic>(PixelFormat.R10G10B10A2_UNorm);
@@ -651,7 +651,7 @@ namespace Xenko.Rendering.Compositing
 
                             for (var i = 0; i < 2; i++)
                             {
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
                                 if (GraphicsDevice.Platform == GraphicsPlatform.Direct3D11 && drawContext.GraphicsDevice.Presenter is WindowsMixedRealityGraphicsPresenter graphicsPresenter)
                                 {
                                     isWindowsMixedReality = true;

@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Xenko.Core.IO;
-using Xenko.Core.Serialization.Contents;
+using Stride.Core.IO;
+using Stride.Core.Serialization.Contents;
 
-namespace Xenko.Core.Serialization
+namespace Stride.Core.Serialization
 {
     /// <summary>
     /// Extension methods of <see cref="IContentManager"/> to allow usage of <see cref="UrlReference"/> and <see cref="UrlReference{T}"/>.

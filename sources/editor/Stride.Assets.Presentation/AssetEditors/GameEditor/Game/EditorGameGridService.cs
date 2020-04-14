@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Mathematics;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.Gizmos;
-using Xenko.Editor.EditorGame.Game;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
+using Stride.Core.Mathematics;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.Gizmos;
+using Stride.Editor.EditorGame.Game;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.Game
+namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
 {
     public class EditorGameGridService<TGridGizmo> : EditorGameServiceBase, IEditorGameGridViewModelService
         where TGridGizmo : GridGizmoBase, new()

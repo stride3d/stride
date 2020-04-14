@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -7,22 +7,22 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.BuildEngine;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Storage;
-using Xenko.Assets.Entities;
-using Xenko.Assets.Physics;
-using Xenko.Navigation;
-using Xenko.Physics;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.BuildEngine;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Storage;
+using Stride.Assets.Entities;
+using Stride.Assets.Physics;
+using Stride.Navigation;
+using Stride.Physics;
 
-namespace Xenko.Assets.Navigation
+namespace Stride.Assets.Navigation
 {
     [AssetCompiler(typeof(NavigationMeshAsset), typeof(AssetCompilationContext))]
     class NavigationMeshAssetCompiler : AssetCompilerBase
@@ -341,7 +341,7 @@ namespace Xenko.Assets.Navigation
                                 }
 
                                 // Hash collider for ComputeParameterHash
-                                sceneHash = (sceneHash * 397) ^ Xenko.Navigation.NavigationMeshBuildUtils.HashEntityCollider(colliderComponent, asset.IncludedCollisionGroups);
+                                sceneHash = (sceneHash * 397) ^ Stride.Navigation.NavigationMeshBuildUtils.HashEntityCollider(colliderComponent, asset.IncludedCollisionGroups);
                             }
                         }
                     }

@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using Xenko.Core.Serialization.Serializers;
+using Stride.Core.Serialization.Serializers;
 
 // Serializer for ContentSerializerContext.SerializeReferences()
-namespace Xenko.Core.Serialization.Contents
+namespace Stride.Core.Serialization.Contents
 {
     // TODO: Many simplifications/cleaning (lot of leftover from old system)
     [DataSerializerGlobal(typeof(ListSerializer<ChunkReference>))]

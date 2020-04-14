@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.ServiceModel;
 
-namespace Xenko.Core.BuildEngine
+namespace Stride.Core.BuildEngine
 {
     public class MicrothreadNotification
     {
@@ -42,11 +42,11 @@ namespace Xenko.Core.BuildEngine
         void StartBuild(Guid buildId, DateTime time);
 
         [OperationContract(IsOneWay = true)]
-        [UseXenkoDataContractSerializer]
+        [UseStrideDataContractSerializer]
         void SendBuildStepInfo(Guid buildId, long executionId, string description, DateTime startTime);
 
         [OperationContract(IsOneWay = true)]
-        [UseXenkoDataContractSerializer]
+        [UseStrideDataContractSerializer]
         void SendCommandLog(Guid buildId, DateTime startTime, long microthreadId, List<SerializableTimestampLogMessage> messages);
 
         [OperationContract(IsOneWay = true)]

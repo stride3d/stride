@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Assets.Yaml;
+using Stride.Core.Assets.Yaml;
 
-namespace Xenko.Core.Assets.Quantum
+namespace Stride.Core.Assets.Quantum
 {
     /// <summary>
     /// A class containing helper methods for asset cloning.

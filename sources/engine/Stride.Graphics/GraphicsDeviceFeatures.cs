@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
@@ -24,7 +24,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// Features supported by a <see cref="GraphicsDevice"/>.
@@ -101,7 +101,7 @@ namespace Xenko.Graphics
             get { return this.mapFeaturesPerFormat[(int)dxgiFormat]; }
         }
 
-#if XENKO_GRAPHICS_API_OPENGL
+#if STRIDE_GRAPHICS_API_OPENGL
         // Defined here to avoid CS0282 warning if defined in GraphicsDeviceFeatures.OpenGL.cs
         internal string Vendor;
         internal string Renderer;

@@ -1,35 +1,35 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Components.Properties;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.Reflection;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Assets.Presentation.AssetEditors.AssetHighlighters;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
-using Xenko.Assets.Presentation.AssetEditors.Gizmos;
-using Xenko.Assets.Presentation.NodePresenters.Commands;
-using Xenko.Assets.Presentation.NodePresenters.Updaters;
-using Xenko.Assets.Presentation.SceneEditor.Services;
-using Xenko.Assets.Presentation.ViewModel;
-using Xenko.Assets.Presentation.ViewModel.CopyPasteProcessors;
-using Xenko.Editor;
-using Xenko.Engine;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core.Packages;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.Reflection;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Presentation.AssetEditors.Gizmos;
+using Stride.Assets.Presentation.NodePresenters.Commands;
+using Stride.Assets.Presentation.NodePresenters.Updaters;
+using Stride.Assets.Presentation.SceneEditor.Services;
+using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
+using Stride.Editor;
+using Stride.Engine;
+using Stride.Core.Assets.Templates;
+using Stride.Core.Packages;
 
-namespace Xenko.Assets.Presentation
+namespace Stride.Assets.Presentation
 {
-    public sealed class XenkoDefaultAssetsPlugin : XenkoAssetsPlugin
+    public sealed class StrideDefaultAssetsPlugin : StrideAssetsPlugin
     {
         /// <summary>
         /// Comparer for component types.
@@ -77,7 +77,7 @@ namespace Xenko.Assets.Presentation
 
         public static IReadOnlyList<(Type type, int order)> ComponentOrders { get; private set; } = new List<(Type, int)>();
 
-        public XenkoDefaultAssetsPlugin()
+        public StrideDefaultAssetsPlugin()
         {
             ProfileSettings.Add(new PackageSettingsEntry(GameUserSettings.Effect.EffectCompilation, TargetPackage.Executable));
             ProfileSettings.Add(new PackageSettingsEntry(GameUserSettings.Effect.RecordUsedEffects, TargetPackage.Executable));
@@ -89,7 +89,7 @@ namespace Xenko.Assets.Presentation
         {
             // Load templates
             // Currently hardcoded, this will need to change with plugin system
-            foreach (var packageInfo in new[] { new { Name = "Xenko.Assets.Presentation", Version = XenkoVersion.NuGetVersion }, new { Name = "Xenko.SpriteStudio.Offline", Version = XenkoVersion.NuGetVersion }, new { Name = "Xenko.Samples.Templates", Version = Xenko.Samples.Templates.ThisPackageVersion.Current } })
+            foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.SpriteStudio.Offline", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.Samples.Templates", Version = Stride.Samples.Templates.ThisPackageVersion.Current } })
             {
                 var logger = new LoggerResult();
                 var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));
@@ -104,23 +104,23 @@ namespace Xenko.Assets.Presentation
         /// <inheritdoc />
         protected override void Initialize(ILogger logger)
         {
-            imageDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Assets.Presentation;component/View/ImageDictionary.xaml", UriKind.RelativeOrAbsolute));
-            animationPropertyTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Assets.Presentation;component/View/AnimationPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
-            entityPropertyTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Assets.Presentation;component/View/EntityPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
-            materialPropertyTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Assets.Presentation;component/View/MaterialPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
-            skeletonTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Assets.Presentation;component/View/SkeletonPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
-            spriteFontTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Assets.Presentation;component/View/SpriteFontPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
-            uiTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Assets.Presentation;component/View/UIPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
-            graphicsCompositorTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Assets.Presentation;component/View/GraphicsCompositorTemplates.xaml", UriKind.RelativeOrAbsolute));
-            visualScriptingTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Assets.Presentation;component/View/VisualScriptingTemplates.xaml", UriKind.RelativeOrAbsolute));
-            visualScriptingGraphTemplatesDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Assets.Presentation;component/AssetEditors/VisualScriptEditor/Views/GraphTemplates.xaml", UriKind.RelativeOrAbsolute));
+            imageDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation;component/View/ImageDictionary.xaml", UriKind.RelativeOrAbsolute));
+            animationPropertyTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation;component/View/AnimationPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
+            entityPropertyTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation;component/View/EntityPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
+            materialPropertyTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation;component/View/MaterialPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
+            skeletonTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation;component/View/SkeletonPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
+            spriteFontTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation;component/View/SpriteFontPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
+            uiTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation;component/View/UIPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
+            graphicsCompositorTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation;component/View/GraphicsCompositorTemplates.xaml", UriKind.RelativeOrAbsolute));
+            visualScriptingTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation;component/View/VisualScriptingTemplates.xaml", UriKind.RelativeOrAbsolute));
+            visualScriptingGraphTemplatesDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation;component/AssetEditors/VisualScriptEditor/Views/GraphTemplates.xaml", UriKind.RelativeOrAbsolute));
 
             // Make Visual Script colors available to StaticResourceConverter
             Application.Current.Resources.MergedDictionaries.Add(imageDictionary);
 
             // Make script editor styles and icons available to StaticResourceConverter
-            Application.Current.Resources.MergedDictionaries.Add((ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Assets.Presentation;component/AssetEditors/ScriptEditor/Resources/Icons.xaml", UriKind.RelativeOrAbsolute)));
-            Application.Current.Resources.MergedDictionaries.Add((ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Assets.Presentation;component/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml", UriKind.RelativeOrAbsolute)));
+            Application.Current.Resources.MergedDictionaries.Add((ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation;component/AssetEditors/ScriptEditor/Resources/Icons.xaml", UriKind.RelativeOrAbsolute)));
+            Application.Current.Resources.MergedDictionaries.Add((ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation;component/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml", UriKind.RelativeOrAbsolute)));
 
             var entityFactories = new Core.Collections.SortedList<EntityFactoryCategory, EntityFactoryCategory>();
             foreach (var factoryType in Assembly.GetExecutingAssembly().GetTypes().Where(x => typeof(IEntityFactory).IsAssignableFrom(x) && x.GetConstructor(Type.EmptyTypes) != null))
@@ -172,8 +172,8 @@ namespace Xenko.Assets.Presentation
         /// <inheritdoc />
         public override void InitializeSession(SessionViewModel session)
         {
-            session.ServiceProvider.RegisterService(new XenkoDialogService());
-            var assetsViewModel = new XenkoAssetsViewModel(session);
+            session.ServiceProvider.RegisterService(new StrideDialogService());
+            var assetsViewModel = new StrideAssetsViewModel(session);
 
             session.AssetViewProperties.RegisterNodePresenterCommand(new FetchEntityCommand());
             session.AssetViewProperties.RegisterNodePresenterCommand(new SetEntityReferenceCommand());
@@ -207,20 +207,20 @@ namespace Xenko.Assets.Presentation
             session.AssetViewProperties.RegisterNodePresenterUpdater(new NavigationNodeUpdater(session));
 
             // Connects to effect compiler (to import new effect permutations discovered by running the game)
-            if (Xenko.Core.Assets.Editor.Settings.EditorSettings.UseEffectCompilerServer.GetValue())
+            if (Stride.Core.Assets.Editor.Settings.EditorSettings.UseEffectCompilerServer.GetValue())
             {
                 effectCompilerServerSession = new EffectCompilerServerSession(session);
             }
 
             // Extra packages to display in "add reference" dialog
-            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.Engine.EntityComponent).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.UI.UIElement).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.Particles.Components.ParticleSystemComponent).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.Navigation.NavigationComponent).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.Physics.StaticColliderComponent).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.Video.VideoComponent).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.Voxels.Module).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName(typeof(Xenko.SpriteStudio.Runtime.SpriteStudioNodeLinkComponent).Assembly.GetName().Name, new PackageVersion(XenkoVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Stride.Engine.EntityComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Stride.UI.UIElement).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Stride.Particles.Components.ParticleSystemComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Stride.Navigation.NavigationComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Stride.Physics.StaticColliderComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Stride.Video.VideoComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Stride.Voxels.Module).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName(typeof(Stride.SpriteStudio.Runtime.SpriteStudioNodeLinkComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
         }
 
         /// <inheritdoc />

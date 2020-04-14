@@ -45,7 +45,7 @@
 
 using System.Globalization;
 
-namespace Xenko.Core.Yaml.Events
+namespace Stride.Core.Yaml.Events
 {
     /// <summary>
     /// Represents a sequence start event.

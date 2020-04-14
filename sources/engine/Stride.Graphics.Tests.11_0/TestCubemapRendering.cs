@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -6,15 +6,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
-using Xenko.Core.Mathematics;
-using Xenko.Effects;
-using Xenko.Effects.Cubemap;
-using Xenko.Engine;
-using Xenko.EntityModel;
-using Xenko.Extensions;
-using Xenko.Input;
+using Stride.Core.Mathematics;
+using Stride.Effects;
+using Stride.Effects.Cubemap;
+using Stride.Engine;
+using Stride.EntityModel;
+using Stride.Extensions;
+using Stride.Input;
 
-namespace Xenko.Graphics.Tests
+namespace Stride.Graphics.Tests
 {
     public class TestCubemapRendering : TestGameBase
     {

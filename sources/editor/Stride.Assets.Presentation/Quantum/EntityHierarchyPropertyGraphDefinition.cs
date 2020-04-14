@@ -1,9 +1,9 @@
-﻿using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Quantum;
-using Xenko.Assets.Entities;
-using Xenko.Engine;
+﻿using Stride.Core.Assets.Quantum;
+using Stride.Core.Quantum;
+using Stride.Assets.Entities;
+using Stride.Engine;
 
-namespace Xenko.Assets.Presentation.Quantum
+namespace Stride.Assets.Presentation.Quantum
 {
     [AssetPropertyGraphDefinition(typeof(EntityHierarchyAssetBase))]
     public class EntityHierarchyPropertyGraphDefinition : AssetCompositeHierarchyPropertyGraphDefinition<EntityDesign, Entity>

@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using Xenko.Core;
-using Xenko.Core.Collections;
-using Xenko.Shaders;
-#if XENKO_GRAPHICS_API_VULKAN
+using Stride.Core;
+using Stride.Core.Collections;
+using Stride.Shaders;
+#if STRIDE_GRAPHICS_API_VULKAN
 using SharpVulkan;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public partial class DescriptorSetLayout
     {
         internal const int DescriptorTypeCount = 11;
 
-#if !XENKO_GRAPHICS_NO_DESCRIPTOR_COPIES
+#if !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES
         internal readonly DescriptorSetLayoutBuilder Builder;
 
         internal SharpVulkan.DescriptorSetLayout NativeLayout;

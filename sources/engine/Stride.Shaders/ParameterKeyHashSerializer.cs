@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Serialization;
-using Xenko.Core.Storage;
-using Xenko.Rendering;
+using Stride.Core.Serialization;
+using Stride.Core.Storage;
+using Stride.Rendering;
 
-namespace Xenko.Shaders
+namespace Stride.Shaders
 {
     class ParameterKeyHashSerializer : DataSerializer<ParameterKey>
     {

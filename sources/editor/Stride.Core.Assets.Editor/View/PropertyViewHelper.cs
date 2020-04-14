@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Windows;
 using System.Windows.Input;
 
-using Xenko.Core.Presentation.Controls;
-using Xenko.Core.Presentation.Extensions;
-using Xenko.Core.Presentation.View;
+using Stride.Core.Presentation.Controls;
+using Stride.Core.Presentation.Extensions;
+using Stride.Core.Presentation.View;
 
-namespace Xenko.Core.Assets.Editor.View
+namespace Stride.Core.Assets.Editor.View
 {
     /// <summary>
     /// This static class contains helper dependency properties that allows to override some properties of the parent <see cref="PropertyViewItem"/> of a control.

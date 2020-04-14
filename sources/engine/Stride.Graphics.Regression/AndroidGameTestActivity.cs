@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 using System;
 using Android.App;
 using Android.OS;
-using Xenko.Engine;
-using Xenko.Starter;
+using Stride.Engine;
+using Stride.Starter;
 
-namespace Xenko.Graphics.Regression
+namespace Stride.Graphics.Regression
 {
     [Activity]
-    public class AndroidGameTestActivity : AndroidXenkoActivity
+    public class AndroidGameTestActivity : AndroidStrideActivity
     {
         public static Game GameToStart;
 

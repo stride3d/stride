@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -7,20 +7,20 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Xenko.Core;
-using Xenko.Core.Extensions;
-using Xenko.Core.Serialization;
-using Xenko.Core.Storage;
-using Xenko.Graphics;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Glsl;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Convertor;
-using Xenko.Core.Shaders.Writer.Hlsl;
-using ConstantBuffer = Xenko.Core.Shaders.Ast.Hlsl.ConstantBuffer;
-using StorageQualifier = Xenko.Core.Shaders.Ast.StorageQualifier;
+using Stride.Core;
+using Stride.Core.Extensions;
+using Stride.Core.Serialization;
+using Stride.Core.Storage;
+using Stride.Graphics;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Glsl;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Convertor;
+using Stride.Core.Shaders.Writer.Hlsl;
+using ConstantBuffer = Stride.Core.Shaders.Ast.Hlsl.ConstantBuffer;
+using StorageQualifier = Stride.Core.Shaders.Ast.StorageQualifier;
 
-namespace Xenko.Shaders.Compiler.OpenGL
+namespace Stride.Shaders.Compiler.OpenGL
 {
     internal partial class ShaderCompiler : IShaderCompiler
     {
@@ -82,7 +82,7 @@ namespace Xenko.Shaders.Compiler.OpenGL
             if (effectParameters.Platform == GraphicsPlatform.OpenGLES)      // TODO: Add check to run on android only. The current version breaks OpenGL ES on windows.
             { 
                 //TODO: Remove this ugly hack!
-                if (shaderSource.Contains($"Texture2D XenkoInternal_TextureExt0") && shader.Contains("uniform sampler2D"))
+                if (shaderSource.Contains($"Texture2D StrideInternal_TextureExt0") && shader.Contains("uniform sampler2D"))
                 {
                     if (shaderPlatform != GlslShaderPlatform.OpenGLES || shaderVersion != 300)
                         throw new Exception("Invalid GLES platform or version: require OpenGLES 300");
@@ -295,10 +295,10 @@ namespace Xenko.Shaders.Compiler.OpenGL
                         var layoutBindingIndex = bindings.IndexOf(x => x.Key.RawName == constantBuffer.Name);
                         if (layoutBindingIndex != -1)
                         {
-                            var layoutQualifier = constantBuffer.Qualifiers.OfType<Xenko.Core.Shaders.Ast.Glsl.LayoutQualifier>().FirstOrDefault();
+                            var layoutQualifier = constantBuffer.Qualifiers.OfType<Stride.Core.Shaders.Ast.Glsl.LayoutQualifier>().FirstOrDefault();
                             if (layoutQualifier == null)
                             {
-                                layoutQualifier = new Xenko.Core.Shaders.Ast.Glsl.LayoutQualifier();
+                                layoutQualifier = new Stride.Core.Shaders.Ast.Glsl.LayoutQualifier();
                                 constantBuffer.Qualifiers |= layoutQualifier;
                             }
 
@@ -317,10 +317,10 @@ namespace Xenko.Shaders.Compiler.OpenGL
 
                         if (layoutBindingIndex != -1)
                         {
-                            var layoutQualifier = variable.Qualifiers.OfType<Xenko.Core.Shaders.Ast.Glsl.LayoutQualifier>().FirstOrDefault();
+                            var layoutQualifier = variable.Qualifiers.OfType<Stride.Core.Shaders.Ast.Glsl.LayoutQualifier>().FirstOrDefault();
                             if (layoutQualifier == null)
                             {
-                                layoutQualifier = new Xenko.Core.Shaders.Ast.Glsl.LayoutQualifier();
+                                layoutQualifier = new Stride.Core.Shaders.Ast.Glsl.LayoutQualifier();
                                 variable.Qualifiers |= layoutQualifier;
                             }
 

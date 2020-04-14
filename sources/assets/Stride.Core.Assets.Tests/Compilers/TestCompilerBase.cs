@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.Serialization.Contents;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.Serialization.Contents;
 
-namespace Xenko.Core.Assets.Tests.Compilers
+namespace Stride.Core.Assets.Tests.Compilers
 {
     public abstract class TestCompilerBase : IAssetCompiler
     {

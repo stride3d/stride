@@ -1,7 +1,7 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-namespace Xenko.Rendering
+namespace Stride.Rendering
 {
     partial effect ParticleCustomEffect
     {
@@ -11,10 +11,10 @@ namespace Xenko.Rendering
         // Use the ParticleCustomShaderKeys for constant attributes, defined in this project
         using params ParticleCustomShaderKeys;
 
-        // Inherit from the ParticleBaseEffect.xkfx, defined in the game engine
+        // Inherit from the ParticleBaseEffect.sdfx, defined in the game engine
         mixin ParticleBaseEffect;
 
-        // Use the ParticleCustomShader.xksl, defined in this project
+        // Use the ParticleCustomShader.sdsl, defined in this project
         mixin ParticleCustomShader;
 
         // If the user-defined effect for the baseColor is not null use it

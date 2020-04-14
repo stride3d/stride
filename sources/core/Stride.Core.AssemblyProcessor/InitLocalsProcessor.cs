@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Linq;
 using Mono.Cecil.Rocks;
 
-namespace Xenko.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor
 {
     internal class InitLocalsProcessor : IAssemblyDefinitionProcessor
     {
@@ -16,7 +16,7 @@ namespace Xenko.Core.AssemblyProcessor
             {
                 foreach (var method in type.Methods)
                 {
-                    if (method.CustomAttributes.Any(x => x.AttributeType.FullName == "Xenko.Core.IL.RemoveInitLocalsAttribute"))
+                    if (method.CustomAttributes.Any(x => x.AttributeType.FullName == "Stride.Core.IL.RemoveInitLocalsAttribute"))
                     {
                         if (method.Body == null)
                         {

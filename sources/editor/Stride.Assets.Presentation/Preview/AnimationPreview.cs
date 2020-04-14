@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Xenko.Core.Assets.Compiler;
-using Xenko.Animations;
-using Xenko.Assets.Models;
-using Xenko.Assets.Presentation.Preview.Views;
-using Xenko.Assets.Presentation.ViewModel.Preview;
-using Xenko.Editor.Build;
-using Xenko.Editor.Preview;
-using Xenko.Engine;
-using Xenko.Rendering;
+using Stride.Core.Assets.Compiler;
+using Stride.Animations;
+using Stride.Assets.Models;
+using Stride.Assets.Presentation.Preview.Views;
+using Stride.Assets.Presentation.ViewModel.Preview;
+using Stride.Editor.Build;
+using Stride.Editor.Preview;
+using Stride.Engine;
+using Stride.Rendering;
 
-namespace Xenko.Assets.Presentation.Preview
+namespace Stride.Assets.Presentation.Preview
 {
     [AssetPreview(typeof(AnimationAsset), typeof(AnimationPreviewView))]
     public class AnimationPreview : PreviewFromEntity<AnimationAsset>

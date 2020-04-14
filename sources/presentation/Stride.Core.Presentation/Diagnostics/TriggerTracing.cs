@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if DEBUG
 
@@ -6,8 +6,8 @@ using System.Windows;
 using System.Windows.Media.Animation;
 using System.Diagnostics;
 using System.Windows.Markup;
-using Xenko.Core.Annotations;
-using Xenko.Core.Presentation.Internal;
+using Stride.Core.Annotations;
+using Stride.Core.Presentation.Internal;
 
 // Code from http://www.wpfmentor.com/2009/01/how-to-debug-triggers-using-trigger.html
 // No license specified - this code is trimmed out from Release build anyway so it should be ok using it this way
@@ -16,7 +16,7 @@ using Xenko.Core.Presentation.Internal;
 //        TriggerTracing.TriggerName="your debug name"
 //        TriggerTracing.TraceEnabled="True"
 
-namespace Xenko.Core.Presentation.Diagnostics
+namespace Stride.Core.Presentation.Diagnostics
 {
     /// <summary>
     /// Contains attached properties to activate Trigger Tracing on the specified Triggers.

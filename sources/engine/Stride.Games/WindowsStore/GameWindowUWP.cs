@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -20,14 +20,14 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
 
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.Graphics.Display;
-using Xenko.Graphics;
-using Xenko.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Core.Mathematics;
 using Windows.Foundation;
 using Windows.UI.ViewManagement;
 using Windows.UI.Core;
@@ -36,7 +36,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
     /// <summary>
     /// <see cref="GameWindow"/> implementation for UWP. Handles both <see cref="SwapChainPanel"/> and <see cref="CoreWindow"/>.

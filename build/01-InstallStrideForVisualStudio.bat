@@ -1,18 +1,18 @@
 @echo off
 setlocal
-rmdir /S /Q "%LOCALAPPDATA%\temp\Xenko"
+rmdir /S /Q "%LOCALAPPDATA%\temp\Stride"
 REM -------------------------------------------------------------------
 REM Global config
 REM -------------------------------------------------------------------
-set XENKO_OUTPUT_DIR=%~dp0\..\Bin
-set XENKO_VSIX=%XENKO_OUTPUT_DIR%\VSIX\Xenko.vsix
+set STRIDE_OUTPUT_DIR=%~dp0\..\Bin
+set STRIDE_VSIX=%STRIDE_OUTPUT_DIR%\VSIX\Stride.vsix
 REM -------------------------------------------------------------------
-REM Build Xenko
+REM Build Stride
 REM -------------------------------------------------------------------
-IF EXIST "%XENKO_VSIX%" GOTO :vsixok
-echo Error, unable to find Xenko VSIX [%XENKO_VSIX%]
-echo Run 00-BuildXenko.bat before trying to install the VisualStudio package
+IF EXIST "%STRIDE_VSIX%" GOTO :vsixok
+echo Error, unable to find Stride VSIX [%STRIDE_VSIX%]
+echo Run 00-BuildStride.bat before trying to install the VisualStudio package
 pause
 exit /b 1
 :vsixok
-"%XENKO_VSIX%"
+"%STRIDE_VSIX%"

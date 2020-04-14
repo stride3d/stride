@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="Xenko.Rendering.SceneRendererBase" Collapsed="true">
+  <Class Name="Stride.Rendering.SceneRendererBase" Collapsed="true">
     <Position X="4.75" Y="4.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gAAAIAAAAEAAAAAAAAAIAgAAAABAAAAAAIAAAAAAAAA=</HashCode>
@@ -8,7 +8,7 @@
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Xenko.Rendering.ClearRenderFrameRenderer">
+  <Class Name="Stride.Rendering.ClearRenderFrameRenderer">
     <Position X="6.5" Y="5.75" Width="2.25" />
     <Members>
       <Method Name="ClearRenderFrameRenderer" Hidden="true" />
@@ -18,7 +18,7 @@
       <FileName>Rendering\ClearRenderFrameRenderer.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Xenko.Engine.SceneChildRenderer">
+  <Class Name="Stride.Engine.SceneChildRenderer">
     <Position X="11.5" Y="5.75" Width="1.75" />
     <Members>
       <Field Name="childSceneProcessor" Hidden="true" />
@@ -34,7 +34,7 @@
       <FileName>Rendering\SceneChildRenderer.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Xenko.Rendering.SceneEffectRenderer">
+  <Class Name="Stride.Rendering.SceneEffectRenderer">
     <Position X="9.25" Y="5.75" Width="1.75" />
     <Members>
       <Method Name="Destroy" Hidden="true" />
@@ -45,7 +45,7 @@
       <FileName>Rendering\SceneEffectRenderer.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Xenko.Rendering.SceneRendererViewportBase" Collapsed="true">
+  <Class Name="Stride.Rendering.SceneRendererViewportBase" Collapsed="true">
     <Position X="2.25" Y="5.75" Width="2" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAEAAAAAAAAAoAAAAAAAAAAAAAAAAAAAAA=</HashCode>
@@ -53,7 +53,7 @@
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Xenko.Rendering.SceneCameraRenderer">
+  <Class Name="Stride.Rendering.SceneCameraRenderer">
     <Position X="0.5" Y="7.25" Width="1.75" />
     <Members>
       <Field Name="Current" Hidden="true" />
@@ -67,7 +67,7 @@
       <Property Name="Mode" />
     </ShowAsAssociation>
   </Class>
-  <Class Name="Xenko.Rendering.SceneDelegateRenderer">
+  <Class Name="Stride.Rendering.SceneDelegateRenderer">
     <Position X="4.25" Y="7.25" Width="2" />
     <Members>
       <Field Name="drawAction" Hidden="true" />
@@ -78,7 +78,7 @@
       <FileName>Rendering\SceneDelegateRenderer.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Xenko.Rendering.Composers.SceneGraphicsCompositorLayers">
+  <Class Name="Stride.Rendering.Composers.SceneGraphicsCompositorLayers">
     <Position X="0.75" Y="1.75" Width="2.5" />
     <Members>
       <Method Name="SceneGraphicsCompositorLayers" Hidden="true" />
@@ -93,7 +93,7 @@
     </ShowAsCollectionAssociation>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Xenko.Rendering.Composers.SceneGraphicsLayer">
+  <Class Name="Stride.Rendering.Composers.SceneGraphicsLayer">
     <Position X="4" Y="1.75" Width="1.75" />
     <Members>
       <Method Name="Add" Hidden="true" />
@@ -114,14 +114,14 @@
     </ShowAsCollectionAssociation>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Xenko.Rendering.CameraRendererMode" Collapsed="true">
+  <Class Name="Stride.Rendering.CameraRendererMode" Collapsed="true">
     <Position X="2.75" Y="9.5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>gEBAAAAAAAAAEgAAAgAAIhIAAABAACAAAACAAAAAAAQ=</HashCode>
       <FileName>Rendering\CameraRendererMode.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Xenko.Rendering.CameraRendererModeForward">
+  <Class Name="Stride.Rendering.CameraRendererModeForward">
     <Position X="0.75" Y="10.75" Width="2.75" />
     <Members>
       <Method Name="CameraRendererModeForward" Hidden="true" />
@@ -132,7 +132,7 @@
       <FileName>Rendering\CameraRendererModeForward.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Xenko.Rendering.CameraRendererModeWireframe">
+  <Class Name="Stride.Rendering.CameraRendererModeWireframe">
     <Position X="4.25" Y="10.75" Width="2.5" />
     <Members>
       <Method Name="CameraRendererModeWireframe" Hidden="true" />
@@ -144,21 +144,21 @@
       <FileName>Rendering\CameraRendererModeWireframe.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Interface Name="Xenko.Rendering.ISceneRenderer" Collapsed="true">
+  <Interface Name="Stride.Rendering.ISceneRenderer" Collapsed="true">
     <Position X="7" Y="2.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\ISceneRenderer.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Interface Name="Xenko.Rendering.ISceneRendererViewport" Collapsed="true">
+  <Interface Name="Stride.Rendering.ISceneRendererViewport" Collapsed="true">
     <Position X="9" Y="2.5" Width="2" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAEAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Rendering\ISceneRendererViewport.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Interface Name="Xenko.Rendering.Composers.ISceneGraphicsCompositor" Collapsed="true">
+  <Interface Name="Stride.Rendering.Composers.ISceneGraphicsCompositor" Collapsed="true">
     <Position X="0.75" Y="0.5" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>

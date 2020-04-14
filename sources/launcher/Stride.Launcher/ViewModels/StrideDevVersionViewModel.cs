@@ -1,23 +1,23 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Core.Packages;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
+using Stride.Core.Packages;
 
-namespace Xenko.LauncherApp.ViewModels
+namespace Stride.LauncherApp.ViewModels
 {
     /// <summary>
-    /// An implementation of the <see cref="XenkoVersionViewModel"/> that represents a non-official version locally built.
+    /// An implementation of the <see cref="StrideVersionViewModel"/> that represents a non-official version locally built.
     /// </summary>
-    internal class XenkoDevVersionViewModel : XenkoVersionViewModel
+    internal class StrideDevVersionViewModel : StrideVersionViewModel
     {
         private readonly UDirectory path;
         private static int devMinorCounter = int.MaxValue;
         private NugetLocalPackage localPackage;
         private bool isDevRedirect;
 
-        internal XenkoDevVersionViewModel(LauncherViewModel launcher, NugetStore store, [CanBeNull] NugetLocalPackage localPackage, UDirectory path, bool isDevRedirect)
+        internal StrideDevVersionViewModel(LauncherViewModel launcher, NugetStore store, [CanBeNull] NugetLocalPackage localPackage, UDirectory path, bool isDevRedirect)
             : base(launcher, store, localPackage, int.MaxValue, devMinorCounter--)
         {
             this.path = path;
@@ -59,7 +59,7 @@ namespace Xenko.LauncherApp.ViewModels
         /// <inheritdoc/>
         protected override Task UpdateVersionsFromStore()
         {
-            return Launcher.RetrieveLocalXenkoVersions();
+            return Launcher.RetrieveLocalStrideVersions();
         }
 
         /// <inheritdoc/>

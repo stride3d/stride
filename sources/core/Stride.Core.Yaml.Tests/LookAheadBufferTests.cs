@@ -47,7 +47,7 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace Xenko.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests
 {
     public class LookAheadBufferTests
     {

@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Extensions;
-using Xenko.Assets.Materials;
-using Xenko.Rendering.Materials;
-using Xenko.Core.Presentation.Quantum;
-using Xenko.Core.Quantum;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Assets.Effect;
-using Xenko.Rendering.Materials.ComputeColors;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Extensions;
+using Stride.Assets.Materials;
+using Stride.Rendering.Materials;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Quantum;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Assets.Effect;
+using Stride.Rendering.Materials.ComputeColors;
 
-namespace Xenko.Assets.Presentation.ViewModel
+namespace Stride.Assets.Presentation.ViewModel
 {
     [AssetViewModel(typeof(MaterialAsset))]
     public class MaterialViewModel : AssetViewModel<MaterialAsset>

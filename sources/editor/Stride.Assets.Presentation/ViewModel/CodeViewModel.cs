@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
@@ -9,24 +9,24 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using RoslynPad.Roslyn;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Extensions;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Assets.Presentation.AssetEditors;
-using Xenko.Assets.Presentation.AssetEditors.ScriptEditor;
-using RoslynWorkspace = Xenko.Assets.Presentation.AssetEditors.ScriptEditor.RoslynWorkspace;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Assets.Presentation.AssetEditors;
+using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
+using RoslynWorkspace = Stride.Assets.Presentation.AssetEditors.ScriptEditor.RoslynWorkspace;
 using System.Collections.Generic;
 using System.IO;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.IO;
-using Xenko.Core.Presentation.Dirtiables;
-using Xenko.Core.Translation;
-using Xenko.Assets.Scripts;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.IO;
+using Stride.Core.Presentation.Dirtiables;
+using Stride.Core.Translation;
+using Stride.Assets.Scripts;
 using System.Collections.Specialized;
 
-namespace Xenko.Assets.Presentation.ViewModel
+namespace Stride.Assets.Presentation.ViewModel
 {
     /// <summary>
     /// Manages source code project and files, including change tracking, Roslyn workspace updates, etc...
@@ -50,11 +50,11 @@ namespace Xenko.Assets.Presentation.ViewModel
         private Brush keywordBrush;
         private Brush typeBrush;
 
-        public CodeViewModel(XenkoAssetsViewModel xenkoAssetsViewModel) : base(xenkoAssetsViewModel.SafeArgument(nameof(xenkoAssetsViewModel)).ServiceProvider)
+        public CodeViewModel(StrideAssetsViewModel strideAssetsViewModel) : base(strideAssetsViewModel.SafeArgument(nameof(strideAssetsViewModel)).ServiceProvider)
         {
             projectWatcherTask = Task.Run(async () =>
             {
-                var result = new ProjectWatcher(xenkoAssetsViewModel.Session);
+                var result = new ProjectWatcher(strideAssetsViewModel.Session);
                 await result.Initialize();
                 return result;
             });
@@ -112,7 +112,7 @@ namespace Xenko.Assets.Presentation.ViewModel
                             var project = e.Project;
                             if (project != null)
                             {
-                                await ReloadProject(xenkoAssetsViewModel.Session, project);
+                                await ReloadProject(strideAssetsViewModel.Session, project);
                             }
                         }
 

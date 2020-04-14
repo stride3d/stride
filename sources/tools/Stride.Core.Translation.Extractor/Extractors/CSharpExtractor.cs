@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -6,12 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Xenko.Core.Annotations;
-using Xenko.Core.Collections;
-using Xenko.Core.IO;
-using Xenko.Core.Translation.Annotations;
+using Stride.Core.Annotations;
+using Stride.Core.Collections;
+using Stride.Core.IO;
+using Stride.Core.Translation.Annotations;
 
-namespace Xenko.Core.Translation.Extractor
+namespace Stride.Core.Translation.Extractor
 {
     internal class CSharpExtractor : ExtractorBase
     {

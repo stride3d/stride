@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Xenko.Core;
-using Xenko.Graphics;
-using Xenko.Rendering;
+using Stride.Core;
+using Stride.Graphics;
+using Stride.Rendering;
 
-namespace Xenko.Video
+namespace Stride.Video
 {
     public class VideoTexture : IDisposable
     {
@@ -125,7 +125,7 @@ namespace Xenko.Video
                         effectDecoderTextureCopy,
                         decoderOutputTexture, // Use the inputTexture as the input texture.
                         renderTargetMipMaps[0], // Set the highest mip map level as the render target.
-                        SpriteEffectExtTextureKeys.XenkoInternal_TextureExt0,
+                        SpriteEffectExtTextureKeys.StrideInternal_TextureExt0,
                         SpriteEffectExtTextureKeys.MipLevel);
 
             // Restore the original framebuffer configuration:

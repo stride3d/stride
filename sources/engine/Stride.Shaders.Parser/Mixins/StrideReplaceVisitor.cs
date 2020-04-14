@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Visitor;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Visitor;
 
-namespace Xenko.Shaders.Parser.Mixins
+namespace Stride.Shaders.Parser.Mixins
 {
     /// <summary>
     /// Class to replace a node by another in an AST
     /// </summary>
-    internal class XenkoReplaceVisitor : ShaderRewriter
+    internal class StrideReplaceVisitor : ShaderRewriter
     {
         #region Private members
 
@@ -31,7 +31,7 @@ namespace Xenko.Shaders.Parser.Mixins
 
         #region Constructor
 
-        public XenkoReplaceVisitor(Node toReplace, Node replacement) : base(false, false)
+        public StrideReplaceVisitor(Node toReplace, Node replacement) : base(false, false)
         {
             nodeToReplace = toReplace;
             replacementNode = replacement;

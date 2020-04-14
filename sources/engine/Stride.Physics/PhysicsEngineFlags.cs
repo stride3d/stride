@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Xenko.Core;
+using Stride.Core;
 
-namespace Xenko.Physics
+namespace Stride.Physics
 {
     [Flags]
     public enum PhysicsEngineFlags
@@ -19,7 +19,7 @@ namespace Xenko.Physics
 
         UseHardwareWhenPossible = 0x8,
 
-        // Typo before 3.1 (https://github.com/xenko3d/xenko/issues/152)
+        // Typo before 3.1 (https://github.com/stride3d/stride/issues/152)
         [DataAlias("ContinuosCollisionDetection")]
         ContinuousCollisionDetection = 0x10,
     }

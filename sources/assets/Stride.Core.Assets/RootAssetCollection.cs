@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Xenko.Core.Collections;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Serializers;
+using Stride.Core.Collections;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Serializers;
 
-namespace Xenko.Core.Assets
+namespace Stride.Core.Assets
 {
     [DataSerializer(typeof(KeyedSortedListSerializer<RootAssetCollection, AssetId, AssetReference>))]
     public class RootAssetCollection : KeyedSortedList<AssetId, AssetReference>

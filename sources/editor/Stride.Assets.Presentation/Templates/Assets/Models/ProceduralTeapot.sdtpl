@@ -6,6 +6,6 @@ Scope: Asset
 Description: A procedurally-generated teapot
 Group: Model
 Order: 20
-Icon: ..\.xktpl\ProceduralTeapot.png
+Icon: ..\.sdtpl\ProceduralTeapot.png
 DefaultOutputName: Teapot
 FactoryTypeName: ProceduralModelTeapotFactory

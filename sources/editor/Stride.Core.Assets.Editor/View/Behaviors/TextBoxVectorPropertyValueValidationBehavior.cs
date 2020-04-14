@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
 using System.Windows;
@@ -6,14 +6,14 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Microsoft.Xaml.Behaviors;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.Presentation.Adorners;
-using Xenko.Core.Presentation.Controls;
-using Xenko.Core.Presentation.Core;
-using Xenko.Core.Presentation.Extensions;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.Adorners;
+using Stride.Core.Presentation.Controls;
+using Stride.Core.Presentation.Core;
+using Stride.Core.Presentation.Extensions;
 
-namespace Xenko.Core.Assets.Editor.View.Behaviors
+namespace Stride.Core.Assets.Editor.View.Behaviors
 {
     public class TextBoxVectorPropertyValueValidationBehavior : Behavior<VectorEditorBase>
     {

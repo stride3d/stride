@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Shaders.Utility;
+using Stride.Core.Shaders.Utility;
 
-namespace Xenko.Shaders.Parser.Utility
+namespace Stride.Shaders.Parser.Utility
 {
-    static public class XenkoMessageCode
+    static public class StrideMessageCode
     {
         // analysis warning: W0###
         public static readonly MessageCode WarningDeclarationCall                   = new MessageCode("W0201", "The method invocation [{0}] calls the method [{1}] which is only declared, and not defined in class [{2}]");
@@ -36,7 +36,7 @@ namespace Xenko.Shaders.Parser.Utility
         public static readonly MessageCode ErrorMissingExtern                       = new MessageCode("E0222", "The variable [{0}] is of class type and should have the extern keyword in class [{1}]");
         public static readonly MessageCode ErrorVarNoInitialValue                   = new MessageCode("E0223", "The variable [{0}] should have an initial value to guess its type in class [{1}]");
         public static readonly MessageCode ErrorVarNoTypeFound                      = new MessageCode("E0224", "Unable to guess the type of the variable [{0}] in class [{1}]");
-        public static readonly MessageCode ErrorTechniqueFound                      = new MessageCode("E0225", "Techniques like [{0}] are not allowed in the Xenko shading language in class [{1}]");
+        public static readonly MessageCode ErrorTechniqueFound                      = new MessageCode("E0225", "Techniques like [{0}] are not allowed in the Stride shading language in class [{1}]");
         public static readonly MessageCode ErrorExternMemberNotFound                = new MessageCode("E0226", "There is no member [{0}] for the type [{1}] in class [{2}]");
         public static readonly MessageCode ErrorStreamNotFound                      = new MessageCode("E0227", "Unable to find stream variable [{0}] in class [{1}]");
         public static readonly MessageCode ErrorStreamUsage                         = new MessageCode("E0228", "the stream [{0}] was read first THEN written in class [{1}]");
@@ -51,7 +51,7 @@ namespace Xenko.Shaders.Parser.Utility
         public static readonly MessageCode ErrorMissingVariable                     = new MessageCode("E0237", "The variable [{0}] in class [{1}] is not defined");
         public static readonly MessageCode ErrorNoTypeInference                     = new MessageCode("E0238", "Unable to infer type for [{0}] in class [{1}]");
         public static readonly MessageCode ErrorShaderVariable                      = new MessageCode("E0239", "It is forbidden to create Shader variables like [{0}] in class [{1}]");
-        public static readonly MessageCode ErrorInterfaceFound                      = new MessageCode("E0240", "Hlsl interfaces like [{0}] are not allowed in Xenko. Use classes instead. In class [{1}]");
+        public static readonly MessageCode ErrorInterfaceFound                      = new MessageCode("E0240", "Hlsl interfaces like [{0}] are not allowed in Stride. Use classes instead. In class [{1}]");
         public static readonly MessageCode ErrorMixinAsGeneric                      = new MessageCode("E0241", "A class like [{0}] cannot be used as a generic parameter for [{1}] in class [{2}]");
         public static readonly MessageCode ErrorInOutStream                         = new MessageCode("E0242", "The stream [{0}] is used as an inout parameter in method [{1}] in class [{2}]");
         public static readonly MessageCode ErrorIndexerNotLiteral                   = new MessageCode("E0243", "The IndexerExpression [{0}] of a composition have to be used with a literal index in class [{1}]");

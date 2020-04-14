@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -12,22 +12,22 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using Mono.Options;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core.Assets.Yaml;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Reflection;
-using Xenko.Core.VisualStudio;
-using Xenko.Core.Yaml;
-using Xenko.Assets;
-using Xenko.Graphics;
-using Xenko.Core.ProjectTemplating;
-using Project = Xenko.Core.VisualStudio.Project;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Templates;
+using Stride.Core.Assets.Yaml;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Reflection;
+using Stride.Core.VisualStudio;
+using Stride.Core.Yaml;
+using Stride.Assets;
+using Stride.Graphics;
+using Stride.Core.ProjectTemplating;
+using Project = Stride.Core.VisualStudio.Project;
 
-namespace Xenko.ProjectGenerator
+namespace Stride.ProjectGenerator
 {
     class Program
     {
@@ -45,8 +45,8 @@ namespace Xenko.ProjectGenerator
 
             var p = new OptionSet
                 {
-                    "Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved",
-                    "Xenko Project Generator Tool - Version: "
+                    "Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved",
+                    "Stride Project Generator Tool - Version: "
                     +
                     String.Format(
                         "{0}.{1}.{2}",
@@ -84,7 +84,7 @@ namespace Xenko.ProjectGenerator
                     return 0;
                 }
 
-                var templateFolder = @"..\..\sources\tools\Xenko.ProjectGenerator\Templates";
+                var templateFolder = @"..\..\sources\tools\Stride.ProjectGenerator\Templates";
 
                 switch (commandArgs[0])
                 {
@@ -102,7 +102,7 @@ namespace Xenko.ProjectGenerator
 
                         GenerateUnitTestProject(
                             outputDirectory,
-                            Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Path.Combine(templateFolder, @"Xenko.UnitTests\Xenko.UnitTests.ttproj")),
+                            Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Path.Combine(templateFolder, @"Stride.UnitTests\Stride.UnitTests.ttproj")),
                             projectName, projectNamespace);
                         break;
 
@@ -125,9 +125,9 @@ namespace Xenko.ProjectGenerator
         {
             var projectTemplate = ProjectTemplate.Load(templateFile);
 
-            // Force reference to Xenko.Assets (to have acess to SolutionPlatform)
+            // Force reference to Stride.Assets (to have acess to SolutionPlatform)
             projectTemplate.Assemblies.Add(typeof(GraphicsProfile).Assembly.FullName);
-            projectTemplate.Assemblies.Add(typeof(XenkoConfig).Assembly.FullName);
+            projectTemplate.Assemblies.Add(typeof(StrideConfig).Assembly.FullName);
 
             var options = new Dictionary<string, object>();
 
@@ -135,7 +135,7 @@ namespace Xenko.ProjectGenerator
             // for better incrementality
             Guid projectGuid, assetId;
             GetExistingGuid(outputDirectory, name + ".Windows.csproj", out projectGuid);
-            GetExistingAssetId(outputDirectory, name + ".xkpkg", out assetId);
+            GetExistingAssetId(outputDirectory, name + ".sdpkg", out assetId);
 
             var session = new PackageSession();
             var result = new LoggerResult();
@@ -169,19 +169,19 @@ namespace Xenko.ProjectGenerator
             var previousCurrent = session.CurrentProject;
             session.CurrentProject = project;
 
-            // Compute Xenko Sdk relative path
-            // We are supposed to be in standard output binary folder, so Xenko root should be at ..\..
-            var xenkoPath = UPath.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), new UDirectory(@"..\.."));
-            var xenkoRelativePath = new UDirectory(xenkoPath)
+            // Compute Stride Sdk relative path
+            // We are supposed to be in standard output binary folder, so Stride root should be at ..\..
+            var stridePath = UPath.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), new UDirectory(@"..\.."));
+            var strideRelativePath = new UDirectory(stridePath)
                 .MakeRelative(outputDirectory)
                 .ToString()
                 .Replace('/', '\\');
-            xenkoRelativePath = xenkoRelativePath.TrimEnd('\\');
+            strideRelativePath = strideRelativePath.TrimEnd('\\');
 
             options["Namespace"] = projectNamespace ?? name;
             options["Package"] = project.Package;
             options["Platforms"] = new List<SolutionPlatform>(AssetRegistry.SupportedPlatforms);
-            options["XenkoSdkRelativeDir"] = xenkoRelativePath;
+            options["StrideSdkRelativeDir"] = strideRelativePath;
 
             // Generate project template
             result = projectTemplate.Generate(outputDirectory, name, projectGuid, options);
@@ -387,8 +387,8 @@ namespace Xenko.ProjectGenerator
 
                 bool shouldKeep = false;
 
-                // Check XenkoSupportedPlatforms
-                var buildTagsNode = doc.XPathSelectElement("/x:Project/x:PropertyGroup/x:XenkoBuildTags", mgr);
+                // Check StrideSupportedPlatforms
+                var buildTagsNode = doc.XPathSelectElement("/x:Project/x:PropertyGroup/x:StrideBuildTags", mgr);
                 if (buildTagsNode != null)
                 {
                     var buildTags = buildTagsNode.Value;
@@ -641,12 +641,12 @@ namespace Xenko.ProjectGenerator
                 foreach (var context in projectProcessorContexts)
                 {
                     // Check if platform is forced (in which case configuration line value should be kept as is)
-                    var xenkoPlatformNode =
-                        context.Document.XPathSelectElement("/x:Project/x:PropertyGroup/x:XenkoPlatform",
+                    var stridePlatformNode =
+                        context.Document.XPathSelectElement("/x:Project/x:PropertyGroup/x:StridePlatform",
                             context.NamespaceManager);
 
-                    // Keep project platform only if XenkoPlatform is set manually to Windows and not a platform specific project
-                    bool keepProjectPlatform = (xenkoPlatformNode != null && xenkoPlatformNode.Value == "Windows") && !context.Modified;
+                    // Keep project platform only if StridePlatform is set manually to Windows and not a platform specific project
+                    bool keepProjectPlatform = (stridePlatformNode != null && stridePlatformNode.Value == "Windows") && !context.Modified;
 
                     // Extract config, we want to parse {78A3E406-EC0E-43B8-8EF2-30D3A149FBB6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
                     // into:

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #region Copyright and license
@@ -36,7 +36,7 @@ using System.Threading.Tasks;
 
 // Original idea from Stephen Toub: http://blogs.msdn.com/b/pfxteam/archive/2012/02/12/10266988.aspx
 
-namespace Xenko.Core.Threading
+namespace Stride.Core.Threading
 {
     /// <summary>
     /// A mutual exclusion lock that is compatible with async. Note that this lock is <b>not</b> recursive!

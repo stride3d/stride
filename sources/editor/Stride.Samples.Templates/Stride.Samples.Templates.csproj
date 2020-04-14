@@ -1,16 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
 
   <PropertyGroup>
-    <XenkoPackAssets>true</XenkoPackAssets>
+    <StridePackAssets>true</StridePackAssets>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
     <EnableDefaultItems>false</EnableDefaultItems>
     <!-- Extract PackageVersion from ThisPackageVersion.cs -->
-    <_XenkoThisPackageVersionLines>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)ThisPackageVersion.cs'))</_XenkoThisPackageVersionLines>
-    <PackageVersion>$([System.Text.RegularExpressions.Regex]::Match($(_XenkoThisPackageVersionLines), `.*Current = \"(.*)\";.*`).Groups[1].Value)</PackageVersion>
+    <_StrideThisPackageVersionLines>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)ThisPackageVersion.cs'))</_StrideThisPackageVersionLines>
+    <PackageVersion>$([System.Text.RegularExpressions.Regex]::Match($(_StrideThisPackageVersionLines), `.*Current = \"(.*)\";.*`).Groups[1].Value)</PackageVersion>
   </PropertyGroup>
 
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
 
   <ItemGroup>
     <Compile Include="ThisPackageVersion.cs" />

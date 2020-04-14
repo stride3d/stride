@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Assets.Presentation.AssetEditors.GameEditor;
-using Xenko.Rendering.Materials;
+using Stride.Assets.Presentation.AssetEditors.GameEditor;
+using Stride.Rendering.Materials;
 
-namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor
+namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor
 {
     /// <summary>
     /// Describes an editor rendering mode. They will be displayed in scene editor combobox (Game, Editor, Diffuse, etc...)

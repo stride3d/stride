@@ -47,7 +47,7 @@ using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Xenko.Core.Yaml.Schemas
+namespace Stride.Core.Yaml.Schemas
 {
     /// <summary>
     /// Implements a JSON schema. <see cref="http://www.yaml.org/spec/1.2/spec.html#id2803231" />

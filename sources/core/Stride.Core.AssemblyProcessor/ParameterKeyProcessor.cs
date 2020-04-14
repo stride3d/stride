@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ using Mono.Cecil.Pdb;
 using Mono.Cecil.Rocks;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 
-namespace Xenko.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor
 {
     internal class ParameterKeyProcessor : IAssemblyDefinitionProcessor
     {
@@ -45,12 +45,12 @@ namespace Xenko.Core.AssemblyProcessor
                     var fieldBaseType = field.FieldType;
                     while (fieldBaseType != null)
                     {
-                        if (fieldBaseType.FullName == "Xenko.Rendering.ParameterKey")
+                        if (fieldBaseType.FullName == "Stride.Rendering.ParameterKey")
                             break;
 
                         // TODO: Get PropertyKey.PropertyType instead
                         var genericInstance = fieldBaseType as GenericInstanceType;
-                        if (genericInstance != null && genericInstance.ElementType.FullName == "Xenko.Rendering.ParameterKey`1")
+                        if (genericInstance != null && genericInstance.ElementType.FullName == "Stride.Rendering.ParameterKey`1")
                         {
                             var genericArgument = genericInstance.GenericArguments.First();
                             if (genericArgument.IsArray)
@@ -83,26 +83,26 @@ namespace Xenko.Core.AssemblyProcessor
                 if (cctor == null)
                     continue;
 
-                // Load necessary Xenko methods/attributes
+                // Load necessary Stride methods/attributes
                 if (parameterKeysMergeMethod == null)
                 {
-                    AssemblyDefinition xenkoEngineAssembly;
+                    AssemblyDefinition strideEngineAssembly;
                     try
                     {
-                        xenkoEngineAssembly = assembly.Name.Name == "Xenko"
+                        strideEngineAssembly = assembly.Name.Name == "Stride"
                             ? assembly
-                            : context.AssemblyResolver.Resolve(new AssemblyNameReference("Xenko", null));
+                            : context.AssemblyResolver.Resolve(new AssemblyNameReference("Stride", null));
                     }
                     catch (Exception)
                     {
-                        context.Log.WriteLine("Error, cannot find [Xenko] assembly for processing ParameterKeyProcessor");
-                        // We can't generate an exception, so we are just returning. It means that Xenko has not been generated so far.
+                        context.Log.WriteLine("Error, cannot find [Stride] assembly for processing ParameterKeyProcessor");
+                        // We can't generate an exception, so we are just returning. It means that Stride has not been generated so far.
                         return true;
                     }
 
-                    var parameterKeysType = xenkoEngineAssembly.MainModule.GetTypes().First(x => x.Name == "ParameterKeys");
+                    var parameterKeysType = strideEngineAssembly.MainModule.GetTypes().First(x => x.Name == "ParameterKeys");
                     parameterKeysMergeMethod = parameterKeysType.Methods.First(x => x.Name == "Merge");
-                    assemblyEffectKeysAttributeType = xenkoEngineAssembly.MainModule.GetTypes().First(x => x.Name == "AssemblyEffectKeysAttribute");
+                    assemblyEffectKeysAttributeType = strideEngineAssembly.MainModule.GetTypes().First(x => x.Name == "AssemblyEffectKeysAttribute");
                 }
 
                 var cctorIL = cctor.Body.GetILProcessor();
@@ -204,11 +204,11 @@ namespace Xenko.Core.AssemblyProcessor
                 // Create instances of InternalValueArray<T>. Required for LLVM AOT
                 foreach (var elementType in effectKeysArrayElemementTypes)
                 {
-                    var xenkoAssembly = assembly.Name.Name == "Xenko" ? assembly : assembly.MainModule.AssemblyResolver.Resolve(new AssemblyNameReference("Xenko", null));
-                    var parameterCollectionType = xenkoAssembly.MainModule.GetTypeResolved("Xenko.Rendering.ParameterCollection");
+                    var strideAssembly = assembly.Name.Name == "Stride" ? assembly : assembly.MainModule.AssemblyResolver.Resolve(new AssemblyNameReference("Stride", null));
+                    var parameterCollectionType = strideAssembly.MainModule.GetTypeResolved("Stride.Rendering.ParameterCollection");
                     var internalValueArrayType = parameterCollectionType.NestedTypes.First(x => x.Name == "InternalValueArray`1");
                     var constructor = internalValueArrayType.GetConstructors().First();
-                    var internalValueArrayConstructor = xenkoAssembly.MainModule.ImportReference(constructor).MakeGeneric(elementType);
+                    var internalValueArrayConstructor = strideAssembly.MainModule.ImportReference(constructor).MakeGeneric(elementType);
 
                     il.Append(Instruction.Create(OpCodes.Ldc_I4_0));
                     il.Append(Instruction.Create(OpCodes.Newobj, internalValueArrayConstructor));

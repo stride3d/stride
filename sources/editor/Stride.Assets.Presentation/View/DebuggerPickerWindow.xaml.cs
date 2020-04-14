@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.VisualStudio;
-using Xenko.Assets.Presentation.SceneEditor.Services;
-using Xenko.Core.Presentation.Collections;
-using Xenko.Core.Presentation.Services;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.VisualStudio;
+using Stride.Assets.Presentation.SceneEditor.Services;
+using Stride.Core.Presentation.Collections;
+using Stride.Core.Presentation.Services;
 
-namespace Xenko.Assets.Presentation.View
+namespace Stride.Assets.Presentation.View
 {
     public partial class DebuggerPickerWindow : INotifyPropertyChanged, IDebuggerPickerDialog
     {
@@ -95,7 +95,7 @@ namespace Xenko.Assets.Presentation.View
 
             await base.ShowModal();
 
-            if (Result != Xenko.Core.Presentation.Services.DialogResult.Ok)
+            if (Result != Stride.Core.Presentation.Services.DialogResult.Ok)
             {
                 SelectedDebugger = null;
             }

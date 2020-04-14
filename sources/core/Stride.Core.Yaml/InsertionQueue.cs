@@ -46,7 +46,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     /// <summary>
     /// Generic queue on which items may be inserted

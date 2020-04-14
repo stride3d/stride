@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Presentation.ValueConverters
+namespace Stride.Core.Presentation.ValueConverters
 {
     /// <summary>
     /// This converter will convert a double value to a <see cref="Size"/> structure.
     /// A <see cref="Size"/> must be passed as a parameter of this converter. You can use the <see cref="MarkupExtensions.SizeExtension"/>
-    /// markup extension to easily pass one, with the following syntax: {xk:Size (arguments)}. The resulting size will
+    /// markup extension to easily pass one, with the following syntax: {sd:Size (arguments)}. The resulting size will
     /// be the parameter size multiplied bu the scalar double value.
     /// </summary>
     [ValueConversion(typeof(double), typeof(Size))]
@@ -33,7 +33,7 @@ namespace Xenko.Core.Presentation.ValueConverters
 
             if (!(parameter is Size))
             {
-                throw new ArgumentException("The parameter of this converter must be an instance of the Size structure. Use {xk:Size (arguments)} to construct one.");
+                throw new ArgumentException("The parameter of this converter must be an instance of the Size structure. Use {sd:Size (arguments)} to construct one.");
             }
 
             var size = (Size)parameter;

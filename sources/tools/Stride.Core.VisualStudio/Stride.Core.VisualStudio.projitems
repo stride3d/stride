@@ -6,7 +6,7 @@
     <SharedGUID>991e796a-d1d1-48b8-b9aa-95c2744fe112</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Xenko.Core.VisualStudio</Import_RootNamespace>
+    <Import_RootNamespace>Stride.Core.VisualStudio</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)MessageFilter.cs" />

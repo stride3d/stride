@@ -1,4 +1,4 @@
-﻿namespace Xenko.Metrics.ServerApp.Models
+﻿namespace Stride.Metrics.ServerApp.Models
 {
     public class AggregationPerPlatforms : AggregateBase
     {

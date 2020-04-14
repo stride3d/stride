@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core;
-using Xenko.Graphics;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core;
+using Stride.Graphics;
 
-namespace Xenko.Assets
+namespace Stride.Assets
 {
     public static class AssetCompilerContextExtensions
     {
@@ -33,7 +33,7 @@ namespace Xenko.Assets
         {
             // If we have a command line override, use it first
             string graphicsApi;
-            if (context.OptionProperties.TryGetValue("XenkoGraphicsApi", out graphicsApi))
+            if (context.OptionProperties.TryGetValue("StrideGraphicsApi", out graphicsApi))
                 return (GraphicsPlatform)Enum.Parse(typeof(GraphicsPlatform), graphicsApi);
 
             if (context.OptionProperties.TryGetValue("RuntimeIdentifier", out var runtimeIdentifier))

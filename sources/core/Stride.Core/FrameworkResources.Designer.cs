@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Xenko.Core {
+namespace Stride.Core {
     using System;
     using System.Reflection;
     
@@ -40,7 +40,7 @@ namespace Xenko.Core {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    var temp = new global::System.Resources.ResourceManager("Xenko.Core.FrameworkResources", typeof(FrameworkResources).GetTypeInfo().Assembly);
+                    var temp = new global::System.Resources.ResourceManager("Stride.Core.FrameworkResources", typeof(FrameworkResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

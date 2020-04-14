@@ -1,6 +1,6 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-namespace Xenko.Core.Assets.Quantum.Tests.Helpers
+namespace Stride.Core.Assets.Quantum.Tests.Helpers
 {
     public class DeriveAssetTest<TAsset, TAssetPropertyGraph> where TAsset : Asset where TAssetPropertyGraph : AssetPropertyGraph
     {

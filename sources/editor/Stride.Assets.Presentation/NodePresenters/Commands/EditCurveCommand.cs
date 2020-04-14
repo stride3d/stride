@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Reflection;
-using Xenko.Core.Presentation.Quantum.Presenters;
-using Xenko.Animations;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
+using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Animations;
 
-namespace Xenko.Assets.Presentation.NodePresenters.Commands
+namespace Stride.Assets.Presentation.NodePresenters.Commands
 {
     public class EditCurveCommand : SyncNodePresenterCommandBase
     {

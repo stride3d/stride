@@ -5,7 +5,7 @@ Scope: Session
 Description: A virtual reality game template
 Group: Templates
 FullDescription: This sample demonstrates a simple VR game. The player can interact with objects using the triggers on either hand, and teleport with A or the thumb button on the right-hand controller.
-Icon: ../../.xktpl/Icon2VR.png
+Icon: ../../.sdtpl/Icon2VR.png
 DefaultOutputName: VRSandbox
 Screenshots:
-    - .xktpl/screenshot_small.jpg
+    - .sdtpl/screenshot_small.jpg

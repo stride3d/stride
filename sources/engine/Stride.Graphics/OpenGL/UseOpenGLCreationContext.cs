@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_OPENGL
+#if STRIDE_GRAPHICS_API_OPENGL
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using OpenTK.Graphics;
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 #else
 using OpenTK.Graphics.OpenGL;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// Used internally to provide a context for async resource creation
@@ -30,11 +30,11 @@ namespace Xenko.Graphics
 
         private readonly IGraphicsContext deviceCreationContext;
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
         private readonly bool tegraWorkaround;
 #endif
 
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
         private OpenGLES.EAGLContext previousContext;
 #endif
 
@@ -48,7 +48,7 @@ namespace Xenko.Graphics
                 needUnbindContext = true;
                 useDeviceCreationContext = true;
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
                 tegraWorkaround = graphicsDevice.Workaround_Context_Tegra2_Tegra3;
 
                 // Notify main rendering thread there is some pending async work to do
@@ -64,13 +64,13 @@ namespace Xenko.Graphics
                 asyncCreationLockObject = graphicsDevice.asyncCreationLockObject;
                 Monitor.Enter(graphicsDevice.asyncCreationLockObject, ref asyncCreationLockTaken);
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
                 if (tegraWorkaround)
                     graphicsDevice.AsyncPendingTaskWaiting = false;
 #endif
 
 
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
                 previousContext = OpenGLES.EAGLContext.CurrentContext;
                 var localContext = graphicsDevice.ThreadLocalContext.Value;
                 OpenGLES.EAGLContext.SetCurrentContext(localContext);
@@ -95,7 +95,7 @@ namespace Xenko.Graphics
                 {
                     GL.Flush();
 
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
                     if (previousContext != null)
                         OpenGLES.EAGLContext.SetCurrentContext(previousContext);
 #else
@@ -109,7 +109,7 @@ namespace Xenko.Graphics
                 // Unlock
                 if (asyncCreationLockTaken)
                 {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
                     if (tegraWorkaround)
                     {
                         // Notify GraphicsDevice.ExecutePendingTasks() that we are done.

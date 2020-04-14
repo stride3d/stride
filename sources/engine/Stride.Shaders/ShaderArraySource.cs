@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using Xenko.Core;
+using Stride.Core;
 
-namespace Xenko.Shaders
+namespace Stride.Shaders
 {
     /// <summary>
     /// An array of <see cref="ShaderSource"/> used only in shader mixin compositions.

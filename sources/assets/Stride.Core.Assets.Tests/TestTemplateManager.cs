@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
-using Xenko.Core.Assets.Templates;
+using Stride.Core.Assets.Templates;
 
-namespace Xenko.Core.Assets.Tests
+namespace Stride.Core.Assets.Tests
 {
     /// <summary>
     /// Tests for the <see cref="TemplateManager"/> class.
@@ -16,7 +16,7 @@ namespace Xenko.Core.Assets.Tests
         [Fact(Skip = "Need check")]
         public void TestTemplateDescriptions()
         {
-            // Preload templates defined in Xenko.xkpkg
+            // Preload templates defined in Stride.sdpkg
             var descriptions = TemplateManager.FindTemplates().ToList();
 
             // Expect currently 4 templates

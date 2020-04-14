@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -7,12 +7,12 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
-using Xenko.Core.Annotations;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Presentation.Extensions;
-using Xenko.Core.Presentation.Interop;
+using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
+using Stride.Core.Presentation.Extensions;
+using Stride.Core.Presentation.Interop;
 
-namespace Xenko.Core.Presentation.Windows
+namespace Stride.Core.Presentation.Windows
 {
     /// <summary>
     /// A singleton class to manage the windows of an application and their relation to each other. It introduces the concept of blocking window,

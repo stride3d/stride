@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core;
-using Xenko.Core.Extensions;
-using Xenko.Shaders.Parser.Analysis;
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Shaders.Parser.Utility;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Parser;
-using Xenko.Core.Shaders.Utility;
+using Stride.Core;
+using Stride.Core.Extensions;
+using Stride.Shaders.Parser.Analysis;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Shaders.Parser.Utility;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Parser;
+using Stride.Core.Shaders.Utility;
 
-namespace Xenko.Shaders.Parser.Mixins
+namespace Stride.Shaders.Parser.Mixins
 {
     internal class ShaderCompilationContext
     {
@@ -146,7 +146,7 @@ namespace Xenko.Shaders.Parser.Mixins
                         if (member is MethodDeclaration)
                         {
                             moduleMixin.LocalVirtualTable.Methods.Add(new MethodDeclarationShaderCouple(member as MethodDeclaration, mixinAst));
-                            member.SetTag(XenkoTags.VirtualTableReference, new VTableReference { Shader = mixinInfo.MixinName, Slot = vtindex++ });
+                            member.SetTag(StrideTags.VirtualTableReference, new VTableReference { Shader = mixinInfo.MixinName, Slot = vtindex++ });
                         }
                         else if (member is Variable)
                         {
@@ -166,26 +166,26 @@ namespace Xenko.Shaders.Parser.Mixins
                             moduleMixin.RemainingNodes.Add(member);
 
                         // set a tag on the members to easily recognize them from the local declarations/definitions
-                        member.SetTag(XenkoTags.ShaderScope, moduleMixin);
-                        member.SetTag(XenkoTags.BaseDeclarationMixin, mixinInfo.MixinName);
+                        member.SetTag(StrideTags.ShaderScope, moduleMixin);
+                        member.SetTag(StrideTags.BaseDeclarationMixin, mixinInfo.MixinName);
                     }
 
                     // Check name conflicts
                     foreach (var method in moduleMixin.LocalVirtualTable.Methods)
                     {
                         if (moduleMixin.LocalVirtualTable.Methods.Count(x => x.Method.IsSameSignature(method.Method)) > 1) // 1 because the function is in the list
-                            ErrorWarningLog.Error(XenkoMessageCode.ErrorFunctionRedefined, method.Method.Span, method.Method, mixinInfo.MixinName);
+                            ErrorWarningLog.Error(StrideMessageCode.ErrorFunctionRedefined, method.Method.Span, method.Method, mixinInfo.MixinName);
 
                         if (moduleMixin.LocalVirtualTable.Variables.Any(x => x.Variable.Name.Text == method.Method.Name.Text))
-                            ErrorWarningLog.Error(XenkoMessageCode.ErrorFunctionVariableNameConflict, method.Method.Span, method.Method, mixinInfo.MixinName);
+                            ErrorWarningLog.Error(StrideMessageCode.ErrorFunctionVariableNameConflict, method.Method.Span, method.Method, mixinInfo.MixinName);
                     }
                     foreach (var variable in moduleMixin.LocalVirtualTable.Variables)
                     {
                         if (moduleMixin.LocalVirtualTable.Variables.Count(x => x.Variable.Name.Text == variable.Variable.Name.Text) > 1) // 1 because the function is in the list
-                            ErrorWarningLog.Error(XenkoMessageCode.ErrorFunctionVariableNameConflict, variable.Variable.Span, variable.Variable, mixinInfo.MixinName);
+                            ErrorWarningLog.Error(StrideMessageCode.ErrorFunctionVariableNameConflict, variable.Variable.Span, variable.Variable, mixinInfo.MixinName);
 
                         if (moduleMixin.LocalVirtualTable.Methods.Any(x => x.Method.Name.Text == variable.Variable.Name.Text))
-                            ErrorWarningLog.Error(XenkoMessageCode.ErrorVariableNameConflict, variable.Variable.Span, variable.Variable, mixinInfo.MixinName);
+                            ErrorWarningLog.Error(StrideMessageCode.ErrorVariableNameConflict, variable.Variable.Span, variable.Variable, mixinInfo.MixinName);
                     }
                 }
 
@@ -208,7 +208,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 return;
             if (mixin.DependenciesStatus == AnalysisStatus.InProgress)
             {
-                ErrorWarningLog.Error(XenkoMessageCode.ErrorCyclicDependency, mixin.Shader.Span, mixin.Shader);
+                ErrorWarningLog.Error(StrideMessageCode.ErrorCyclicDependency, mixin.Shader.Span, mixin.Shader);
                 mixin.DependenciesStatus = AnalysisStatus.Cyclic;
                 return;
             }
@@ -223,7 +223,7 @@ namespace Xenko.Shaders.Parser.Mixins
 
                     if (bcInfo == null)
                     {
-                        ErrorWarningLog.Error(XenkoMessageCode.ErrorDependencyNotInModule, baseClass.Span, baseClass, mixin.MixinName);
+                        ErrorWarningLog.Error(StrideMessageCode.ErrorDependencyNotInModule, baseClass.Span, baseClass, mixin.MixinName);
                         mixin.DependenciesStatus = AnalysisStatus.Error;
                         return;
                     }
@@ -262,7 +262,7 @@ namespace Xenko.Shaders.Parser.Mixins
                     var baseClassInfo = MixinInfos.FirstOrDefault(x => x.MixinName == variableTypeName);
                     if (baseClassInfo != null)
                     {
-                        variable.Variable.Qualifiers |= Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern; // add the extern keyword but simpler analysis in the future
+                        variable.Variable.Qualifiers |= Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern; // add the extern keyword but simpler analysis in the future
                         if (variable.Variable.InitialValue is VariableReferenceExpression && (variable.Variable.InitialValue as VariableReferenceExpression).Name.Text == "stage")
                             mixin.StageInitVariableDependencies.Add(variable.Variable, baseClassInfo.Mixin);
                         else
@@ -297,7 +297,7 @@ namespace Xenko.Shaders.Parser.Mixins
                     mixinInfo.Mixin.TypeAnalysisStatus = AnalysisStatus.InProgress;
 
                     // TODO: order + typedef
-                    var typeAnalyzer = new XenkoTypeAnalysis(new ParsingResult());
+                    var typeAnalyzer = new StrideTypeAnalysis(new ParsingResult());
                     typeAnalyzer.Run(mixinInfo.MixinAst);
                     mixinInfo.Mixin.TypeAnalysisStatus = AnalysisStatus.Complete;
                 }
@@ -366,10 +366,10 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="mixin">the ModuleMixin to check</param>
         private void CheckStageClass(ModuleMixin mixin)
         {
-            mixin.StageOnlyClass = mixin.VirtualTable.Variables.All(x => x.Variable.Qualifiers.Contains(XenkoStorageQualifier.Stage)
-                                                                      && !x.Variable.Qualifiers.Contains(XenkoStorageQualifier.Compose)) // composition variable can be stage but the classes behind may not be.
-                                && mixin.VirtualTable.Methods.All(x => x.Method.Qualifiers.Contains(XenkoStorageQualifier.Stage)
-                                                                    && !x.Method.Qualifiers.Contains(XenkoStorageQualifier.Clone));
+            mixin.StageOnlyClass = mixin.VirtualTable.Variables.All(x => x.Variable.Qualifiers.Contains(StrideStorageQualifier.Stage)
+                                                                      && !x.Variable.Qualifiers.Contains(StrideStorageQualifier.Compose)) // composition variable can be stage but the classes behind may not be.
+                                && mixin.VirtualTable.Methods.All(x => x.Method.Qualifiers.Contains(StrideStorageQualifier.Stage)
+                                                                    && !x.Method.Qualifiers.Contains(StrideStorageQualifier.Clone));
         }
 
         /// <summary>
@@ -390,7 +390,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 return;
             if (mixin.SemanticAnalysisStatus == AnalysisStatus.InProgress)
             {
-                ErrorWarningLog.Error(XenkoMessageCode.ErrorCyclicDependency, mixin.Shader.Span, mixin.Shader);
+                ErrorWarningLog.Error(StrideMessageCode.ErrorCyclicDependency, mixin.Shader.Span, mixin.Shader);
                 return;
             }
             if (!mixinInfo.Instanciated)
@@ -438,13 +438,13 @@ namespace Xenko.Shaders.Parser.Mixins
 
             var compilationContext = MixinInfos.Select(x => x.Mixin).ToList();
 
-            mixin.ParsingInfo = XenkoSemanticAnalysis.RunAnalysis(mixin, compilationContext);
+            mixin.ParsingInfo = StrideSemanticAnalysis.RunAnalysis(mixin, compilationContext);
 
             var staticStageMixins = new List<ModuleMixin>();
-            staticStageMixins.AddRange(mixin.ParsingInfo.StaticReferences.VariablesReferences.Select(x => x.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin));
-            staticStageMixins.AddRange(mixin.ParsingInfo.StaticReferences.MethodsReferences.Select(x => x.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin));
-            staticStageMixins.AddRange(mixin.ParsingInfo.StageInitReferences.VariablesReferences.Select(x => x.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin));
-            staticStageMixins.AddRange(mixin.ParsingInfo.StageInitReferences.MethodsReferences.Select(x => x.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin));
+            staticStageMixins.AddRange(mixin.ParsingInfo.StaticReferences.VariablesReferences.Select(x => x.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin));
+            staticStageMixins.AddRange(mixin.ParsingInfo.StaticReferences.MethodsReferences.Select(x => x.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin));
+            staticStageMixins.AddRange(mixin.ParsingInfo.StageInitReferences.VariablesReferences.Select(x => x.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin));
+            staticStageMixins.AddRange(mixin.ParsingInfo.StageInitReferences.MethodsReferences.Select(x => x.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin));
             staticStageMixins.RemoveAll(x => x == mixin);
 
             foreach (var dep in staticStageMixins)
@@ -483,14 +483,14 @@ namespace Xenko.Shaders.Parser.Mixins
             foreach (var variable in externMixin.ParsingInfo.StageInitializedVariables)
             {
                 if (variable.Type.Name.Text != contextMixin.MixinName && contextMixin.InheritanceList.All(x => x.MixinName == variable.Type.Name.Text)) // since it is the same AST, compare the object?
-                    ErrorWarningLog.Error(XenkoMessageCode.ErrorExternStageVariableNotFound, variable.Span, variable, externMixin.MixinName);
+                    ErrorWarningLog.Error(StrideMessageCode.ErrorExternStageVariableNotFound, variable.Span, variable, externMixin.MixinName);
             }
 
             foreach (var stageCall in externMixin.ParsingInfo.StageMethodCalls)
             {
                 var decl = contextMixin.FindTopThisFunction(stageCall).FirstOrDefault();
                 if (decl == null)
-                    ErrorWarningLog.Error(XenkoMessageCode.ErrorExternStageFunctionNotFound, stageCall.Span, stageCall, externMixin.MixinName, contextMixin.MixinName);
+                    ErrorWarningLog.Error(StrideMessageCode.ErrorExternStageFunctionNotFound, stageCall.Span, stageCall, externMixin.MixinName, contextMixin.MixinName);
             }
 
             // recursive calls
@@ -516,7 +516,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="macros0">The first set of macros.</param>
         /// <param name="macros1">The second set of macros.</param>
         /// <returns>True if the sets match, false otherwise.</returns>
-        private static bool AreMacrosEqual(Xenko.Core.Shaders.Parser.ShaderMacro[] macros0, Xenko.Core.Shaders.Parser.ShaderMacro[] macros1)
+        private static bool AreMacrosEqual(Stride.Core.Shaders.Parser.ShaderMacro[] macros0, Stride.Core.Shaders.Parser.ShaderMacro[] macros1)
         {
             return macros0.All(macro => macros1.Any(x => x.Name == macro.Name && x.Definition == macro.Definition)) && macros1.All(macro => macros0.Any(x => x.Name == macro.Name && x.Definition == macro.Definition));
         }

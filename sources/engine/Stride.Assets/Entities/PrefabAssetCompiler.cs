@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.BuildEngine;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Engine;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.BuildEngine;
+using Stride.Core.Serialization.Contents;
+using Stride.Engine;
 
-namespace Xenko.Assets.Entities
+namespace Stride.Assets.Entities
 {
     [AssetCompiler(typeof(PrefabAsset), typeof(AssetCompilationContext))]
     public class PrefabAssetCompiler : EntityHierarchyCompilerBase<PrefabAsset>

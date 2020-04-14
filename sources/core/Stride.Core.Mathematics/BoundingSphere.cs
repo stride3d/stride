@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // -----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace Xenko.Core.Mathematics
+namespace Stride.Core.Mathematics
 {
     /// <summary>
     /// Represents a bounding sphere in three dimensional space.
@@ -66,7 +66,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.Ray"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.Ray"/>.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
@@ -77,7 +77,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.Ray"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.Ray"/>.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="distance">When the method completes, contains the distance of the intersection,
@@ -89,11 +89,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.Ray"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.Ray"/>.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="point">When the method completes, contains the point of intersection,
-        /// or <see cref="Xenko.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+        /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
         public bool Intersects(ref Ray ray, out Vector3 point)
         {
@@ -101,7 +101,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.Plane"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.Plane"/>.
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
@@ -123,7 +123,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.BoundingBox"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.BoundingBox"/>.
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
@@ -133,7 +133,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
@@ -165,7 +165,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the current objects contains a <see cref="Xenko.Core.Mathematics.BoundingBox"/>.
+        /// Determines whether the current objects contains a <see cref="Stride.Core.Mathematics.BoundingBox"/>.
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
@@ -175,7 +175,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the current objects contains a <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Determines whether the current objects contains a <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <returns>The type of containment the two objects have.</returns>
@@ -185,7 +185,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Constructs a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> that fully contains the given points.
+        /// Constructs a <see cref="Stride.Core.Mathematics.BoundingSphere"/> that fully contains the given points.
         /// </summary>
         /// <param name="points">The points that will be contained by the sphere.</param>
         /// <param name="result">When the method completes, contains the newly constructed bounding sphere.</param>
@@ -199,7 +199,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Constructs a <see cref="Xenko.Core.Mathematics.BoundingSphere" /> that fully contains the given unmanaged points.
+        /// Constructs a <see cref="Stride.Core.Mathematics.BoundingSphere" /> that fully contains the given unmanaged points.
         /// </summary>
         /// <param name="vertexBufferPtr">A pointer to of vertices containing points.</param>
         /// <param name="vertexPositionOffsetInBytes">The point offset in bytes starting from the vertex structure.</param>
@@ -251,7 +251,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Constructs a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> that fully contains the given points.
+        /// Constructs a <see cref="Stride.Core.Mathematics.BoundingSphere"/> that fully contains the given points.
         /// </summary>
         /// <param name="points">The points that will be contained by the sphere.</param>
         /// <returns>The newly constructed bounding sphere.</returns>
@@ -263,7 +263,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Constructs a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> from a given box.
+        /// Constructs a <see cref="Stride.Core.Mathematics.BoundingSphere"/> from a given box.
         /// </summary>
         /// <param name="box">The box that will designate the extents of the sphere.</param>
         /// <param name="result">When the method completes, the newly constructed bounding sphere.</param>
@@ -280,7 +280,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Constructs a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> from a given box.
+        /// Constructs a <see cref="Stride.Core.Mathematics.BoundingSphere"/> from a given box.
         /// </summary>
         /// <param name="box">The box that will designate the extents of the sphere.</param>
         /// <returns>The newly constructed bounding sphere.</returns>
@@ -310,7 +310,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Constructs a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> that is the as large as the total combined area of the two specified spheres.
+        /// Constructs a <see cref="Stride.Core.Mathematics.BoundingSphere"/> that is the as large as the total combined area of the two specified spheres.
         /// </summary>
         /// <param name="value1">The first sphere to merge.</param>
         /// <param name="value2">The second sphere to merge.</param>
@@ -360,7 +360,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Constructs a <see cref="Xenko.Core.Mathematics.BoundingSphere"/> that is the as large as the total combined area of the two specified spheres.
+        /// Constructs a <see cref="Stride.Core.Mathematics.BoundingSphere"/> that is the as large as the total combined area of the two specified spheres.
         /// </summary>
         /// <param name="value1">The first sphere to merge.</param>
         /// <param name="value2">The second sphere to merge.</param>
@@ -462,11 +462,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="Xenko.Core.Mathematics.Vector4"/> is equal to this instance.
+        /// Determines whether the specified <see cref="Stride.Core.Mathematics.Vector4"/> is equal to this instance.
         /// </summary>
-        /// <param name="value">The <see cref="Xenko.Core.Mathematics.Vector4"/> to compare with this instance.</param>
+        /// <param name="value">The <see cref="Stride.Core.Mathematics.Vector4"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="Xenko.Core.Mathematics.Vector4"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="Stride.Core.Mathematics.Vector4"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(BoundingSphere value)
         {
@@ -493,7 +493,7 @@ namespace Xenko.Core.Mathematics
 
 #if SlimDX1xInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.BoundingSphere"/> to <see cref="SlimDX.BoundingSphere"/>.
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.BoundingSphere"/> to <see cref="SlimDX.BoundingSphere"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -503,7 +503,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="SlimDX.BoundingSphere"/> to <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Performs an implicit conversion from <see cref="SlimDX.BoundingSphere"/> to <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -515,7 +515,7 @@ namespace Xenko.Core.Mathematics
 
 #if SlimDX1xInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.BoundingSphere"/> to <see cref="Microsoft.Xna.Framework.BoundingSphere"/>.
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.BoundingSphere"/> to <see cref="Microsoft.Xna.Framework.BoundingSphere"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -525,7 +525,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.BoundingSphere"/> to <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.BoundingSphere"/> to <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>

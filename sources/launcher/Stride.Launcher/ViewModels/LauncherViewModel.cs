@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 //#define SIMULATE_OFFLINE
@@ -12,18 +12,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 
-using Xenko.Core.Extensions;
-using Xenko.PrivacyPolicy;
-using Xenko.LauncherApp.Resources;
-using Xenko.LauncherApp.Services;
-using Xenko.Core.Packages;
-using Xenko.Core.Presentation.Collections;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Metrics;
+using Stride.Core.Extensions;
+using Stride.PrivacyPolicy;
+using Stride.LauncherApp.Resources;
+using Stride.LauncherApp.Services;
+using Stride.Core.Packages;
+using Stride.Core.Presentation.Collections;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Metrics;
 
-namespace Xenko.LauncherApp.ViewModels
+namespace Stride.LauncherApp.ViewModels
 {
     /// <summary>
     /// This class represents the root view model of the launcher.
@@ -31,12 +31,12 @@ namespace Xenko.LauncherApp.ViewModels
     internal class LauncherViewModel : DispatcherViewModel, IPackagesLogger, IDisposable
     {
         private readonly NugetStore store;
-        private readonly SortedObservableCollection<XenkoVersionViewModel> xenkoVersions = new SortedObservableCollection<XenkoVersionViewModel>();
+        private readonly SortedObservableCollection<StrideVersionViewModel> strideVersions = new SortedObservableCollection<StrideVersionViewModel>();
         private readonly UninstallHelper uninstallHelper;
         private readonly object objectLock = new object();
         private ObservableList<NewsPageViewModel> newsPages;
         private ReleaseNotesViewModel activeReleaseNotes;
-        private XenkoVersionViewModel activeVersion;
+        private StrideVersionViewModel activeVersion;
         private bool isOffline;
         private bool isSynchronizing = true;
         private string currentToolTip;
@@ -71,8 +71,8 @@ namespace Xenko.LauncherApp.ViewModels
 
             foreach (var devVersion in LauncherSettings.DeveloperVersions)
             {
-                var version = new XenkoDevVersionViewModel(this, store, null, devVersion, false);
-                xenkoVersions.Add(version);
+                var version = new StrideDevVersionViewModel(this, store, null, devVersion, false);
+                strideVersions.Add(version);
             }
             FetchOnlineData().Forget();
             LoadRecentProjects();
@@ -87,13 +87,13 @@ namespace Xenko.LauncherApp.ViewModels
 
         public static IntPtr WindowHandle { get; set; }
 
-        public IEnumerable<XenkoVersionViewModel> XenkoVersions => xenkoVersions;
+        public IEnumerable<StrideVersionViewModel> StrideVersions => strideVersions;
 
         public bool ShowBetaVersions { get { return showBetaVersions; } set { SetValue(ref showBetaVersions, value); } }
 
         public VsixVersionViewModel VsixPackage { get; }
 
-        public XenkoVersionViewModel ActiveVersion { get { return activeVersion; } set { SetValue(ref activeVersion, value); Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = (value != null) && value.CanStart); } }
+        public StrideVersionViewModel ActiveVersion { get { return activeVersion; } set { SetValue(ref activeVersion, value); Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = (value != null) && value.CanStart); } }
 
         public ObservableList<RecentProjectViewModel> RecentProjects { get; } = new ObservableList<RecentProjectViewModel>();
 
@@ -101,7 +101,7 @@ namespace Xenko.LauncherApp.ViewModels
 
         public ReleaseNotesViewModel ActiveReleaseNotes { get { return activeReleaseNotes; } set { SetValue(ref activeReleaseNotes, value); } }
 
-        public ObservableList<DocumentationPageViewModel> ActiveDocumentationPages => ActiveVersion.Yield().Concat(XenkoVersions).OfType<XenkoStoreVersionViewModel>().FirstOrDefault()?.DocumentationPages;
+        public ObservableList<DocumentationPageViewModel> ActiveDocumentationPages => ActiveVersion.Yield().Concat(StrideVersions).OfType<StrideStoreVersionViewModel>().FirstOrDefault()?.DocumentationPages;
 
         public AnnouncementViewModel Announcement { get { return announcement; } set { SetValue(ref announcement, value); } }
 
@@ -145,7 +145,7 @@ namespace Xenko.LauncherApp.ViewModels
             IsSynchronizing = true;
             await Task.Run(async () =>
             {
-                await RetrieveLocalXenkoVersions();
+                await RetrieveLocalStrideVersions();
                 await RunLockTask(async () =>
                 {
                     try
@@ -169,7 +169,7 @@ namespace Xenko.LauncherApp.ViewModels
                         Environment.Exit(1);
                     }
                 });
-                await RetrieveServerXenkoVersions();
+                await RetrieveServerStrideVersions();
                 await VsixPackage.UpdateFromStore();
                 await CheckForFirstInstall();
                 await FetchNewsPages();
@@ -189,15 +189,15 @@ namespace Xenko.LauncherApp.ViewModels
             }
         }
 
-        public async Task RetrieveAllXenkoVersions()
+        public async Task RetrieveAllStrideVersions()
         {
             Dispatcher.Invoke(() => IsSynchronizing = true);
-            await RetrieveLocalXenkoVersions();
-            await RetrieveServerXenkoVersions();
+            await RetrieveLocalStrideVersions();
+            await RetrieveServerStrideVersions();
             Dispatcher.Invoke(() => IsSynchronizing = false);
         }
 
-        public async Task RetrieveLocalXenkoVersions()
+        public async Task RetrieveLocalStrideVersions()
         {
             List<RecentProjectViewModel> currentRecentProjects;
             lock (RecentProjects)
@@ -206,29 +206,29 @@ namespace Xenko.LauncherApp.ViewModels
             }
             try
             {
-                var localPackages = await RunLockTask(() => store.GetPackagesInstalled(store.MainPackageIds).FilterXenkoMainPackages().OrderByDescending(p => p.Version).ToList());
+                var localPackages = await RunLockTask(() => store.GetPackagesInstalled(store.MainPackageIds).FilterStrideMainPackages().OrderByDescending(p => p.Version).ToList());
                 lock (objectLock)
                 {
                     // Retrieve all local packages
                     var packages = localPackages.Where(p => !store.IsDevRedirectPackage(p)).GroupBy(p => $"{p.Version.Version.Major}.{p.Version.Version.Minor}", p => p);
-                    var updatedLocalPackages = new HashSet<XenkoStoreVersionViewModel>();
+                    var updatedLocalPackages = new HashSet<StrideStoreVersionViewModel>();
                     foreach (var package in packages)
                     {
                         var localPackage = package.FirstOrDefault();
                         if (localPackage != null)
                         {
                             // Find if we already have this package in our list
-                            int index = xenkoVersions.BinarySearch(Tuple.Create(localPackage.Version.Version.Major, localPackage.Version.Version.Minor));
-                            XenkoStoreVersionViewModel version;
+                            int index = strideVersions.BinarySearch(Tuple.Create(localPackage.Version.Version.Major, localPackage.Version.Version.Minor));
+                            StrideStoreVersionViewModel version;
                             if (index < 0)
                             {
                                 // If not, add it
-                                version = new XenkoStoreVersionViewModel(this, store, localPackage, localPackage.Version.Version.Major, localPackage.Version.Version.Minor);
-                                Dispatcher.Invoke(() => xenkoVersions.Add(version));
+                                version = new StrideStoreVersionViewModel(this, store, localPackage, localPackage.Version.Version.Major, localPackage.Version.Version.Minor);
+                                Dispatcher.Invoke(() => strideVersions.Add(version));
                             }
                             else
                             {
-                                version = (XenkoStoreVersionViewModel)xenkoVersions[index];
+                                version = (StrideStoreVersionViewModel)strideVersions[index];
                             }
                             version.UpdateLocalPackage(localPackage, package);
                             updatedLocalPackages.Add(version);
@@ -238,17 +238,17 @@ namespace Xenko.LauncherApp.ViewModels
                     // Update versions that are not installed locally anymore
                     Dispatcher.Invoke(() =>
                     {
-                        foreach (var xenkoUninstalledVersion in xenkoVersions.OfType<XenkoStoreVersionViewModel>().Where(x => !updatedLocalPackages.Contains(x)))
-                            xenkoUninstalledVersion.UpdateLocalPackage(null, new NugetLocalPackage[0]);
+                        foreach (var strideUninstalledVersion in strideVersions.OfType<StrideStoreVersionViewModel>().Where(x => !updatedLocalPackages.Contains(x)))
+                            strideUninstalledVersion.UpdateLocalPackage(null, new NugetLocalPackage[0]);
                     });
 
                     // Update the active version if it is now invalid.
-                    if (ActiveVersion == null || !xenkoVersions.Contains(ActiveVersion) || !ActiveVersion.CanDelete)
-                        ActiveVersion = XenkoVersions.FirstOrDefault(x => x.CanDelete);
+                    if (ActiveVersion == null || !strideVersions.Contains(ActiveVersion) || !ActiveVersion.CanDelete)
+                        ActiveVersion = StrideVersions.FirstOrDefault(x => x.CanDelete);
 
                     if (!lastActiveVersionRestored)
                     {
-                        var restoredVersion = XenkoVersions.FirstOrDefault(x => x.CanDelete && x.Name == LauncherSettings.ActiveVersion);
+                        var restoredVersion = StrideVersions.FirstOrDefault(x => x.CanDelete && x.Name == LauncherSettings.ActiveVersion);
                         if (restoredVersion != null)
                         {
                             ActiveVersion = restoredVersion;
@@ -258,14 +258,14 @@ namespace Xenko.LauncherApp.ViewModels
                 }
 
                 var devPackages = localPackages.Where(store.IsDevRedirectPackage);
-                Dispatcher.Invoke(() => xenkoVersions.RemoveWhere(x => x is XenkoDevVersionViewModel));
+                Dispatcher.Invoke(() => strideVersions.RemoveWhere(x => x is StrideDevVersionViewModel));
                 foreach (var package in devPackages)
                 {
                     try
                     {
                         var realPath = store.GetRealPath(package);
-                        var version = new XenkoDevVersionViewModel(this, store, package, realPath, true);
-                        Dispatcher.Invoke(() => xenkoVersions.Add(version));
+                        var version = new StrideDevVersionViewModel(this, store, package, realPath, true);
+                        Dispatcher.Invoke(() => strideVersions.Add(version));
                     }
                     catch (Exception e)
                     {
@@ -285,25 +285,25 @@ namespace Xenko.LauncherApp.ViewModels
                     foreach (var project in currentRecentProjects)
                     {
                         // Manually discarding the possibility to upgrade from 1.0
-                        if (project.XenkoVersionName == "1.0")
+                        if (project.StrideVersionName == "1.0")
                             continue;
 
                         project.CompatibleVersions.Clear();
-                        foreach (var version in XenkoVersions)
+                        foreach (var version in StrideVersions)
                         {
                             // We suppose all dev versions are compatible with any project.
-                            if (version is XenkoDevVersionViewModel)
+                            if (version is StrideDevVersionViewModel)
                                 project.CompatibleVersions.Add(version);
 
-                            var storeVersion = version as XenkoStoreVersionViewModel;
+                            var storeVersion = version as StrideStoreVersionViewModel;
                             if (storeVersion != null && storeVersion.CanDelete)
                             {
                                 // Discard the version that matches the recent project version
-                                if (project.XenkoVersion == new Version(storeVersion.Version.Version.Major, storeVersion.Version.Version.Minor))
+                                if (project.StrideVersion == new Version(storeVersion.Version.Version.Major, storeVersion.Version.Version.Minor))
                                     continue;
 
                                 // Discard the versions that are anterior to the recent project version
-                                if (project.XenkoVersion > storeVersion.Version.Version)
+                                if (project.StrideVersion > storeVersion.Version.Version)
                                     continue;
 
                                 project.CompatibleVersions.Add(version);
@@ -314,14 +314,14 @@ namespace Xenko.LauncherApp.ViewModels
             }
         }
 
-        private async Task RetrieveServerXenkoVersions()
+        private async Task RetrieveServerStrideVersions()
         {
             try
             {
 #if SIMULATE_OFFLINE
                 var serverPackages = new List<IPackage>();
 #else
-                var serverPackages = await RunLockTask(() => store.FindSourcePackages(store.MainPackageIds, CancellationToken.None).Result.FilterXenkoMainPackages().Where(p => !store.IsDevRedirectPackage(p)).OrderByDescending(p => p.Version).ToList());
+                var serverPackages = await RunLockTask(() => store.FindSourcePackages(store.MainPackageIds, CancellationToken.None).Result.FilterStrideMainPackages().Where(p => !store.IsDevRedirectPackage(p)).OrderByDescending(p => p.Version).ToList());
 #endif
                 // Check if we could connect to the server
                 var wasOffline = IsOffline;
@@ -354,18 +354,18 @@ namespace Xenko.LauncherApp.ViewModels
                         if (serverPackage != null)
                         {
                             // Find if we already have this package in our list
-                            int index = xenkoVersions.BinarySearch(Tuple.Create(serverPackage.Version.Version.Major, serverPackage.Version.Version.Minor));
-                            XenkoStoreVersionViewModel version;
+                            int index = strideVersions.BinarySearch(Tuple.Create(serverPackage.Version.Version.Major, serverPackage.Version.Version.Minor));
+                            StrideStoreVersionViewModel version;
                             if (index < 0)
                             {
                                 // If not, add it
-                                version = new XenkoStoreVersionViewModel(this, store, null, serverPackage.Version.Version.Major, serverPackage.Version.Version.Minor);
-                                Dispatcher.Invoke(() => xenkoVersions.Add(version));
+                                version = new StrideStoreVersionViewModel(this, store, null, serverPackage.Version.Version.Major, serverPackage.Version.Version.Minor);
+                                Dispatcher.Invoke(() => strideVersions.Add(version));
                             }
                             else
                             {
                                 // If yes, update it and remove it from the list of old version
-                                version = (XenkoStoreVersionViewModel)xenkoVersions[index];
+                                version = (StrideStoreVersionViewModel)strideVersions[index];
                             }
                             version.UpdateServerPackage(serverPackage, package);
                         }
@@ -382,7 +382,7 @@ namespace Xenko.LauncherApp.ViewModels
                 Dispatcher.Invoke(() =>
                 {
                     // Allow to install the latest version if any version is found
-                    var latestVersion = xenkoVersions.FirstOrDefault();
+                    var latestVersion = strideVersions.FirstOrDefault();
                     if (latestVersion != null)
                     {
                         // Latest version not installed and can be downloaded
@@ -404,14 +404,14 @@ namespace Xenko.LauncherApp.ViewModels
 
             if (!HasDoneTask(prerequisitesRunTaskName))
             {
-                foreach (var version in XenkoVersions.OfType<XenkoStoreVersionViewModel>().Where(x => x.CanDelete))
+                foreach (var version in StrideVersions.OfType<StrideStoreVersionViewModel>().Where(x => x.CanDelete))
                 {
                     await version.RunPrerequisitesInstaller();
                 }
                 SaveTaskAsDone(prerequisitesRunTaskName);
             }
 
-            bool firstInstall = XenkoVersions.All(x => !x.CanDelete) && XenkoVersions.Any(x => x.CanBeDownloaded);
+            bool firstInstall = StrideVersions.All(x => !x.CanDelete) && StrideVersions.Any(x => x.CanBeDownloaded);
             //var surveyTaskName = CultureInfo.InstalledUICulture.IetfLanguageTag != "ja-JP" ? askedForSurveyTaskName : askedForJapaneseSurveyTaskName;
             //bool surveyAsked = HasDoneTask(surveyTaskName);
 
@@ -422,7 +422,7 @@ namespace Xenko.LauncherApp.ViewModels
                     var result = await ServiceProvider.Get<IDialogService>().MessageBox(Strings.AskInstallVersion, MessageBoxButton.YesNo, MessageBoxImage.Question);
                     if (result == MessageBoxResult.Yes)
                     {
-                        var versionToInstall = XenkoVersions.First(x => x.CanBeDownloaded);
+                        var versionToInstall = StrideVersions.First(x => x.CanBeDownloaded);
                         versionToInstall.DownloadCommand.Execute();
                     }
                     if (VsixPackage != null && !VsixPackage.IsLatestVersionInstalled)
@@ -495,10 +495,10 @@ namespace Xenko.LauncherApp.ViewModels
                 var mainExecutable = store.LocateMainExecutable(packagePath);
 
                 // If version is older than 1.2.0, than we need to log the usage of older version
-                var activeStoreVersion = ActiveVersion as XenkoStoreVersionViewModel;
+                var activeStoreVersion = ActiveVersion as StrideStoreVersionViewModel;
                 if (activeStoreVersion != null && activeStoreVersion.Version.Version < new Version(1, 2, 0, 0))
                 {
-                    metricsForEditorBefore120 = new MetricsClient(CommonApps.XenkoEditorAppId, versionOverride: activeStoreVersion.Version.ToString());
+                    metricsForEditorBefore120 = new MetricsClient(CommonApps.StrideEditorAppId, versionOverride: activeStoreVersion.Version.ToString());
                 }
 
                 Process.Start(mainExecutable, argument);
@@ -524,7 +524,7 @@ namespace Xenko.LauncherApp.ViewModels
 
         private async Task InstallLatestVersion()
         {
-            var latestVersion = xenkoVersions.FirstOrDefault();
+            var latestVersion = strideVersions.FirstOrDefault();
             // Should never happen
             if (latestVersion == null || !latestVersion.CanBeDownloaded)
                 return;
@@ -561,7 +561,7 @@ namespace Xenko.LauncherApp.ViewModels
         public static bool HasDoneTask(string taskName)
         {
             var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
-            using (var subkey = localMachine32.OpenSubKey(@"SOFTWARE\Xenko\"))
+            using (var subkey = localMachine32.OpenSubKey(@"SOFTWARE\Stride\"))
             {
                 if (subkey != null)
                 {
@@ -575,7 +575,7 @@ namespace Xenko.LauncherApp.ViewModels
         public static void SaveTaskAsDone(string taskName)
         {
             var localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
-            using (var subkey = localMachine32.CreateSubKey(@"SOFTWARE\Xenko\"))
+            using (var subkey = localMachine32.CreateSubKey(@"SOFTWARE\Stride\"))
             {
                 subkey?.SetValue(taskName, "True");
             }
@@ -584,7 +584,7 @@ namespace Xenko.LauncherApp.ViewModels
         private void DisplayReleaseAnnouncement()
         {
             const string announcementName = "Release30";
-            if (!PrivacyPolicyHelper.Xenko30Accepted)
+            if (!PrivacyPolicyHelper.Stride30Accepted)
             {
                 // If the user is a beta user, it will have already accepted Privacy Policy 1.2 before the first chance to display this announcement.
                 // If he didn't, we don't need to display the message so we mark this announcement as done.

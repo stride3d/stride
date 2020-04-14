@@ -1,6 +1,6 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -10,23 +10,23 @@ using Android.Content.Res;
 using Android.Views;
 using Android.Views.InputMethods;
 using OpenTK;
-using Xenko.Core;
-using Xenko.Games.Android;
-using Xenko.Graphics;
-using Rectangle = Xenko.Core.Mathematics.Rectangle;
+using Stride.Core;
+using Stride.Games.Android;
+using Stride.Graphics;
+using Rectangle = Stride.Core.Mathematics.Rectangle;
 using OpenTK.Platform.Android;
 using Configuration = Android.Content.Res.Configuration;
 using Android.Hardware;
 using Android.Runtime;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
     /// <summary>
     /// An abstract window.
     /// </summary>
-    internal class GameWindowAndroid : GameWindow<AndroidXenkoGameView>
+    internal class GameWindowAndroid : GameWindow<AndroidStrideGameView>
     {
-        public AndroidXenkoGameView XenkoGameForm;
+        public AndroidStrideGameView StrideGameForm;
         private WindowHandle nativeWindow;
 
         public override WindowHandle NativeWindow => nativeWindow;
@@ -47,7 +47,7 @@ namespace Xenko.Games
 
         private Activity GetActivity()
         {
-            var context = XenkoGameForm.Context;
+            var context = StrideGameForm.Context;
             while (context is ContextWrapper) {
                 var activity = context as Activity;
                 if (activity != null) {
@@ -58,42 +58,42 @@ namespace Xenko.Games
             return null;
         }
 
-        protected override void Initialize(GameContext<AndroidXenkoGameView> gameContext)
+        protected override void Initialize(GameContext<AndroidStrideGameView> gameContext)
         {
-            XenkoGameForm = gameContext.Control;
-            nativeWindow = new WindowHandle(AppContextType.Android, XenkoGameForm, XenkoGameForm.Handle);
+            StrideGameForm = gameContext.Control;
+            nativeWindow = new WindowHandle(AppContextType.Android, StrideGameForm, StrideGameForm.Handle);
 
-            XenkoGameForm.Load += gameForm_Load;
-            XenkoGameForm.OnPause += gameForm_OnPause;
-            XenkoGameForm.OnResume += gameForm_OnResume;
-            XenkoGameForm.RenderFrame += gameForm_RenderFrame;
-            XenkoGameForm.Resize += gameForm_Resize;
+            StrideGameForm.Load += gameForm_Load;
+            StrideGameForm.OnPause += gameForm_OnPause;
+            StrideGameForm.OnResume += gameForm_OnResume;
+            StrideGameForm.RenderFrame += gameForm_RenderFrame;
+            StrideGameForm.Resize += gameForm_Resize;
 
             // Setup the initial size of the window
             var width = gameContext.RequestedWidth;
             if (width == 0)
             {
-                width = XenkoGameForm.Width;
+                width = StrideGameForm.Width;
             }
 
             var height = gameContext.RequestedHeight;
             if (height == 0)
             {
-                height = XenkoGameForm.Height;
+                height = StrideGameForm.Height;
             }
 
             // Transmit requested back buffer and depth stencil formats to OpenTK
-            XenkoGameForm.RequestedBackBufferFormat = gameContext.RequestedBackBufferFormat;
-            XenkoGameForm.RequestedGraphicsProfile = gameContext.RequestedGraphicsProfile;
+            StrideGameForm.RequestedBackBufferFormat = gameContext.RequestedBackBufferFormat;
+            StrideGameForm.RequestedGraphicsProfile = gameContext.RequestedGraphicsProfile;
 
-            XenkoGameForm.Size = new Size(width, height);
+            StrideGameForm.Size = new Size(width, height);
         }
 
         private SurfaceOrientation currentOrientation;
 
         private void gameForm_Resize(object sender, EventArgs e)
         {
-            var windowManager = XenkoGameForm.Context.GetSystemService(Context.WindowService).JavaCast<IWindowManager>();
+            var windowManager = StrideGameForm.Context.GetSystemService(Context.WindowService).JavaCast<IWindowManager>();
             if (windowManager != null)
             {
                 var newOrientation = windowManager.DefaultDisplay.Rotation;
@@ -114,7 +114,7 @@ namespace Xenko.Games
                 InitCallback();
                 InitCallback = null;
             }
-            XenkoGameForm.Run();
+            StrideGameForm.Run();
         }
 
         void gameForm_OnResume(object sender, EventArgs e)
@@ -141,9 +141,9 @@ namespace Xenko.Games
             Debug.Assert(InitCallback != null);
             Debug.Assert(RunCallback != null);
 
-            if (XenkoGameForm.GraphicsContext != null)
+            if (StrideGameForm.GraphicsContext != null)
             {
-                throw new NotImplementedException("Only supports not yet initialized AndroidXenkoGameView.");
+                throw new NotImplementedException("Only supports not yet initialized AndroidStrideGameView.");
             }
         }
 
@@ -155,22 +155,22 @@ namespace Xenko.Games
         {
             get
             {
-                return XenkoGameForm.Visible;
+                return StrideGameForm.Visible;
             }
             set
             {
-                XenkoGameForm.Visible = value;
+                StrideGameForm.Visible = value;
             }
         }
 
         protected override void SetTitle(string title)
         {
-            XenkoGameForm.Title = title;
+            StrideGameForm.Title = title;
         }
 
         internal override void Resize(int width, int height)
         {
-            XenkoGameForm.Size = new Size(width, height);
+            StrideGameForm.Size = new Size(width, height);
         }
 
         public override bool IsBorderLess
@@ -195,7 +195,7 @@ namespace Xenko.Games
             }
         }
 
-        public override Rectangle ClientBounds => new Rectangle(0, 0, XenkoGameForm.Size.Width, XenkoGameForm.Size.Height);
+        public override Rectangle ClientBounds => new Rectangle(0, 0, StrideGameForm.Size.Width, StrideGameForm.Size.Height);
 
         public override DisplayOrientation CurrentOrientation
         {
@@ -217,9 +217,9 @@ namespace Xenko.Games
             }
         }
 
-        public override bool IsMinimized => XenkoGameForm.WindowState == OpenTK.WindowState.Minimized;
+        public override bool IsMinimized => StrideGameForm.WindowState == OpenTK.WindowState.Minimized;
 
-        public override bool Focused => XenkoGameForm.WindowState != OpenTK.WindowState.Minimized;
+        public override bool Focused => StrideGameForm.WindowState != OpenTK.WindowState.Minimized;
 
         public override bool IsMouseVisible
         {
@@ -229,23 +229,23 @@ namespace Xenko.Games
 
         protected override void Destroy()
         {
-            if (XenkoGameForm != null)
+            if (StrideGameForm != null)
             {
-                XenkoGameForm.Load -= gameForm_Load;
-                XenkoGameForm.OnPause -= gameForm_OnPause;
-                XenkoGameForm.OnResume -= gameForm_OnResume;
-                XenkoGameForm.RenderFrame -= gameForm_RenderFrame;
+                StrideGameForm.Load -= gameForm_Load;
+                StrideGameForm.OnPause -= gameForm_OnPause;
+                StrideGameForm.OnResume -= gameForm_OnResume;
+                StrideGameForm.RenderFrame -= gameForm_RenderFrame;
 
-                if (XenkoGameForm.GraphicsContext != null)
+                if (StrideGameForm.GraphicsContext != null)
                 {
-                    XenkoGameForm.GraphicsContext.MakeCurrent(null);
-                    XenkoGameForm.GraphicsContext.Dispose();
+                    StrideGameForm.GraphicsContext.MakeCurrent(null);
+                    StrideGameForm.GraphicsContext.Dispose();
                 }
-                ((AndroidWindow)XenkoGameForm.WindowInfo).TerminateDisplay();
-                //xenkoGameForm.Close(); // bug in xamarin
-                XenkoGameForm.Holder.RemoveCallback(XenkoGameForm);
-                XenkoGameForm.Dispose();
-                XenkoGameForm = null;
+                ((AndroidWindow)StrideGameForm.WindowInfo).TerminateDisplay();
+                //strideGameForm.Close(); // bug in xamarin
+                StrideGameForm.Holder.RemoveCallback(StrideGameForm);
+                StrideGameForm.Dispose();
+                StrideGameForm = null;
             }
 
             base.Destroy();

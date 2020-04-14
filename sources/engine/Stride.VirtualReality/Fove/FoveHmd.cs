@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
 
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Games;
-using Xenko.Graphics;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Games;
+using Stride.Graphics;
 
 //TODO
 
-namespace Xenko.VirtualReality
+namespace Stride.VirtualReality
 {
     internal class FoveHmd : VRDevice
     {

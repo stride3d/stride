@@ -1,39 +1,39 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Extensions;
-using Xenko.LauncherApp.Resources;
-using Xenko.Core.Packages;
-using Xenko.Core.Presentation.Collections;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Services;
+using Stride.Core;
+using Stride.Core.Extensions;
+using Stride.LauncherApp.Resources;
+using Stride.Core.Packages;
+using Stride.Core.Presentation.Collections;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Xenko.LauncherApp.ViewModels
+namespace Stride.LauncherApp.ViewModels
 {
     /// <summary>
-    /// An implementation of the <see cref="XenkoVersionViewModel"/> that represents an official release coming from the store.
+    /// An implementation of the <see cref="StrideVersionViewModel"/> that represents an official release coming from the store.
     /// </summary>
-    internal sealed class XenkoStoreVersionViewModel : XenkoVersionViewModel
+    internal sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     {
         internal NugetServerPackage LatestServerPackage;
         private ReleaseNotesViewModel releaseNotes;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="XenkoStoreVersionViewModel"/>
+        /// Initializes a new instance of the <see cref="StrideStoreVersionViewModel"/>
         /// </summary>
         /// <param name="launcher"></param>
         /// <param name="store"></param>
         /// <param name="localPackage"></param>
         /// <param name="major"></param>
         /// <param name="minor"></param>
-        internal XenkoStoreVersionViewModel(LauncherViewModel launcher, NugetStore store, NugetLocalPackage localPackage, int major, int minor)
+        internal StrideStoreVersionViewModel(LauncherViewModel launcher, NugetStore store, NugetLocalPackage localPackage, int major, int minor)
             : base(launcher, store, localPackage, major, minor)
         {
             FetchReleaseNotes();
@@ -60,7 +60,7 @@ namespace Xenko.LauncherApp.ViewModels
         /// </summary>
         public string ServerVersionFullName => ServerPackage?.Version?.ToString() ?? "";
 
-        public ObservableList<XenkoStoreAlternateVersionViewModel> AlternateVersions { get; } = new ObservableList<XenkoStoreAlternateVersionViewModel>();
+        public ObservableList<StrideStoreAlternateVersionViewModel> AlternateVersions { get; } = new ObservableList<StrideStoreAlternateVersionViewModel>();
 
         /// <summary>
         /// Gets the release notes associated to this version.
@@ -129,18 +129,18 @@ namespace Xenko.LauncherApp.ViewModels
             }
         }
 
-        private void UpdateAlternateVersions<T>(IEnumerable<T> alternateVersions, Action<XenkoStoreAlternateVersionViewModel, T> updateAction) where T : NugetPackage
+        private void UpdateAlternateVersions<T>(IEnumerable<T> alternateVersions, Action<StrideStoreAlternateVersionViewModel, T> updateAction) where T : NugetPackage
         {
-            var updatedViewModels = new HashSet<XenkoStoreAlternateVersionViewModel>();
+            var updatedViewModels = new HashSet<StrideStoreAlternateVersionViewModel>();
             foreach (var alternateVersion in alternateVersions)
             {
 
                 int index = AlternateVersions.IndexOf(x => x.Version == alternateVersion.Version);
-                XenkoStoreAlternateVersionViewModel alternateVersionViewModel;
+                StrideStoreAlternateVersionViewModel alternateVersionViewModel;
                 if (index < 0)
                 {
                     // If not, add it
-                    alternateVersionViewModel = new XenkoStoreAlternateVersionViewModel(this);
+                    alternateVersionViewModel = new StrideStoreAlternateVersionViewModel(this);
                     AlternateVersions.Add(alternateVersionViewModel);
                 }
                 else
@@ -208,7 +208,7 @@ namespace Xenko.LauncherApp.ViewModels
         /// <inheritdoc/>
         protected override Task UpdateVersionsFromStore()
         {
-            return Launcher.RetrieveAllXenkoVersions();
+            return Launcher.RetrieveAllStrideVersions();
         }
 
         /// <inheritdoc/>

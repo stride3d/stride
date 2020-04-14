@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace Xenko.UI.Attributes
+namespace Stride.UI.Attributes
 {
     public class DefaultThicknessValueAttribute : DefaultValueAttribute
     {

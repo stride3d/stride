@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Xenko.Core.Mathematics
+namespace Stride.Core.Mathematics
 {
     /// <summary>
     /// Represents an axis-aligned bounding box in three dimensional space that store only the Center and Extent.
@@ -29,7 +29,7 @@ namespace Xenko.Core.Mathematics
         public Vector3 Extent;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.BoundingBoxExt" /> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.BoundingBoxExt" /> struct.
         /// </summary>
         /// <param name="box">The box.</param>
         public BoundingBoxExt(BoundingBox box)
@@ -39,7 +39,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.BoundingBoxExt"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.BoundingBoxExt"/> struct.
         /// </summary>
         /// <param name="minimum">The minimum vertex of the bounding box.</param>
         /// <param name="maximum">The maximum vertex of the bounding box.</param>
@@ -103,7 +103,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Constructs a <see cref="Xenko.Core.Mathematics.BoundingBoxExt"/> that is as large as the total combined area of the two specified boxes.
+        /// Constructs a <see cref="Stride.Core.Mathematics.BoundingBoxExt"/> that is as large as the total combined area of the two specified boxes.
         /// </summary>
         /// <param name="value1">The first box to merge.</param>
         /// <param name="value2">The second box to merge.</param>

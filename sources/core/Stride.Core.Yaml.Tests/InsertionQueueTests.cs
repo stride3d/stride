@@ -48,7 +48,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace Xenko.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests
 {
     public class InsertionQueueTests
     {

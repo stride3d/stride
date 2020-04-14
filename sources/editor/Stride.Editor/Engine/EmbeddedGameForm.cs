@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Presentation.Controls;
-using Xenko.Core.Presentation.Interop;
-using Xenko.Games;
+using Stride.Core.Presentation.Controls;
+using Stride.Core.Presentation.Interop;
+using Stride.Games;
 
-namespace Xenko.Editor.Engine
+namespace Stride.Editor.Engine
 {
     /// <summary>
     /// A specialization of <see cref="GameForm"/> that is able to forward keyboard and mousewheel events to an associated <see cref="GameEngineHost"/>.

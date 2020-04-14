@@ -1,6 +1,6 @@
 !Texture
 Id: e8a73264-e909-4e38-943e-b8b5c7b6950a
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/stone4_dif.jpeg
 Type: !ColorTextureType

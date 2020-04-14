@@ -1,34 +1,34 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.Assets.Serializers;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization;
-using Xenko.Core.Storage;
-using Xenko.Core.Yaml;
-using Xenko.Core.Yaml.Serialization;
-using Xenko.TextureConverter;
-using Xenko.Assets.Effect;
-using Xenko.Assets.Templates;
-using Xenko.Graphics;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.Assets.Serializers;
+using Stride.Core.Assets.Templates;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
+using Stride.Core.Storage;
+using Stride.Core.Yaml;
+using Stride.Core.Yaml.Serialization;
+using Stride.TextureConverter;
+using Stride.Assets.Effect;
+using Stride.Assets.Templates;
+using Stride.Graphics;
 
-namespace Xenko.Assets
+namespace Stride.Assets
 {
-    [PackageUpgrader(new[] { XenkoConfig.PackageName, "Xenko.Core", "Xenko.Engine" }, "3.0.0.0", CurrentVersion)]
-    public partial class XenkoPackageUpgrader : PackageUpgrader
+    [PackageUpgrader(new[] { StrideConfig.PackageName, "Stride.Core", "Stride.Engine" }, "3.0.0.0", CurrentVersion)]
+    public partial class StridePackageUpgrader : PackageUpgrader
     {
-        // Should match Xenko.nupkg
-        public const string CurrentVersion = XenkoVersion.NuGetVersion;
+        // Should match Stride.nupkg
+        public const string CurrentVersion = StrideVersion.NuGetVersion;
 
         public static readonly string DefaultGraphicsCompositorLevel9Url = "DefaultGraphicsCompositorLevel9";
         public static readonly string DefaultGraphicsCompositorLevel10Url = "DefaultGraphicsCompositorLevel10";
@@ -45,7 +45,7 @@ namespace Xenko.Assets
                 foreach (var assetFile in assetFiles)
                 {
                     // Add new generic parameter to ShadowMapReceiverDirectional in effect log
-                    if (assetFile.FilePath.GetFileExtension() == ".xkeffectlog")
+                    if (assetFile.FilePath.GetFileExtension() == ".sdeffectlog")
                     {
                         var assetContent = assetFile.AssetContent ?? File.ReadAllBytes(assetFile.FilePath.FullPath);
                         var assetContentString = System.Text.Encoding.UTF8.GetString(assetContent);
@@ -114,29 +114,29 @@ namespace Xenko.Assets
 
                     var packageReferences = project.GetItems("PackageReference").ToList();
 
-                    // Upgrade from 3.0 to 3.1 (Xenko split in several nuget packages)
+                    // Upgrade from 3.0 to 3.1 (Stride split in several nuget packages)
                     if (dependency.Version.MinVersion < new PackageVersion("3.1.0.0"))
                     {
-                        var xenkoReference = packageReferences.FirstOrDefault(packageReference => packageReference.EvaluatedInclude == "Xenko");
-                        if (xenkoReference != null)
+                        var strideReference = packageReferences.FirstOrDefault(packageReference => packageReference.EvaluatedInclude == "Stride");
+                        if (strideReference != null)
                         {
-                            var items = new List<Microsoft.Build.Evaluation.ProjectItem> { xenkoReference };
+                            var items = new List<Microsoft.Build.Evaluation.ProjectItem> { strideReference };
 
-                            // Turn Xenko reference into Xenko.Engine
-                            xenkoReference.UnevaluatedInclude = "Xenko.Engine";
-                            xenkoReference.SetMetadataValue("Version", CurrentVersion);
+                            // Turn Stride reference into Stride.Engine
+                            strideReference.UnevaluatedInclude = "Stride.Engine";
+                            strideReference.SetMetadataValue("Version", CurrentVersion);
 
-                            // Add plugins (old Xenko is equivalent to a meta package with all plugins)
-                            items.AddRange(project.AddItem("PackageReference", "Xenko.Video", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
-                            items.AddRange(project.AddItem("PackageReference", "Xenko.Physics", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
-                            items.AddRange(project.AddItem("PackageReference", "Xenko.Navigation", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
-                            items.AddRange(project.AddItem("PackageReference", "Xenko.Particles", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
-                            items.AddRange(project.AddItem("PackageReference", "Xenko.UI", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
+                            // Add plugins (old Stride is equivalent to a meta package with all plugins)
+                            items.AddRange(project.AddItem("PackageReference", "Stride.Video", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
+                            items.AddRange(project.AddItem("PackageReference", "Stride.Physics", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
+                            items.AddRange(project.AddItem("PackageReference", "Stride.Navigation", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
+                            items.AddRange(project.AddItem("PackageReference", "Stride.Particles", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
+                            items.AddRange(project.AddItem("PackageReference", "Stride.UI", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
                             // Necessary until "build" flows transitively
-                            items.AddRange(project.AddItem("PackageReference", "Xenko.Core", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
+                            items.AddRange(project.AddItem("PackageReference", "Stride.Core", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
 
                             // Asset compiler
-                            items.AddRange(project.AddItem("PackageReference", "Xenko.Core.Assets.CompilerApp", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers"), new KeyValuePair<string, string>("IncludeAssets", "build") }));
+                            items.AddRange(project.AddItem("PackageReference", "Stride.Core.Assets.CompilerApp", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers"), new KeyValuePair<string, string>("IncludeAssets", "build") }));
 
                             foreach (var item in items)
                             {
@@ -150,7 +150,7 @@ namespace Xenko.Assets
 
                     foreach (var packageReference in packageReferences)
                     {
-                        if (packageReference.EvaluatedInclude.StartsWith("Xenko.") && packageReference.GetMetadataValue("Version") != CurrentVersion)
+                        if (packageReference.EvaluatedInclude.StartsWith("Stride.") && packageReference.GetMetadataValue("Version") != CurrentVersion)
                         {
                             packageReference.SetMetadataValue("Version", CurrentVersion).Xml.ExpressedAsAttribute = true;
                             foreach (var metadata in packageReference.Metadata)
@@ -159,11 +159,11 @@ namespace Xenko.Assets
                         }
                     }
 
-                    // Change shader generated file from .cs to .xksl.cs or .xkfx.cs
+                    // Change shader generated file from .cs to .sdsl.cs or .sdfx.cs
                     if (dependency.Version.MinVersion < new PackageVersion("3.2.0.1-beta02"))
                     {
-                        // Find xksl files
-                        var shaderFiles = project.Items.Where(x => x.ItemType == "None" && (x.EvaluatedInclude.EndsWith(".xksl", StringComparison.InvariantCultureIgnoreCase) || x.EvaluatedInclude.EndsWith(".xkfx", StringComparison.InvariantCultureIgnoreCase)) && x.HasMetadata("Generator"));
+                        // Find sdsl files
+                        var shaderFiles = project.Items.Where(x => x.ItemType == "None" && (x.EvaluatedInclude.EndsWith(".sdsl", StringComparison.InvariantCultureIgnoreCase) || x.EvaluatedInclude.EndsWith(".sdfx", StringComparison.InvariantCultureIgnoreCase)) && x.HasMetadata("Generator"));
 
                         foreach (var shaderFile in shaderFiles)
                         {
@@ -187,9 +187,9 @@ namespace Xenko.Assets
                                     isProjectDirty = true;
                                 }
 
-                                if (shaderFile.EvaluatedInclude.EndsWith(".xkfx", StringComparison.InvariantCultureIgnoreCase))
+                                if (shaderFile.EvaluatedInclude.EndsWith(".sdfx", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    shaderFile.GetMetadata("Generator").UnevaluatedValue = "XenkoEffectCodeGenerator";
+                                    shaderFile.GetMetadata("Generator").UnevaluatedValue = "StrideEffectCodeGenerator";
                                     isProjectDirty = true;
                                 }
 

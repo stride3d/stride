@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.ComponentModel;
 using System.Threading;
-using Xenko.Core.Transactions;
-using Xenko.Assets.Presentation.ViewModel;
+using Stride.Core.Transactions;
+using Stride.Assets.Presentation.ViewModel;
 
-namespace Xenko.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
+namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
 {
     public abstract class ResizableSpriteInfoPartViewModel : SpriteInfoPartViewModel, IResizingTarget
     {

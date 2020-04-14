@@ -1,25 +1,25 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Quantum;
-using Xenko.Assets.Presentation.Extensions;
-using Xenko.Assets.Presentation.Quantum;
-using Xenko.Assets.Presentation.ViewModel;
-using Xenko.Assets.UI;
-using Xenko.UI;
-using Xenko.UI.Panels;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Quantum;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Quantum;
+using Stride.Assets.Presentation.Extensions;
+using Stride.Assets.Presentation.Quantum;
+using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.UI;
+using Stride.UI;
+using Stride.UI.Panels;
 
-namespace Xenko.Assets.Presentation.AssetEditors.UIEditor.ViewModels
+namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
 {
     public sealed class PanelViewModel : UIElementViewModel
     {

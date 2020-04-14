@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_DIRECT3D
+#if STRIDE_GRAPHICS_API_DIRECT3D
 using System.Collections.Generic;
 using SharpDX.DXGI;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public static partial class GraphicsAdapterFactory
     {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
         internal static Factory1 NativeFactory;
 #else
         internal static Factory2 NativeFactory;
@@ -24,7 +24,7 @@ namespace Xenko.Graphics
 #if DIRECTX11_1
             using (var factory = new Factory1())
             NativeFactory = factory.QueryInterface<Factory2>();
-#elif XENKO_PLATFORM_UWP
+#elif STRIDE_PLATFORM_UWP
             // Maybe this will become default code for everybody if we switch to DX 11.1/11.2 SharpDX dll?
             NativeFactory = new Factory2();
 #else

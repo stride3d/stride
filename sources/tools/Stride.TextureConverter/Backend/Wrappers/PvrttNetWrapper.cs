@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Security;
 using System.Runtime.InteropServices;
 
-namespace Xenko.TextureConverter.PvrttWrapper
+namespace Stride.TextureConverter.PvrttWrapper
 {
 
     #region Enum
@@ -538,38 +538,38 @@ namespace Xenko.TextureConverter.PvrttWrapper
             return pvrttGetColourSpace(header);
         }
 
-        public Xenko.Graphics.PixelFormat GetFormat()
+        public Stride.Graphics.PixelFormat GetFormat()
         {
             UInt64 format = pvrttGetPixelType(header);
 
             switch (format)
             {
                 case 6:
-                    return Xenko.Graphics.PixelFormat.ETC1;
+                    return Stride.Graphics.PixelFormat.ETC1;
                 case 22:
-                    return Xenko.Graphics.PixelFormat.ETC2_RGB;
+                    return Stride.Graphics.PixelFormat.ETC2_RGB;
                 case 23:
-                    return Xenko.Graphics.PixelFormat.ETC2_RGBA;
+                    return Stride.Graphics.PixelFormat.ETC2_RGBA;
                 case 24:
-                    return Xenko.Graphics.PixelFormat.ETC2_RGB_A1;
+                    return Stride.Graphics.PixelFormat.ETC2_RGB_A1;
                 case 25:
-                    return Xenko.Graphics.PixelFormat.EAC_R11_Unsigned;
+                    return Stride.Graphics.PixelFormat.EAC_R11_Unsigned;
                 case 26:
-                    return Xenko.Graphics.PixelFormat.EAC_R11_Signed;
+                    return Stride.Graphics.PixelFormat.EAC_R11_Signed;
                 case 27:
-                    return Xenko.Graphics.PixelFormat.EAC_RG11_Unsigned;
+                    return Stride.Graphics.PixelFormat.EAC_RG11_Unsigned;
                 case 28:
-                    return Xenko.Graphics.PixelFormat.EAC_RG11_Signed;
+                    return Stride.Graphics.PixelFormat.EAC_RG11_Signed;
                 /*default:
                     throw new TexLibraryException("Unknown format by PowerVC Texture Tool.");*/
             }
 
             if (format == Utilities.ConvertPixelType(PixelType.Standard8PixelType))
-                return Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm;
+                return Stride.Graphics.PixelFormat.R8G8B8A8_UNorm;
             else if (format == Utilities.ConvertPixelType(PixelType.Standard16PixelType))
-                return Xenko.Graphics.PixelFormat.R16G16B16A16_UNorm;
+                return Stride.Graphics.PixelFormat.R16G16B16A16_UNorm;
             else if (format == Utilities.ConvertPixelType(PixelType.Standard32PixelType))
-                return Xenko.Graphics.PixelFormat.R32G32B32A32_Float;
+                return Stride.Graphics.PixelFormat.R32G32B32A32_Float;
             else
                 throw new TextureToolsException("Unknown format by PowerVC Texture Tool.");
         }

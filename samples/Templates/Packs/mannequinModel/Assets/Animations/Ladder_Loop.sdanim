@@ -1,6 +1,6 @@
 !Animation
 Id: 64ced45e-475b-4ece-b650-d9e3487b685d
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Animation/Ladder_Loop.fbx
 ClipDuration:

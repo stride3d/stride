@@ -1,22 +1,22 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Assets.Editor.Quantum.NodePresenters;
-using Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands;
-using Xenko.Core.Assets.Editor.Quantum.NodePresenters.Keys;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.Reflection;
-using Xenko.Assets.Entities;
-using Xenko.Assets.Presentation.NodePresenters.Keys;
-using Xenko.Assets.Presentation.ViewModel;
-using Xenko.Engine;
-using Xenko.Core.Presentation.Core;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.Reflection;
+using Stride.Assets.Entities;
+using Stride.Assets.Presentation.NodePresenters.Keys;
+using Stride.Assets.Presentation.ViewModel;
+using Stride.Engine;
+using Stride.Core.Presentation.Core;
 
-namespace Xenko.Assets.Presentation.NodePresenters.Updaters
+namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
     internal sealed class EntityHierarchyAssetNodeUpdater : AssetNodePresenterUpdaterBase
     {

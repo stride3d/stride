@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Presentation.Dialogs;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.View;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Engine;
-using MessageBoxImage = Xenko.Core.Presentation.Services.MessageBoxImage;
-using MessageBoxButton = Xenko.Core.Presentation.Services.MessageBoxButton;
-using Xenko.Core.Extensions;
-using Xenko.Core.Translation;
-using Xenko.Core.Assets.Templates;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Presentation.Dialogs;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.View;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Engine;
+using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
+using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
+using Stride.Core.Extensions;
+using Stride.Core.Translation;
+using Stride.Core.Assets.Templates;
 
-namespace Xenko.Assets.Presentation.Templates
+namespace Stride.Assets.Presentation.Templates
 {
     /// <summary>
     /// Interaction logic for ScriptNameWindow.xaml
@@ -79,7 +79,7 @@ namespace Xenko.Assets.Presentation.Templates
                 return;
             }
 
-            Result = Xenko.Core.Presentation.Services.DialogResult.Ok;
+            Result = Stride.Core.Presentation.Services.DialogResult.Ok;
             Close();
         }
 
@@ -88,7 +88,7 @@ namespace Xenko.Assets.Presentation.Templates
             ClassName = null;
             Namespace = null;
             ScriptTemplate = null;
-            Result = Xenko.Core.Presentation.Services.DialogResult.Cancel;
+            Result = Stride.Core.Presentation.Services.DialogResult.Cancel;
             Close();
         }
 

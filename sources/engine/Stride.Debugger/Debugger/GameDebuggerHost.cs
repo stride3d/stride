@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.ServiceModel;
 using System.Threading.Tasks;
-using Xenko.Core.Diagnostics;
+using Stride.Core.Diagnostics;
 
-namespace Xenko.Debugger.Target
+namespace Stride.Debugger.Target
 {
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single, ConcurrencyMode = ConcurrencyMode.Multiple)]
     public class GameDebuggerHost : IGameDebuggerHost

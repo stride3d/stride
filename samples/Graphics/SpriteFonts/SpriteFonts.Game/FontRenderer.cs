@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
-using Xenko.Graphics;
-using Xenko.Input;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
+using Stride.Graphics;
+using Stride.Input;
 
 namespace SpriteFonts
 {
@@ -78,7 +78,7 @@ at full size and full measure";
         private readonly Vector2 headerPosition = new Vector2(0.5f, 0.25f);
         private readonly Vector2 contentPosition = new Vector2(0.5f, 0.4f);
 
-        private readonly Color xenkoColor = new Color(0xFF3008da);
+        private readonly Color strideColor = new Color(0xFF3008da);
 
         private Vector2 virtualResolution = new Vector2(1920, 1080);
 
@@ -148,7 +148,7 @@ at full size and full measure";
 
             position.X += spriteBatch.MeasureString(HeaderFont, headerPart1, headerSize, screenSize).X;
 
-            spriteBatch.DrawString(HeaderFont, headerPart2, headerSize, position, xenkoColor * GetInterpolatedAlpha());
+            spriteBatch.DrawString(HeaderFont, headerPart2, headerSize, position, strideColor * GetInterpolatedAlpha());
 
             position.X += spriteBatch.MeasureString(HeaderFont, headerPart2, headerSize, screenSize).X;
 
@@ -157,7 +157,7 @@ at full size and full measure";
 
         /// <summary>
         /// Draw "Introduction" text group.
-        /// Render Xenko SpriteFont sample introduction page.
+        /// Render Stride SpriteFont sample introduction page.
         /// </summary>
         private void DrawIntroductionCategory()
         {
@@ -177,7 +177,7 @@ at full size and full measure";
 
             position.X += spriteBatch.MeasureString(DynamicFont, textPart1, textSize, screenSize).X;
 
-            spriteBatch.DrawString(DynamicFont, textPart2, textSize, position, xenkoColor * GetInterpolatedAlpha());
+            spriteBatch.DrawString(DynamicFont, textPart2, textSize, position, strideColor * GetInterpolatedAlpha());
 
             position.X += spriteBatch.MeasureString(DynamicFont, textPart2, textSize, screenSize).X;
 
@@ -333,7 +333,7 @@ at full size and full measure";
             DrawHeader("Easily ", "animate", " your texts!");
 
             // Draw content
-            var text = "Xenko Engine";
+            var text = "Stride Engine";
 
             spriteBatch.DrawString(DynamicFont, text, DynamicFontContentSize, animatedFontPosition, animatedFontAlpha * Color.White * GetInterpolatedAlpha(), animatedFontRotation,
                 0.5f * spriteBatch.MeasureString(DynamicFont, text, DynamicFontContentSize, screenSize), animatedFontScale * Vector2.One, SpriteEffects.None, 0f, TextAlignment.Left);

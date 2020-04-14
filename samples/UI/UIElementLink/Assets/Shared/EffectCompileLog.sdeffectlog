@@ -1,6 +1,6 @@
 ﻿---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -50,7 +50,7 @@ UsedParameters:
             ClassName: EnvironmentLight
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -98,15 +98,15 @@ UsedParameters:
             ClassName: LightSimpleAmbient
         - !ShaderClassSource
             ClassName: EnvironmentLight
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -201,7 +201,7 @@ UsedParameters:
             ClassName: EnvironmentLight
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -294,11 +294,11 @@ UsedParameters:
             ClassName: LightSimpleAmbient
         - !ShaderClassSource
             ClassName: EnvironmentLight
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
@@ -308,9 +308,9 @@ UsedParameters:
     ParticleBase.BaseColor: !ShaderClassSource
         ClassName: ComputeColorTextureScaledOffsetDynamicSampler
         GenericArguments: [ParticleBase.EmissiveMap, TEXCOORD0, Material.Sampler.i0, rgba, Material.TextureScale, Material.TextureOffset]
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest

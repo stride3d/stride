@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Rendering.Images;
+using Stride.Rendering.Images;
 
-namespace Xenko.Rendering.Voxels.Debug
+namespace Stride.Rendering.Voxels.Debug
 {
     public interface IVoxelVisualization
     {

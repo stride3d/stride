@@ -6,6 +6,6 @@ Scope: Asset
 Description: A procedurally-generated geosphere
 Group: Model
 Order: 20
-Icon: ..\.xktpl\ProceduralGeoSphere.png
+Icon: ..\.sdtpl\ProceduralGeoSphere.png
 DefaultOutputName: GeoSphere
 FactoryTypeName: ProceduralModelGeoSphereFactory

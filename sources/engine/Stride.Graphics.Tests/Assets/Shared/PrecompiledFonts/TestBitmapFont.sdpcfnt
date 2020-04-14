@@ -1,6 +1,6 @@
 !PregeneratedSpriteFont
 Id: 37849a2b-82f1-4e4b-9ef6-680331c5fa87
-SerializedVersion: {Xenko: 1.7.0-alpha01}
+SerializedVersion: {Stride: 1.7.0-alpha01}
 Tags: []
 OriginalFont: 21069bb0-91b2-4570-be00-a70a1df67cb1:StaticFonts/TestBitmapFont
 FontDataFile: ../../../../../data/tests/PrecompileFonts/TestBitmapFont (Precompiled).png

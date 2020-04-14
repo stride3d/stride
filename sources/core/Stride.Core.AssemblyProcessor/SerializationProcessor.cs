@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -9,14 +9,14 @@ using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-using Xenko.Core.Serialization;
-using Xenko.Core.Storage;
+using Stride.Core.Serialization;
+using Stride.Core.Storage;
 using CustomAttributeNamedArgument = Mono.Cecil.CustomAttributeNamedArgument;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 using ParameterAttributes = Mono.Cecil.ParameterAttributes;
 using TypeAttributes = Mono.Cecil.TypeAttributes;
 
-namespace Xenko.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor
 {
     internal class SerializationProcessor : IAssemblyDefinitionProcessor
     {
@@ -51,13 +51,13 @@ namespace Xenko.Core.AssemblyProcessor
         private static void GenerateSerializerCode(ComplexSerializerRegistry registry)
         {
             var assembly = registry.Assembly;
-            var xenkoCoreModule = assembly.GetXenkoCoreModule();
+            var strideCoreModule = assembly.GetStrideCoreModule();
 
-            var dataSerializerTypeRef = assembly.MainModule.ImportReference(xenkoCoreModule.GetType("Xenko.Core.Serialization.DataSerializer`1"));
-            var serializerSelectorType = xenkoCoreModule.GetType("Xenko.Core.Serialization.SerializerSelector");
+            var dataSerializerTypeRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.DataSerializer`1"));
+            var serializerSelectorType = strideCoreModule.GetType("Stride.Core.Serialization.SerializerSelector");
             var serializerSelectorTypeRef = assembly.MainModule.ImportReference(serializerSelectorType);
             var serializerSelectorGetSerializerRef = assembly.MainModule.ImportReference(serializerSelectorType.Methods.Single(x => x.Name == "GetSerializer" && x.Parameters.Count == 0 && x.GenericParameters.Count == 1));
-            var memberSerializerCreateRef = assembly.MainModule.ImportReference(xenkoCoreModule.GetType("Xenko.Core.Serialization.MemberSerializer`1").Methods.Single(x => x.Name == "Create"));
+            var memberSerializerCreateRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.MemberSerializer`1").Methods.Single(x => x.Name == "Create"));
 
             var dataSerializerSerializeMethod = dataSerializerTypeRef.Resolve().Methods.Single(x => x.Name == "Serialize" && (x.Attributes & MethodAttributes.Abstract) != 0);
             var dataSerializerSerializeMethodRef = assembly.MainModule.ImportReference(dataSerializerSerializeMethod);
@@ -294,16 +294,16 @@ namespace Xenko.Core.AssemblyProcessor
             var getTypeHandleMethodRef = assembly.MainModule.ImportReference(typeHandleProperty.GetMethod);
 
             // Generate code
-            var serializerFactoryType = new TypeDefinition("Xenko.Core.DataSerializers",
+            var serializerFactoryType = new TypeDefinition("Stride.Core.DataSerializers",
                 Utilities.BuildValidClassName(assembly.Name.Name) + "SerializerFactory",
                 TypeAttributes.BeforeFieldInit | TypeAttributes.AnsiClass | TypeAttributes.AutoClass |
                 TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.Abstract,
                 assembly.MainModule.TypeSystem.Object);
             assembly.MainModule.Types.Add(serializerFactoryType);
 
-            var dataSerializerModeTypeRef = assembly.MainModule.ImportReference(xenkoCoreModule.GetType("Xenko.Core.Serialization.DataSerializerGenericMode"));
+            var dataSerializerModeTypeRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.DataSerializerGenericMode"));
 
-            var dataSerializerGlobalAttribute = xenkoCoreModule.GetType("Xenko.Core.Serialization.DataSerializerGlobalAttribute");
+            var dataSerializerGlobalAttribute = strideCoreModule.GetType("Stride.Core.Serialization.DataSerializerGlobalAttribute");
             var dataSerializerGlobalCtorRef = assembly.MainModule.ImportReference(dataSerializerGlobalAttribute.GetConstructors().Single(x => !x.IsStatic && x.Parameters.Count == 5));
 
             foreach (var profile in registry.Context.SerializableTypesProfiles)
@@ -360,7 +360,7 @@ namespace Xenko.Core.AssemblyProcessor
             var initializeMethodIL = initializeMethod.Body.GetILProcessor();
 
             // Generating: var assemblySerializers = new AssemblySerializers(typeof(<#=registry.ClassName#>).GetTypeInfo().Assembly);
-            var assemblySerializersType = xenkoCoreModule.GetType("Xenko.Core.Serialization.AssemblySerializers");
+            var assemblySerializersType = strideCoreModule.GetType("Stride.Core.Serialization.AssemblySerializers");
 
             var assemblySerializersGetDataContractAliasesRef = assembly.MainModule.ImportReference(assemblySerializersType.Properties.First(x => x.Name == "DataContractAliases").GetMethod);
             var assemblySerializersGetDataContractAliasesAdd = assemblySerializersGetDataContractAliasesRef.ReturnType.Resolve().Methods.First(x => x.Name == "Add");
@@ -405,9 +405,9 @@ namespace Xenko.Core.AssemblyProcessor
                 initializeMethodIL.Emit(OpCodes.Call, assemblySerializersGetModulesAddRef);
             }
 
-            var objectIdCtorRef = assembly.MainModule.ImportReference(xenkoCoreModule.GetType("Xenko.Core.Storage.ObjectId").GetConstructors().Single(x => x.Parameters.Count == 4));
-            var serializerEntryTypeCtorRef = assembly.MainModule.ImportReference(xenkoCoreModule.GetType("Xenko.Core.Serialization.AssemblySerializerEntry").GetConstructors().Single());
-            var assemblySerializersPerProfileType = xenkoCoreModule.GetType("Xenko.Core.Serialization.AssemblySerializersPerProfile");
+            var objectIdCtorRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Storage.ObjectId").GetConstructors().Single(x => x.Parameters.Count == 4));
+            var serializerEntryTypeCtorRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.AssemblySerializerEntry").GetConstructors().Single());
+            var assemblySerializersPerProfileType = strideCoreModule.GetType("Stride.Core.Serialization.AssemblySerializersPerProfile");
             var assemblySerializersPerProfileTypeAddRef = assembly.MainModule.ImportReference(assemblySerializersPerProfileType.BaseType.Resolve().Methods.First(x => x.Name == "Add")).MakeGeneric(serializerEntryTypeCtorRef.DeclaringType);
             var assemblySerializersPerProfileTypeCtorRef = assembly.MainModule.ImportReference(assemblySerializersPerProfileType.GetEmptyConstructor());
             var assemblySerializersGetProfilesRef = assembly.MainModule.ImportReference(assemblySerializersType.Properties.First(x => x.Name == "Profiles").GetMethod);
@@ -475,7 +475,7 @@ namespace Xenko.Core.AssemblyProcessor
             }
 
             // Generating: DataSerializerFactory.RegisterSerializationAssembly(assemblySerializers);
-            var dataSerializerFactoryRegisterSerializationAssemblyMethodRef = assembly.MainModule.ImportReference(xenkoCoreModule.GetType("Xenko.Core.Serialization.DataSerializerFactory").Methods.Single(x => x.Name == "RegisterSerializationAssembly" && x.Parameters[0].ParameterType.FullName == assemblySerializersType.FullName));
+            var dataSerializerFactoryRegisterSerializationAssemblyMethodRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Serialization.DataSerializerFactory").Methods.Single(x => x.Name == "RegisterSerializationAssembly" && x.Parameters[0].ParameterType.FullName == assemblySerializersType.FullName));
             initializeMethodIL.Emit(OpCodes.Call, dataSerializerFactoryRegisterSerializationAssemblyMethodRef);
 
             // Generating: AssemblyRegistry.Register(typeof(<#=registry.ClassName#>).GetTypeInfo().Assembly, AssemblyCommonCategories.Engine);
@@ -492,13 +492,13 @@ namespace Xenko.Core.AssemblyProcessor
             initializeMethodIL.Emit(OpCodes.Ldstr, Core.Reflection.AssemblyCommonCategories.Engine);
             initializeMethodIL.Emit(OpCodes.Stelem_Ref);
 
-            var assemblyRegistryRegisterMethodRef = assembly.MainModule.ImportReference(xenkoCoreModule.GetType("Xenko.Core.Reflection.AssemblyRegistry").Methods.Single(x => x.Name == "Register" && x.Parameters[1].ParameterType.IsArray));
+            var assemblyRegistryRegisterMethodRef = assembly.MainModule.ImportReference(strideCoreModule.GetType("Stride.Core.Reflection.AssemblyRegistry").Methods.Single(x => x.Name == "Register" && x.Parameters[1].ParameterType.IsArray));
             initializeMethodIL.Emit(OpCodes.Call, assemblyRegistryRegisterMethodRef);
 
             initializeMethodIL.Emit(OpCodes.Ret);
 
             // Add AssemblySerializerFactoryAttribute
-            var assemblySerializerFactoryAttribute = xenkoCoreModule.GetType("Xenko.Core.Serialization.AssemblySerializerFactoryAttribute");
+            var assemblySerializerFactoryAttribute = strideCoreModule.GetType("Stride.Core.Serialization.AssemblySerializerFactoryAttribute");
             assembly.CustomAttributes.Add(new CustomAttribute(assembly.MainModule.ImportReference(assemblySerializerFactoryAttribute.GetEmptyConstructor()))
             {
                 Fields =
@@ -517,37 +517,37 @@ namespace Xenko.Core.AssemblyProcessor
                 throw new InvalidOperationException("Missing mscorlib.dll from assembly");
             }
 
-            var coreSerializationAssembly = assemblyResolver.Resolve(new AssemblyNameReference("Xenko.Core", null));
+            var coreSerializationAssembly = assemblyResolver.Resolve(new AssemblyNameReference("Stride.Core", null));
 
             // Register serializer factories (determine which type requires which serializer)
-            registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(IList<>), coreSerializationAssembly.MainModule.GetTypeResolved("Xenko.Core.Serialization.Serializers.ListInterfaceSerializer`1")));
-            registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(List<>), coreSerializationAssembly.MainModule.GetTypeResolved("Xenko.Core.Serialization.Serializers.ListSerializer`1")));
-            registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(KeyValuePair<,>), coreSerializationAssembly.MainModule.GetTypeResolved("Xenko.Core.Serialization.Serializers.KeyValuePairSerializer`2")));
-            registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(IDictionary<,>), coreSerializationAssembly.MainModule.GetTypeResolved("Xenko.Core.Serialization.Serializers.DictionaryInterfaceSerializer`2")));
-            registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(Dictionary<,>), coreSerializationAssembly.MainModule.GetTypeResolved("Xenko.Core.Serialization.Serializers.DictionarySerializer`2")));
-            registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(Nullable<>), coreSerializationAssembly.MainModule.GetTypeResolved("Xenko.Core.Serialization.Serializers.NullableSerializer`1")));
-            registry.SerializerFactories.Add(new CecilEnumSerializerFactory(coreSerializationAssembly.MainModule.GetTypeResolved("Xenko.Core.Serialization.Serializers.EnumSerializer`1")));
-            registry.SerializerFactories.Add(new CecilArraySerializerFactory(coreSerializationAssembly.MainModule.GetTypeResolved("Xenko.Core.Serialization.Serializers.ArraySerializer`1")));
+            registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(IList<>), coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.ListInterfaceSerializer`1")));
+            registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(List<>), coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.ListSerializer`1")));
+            registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(KeyValuePair<,>), coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.KeyValuePairSerializer`2")));
+            registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(IDictionary<,>), coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.DictionaryInterfaceSerializer`2")));
+            registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(Dictionary<,>), coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.DictionarySerializer`2")));
+            registry.SerializerFactories.Add(new CecilGenericSerializerFactory(typeof(Nullable<>), coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.NullableSerializer`1")));
+            registry.SerializerFactories.Add(new CecilEnumSerializerFactory(coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.EnumSerializer`1")));
+            registry.SerializerFactories.Add(new CecilArraySerializerFactory(coreSerializationAssembly.MainModule.GetTypeResolved("Stride.Core.Serialization.Serializers.ArraySerializer`1")));
 
             // Iterate over tuple size
             for (int i = 1; i <= 4; ++i)
             {
                 registry.SerializerDependencies.Add(new CecilSerializerDependency(
                                                          string.Format("System.Tuple`{0}", i),
-                                                         coreSerializationAssembly.MainModule.GetTypeResolved(string.Format("Xenko.Core.Serialization.Serializers.TupleSerializer`{0}", i))));
+                                                         coreSerializationAssembly.MainModule.GetTypeResolved(string.Format("Stride.Core.Serialization.Serializers.TupleSerializer`{0}", i))));
 
-                registry.SerializerDependencies.Add(new CecilSerializerDependency(string.Format("Xenko.Core.Serialization.Serializers.TupleSerializer`{0}", i)));
+                registry.SerializerDependencies.Add(new CecilSerializerDependency(string.Format("Stride.Core.Serialization.Serializers.TupleSerializer`{0}", i)));
             }
 
             // Register serializer dependencies (determine which serializer serializes which sub-type)
-            registry.SerializerDependencies.Add(new CecilSerializerDependency("Xenko.Core.Serialization.Serializers.ArraySerializer`1"));
-            registry.SerializerDependencies.Add(new CecilSerializerDependency("Xenko.Core.Serialization.Serializers.KeyValuePairSerializer`2"));
-            registry.SerializerDependencies.Add(new CecilSerializerDependency("Xenko.Core.Serialization.Serializers.ListSerializer`1"));
-            registry.SerializerDependencies.Add(new CecilSerializerDependency("Xenko.Core.Serialization.Serializers.ListInterfaceSerializer`1"));
-            registry.SerializerDependencies.Add(new CecilSerializerDependency("Xenko.Core.Serialization.Serializers.NullableSerializer`1"));
-            registry.SerializerDependencies.Add(new CecilSerializerDependency("Xenko.Core.Serialization.Serializers.DictionarySerializer`2",
+            registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.ArraySerializer`1"));
+            registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.KeyValuePairSerializer`2"));
+            registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.ListSerializer`1"));
+            registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.ListInterfaceSerializer`1"));
+            registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.NullableSerializer`1"));
+            registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.DictionarySerializer`2",
                                                                                mscorlibAssembly.MainModule.GetTypeResolved(typeof(KeyValuePair<,>).FullName)));
-            registry.SerializerDependencies.Add(new CecilSerializerDependency("Xenko.Core.Serialization.Serializers.DictionaryInterfaceSerializer`2",
+            registry.SerializerDependencies.Add(new CecilSerializerDependency("Stride.Core.Serialization.Serializers.DictionaryInterfaceSerializer`2",
                                                                                mscorlibAssembly.MainModule.GetTypeResolved(typeof(KeyValuePair<,>).FullName)));
         }
     }

@@ -1,11 +1,11 @@
 <Project>
 
   <PropertyGroup>
-    <XenkoRuntime>true</XenkoRuntime>
-    <XenkoRuntimeNetStandardNoRuntimeIdentifiers>true</XenkoRuntimeNetStandardNoRuntimeIdentifiers>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideRuntimeNetStandardNoRuntimeIdentifiers>true</StrideRuntimeNetStandardNoRuntimeIdentifiers>
   </PropertyGroup>
 
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
   <PropertyGroup>
@@ -14,14 +14,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorOptions>--auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
-    <XenkoPlatformDependent>true</XenkoPlatformDependent>
-    <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StridePlatformDependent>true</StridePlatformDependent>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
 
-  <Import Condition="$(XenkoUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
+  <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
 
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -35,11 +35,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
     <!-- SharpDX is needed for WIC -->
-    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'UWP'" />
-    <PackageReference Include="System.Drawing.Common" Version="4.6.0" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux'" />
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" Condition="'$(StridePlatform)' == 'UWP'" />
+    <PackageReference Include="System.Drawing.Common" Version="4.6.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux'" />
   </ItemGroup>
 
   <ItemGroup>
@@ -53,7 +53,7 @@
     </None>
   </ItemGroup>
 
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
 </Project>

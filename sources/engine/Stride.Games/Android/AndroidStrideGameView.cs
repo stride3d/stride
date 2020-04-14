@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 using System;
-using Xenko.Graphics;
-using Xenko.Graphics.OpenGL;
+using Stride.Graphics;
+using Stride.Graphics.OpenGL;
 using Android.Content;
 using OpenTK.Graphics;
 using OpenTK.Platform.Android;
 using OpenTK.Graphics.ES30;
-using Xenko.Data;
-using PixelFormat = Xenko.Graphics.PixelFormat;
+using Stride.Data;
+using PixelFormat = Stride.Graphics.PixelFormat;
 
-namespace Xenko.Games.Android
+namespace Stride.Games.Android
 {
-    public class AndroidXenkoGameView : AndroidGameView
+    public class AndroidStrideGameView : AndroidGameView
     {
         public EventHandler<EventArgs> OnPause;
         public EventHandler<EventArgs> OnResume;
 
-        public AndroidXenkoGameView(Context context) : base(context)
+        public AndroidStrideGameView(Context context) : base(context)
         {
             RequestedBackBufferFormat = PixelFormat.R8G8B8A8_UNorm;
             RequestedGraphicsProfile =  new [] { GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_1 };

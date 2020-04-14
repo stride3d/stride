@@ -5,6 +5,6 @@ Name: Box
 Scope: Asset
 Description: A box-shaped collider
 Group: Physics
-Icon: ..\.xktpl\ColliderCube.png
+Icon: ..\.sdtpl\ColliderCube.png
 DefaultOutputName: ColliderBox
 FactoryTypeName: ColliderShapeBoxFactory

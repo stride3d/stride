@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Mathematics;
-using Xenko.Extensions;
-using Xenko.Graphics;
-using Xenko.Graphics.GeometricPrimitives;
-using Xenko.Rendering;
+using Stride.Core.Mathematics;
+using Stride.Extensions;
+using Stride.Graphics;
+using Stride.Graphics.GeometricPrimitives;
+using Stride.Rendering;
 
-namespace Xenko.Physics
+namespace Stride.Physics
 {
     public class StaticMeshColliderShape : ColliderShape
     {
@@ -42,7 +42,7 @@ namespace Xenko.Physics
             vertices = verticesParam;
             indices = indicesParam;
             
-            var meshData = new BulletSharp.TriangleIndexVertexArray(indices, new XenkoToBulletWrapper(vertices));
+            var meshData = new BulletSharp.TriangleIndexVertexArray(indices, new StrideToBulletWrapper(vertices));
             var baseCollider = new BulletSharp.BvhTriangleMeshShape(meshData, true);
             InternalShape = new BulletSharp.ScaledBvhTriangleMeshShape(baseCollider, scaling);
             DebugPrimitiveMatrix = Matrix.Scaling(Vector3.One * DebugScaling);
@@ -61,10 +61,10 @@ namespace Xenko.Physics
             return new GeometricPrimitive(device, meshData).ToMeshDraw();
         }
         
-        class XenkoToBulletWrapper : ICollection<BulletSharp.Math.Vector3>
+        class StrideToBulletWrapper : ICollection<BulletSharp.Math.Vector3>
         {
             ICollection<Vector3> internalColl;
-            public XenkoToBulletWrapper(ICollection<Vector3> collectionToConvert)
+            public StrideToBulletWrapper(ICollection<Vector3> collectionToConvert)
             {
                 internalColl = collectionToConvert;
             }

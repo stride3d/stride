@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.IO;
 
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Graphics;
-using Xenko.TextureConverter.Requests;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Graphics;
+using Stride.TextureConverter.Requests;
 using FreeImageAPI;
 using FreeImageAPI.Plugins;
 
-namespace Xenko.TextureConverter.TexLibraries
+namespace Stride.TextureConverter.TexLibraries
 {
     /// <summary>
     /// Class containing the needed native Data used by FreeImage

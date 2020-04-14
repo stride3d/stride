@@ -11,6 +11,6 @@
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="UtilityFunctions.h" />
-    <ClInclude Include="..\Xenko.Importer.Common\ImporterUtils.h" />
+    <ClInclude Include="..\Stride.Importer.Common\ImporterUtils.h" />
   </ItemGroup>
 </Project>

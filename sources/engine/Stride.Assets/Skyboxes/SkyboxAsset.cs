@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
 using System.ComponentModel;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Yaml;
-using Xenko.Graphics;
-using Xenko.Rendering.Skyboxes;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Yaml;
+using Stride.Graphics;
+using Stride.Rendering.Skyboxes;
 
-namespace Xenko.Assets.Skyboxes
+namespace Stride.Assets.Skyboxes
 {
     /// <summary>
     /// The skybox asset.
@@ -21,7 +21,7 @@ namespace Xenko.Assets.Skyboxes
     [DataContract("SkyboxAsset")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Skybox))]
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
     public sealed partial class SkyboxAsset : Asset
     {
         private const string CurrentVersion = "2.0.0.0";
@@ -29,7 +29,7 @@ namespace Xenko.Assets.Skyboxes
         /// <summary>
         /// The default file extension used by the <see cref="SkyboxAsset"/>.
         /// </summary>
-        public const string FileExtension = ".xksky";
+        public const string FileExtension = ".sdsky";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SkyboxAsset"/> class.

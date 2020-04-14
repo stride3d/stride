@@ -1,16 +1,16 @@
 <#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 <#
     var androidOrientation = "Landscape";
-    switch ((Xenko.Graphics.DisplayOrientation)Properties.Orientation)
+    switch ((Stride.Graphics.DisplayOrientation)Properties.Orientation)
     {
-        case Xenko.Graphics.DisplayOrientation.Default:
-        case Xenko.Graphics.DisplayOrientation.LandscapeRight:
+        case Stride.Graphics.DisplayOrientation.Default:
+        case Stride.Graphics.DisplayOrientation.LandscapeRight:
             androidOrientation = "Landscape";
             break;
-        case Xenko.Graphics.DisplayOrientation.LandscapeLeft:
+        case Stride.Graphics.DisplayOrientation.LandscapeLeft:
             androidOrientation = "ReverseLandscape";
             break;
-        case Xenko.Graphics.DisplayOrientation.Portrait:
+        case Stride.Graphics.DisplayOrientation.Portrait:
             androidOrientation = "Portrait";
             break;
     }
@@ -19,8 +19,8 @@ using Android.App;
 using Android.OS;
 using Android.Content.PM;
 
-using Xenko.Engine;
-using Xenko.Starter;
+using Stride.Engine;
+using Stride.Starter;
 
 namespace <#= Properties.Namespace #>
 {
@@ -28,7 +28,7 @@ namespace <#= Properties.Namespace #>
               Icon = "@drawable/icon", 
               ScreenOrientation = ScreenOrientation.<#= androidOrientation #>,
               ConfigurationChanges = ConfigChanges.UiMode | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenSize)]
-    public class <#= Properties.PackageGameNameShort #>Activity : AndroidXenkoActivity
+    public class <#= Properties.PackageGameNameShort #>Activity : AndroidStrideActivity
     {
         protected override void OnCreate(Bundle bundle)
         {

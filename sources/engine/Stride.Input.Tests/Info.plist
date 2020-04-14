@@ -5,7 +5,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>PDX Input</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.xenko.input.tests</string>
+	<string>com.stride.input.tests</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleVersion</key>

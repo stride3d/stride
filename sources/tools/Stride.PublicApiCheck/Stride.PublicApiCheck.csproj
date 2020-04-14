@@ -2,9 +2,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net40</TargetFramework>
-    <XenkoCommonDependenciesDir>..\..\..\deps\</XenkoCommonDependenciesDir>
+    <StrideCommonDependenciesDir>..\..\..\deps\</StrideCommonDependenciesDir>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
-    <XenkoBuildTags>WindowsTools</XenkoBuildTags>
+    <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>

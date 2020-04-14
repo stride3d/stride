@@ -28,7 +28,7 @@ using Foundation;
 using UIKit;
 using MonoTouch.NUnit.UI;
 
-namespace Xenko.Core.Tests
+namespace Stride.Core.Tests
 {
     public class Application
     {

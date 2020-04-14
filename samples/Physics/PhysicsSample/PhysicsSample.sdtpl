@@ -5,7 +5,7 @@ Scope: Session
 Description: Demonstrates physics constraints, raycasting, and character controllers
 FullDescription: This sample project demonstrates how to use constraints, raycasting, and character controllers.
 Group: Samples/Physics
-Icon: ../.xktpl/NewPhysics.png
+Icon: ../.sdtpl/NewPhysics.png
 DefaultOutputName: PhysicsSample
 Screenshots:
-    - .xktpl/screenshot_small.png
+    - .sdtpl/screenshot_small.png

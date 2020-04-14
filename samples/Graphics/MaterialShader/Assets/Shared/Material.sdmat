@@ -1,6 +1,6 @@
 !MaterialAsset
 Id: 46859e92-96ad-4466-a0ed-a16f85780b32
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Attributes:
     Displacement: !MaterialDisplacementMapFeature

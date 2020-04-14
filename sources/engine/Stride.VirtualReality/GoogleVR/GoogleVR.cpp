@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if defined(DONT_BUILD_FOR_NOW) && (defined(ANDROID) || defined(IOS)) || !defined(__clang__)
@@ -11,7 +11,7 @@
 #define NP_STATIC_LINKING
 #endif
 
-#include "../../../common/core/Xenko.Core.Native/CoreNative.h"
+#include "../../../common/core/Stride.Core.Native/CoreNative.h"
 #include "../../../deps/NativePath/NativeDynamicLinking.h"
 #include "../../../deps/NativePath/NativePath.h"
 

@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.Annotations;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.Annotations;
 
-namespace Xenko.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels
+namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels
 {
     /// <summary>
     /// An interface for view models that contain a design part in an editor of <see cref="AssetComposite"/>.

@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Assets.Quantum.Visitors;
-using Xenko.Core.Assets.Serializers;
-using Xenko.Core.Assets.Yaml;
-using Xenko.Core;
-using Xenko.Core.Reflection;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Quantum.Visitors;
+using Stride.Core.Assets.Serializers;
+using Stride.Core.Assets.Yaml;
+using Stride.Core;
+using Stride.Core.Reflection;
 
-namespace Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors
+namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
 {
     public class AssetCompositeHierarchyPasteProcessor<TAssetPartDesign, TAssetPart> : PasteProcessorBase
         where TAssetPartDesign : class, IAssetPartDesign<TAssetPart>

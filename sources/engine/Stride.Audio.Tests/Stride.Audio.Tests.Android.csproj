@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--Import Local Pre Settings for the solution being loaded -->
-  <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -11,8 +11,8 @@
     <OutputType>Library</OutputType>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Xenko.Audio.Tests</RootNamespace>
-    <AssemblyName>Xenko.Audio.Tests</AssemblyName>
+    <RootNamespace>Stride.Audio.Tests</RootNamespace>
+    <AssemblyName>Stride.Audio.Tests</AssemblyName>
     <TargetFrameworkVersion>v8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AndroidApplication>true</AndroidApplication>
@@ -24,26 +24,26 @@
     <MandroidI18n />
     <JavaMaximumHeapSize />
     <JavaOptions />
-    <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoPlatform>Android</XenkoPlatform>
-    <XenkoBuildProfile>Android</XenkoBuildProfile>
-    <XenkoPackageGuid>{637e7e88-bc09-4ddd-95eb-00114fd32e5e}</XenkoPackageGuid>
-    <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">OpenGLES</XenkoGraphicsApi>
-    <XenkoOutputFolder>Tests\$(XenkoGraphicsApi)\$(AssemblyName)</XenkoOutputFolder>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StridePlatform>Android</StridePlatform>
+    <StrideBuildProfile>Android</StrideBuildProfile>
+    <StridePackageGuid>{637e7e88-bc09-4ddd-95eb-00114fd32e5e}</StridePackageGuid>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''">OpenGLES</StrideGraphicsApi>
+    <StrideOutputFolder>Tests\$(StrideGraphicsApi)\$(AssemblyName)</StrideOutputFolder>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
-    <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)Xenko.Audio.Tests.xkpkg</XenkoCurrentPackagePath>
-    <OutputPath>..\..\..\Bin\$(XenkoPlatformFullName)\$(XenkoOutputFolder)</OutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(XenkoPlatformFullName)-$(XenkoGraphicsApi)\$(Configuration)</IntermediateOutputPath>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)Stride.Audio.Tests.sdpkg</StrideCurrentPackagePath>
+    <OutputPath>..\..\..\Bin\$(StridePlatformFullName)\$(StrideOutputFolder)</OutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(StridePlatformFullName)-$(StrideGraphicsApi)\$(Configuration)</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Android' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
@@ -52,7 +52,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Android' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID</DefineConstants>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
@@ -61,7 +61,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|Android' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID</DefineConstants>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
@@ -70,23 +70,23 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AppStore|Android' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID</DefineConstants>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
     <AndroidLinkMode>SdkOnly</AndroidLinkMode>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Android" Label="Xenko.DoNotSync" />
+    <Reference Include="Mono.Android" Label="Stride.DoNotSync" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\sources\engine\Xenko.Engine\Xenko.Engine.csproj">
+    <ProjectReference Include="..\..\..\sources\engine\Stride.Engine\Stride.Engine.csproj">
       <Project>{C121A566-555E-42B9-9B0A-1696529A9088}</Project>
-      <Name>Xenko.Engine</Name>
+      <Name>Stride.Engine</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Xenko.Graphics.Regression\Xenko.Graphics.Regression.csproj">
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj">
       <Project>{D002FEB1-00A6-4AB1-A83F-1F253465E64D}</Project>
-      <Name>Xenko.Graphics.Regression</Name>
+      <Name>Stride.Graphics.Regression</Name>
     </ProjectReference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -114,45 +114,45 @@
     <Compile Include="TestSoundEffect.cs" />
     <Compile Include="TestSoundEffectInstance.cs" />
     <Compile Include="TestSoundMusic.cs" />
-    <None Include="AudioAssets\a.xksnd" />
-    <None Include="AudioAssets\ae.xksnd" />
-    <None Include="AudioAssets\a_Music.xksnd" />
-    <None Include="AudioAssets\wave1HeaderCorrupted_Music.xksnd" />
-    <None Include="AudioAssets\wave1_4Channels_Music.xksnd" />
-    <None Include="AudioAssets\fiveptone_Music.xksnd" />
-    <None Include="AudioAssets\stereo_Music.xksnd" />
-    <None Include="AudioAssets\wave1_Music.xksnd" />
-    <None Include="AudioAssets\wave1MP3.xksnd" />
-    <None Include="AudioAssets\bizet.xksnd" />
-    <None Include="AudioAssets\sayuriWAV.xksnd" />
-    <None Include="AudioAssets\stereoOGG.xksnd" />
-    <None Include="AudioAssets\InvalidAudioFile.xksnd" />
-    <None Include="AudioAssets\fiveptone.xksnd" />
-    <None Include="AudioAssets\sayuri.xksnd" />
-    <None Include="AudioAssets\sayuriPart.xksnd" />
-    <None Include="AudioAssets\stereo.xksnd" />
-    <None Include="AudioAssets\wave1.xksnd" />
-    <None Include="AudioAssets\wave1HeaderCorrupted.xksnd" />
-    <None Include="AudioAssets\wave1_24bits.xksnd" />
-    <None Include="AudioAssets\wave1_4Channels.xksnd" />
-    <None Include="AudioAssets\wave2.xksnd" />
-    <None Include="Xenko.Audio.Tests.xkpkg" />
+    <None Include="AudioAssets\a.sdsnd" />
+    <None Include="AudioAssets\ae.sdsnd" />
+    <None Include="AudioAssets\a_Music.sdsnd" />
+    <None Include="AudioAssets\wave1HeaderCorrupted_Music.sdsnd" />
+    <None Include="AudioAssets\wave1_4Channels_Music.sdsnd" />
+    <None Include="AudioAssets\fiveptone_Music.sdsnd" />
+    <None Include="AudioAssets\stereo_Music.sdsnd" />
+    <None Include="AudioAssets\wave1_Music.sdsnd" />
+    <None Include="AudioAssets\wave1MP3.sdsnd" />
+    <None Include="AudioAssets\bizet.sdsnd" />
+    <None Include="AudioAssets\sayuriWAV.sdsnd" />
+    <None Include="AudioAssets\stereoOGG.sdsnd" />
+    <None Include="AudioAssets\InvalidAudioFile.sdsnd" />
+    <None Include="AudioAssets\fiveptone.sdsnd" />
+    <None Include="AudioAssets\sayuri.sdsnd" />
+    <None Include="AudioAssets\sayuriPart.sdsnd" />
+    <None Include="AudioAssets\stereo.sdsnd" />
+    <None Include="AudioAssets\wave1.sdsnd" />
+    <None Include="AudioAssets\wave1HeaderCorrupted.sdsnd" />
+    <None Include="AudioAssets\wave1_24bits.sdsnd" />
+    <None Include="AudioAssets\wave1_4Channels.sdsnd" />
+    <None Include="AudioAssets\wave2.sdsnd" />
+    <None Include="Stride.Audio.Tests.sdpkg" />
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Label="Xenko.DoNotSync" Include="Resources\Layout\Main.axml" />
-    <AndroidResource Label="Xenko.DoNotSync" Include="Resources\Drawable\Icon.png" />
-    <AndroidResource Label="Xenko.DoNotSync" Include="Resources\Values\Strings.xml" />
-    <Compile Label="Xenko.DoNotSync" Include="Properties\AssemblyInfo.cs" />
-    <Content Label="Xenko.DoNotSync" Include="Properties\AndroidManifest.xml" />
-    <Compile Label="Xenko.DoNotSync" Include="Resources\Resource.Designer.cs" />
-    <Compile Label="Xenko.DoNotSync" Include="..\..\..\sources\shared\tests\nunitlite\NUnitLiteLauncher.Android.cs">
+    <AndroidResource Label="Stride.DoNotSync" Include="Resources\Layout\Main.axml" />
+    <AndroidResource Label="Stride.DoNotSync" Include="Resources\Drawable\Icon.png" />
+    <AndroidResource Label="Stride.DoNotSync" Include="Resources\Values\Strings.xml" />
+    <Compile Label="Stride.DoNotSync" Include="Properties\AssemblyInfo.cs" />
+    <Content Label="Stride.DoNotSync" Include="Properties\AndroidManifest.xml" />
+    <Compile Label="Stride.DoNotSync" Include="Resources\Resource.Designer.cs" />
+    <Compile Label="Stride.DoNotSync" Include="..\..\..\sources\shared\tests\nunitlite\NUnitLiteLauncher.Android.cs">
       <Link>NUnitLiteLauncher.Android.cs</Link>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
-  <Import Project="$(XenkoPackageProps)" Condition="Exists('$(XenkoPackageProps)')" />
-  <Import Project="..\..\targets\Xenko.UnitTests.targets" Condition="Exists('..\..\targets\Xenko.UnitTests.targets')" />
+  <Import Project="$(StridePackageProps)" Condition="Exists('$(StridePackageProps)')" />
+  <Import Project="..\..\targets\Stride.UnitTests.targets" Condition="Exists('..\..\targets\Stride.UnitTests.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
     Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

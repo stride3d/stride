@@ -1,6 +1,6 @@
 !ProceduralModelAsset
 Id: 120c36db-8a04-4dfd-aa11-85d9b46d5143
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: !ConeProceduralModel
     Scale: {X: 1.0, Y: 1.0, Z: 1.0}

@@ -1,15 +1,15 @@
 ﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
   <PropertyGroup>
-    <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)<#= Properties.Package.Meta.Name #>.xkpkg</XenkoCurrentPackagePath>
-    <OutputPath><#= Properties.XenkoSdkRelativeDir #>\Bin\$(XenkoPlatformFullName)\$(XenkoOutputFolder)\</OutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(XenkoPlatformFullName)-$(XenkoGraphicsApi)\$(Configuration)</IntermediateOutputPath>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)<#= Properties.Package.Meta.Name #>.sdpkg</StrideCurrentPackagePath>
+    <OutputPath><#= Properties.StrideSdkRelativeDir #>\Bin\$(StridePlatformFullName)\$(StrideOutputFolder)\</OutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(StridePlatformFullName)-$(StrideGraphicsApi)\$(Configuration)</IntermediateOutputPath>
   </PropertyGroup>
 <#
-var currentPlatform = (Xenko.Core.PlatformType)System.Enum.Parse(typeof(Xenko.Core.PlatformType), Properties.CurrentPlatform);
+var currentPlatform = (Stride.Core.PlatformType)System.Enum.Parse(typeof(Stride.Core.PlatformType), Properties.CurrentPlatform);
 foreach(var platform in Properties.Platforms) 
 { 
     // Skip the platform if it is not current
-    if (currentPlatform != Xenko.Core.PlatformType.Shared && currentPlatform != platform.Type)
+    if (currentPlatform != Stride.Core.PlatformType.Shared && currentPlatform != platform.Type)
     {
         continue;
     }

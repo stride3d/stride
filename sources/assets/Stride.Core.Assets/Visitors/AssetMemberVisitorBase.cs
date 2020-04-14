@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Xenko.Core.Reflection;
+using Stride.Core.Reflection;
 
-namespace Xenko.Core.Assets.Visitors
+namespace Stride.Core.Assets.Visitors
 {
     public abstract class AssetMemberVisitorBase : AssetVisitorBase
     {

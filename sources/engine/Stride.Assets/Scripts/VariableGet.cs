@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -6,10 +6,10 @@ using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Xenko.Core;
+using Stride.Core;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace Xenko.Assets.Scripts
+namespace Stride.Assets.Scripts
 {
     public class VariableGet : ExpressionBlock
     {

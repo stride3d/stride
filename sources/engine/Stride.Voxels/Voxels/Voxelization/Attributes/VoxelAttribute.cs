@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Shaders;
-using Xenko.Rendering.Materials;
-using Xenko.Core.Mathematics;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Shaders;
+using Stride.Rendering.Materials;
+using Stride.Core.Mathematics;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     public abstract class VoxelAttribute

@@ -1,32 +1,32 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.BuildEngine;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Assets;
-using Xenko.Assets.SpriteFont;
-using Xenko.Assets.SpriteFont.Compiler;
-using Xenko.Editor.Preview;
-using Xenko.Engine;
-using Xenko.Engine.Design;
-using Xenko.Games;
-using Xenko.Graphics;
-using Xenko.Graphics.Font;
-using Xenko.Physics;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
-using Xenko.Rendering.Fonts;
-using Xenko.Shaders.Compiler;
-using Xenko.UI;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.BuildEngine;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization.Contents;
+using Stride.Assets;
+using Stride.Assets.SpriteFont;
+using Stride.Assets.SpriteFont.Compiler;
+using Stride.Editor.Preview;
+using Stride.Engine;
+using Stride.Engine.Design;
+using Stride.Games;
+using Stride.Graphics;
+using Stride.Graphics.Font;
+using Stride.Physics;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
+using Stride.Rendering.Fonts;
+using Stride.Shaders.Compiler;
+using Stride.UI;
 
-namespace Xenko.Editor.Thumbnails
+namespace Stride.Editor.Thumbnails
 {
     public class ThumbnailGenerator : IDisposable
     {

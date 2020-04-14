@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Shaders;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Materials
+namespace Stride.Rendering.Materials
 {
     /// <summary>
     /// Applies light attenuation with configurable hardness.
@@ -36,7 +36,7 @@ namespace Xenko.Rendering.Materials
         [Display("Shadow boundary shift")]
         public float BoundaryShift { get; set; } = 0.0f;
 
-        // These must match with the values defined in "MaterialHairLightAttenuationFunctionDirectional.xksl"!
+        // These must match with the values defined in "MaterialHairLightAttenuationFunctionDirectional.sdsl"!
         public enum NormalMode
         {
             [Display("Mesh normals")]

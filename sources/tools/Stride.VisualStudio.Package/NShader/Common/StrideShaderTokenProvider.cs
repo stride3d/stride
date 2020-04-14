@@ -19,14 +19,14 @@ using NShader.Lexer;
 
 namespace NShader
 {
-    public class XenkoShaderTokenProvider : IShaderTokenProvider
+    public class StrideShaderTokenProvider : IShaderTokenProvider
     {
         private static EnumMap<ShaderToken> map;
 
-        static XenkoShaderTokenProvider()
+        static StrideShaderTokenProvider()
         {
             map = new EnumMap<ShaderToken>();
-            map.Load("XenkoShaderKeywords.map");
+            map.Load("StrideShaderKeywords.map");
         }
 
         public ShaderToken GetTokenFromSemantics(string text)

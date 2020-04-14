@@ -1,6 +1,6 @@
 !ProceduralModelAsset
 Id: 9fab8da2-f2c8-4586-9435-20d8fad479e2
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: !CapsuleProceduralModel
     Radius: 0.25

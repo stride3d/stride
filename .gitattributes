@@ -60,7 +60,7 @@ glslangValidator filter=lfs diff=lfs merge=lfs -text
 *.hdr filter=lfs diff=lfs merge=lfs -text
 *.exr filter=lfs diff=lfs merge=lfs -text
 *.raw filter=lfs diff=lfs merge=lfs -text
-*.xkimg filter=lfs diff=lfs merge=lfs -text
+*.sdimg filter=lfs diff=lfs merge=lfs -text
 
 # sound
 *.wav filter=lfs diff=lfs merge=lfs -text

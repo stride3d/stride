@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Xunit;
-using Xenko.Core.Serialization;
+using Stride.Core.Serialization;
 
-namespace Xenko.Core.Assets.Tests.Compilers
+namespace Stride.Core.Assets.Tests.Compilers
 {
     public class CompilerTestBase : IDisposable
     {

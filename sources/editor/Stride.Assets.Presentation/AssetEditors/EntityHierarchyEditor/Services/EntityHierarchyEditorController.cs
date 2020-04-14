@@ -1,26 +1,26 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Assets.Quantum.Visitors;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Assets.Entities;
-using Xenko.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.Gizmos;
-using Xenko.Editor.EditorGame.Game;
-using Xenko.Engine;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Quantum.Visitors;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Assets.Entities;
+using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.Gizmos;
+using Stride.Editor.EditorGame.Game;
+using Stride.Engine;
 
-namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services
+namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services
 {
     public abstract class EntityHierarchyEditorController : AssetCompositeHierarchyEditorController<EntityHierarchyEditorGame, EntityDesign, Entity, EntityHierarchyElementViewModel>
     {

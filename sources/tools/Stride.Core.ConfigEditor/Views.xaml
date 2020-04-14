@@ -1,9 +1,9 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:local="clr-namespace:Xenko.ConfigEditor"
-                    xmlns:vm="clr-namespace:Xenko.ConfigEditor.ViewModels"
+                    xmlns:local="clr-namespace:Stride.ConfigEditor"
+                    xmlns:vm="clr-namespace:Stride.ConfigEditor.ViewModels"
                     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-                    xmlns:bhv="clr-namespace:Xenko.Presentation.Behaviors;assembly=Xenko.Presentation">
+                    xmlns:bhv="clr-namespace:Stride.Presentation.Behaviors;assembly=Stride.Presentation">
 
   <DataTemplate x:Key="PropertyView" DataType="vm:PropertyViewModel">
     <!--
@@ -112,19 +112,19 @@
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
 
-          <TextBlock Grid.Row="0" Text="Xenko Path: " Grid.Column="0" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="0" Text="Stride Path: " Grid.Column="0" VerticalAlignment="Center"/>
           <DockPanel Grid.Row="0" Grid.Column="1" Margin="2">
-            <Button DockPanel.Dock="Right" Content="..." Width="24" Height="24" ToolTipService.ToolTip="Browse Xenko Path" Command="{Binding BrowsePathCommand}" Margin="2"/>
-            <Border x:Name="xenkoPathBorder" BorderBrush="Transparent" BorderThickness="1" CornerRadius="1" Margin="1">
-              <TextBox Text="{Binding XenkoPath, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="1,0,1,0"/>
+            <Button DockPanel.Dock="Right" Content="..." Width="24" Height="24" ToolTipService.ToolTip="Browse Stride Path" Command="{Binding BrowsePathCommand}" Margin="2"/>
+            <Border x:Name="stridePathBorder" BorderBrush="Transparent" BorderThickness="1" CornerRadius="1" Margin="1">
+              <TextBox Text="{Binding StridePath, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="1,0,1,0"/>
             </Border>
           </DockPanel>
 
           <TextBlock Grid.Row="1" Text="Configuration Filename: " Grid.Column="0" VerticalAlignment="Center"/>
           <DockPanel Grid.Row="1" Grid.Column="1" Margin="2">
-            <Button DockPanel.Dock="Right" Content="..." Width="24" Height="24" ToolTipService.ToolTip="Browse Xenko Configuration File" Command="{Binding BrowseConfigFileCommand}" Margin="2"/>
-            <Border x:Name="xenkoConfigFilenameBorder" BorderBrush="Transparent" BorderThickness="1" CornerRadius="1" Margin="1">
-              <TextBox Text="{Binding XenkoConfigFilename, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="1,0,1,0"/>
+            <Button DockPanel.Dock="Right" Content="..." Width="24" Height="24" ToolTipService.ToolTip="Browse Stride Configuration File" Command="{Binding BrowseConfigFileCommand}" Margin="2"/>
+            <Border x:Name="strideConfigFilenameBorder" BorderBrush="Transparent" BorderThickness="1" CornerRadius="1" Margin="1">
+              <TextBox Text="{Binding StrideConfigFilename, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="1,0,1,0"/>
             </Border>
           </DockPanel>
 
@@ -138,14 +138,14 @@
     </DockPanel>
 
     <DataTemplate.Triggers>
-      <DataTrigger Binding="{Binding IsXenkoPathValid, Mode=OneWay}" Value="False">
-        <Setter TargetName="xenkoPathBorder" Property="BorderBrush" Value="Red"/>
+      <DataTrigger Binding="{Binding IsStridePathValid, Mode=OneWay}" Value="False">
+        <Setter TargetName="stridePathBorder" Property="BorderBrush" Value="Red"/>
       </DataTrigger>
-      <DataTrigger Binding="{Binding IsXenkoConfigFilenameValid, Mode=OneWay}" Value="False">
-        <Setter TargetName="xenkoConfigFilenameBorder" Property="BorderBrush" Value="Orange"/>
+      <DataTrigger Binding="{Binding IsStrideConfigFilenameValid, Mode=OneWay}" Value="False">
+        <Setter TargetName="strideConfigFilenameBorder" Property="BorderBrush" Value="Orange"/>
       </DataTrigger>
     </DataTemplate.Triggers>
-    <!-- datatrigger isXenkoConfigFilenameUsed -> txtConfigFilename.Enabled  -->
+    <!-- datatrigger isStrideConfigFilenameUsed -> txtConfigFilename.Enabled  -->
 
   </DataTemplate>
 

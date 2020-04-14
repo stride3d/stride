@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.VisualStudio;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.VisualStudio;
 
-namespace Xenko.Assets
+namespace Stride.Assets
 {
-    [DataContract("Xenko")]
-    public sealed class XenkoConfig
+    [DataContract("Stride")]
+    public sealed class StrideConfig
     {
-        public const string PackageName = "Xenko";
+        public const string PackageName = "Stride";
 
-        public static readonly PackageVersion LatestPackageVersion = new PackageVersion(XenkoVersion.NuGetVersion);
+        public static readonly PackageVersion LatestPackageVersion = new PackageVersion(StrideVersion.NuGetVersion);
 
         private static readonly string ProgramFilesX86 = Environment.GetEnvironmentVariable(Environment.Is64BitOperatingSystem ? "ProgramFiles(x86)" : "ProgramFiles");
 
@@ -50,7 +50,7 @@ namespace Xenko.Assets
         }
 
         /// <summary>
-        /// Registers the solution platforms supported by Xenko.
+        /// Registers the solution platforms supported by Stride.
         /// </summary>
         internal static void RegisterSolutionPlatforms()
         {
@@ -67,8 +67,8 @@ namespace Xenko.Assets
                 };
             windowsPlatform.PlatformsPart.Add(new SolutionPlatformPart("Any CPU"));
             windowsPlatform.PlatformsPart.Add(new SolutionPlatformPart("Mixed Platforms") { Alias = "Any CPU"});
-            windowsPlatform.DefineConstants.Add("XENKO_PLATFORM_WINDOWS");
-            windowsPlatform.DefineConstants.Add("XENKO_PLATFORM_WINDOWS_DESKTOP");
+            windowsPlatform.DefineConstants.Add("STRIDE_PLATFORM_WINDOWS");
+            windowsPlatform.DefineConstants.Add("STRIDE_PLATFORM_WINDOWS_DESKTOP");
             windowsPlatform.Configurations.Add(new SolutionConfiguration("Testing"));
             windowsPlatform.Configurations.Add(new SolutionConfiguration("AppStore"));
 
@@ -98,8 +98,8 @@ namespace Xenko.Assets
                 IncludeInSolution = false,
             };
 
-            uwpPlatform.DefineConstants.Add("XENKO_PLATFORM_WINDOWS");
-            uwpPlatform.DefineConstants.Add("XENKO_PLATFORM_UWP");
+            uwpPlatform.DefineConstants.Add("STRIDE_PLATFORM_WINDOWS");
+            uwpPlatform.DefineConstants.Add("STRIDE_PLATFORM_UWP");
             uwpPlatform.Configurations.Add(new SolutionConfiguration("Testing"));
             uwpPlatform.Configurations.Add(new SolutionConfiguration("AppStore"));
             uwpPlatform.Configurations["Release"].Properties.Add("<NoWarn>;2008</NoWarn>");
@@ -139,8 +139,8 @@ namespace Xenko.Assets
                 RuntimeIdentifier = "linux-x64",
                 Type = PlatformType.Linux,
             };
-            linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
-            linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_LINUX");
+            linuxPlatform.DefineConstants.Add("STRIDE_PLATFORM_UNIX");
+            linuxPlatform.DefineConstants.Add("STRIDE_PLATFORM_LINUX");
             solutionPlatforms.Add(linuxPlatform);
 
             // macOS
@@ -152,8 +152,8 @@ namespace Xenko.Assets
                 RuntimeIdentifier = "osx-x64",
                 Type = PlatformType.macOS,
             };
-            macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
-            macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_MACOS");
+            macOSPlatform.DefineConstants.Add("STRIDE_PLATFORM_UNIX");
+            macOSPlatform.DefineConstants.Add("STRIDE_PLATFORM_MACOS");
             solutionPlatforms.Add(macOSPlatform);
 
             // Android
@@ -164,8 +164,8 @@ namespace Xenko.Assets
                 TargetFramework = "monoandroid81",
                 IsAvailable = IsVSComponentAvailableAnyVersion(XamarinAndroidComponents)
             };
-            androidPlatform.DefineConstants.Add("XENKO_PLATFORM_MONO_MOBILE");
-            androidPlatform.DefineConstants.Add("XENKO_PLATFORM_ANDROID");
+            androidPlatform.DefineConstants.Add("STRIDE_PLATFORM_MONO_MOBILE");
+            androidPlatform.DefineConstants.Add("STRIDE_PLATFORM_ANDROID");
             androidPlatform.Configurations.Add(new SolutionConfiguration("Testing"));
             androidPlatform.Configurations.Add(new SolutionConfiguration("AppStore"));
             androidPlatform.Configurations["Debug"].Properties.AddRange(new[]
@@ -192,8 +192,8 @@ namespace Xenko.Assets
                 IsAvailable = IsVSComponentAvailableAnyVersion(XamariniOSComponents)
             };
             iphonePlatform.PlatformsPart.Add(new SolutionPlatformPart("iPhoneSimulator"));
-            iphonePlatform.DefineConstants.Add("XENKO_PLATFORM_MONO_MOBILE");
-            iphonePlatform.DefineConstants.Add("XENKO_PLATFORM_IOS");
+            iphonePlatform.DefineConstants.Add("STRIDE_PLATFORM_MONO_MOBILE");
+            iphonePlatform.DefineConstants.Add("STRIDE_PLATFORM_IOS");
             iphonePlatform.Configurations.Add(new SolutionConfiguration("Testing"));
             iphonePlatform.Configurations.Add(new SolutionConfiguration("AppStore"));
             var iPhoneCommonProperties = new List<string>

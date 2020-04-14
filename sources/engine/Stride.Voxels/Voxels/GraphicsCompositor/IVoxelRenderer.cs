@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Xenko.Core;
-using Xenko.Core.Collections;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Graphics;
-using Xenko.Rendering;
-using Xenko.Rendering.Lights;
-using Xenko.Rendering.Shadows;
+using Stride.Core;
+using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Graphics;
+using Stride.Rendering;
+using Stride.Rendering.Lights;
+using Stride.Rendering.Shadows;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public interface IVoxelRenderer
     {

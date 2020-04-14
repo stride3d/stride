@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Xenko.Assets.Presentation.Resources.Thumbnails {
+namespace Stride.Assets.Presentation.Resources.Thumbnails {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Xenko.Assets.Presentation.Resources.Thumbnails {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Xenko.Assets.Presentation.Resources.Thumbnails.StaticThumbnails", typeof(StaticThumbnails).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.Assets.Presentation.Resources.Thumbnails.StaticThumbnails", typeof(StaticThumbnails).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

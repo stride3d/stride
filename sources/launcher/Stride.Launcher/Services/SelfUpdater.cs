@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -10,16 +10,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
-using Xenko.Core;
-using Xenko.Core.Extensions;
-using Xenko.LauncherApp.Views;
-using Xenko.Core.Packages;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.ViewModel;
-using MessageBoxButton = Xenko.Core.Presentation.Services.MessageBoxButton;
-using MessageBoxImage = Xenko.Core.Presentation.Services.MessageBoxImage;
+using Stride.Core;
+using Stride.Core.Extensions;
+using Stride.LauncherApp.Views;
+using Stride.Core.Packages;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModel;
+using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
+using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
 
-namespace Xenko.LauncherApp.Services
+namespace Stride.LauncherApp.Services
 {
     public static class SelfUpdater
     {

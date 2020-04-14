@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -6,12 +6,12 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks.Dataflow;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Core.Storage;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Core.Storage;
 
-namespace Xenko.Core.Assets.Tracking
+namespace Stride.Core.Assets.Tracking
 {
     // TODO: Inherit from AssetTracker
     public sealed class AssetSourceTracker : IDisposable

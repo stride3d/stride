@@ -1,6 +1,6 @@
 !Model
 Id: 82360e61-196c-4c07-9fae-af7ee4f265a1
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/model/BG/scene/bg_b00.FBX
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

@@ -1,23 +1,23 @@
-<Window x:Class="Xenko.PrivacyPolicy.PrivacyPolicyWindow"
+<Window x:Class="Stride.PrivacyPolicy.PrivacyPolicyWindow"
         x:ClassModifier="internal"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:xk="http://schemas.xenko.com/xaml/presentation"
-        xmlns:crashReport="clr-namespace:Xenko.Editor.CrashReport"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:crashReport="clr-namespace:Stride.Editor.CrashReport"
         WindowStartupLocation="CenterScreen" Style="{DynamicResource WindowChromeStyle}"
         Title="Privacy Policy" Icon="{DynamicResource LauncherIcon}" SizeToContent="WidthAndHeight">
   <Window.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Xenko.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml" />
+        <ResourceDictionary Source="/Stride.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Window.Resources>
   <StackPanel>
-    <TextBlock Text="You must agree to the privacy policy to use Xenko." Margin="20,20,20,0" />
+    <TextBlock Text="You must agree to the privacy policy to use Stride." Margin="20,20,20,0" />
     <TextBlock Margin="20,10">
       <Hyperlink TextDecorations="Underline" CommandParameter="{x:Static crashReport:CrashReportForm.PrivacyPolicyUrl}"
-                 Command="{x:Static xk:UtilityCommands.OpenHyperlinkCommand}">
+                 Command="{x:Static sd:UtilityCommands.OpenHyperlinkCommand}">
         <Run Text="{x:Static crashReport:CrashReportForm.PrivacyPolicyUrl}" />
       </Hyperlink>
     </TextBlock>

@@ -1,10 +1,10 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Assets.Media;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Assets.Media;
 
-namespace Xenko.Editor.Preview
+namespace Stride.Editor.Preview
 {
     [AssetCompiler(typeof(VideoAsset), typeof(EditorGameCompilationContext))]
     public class VideoAssetEditorGameCompiler : AssetCompilerBase

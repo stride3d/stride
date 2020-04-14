@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Assets.Quantum.Visitors;
-using Xenko.Core.Assets.Yaml;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.Yaml;
-using Xenko.Core.Yaml.Events;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Quantum.Visitors;
+using Stride.Core.Assets.Yaml;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.Yaml;
+using Stride.Core.Yaml.Events;
 
-namespace Xenko.Core.Assets.Editor.Services
+namespace Stride.Core.Assets.Editor.Services
 {
     internal class CopyPasteService : ICopyPasteService
     {

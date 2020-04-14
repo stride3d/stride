@@ -4,8 +4,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TopDownRPG", "TopDownRPG", "{1ADF36A6-5E90-4DA5-9E31-2C9FE29CAD18}"
-	ProjectSection(XenkoPackage) = preProject
-		TopDownRPG/TopDownRPG.xkpkg = TopDownRPG/TopDownRPG.xkpkg
+	ProjectSection(StridePackage) = preProject
+		TopDownRPG/TopDownRPG.sdpkg = TopDownRPG/TopDownRPG.sdpkg
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TopDownRPG.Windows", "TopDownRPG\TopDownRPG.Windows\TopDownRPG.Windows.csproj", "{436E0287-CC11-4E08-BD1B-C7AB4B20B0DD}"
@@ -13,23 +13,23 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TopDownRPG.Game", "TopDownRPG\TopDownRPG.Game\TopDownRPG.Game.csproj", "{92B5077F-3D0D-4043-A3B4-25A32C9D64AA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mannequinModel", "mannequinModel", "{EC64FD24-824F-4DA4-B077-3661CF988027}"
-	ProjectSection(XenkoPackage) = preProject
-		../Packs/mannequinModel/mannequinModel/mannequinModel.xkpkg = ../Packs/mannequinModel/mannequinModel/mannequinModel.xkpkg
+	ProjectSection(StridePackage) = preProject
+		../Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg = ../Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PrototypingBlocks", "PrototypingBlocks", "{C9B4F26A-E7BA-4201-A6E0-0C0EEDFE9DE2}"
-	ProjectSection(XenkoPackage) = preProject
-		../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.xkpkg = ../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.xkpkg
+	ProjectSection(StridePackage) = preProject
+		../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.sdpkg = ../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.sdpkg
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SamplesAssetPackage", "SamplesAssetPackage", "{BDD7A38F-3FF5-4279-B7B7-27A4C677F4D7}"
-	ProjectSection(XenkoPackage) = preProject
-		../Packs/SamplesAssetPackage/SamplesAssetPackage.xkpkg = ../Packs/SamplesAssetPackage/SamplesAssetPackage.xkpkg
+	ProjectSection(StridePackage) = preProject
+		../Packs/SamplesAssetPackage/SamplesAssetPackage.sdpkg = ../Packs/SamplesAssetPackage/SamplesAssetPackage.sdpkg
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VFXPackage", "VFXPackage", "{575B8DC7-3FAD-497D-ACF7-FBDFABCECE80}"
-	ProjectSection(XenkoPackage) = preProject
-		../Packs/VFXPackage/VFXPackage.xkpkg = ../Packs/VFXPackage/VFXPackage.xkpkg
+	ProjectSection(StridePackage) = preProject
+		../Packs/VFXPackage/VFXPackage.sdpkg = ../Packs/VFXPackage/VFXPackage.sdpkg
 	EndProjectSection
 EndProject
 Global

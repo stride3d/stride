@@ -1,6 +1,6 @@
 !SpriteFont
 Id: 54bf2894-2a2c-477e-be9c-2a88d265e739
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 FontSource: !SystemFontProvider
     FontName: Microsoft Sans Serif

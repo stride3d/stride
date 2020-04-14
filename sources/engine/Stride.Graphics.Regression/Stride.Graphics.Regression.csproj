@@ -1,18 +1,18 @@
 ﻿<Project>
   <PropertyGroup>
-    <XenkoRuntime>true</XenkoRuntime>
-    <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
-    <XenkoPlatformFilter>Windows;Android;iOS;Linux;macOS;UWP</XenkoPlatformFilter>
+    <StridePlatformFilter>Windows;Android;iOS;Linux;macOS;UWP</StridePlatformFilter>
     <DefineConstants>$(DefineConstants);XAMCORE_2_0</DefineConstants>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoPlatformDependent>true</XenkoPlatformDependent>
-    <XenkoCompilerTargetsEnable Condition="'$(XenkoPackageBuild)' == 'true'">false</XenkoCompilerTargetsEnable>
-    <XenkoCompilerTargetsEnable Condition="'$(XenkoSkipUnitTests)' == 'true'">false</XenkoCompilerTargetsEnable>
-    <XenkoBuildTags>*</XenkoBuildTags>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StridePlatformDependent>true</StridePlatformDependent>
+    <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
+    <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true'">false</StrideCompilerTargetsEnable>
+    <StrideBuildTags>*</StrideBuildTags>
   </PropertyGroup>
   
   <ItemGroup>
@@ -25,7 +25,7 @@
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="Xunit.SkippableFact" Version="1.3.6" />
-    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49,7 +49,7 @@
     <None Include="Web\Vizualizer.html" />
   </ItemGroup>
 
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
 </Project>

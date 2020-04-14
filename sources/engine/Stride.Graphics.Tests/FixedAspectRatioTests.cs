@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
 using Xunit;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Engine;
-using Xenko.Graphics.Regression;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization.Contents;
+using Stride.Engine;
+using Stride.Graphics.Regression;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Graphics.Tests
+namespace Stride.Graphics.Tests
 {
     public class FixedAspectRatioTests : GameTestBase
     {

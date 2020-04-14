@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Settings;
-using Xenko.Core.Translation;
-using Xenko.Input;
+using Stride.Core.Settings;
+using Stride.Core.Translation;
+using Stride.Input;
 
-namespace Xenko.Assets.Presentation.SceneEditor
+namespace Stride.Assets.Presentation.SceneEditor
 {
     public static class SceneEditorSettings
     {
@@ -16,71 +16,71 @@ namespace Xenko.Assets.Presentation.SceneEditor
         static SceneEditorSettings()
         {
             // Note: assignments cannot be moved to initializer, because category names need to be assigned first.
-            MoveCamForward = new SettingsKey<Keys>("SceneEditor/KeyBindings/MoveCamForward", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.W)
+            MoveCamForward = new SettingsKey<Keys>("SceneEditor/KeyBindings/MoveCamForward", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.W)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Move camera forward")}"
             };
-            MoveCamBackward = new SettingsKey<Keys>("SceneEditor/KeyBindings/MoveCamBackward", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.S)
+            MoveCamBackward = new SettingsKey<Keys>("SceneEditor/KeyBindings/MoveCamBackward", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.S)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Move camera backward")}"
             };
-            MoveCamLeft = new SettingsKey<Keys>("SceneEditor/KeyBindings/MoveCamLeft", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.A)
+            MoveCamLeft = new SettingsKey<Keys>("SceneEditor/KeyBindings/MoveCamLeft", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.A)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Move camera left")}"
             };
-            MoveCamRight = new SettingsKey<Keys>("SceneEditor/KeyBindings/MoveCamRight", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.D)
+            MoveCamRight = new SettingsKey<Keys>("SceneEditor/KeyBindings/MoveCamRight", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.D)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Move camera right")}"
             };
-            MoveCamUpward = new SettingsKey<Keys>("SceneEditor/KeyBindings/MoveCamUpward", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.E)
+            MoveCamUpward = new SettingsKey<Keys>("SceneEditor/KeyBindings/MoveCamUpward", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.E)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Move camera up")}"
             };
-            MoveCamDownward = new SettingsKey<Keys>("SceneEditor/KeyBindings/MoveCamDownward", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.Q)
+            MoveCamDownward = new SettingsKey<Keys>("SceneEditor/KeyBindings/MoveCamDownward", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.Q)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Move camera down")}"
             };
-            InvertPanningAxis = new SettingsKey<bool>("SceneEditor/KeyBindings/InvertPanningAxis", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, true)
+            InvertPanningAxis = new SettingsKey<bool>("SceneEditor/KeyBindings/InvertPanningAxis", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, true)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Invert mouse panning axis")}"
             };
-            CenterViewOnSelection = new SettingsKey<Keys>("SceneEditor/KeyBindings/CenterViewOnSelection", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.F)
+            CenterViewOnSelection = new SettingsKey<Keys>("SceneEditor/KeyBindings/CenterViewOnSelection", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.F)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Center view on selection")}"
             };
-            SnapSelectionToGrid = new SettingsKey<Keys>("SceneEditor/KeyBindings/SnapSelectionToGrid", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.N)
+            SnapSelectionToGrid = new SettingsKey<Keys>("SceneEditor/KeyBindings/SnapSelectionToGrid", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.N)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Snap selection to the grid")}"
             };
-            TranslationGizmo = new SettingsKey<Keys>("SceneEditor/KeyBindings/TranslationGizmo", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.W)
+            TranslationGizmo = new SettingsKey<Keys>("SceneEditor/KeyBindings/TranslationGizmo", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.W)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Switch to translation mode")}"
             };
-            RotationGizmo = new SettingsKey<Keys>("SceneEditor/KeyBindings/RotationGizmo", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.E)
+            RotationGizmo = new SettingsKey<Keys>("SceneEditor/KeyBindings/RotationGizmo", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.E)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Switch to rotation mode")}"
             };
-            ScaleGizmo = new SettingsKey<Keys>("SceneEditor/KeyBindings/ScaleGizmo", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.R)
+            ScaleGizmo = new SettingsKey<Keys>("SceneEditor/KeyBindings/ScaleGizmo", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.R)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Switch to scale mode")}"
             };
-            SwitchGizmo = new SettingsKey<Keys>("SceneEditor/KeyBindings/SwitchGizmo", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.Space)
+            SwitchGizmo = new SettingsKey<Keys>("SceneEditor/KeyBindings/SwitchGizmo", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, Keys.Space)
             {
                 DisplayName = $"{SceneEditor}/{KeyBindings}/{Tr._p("Settings", "Switch to next gizmo mode")}"
             };
-            DefaultTranslationSnap = new SettingsKey<float>("SceneEditor/ViewportSettings/DefaultTranslation", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, 1.0f)
+            DefaultTranslationSnap = new SettingsKey<float>("SceneEditor/ViewportSettings/DefaultTranslation", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, 1.0f)
             {
                 DisplayName = $"{SceneEditor}/{ViewportSettings}/{Tr._p("Settings", "Default snap distance for translation")}"
             };
-            DefaultRotationSnap = new SettingsKey<float>("SceneEditor/ViewportSettings/DefaultRotation", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, 22.5f)
+            DefaultRotationSnap = new SettingsKey<float>("SceneEditor/ViewportSettings/DefaultRotation", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, 22.5f)
             {
                 DisplayName = $"{SceneEditor}/{ViewportSettings}/{Tr._p("Settings", "Default snap angle for rotation")}"
             };
-            DefaultScaleSnap = new SettingsKey<float>("SceneEditor/ViewportSettings/DefaultScale", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, 1.1f)
+            DefaultScaleSnap = new SettingsKey<float>("SceneEditor/ViewportSettings/DefaultScale", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, 1.1f)
             {
                 DisplayName = $"{SceneEditor}/{ViewportSettings}/{Tr._p("Settings", "Default snap factor for scale")}"
             };
-            AskBeforeDeletingEntities = new SettingsKey<bool>("SceneEditor/AskBeforeDeletingEntities", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, true)
+            AskBeforeDeletingEntities = new SettingsKey<bool>("SceneEditor/AskBeforeDeletingEntities", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, true)
             {
                 DisplayName = $"{SceneEditor}/{Tr._p("Settings", "Ask before deleting entities")}"
             };
@@ -122,7 +122,7 @@ namespace Xenko.Assets.Presentation.SceneEditor
 
         public static void Save()
         {
-            Xenko.Core.Assets.Editor.Settings.EditorSettings.Save();
+            Stride.Core.Assets.Editor.Settings.EditorSettings.Save();
         }
     }
 }

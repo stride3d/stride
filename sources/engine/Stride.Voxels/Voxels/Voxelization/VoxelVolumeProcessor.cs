@@ -1,19 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Engine;
-using Xenko.Games;
-using Xenko.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.Graphics.GeometricPrimitives;
-using Xenko.Rendering;
-using Xenko.Rendering.Voxels;
-using Xenko.Rendering.Shadows;
-using Xenko.Rendering.Materials;
-using Xenko.Rendering.Materials.ComputeColors;
+using Stride.Engine;
+using Stride.Games;
+using Stride.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Graphics.GeometricPrimitives;
+using Stride.Rendering;
+using Stride.Rendering.Voxels;
+using Stride.Rendering.Shadows;
+using Stride.Rendering.Materials;
+using Stride.Rendering.Materials.ComputeColors;
 
-namespace Xenko.Engine.Processors
+namespace Stride.Engine.Processors
 {
     public class VoxelVolumeProcessor : EntityProcessor<VoxelVolumeComponent>, IEntityComponentRenderProcessor
     {

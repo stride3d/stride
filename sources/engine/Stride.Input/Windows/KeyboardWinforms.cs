@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using Xenko.Games;
+using Stride.Games;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     internal class KeyboardWinforms : KeyboardDeviceBase, ITextInputDevice, IDisposable
     {
@@ -66,21 +66,21 @@ namespace Xenko.Input
 
         internal void HandleKeyDown(System.Windows.Forms.Keys winFormsKey)
         {
-            // Translate from windows key enum to Xenko key enum
-            Keys xenkoKey;
-            if (WinKeys.MapKeys.TryGetValue(winFormsKey, out xenkoKey) && xenkoKey != Keys.None)
+            // Translate from windows key enum to Stride key enum
+            Keys strideKey;
+            if (WinKeys.MapKeys.TryGetValue(winFormsKey, out strideKey) && strideKey != Keys.None)
             {
-                HandleKeyDown(xenkoKey);
+                HandleKeyDown(strideKey);
             }
         }
 
         internal void HandleKeyUp(System.Windows.Forms.Keys winFormsKey)
         {
-            // Translate from windows key enum to Xenko key enum
-            Keys xenkoKey;
-            if (WinKeys.MapKeys.TryGetValue(winFormsKey, out xenkoKey) && xenkoKey != Keys.None)
+            // Translate from windows key enum to Stride key enum
+            Keys strideKey;
+            if (WinKeys.MapKeys.TryGetValue(winFormsKey, out strideKey) && strideKey != Keys.None)
             {
-                HandleKeyUp(xenkoKey);
+                HandleKeyUp(strideKey);
             }
         }
 

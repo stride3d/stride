@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Rendering.Data;
-using Xenko.Rendering.Materials;
+using Stride.Rendering.Data;
+using Stride.Rendering.Materials;
 
-namespace Xenko.Rendering
+namespace Stride.Rendering
 {
-    partial effect XenkoLighting
+    partial effect StrideLighting
     {
         using params LightingKeys;
 
@@ -39,12 +39,12 @@ namespace Xenko.Rendering
     /// <summary>
     /// Forward shading effect
     /// </summary>
-    effect XenkoForwardShadingEffect
+    effect StrideForwardShadingEffect
     {
         using params MaterialKeys;
 
-        // Derive from XenkoEffectBase
-        mixin XenkoEffectBase;
+        // Derive from StrideEffectBase
+        mixin StrideEffectBase;
 
         // -----------------------------------------------
         // Mix material and lighting shading for Pixel Shader
@@ -68,7 +68,7 @@ namespace Xenko.Rendering
         // -----------------------------------------------
         // Add direct and environment light groups
         // -----------------------------------------------
-        mixin XenkoLighting;
+        mixin StrideLighting;
 
         mixin child ShadowMapCaster;
         mixin child ShadowMapCasterParaboloid;

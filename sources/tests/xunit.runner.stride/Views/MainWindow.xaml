@@ -1,12 +1,12 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:xunit.runner.xenko.ViewModels;assembly=xunit.runner.xenko"
+        xmlns:vm="clr-namespace:xunit.runner.stride.ViewModels;assembly=xunit.runner.stride"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="xunit.runner.xenko.Views.MainWindow"
+        x:Class="xunit.runner.stride.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
-        Title="XUnit Runner (Xenko)">
+        Title="XUnit Runner (Stride)">
 
   <Design.DataContext>
     <vm:MainWindowViewModel/>

@@ -1,4 +1,4 @@
-﻿namespace Xenko.Rendering.SubsurfaceScattering
+﻿namespace Stride.Rendering.SubsurfaceScattering
 {
     effect SubsurfaceScatteringBlurEffect
     {

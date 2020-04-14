@@ -45,9 +45,9 @@
 
 using System;
 using System.Reflection;
-using Xenko.Core.Reflection;
+using Stride.Core.Reflection;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Prodives tag discovery from a type and type discovery from a tag.

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -6,39 +6,39 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
-namespace Xenko.Core
+namespace Stride.Core
 {
     /// <summary>
     /// Platform specific queries and functions.
     /// </summary>
     public static class Platform
     {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
         /// <summary>
         /// The current running <see cref="PlatformType"/>.
         /// </summary>
         public static readonly PlatformType Type = PlatformType.Windows;
-#elif XENKO_PLATFORM_UWP
+#elif STRIDE_PLATFORM_UWP
         /// <summary>
         /// The current running <see cref="PlatformType"/>.
         /// </summary>
         public static readonly PlatformType Type = PlatformType.UWP;
-#elif XENKO_PLATFORM_ANDROID
+#elif STRIDE_PLATFORM_ANDROID
         /// <summary>
         /// The current running <see cref="PlatformType"/>.
         /// </summary>
         public static readonly PlatformType Type = PlatformType.Android;
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
         /// <summary>
         /// The current running <see cref="PlatformType"/>.
         /// </summary>
         public static readonly PlatformType Type = PlatformType.iOS;
-#elif XENKO_PLATFORM_MACOS
+#elif STRIDE_PLATFORM_MACOS
         /// <summary>
         /// The current running <see cref="PlatformType"/>.
         /// </summary>
         public static readonly PlatformType Type = PlatformType.macOS;
-#elif XENKO_PLATFORM_LINUX
+#elif STRIDE_PLATFORM_LINUX
         /// <summary>
         /// The current running <see cref="PlatformType"/>.
         /// </summary>

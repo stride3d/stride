@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Xunit;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Compiler;
+using Stride.Core;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 
-namespace Xenko.Core.Assets.Tests.Compilers
+namespace Stride.Core.Assets.Tests.Compilers
 {
     public class TestDependencyByIncludeTypeAnalysis : CompilerTestBase
     {
@@ -56,7 +56,7 @@ namespace Xenko.Core.Assets.Tests.Compilers
         public class MyContent3 { }
 
         [DataContract]
-        [AssetDescription(".xkmytest")]
+        [AssetDescription(".sdmytest")]
         [AssetContentType(typeof(MyContent1))]
         public class MyAsset1 : Asset
         {
@@ -65,7 +65,7 @@ namespace Xenko.Core.Assets.Tests.Compilers
         }
 
         [DataContract]
-        [AssetDescription(".xkmytest")]
+        [AssetDescription(".sdmytest")]
         [AssetContentType(typeof(MyContent2))]
         public class MyAsset2 : Asset
         {
@@ -73,7 +73,7 @@ namespace Xenko.Core.Assets.Tests.Compilers
         }
 
         [DataContract]
-        [AssetDescription(".xkmytest")]
+        [AssetDescription(".sdmytest")]
         [AssetContentType(typeof(MyContent3))]
         public class MyAsset3 : Asset { }
 

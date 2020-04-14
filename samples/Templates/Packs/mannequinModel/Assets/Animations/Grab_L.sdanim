@@ -1,6 +1,6 @@
 !Animation
 Id: 50665a42-a9d7-46ef-ae7b-1d59d0dabe06
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Animation/Grab_L.fbx
 ClipDuration:

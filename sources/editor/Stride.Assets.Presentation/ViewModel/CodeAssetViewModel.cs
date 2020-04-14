@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.IO;
-using Xenko.Core.Presentation.Dirtiables;
-using Xenko.Assets.Effect;
-using Xenko.Editor.Build;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.IO;
+using Stride.Core.Presentation.Dirtiables;
+using Stride.Assets.Effect;
+using Stride.Editor.Build;
 
-namespace Xenko.Assets.Presentation.ViewModel
+namespace Stride.Assets.Presentation.ViewModel
 {
     /// <summary>
     /// View model for <see cref="SourceCodeAsset"/>.
@@ -27,7 +27,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             if (Asset is EffectShaderAsset)
             {
                 //recompile shaders...
-                var shaderImporter = new XenkoShaderImporter();
+                var shaderImporter = new StrideShaderImporter();
                 var shaderBuildSteps = shaderImporter.CreateUserShaderBuildSteps(Session);
                 var builder = Session.ServiceProvider.Get<AssetBuilderService>();
                 builder.PushBuildUnit(new PrecompiledAssetBuildUnit(AssetBuildUnitIdentifier.Default, shaderBuildSteps, true));

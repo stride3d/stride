@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core;
+using Stride.Core;
 
-namespace Xenko.Shaders
+namespace Stride.Shaders
 {
     /// <summary>
-    /// A shader source that is linked to a xkfx effect.
+    /// A shader source that is linked to a sdfx effect.
     /// </summary>
     [DataContract("ShaderMixinGeneratorSource")]
     public sealed class ShaderMixinGeneratorSource : ShaderSource, IEquatable<ShaderMixinGeneratorSource>
@@ -21,16 +21,16 @@ namespace Xenko.Shaders
         /// <summary>
         /// Initializes a new instance of the <see cref="ShaderMixinGeneratorSource"/> class.
         /// </summary>
-        /// <param name="name">The name of the xkfx effect.</param>
+        /// <param name="name">The name of the sdfx effect.</param>
         public ShaderMixinGeneratorSource(string name)
         {
             Name = name;
         }
 
         /// <summary>
-        /// Gets or sets the name of the xkfx effect.
+        /// Gets or sets the name of the sdfx effect.
         /// </summary>
-        /// <value>The name of the xkfx effect.</value>
+        /// <value>The name of the sdfx effect.</value>
         public string Name { get; set; }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Xenko.Shaders
 
         public override string ToString()
         {
-            return string.Format("xkfx {0}", Name);
+            return string.Format("sdfx {0}", Name);
         }
     }
 }

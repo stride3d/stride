@@ -5,6 +5,6 @@ Name: Sphere
 Scope: Asset
 Description: A spherical collider
 Group: Physics
-Icon: ..\.xktpl\ColliderSphere.png
+Icon: ..\.sdtpl\ColliderSphere.png
 DefaultOutputName: ColliderSphere
 FactoryTypeName: ColliderShapeSphereFactory

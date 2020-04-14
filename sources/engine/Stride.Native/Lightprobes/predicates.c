@@ -113,7 +113,7 @@
 /*                                                                           */
 /*****************************************************************************/
 
-#include "../XenkoNative.h"
+#include "../StrideNative.h"
 #include "../../../deps/NativePath/NativePath.h"
 #include "../../../deps/NativePath/standard/stdlib.h"
 

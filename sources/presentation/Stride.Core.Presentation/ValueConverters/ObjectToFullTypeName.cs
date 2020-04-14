@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Globalization;
 
-using Xenko.Core.Reflection;
+using Stride.Core.Reflection;
 
-namespace Xenko.Core.Presentation.ValueConverters
+namespace Stride.Core.Presentation.ValueConverters
 {
     /// <summary>
     /// This converter converts any object to a string representing the full name of its type. It accepts null and will convert it to a string representation of null.

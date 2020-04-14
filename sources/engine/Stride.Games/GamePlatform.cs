@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -24,10 +24,10 @@
 
 using System;
 using System.Collections.Generic;
-using Xenko.Core;
-using Xenko.Graphics;
+using Stride.Core;
+using Stride.Graphics;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
     internal abstract class GamePlatform : ReferenceBase, IGraphicsDeviceFactory, IGamePlatform
     {
@@ -49,11 +49,11 @@ namespace Xenko.Games
 
         public static GamePlatform Create(GameBase game)
         {
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
             return new GamePlatformUWP(game);
-#elif XENKO_PLATFORM_ANDROID
+#elif STRIDE_PLATFORM_ANDROID
             return new GamePlatformAndroid(game);
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
             return new GamePlatformiOS(game);
 #else
             // Here we cover all Desktop variants: OpenTK, SDL, Winforms,...
@@ -325,7 +325,7 @@ namespace Xenko.Games
             var graphicsDevice = GraphicsDevice.New(deviceInformation.Adapter, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow, deviceInformation.GraphicsProfile);
             graphicsDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
 
-#if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
+#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
             if (game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
             {
                 graphicsDevice.Recreate(deviceInformation.Adapter, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags |= DeviceCreationFlags.BgraSupport, gameWindow.NativeWindow);

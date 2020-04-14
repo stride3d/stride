@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 
-namespace Xenko.GameStudio
+namespace Stride.GameStudio
 {
     /// <summary>
     /// A class that listens to WPF data binding events, and makes sure that the application crashes if an unhandled exception is thrown in the setter

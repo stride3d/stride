@@ -1,7 +1,7 @@
 using System;
-using Xenko.Core.Assets.Compiler;
+using Stride.Core.Assets.Compiler;
 
-namespace Xenko.Core.Assets.Analysis
+namespace Stride.Core.Assets.Analysis
 {
     /// <summary>
     /// A structure representing information related to a build dependency between one source assets and a target type of asset.

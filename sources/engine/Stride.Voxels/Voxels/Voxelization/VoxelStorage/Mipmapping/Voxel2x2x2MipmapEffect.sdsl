@@ -1,4 +1,4 @@
-﻿namespace Xenko.Rendering.Voxels
+﻿namespace Stride.Rendering.Voxels
 {
     partial effect Voxel2x2x2MipmapEffect
     {

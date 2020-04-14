@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.IO;
 using System.Runtime.Versioning;
-using Xenko.Core.AssemblyProcessor.Serializers;
+using Stride.Core.AssemblyProcessor.Serializers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Mono.Cecil;
-using Xenko.Core;
+using Stride.Core;
 
-namespace Xenko.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor
 {
     internal class ComplexSerializerRegistry
     {
@@ -131,7 +131,7 @@ namespace Xenko.Core.AssemblyProcessor
                 referencedAssembly.CustomAttributes.FirstOrDefault(
                     x =>
                         x.AttributeType.FullName ==
-                        "Xenko.Core.Serialization.AssemblySerializerFactoryAttribute");
+                        "Stride.Core.Serialization.AssemblySerializerFactoryAttribute");
 
             // No serializer factory?
             if (assemblySerializerFactoryAttribute == null)
@@ -282,7 +282,7 @@ namespace Xenko.Core.AssemblyProcessor
             var fields = new List<FieldDefinition>();
             var properties = new List<PropertyDefinition>();
 
-            var fieldEnum = type.Fields.Where(x => (x.IsPublic || (x.IsAssembly && x.CustomAttributes.Any(a => a.AttributeType.FullName == "Xenko.Core.DataMemberAttribute"))) && !x.IsStatic && !ignoredMembers.Contains(x));
+            var fieldEnum = type.Fields.Where(x => (x.IsPublic || (x.IsAssembly && x.CustomAttributes.Any(a => a.AttributeType.FullName == "Stride.Core.DataMemberAttribute"))) && !x.IsStatic && !ignoredMembers.Contains(x));
 
             // If there is a explicit or sequential layout, sort by offset
             if (type.IsSequentialLayout || type.IsExplicitLayout)
@@ -307,7 +307,7 @@ namespace Xenko.Core.AssemblyProcessor
                 if (property.GetMethod.IsVirtual && !property.GetMethod.IsNewSlot)
                 {
                     // Exception: if this one has a DataMember, let's assume parent one was Ignore and we explicitly want to serialize this one
-                    if (!property.CustomAttributes.Any(x => x.AttributeType.FullName == "Xenko.Core.DataMemberAttribute"))
+                    if (!property.CustomAttributes.Any(x => x.AttributeType.FullName == "Stride.Core.DataMemberAttribute"))
                         continue;
                 }
 
@@ -332,7 +332,7 @@ namespace Xenko.Core.AssemblyProcessor
             var currentType = type;
             while (currentType != null)
             {
-                var dataContractAttribute = currentType.CustomAttributes.FirstOrDefault(x => x.AttributeType.FullName == "Xenko.Core.DataContractAttribute");
+                var dataContractAttribute = currentType.CustomAttributes.FirstOrDefault(x => x.AttributeType.FullName == "Stride.Core.DataContractAttribute");
                 if (dataContractAttribute != null)
                 {
                     var dataMemberModeArg = dataContractAttribute.Properties.FirstOrDefault(x => x.Name == "DefaultMemberMode").Argument;
@@ -385,14 +385,14 @@ namespace Xenko.Core.AssemblyProcessor
         internal static bool IsMemberIgnored(ICollection<CustomAttribute> customAttributes, ComplexTypeSerializerFlags flags, DataMemberMode dataMemberMode)
         {
             // Check for DataMemberIgnore
-            if (customAttributes.Any(x => x.AttributeType.FullName == "Xenko.Core.DataMemberIgnoreAttribute"))
+            if (customAttributes.Any(x => x.AttributeType.FullName == "Stride.Core.DataMemberIgnoreAttribute"))
             {
                 // Still allow members with DataMemberUpdatable if we are running UpdateEngineProcessor
                 if (!((flags & ComplexTypeSerializerFlags.Updatable) != 0
-                      && customAttributes.Any(x => x.AttributeType.FullName == "Xenko.Updater.DataMemberUpdatableAttribute")))
+                      && customAttributes.Any(x => x.AttributeType.FullName == "Stride.Updater.DataMemberUpdatableAttribute")))
                     return true;
             }
-            var dataMemberAttribute = customAttributes.FirstOrDefault(x => x.AttributeType.FullName == "Xenko.Core.DataMemberAttribute");
+            var dataMemberAttribute = customAttributes.FirstOrDefault(x => x.AttributeType.FullName == "Stride.Core.DataMemberAttribute");
             if (dataMemberAttribute != null)
             {
                 var dataMemberModeArg = dataMemberAttribute.ConstructorArguments.FirstOrDefault(x => x.Type.Name == nameof(DataMemberMode));

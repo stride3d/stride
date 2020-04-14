@@ -9,7 +9,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>XENKO_ASSEMBLY_PROCESSOR;XENKO_PLATFORM_WINDOWS_DESKTOP;DEBUG;TRACE</DefineConstants>
+    <DefineConstants>STRIDE_ASSEMBLY_PROCESSOR;STRIDE_PLATFORM_WINDOWS_DESKTOP;DEBUG;TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -17,7 +17,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>XENKO_ASSEMBLY_PROCESSOR;XENKO_PLATFORM_WINDOWS_DESKTOP;TRACE</DefineConstants>
+    <DefineConstants>STRIDE_ASSEMBLY_PROCESSOR;STRIDE_PLATFORM_WINDOWS_DESKTOP;TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
@@ -29,25 +29,25 @@
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Xenko.Core\DataMemberMode.cs">
+    <Compile Include="..\Stride.Core\DataMemberMode.cs">
       <Link>Core\DataMemberMode.cs</Link>
     </Compile>
-    <Compile Include="..\Xenko.Core\PlatformType.cs">
+    <Compile Include="..\Stride.Core\PlatformType.cs">
       <Link>Core\PlatformType.cs</Link>
     </Compile>
-    <Compile Include="..\Xenko.Core\Reflection\AssemblyCommonCategories.cs">
+    <Compile Include="..\Stride.Core\Reflection\AssemblyCommonCategories.cs">
       <Link>Core\AssemblyCommonCategories.cs</Link>
     </Compile>
-    <Compile Include="..\Xenko.Core\Serialization\ArchiveMode.cs">
+    <Compile Include="..\Stride.Core\Serialization\ArchiveMode.cs">
       <Link>Core\ArchiveMode.cs</Link>
     </Compile>
-    <Compile Include="..\Xenko.Core\Serialization\DataSerializerGenericMode.cs">
+    <Compile Include="..\Stride.Core\Serialization\DataSerializerGenericMode.cs">
       <Link>Core\DataSerializerGenericMode.cs</Link>
     </Compile>
-    <Compile Include="..\Xenko.Core\Storage\ObjectId.cs">
+    <Compile Include="..\Stride.Core\Storage\ObjectId.cs">
       <Link>Core\ObjectId.cs</Link>
     </Compile>
-    <Compile Include="..\Xenko.Core\Storage\ObjectIdBuilder.cs">
+    <Compile Include="..\Stride.Core\Storage\ObjectIdBuilder.cs">
       <Link>Core\ObjectIdBuilder.cs</Link>
     </Compile>
     <Compile Update="AssemblyScanCodeGenerator.cs">
@@ -80,6 +80,6 @@
   <PropertyGroup>
     <PostBuildEvent>xcopy /d /y $(TargetDir)*.* $(SolutionDir)..\deps\AssemblyProcessor
 cd $(SolutionDir)..\deps\AssemblyProcessor
-$(ILRepack) Xenko.Core.AssemblyProcessor.exe Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll System.ValueTuple.dll /out:Xenko.Core.AssemblyProcessor.Packed2.exe</PostBuildEvent>
+$(ILRepack) Stride.Core.AssemblyProcessor.exe Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll System.ValueTuple.dll /out:Stride.Core.AssemblyProcessor.Packed2.exe</PostBuildEvent>
   </PropertyGroup>
 </Project>

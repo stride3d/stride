@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // -----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace Xenko.Core.Mathematics
+namespace Stride.Core.Mathematics
 {
     /// <summary>
     /// Represents a plane in three dimensional space.
@@ -50,7 +50,7 @@ namespace Xenko.Core.Mathematics
         public float D;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Plane"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Plane"/> struct.
         /// </summary>
         /// <param name="value">The value that will be assigned to all components.</param>
         public Plane(float value)
@@ -59,7 +59,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Plane"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Plane"/> struct.
         /// </summary>
         /// <param name="a">The X component of the normal.</param>
         /// <param name="b">The Y component of the normal.</param>
@@ -85,7 +85,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Plane"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Plane"/> struct.
         /// </summary>
         /// <param name="value">The normal of the plane.</param>
         /// <param name="d">The distance of the plane along its normal from the origin</param>
@@ -96,7 +96,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Plane"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Plane"/> struct.
         /// </summary>
         /// <param name="point1">First point of a triangle defining the plane.</param>
         /// <param name="point2">Second point of a triangle defining the plane.</param>
@@ -121,7 +121,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Plane"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Plane"/> struct.
         /// </summary>
         /// <param name="values">The values to assign to the A, B, C, and D components of the plane. This must be an array with four elements.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
@@ -218,7 +218,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.Ray"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.Ray"/>.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
@@ -229,7 +229,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.Ray"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.Ray"/>.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="distance">When the method completes, contains the distance of the intersection,
@@ -241,11 +241,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.Ray"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.Ray"/>.
         /// </summary>
         /// <param name="ray">The ray to test.</param>
         /// <param name="point">When the method completes, contains the point of intersection,
-        /// or <see cref="Xenko.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
+        /// or <see cref="Stride.Core.Mathematics.Vector3.Zero"/> if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
         public bool Intersects(ref Ray ray, out Vector3 point)
         {
@@ -253,7 +253,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.Plane"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.Plane"/>.
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
@@ -263,11 +263,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.Plane"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.Plane"/>.
         /// </summary>
         /// <param name="plane">The plane to test.</param>
         /// <param name="line">When the method completes, contains the line of intersection
-        /// as a <see cref="Xenko.Core.Mathematics.Ray"/>, or a zero ray if there was no intersection.</param>
+        /// as a <see cref="Stride.Core.Mathematics.Ray"/>, or a zero ray if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
         public bool Intersects(ref Plane plane, out Ray line)
         {
@@ -287,7 +287,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.BoundingBox"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.BoundingBox"/>.
         /// </summary>
         /// <param name="box">The box to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
@@ -297,7 +297,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines if there is an intersection between the current object and a <see cref="Xenko.Core.Mathematics.BoundingSphere"/>.
+        /// Determines if there is an intersection between the current object and a <see cref="Stride.Core.Mathematics.BoundingSphere"/>.
         /// </summary>
         /// <param name="sphere">The sphere to test.</param>
         /// <returns>Whether the two objects intersected.</returns>
@@ -779,11 +779,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="Xenko.Core.Mathematics.Vector4"/> is equal to this instance.
+        /// Determines whether the specified <see cref="Stride.Core.Mathematics.Vector4"/> is equal to this instance.
         /// </summary>
-        /// <param name="value">The <see cref="Xenko.Core.Mathematics.Vector4"/> to compare with this instance.</param>
+        /// <param name="value">The <see cref="Stride.Core.Mathematics.Vector4"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="Xenko.Core.Mathematics.Vector4"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="Stride.Core.Mathematics.Vector4"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(Plane value)
         {
@@ -810,7 +810,7 @@ namespace Xenko.Core.Mathematics
 
 #if SlimDX1xInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Plane"/> to <see cref="SlimDX.Plane"/>.
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Plane"/> to <see cref="SlimDX.Plane"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -820,7 +820,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="SlimDX.Plane"/> to <see cref="Xenko.Core.Mathematics.Plane"/>.
+        /// Performs an implicit conversion from <see cref="SlimDX.Plane"/> to <see cref="Stride.Core.Mathematics.Plane"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -832,7 +832,7 @@ namespace Xenko.Core.Mathematics
 
 #if XnaInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Plane"/> to <see cref="Microsoft.Xna.Framework.Plane"/>.
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Plane"/> to <see cref="Microsoft.Xna.Framework.Plane"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -842,7 +842,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Plane"/> to <see cref="Xenko.Core.Mathematics.Plane"/>.
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Plane"/> to <see cref="Stride.Core.Mathematics.Plane"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>

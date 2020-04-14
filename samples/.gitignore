@@ -3,7 +3,7 @@
 *.vcxproj.user
 *.ReSharper.user
 *.DotSettings.user
-*.xkpkg.user
+*.sdpkg.user
 _ReSharper.*
 *.sdf
 *.opensdf

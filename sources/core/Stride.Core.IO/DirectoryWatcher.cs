@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Xenko.Core.IO
+namespace Stride.Core.IO
 {
     /// <summary>
     /// Track file system events from several directories.
@@ -92,7 +92,7 @@ namespace Xenko.Core.IO
             Modified?.Invoke(sender, e);
         }
 
-#if !XENKO_PLATFORM_WINDOWS_DESKTOP
+#if !STRIDE_PLATFORM_WINDOWS_DESKTOP
         // Doesn't throw any exceptions on other platforms
 
         private void InitializeInternal()

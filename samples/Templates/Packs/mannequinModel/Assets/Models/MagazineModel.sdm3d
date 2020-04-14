@@ -1,6 +1,6 @@
 !Model
 Id: d3f4cbe1-353f-4367-9f44-df64df144f71
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/MagazineModel.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

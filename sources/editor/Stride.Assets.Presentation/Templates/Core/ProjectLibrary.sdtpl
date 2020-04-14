@@ -4,5 +4,5 @@ Name: Code library
 Scope: Session
 Description: Create a new library that can target multiple platforms and add it to the solution
 Group: General
-Icon: .xktpl\NewCode.png
+Icon: .sdtpl\NewCode.png
 DefaultOutputName: MyLibrary

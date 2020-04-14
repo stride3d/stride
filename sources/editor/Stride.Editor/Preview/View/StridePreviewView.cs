@@ -1,26 +1,26 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Xenko.Editor.Preview.View
+namespace Stride.Editor.Preview.View
 {
-    [TemplatePart(Name = "PART_XenkoView", Type = typeof(ContentPresenter))]
-    public class XenkoPreviewView : Control, IPreviewView
+    [TemplatePart(Name = "PART_StrideView", Type = typeof(ContentPresenter))]
+    public class StridePreviewView : Control, IPreviewView
     {
         private IPreviewBuilder builder;
 
         private IAssetPreview previewer;
 
-        static XenkoPreviewView()
+        static StridePreviewView()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(XenkoPreviewView), new FrameworkPropertyMetadata(typeof(XenkoPreviewView)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(StridePreviewView), new FrameworkPropertyMetadata(typeof(StridePreviewView)));
         }
 
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
-            UpdateXenkoView();
+            UpdateStrideView();
         }
 
         public void InitializeView(IPreviewBuilder previewBuilder, IAssetPreview assetPreview)
@@ -33,7 +33,7 @@ namespace Xenko.Editor.Preview.View
                 viewModel.AttachPreview(previewer);
                 DataContext = viewModel;
             }
-            UpdateXenkoView();
+            UpdateStrideView();
 
             Loaded += OnLoaded;
         }
@@ -46,7 +46,7 @@ namespace Xenko.Editor.Preview.View
                 viewModel.AttachPreview(previewer);
                 DataContext = viewModel;
             }
-            UpdateXenkoView();
+            UpdateStrideView();
         }
 
         private void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
@@ -54,13 +54,13 @@ namespace Xenko.Editor.Preview.View
             previewer?.OnViewAttached();
         }
 
-        private void UpdateXenkoView()
+        private void UpdateStrideView()
         {
-            var xenkoViewPresenter = (ContentPresenter)GetTemplateChild("PART_XenkoView");
-            if (xenkoViewPresenter != null && builder != null)
+            var strideViewPresenter = (ContentPresenter)GetTemplateChild("PART_StrideView");
+            if (strideViewPresenter != null && builder != null)
             {
-                var xenkoView = builder.GetXenkoView();
-                xenkoViewPresenter.Content = xenkoView;
+                var strideView = builder.GetStrideView();
+                strideViewPresenter.Content = strideView;
             }
         }
     }

@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Shaders.Analysis.Hlsl;
-using Xenko.Core.Shaders.Convertor;
-using Xenko.Core.Shaders.Parser;
-using Xenko.Core.Shaders.Parser.Hlsl;
-using ShaderMacro = Xenko.Shaders.ShaderMacro;
+using Stride.Core.Diagnostics;
+using Stride.Core.Shaders.Analysis.Hlsl;
+using Stride.Core.Shaders.Convertor;
+using Stride.Core.Shaders.Parser;
+using Stride.Core.Shaders.Parser.Hlsl;
+using ShaderMacro = Stride.Shaders.ShaderMacro;
 
-namespace Xenko.Shaders.Compiler.OpenGL
+namespace Stride.Shaders.Compiler.OpenGL
 {
     /// <summary>
     /// Converts from HLSL shader sourcecode to a GLSL sourcecode.
@@ -69,14 +69,14 @@ namespace Xenko.Shaders.Compiler.OpenGL
         /// <returns>
         /// The resulting glsl AST tree.
         /// </returns>
-        public global::Xenko.Core.Shaders.Ast.Shader Convert(string hlslSourcecode, string hlslEntryPoint, PipelineStage stage, string inputHlslFilepath, IDictionary<int, string> inputAttributeNames, LoggerResult log)
+        public global::Stride.Core.Shaders.Ast.Shader Convert(string hlslSourcecode, string hlslEntryPoint, PipelineStage stage, string inputHlslFilepath, IDictionary<int, string> inputAttributeNames, LoggerResult log)
         {
             try
             {
                 // Convert from Framework.Graphics ShaderMacro to Framework.Shaders ShaderMacro
-                var macros = new global::Xenko.Core.Shaders.Parser.ShaderMacro[Macros.Count];
+                var macros = new global::Stride.Core.Shaders.Parser.ShaderMacro[Macros.Count];
                 for (int index = 0; index < Macros.Count; index++)
-                    macros[index] = new global::Xenko.Core.Shaders.Parser.ShaderMacro(Macros[index].Name, Macros[index].Definition);
+                    macros[index] = new global::Stride.Core.Shaders.Parser.ShaderMacro(Macros[index].Name, Macros[index].Definition);
 
                 var result = HlslParser.TryPreProcessAndParse(hlslSourcecode, inputHlslFilepath, macros, IncludeDirectories);
 
@@ -117,7 +117,7 @@ namespace Xenko.Shaders.Compiler.OpenGL
         /// <returns>
         /// The resulting glsl AST tree.
         /// </returns>
-        private global::Xenko.Core.Shaders.Ast.Shader Convert(ParsingResult result, string hlslEntryPoint, PipelineStage stage, string inputHlslFilepath, IDictionary<int, string> inputAttributeNames, LoggerResult log)
+        private global::Stride.Core.Shaders.Ast.Shader Convert(ParsingResult result, string hlslEntryPoint, PipelineStage stage, string inputHlslFilepath, IDictionary<int, string> inputAttributeNames, LoggerResult log)
         {
             try
             {

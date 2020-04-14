@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Globalization;
-using Xenko.Core.Presentation.Internal;
+using Stride.Core.Presentation.Internal;
 
-namespace Xenko.Core.Presentation.ValueConverters
+namespace Stride.Core.Presentation.ValueConverters
 {
     /// <summary>
     /// This converter will convert a numerical value to a boolean. The result will be <c>false</c> if the given value is equal to zero, <c>true</c> otherwise.

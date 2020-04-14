@@ -5,7 +5,7 @@ Scope: Session
 Description: Demonstrates how to use SpriteStudio integration
 FullDescription: This sample demonstrates how to use SpriteStudio assets and animations in a simple 2D game.
 Group: Samples/Graphics
-Icon: .xktpl/Icon.png
+Icon: .sdtpl/Icon.png
 DefaultOutputName: SpriteStudioDemo
 Screenshots:
-    - .xktpl/screenshot1_small.jpg
+    - .sdtpl/screenshot1_small.jpg

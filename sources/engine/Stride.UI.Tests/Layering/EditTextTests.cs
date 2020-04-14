@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Xunit;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Games;
-using Xenko.Graphics;
-using Xenko.Rendering.Sprites;
-using Xenko.UI.Controls;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Games;
+using Stride.Graphics;
+using Stride.Rendering.Sprites;
+using Stride.UI.Controls;
 
-namespace Xenko.UI.Tests.Layering
+namespace Stride.UI.Tests.Layering
 {
     /// <summary>
     /// A class that contains test functions for layering of the <see cref="EditText"/> class.

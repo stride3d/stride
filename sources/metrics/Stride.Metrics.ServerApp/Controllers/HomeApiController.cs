@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web.Http;
 
-namespace Xenko.Metrics.ServerApp.Controllers
+namespace Stride.Metrics.ServerApp.Controllers
 {
     [RoutePrefix("")]
     internal class HomeApiController : CustomApiControllerBase

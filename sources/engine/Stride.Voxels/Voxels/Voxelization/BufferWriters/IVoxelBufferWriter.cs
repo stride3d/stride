@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Shaders;
-using Xenko.Rendering.Materials;
+using Stride.Shaders;
+using Stride.Rendering.Materials;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public interface IVoxelBufferWriter
     {

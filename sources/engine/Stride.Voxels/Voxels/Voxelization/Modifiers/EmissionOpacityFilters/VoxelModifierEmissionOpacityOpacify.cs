@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Core;
-using Xenko.Shaders;
+using Stride.Core;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     [Display("Opacify")]

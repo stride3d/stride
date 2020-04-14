@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Xenko.Core.Serialization;
-using Xenko.Core.Shaders.Grammar.Hlsl;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Parser;
-using Xenko.Core.Shaders.Parser.Hlsl;
-using Xenko.Core.Shaders.Properties;
-using Xenko.Core.Shaders.Utility;
-using ParameterQualifier = Xenko.Core.Shaders.Ast.ParameterQualifier;
-using Xenko.Core.Shaders.Visitor;
+using Stride.Core.Serialization;
+using Stride.Core.Shaders.Grammar.Hlsl;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Parser;
+using Stride.Core.Shaders.Parser.Hlsl;
+using Stride.Core.Shaders.Properties;
+using Stride.Core.Shaders.Utility;
+using ParameterQualifier = Stride.Core.Shaders.Ast.ParameterQualifier;
+using Stride.Core.Shaders.Visitor;
 
-namespace Xenko.Core.Shaders.Analysis.Hlsl
+namespace Stride.Core.Shaders.Analysis.Hlsl
 {
     /// <summary>
     /// A Type reference analysis is building type references.

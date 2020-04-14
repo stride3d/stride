@@ -6,5 +6,5 @@ Scope: Asset
 Description: A skybox with a cubemap texture to render the sky and light the scene
 Group: Miscellaneous
 Order: -100
-Icon: ..\.xktpl\Skybox.png
+Icon: ..\.sdtpl\Skybox.png
 DefaultOutputName: Skybox

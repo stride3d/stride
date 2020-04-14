@@ -1,6 +1,6 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
 using System;
 using System.Drawing;
 using System.Reflection;
@@ -12,15 +12,15 @@ using OpenGLES;
 using OpenTK;
 using OpenTK.Graphics.ES30;
 using OpenTK.Platform.iPhoneOS;
-using Xenko.Games;
+using Stride.Games;
 using UIKit;
 
-namespace Xenko.Starter
+namespace Stride.Starter
 {
     // note: for more information on iOS application life cycle, 
     // see http://docs.xamarin.com/guides/cross-platform/application_fundamentals/backgrounding/part_1_introduction_to_backgrounding_in_ios
-    [Register("iOSXenkoView")]
-    public sealed class iOSXenkoView : iPhoneOSGameView, IAnimatedGameView
+    [Register("iOSStrideView")]
+    public sealed class iOSStrideView : iPhoneOSGameView, IAnimatedGameView
     {
         CADisplayLink displayLink;
         private bool isRunning;
@@ -29,7 +29,7 @@ namespace Xenko.Starter
         private int renderBuffer;
         private int frameBuffer;
 
-        public iOSXenkoView(System.Drawing.RectangleF frame)
+        public iOSStrideView(System.Drawing.RectangleF frame)
             : base(frame)
         {
         }

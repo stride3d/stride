@@ -25,7 +25,7 @@
    var path = Path.GetDirectoryName(Host.TemplateFile);
 
    var msWorkspace = MSBuildWorkspace.Create();
-   var project = msWorkspace.OpenProjectAsync(path + "\\..\\Xenko.Core.Shaders.csproj").Result;
+   var project = msWorkspace.OpenProjectAsync(path + "\\..\\Stride.Core.Shaders.csproj").Result;
    var compilation = project.GetCompilationAsync().Result;
 
    var classVisitor = new NodeClassVisitor();
@@ -36,10 +36,10 @@
 	var typeAndGenericFormat = new SymbolDisplayFormat(SymbolDisplayGlobalNamespaceStyle.Omitted, SymbolDisplayTypeQualificationStyle.NameOnly, SymbolDisplayGenericsOptions.IncludeTypeParameters);
 #>
 
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Visitor;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Visitor;
 
-namespace Xenko.Core.Shaders.Visitor
+namespace Stride.Core.Shaders.Visitor
 {
     public partial class ShaderVisitor<TResult>
     {
@@ -197,7 +197,7 @@ class NodeClassVisitor : SymbolVisitor
 
 private static bool InheritsFromNode(ITypeSymbol type)
 {
-	return GetBaseTypesAndThis(type).Any(t => t.ToDisplayString() == "Xenko.Core.Shaders.Ast.Node");
+	return GetBaseTypesAndThis(type).Any(t => t.ToDisplayString() == "Stride.Core.Shaders.Ast.Node");
 }
 
 private static IEnumerable<ITypeSymbol> GetBaseTypesAndThis(ITypeSymbol type)
@@ -215,7 +215,7 @@ private static bool CanVisitMember(ISymbol symbol)
     if (symbol.DeclaredAccessibility != Accessibility.Public || symbol.IsStatic)
         return false;
 
-	if (symbol.GetAttributes().Any(x => x.AttributeClass.ToDisplayString() == "Xenko.Core.Shaders.Ast.VisitorIgnoreAttribute"))
+	if (symbol.GetAttributes().Any(x => x.AttributeClass.ToDisplayString() == "Stride.Core.Shaders.Ast.VisitorIgnoreAttribute"))
 		return false;
 
     if (symbol.Kind == SymbolKind.Field)

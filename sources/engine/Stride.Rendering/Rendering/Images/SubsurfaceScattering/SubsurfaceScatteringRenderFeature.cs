@@ -3,11 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Rendering.SubsurfaceScattering;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Rendering.SubsurfaceScattering;
 
-namespace Xenko.Rendering.Materials
+namespace Stride.Rendering.Materials
 {
     /// <summary>
     /// Custom render feature, that prepares constants needed by SubsurfaceScatteringBlurEffect.

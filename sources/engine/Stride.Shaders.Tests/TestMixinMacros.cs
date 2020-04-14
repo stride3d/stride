@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.IO;
@@ -6,14 +6,14 @@ using System.Linq;
 
 using Xunit;
 
-using Xenko.Core.IO;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Storage;
-using Xenko.Shaders.Parser;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
+using Stride.Core.IO;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Storage;
+using Stride.Shaders.Parser;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
 
-namespace Xenko.Shaders.Tests
+namespace Stride.Shaders.Tests
 {
     public class TestMixinMacros
     {
@@ -36,7 +36,7 @@ namespace Xenko.Shaders.Tests
 
             // test that macros are correctly used
             var baseMixin = new ShaderMixinSource();
-            baseMixin.AddMacro("XENKO_GRAPHICS_API_DIRECT3D", 1);
+            baseMixin.AddMacro("STRIDE_GRAPHICS_API_DIRECT3D", 1);
             baseMixin.Macros.Add(new ShaderMacro("MACRO_TEST", "int"));
             baseMixin.Mixins.Add(new ShaderClassSource("TestMacros"));
             
@@ -64,7 +64,7 @@ namespace Xenko.Shaders.Tests
 
             // test clash when reloading
             var baseMixin2 = new ShaderMixinSource();
-            baseMixin2.AddMacro("XENKO_GRAPHICS_API_DIRECT3D", 1);
+            baseMixin2.AddMacro("STRIDE_GRAPHICS_API_DIRECT3D", 1);
             baseMixin2.Macros.Add(new ShaderMacro("MACRO_TEST", "int"));
             baseMixin2.Mixins.Add(new ShaderClassSource("TestMacros"));
 
@@ -98,7 +98,7 @@ namespace Xenko.Shaders.Tests
 
             // test that macros are correctly used through an array
             var baseMixin = new ShaderMixinSource();
-            baseMixin.AddMacro("XENKO_GRAPHICS_API_DIRECT3D", 1);
+            baseMixin.AddMacro("STRIDE_GRAPHICS_API_DIRECT3D", 1);
             baseMixin.Macros.Add(new ShaderMacro("MACRO_TEST", "int"));
             baseMixin.Mixins.Add(new ShaderClassSource("TestMacrosArray"));
 

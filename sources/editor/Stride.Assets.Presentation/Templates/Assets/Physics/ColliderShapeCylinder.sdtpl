@@ -5,6 +5,6 @@ Name: Cylinder
 Scope: Asset
 Description: A cylindrical collider
 Group: Physics
-Icon: ..\.xktpl\ColliderCylinder.png
+Icon: ..\.sdtpl\ColliderCylinder.png
 DefaultOutputName: ColliderCylinder
 FactoryTypeName: ColliderShapeCylinderFactory

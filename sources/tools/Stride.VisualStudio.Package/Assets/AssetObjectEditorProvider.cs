@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 //  This file is part of YamlDotNet - A .NET library for YAML.
@@ -33,12 +33,12 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using System.IO;
 using System.Text.RegularExpressions;
-using Xenko.Core;
-using Xenko.Core.Yaml;
-using Xenko.Core.Yaml.Schemas;
-using Xenko.Core.Yaml.Tokens;
+using Stride.Core;
+using Stride.Core.Yaml;
+using Stride.Core.Yaml.Schemas;
+using Stride.Core.Yaml.Tokens;
 
-namespace Xenko.VisualStudio.Assets
+namespace Stride.VisualStudio.Assets
 {
 
 	#region Provider definition

@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Assets;
-using Xenko.Core;
+using Stride.Core.Assets;
+using Stride.Core;
 
-namespace Xenko.Assets.Effect
+namespace Stride.Assets.Effect
 {
     /// <summary>
-    /// Describes a shader effect asset (xksl).
+    /// Describes a shader effect asset (sdsl).
     /// </summary>
     [DataContract("EffectCompositorAsset")]
     [AssetDescription(FileExtension, AlwaysMarkAsRoot = true, AllowArchetype = false)]
@@ -15,9 +15,9 @@ namespace Xenko.Assets.Effect
         /// <summary>
         /// The default file extension used by the <see cref="EffectCompositorAsset"/>.
         /// </summary>
-        public const string FileExtension = ".xkfx";
+        public const string FileExtension = ".sdfx";
 
-        public override string Generator => "XenkoEffectCodeGenerator";
+        public override string Generator => "StrideEffectCodeGenerator";
 
         public override void SaveGeneratedAsset(AssetItem assetItem)
         {

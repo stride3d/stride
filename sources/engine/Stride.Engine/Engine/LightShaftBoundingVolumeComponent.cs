@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Xenko.Core;
-using Xenko.Engine.Design;
-using Xenko.Engine.Processors;
-using Xenko.Rendering;
+using Stride.Core;
+using Stride.Engine.Design;
+using Stride.Engine.Processors;
+using Stride.Rendering;
 
-namespace Xenko.Engine
+namespace Stride.Engine
 {
     /// <summary>
     /// A bounding volume for light shafts to be rendered in, can take any <see cref="Model"/> as a volume

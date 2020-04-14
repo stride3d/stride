@@ -1,7 +1,7 @@
 using System;
-using Xenko.Media;
+using Stride.Media;
 
-namespace Xenko.Audio
+namespace Stride.Audio
 {
     /// <summary>
     /// A Sound Instance where the SoundSource comes from a StreamedBufferSoundSource, and implementing ISynchronizedMediaExtractor interface

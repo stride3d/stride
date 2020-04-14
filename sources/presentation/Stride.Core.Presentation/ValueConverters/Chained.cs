@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Markup;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Presentation.ValueConverters
+namespace Stride.Core.Presentation.ValueConverters
 {
     /// <summary>
     /// This converter can chain up to <see cref="MaxConverterCount"/> <see cref="IValueConverter"/> to convert a value. The first converter takes

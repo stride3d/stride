@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.BuildEngine;
-using Xenko.Core.Diagnostics;
+using Stride.Core.BuildEngine;
+using Stride.Core.Diagnostics;
 
-namespace Xenko.Editor.Thumbnails
+namespace Stride.Editor.Thumbnails
 {
     /// <summary>
     /// Special <see cref="BuildStep"/> that will forward dependencies to a <see cref="Command"/> implementing <see cref="IThumbnailCommand"/>.

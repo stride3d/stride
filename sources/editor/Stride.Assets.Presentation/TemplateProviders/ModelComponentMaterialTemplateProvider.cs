@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Assets.Editor.View.TemplateProviders;
-using Xenko.Engine;
-using Xenko.Core.Presentation.Quantum;
-using Xenko.Core.Presentation.Quantum.ViewModels;
-using Xenko.Rendering;
+using Stride.Core.Assets.Editor.View.TemplateProviders;
+using Stride.Engine;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Rendering;
 
-namespace Xenko.Assets.Presentation.TemplateProviders
+namespace Stride.Assets.Presentation.TemplateProviders
 {
     public class ModelComponentMaterialTemplateProvider : ContentReferenceTemplateProvider
     {

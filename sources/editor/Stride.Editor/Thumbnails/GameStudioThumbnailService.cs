@@ -1,25 +1,25 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.Assets.Editor.Components.Status;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.BuildEngine;
-using Xenko.Core.Collections;
-using Xenko.Core.Diagnostics;
-using Xenko.Assets;
-using Xenko.Editor.Build;
-using Xenko.Editor.Resources;
-using Xenko.Graphics;
-using Xenko.Shaders.Compiler;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.Assets.Editor.Components.Status;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.BuildEngine;
+using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
+using Stride.Assets;
+using Stride.Editor.Build;
+using Stride.Editor.Resources;
+using Stride.Graphics;
+using Stride.Shaders.Compiler;
 
-namespace Xenko.Editor.Thumbnails
+namespace Stride.Editor.Thumbnails
 { 
     public class GameStudioThumbnailService : IThumbnailService
     {

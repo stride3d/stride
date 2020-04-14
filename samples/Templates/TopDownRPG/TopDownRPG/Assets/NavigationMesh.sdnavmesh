@@ -1,6 +1,6 @@
 !NavigationMeshAsset
 Id: e50d6079-dc5b-43a9-a1aa-75cf370f1fc3
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Scene: 961e35a8-ba9a-47b4-82c6-2a2450282c00:MainScene
 IncludedCollisionGroups: CustomFilter1

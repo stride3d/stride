@@ -1,18 +1,18 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
-using Xenko.Core.Assets;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Engine.Design;
-using Xenko.Engine.Processors;
-using Xenko.Rendering;
-using Xenko.Rendering.Colors;
-using Xenko.Rendering.Compositing;
-using Xenko.Rendering.Images;
-using Xenko.Rendering.Lights;
+using Stride.Core.Assets;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Engine.Design;
+using Stride.Engine.Processors;
+using Stride.Rendering;
+using Stride.Rendering.Colors;
+using Stride.Rendering.Compositing;
+using Stride.Rendering.Images;
+using Stride.Rendering.Lights;
 
-namespace Xenko.Assets.Entities
+namespace Stride.Assets.Entities
 {
     public abstract class SceneBaseFactory : AssetFactory<SceneAsset>
     {

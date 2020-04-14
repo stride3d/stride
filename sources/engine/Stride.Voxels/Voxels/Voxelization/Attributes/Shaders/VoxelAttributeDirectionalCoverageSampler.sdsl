@@ -1,4 +1,4 @@
-﻿namespace Xenko.Rendering.Voxels
+﻿namespace Stride.Rendering.Voxels
 {
     shader VoxelAttributeDirectionalCoverageSampler : IVoxelSampler, Texturing
     {

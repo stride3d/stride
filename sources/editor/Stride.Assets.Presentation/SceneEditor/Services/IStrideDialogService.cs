@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 
-namespace Xenko.Assets.Presentation.SceneEditor.Services
+namespace Stride.Assets.Presentation.SceneEditor.Services
 {
     /// <summary>
-    /// This interface represents Xenko-specifc dialog service.
+    /// This interface represents Stride-specifc dialog service.
     /// </summary>
-    public interface IXenkoDialogService
+    public interface IStrideDialogService
     {
         /// <summary>
         /// Creates an entity picker dialog.

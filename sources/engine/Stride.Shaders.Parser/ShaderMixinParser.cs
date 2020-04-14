@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.IO;
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Shaders.Parser.Mixins;
-using Xenko.Shaders.Parser.Utility;
-using Xenko.Core.Shaders.Analysis.Hlsl;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Utility;
+using Stride.Core.IO;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Shaders.Parser.Mixins;
+using Stride.Shaders.Parser.Utility;
+using Stride.Core.Shaders.Analysis.Hlsl;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Utility;
 
-namespace Xenko.Shaders.Parser
+namespace Stride.Shaders.Parser
 {
     /// <summary>
     /// Parser for mixin.
@@ -40,7 +40,7 @@ namespace Xenko.Shaders.Parser
         /// <summary>
         /// The library containing all the shaders
         /// </summary>
-        private readonly XenkoShaderLibrary shaderLibrary;
+        private readonly StrideShaderLibrary shaderLibrary;
 
         #endregion
 
@@ -65,7 +65,7 @@ namespace Xenko.Shaders.Parser
             
             if (shaderLibrary == null)
             {
-                shaderLibrary = new XenkoShaderLibrary(shaderLoader);
+                shaderLibrary = new StrideShaderLibrary(shaderLoader);
             }
         }
 
@@ -96,21 +96,21 @@ namespace Xenko.Shaders.Parser
             }
         }
 
-        internal ShaderCompilationContext ParseAndAnalyze(ShaderMixinSource shaderMixinSource, Xenko.Shaders.ShaderMacro[] macros, out ShaderMixinParsingResult parsingResult, out HashSet<ModuleMixinInfo> mixinsToAnalyze)
+        internal ShaderCompilationContext ParseAndAnalyze(ShaderMixinSource shaderMixinSource, Stride.Shaders.ShaderMacro[] macros, out ShaderMixinParsingResult parsingResult, out HashSet<ModuleMixinInfo> mixinsToAnalyze)
         {
             // Creates a parsing result
             parsingResult = new ShaderMixinParsingResult();
 
-            Xenko.Core.Shaders.Parser.ShaderMacro[] macrosParser;
+            Stride.Core.Shaders.Parser.ShaderMacro[] macrosParser;
             if (macros == null)
             {
-                macrosParser = new Xenko.Core.Shaders.Parser.ShaderMacro[0];
+                macrosParser = new Stride.Core.Shaders.Parser.ShaderMacro[0];
             }
             else
             {
-                macrosParser = new Xenko.Core.Shaders.Parser.ShaderMacro[macros.Length];
+                macrosParser = new Stride.Core.Shaders.Parser.ShaderMacro[macros.Length];
                 for (var i = 0; i < macros.Length; ++i)
-                    macrosParser[i] = new Xenko.Core.Shaders.Parser.ShaderMacro(macros[i].Name, macros[i].Definition);
+                    macrosParser[i] = new Stride.Core.Shaders.Parser.ShaderMacro(macros[i].Name, macros[i].Definition);
             }
             //PerformanceLogger.Start(PerformanceStage.Global);
 
@@ -178,7 +178,7 @@ namespace Xenko.Shaders.Parser
         /// <param name="macros">The shader perprocessor macros.</param>
         /// <param name="modifiedShaders">The list of modified shaders.</param>
         /// <returns>The combined shader in AST form.</returns>
-        public ShaderMixinParsingResult Parse(ShaderMixinSource shaderMixinSource, Xenko.Shaders.ShaderMacro[] macros = null)
+        public ShaderMixinParsingResult Parse(ShaderMixinSource shaderMixinSource, Stride.Shaders.ShaderMacro[] macros = null)
         {
             // Creates a parsing result
             HashSet<ModuleMixinInfo> mixinsToAnalyze;
@@ -229,7 +229,7 @@ namespace Xenko.Shaders.Parser
             var extraExternDict = new Dictionary<Variable, List<ModuleMixin>>();
             foreach (var item in externDict)
             {
-                if (item.Key.Qualifiers.Contains(XenkoStorageQualifier.Stage))
+                if (item.Key.Qualifiers.Contains(StrideStorageQualifier.Stage))
                     FullLinkStageCompositions(item.Key, item.Value, externDict, extraExternDict, parsingResult);
             }
             foreach (var item in extraExternDict)
@@ -242,7 +242,7 @@ namespace Xenko.Shaders.Parser
                 var finalModule = finalModuleList[0];
                 //PerformanceLogger.Start(PerformanceStage.Mix);
                 parsingResult.Reflection = new EffectReflection();
-                var mixer = new XenkoShaderMixer(finalModule, parsingResult, mixinDictionary, externDict, new CloneContext(mixCloneContext));
+                var mixer = new StrideShaderMixer(finalModule, parsingResult, mixinDictionary, externDict, new CloneContext(mixCloneContext));
                 mixer.Mix();
                 //PerformanceLogger.Stop(PerformanceStage.Mix);
 
@@ -256,8 +256,8 @@ namespace Xenko.Shaders.Parser
                 var simplifier = new ExpressionSimplifierVisitor();
                 simplifier.Run(finalShader);
 
-                var xkShaderLinker = new ShaderLinker(parsingResult);
-                xkShaderLinker.Run(finalShader);
+                var sdShaderLinker = new ShaderLinker(parsingResult);
+                sdShaderLinker.Run(finalShader);
 
                 // Return directly if there was any errors
                 if (parsingResult.HasErrors)
@@ -281,7 +281,7 @@ namespace Xenko.Shaders.Parser
                         break;
                 }
 
-                var typeCleaner = new XenkoShaderCleaner();
+                var typeCleaner = new StrideShaderCleaner();
                 typeCleaner.Run(finalShader);
 
                 //PerformanceLogger.Stop(PerformanceStage.Global);
@@ -337,11 +337,11 @@ namespace Xenko.Shaders.Parser
                 foreach (var composition in shaderMixinSource.Compositions)
                 {
                     //look for the key
-                    var foundVars = finalModule.FindAllVariablesByName(composition.Key).Where(value => value.Variable.Qualifiers.Contains(XenkoStorageQualifier.Compose)).ToList();
+                    var foundVars = finalModule.FindAllVariablesByName(composition.Key).Where(value => value.Variable.Qualifiers.Contains(StrideStorageQualifier.Compose)).ToList();
 
                     if (foundVars.Count > 1)
                     {
-                        log.Error(XenkoMessageCode.ErrorAmbiguousComposition, new SourceSpan(), composition.Key);
+                        log.Error(StrideMessageCode.ErrorAmbiguousComposition, new SourceSpan(), composition.Key);
                     }
                     else if (foundVars.Count > 0)
                     {
@@ -400,7 +400,7 @@ namespace Xenko.Shaders.Parser
         /// <param name="log">The logger.</param>
         private static void FullLinkStageCompositions(Variable variable, List<ModuleMixin> composition, CompositionDictionary dictionary, Dictionary<Variable, List<ModuleMixin>> extraDictionary, LoggerResult log)
         {
-            var mixin = variable.GetTag(XenkoTags.ShaderScope) as ModuleMixin;
+            var mixin = variable.GetTag(StrideTags.ShaderScope) as ModuleMixin;
             if (mixin != null)
             {
                 var className = mixin.MixinName;
@@ -414,10 +414,10 @@ namespace Xenko.Shaders.Parser
                         if (module.MixinName == className || module.InheritanceList.Any(x => x.MixinName == className))
                         {
                             // add reference
-                            var foundVars = module.FindAllVariablesByName(variable.Name).Where(value => value.Variable.Qualifiers.Contains(XenkoStorageQualifier.Compose)).ToList();;
+                            var foundVars = module.FindAllVariablesByName(variable.Name).Where(value => value.Variable.Qualifiers.Contains(StrideStorageQualifier.Compose)).ToList();;
                             if (foundVars.Count > 1)
                             {
-                                log.Error(XenkoMessageCode.ErrorAmbiguousComposition, new SourceSpan(), variable.Name);
+                                log.Error(StrideMessageCode.ErrorAmbiguousComposition, new SourceSpan(), variable.Name);
                             }
                             else if (foundVars.Count > 0)
                             {

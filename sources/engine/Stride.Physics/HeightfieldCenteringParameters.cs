@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core;
-using Xenko.Core.Annotations;
+using Stride.Core;
+using Stride.Core.Annotations;
 
-namespace Xenko.Physics
+namespace Stride.Physics
 {
     [DataContract]
     public struct HeightfieldCenteringParameters

@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Windows;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Presentation.Services;
-using Xenko.Editor.Build;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.Diagnostics;
+using Stride.Core.Presentation.Services;
+using Stride.Editor.Build;
 
-namespace Xenko.Editor.Preview
+namespace Stride.Editor.Preview
 {
     /// <summary>
     /// An interface that represents an object which is capable of building previews for assets.
@@ -42,9 +42,9 @@ namespace Xenko.Editor.Preview
         AssetCompilerResult Compile(AssetItem asset);
 
         /// <summary>
-        /// Gets the framework element that contains the xenko viewport.
+        /// Gets the framework element that contains the stride viewport.
         /// </summary>
         /// <returns></returns>
-        FrameworkElement GetXenkoView();
+        FrameworkElement GetStrideView();
     }
 }

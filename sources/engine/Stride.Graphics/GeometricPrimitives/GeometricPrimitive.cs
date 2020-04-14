@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -23,10 +23,10 @@
 
 using System;
 
-using Xenko.Core;
-using Xenko.Rendering;
+using Stride.Core;
+using Stride.Rendering;
 
-namespace Xenko.Graphics.GeometricPrimitives
+namespace Stride.Graphics.GeometricPrimitives
 {
     /// <summary>
     /// A geometric primitive used to draw a simple model built from a set of vertices and indices.

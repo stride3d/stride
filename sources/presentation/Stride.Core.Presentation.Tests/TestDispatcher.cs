@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
 using Xunit;
-using Xenko.Core.Extensions;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.View;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.View;
 
-namespace Xenko.Core.Presentation.Tests
+namespace Stride.Core.Presentation.Tests
 {
     public class TestDispatcher
     {

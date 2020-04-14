@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Xenko.Core.Extensions;
+using Stride.Core.Extensions;
 
-namespace Xenko.Core.BuildEngine
+namespace Stride.Core.BuildEngine
 {
     /// <summary>
     /// This class contains extension methods related to the <see cref="BuildStep"/> class.

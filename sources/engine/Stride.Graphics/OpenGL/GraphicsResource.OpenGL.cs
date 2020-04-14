@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_GRAPHICS_API_OPENGL 
+#if STRIDE_GRAPHICS_API_OPENGL 
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 using PixelFormatGl = OpenTK.Graphics.ES30.PixelFormat;
 using PixelInternalFormat = OpenTK.Graphics.ES30.TextureComponentCount;
@@ -12,7 +12,7 @@ using OpenTK.Graphics.OpenGL;
 using PixelFormatGl = OpenTK.Graphics.OpenGL.PixelFormat;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// GraphicsResource class

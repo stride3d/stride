@@ -1,9 +1,9 @@
-<Addin  id             = "MonoDevelop.Debugger.Soft.Xenko"
-        name           = "Mono Soft Debugger Support for Xenko"
-        author         = "Xenko"
-        url            = "https://xenko.com"
+<Addin  id             = "MonoDevelop.Debugger.Soft.Stride"
+        name           = "Mono Soft Debugger Support for Stride"
+        author         = "Stride"
+        url            = "https://stride3d.net"
         copyright      = "MIT X11"
-        description    = "Mono Soft Debugger Support for Xenko"
+        description    = "Mono Soft Debugger Support for Stride"
         category       = "Debugging"
         version        = "1.0">
   
@@ -16,38 +16,38 @@
 	
 	<Extension path="/MonoDevelop/Debugging/DebuggerEngines">
 		<DebuggerEngine
-			id="MonoDevelop.Debugger.Soft.Xenko"
-			name="Xenko Debugger"
+			id="MonoDevelop.Debugger.Soft.Stride"
+			name="Stride Debugger"
 			features="Breakpoints, Pause, Stepping, DebugFile, ConditionalBreakpoints, Tracepoints, Catchpoints"
-			type="MonoDevelop.Debugger.Soft.Xenko.XenkoDebuggerEngine" />
+			type="MonoDevelop.Debugger.Soft.Stride.StrideDebuggerEngine" />
 	</Extension>
 
   <Extension path = "/MonoDevelop/Ide/Commands">
     <Category _name = "Debug" id = "Debug">
-      <Command id = "MonoDevelop.Debugger.Soft.Xenko.Commands.StartDebugClient"
-          defaultHandler = "MonoDevelop.Debugger.Soft.Xenko.StartDebugClient"
-          _label = "Debug Xenko Client"
-          _description = "Debug Xenko Client"
+      <Command id = "MonoDevelop.Debugger.Soft.Stride.Commands.StartDebugClient"
+          defaultHandler = "MonoDevelop.Debugger.Soft.Stride.StartDebugClient"
+          _label = "Debug Stride Client"
+          _description = "Debug Stride Client"
           shortcut = "F3"
           icon="md-step-over-debug"/>
-      <Command id = "MonoDevelop.Debugger.Soft.Xenko.Commands.StartDebugServer"
-          defaultHandler = "MonoDevelop.Debugger.Soft.Xenko.StartDebugServer"
-          _label = "Debug Xenko Server"
-          _description = "Debug Xenko Server"
+      <Command id = "MonoDevelop.Debugger.Soft.Stride.Commands.StartDebugServer"
+          defaultHandler = "MonoDevelop.Debugger.Soft.Stride.StartDebugServer"
+          _label = "Debug Stride Server"
+          _description = "Debug Stride Server"
           shortcut = "F4"
           icon="md-step-over-debug"/>
     </Category>
   </Extension>
 
   <Extension path = "/MonoDevelop/Ide/MainMenu/Run">
-    <CommandItem id = "MonoDevelop.Debugger.Soft.Xenko.Commands.StartDebugClient" />
-    <CommandItem id = "MonoDevelop.Debugger.Soft.Xenko.Commands.StartDebugServer" />
+    <CommandItem id = "MonoDevelop.Debugger.Soft.Stride.Commands.StartDebugClient" />
+    <CommandItem id = "MonoDevelop.Debugger.Soft.Stride.Commands.StartDebugServer" />
   </Extension>
   
   <Extension path = "/MonoDevelop/Ide/Toolbar">
-    <ItemSet id = "Xenko" _label = "Xenko">
-      <CommandItem id = "MonoDevelop.Debugger.Soft.Xenko.Commands.StartDebugClient" />
-      <CommandItem id = "MonoDevelop.Debugger.Soft.Xenko.Commands.StartDebugServer" />
+    <ItemSet id = "Stride" _label = "Stride">
+      <CommandItem id = "MonoDevelop.Debugger.Soft.Stride.Commands.StartDebugClient" />
+      <CommandItem id = "MonoDevelop.Debugger.Soft.Stride.Commands.StartDebugServer" />
     </ItemSet>
   </Extension>
 </Addin>

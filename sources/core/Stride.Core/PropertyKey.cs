@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single class
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using Xenko.Core.Annotations;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Serializers;
+using Stride.Core.Annotations;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Serializers;
 
-namespace Xenko.Core
+namespace Stride.Core
 {
     /// <summary>
     /// A class that represents a tag propety.

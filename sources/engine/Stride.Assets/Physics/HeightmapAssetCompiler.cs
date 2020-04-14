@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xenko.Assets.Textures;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.BuildEngine;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Graphics;
-using Xenko.Physics;
-using Xenko.TextureConverter;
+using Stride.Assets.Textures;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.BuildEngine;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization.Contents;
+using Stride.Graphics;
+using Stride.Physics;
+using Stride.TextureConverter;
 
-namespace Xenko.Assets.Physics
+namespace Stride.Assets.Physics
 {
     [AssetCompiler(typeof(HeightmapAsset), typeof(AssetCompilationContext))]
     internal class HeightmapAssetCompiler : AssetCompilerBase
@@ -128,7 +128,7 @@ namespace Xenko.Assets.Physics
 
                     // Convert pixels to heights
 
-                    using (var image = textureTool.ConvertToXenkoImage(texImage))
+                    using (var image = textureTool.ConvertToStrideImage(texImage))
                     {
                         var pixelBuffer = image.PixelBuffer[0];
                         var pixelBufferSize = new Int2(pixelBuffer.Width, pixelBuffer.Height);

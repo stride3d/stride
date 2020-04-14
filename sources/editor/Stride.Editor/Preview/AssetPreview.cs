@@ -1,23 +1,23 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Extensions;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Assets;
-using Xenko.Editor.Preview.View;
-using Xenko.Editor.Preview.ViewModel;
-using Xenko.Engine;
-using Xenko.Graphics;
-using Xenko.Rendering.Compositing;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Assets;
+using Stride.Editor.Preview.View;
+using Stride.Editor.Preview.ViewModel;
+using Stride.Engine;
+using Stride.Graphics;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Editor.Preview
+namespace Stride.Editor.Preview
 {
     /// <summary>
     /// A base implementation for the <see cref="IAssetPreview"/>.
@@ -227,7 +227,7 @@ namespace Xenko.Editor.Preview
 
                 previewViewModelTypes = new Dictionary<Type, Type>();
                 var pluginService = serviceProvider.Get<IAssetsPluginService>();
-                foreach (var plugin in pluginService.Plugins.OfType<XenkoAssetsPlugin>())
+                foreach (var plugin in pluginService.Plugins.OfType<StrideAssetsPlugin>())
                 {
                     var assetPreviewViewModelsTypes = new Dictionary<Type, Type>();
                     plugin.RegisterAssetPreviewViewModelTypes(assetPreviewViewModelsTypes);

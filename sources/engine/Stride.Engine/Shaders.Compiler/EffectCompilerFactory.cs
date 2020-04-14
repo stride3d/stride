@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Core;
-using Xenko.Core.IO;
-using Xenko.Engine.Design;
-using Xenko.Rendering;
+using Stride.Core;
+using Stride.Core.IO;
+using Stride.Engine.Design;
+using Stride.Rendering;
 
-namespace Xenko.Shaders.Compiler
+namespace Stride.Shaders.Compiler
 {
     public static class EffectCompilerFactory
     {
@@ -16,7 +16,7 @@ namespace Xenko.Shaders.Compiler
         {
             EffectCompilerBase compiler = null;
 
-#if XENKO_EFFECT_COMPILER
+#if STRIDE_EFFECT_COMPILER
             if ((effectCompilationMode & EffectCompilationMode.Local) != 0)
             {
                 // Local allowed and available, let's use that

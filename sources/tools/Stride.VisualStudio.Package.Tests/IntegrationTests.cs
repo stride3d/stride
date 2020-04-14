@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -14,33 +14,33 @@ using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Xunit;
-using Xenko.Core;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Core.VisualStudio;
-using Xenko.Assets.Templates;
-using Xenko.Assets.Presentation.Templates;
-using Xenko.Rendering;
+using Stride.Core;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Templates;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Core.VisualStudio;
+using Stride.Assets.Templates;
+using Stride.Assets.Presentation.Templates;
+using Stride.Rendering;
 using VSLangProj;
 using Debugger = System.Diagnostics.Debugger;
 using Process = System.Diagnostics.Process;
 using Thread = System.Threading.Thread;
 
-namespace Xenko.VisualStudio.Package.Tests
+namespace Stride.VisualStudio.Package.Tests
 {
     /// <summary>
     /// Test class that runs experimental instance of Visual Studio to check our plugin works well.
     /// </summary>
     /// <remarks>
-    /// Right now it only has a test for .xksl C# code generator, but it also tests a lot of things along the way: VSPackage properly have all dependencies (no missing .dll), IXenkoCommands can be properly found, etc...
-    /// Also, it works against a dev version of Xenko, but it could eventually be improved to test against package version as well.
+    /// Right now it only has a test for .sdsl C# code generator, but it also tests a lot of things along the way: VSPackage properly have all dependencies (no missing .dll), IStrideCommands can be properly found, etc...
+    /// Also, it works against a dev version of Stride, but it could eventually be improved to test against package version as well.
     /// </remarks>
     public class IntegrationTests : IDisposable
     {
-        private const string StartArguments = @"/RootSuffix Xenko /resetsettings Profiles\General.vssettings";
+        private const string StartArguments = @"/RootSuffix Stride /resetsettings Profiles\General.vssettings";
         private DTE dte;
         private Process process;
         private bool killVisualStudioProcessDuringTearDown;
@@ -150,24 +150,24 @@ namespace Xenko.VisualStudio.Package.Tests
                 var newGameFolder = solution.Projects.OfType<EnvDTE.Project>().First();
                 var newGameProject = newGameFolder.ProjectItems.OfType<ProjectItem>().Select(x => x.SubProject).First(x => x.Name == $"{session.Packages.First().Meta.Name}.Game");
 
-                // Add xksl file
-                var xkslItem = newGameProject.ProjectItems.AddFromFileCopy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestGenerator.xksl"));
+                // Add sdsl file
+                var sdslItem = newGameProject.ProjectItems.AddFromFileCopy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestGenerator.sdsl"));
 
                 // Make sure custom tool is properly set
-                Assert.Equal("XenkoShaderKeyGenerator", xkslItem.Properties.Item("CustomTool").Value);
+                Assert.Equal("StrideShaderKeyGenerator", sdslItem.Properties.Item("CustomTool").Value);
 
                 // Wait for cs file to be generated (up to 5 seconds)
                 // TODO: Is there a better way to wait for it?
                 for (int i = 0; i < 50; ++i)
                 {
-                    if (xkslItem.ProjectItems.Count > 0)
+                    if (sdslItem.ProjectItems.Count > 0)
                         break;
                     Thread.Sleep(100);
                 }
 
                 // Get generated cs file
-                Assert.Equal(1, xkslItem.ProjectItems.Count);
-                var shaderGeneratedCsharpItem = xkslItem.ProjectItems.OfType<ProjectItem>().First();
+                Assert.Equal(1, sdslItem.ProjectItems.Count);
+                var shaderGeneratedCsharpItem = sdslItem.ProjectItems.OfType<ProjectItem>().First();
                 var shaderGeneratedCsharpFile = shaderGeneratedCsharpItem.FileNames[0];
 
                 // Check content

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
-namespace Xenko.Core.Assets
+namespace Stride.Core.Assets
 {
     class NuGetAssemblyResolver
     {
@@ -42,16 +42,16 @@ namespace Xenko.Core.Assets
 
             // Make sure our nuget local store is added to nuget config
             var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string xenkoFolder = null;
+            string strideFolder = null;
             while (folder != null)
             {
-                if (File.Exists(Path.Combine(folder, @"build\Xenko.sln")))
+                if (File.Exists(Path.Combine(folder, @"build\Stride.sln")))
                 {
-                    xenkoFolder = folder;
+                    strideFolder = folder;
                     var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
-                    // Remove non-existing sources: https://github.com/xenko3d/xenko/issues/338
-                    RemoveDeletedSources(settings, "Xenko");
-                    CheckPackageSource(settings, $"Xenko Dev {xenkoFolder}", Path.Combine(xenkoFolder, @"bin\packages"));
+                    // Remove non-existing sources: https://github.com/stride3d/stride/issues/338
+                    RemoveDeletedSources(settings, "Stride");
+                    CheckPackageSource(settings, $"Stride Dev {strideFolder}", Path.Combine(strideFolder, @"bin\packages"));
                     settings.SaveToDisk();
                     break;
                 }
@@ -83,7 +83,7 @@ namespace Xenko.Core.Assets
                             var nugetFramework = NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance);
 
                             // Only allow this specific version
-                            var versionRange = new VersionRange(new NuGetVersion(XenkoVersion.NuGetVersion), true, new NuGetVersion(XenkoVersion.NuGetVersion), true);
+                            var versionRange = new VersionRange(new NuGetVersion(StrideVersion.NuGetVersion), true, new NuGetVersion(StrideVersion.NuGetVersion), true);
                             var (request, result) = RestoreHelper.Restore(logger, nugetFramework, "win", Assembly.GetExecutingAssembly().GetName().Name, versionRange).Result;
                             if (!result.Success)
                             {
@@ -106,7 +106,7 @@ namespace Xenko.Core.Assets
 {string.Join(Environment.NewLine, logger.Logs.Select(x => $"[{x.Level}] {x.Message}"))}
 ";
                             File.WriteAllText(logFile, logText);
-#if XENKO_NUGET_RESOLVER_UX
+#if STRIDE_NUGET_RESOLVER_UX
                             // Write log to file
                             System.Windows.Forms.MessageBox.Show($"{e.Message}{Environment.NewLine}{Environment.NewLine}Please see details in {logFile} (which will be automatically opened)", "Error restoring NuGet packages");
                             Process.Start(logFile);

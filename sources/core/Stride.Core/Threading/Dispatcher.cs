@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
-using Xenko.Core.Annotations;
-using Xenko.Core.Collections;
+using Stride.Core.Annotations;
+using Stride.Core.Collections;
 
-namespace Xenko.Core.Threading
+namespace Stride.Core.Threading
 {
     public class Dispatcher
     {
-#if XENKO_PLATFORM_IOS || XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID
         public static int MaxDegreeOfParallelism = 1;
 #else
         public static int MaxDegreeOfParallelism = Environment.ProcessorCount;

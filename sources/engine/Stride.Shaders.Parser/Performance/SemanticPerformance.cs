@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
-using Xenko.Core.Diagnostics;
+using Stride.Core.Diagnostics;
 
-namespace Xenko.Shaders.Parser.Performance
+namespace Stride.Shaders.Parser.Performance
 {
     public static class SemanticPerformance
     {
-        internal static Logger Logger = GlobalLogger.GetLogger("XenkoShaderPerformance"); // Global logger for shader profiling
+        internal static Logger Logger = GlobalLogger.GetLogger("StrideShaderPerformance"); // Global logger for shader profiling
 
         private static Stopwatch TotalTime = new Stopwatch();
 

@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Runtime.InteropServices;
 using System.IO;
-using Xenko.Core.Diagnostics;
-using Xenko.Graphics;
-using Xenko.TextureConverter.PvrttWrapper;
-using Xenko.TextureConverter.Requests;
+using Stride.Core.Diagnostics;
+using Stride.Graphics;
+using Stride.TextureConverter.PvrttWrapper;
+using Stride.TextureConverter.Requests;
 
-namespace Xenko.TextureConverter.TexLibraries
+namespace Stride.TextureConverter.TexLibraries
 {
 
     /// <summary>
@@ -438,18 +438,18 @@ namespace Xenko.TextureConverter.TexLibraries
 
             switch (image.Format)
             {
-                case Xenko.Graphics.PixelFormat.B8G8R8A8_UNorm:
-                    image.Format = Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm; break;
-                case Xenko.Graphics.PixelFormat.B8G8R8A8_Typeless:
-                    image.Format = Xenko.Graphics.PixelFormat.R8G8B8A8_Typeless; break;
-                case Xenko.Graphics.PixelFormat.B8G8R8A8_UNorm_SRgb:
-                    image.Format = Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb; break;
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_Typeless:
-                    image.Format = Xenko.Graphics.PixelFormat.B8G8R8A8_Typeless; break;
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm:
-                    image.Format = Xenko.Graphics.PixelFormat.B8G8R8A8_UNorm; break;
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb:
-                    image.Format = Xenko.Graphics.PixelFormat.B8G8R8A8_UNorm_SRgb; break;
+                case Stride.Graphics.PixelFormat.B8G8R8A8_UNorm:
+                    image.Format = Stride.Graphics.PixelFormat.R8G8B8A8_UNorm; break;
+                case Stride.Graphics.PixelFormat.B8G8R8A8_Typeless:
+                    image.Format = Stride.Graphics.PixelFormat.R8G8B8A8_Typeless; break;
+                case Stride.Graphics.PixelFormat.B8G8R8A8_UNorm_SRgb:
+                    image.Format = Stride.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb; break;
+                case Stride.Graphics.PixelFormat.R8G8B8A8_Typeless:
+                    image.Format = Stride.Graphics.PixelFormat.B8G8R8A8_Typeless; break;
+                case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm:
+                    image.Format = Stride.Graphics.PixelFormat.B8G8R8A8_UNorm; break;
+                case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb:
+                    image.Format = Stride.Graphics.PixelFormat.B8G8R8A8_UNorm_SRgb; break;
                 default:
                     Log.Error("Unsuported format for channel switching.");
                     throw new TextureToolsException("Unsuported format for channel switching.");
@@ -503,7 +503,7 @@ namespace Xenko.TextureConverter.TexLibraries
         }
 
         /// <summary>
-        /// Transposes face data since Pvrtt keeps the format of data [mipMap][face], but Xenko uses [face][mipMap]
+        /// Transposes face data since Pvrtt keeps the format of data [mipMap][face], but Stride uses [face][mipMap]
         /// </summary>
         /// <param name="image"></param>
         /// <param name="libraryData"></param>
@@ -677,7 +677,7 @@ namespace Xenko.TextureConverter.TexLibraries
             request.NormalMap.LibraryData[this] = normalMapLibraryData;
 
             normalMapLibraryData.Texture = new PVRTexture(libraryData.Header, libraryData.Texture.GetDataPtr());
-            request.NormalMap.Format = Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm;
+            request.NormalMap.Format = Stride.Graphics.PixelFormat.R8G8B8A8_UNorm;
             request.NormalMap.CurrentLibrary = this;
             request.NormalMap.DisposingLibrary = this;
 
@@ -734,38 +734,38 @@ namespace Xenko.TextureConverter.TexLibraries
         /// <returns>
         ///     <c>true</c> if the formats is supported by this library; otherwise, <c>false</c>.
         /// </returns>
-        private bool SupportFormat(Xenko.Graphics.PixelFormat format)
+        private bool SupportFormat(Stride.Graphics.PixelFormat format)
         {
             switch (format)
             {
-                case Xenko.Graphics.PixelFormat.R32G32B32A32_Float:
-                case Xenko.Graphics.PixelFormat.R32G32B32_Float:
-                case Xenko.Graphics.PixelFormat.R32G32B32A32_UInt:
-                case Xenko.Graphics.PixelFormat.R32G32B32_UInt:
-                case Xenko.Graphics.PixelFormat.R32G32B32A32_SInt:
-                case Xenko.Graphics.PixelFormat.R32G32B32_SInt:
-                case Xenko.Graphics.PixelFormat.R16G16B16A16_UNorm:
-                case Xenko.Graphics.PixelFormat.R16G16B16A16_UInt:
-                case Xenko.Graphics.PixelFormat.R16G16B16A16_SNorm:
-                case Xenko.Graphics.PixelFormat.R16G16B16A16_SInt:
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb:
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm:
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_UInt:
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_SNorm:
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_SInt:
-                case Xenko.Graphics.PixelFormat.B8G8R8A8_UNorm_SRgb:
-                case Xenko.Graphics.PixelFormat.B8G8R8A8_UNorm:
+                case Stride.Graphics.PixelFormat.R32G32B32A32_Float:
+                case Stride.Graphics.PixelFormat.R32G32B32_Float:
+                case Stride.Graphics.PixelFormat.R32G32B32A32_UInt:
+                case Stride.Graphics.PixelFormat.R32G32B32_UInt:
+                case Stride.Graphics.PixelFormat.R32G32B32A32_SInt:
+                case Stride.Graphics.PixelFormat.R32G32B32_SInt:
+                case Stride.Graphics.PixelFormat.R16G16B16A16_UNorm:
+                case Stride.Graphics.PixelFormat.R16G16B16A16_UInt:
+                case Stride.Graphics.PixelFormat.R16G16B16A16_SNorm:
+                case Stride.Graphics.PixelFormat.R16G16B16A16_SInt:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_UInt:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_SNorm:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_SInt:
+                case Stride.Graphics.PixelFormat.B8G8R8A8_UNorm_SRgb:
+                case Stride.Graphics.PixelFormat.B8G8R8A8_UNorm:
 
-                case Xenko.Graphics.PixelFormat.ETC1:
-                case Xenko.Graphics.PixelFormat.ETC2_RGB:
-                case Xenko.Graphics.PixelFormat.ETC2_RGB_SRgb:
-                case Xenko.Graphics.PixelFormat.ETC2_RGBA:
-                case Xenko.Graphics.PixelFormat.ETC2_RGBA_SRgb:
-                case Xenko.Graphics.PixelFormat.ETC2_RGB_A1:
-                case Xenko.Graphics.PixelFormat.EAC_R11_Unsigned:
-                case Xenko.Graphics.PixelFormat.EAC_R11_Signed:
-                case Xenko.Graphics.PixelFormat.EAC_RG11_Unsigned:
-                case Xenko.Graphics.PixelFormat.EAC_RG11_Signed:
+                case Stride.Graphics.PixelFormat.ETC1:
+                case Stride.Graphics.PixelFormat.ETC2_RGB:
+                case Stride.Graphics.PixelFormat.ETC2_RGB_SRgb:
+                case Stride.Graphics.PixelFormat.ETC2_RGBA:
+                case Stride.Graphics.PixelFormat.ETC2_RGBA_SRgb:
+                case Stride.Graphics.PixelFormat.ETC2_RGB_A1:
+                case Stride.Graphics.PixelFormat.EAC_R11_Unsigned:
+                case Stride.Graphics.PixelFormat.EAC_R11_Signed:
+                case Stride.Graphics.PixelFormat.EAC_RG11_Unsigned:
+                case Stride.Graphics.PixelFormat.EAC_RG11_Signed:
                     return true;
                 default:
                     return false;
@@ -778,45 +778,45 @@ namespace Xenko.TextureConverter.TexLibraries
         /// <param name="format">The format.</param>
         /// <returns></returns>
         /// <exception cref="TexLibraryException">UnHandled compression format by PowerVC Texture Tool.</exception>
-        private UInt64 RetrieveNativeFormat(Xenko.Graphics.PixelFormat format)
+        private UInt64 RetrieveNativeFormat(Stride.Graphics.PixelFormat format)
         {
             switch (format)
             {
-                case Xenko.Graphics.PixelFormat.ETC1:
+                case Stride.Graphics.PixelFormat.ETC1:
                     return 6;
-                case Xenko.Graphics.PixelFormat.ETC2_RGB:
-                case Xenko.Graphics.PixelFormat.ETC2_RGB_SRgb:
+                case Stride.Graphics.PixelFormat.ETC2_RGB:
+                case Stride.Graphics.PixelFormat.ETC2_RGB_SRgb:
                     return 22;
-                case Xenko.Graphics.PixelFormat.ETC2_RGBA:
-                case Xenko.Graphics.PixelFormat.ETC2_RGBA_SRgb:
+                case Stride.Graphics.PixelFormat.ETC2_RGBA:
+                case Stride.Graphics.PixelFormat.ETC2_RGBA_SRgb:
                     return 23;
-                case Xenko.Graphics.PixelFormat.ETC2_RGB_A1:
+                case Stride.Graphics.PixelFormat.ETC2_RGB_A1:
                     return 24;
-                case Xenko.Graphics.PixelFormat.EAC_R11_Unsigned:
+                case Stride.Graphics.PixelFormat.EAC_R11_Unsigned:
                     return 25;
-                case Xenko.Graphics.PixelFormat.EAC_R11_Signed:
+                case Stride.Graphics.PixelFormat.EAC_R11_Signed:
                     return 26;
-                case Xenko.Graphics.PixelFormat.EAC_RG11_Unsigned:
+                case Stride.Graphics.PixelFormat.EAC_RG11_Unsigned:
                     return 27;
-                case Xenko.Graphics.PixelFormat.EAC_RG11_Signed:
+                case Stride.Graphics.PixelFormat.EAC_RG11_Signed:
                     return 28;
-                case Xenko.Graphics.PixelFormat.R32G32B32A32_Float:
-                case Xenko.Graphics.PixelFormat.R32G32B32_Float:
-                case Xenko.Graphics.PixelFormat.R32G32B32A32_UInt:
-                case Xenko.Graphics.PixelFormat.R32G32B32_UInt:
-                case Xenko.Graphics.PixelFormat.R32G32B32A32_SInt:
-                case Xenko.Graphics.PixelFormat.R32G32B32_SInt:
+                case Stride.Graphics.PixelFormat.R32G32B32A32_Float:
+                case Stride.Graphics.PixelFormat.R32G32B32_Float:
+                case Stride.Graphics.PixelFormat.R32G32B32A32_UInt:
+                case Stride.Graphics.PixelFormat.R32G32B32_UInt:
+                case Stride.Graphics.PixelFormat.R32G32B32A32_SInt:
+                case Stride.Graphics.PixelFormat.R32G32B32_SInt:
                     return Utilities.ConvertPixelType(PixelType.Standard32PixelType);
-                case Xenko.Graphics.PixelFormat.R16G16B16A16_UNorm:
-                case Xenko.Graphics.PixelFormat.R16G16B16A16_UInt:
-                case Xenko.Graphics.PixelFormat.R16G16B16A16_SNorm:
-                case Xenko.Graphics.PixelFormat.R16G16B16A16_SInt:
+                case Stride.Graphics.PixelFormat.R16G16B16A16_UNorm:
+                case Stride.Graphics.PixelFormat.R16G16B16A16_UInt:
+                case Stride.Graphics.PixelFormat.R16G16B16A16_SNorm:
+                case Stride.Graphics.PixelFormat.R16G16B16A16_SInt:
                     return Utilities.ConvertPixelType(PixelType.Standard16PixelType);
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb:
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm:
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_UInt:
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_SNorm:
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_SInt:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_UInt:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_SNorm:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_SInt:
                     return Utilities.ConvertPixelType(PixelType.Standard8PixelType);
                 default:
                     Log.Error("UnHandled compression format by PowerVC Texture Tool.");
@@ -825,40 +825,40 @@ namespace Xenko.TextureConverter.TexLibraries
         }
 
 
-        private EPVRTVariableType RetrieveNativePixelType(Xenko.Graphics.PixelFormat format)
+        private EPVRTVariableType RetrieveNativePixelType(Stride.Graphics.PixelFormat format)
         {
             switch (format)
             {
-                case Xenko.Graphics.PixelFormat.R32G32B32A32_Float:
-                case Xenko.Graphics.PixelFormat.R32G32B32_Float:
+                case Stride.Graphics.PixelFormat.R32G32B32A32_Float:
+                case Stride.Graphics.PixelFormat.R32G32B32_Float:
                     return EPVRTVariableType.ePVRTVarTypeFloat;
-                //case Xenko.Framework.Graphics.PixelFormat.R16G16B16A16_Float:
+                //case Stride.Framework.Graphics.PixelFormat.R16G16B16A16_Float:
 
-                case Xenko.Graphics.PixelFormat.R32G32B32A32_UInt:
-                case Xenko.Graphics.PixelFormat.R32G32B32_UInt:
+                case Stride.Graphics.PixelFormat.R32G32B32A32_UInt:
+                case Stride.Graphics.PixelFormat.R32G32B32_UInt:
                     return EPVRTVariableType.ePVRTVarTypeUnsignedInteger;
-                case Xenko.Graphics.PixelFormat.R32G32B32A32_SInt:
-                case Xenko.Graphics.PixelFormat.R32G32B32_SInt:
+                case Stride.Graphics.PixelFormat.R32G32B32A32_SInt:
+                case Stride.Graphics.PixelFormat.R32G32B32_SInt:
                     return EPVRTVariableType.ePVRTVarTypeSignedInteger;
 
-                case Xenko.Graphics.PixelFormat.R16G16B16A16_UNorm:
+                case Stride.Graphics.PixelFormat.R16G16B16A16_UNorm:
                     return EPVRTVariableType.ePVRTVarTypeUnsignedShortNorm;
-                case Xenko.Graphics.PixelFormat.R16G16B16A16_UInt:
+                case Stride.Graphics.PixelFormat.R16G16B16A16_UInt:
                     return EPVRTVariableType.ePVRTVarTypeUnsignedShort;
-                case Xenko.Graphics.PixelFormat.R16G16B16A16_SNorm:
+                case Stride.Graphics.PixelFormat.R16G16B16A16_SNorm:
                     return EPVRTVariableType.ePVRTVarTypeSignedShortNorm;
-                case Xenko.Graphics.PixelFormat.R16G16B16A16_SInt:
+                case Stride.Graphics.PixelFormat.R16G16B16A16_SInt:
                     return EPVRTVariableType.ePVRTVarTypeSignedShort;
 
 
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb:
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_UNorm:
                     return EPVRTVariableType.ePVRTVarTypeUnsignedByteNorm;
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_UInt:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_UInt:
                     return EPVRTVariableType.ePVRTVarTypeUnsignedByte;
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_SNorm:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_SNorm:
                     return EPVRTVariableType.ePVRTVarTypeSignedByteNorm;
-                case Xenko.Graphics.PixelFormat.R8G8B8A8_SInt:
+                case Stride.Graphics.PixelFormat.R8G8B8A8_SInt:
                     return EPVRTVariableType.ePVRTVarTypeSignedByte;
 
                 default:
@@ -867,59 +867,59 @@ namespace Xenko.TextureConverter.TexLibraries
         }
 
 
-        private Xenko.Graphics.PixelFormat RetrieveFormatFromNativeData(PVRTextureHeader header)
+        private Stride.Graphics.PixelFormat RetrieveFormatFromNativeData(PVRTextureHeader header)
         {
-            Xenko.Graphics.PixelFormat format = header.GetFormat();
-            if (format == Xenko.Graphics.PixelFormat.R32G32B32A32_Float)
+            Stride.Graphics.PixelFormat format = header.GetFormat();
+            if (format == Stride.Graphics.PixelFormat.R32G32B32A32_Float)
             {
                 switch (header.GetChannelType())
                 {
                     case EPVRTVariableType.ePVRTVarTypeFloat:
-                        return Xenko.Graphics.PixelFormat.R32G32B32A32_Float;
+                        return Stride.Graphics.PixelFormat.R32G32B32A32_Float;
                     case EPVRTVariableType.ePVRTVarTypeUnsignedInteger:
-                        return Xenko.Graphics.PixelFormat.R32G32B32A32_UInt;
+                        return Stride.Graphics.PixelFormat.R32G32B32A32_UInt;
                     case EPVRTVariableType.ePVRTVarTypeSignedInteger:
-                        return Xenko.Graphics.PixelFormat.R32G32B32A32_SInt;
+                        return Stride.Graphics.PixelFormat.R32G32B32A32_SInt;
                 }
             }
-            else if (format == Xenko.Graphics.PixelFormat.R16G16B16A16_UNorm)
+            else if (format == Stride.Graphics.PixelFormat.R16G16B16A16_UNorm)
             {
                 switch (header.GetChannelType())
                 {
                     case EPVRTVariableType.ePVRTVarTypeUnsignedShortNorm:
-                        return Xenko.Graphics.PixelFormat.R16G16B16A16_UNorm;
+                        return Stride.Graphics.PixelFormat.R16G16B16A16_UNorm;
                     case EPVRTVariableType.ePVRTVarTypeUnsignedShort:
-                        return Xenko.Graphics.PixelFormat.R16G16B16A16_UInt;
+                        return Stride.Graphics.PixelFormat.R16G16B16A16_UInt;
                     case EPVRTVariableType.ePVRTVarTypeSignedShortNorm:
-                        return Xenko.Graphics.PixelFormat.R16G16B16A16_SNorm;
+                        return Stride.Graphics.PixelFormat.R16G16B16A16_SNorm;
                     case EPVRTVariableType.ePVRTVarTypeSignedShort:
-                        return Xenko.Graphics.PixelFormat.R16G16B16A16_SInt;
+                        return Stride.Graphics.PixelFormat.R16G16B16A16_SInt;
                 }
             }
-            else if (format == Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm)
+            else if (format == Stride.Graphics.PixelFormat.R8G8B8A8_UNorm)
             {
                 switch (header.GetChannelType())
                 {
                     case EPVRTVariableType.ePVRTVarTypeUnsignedByteNorm:
                         {
                             if (header.GetColourSpace() == EPVRTColourSpace.ePVRTCSpacelRGB)
-                                return Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm;
+                                return Stride.Graphics.PixelFormat.R8G8B8A8_UNorm;
                             else
-                                return Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb;
+                                return Stride.Graphics.PixelFormat.R8G8B8A8_UNorm_SRgb;
                         }
                     case EPVRTVariableType.ePVRTVarTypeUnsignedByte:
-                        return Xenko.Graphics.PixelFormat.R8G8B8A8_UInt;
+                        return Stride.Graphics.PixelFormat.R8G8B8A8_UInt;
                     case EPVRTVariableType.ePVRTVarTypeSignedByteNorm:
-                        return Xenko.Graphics.PixelFormat.R8G8B8A8_SNorm;
+                        return Stride.Graphics.PixelFormat.R8G8B8A8_SNorm;
                     case EPVRTVariableType.ePVRTVarTypeSignedByte:
-                        return Xenko.Graphics.PixelFormat.R8G8B8A8_SInt;
+                        return Stride.Graphics.PixelFormat.R8G8B8A8_SInt;
                 }
             }
 
             return format;
         }
 
-        private EPVRTColourSpace RetrieveNativeColorSpace(Xenko.Graphics.PixelFormat format)
+        private EPVRTColourSpace RetrieveNativeColorSpace(Stride.Graphics.PixelFormat format)
         {
             return format.IsSRgb() ? EPVRTColourSpace.ePVRTCSpaceSRgb : EPVRTColourSpace.ePVRTCSpacelRGB;
         }

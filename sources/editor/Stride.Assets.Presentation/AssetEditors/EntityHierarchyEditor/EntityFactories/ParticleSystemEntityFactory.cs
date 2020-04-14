@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Animations;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Xenko.Engine;
-using Xenko.Particles;
-using Xenko.Particles.Components;
-using Xenko.Particles.Initializers;
-using Xenko.Particles.Modules;
-using Xenko.Particles.ShapeBuilders;
-using Xenko.Particles.Spawners;
-using Xenko.Particles.Updaters;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Animations;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Engine;
+using Stride.Particles;
+using Stride.Particles.Components;
+using Stride.Particles.Initializers;
+using Stride.Particles.Modules;
+using Stride.Particles.ShapeBuilders;
+using Stride.Particles.Spawners;
+using Stride.Particles.Updaters;
 
-namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
+namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
 {
 
     [Display(10, "Empty particle system", "Particle system")]

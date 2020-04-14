@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Storage;
+using Stride.Core.Storage;
 
-namespace Xenko.Core.Reflection
+namespace Stride.Core.Reflection
 {
     /// <summary>
     /// Represents the identifier of an item in a collection or an entry in a dictionary.

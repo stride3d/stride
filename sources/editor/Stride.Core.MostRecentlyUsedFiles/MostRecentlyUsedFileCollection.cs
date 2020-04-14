@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Settings;
-using Xenko.Core.Presentation.Collections;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Settings;
+using Stride.Core.Presentation.Collections;
 
-namespace Xenko.Core.MostRecentlyUsedFiles
+namespace Stride.Core.MostRecentlyUsedFiles
 {
     // TODO: this is a hack because YamlSerializer is static and there is no way to disable serialization with Id for Settings at the moment. This is temporary!
     [NonIdentifiableCollectionItems]
@@ -57,34 +57,34 @@ namespace Xenko.Core.MostRecentlyUsedFiles
 
         public IReadOnlyObservableCollection<MostRecentlyUsedFile> MostRecentlyUsedFiles => mostRecentlyUsedFiles;
 
-        public void AddFile(UFile filePath, string xenkoVersion)
+        public void AddFile(UFile filePath, string strideVersion)
         {
             // Reload settings in case concurrent Game Studio instances are running.
             LoadFromSettings();
             // Remove it if it was already in the list
             mostRecentlyUsedFiles.RemoveWhere(x => string.Equals(x.FilePath, filePath, StringComparison.OrdinalIgnoreCase));
             // Add it on top of the list
-            mostRecentlyUsedFiles.Insert(0, new MostRecentlyUsedFile(filePath) { Version = xenkoVersion });
+            mostRecentlyUsedFiles.Insert(0, new MostRecentlyUsedFile(filePath) { Version = strideVersion });
             // Save immediately
-            SaveToSettings(xenkoVersion);
+            SaveToSettings(strideVersion);
         }
 
-        public void RemoveFile(UFile filePath, string xenkoVersion)
+        public void RemoveFile(UFile filePath, string strideVersion)
         {
             // Reload settings in case concurrent Game Studio instances are running.
             LoadFromSettings();
             mostRecentlyUsedFiles.RemoveWhere(x => string.Equals(x.FilePath, filePath, StringComparison.OrdinalIgnoreCase));
             // Save immediately
-            SaveToSettings(xenkoVersion);
+            SaveToSettings(strideVersion);
         }
 
-        public void Clear(string xenkoVersion)
+        public void Clear(string strideVersion)
         {
             // Reload settings in case concurrent Game Studio instances are running.
             LoadFromSettings();
             mostRecentlyUsedFiles.Clear();
             // Save immediately
-            SaveToSettings(xenkoVersion);
+            SaveToSettings(strideVersion);
         }
 
         public void LoadFromSettings()
@@ -114,14 +114,14 @@ namespace Xenko.Core.MostRecentlyUsedFiles
             }
         }
 
-        private void SaveToSettings(string xenkoVersion)
+        private void SaveToSettings(string strideVersion)
         {
             // We load a copy of the profile in case concurrent Game Studio instances are running.
             // Note that when this is called, the collection should be sync for the current version,
             // but not for other versions.
             var profileCopy = LoadLatestProfile();
             var mruList = settingsKey.GetValue(profileCopy, true);
-            mruList[xenkoVersion] = MostRecentlyUsedFiles.Where(x => x.Version.Equals(xenkoVersion)).Take(MaxMRUCount).ToList();
+            mruList[strideVersion] = MostRecentlyUsedFiles.Where(x => x.Version.Equals(strideVersion)).Take(MaxMRUCount).ToList();
             // Update the current profile with the new values so we can properly save it.
             settingsKey.SetValue(mruList);
             save?.Invoke();

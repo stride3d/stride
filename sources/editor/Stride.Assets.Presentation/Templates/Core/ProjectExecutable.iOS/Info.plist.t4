@@ -1,16 +1,16 @@
 <#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 <#
   var iosOrientation = "LandscapeLeft";
-  switch ((Xenko.Graphics.DisplayOrientation)Properties.Orientation)
+  switch ((Stride.Graphics.DisplayOrientation)Properties.Orientation)
   {
-      case Xenko.Graphics.DisplayOrientation.Default:
-      case Xenko.Graphics.DisplayOrientation.LandscapeRight:
+      case Stride.Graphics.DisplayOrientation.Default:
+      case Stride.Graphics.DisplayOrientation.LandscapeRight:
       iosOrientation = "LandscapeRight";
       break;
-      case Xenko.Graphics.DisplayOrientation.LandscapeLeft:
+      case Stride.Graphics.DisplayOrientation.LandscapeLeft:
       iosOrientation = "LandscapeLeft";
       break;
-      case Xenko.Graphics.DisplayOrientation.Portrait:
+      case Stride.Graphics.DisplayOrientation.Portrait:
       iosOrientation = "Portrait";
       break;
   }

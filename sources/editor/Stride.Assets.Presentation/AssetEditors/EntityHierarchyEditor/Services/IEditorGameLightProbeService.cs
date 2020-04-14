@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xenko.Core.Collections;
-using Xenko.Core.Mathematics;
-using Xenko.Editor.EditorGame.ViewModels;
-using Xenko.Engine;
-using Xenko.Rendering.LightProbes;
+using Stride.Core.Collections;
+using Stride.Core.Mathematics;
+using Stride.Editor.EditorGame.ViewModels;
+using Stride.Engine;
+using Stride.Rendering.LightProbes;
 
-namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services
+namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services
 {
     /// <summary>
     /// Services to create light probes and display their gizmo.

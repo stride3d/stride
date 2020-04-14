@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core.Assets.Tracking;
-using Xenko.Core;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Templates;
+using Stride.Core.Assets.Tracking;
+using Stride.Core;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml;
 
-namespace Xenko.Core.Assets
+namespace Stride.Core.Assets
 {
     internal class Module
     {

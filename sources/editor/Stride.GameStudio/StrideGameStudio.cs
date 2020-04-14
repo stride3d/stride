@@ -1,42 +1,42 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#pragma warning disable 436 // The type 'type' in 'assembly' conflicts with the imported type 'type2' in 'assembly' (due to XenkoVersion being duplicated)
+#pragma warning disable 436 // The type 'type' in 'assembly' conflicts with the imported type 'type2' in 'assembly' (due to StrideVersion being duplicated)
 
-using Xenko.Core.Annotations;
-using Xenko.Metrics;
+using Stride.Core.Annotations;
+using Stride.Metrics;
 
-namespace Xenko.GameStudio
+namespace Stride.GameStudio
 {
-    public static class XenkoGameStudio
+    public static class StrideGameStudio
     {
         [NotNull]
-        public static string CopyrightText1 => "© 2018 Xenko contributors";
+        public static string CopyrightText1 => "© 2018 Stride contributors";
 
         [NotNull]
         public static string CopyrightText2 => "© 2011-2018 Silicon Studio Corp.";
 
         [NotNull]
-        public static string EditorName => $"Xenko Game Studio {EditorVersion}";
+        public static string EditorName => $"Stride Game Studio {EditorVersion}";
 
         [NotNull]
-        public static string EditorVersion => XenkoVersion.NuGetVersion;
+        public static string EditorVersion => StrideVersion.NuGetVersion;
 
         [NotNull]
-        public static string EditorVersionWithMetadata => XenkoVersion.NuGetVersion + XenkoVersion.BuildMetadata;
+        public static string EditorVersionWithMetadata => StrideVersion.NuGetVersion + StrideVersion.BuildMetadata;
 
-        public static string EditorVersionMajor => new System.Version(XenkoVersion.PublicVersion).ToString(2);
-
-        [NotNull]
-        public static string AnswersUrl => "http://answers.xenko.com/";
+        public static string EditorVersionMajor => new System.Version(StrideVersion.PublicVersion).ToString(2);
 
         [NotNull]
-        public static string DocumentationUrl => $"https://doc.xenko.com/{EditorVersionMajor}/";
+        public static string AnswersUrl => "http://answers.stride3d.net/";
 
         [NotNull]
-        public static string ForumsUrl => "https://forums.xenko.com/";
+        public static string DocumentationUrl => $"https://doc.stride3d.net/{EditorVersionMajor}/";
 
         [NotNull]
-        public static string ReportIssueUrl => "https://github.com/xenko3d/xenko/issues/";
+        public static string ForumsUrl => "https://forums.stride3d.net/";
+
+        [NotNull]
+        public static string ReportIssueUrl => "https://github.com/stride3d/stride/issues/";
 
         public static MetricsClient MetricsClient;
     }

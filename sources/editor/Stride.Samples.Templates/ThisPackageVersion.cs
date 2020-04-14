@@ -1,4 +1,4 @@
-namespace Xenko.Samples.Templates
+namespace Stride.Samples.Templates
 {
     static class ThisPackageVersion
     {

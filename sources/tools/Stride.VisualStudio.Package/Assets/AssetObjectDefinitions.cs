@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 //  This file is part of YamlDotNet - A .NET library for YAML.
@@ -26,7 +26,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Xenko.VisualStudio.Assets
+namespace Stride.VisualStudio.Assets
 {
 	internal static class AssetObjectDefinitions
 	{
@@ -42,64 +42,64 @@ namespace Xenko.VisualStudio.Assets
         /// File extensions
         /// </summary>
 		[Export]
-		[FileExtension(".xkpkg")]
+		[FileExtension(".sdpkg")]
 		[ContentType(Constants.ContentType)]
-		internal static FileExtensionToContentTypeDefinition xkpkgFileExtensionDefinition = null;
+		internal static FileExtensionToContentTypeDefinition sdpkgFileExtensionDefinition = null;
 		
 		[Export]
-        [FileExtension(".xkfnt")]
+        [FileExtension(".sdfnt")]
         [ContentType(Constants.ContentType)]
-        internal static FileExtensionToContentTypeDefinition xkfntFileExtensionDefinition = null;
+        internal static FileExtensionToContentTypeDefinition sdfntFileExtensionDefinition = null;
 
         [Export]
-        [FileExtension(".xkfxlib")]
+        [FileExtension(".sdfxlib")]
         [ContentType(Constants.ContentType)]
-        internal static FileExtensionToContentTypeDefinition xkfxlibFileExtensionDefinition = null;
+        internal static FileExtensionToContentTypeDefinition sdfxlibFileExtensionDefinition = null;
 
         [Export]
-        [FileExtension(".xklightconf")]
+        [FileExtension(".sdlightconf")]
         [ContentType(Constants.ContentType)]
-        internal static FileExtensionToContentTypeDefinition xklightconfFileExtensionDefinition = null;
+        internal static FileExtensionToContentTypeDefinition sdlightconfFileExtensionDefinition = null;
 
         [Export]
-        [FileExtension(".xktex")]
+        [FileExtension(".sdtex")]
         [ContentType(Constants.ContentType)]
-        internal static FileExtensionToContentTypeDefinition xktexFileExtensionDefinition = null;
+        internal static FileExtensionToContentTypeDefinition sdtexFileExtensionDefinition = null;
 
         [Export]
-        [FileExtension(".xkscene")]
+        [FileExtension(".sdscene")]
         [ContentType(Constants.ContentType)]
-        internal static FileExtensionToContentTypeDefinition xksceneFileExtensionDefinition = null;
+        internal static FileExtensionToContentTypeDefinition sdsceneFileExtensionDefinition = null;
 
 	    [Export]
-	    [FileExtension(".xkprefab")]
+	    [FileExtension(".sdprefab")]
 	    [ContentType(Constants.ContentType)]
-	    internal static FileExtensionToContentTypeDefinition xkprefabFileExtensionDefinition = null;
+	    internal static FileExtensionToContentTypeDefinition sdprefabFileExtensionDefinition = null;
 
         [Export]
-        [FileExtension(".xkm3d")]
+        [FileExtension(".sdm3d")]
         [ContentType(Constants.ContentType)]
-        internal static FileExtensionToContentTypeDefinition xkm3dFileExtensionDefinition = null;
+        internal static FileExtensionToContentTypeDefinition sdm3dFileExtensionDefinition = null;
 
         [Export]
-        [FileExtension(".xkanim")]
+        [FileExtension(".sdanim")]
         [ContentType(Constants.ContentType)]
-        internal static FileExtensionToContentTypeDefinition xkanimFileExtensionDefinition = null;
+        internal static FileExtensionToContentTypeDefinition sdanimFileExtensionDefinition = null;
 
         [Export]
-        [FileExtension(".xksnd")]
+        [FileExtension(".sdsnd")]
         [ContentType(Constants.ContentType)]
-        internal static FileExtensionToContentTypeDefinition xksndFileExtensionDefinition = null;
+        internal static FileExtensionToContentTypeDefinition sdsndFileExtensionDefinition = null;
 
         [Export]
-        [FileExtension(".xkmat")]
+        [FileExtension(".sdmat")]
         [ContentType(Constants.ContentType)]
-        internal static FileExtensionToContentTypeDefinition xkmatFileExtensionDefinition = null;
+        internal static FileExtensionToContentTypeDefinition sdmatFileExtensionDefinition = null;
 
         [Export]
-        [FileExtension(".xksprite")]
+        [FileExtension(".sdsprite")]
         [ContentType(Constants.ContentType)]
-        internal static FileExtensionToContentTypeDefinition xksprtFileExtensionDefinition = null;
+        internal static FileExtensionToContentTypeDefinition sdsprtFileExtensionDefinition = null;
 
         /// <summary>
         /// Classification type definitions
@@ -107,26 +107,26 @@ namespace Xenko.VisualStudio.Assets
         [Export(typeof(ClassificationTypeDefinition))]
         [Name(AnchorClassificationName)]
 		internal static ClassificationTypeDefinition YamlAnchorType = null;
-	    public const string AnchorClassificationName = "Xenko.Yaml.Anchor";
+	    public const string AnchorClassificationName = "Stride.Yaml.Anchor";
 
 		[Export(typeof(ClassificationTypeDefinition))]
         [Name(AliasClassificationName)]
 		internal static ClassificationTypeDefinition YamlAliasType = null;
-        public const string AliasClassificationName = "Xenko.Yaml.Alias";
+        public const string AliasClassificationName = "Stride.Yaml.Alias";
 
         [Export(typeof(ClassificationTypeDefinition))]
         [Name(NumberClassificationName)]
         internal static ClassificationTypeDefinition YamlNumberType = null;
-        public const string NumberClassificationName = "Xenko.Yaml.Number";
+        public const string NumberClassificationName = "Stride.Yaml.Number";
 
         [Export(typeof(ClassificationTypeDefinition))]
         [Name(KeyClassificationName)]
         internal static ClassificationTypeDefinition YamlKeyType = null;
-        public const string KeyClassificationName = "Xenko.Yaml.Key";
+        public const string KeyClassificationName = "Stride.Yaml.Key";
 
         [Export(typeof(ClassificationTypeDefinition))]
         [Name(ErrorClassificationName)]
         internal static ClassificationTypeDefinition YamlErrorType = null;
-        public const string ErrorClassificationName = "Xenko.Yaml.Error";
+        public const string ErrorClassificationName = "Stride.Yaml.Error";
     }
 }

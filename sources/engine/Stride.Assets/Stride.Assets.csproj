@@ -1,17 +1,17 @@
 <Project>
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorDefaultOptions)</XenkoAssemblyProcessorOptions>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
-  <PropertyGroup Condition="('$(XenkoPlatform)' == 'Windows') and ('$(XenkoNETRuntime)' != 'CoreCLR')">
-    <DefineConstants>XENKO_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
+  <PropertyGroup Condition="('$(StridePlatform)' == 'Windows') and ('$(StrideNETRuntime)' != 'CoreCLR')">
+    <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
@@ -55,17 +55,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
-    <ProjectReference Include="..\..\tools\Xenko.Core.ProjectTemplating\Xenko.Core.ProjectTemplating.csproj" />
-    <ProjectReference Include="..\..\tools\Xenko.TextureConverter\Xenko.TextureConverter.csproj" />
-    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\Xenko.Navigation\Xenko.Navigation.csproj" />
-    <ProjectReference Include="..\Xenko.Physics\Xenko.Physics.csproj" />
+    <ProjectReference Include="..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.Core.ProjectTemplating\Stride.Core.ProjectTemplating.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.TextureConverter\Stride.TextureConverter.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Navigation\Stride.Navigation.csproj" />
+    <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.UI\Xenko.UI.csproj" />
-    <ProjectReference Include="..\Xenko.Video\Xenko.Video.csproj" />
-    <ProjectReference Include="..\Xenko\Xenko.csproj" />
+    <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
+    <ProjectReference Include="..\Stride.Video\Stride.Video.csproj" />
+    <ProjectReference Include="..\Stride\Stride.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -73,23 +73,23 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel10.xkgfxcomp" />
-    <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel9.xkgfxcomp" />
-    <None Include="AssetPackage\Assets\Shared\XenkoClearCoatMetalFlakesNM.xktex" />
-    <None Include="AssetPackage\Assets\Shared\XenkoClearCoatOrangePeelNM.xktex" />
-    <None Include="AssetPackage\Assets\Shared\XenkoDebugSpriteFont.xktex" />
-    <None Include="AssetPackage\Assets\Shared\XenkoDefaultFont.xkfnt" />
-    <None Include="AssetPackage\Assets\Shared\XenkoDefaultSplashScreen.xktex" />
-    <None Include="AssetPackage\Assets\Shared\XenkoEnvironmentLightingDFGLUT16.xktex" />
-    <None Include="AssetPackage\Assets\Shared\XenkoEnvironmentLightingDFGLUT8.xktex" />
-    <None Include="AssetPackage\Assets\Shared\XenkoUIDesigns.xksheet" />
-    <None Include="AssetPackage\Assets\Shared\XenkoUILibrary.xkuilib" />
+    <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel10.sdgfxcomp" />
+    <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel9.sdgfxcomp" />
+    <None Include="AssetPackage\Assets\Shared\StrideClearCoatMetalFlakesNM.sdtex" />
+    <None Include="AssetPackage\Assets\Shared\StrideClearCoatOrangePeelNM.sdtex" />
+    <None Include="AssetPackage\Assets\Shared\StrideDebugSpriteFont.sdtex" />
+    <None Include="AssetPackage\Assets\Shared\StrideDefaultFont.sdfnt" />
+    <None Include="AssetPackage\Assets\Shared\StrideDefaultSplashScreen.sdtex" />
+    <None Include="AssetPackage\Assets\Shared\StrideEnvironmentLightingDFGLUT16.sdtex" />
+    <None Include="AssetPackage\Assets\Shared\StrideEnvironmentLightingDFGLUT8.sdtex" />
+    <None Include="AssetPackage\Assets\Shared\StrideUIDesigns.sdsheet" />
+    <None Include="AssetPackage\Assets\Shared\StrideUILibrary.sduilib" />
     <None Include="AssetPackage\Workfiles\UIDesigns.pdn" />
-    <None Include="AssetPackage\XenkoAssetPackage.xkpkg" />
+    <None Include="AssetPackage\StrideAssetPackage.sdpkg" />
     <None Include="UI\Resources\UIDesigns.dds" />
     <None Include="UI\Resources\UIDesigns.pdn" />
-    <None Include="UI\XenkoUIDesigns.xksheet" />
-    <None Include="UI\XenkoUILibrary.xkuilib" />
+    <None Include="UI\StrideUIDesigns.sdsheet" />
+    <None Include="UI\StrideUILibrary.sduilib" />
   </ItemGroup>
   <!--ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="1.1.0" />
@@ -97,9 +97,9 @@
     <Analyzer Include="Microsoft.CodeAnalysis.CSharp.Analyzers" />
   </ItemGroup-->
   <ItemGroup>
-    <XenkoNativeLib Include="..\..\..\deps\VHACD\**\VHACD.dll">
+    <StrideNativeLib Include="..\..\..\deps\VHACD\**\VHACD.dll">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </XenkoNativeLib>
+    </StrideNativeLib>
     <Content Include="..\..\..\deps\FFmpeg\ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -113,11 +113,11 @@
     <None Include="AssetPackage\Resources\EnvironmentLightingDFGLUT16.dds" />
     <None Include="AssetPackage\Resources\EnvironmentLightingDFGLUT8.dds" />
     <None Include="AssetPackage\Resources\UIDesigns.dds" />
-    <None Include="AssetPackage\Resources\XenkoDebugSpriteFont.png" />
-    <None Include="AssetPackage\Resources\XenkoDefaultSplashScreen.png" />
+    <None Include="AssetPackage\Resources\StrideDebugSpriteFont.png" />
+    <None Include="AssetPackage\Resources\StrideDefaultSplashScreen.png" />
   </ItemGroup>
-  <Import Project="..\..\shared\Xenko.Core.ShellHelper\Xenko.Core.ShellHelper.projitems" Label="Shared" />
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
   <PropertyGroup>

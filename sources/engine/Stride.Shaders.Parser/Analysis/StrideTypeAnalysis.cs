@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Core.Shaders.Analysis.Hlsl;
-using Xenko.Core.Shaders.Parser;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Core.Shaders.Analysis.Hlsl;
+using Stride.Core.Shaders.Parser;
 
-namespace Xenko.Shaders.Parser.Analysis
+namespace Stride.Shaders.Parser.Analysis
 {
-    internal class XenkoTypeAnalysis : HlslSemanticAnalysis
+    internal class StrideTypeAnalysis : HlslSemanticAnalysis
     {
         #region Contructor
 
-        public XenkoTypeAnalysis(ParsingResult result)
+        public StrideTypeAnalysis(ParsingResult result)
             : base(result)
         {
             SetupHlslAnalyzer();

@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using Xenko.Core;
+using Stride.Core;
 using Android.Graphics;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// This class is responsible to provide image loader for png, gif, bmp.

@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Runtime.CompilerServices;
 using MonoTouch.Foundation;
 using MonoTouch.UIKit;
-using Xenko.Effects;
-using Xenko.Starter;
+using Stride.Effects;
+using Stride.Starter;
 
-namespace Xenko.Particles.Tests
+namespace Stride.Particles.Tests
 {
     public class Application
     {
@@ -17,7 +17,7 @@ namespace Xenko.Particles.Tests
     }
 
     [Register("AppDelegate")]
-    public class AppDelegate : XenkoApplicationDelegate
+    public class AppDelegate : StrideApplicationDelegate
     {
         public override bool FinishedLaunching(UIApplication app, NSDictionary options)
         {

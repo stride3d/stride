@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Yaml;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Yaml;
 
-namespace Xenko.Core.Assets
+namespace Stride.Core.Assets
 {
     /// <summary>
     /// Represents an asset before being loaded. Used mostly for asset upgrading.

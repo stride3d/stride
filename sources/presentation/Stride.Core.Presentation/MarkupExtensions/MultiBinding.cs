@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Windows.Data;
 using System.Windows.Markup;
 
-namespace Xenko.Core.Presentation.MarkupExtensions
+namespace Stride.Core.Presentation.MarkupExtensions
 {
     /// <summary>
     /// This class extends the <see cref="System.Windows.Data.MultiBinding"/> by providing constructors that allows construction using markup extension.

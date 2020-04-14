@@ -1,7 +1,7 @@
-using Xenko.Core.BuildEngine;
-using Xenko.Rendering;
+using Stride.Core.BuildEngine;
+using Stride.Rendering;
 
-namespace Xenko.Assets.Models
+namespace Stride.Assets.Models
 {
     /// <summary>
     /// Apply various modification to a <see cref="Model"/> during compilation of a <see cref="ModelAsset"/>.

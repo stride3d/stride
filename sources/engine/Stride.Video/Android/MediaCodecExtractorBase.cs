@@ -1,17 +1,17 @@
-#if XENKO_PLATFORM_ANDROID && XENKO_VIDEO_MEDIACODEC
+#if STRIDE_PLATFORM_ANDROID && STRIDE_VIDEO_MEDIACODEC
 
 using System;
 using System.Collections.Concurrent;
-using Xenko.Core.Diagnostics;
-using Xenko.Core;
-using Xenko.Media;
+using Stride.Core.Diagnostics;
+using Stride.Core;
+using Stride.Media;
 
 using Android.Media;
 using Android.Views;
 using System.Threading;
-using Xenko.Audio;
+using Stride.Audio;
 
-namespace Xenko.Video
+namespace Stride.Video
 {
     public abstract class MediaCodecExtractorBase<T>: DisposeBase, IMediaExtractor, IMediaPlayer, IMediaReader where T: class
     {

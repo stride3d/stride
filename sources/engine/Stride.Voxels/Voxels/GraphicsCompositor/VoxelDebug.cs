@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Graphics;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Collections;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Shaders;
-using Xenko.Rendering.Images;
-using Xenko.Rendering.Voxels;
-using Xenko.Rendering.Lights;
-using Xenko.Rendering.Skyboxes;
+using Stride.Graphics;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Collections;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Shaders;
+using Stride.Rendering.Images;
+using Stride.Rendering.Voxels;
+using Stride.Rendering.Lights;
+using Stride.Rendering.Skyboxes;
 using System.Linq;
-using Xenko.Rendering.Compositing;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Rendering.Voxels.Debug
+namespace Stride.Rendering.Voxels.Debug
 {
     [DataContract("VoxelDebug")]
     public class VoxelDebug : ImageEffect

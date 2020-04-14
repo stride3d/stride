@@ -1,7 +1,7 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-namespace Xenko.Rendering.LightProbes
+namespace Stride.Rendering.LightProbes
 {
     /// <summary>
     /// Defines a skybox environment light
@@ -14,9 +14,9 @@ namespace Xenko.Rendering.LightProbes
         }
         rgroup PerView.LightProbes
         {
-#ifdef XENKO_MULTISAMPLE_COUNT 
-  #if XENKO_MULTISAMPLE_COUNT > 1
-            stage Texture2DMS<uint, XENKO_MULTISAMPLE_COUNT> LightProbeTetrahedronIds;  // SV_Position => tetrahedron ID
+#ifdef STRIDE_MULTISAMPLE_COUNT 
+  #if STRIDE_MULTISAMPLE_COUNT > 1
+            stage Texture2DMS<uint, STRIDE_MULTISAMPLE_COUNT> LightProbeTetrahedronIds;  // SV_Position => tetrahedron ID
   #else
             stage Texture2D<uint> LightProbeTetrahedronIds;  // SV_Position => tetrahedron ID
   #endif
@@ -52,7 +52,7 @@ namespace Xenko.Rendering.LightProbes
             sampleDirection = float3(sampleDirection.xy, -sampleDirection.z);
 
             var shadingPosition = int3(streams.ShadingPosition.xy, 0);
-#if XENKO_MULTISAMPLE_COUNT == 1
+#if STRIDE_MULTISAMPLE_COUNT == 1
             uint tetrahedronIndex = LightProbeTetrahedronIds.Load(shadingPosition);
 #else
             // TODO: Use SV_SampleIndex

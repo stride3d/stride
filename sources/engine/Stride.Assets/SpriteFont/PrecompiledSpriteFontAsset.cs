@@ -1,23 +1,23 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Core.Yaml;
-using Xenko.Graphics.Font;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
+using Stride.Core.Yaml;
+using Stride.Graphics.Font;
 
-namespace Xenko.Assets.SpriteFont
+namespace Stride.Assets.SpriteFont
 {
     [DataContract("PregeneratedSpriteFont")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Graphics.SpriteFont))]
-    [AssetFormatVersion(XenkoConfig.PackageName, "1.7.0-alpha01", "1.7.0-alpha01")]
+    [AssetFormatVersion(StrideConfig.PackageName, "1.7.0-alpha01", "1.7.0-alpha01")]
     [CategoryOrder(10, "Font Data")]
     [CategoryOrder(20, "Font Properties")]
     [CategoryOrder(30, "Font Characters")]
@@ -27,7 +27,7 @@ namespace Xenko.Assets.SpriteFont
         /// <summary>
         /// The default file extension used by the <see cref="PrecompiledSpriteFontAsset"/>.
         /// </summary>
-        public const string FileExtension = ".xkpcfnt";
+        public const string FileExtension = ".sdpcfnt";
 
         [Display(Browsable = false)]
         public string FontName; // Note: this field is used only for thumbnail.

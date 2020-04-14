@@ -1,14 +1,14 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:ctrl="clr-namespace:Xenko.Core.Presentation.Controls"
+                    xmlns:ctrl="clr-namespace:Stride.Core.Presentation.Controls"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                    xmlns:cvt="clr-namespace:Xenko.Core.Presentation.ValueConverters"
+                    xmlns:cvt="clr-namespace:Stride.Core.Presentation.ValueConverters"
                     xmlns:mwt="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero"
-                    xmlns:interactivity="clr-namespace:Xenko.Core.Presentation.Interactivity"
-                    xmlns:behaviors="clr-namespace:Xenko.Core.Presentation.Behaviors"
+                    xmlns:interactivity="clr-namespace:Stride.Core.Presentation.Interactivity"
+                    xmlns:behaviors="clr-namespace:Stride.Core.Presentation.Behaviors"
                     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-                    xmlns:xk="http://schemas.xenko.com/xaml/presentation"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
                     mc:Ignorable="d">
 
   <!--<Style TargetType="{x:Type ctrl:PropertyGrid}">
@@ -396,8 +396,8 @@
               <GroupBox Header="RGBA" VerticalAlignment="Top" Grid.Column="0" HorizontalContentAlignment="Stretch"
                         BorderThickness="0" Margin="2" Focusable="False">
                 <ctrl:KeyValueGrid x:Name="RGBGrid" HorizontalAlignment="Stretch" Focusable="False">
-                  <TextBlock Margin="4,0" Text="{xk:Localize R:, Context=RGBA}"
-                             ToolTipService.ToolTip="{xk:Localize Red, Context=ToolTip}" VerticalAlignment="Center"
+                  <TextBlock Margin="4,0" Text="{sd:Localize R:, Context=RGBA}"
+                             ToolTipService.ToolTip="{sd:Localize Red, Context=ToolTip}" VerticalAlignment="Center"
                              HorizontalAlignment="Left" Focusable="False" />
                   <StackPanel Margin="0,2">
                     <ctrl:NumericTextBox x:Name="RedTextBox"
@@ -411,8 +411,8 @@
                       </Rectangle.RenderTransform>
                     </Rectangle>
                   </StackPanel>
-                  <TextBlock Margin="4,0" Text="{xk:Localize G:, Context=RGBA}"
-                             ToolTipService.ToolTip="{xk:Localize Green, Context=ToolTip}" VerticalAlignment="Center"
+                  <TextBlock Margin="4,0" Text="{sd:Localize G:, Context=RGBA}"
+                             ToolTipService.ToolTip="{sd:Localize Green, Context=ToolTip}" VerticalAlignment="Center"
                              HorizontalAlignment="Left" Focusable="False" />
                   <StackPanel Margin="0,2">
                     <ctrl:NumericTextBox x:Name="GreenTextBox"
@@ -426,8 +426,8 @@
                       </Rectangle.RenderTransform>
                     </Rectangle>
                   </StackPanel>
-                  <TextBlock Margin="4,0" Text="{xk:Localize B:, Context=RGBA}"
-                             ToolTipService.ToolTip="{xk:Localize Blue, Context=ToolTip}" VerticalAlignment="Center"
+                  <TextBlock Margin="4,0" Text="{sd:Localize B:, Context=RGBA}"
+                             ToolTipService.ToolTip="{sd:Localize Blue, Context=ToolTip}" VerticalAlignment="Center"
                              HorizontalAlignment="Left" Focusable="False" />
                   <StackPanel Margin="0,2">
                     <ctrl:NumericTextBox x:Name="BlueTextBox"
@@ -441,8 +441,8 @@
                       </Rectangle.RenderTransform>
                     </Rectangle>
                   </StackPanel>
-                  <TextBlock x:Name="AlphaTextBlock" Margin="4,0" Text="{xk:Localize A:, Context=RGBA}"
-                             ToolTipService.ToolTip="{xk:Localize Alpha, Context=ToolTip}" VerticalAlignment="Center"
+                  <TextBlock x:Name="AlphaTextBlock" Margin="4,0" Text="{sd:Localize A:, Context=RGBA}"
+                             ToolTipService.ToolTip="{sd:Localize Alpha, Context=ToolTip}" VerticalAlignment="Center"
                              HorizontalAlignment="Left" Focusable="False" />
                   <StackPanel Margin="0,2" x:Name="AlphaValue">
                     <ctrl:NumericTextBox x:Name="AlphaTextBox"
@@ -461,8 +461,8 @@
               <GroupBox Header="HSB" VerticalAlignment="Top" d:LayoutOverrides="Width" BorderThickness="0" Grid.Row="1"
                         Margin="2" Focusable="False">
                 <ctrl:KeyValueGrid Focusable="False">
-                  <TextBlock Margin="4,0" Text="{xk:Localize H:, Context=HSB}"
-                             ToolTipService.ToolTip="{xk:Localize Hue, Context=ToolTip}" VerticalAlignment="Center"
+                  <TextBlock Margin="4,0" Text="{sd:Localize H:, Context=HSB}"
+                             ToolTipService.ToolTip="{sd:Localize Hue, Context=ToolTip}" VerticalAlignment="Center"
                              HorizontalAlignment="Left" Focusable="False" />
                   <StackPanel Margin="0,2">
                     <ctrl:NumericTextBox x:Name="HueTextBox"
@@ -476,8 +476,8 @@
                       </Rectangle.RenderTransform>
                     </Rectangle>
                   </StackPanel>
-                  <TextBlock Margin="4,0" Text="{xk:Localize S:, Context=HSB}"
-                             ToolTipService.ToolTip="{xk:Localize Saturation, Context=ToolTip}"
+                  <TextBlock Margin="4,0" Text="{sd:Localize S:, Context=HSB}"
+                             ToolTipService.ToolTip="{sd:Localize Saturation, Context=ToolTip}"
                              VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False" />
                   <StackPanel Margin="0,2">
                     <ctrl:NumericTextBox x:Name="SaturationTextBox"
@@ -491,8 +491,8 @@
                       </Rectangle.RenderTransform>
                     </Rectangle>
                   </StackPanel>
-                  <TextBlock Margin="4,0" Text="{xk:Localize B:, Context=HSB}"
-                             ToolTipService.ToolTip="{xk:Localize Value, Context=ToolTip}" VerticalAlignment="Center"
+                  <TextBlock Margin="4,0" Text="{sd:Localize B:, Context=HSB}"
+                             ToolTipService.ToolTip="{sd:Localize Value, Context=ToolTip}" VerticalAlignment="Center"
                              HorizontalAlignment="Left" Focusable="False" />
                   <StackPanel Margin="0,2">
                     <ctrl:NumericTextBox x:Name="BrightnessTextBox"

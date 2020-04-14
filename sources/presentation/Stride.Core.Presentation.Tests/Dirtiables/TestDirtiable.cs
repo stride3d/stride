@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Xunit;
-using Xenko.Core.Transactions;
-using Xenko.Core.Presentation.Dirtiables;
+using Stride.Core.Transactions;
+using Stride.Core.Presentation.Dirtiables;
 
-namespace Xenko.Core.Presentation.Tests.Dirtiables
+namespace Stride.Core.Presentation.Tests.Dirtiables
 {
     public class TestDirtiable
     {

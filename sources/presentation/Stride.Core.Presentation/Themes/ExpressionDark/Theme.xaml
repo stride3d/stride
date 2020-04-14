@@ -8,22 +8,22 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    xmlns:ctrl="clr-namespace:Xenko.Core.Presentation.Controls"
-                    xmlns:cmd="clr-namespace:Xenko.Core.Presentation.Commands"
-                    xmlns:cvt="clr-namespace:Xenko.Core.Presentation.ValueConverters"
-                    xmlns:me="clr-namespace:Xenko.Core.Presentation.MarkupExtensions"
-                    xmlns:behaviors="clr-namespace:Xenko.Core.Presentation.Behaviors"
+                    xmlns:ctrl="clr-namespace:Stride.Core.Presentation.Controls"
+                    xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands"
+                    xmlns:cvt="clr-namespace:Stride.Core.Presentation.ValueConverters"
+                    xmlns:me="clr-namespace:Stride.Core.Presentation.MarkupExtensions"
+                    xmlns:behaviors="clr-namespace:Stride.Core.Presentation.Behaviors"
                     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-                    xmlns:interactivity="clr-namespace:Xenko.Core.Presentation.Interactivity"
-                    xmlns:commands="clr-namespace:Xenko.Core.Presentation.Controls.Commands"
-                    xmlns:wnd="clr-namespace:Xenko.Core.Presentation.Windows"
-                    xmlns:local="clr-namespace:Xenko.Core.Presentation"
-                    xmlns:xk="http://schemas.xenko.com/xaml/presentation"
-                    x:Class="Xenko.Core.Presentation.Themes.ExpressionDark.ExpressionDarkTheme"
+                    xmlns:interactivity="clr-namespace:Stride.Core.Presentation.Interactivity"
+                    xmlns:commands="clr-namespace:Stride.Core.Presentation.Controls.Commands"
+                    xmlns:wnd="clr-namespace:Stride.Core.Presentation.Windows"
+                    xmlns:local="clr-namespace:Stride.Core.Presentation"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    x:Class="Stride.Core.Presentation.Themes.ExpressionDark.ExpressionDarkTheme"
                     mc:Ignorable="d">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="../generic.xaml"/>
-    <ResourceDictionary Source="pack://application:,,,/Xenko.Core.Presentation;component/Resources/VectorResources.xaml" />
+    <ResourceDictionary Source="pack://application:,,,/Stride.Core.Presentation;component/Resources/VectorResources.xaml" />
   </ResourceDictionary.MergedDictionaries>
 
   <!-- Main Colors -->
@@ -150,21 +150,21 @@
 
   <Geometry x:Key="GeometryDelete">F1 M 25.3333,23.75L 50.6667,23.75C 51.5411,23.75 51.8541,27.3125 51.8541,27.3125L 24.1458,27.3125C 24.1458,27.3125 24.4589,23.75 25.3333,23.75 Z M 35.625,19.7917L 40.375,19.7917C 40.8122,19.7917 41.9583,20.9378 41.9583,21.375C 41.9583,21.8122 40.8122,22.9584 40.375,22.9584L 35.625,22.9584C 35.1878,22.9584 34.0416,21.8122 34.0416,21.375C 34.0416,20.9378 35.1878,19.7917 35.625,19.7917 Z M 27.7083,28.5L 48.2916,28.5C 49.1661,28.5 49.875,29.2089 49.875,30.0834L 48.2916,53.8334C 48.2916,54.7078 47.5828,55.4167 46.7083,55.4167L 29.2917,55.4167C 28.4172,55.4167 27.7083,54.7078 27.7083,53.8334L 26.125,30.0834C 26.125,29.2089 26.8339,28.5 27.7083,28.5 Z M 30.0833,31.6667L 30.4792,52.25L 33.25,52.25L 32.8542,31.6667L 30.0833,31.6667 Z M 36.4167,31.6667L 36.4167,52.25L 39.5833,52.25L 39.5833,31.6667L 36.4167,31.6667 Z M 43.1458,31.6667L 42.75,52.25L 45.5208,52.25L 45.9167,31.6667L 43.1458,31.6667 Z</Geometry>
 
-  <BitmapImage x:Key="ImageCloseWindow" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/close_window.png" />
-  <BitmapImage x:Key="ImageMaximizeWindow" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/maximize_window.png" />
-  <BitmapImage x:Key="ImageMinimizeWindow" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/minimize_window.png" />
-  <BitmapImage x:Key="ImageRestoreWindow" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/restore_window.png" />
+  <BitmapImage x:Key="ImageCloseWindow" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/close_window.png" />
+  <BitmapImage x:Key="ImageMaximizeWindow" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/maximize_window.png" />
+  <BitmapImage x:Key="ImageMinimizeWindow" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/minimize_window.png" />
+  <BitmapImage x:Key="ImageRestoreWindow" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/restore_window.png" />
 
-  <BitmapImage x:Key="ImageErrorDialog" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/error-32.png" />
-  <BitmapImage x:Key="ImageInformationDialog" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/info-32.png" />
-  <BitmapImage x:Key="ImageQuestionDialog" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/question-32.png" />
-  <BitmapImage x:Key="ImageWarningDialog" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/warning-32.png" />
+  <BitmapImage x:Key="ImageErrorDialog" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/error-32.png" />
+  <BitmapImage x:Key="ImageInformationDialog" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/info-32.png" />
+  <BitmapImage x:Key="ImageQuestionDialog" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/question-32.png" />
+  <BitmapImage x:Key="ImageWarningDialog" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/warning-32.png" />
 
-  <BitmapImage x:Key="ImageAdvancedEditionVector" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/gear--pencil.png" />
-  <BitmapImage x:Key="ImageReset" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/eraser.png" />
-  <BitmapImage x:Key="ImageLocked" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/lock.png" />
-  <BitmapImage x:Key="ImageUnlocked" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/lock-unlock.png" />
-  <BitmapImage x:Key="ImageLength" UriSource="pack://application:,,,/Xenko.Core.Presentation;component/Resources/Images/ruler-triangle.png" />
+  <BitmapImage x:Key="ImageAdvancedEditionVector" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/gear--pencil.png" />
+  <BitmapImage x:Key="ImageReset" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/eraser.png" />
+  <BitmapImage x:Key="ImageLocked" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/lock.png" />
+  <BitmapImage x:Key="ImageUnlocked" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/lock-unlock.png" />
+  <BitmapImage x:Key="ImageLength" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/ruler-triangle.png" />
 
   <!--  WINDOWS  -->
   <Style TargetType="{x:Type Window}" x:Key="WindowChromeStyle">
@@ -620,7 +620,7 @@
               </Grid.RowDefinitions>
               <GroupBox Header="RGBA" VerticalAlignment="Top" Grid.Column="0" HorizontalContentAlignment="Stretch" BorderThickness="0" Margin="2" Focusable="False">
                 <ctrl:KeyValueGrid x:Name="RGBGrid" HorizontalAlignment="Stretch" Focusable="False">
-                  <TextBlock Margin="4,0" Text="{xk:Localize R:, Context=RGBA}" ToolTipService.ToolTip="{xk:Localize Red, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                  <TextBlock Margin="4,0" Text="{sd:Localize R:, Context=RGBA}" ToolTipService.ToolTip="{sd:Localize Red, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                   <StackPanel Margin="0,2">
                     <ctrl:NumericTextBox x:Name="RedTextBox" Value="{Binding Red, RelativeSource={RelativeSource Mode=TemplatedParent}}" SelectionBrush="{StaticResource RedBrush}" Minimum="0" Maximum="255" Margin="0" MouseValidationTrigger="OnMouseMove"/>
                     <Rectangle Height="3" Fill="{StaticResource RedBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -629,7 +629,7 @@
                       </Rectangle.RenderTransform>
                     </Rectangle>
                   </StackPanel>
-                  <TextBlock Margin="4,0" Text="{xk:Localize G:, Context=RGBA}" ToolTipService.ToolTip="{xk:Localize Green, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                  <TextBlock Margin="4,0" Text="{sd:Localize G:, Context=RGBA}" ToolTipService.ToolTip="{sd:Localize Green, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                   <StackPanel Margin="0,2">
                     <ctrl:NumericTextBox x:Name="GreenTextBox" Value="{Binding Green, RelativeSource={RelativeSource Mode=TemplatedParent}}" SelectionBrush="{StaticResource GreenBrush}" Minimum="0" Maximum="255" Margin="0" MouseValidationTrigger="OnMouseMove"/>
                     <Rectangle Height="3" Fill="{StaticResource GreenBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -638,7 +638,7 @@
                       </Rectangle.RenderTransform>
                     </Rectangle>
                   </StackPanel>
-                  <TextBlock Margin="4,0" Text="{xk:Localize B:, Context=RGBA}" ToolTipService.ToolTip="{xk:Localize Blue, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                  <TextBlock Margin="4,0" Text="{sd:Localize B:, Context=RGBA}" ToolTipService.ToolTip="{sd:Localize Blue, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                   <StackPanel Margin="0,2">
                     <ctrl:NumericTextBox x:Name="BlueTextBox" Value="{Binding Blue, RelativeSource={RelativeSource Mode=TemplatedParent}}" SelectionBrush="{StaticResource BlueBrush}" Minimum="0" Maximum="255" Margin="0" MouseValidationTrigger="OnMouseMove"/>
                     <Rectangle Height="3" Fill="{StaticResource BlueBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -647,7 +647,7 @@
                       </Rectangle.RenderTransform>
                     </Rectangle>
                   </StackPanel>
-                  <TextBlock x:Name="AlphaTextBlock" Margin="4,0" Text="{xk:Localize A:, Context=RGBA}" ToolTipService.ToolTip="{xk:Localize Alpha, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                  <TextBlock x:Name="AlphaTextBlock" Margin="4,0" Text="{sd:Localize A:, Context=RGBA}" ToolTipService.ToolTip="{sd:Localize Alpha, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                   <StackPanel Margin="0,2" x:Name="AlphaValue">
                     <ctrl:NumericTextBox x:Name="AlphaTextBox" Value="{Binding Alpha, RelativeSource={RelativeSource Mode=TemplatedParent}}" SelectionBrush="{StaticResource AlphaBrush}" Minimum="0" Maximum="255" Margin="0"/>
                     <Rectangle Height="3" Fill="{StaticResource AlphaBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -660,7 +660,7 @@
               </GroupBox>
               <GroupBox Header="HSB" VerticalAlignment="Top" d:LayoutOverrides="Width" BorderThickness="0" Grid.Row="1" Margin="2" Focusable="False">
                 <ctrl:KeyValueGrid Focusable="False">
-                  <TextBlock Margin="4,0" Text="{xk:Localize H:, Context=HSB}" ToolTipService.ToolTip="{xk:Localize Hue, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                  <TextBlock Margin="4,0" Text="{sd:Localize H:, Context=HSB}" ToolTipService.ToolTip="{sd:Localize Hue, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                   <StackPanel Margin="0,2">
                     <ctrl:NumericTextBox x:Name="HueTextBox" Value="{Binding Hue, RelativeSource={RelativeSource Mode=TemplatedParent}}" DecimalPlaces="0" SelectionBrush="{StaticResource AlphaBrush}" Minimum="0" Maximum="360" Margin="0" MouseValidationTrigger="OnMouseMove"/>
                     <Rectangle Height="3" Fill="{StaticResource AlphaBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -669,7 +669,7 @@
                       </Rectangle.RenderTransform>
                     </Rectangle>
                   </StackPanel>
-                  <TextBlock Margin="4,0" Text="{xk:Localize S:, Context=HSB}" ToolTipService.ToolTip="{xk:Localize Saturation, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                  <TextBlock Margin="4,0" Text="{sd:Localize S:, Context=HSB}" ToolTipService.ToolTip="{sd:Localize Saturation, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                   <StackPanel Margin="0,2">
                     <ctrl:NumericTextBox x:Name="SaturationTextBox" Value="{Binding Saturation, RelativeSource={RelativeSource Mode=TemplatedParent}}" DecimalPlaces="0" SelectionBrush="{StaticResource AlphaBrush}" Minimum="0" Maximum="100" Margin="0" MouseValidationTrigger="OnMouseMove"/>
                     <Rectangle Height="3" Fill="{StaticResource AlphaBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -678,7 +678,7 @@
                       </Rectangle.RenderTransform>
                     </Rectangle>
                   </StackPanel>
-                  <TextBlock Margin="4,0" Text="{xk:Localize B:, Context=HSB}" ToolTipService.ToolTip="{xk:Localize Value, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                  <TextBlock Margin="4,0" Text="{sd:Localize B:, Context=HSB}" ToolTipService.ToolTip="{sd:Localize Value, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                   <StackPanel Margin="0,2">
                     <ctrl:NumericTextBox x:Name="BrightnessTextBox" Value="{Binding Brightness, RelativeSource={RelativeSource Mode=TemplatedParent}}" DecimalPlaces="0" SelectionBrush="{StaticResource AlphaBrush}" Minimum="0" Maximum="100" Margin="0" MouseValidationTrigger="OnMouseMove"/>
                     <Rectangle Height="3" Fill="{StaticResource AlphaBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -1950,7 +1950,7 @@
     <Setter Property="interactivity:Interaction.Behaviors">
       <Setter.Value>
         <interactivity:BehaviorCollection>
-          <behaviors:NumericTextBoxDragBehavior UsePreviewEvents="True" DragCursor="/Xenko.Core.Presentation;component/Resources/Cursors/CursorDrag.cur" />
+          <behaviors:NumericTextBoxDragBehavior UsePreviewEvents="True" DragCursor="/Stride.Core.Presentation;component/Resources/Cursors/CursorDrag.cur" />
         </interactivity:BehaviorCollection>
       </Setter.Value>
     </Setter>
@@ -3920,7 +3920,7 @@
 
   <!--  EDITORS  -->
   <Style x:Key="{x:Static ctrl:VectorEditorResources.ToggleButtonStyleKey}" TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource {x:Type ToggleButton}}" x:Shared="False">
-    <Setter Property="ToolTip" Value="{xk:Localize Toggle editing mode, Context=ToolTip}" />
+    <Setter Property="ToolTip" Value="{sd:Localize Toggle editing mode, Context=ToolTip}" />
     <Style.Triggers>
       <Trigger Property="IsChecked" Value="False">
         <Setter Property="Content" Value="{me:Image {StaticResource ImageUnlocked}, 16, 16, NearestNeighbor}" />
@@ -4176,7 +4176,7 @@
                                      WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
               </DockPanel>
             </Border>
-            <ToggleButton Grid.Column="4" Margin="2,0,0,0" x:Name="ToggleButtonAdvancedOptions" Width="16" Height="16" Background="Transparent" ToolTip="{xk:Localize Advanced options, Context=ToolTip}"
+            <ToggleButton Grid.Column="4" Margin="2,0,0,0" x:Name="ToggleButtonAdvancedOptions" Width="16" Height="16" Background="Transparent" ToolTip="{sd:Localize Advanced options, Context=ToolTip}"
                                       ClickMode="Press" IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
               <Image Width="16" Height="16" Margin="-1" Source="{StaticResource ImageAdvancedEditionVector}" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
             </ToggleButton>
@@ -4185,7 +4185,7 @@
                                        PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=ctrl:Int2Editor}}" PopupAnimation="Slide" VerticalOffset="2">
               <Border SnapsToDevicePixels="True" Background="{StaticResource BackgroundBrush}" BorderBrush="Black" BorderThickness="1">
                 <ctrl:KeyValueGrid>
-                  <TextBlock Text="{xk:Localize All components:}" Margin="4,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                  <TextBlock Text="{sd:Localize All components:}" Margin="4,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                   <ctrl:NumericTextBox x:Name="AllTextBox" Margin="2,2,6,6" TextAlignment="Center" DisplayUpDownButtons="False" SelectAllOnFocus="True" ValidateOnLostFocus="False">
                     <i:Interaction.Behaviors>
                       <behaviors:OnEventCommandBehavior EventName="Validated" Command="{x:Static commands:ControlCommands.SetAllVectorComponentsCommand}" CommandParameter="{Binding Value, ElementName=AllTextBox}"/>
@@ -4246,7 +4246,7 @@
               </DockPanel>
             </Border>
             <ToggleButton Grid.Column="6" Margin="2,0,0,0" x:Name="ToggleButtonAdvancedOptions" Width="16" Height="16"
-                                      Background="Transparent" ToolTip="{xk:Localize Advanced options, Context=ToolTip}" ClickMode="Press" IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                      Background="Transparent" ToolTip="{sd:Localize Advanced options, Context=ToolTip}" ClickMode="Press" IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
               <Image Width="16" Height="16" Margin="-1" Source="{StaticResource ImageAdvancedEditionVector}" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
             </ToggleButton>
             <Popup x:Name="Popup" Placement="Bottom" AllowsTransparency="True" IsOpen="{TemplateBinding IsDropDownOpen}"
@@ -4254,7 +4254,7 @@
                                        PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=ctrl:Int3Editor}}" PopupAnimation="Slide" VerticalOffset="2">
               <Border SnapsToDevicePixels="True" Background="{StaticResource BackgroundBrush}" BorderBrush="Black" BorderThickness="1">
                 <ctrl:KeyValueGrid>
-                  <TextBlock Text="{xk:Localize All components:}" Margin="4,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                  <TextBlock Text="{sd:Localize All components:}" Margin="4,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                   <ctrl:NumericTextBox x:Name="AllTextBox" Margin="2,2,6,6" TextAlignment="Center" DisplayUpDownButtons="False" SelectAllOnFocus="True" ValidateOnLostFocus="False">
                     <i:Interaction.Behaviors>
                       <behaviors:OnEventCommandBehavior EventName="Validated" Command="{x:Static commands:ControlCommands.SetAllVectorComponentsCommand}" CommandParameter="{Binding Value, ElementName=AllTextBox}"/>
@@ -4325,7 +4325,7 @@
                                      WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
               </DockPanel>
             </Border>
-            <ToggleButton Grid.Column="8" Margin="2,0,0,0" x:Name="ToggleButtonAdvancedOptions" Width="16" Height="16" Background="Transparent" ToolTip="{xk:Localize Advanced options, Context=ToolTip}"
+            <ToggleButton Grid.Column="8" Margin="2,0,0,0" x:Name="ToggleButtonAdvancedOptions" Width="16" Height="16" Background="Transparent" ToolTip="{sd:Localize Advanced options, Context=ToolTip}"
                                       ClickMode="Press" IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
               <Image Width="16" Height="16" Margin="-1" Source="{StaticResource ImageAdvancedEditionVector}" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
             </ToggleButton>
@@ -4334,7 +4334,7 @@
                                        PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=ctrl:Int4Editor}}" PopupAnimation="Slide" VerticalOffset="2">
               <Border SnapsToDevicePixels="True" Background="{StaticResource BackgroundBrush}" BorderBrush="Black" BorderThickness="1">
                 <ctrl:KeyValueGrid>
-                  <TextBlock Text="{xk:Localize All components:}" Margin="4,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                  <TextBlock Text="{sd:Localize All components:}" Margin="4,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                   <ctrl:NumericTextBox x:Name="AllTextBox" Margin="2,2,6,6" TextAlignment="Center" DisplayUpDownButtons="False" SelectAllOnFocus="True" ValidateOnLostFocus="False">
                     <i:Interaction.Behaviors>
                       <behaviors:OnEventCommandBehavior EventName="Validated" Command="{x:Static commands:ControlCommands.SetAllVectorComponentsCommand}" CommandParameter="{Binding Value, ElementName=AllTextBox}"/>
@@ -4520,7 +4520,7 @@
             </Border>
             <!-- TODO: this button is disabled to match the vector editor in term of style, remove it completely if the button are not restored -->
             <!--<Button Grid.Column="6" Margin="2,0,0,0" x:Name="ResetButton" Width="16" Height="16" Background="Transparent"
-                    Command="{x:Static commands:ControlCommands.ResetValueCommand}" ToolTip="{xk:Localize Reset value, Context=ToolTip}">
+                    Command="{x:Static commands:ControlCommands.ResetValueCommand}" ToolTip="{sd:Localize Reset value, Context=ToolTip}">
               <Image Width="16" Height="16" Margin="-1" Source="{StaticResource ImageReset}" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
             </Button>-->
           </Grid>

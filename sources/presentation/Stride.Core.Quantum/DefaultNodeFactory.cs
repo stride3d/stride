@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Xenko.Core.Reflection;
-using Xenko.Core.Quantum.References;
+using Stride.Core.Reflection;
+using Stride.Core.Quantum.References;
 
-namespace Xenko.Core.Quantum
+namespace Stride.Core.Quantum
 {
     /// <summary>
     /// This class is an implementation of the <see cref="INodeFactory"/> interface that can construct <see cref="ObjectNode"/>, <see cref="BoxedNode"/>

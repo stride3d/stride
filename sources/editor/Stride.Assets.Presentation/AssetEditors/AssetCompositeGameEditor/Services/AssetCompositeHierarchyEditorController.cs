@@ -1,22 +1,22 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Assets.Quantum.Visitors;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
-using Xenko.Editor.EditorGame.Game;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Quantum.Visitors;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Editor.EditorGame.Game;
 
-namespace Xenko.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Services
+namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Services
 {
     public abstract class AssetCompositeHierarchyEditorController<TEditorGame, TAssetPartDesign, TAssetPart, TParentViewModel> : EditorGameController<TEditorGame>
         where TEditorGame : EditorServiceGame

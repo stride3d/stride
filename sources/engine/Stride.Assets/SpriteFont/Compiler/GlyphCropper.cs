@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -77,7 +77,7 @@
 
 using System.Drawing;
 
-namespace Xenko.Assets.SpriteFont.Compiler
+namespace Stride.Assets.SpriteFont.Compiler
 {
     // Crops unused space from around the edge of a glyph bitmap.
     internal static class GlyphCropper

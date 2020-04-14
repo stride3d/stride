@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization;
-using Xenko.Assets.Presentation.AssetEditors.UIEditor.Services;
-using Xenko.Assets.UI;
-using Xenko.Editor.Thumbnails;
-using Xenko.Engine;
-using Xenko.Engine.Processors;
-using Xenko.Rendering.Compositing;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
+using Stride.Assets.Presentation.AssetEditors.UIEditor.Services;
+using Stride.Assets.UI;
+using Stride.Editor.Thumbnails;
+using Stride.Engine;
+using Stride.Engine.Processors;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Presentation.Thumbnails
 {
     /// <summary>
     /// Thumbnail compiler for the <see cref="UIPageAsset"/>.

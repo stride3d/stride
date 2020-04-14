@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using Xenko.Core.Mathematics;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Graphics;
-using Xenko.Shaders;
+using Stride.Core.Mathematics;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Graphics;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public class VoxelStorerClipmap : IVoxelStorer
     {
         public VoxelStorageClipmaps.UpdateMethods UpdatesPerFrame;
 
         public int storageUints;
-        public Xenko.Graphics.Buffer FragmentsBuffer = null;
+        public Stride.Graphics.Buffer FragmentsBuffer = null;
 
         public int ClipMapCount;
         public int ClipMapCurrent = -1;
@@ -60,7 +60,7 @@ namespace Xenko.Rendering.Voxels
         }
 
 
-        ObjectParameterKey<Xenko.Graphics.Buffer> fragmentsBufferKey;
+        ObjectParameterKey<Stride.Graphics.Buffer> fragmentsBufferKey;
         ValueParameterKey<Vector3> clipMapResolutionKey;
         ValueParameterKey<float> storageUintsKey;
 

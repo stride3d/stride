@@ -5,5 +5,5 @@ Name: Scene streamer
 Scope: Asset
 Description: Loads or unloads a scene when a collider enters or exits a trigger
 Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
+Icon: ..\..\.sdtpl\SourceCode.png
 DefaultOutputName: SceneStreaming

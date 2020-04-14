@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2011 SharpDX - Alexandre Mutel
@@ -24,9 +24,9 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using Xenko.Core.Serialization;
+using Stride.Core.Serialization;
 
-namespace Xenko.Core.Mathematics
+namespace Stride.Core.Mathematics
 {
     /// <summary>
     /// Represents a four dimensional mathematical vector with half-precision floats.

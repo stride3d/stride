@@ -46,7 +46,7 @@
 using System;
 using System.Globalization;
 
-namespace Xenko.Core.Yaml.Schemas
+namespace Stride.Core.Yaml.Schemas
 {
     /// <summary>
     /// Extension to the core schema and accept different flavor of scalars

@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma once
 #include "stdafx.h"
 
 using namespace System;
-using namespace Xenko::Core::Mathematics;
-using namespace Xenko::Animations;
+using namespace Stride::Core::Mathematics;
+using namespace Stride::Animations;
 
 // conversion functions
 Color4 FbxDouble3ToColor4(FbxDouble3 vector, float alphaValue = 1.0f);

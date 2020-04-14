@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
 
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Visitor;
-using Xenko.Core.Shaders.Writer;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Visitor;
+using Stride.Core.Shaders.Writer;
 
-using StorageQualifier = Xenko.Core.Shaders.Ast.StorageQualifier;
+using StorageQualifier = Stride.Core.Shaders.Ast.StorageQualifier;
 
-namespace Xenko.Shaders.Parser.Mixins
+namespace Stride.Shaders.Parser.Mixins
 {
     public class ShaderKeyGeneratorBase : ShaderWriter
     {
@@ -87,12 +87,12 @@ namespace Xenko.Shaders.Parser.Mixins
         internal bool IsParameterKey(Variable variable)
         {
             // Don't generate a parameter key for variable stored storage qualifier: extern, const, compose, stream
-            if (variable.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern)
+            if (variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern)
                 || variable.Qualifiers.Contains(StorageQualifier.Const)
-                || variable.Qualifiers.Contains(XenkoStorageQualifier.Compose)
-                || variable.Qualifiers.Contains(XenkoStorageQualifier.PatchStream)
-                || variable.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Groupshared)
-                || variable.Qualifiers.Contains(XenkoStorageQualifier.Stream))
+                || variable.Qualifiers.Contains(StrideStorageQualifier.Compose)
+                || variable.Qualifiers.Contains(StrideStorageQualifier.PatchStream)
+                || variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Groupshared)
+                || variable.Qualifiers.Contains(StrideStorageQualifier.Stream))
                 return false;
 
             // Don't generate a parameter key for [Link] or [RenameLink]

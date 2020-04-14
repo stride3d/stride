@@ -1,6 +1,6 @@
 !Texture
 Id: e323d1dc-c052-4191-9b71-b139eb248070
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../data/tests/Sphere2.bmp
 IsCompressed: false

@@ -1,6 +1,6 @@
 !Texture
 Id: 864b7ca9-4d8e-4dd4-811f-98c07e826f59
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../Resources/fire8x8.png
 Type: !ColorTextureType

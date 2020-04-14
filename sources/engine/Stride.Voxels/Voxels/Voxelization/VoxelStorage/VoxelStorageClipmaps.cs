@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using Xenko.Core.Mathematics;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Graphics;
-using Xenko.Shaders;
+using Stride.Core.Mathematics;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Graphics;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     [Display("Clipmaps")]
@@ -33,7 +33,7 @@ namespace Xenko.Rendering.Voxels
         public bool DownsampleFinerClipMaps { get; set; } = true;
 
         int storageUints;
-        Xenko.Graphics.Buffer FragmentsBuffer = null;
+        Stride.Graphics.Buffer FragmentsBuffer = null;
 
         int ClipMapCount;
         int MipMapCount;
@@ -129,13 +129,13 @@ namespace Xenko.Rendering.Voxels
 
             if (VoxelUtils.DisposeBufferBySpecs(FragmentsBuffer, storageUints * fragments) && storageUints * fragments > 0)
             {
-                FragmentsBuffer = Xenko.Graphics.Buffer.Typed.New(context.device, storageUints * fragments, PixelFormat.R32_UInt, true);
+                FragmentsBuffer = Stride.Graphics.Buffer.Typed.New(context.device, storageUints * fragments, PixelFormat.R32_UInt, true);
             }
         }
 
 
 
-        public void UpdateTexture(VoxelStorageContext context, ref IVoxelStorageTexture texture, Xenko.Graphics.PixelFormat pixelFormat, int LayoutSize)
+        public void UpdateTexture(VoxelStorageContext context, ref IVoxelStorageTexture texture, Stride.Graphics.PixelFormat pixelFormat, int LayoutSize)
         {
             VoxelStorageTextureClipmap clipmap = texture as VoxelStorageTextureClipmap;
             if (clipmap == null)
@@ -147,7 +147,7 @@ namespace Xenko.Rendering.Voxels
             Vector3 MipMapResolution = new Vector3(ClipMapResolution.X / 2, ClipMapResolution.Y / 2 * LayoutSize, ClipMapResolution.Z / 2);
             if (VoxelUtils.DisposeTextureBySpecs(clipmap.ClipMaps, ClipMapTextureResolution, pixelFormat))
             {
-                clipmap.ClipMaps = Xenko.Graphics.Texture.New3D(context.device, (int)ClipMapTextureResolution.X, (int)ClipMapTextureResolution.Y, (int)ClipMapTextureResolution.Z, new MipMapCount(false), pixelFormat, TextureFlags.ShaderResource | TextureFlags.UnorderedAccess);
+                clipmap.ClipMaps = Stride.Graphics.Texture.New3D(context.device, (int)ClipMapTextureResolution.X, (int)ClipMapTextureResolution.Y, (int)ClipMapTextureResolution.Z, new MipMapCount(false), pixelFormat, TextureFlags.ShaderResource | TextureFlags.UnorderedAccess);
             }
             if (VoxelUtils.DisposeTextureBySpecs(clipmap.MipMaps, MipMapResolution, pixelFormat))
             {
@@ -161,13 +161,13 @@ namespace Xenko.Rendering.Voxels
 
                 Vector3 MipMapResolutionMax = MipMapResolution;
 
-                clipmap.MipMaps = Xenko.Graphics.Texture.New3D(context.device, (int)MipMapResolution.X, (int)MipMapResolution.Y, (int)MipMapResolution.Z, new MipMapCount(true), pixelFormat, TextureFlags.ShaderResource | TextureFlags.UnorderedAccess);
+                clipmap.MipMaps = Stride.Graphics.Texture.New3D(context.device, (int)MipMapResolution.X, (int)MipMapResolution.Y, (int)MipMapResolution.Z, new MipMapCount(true), pixelFormat, TextureFlags.ShaderResource | TextureFlags.UnorderedAccess);
 
-                clipmap.TempMipMaps = new Xenko.Graphics.Texture[MipMapCount];
+                clipmap.TempMipMaps = new Stride.Graphics.Texture[MipMapCount];
 
                 for (int i = 0; i < clipmap.TempMipMaps.Length; i++)
                 {
-                    clipmap.TempMipMaps[i] = Xenko.Graphics.Texture.New3D(context.device, (int)MipMapResolutionMax.X, (int)MipMapResolutionMax.Y, (int)MipMapResolutionMax.Z, false, pixelFormat, TextureFlags.ShaderResource | TextureFlags.UnorderedAccess);
+                    clipmap.TempMipMaps[i] = Stride.Graphics.Texture.New3D(context.device, (int)MipMapResolutionMax.X, (int)MipMapResolutionMax.Y, (int)MipMapResolutionMax.Z, false, pixelFormat, TextureFlags.ShaderResource | TextureFlags.UnorderedAccess);
 
                     MipMapResolutionMax /= 2;
                 }
@@ -240,9 +240,9 @@ namespace Xenko.Rendering.Voxels
             }
         }
 
-        Xenko.Rendering.ComputeEffect.ComputeEffectShader BufferToTexture;
-        Xenko.Rendering.ComputeEffect.ComputeEffectShader BufferToTextureColumns;
-        Xenko.Rendering.ComputeEffect.ComputeEffectShader ClearBuffer;
+        Stride.Rendering.ComputeEffect.ComputeEffectShader BufferToTexture;
+        Stride.Rendering.ComputeEffect.ComputeEffectShader BufferToTextureColumns;
+        Stride.Rendering.ComputeEffect.ComputeEffectShader ClearBuffer;
 
         public void PostProcess(VoxelStorageContext storageContext, RenderDrawContext drawContext, ProcessedVoxelVolume data)
         {
@@ -253,9 +253,9 @@ namespace Xenko.Rendering.Voxels
             var context = drawContext.RenderContext;
             if (ClearBuffer == null)
             {
-                ClearBuffer = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(context) { ShaderSourceName = "ClearBuffer" };
-                BufferToTexture = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(context) { ShaderSourceName = "BufferToTextureEffect" };
-                BufferToTextureColumns = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(context) { ShaderSourceName = "BufferToTextureColumnsEffect" };
+                ClearBuffer = new Stride.Rendering.ComputeEffect.ComputeEffectShader(context) { ShaderSourceName = "ClearBuffer" };
+                BufferToTexture = new Stride.Rendering.ComputeEffect.ComputeEffectShader(context) { ShaderSourceName = "BufferToTextureEffect" };
+                BufferToTextureColumns = new Stride.Rendering.ComputeEffect.ComputeEffectShader(context) { ShaderSourceName = "BufferToTextureColumnsEffect" };
             }
 
             bool VoxelsAreIndependent = true;

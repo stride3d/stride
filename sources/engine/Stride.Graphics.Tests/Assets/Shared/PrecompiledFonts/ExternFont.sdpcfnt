@@ -1,6 +1,6 @@
 !PregeneratedSpriteFont
 Id: 9db45af0-fe3a-44c8-a533-b7d8f0ff3e5b
-SerializedVersion: {Xenko: 1.7.0-alpha01}
+SerializedVersion: {Stride: 1.7.0-alpha01}
 Tags: []
 OriginalFont: 2382194a-83fb-45fb-96e6-27fae1056e99:StaticFonts/ExternFont
 FontDataFile: ../../../../../data/tests/PrecompileFonts/ExternFont (Precompiled).png

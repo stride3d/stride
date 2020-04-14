@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Presentation.Controls;
-using Xenko.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels;
-using Xenko.Assets.Presentation.ViewModel;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Presentation.Controls;
+using Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels;
+using Stride.Assets.Presentation.ViewModel;
 
-namespace Xenko.Assets.Presentation.AssetEditors.SpriteEditor.Views
+namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views
 {
     /// <summary>
     /// Interaction logic for SpriteEditorView.xaml

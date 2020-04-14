@@ -5,7 +5,7 @@ Scope: Session
 Description: Demonstrates how to use a custom effect
 FullDescription: This sample demonstrates how to create, load, and use a basic UV scrolling effect.
 Group: Samples/Graphics
-Icon: .xktpl/Icon.png
+Icon: .sdtpl/Icon.png
 DefaultOutputName: CustomEffect
 Screenshots:
-    - .xktpl/screenshot_small.png
+    - .sdtpl/screenshot_small.png

@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Shaders.Parser;
-using Xenko.Core.Shaders.Ast;
+using Stride.Core.Shaders.Parser;
+using Stride.Core.Shaders.Ast;
 
-namespace Xenko.Core.Shaders.Utility
+namespace Stride.Core.Shaders.Utility
 {
     public class SpanConverter
     {

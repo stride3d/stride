@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -22,11 +22,11 @@
 // THE SOFTWARE.
 
 using System;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
     /// <summary>
     /// A GameSystem that allows to draw to another window or control. Currently only valid on desktop with Windows.Forms.
@@ -182,7 +182,7 @@ namespace Xenko.Games
                 var presentationParameters = new PresentationParameters((int)size.X, (int)size.Y, Window.NativeWindow, resizeFormat) { DepthStencilFormat = PreferredDepthStencilFormat };
                 presentationParameters.PresentationInterval = PresentInterval.Immediate;
 
-#if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
+#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
                 if (Game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
                 {
                     Presenter = new WindowsMixedRealityGraphicsPresenter(GraphicsDevice, presentationParameters);

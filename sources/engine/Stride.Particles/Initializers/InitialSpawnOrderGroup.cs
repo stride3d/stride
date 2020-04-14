@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Xenko.Core;
-using Xenko.Particles;
-using Xenko.Particles.Initializers;
+using Stride.Core;
+using Stride.Particles;
+using Stride.Particles.Initializers;
 
-namespace Xenko.Particles.Initializers
+namespace Stride.Particles.Initializers
 {
     /// <summary>
     /// The <see cref="InitialSpawnOrderGroup"/> is an initializer which assigns all particles an increasing number based on the order of their spawning while keeping all particles spawned in the same frame in a separate spawn group (this is important for ribbons)

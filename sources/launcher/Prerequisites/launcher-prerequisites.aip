@@ -8,13 +8,13 @@
     <ROW Property="AI_FINDEXE_TITLE" Value="Select the installation package for [|ProductName]" ValueLocId="AI.Property.FindExeTitle"/>
     <ROW Property="ALLUSERS" Value="1" MultiBuildValue="DefaultBuild:"/>
     <ROW Property="ARPCOMMENTS" Value="This installer database contains the logic and data required to install [|ProductName]." ValueLocId="*"/>
-    <ROW Property="ARPCONTACT" Value="contact@xenko.com"/>
+    <ROW Property="ARPCONTACT" Value="contact@stride3d.net"/>
     <ROW Property="ARPNOREPAIR" MultiBuildValue="DefaultBuild:1"/>
-    <ROW Property="ARPURLINFOABOUT" Value="http://xenko.com"/>
-    <ROW Property="Manufacturer" Value="Xenko"/>
+    <ROW Property="ARPURLINFOABOUT" Value="http://stride3d.net"/>
+    <ROW Property="Manufacturer" Value="Stride"/>
     <ROW Property="ProductCode" Value="2057:{12696D67-B2C7-4A9A-A117-0807F79D37E0} " Type="16"/>
     <ROW Property="ProductLanguage" Value="2057"/>
-    <ROW Property="ProductName" Value="Xenko Launcher Prerequisites"/>
+    <ROW Property="ProductName" Value="Stride Launcher Prerequisites"/>
     <ROW Property="ProductVersion" Value="1.0.0" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
     <ROW Property="UpgradeCode" Value="{78A7BD50-E735-4C31-AF8B-E81F2A65B8EE}"/>

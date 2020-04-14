@@ -1,6 +1,6 @@
 !Animation
 Id: 06662a6f-f415-43a9-8076-64c6e706754b
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../data/tests/knight/scenes/he03_run.fbx
 ClipDuration:

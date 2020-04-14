@@ -1,6 +1,6 @@
 !SceneAsset
 Id: feaab56f-3f56-48e0-83be-dfe2f38f65a6
-SerializedVersion: {Xenko: 3.1.0.1}
+SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
 ChildrenIds: []
 Parent: b1ceb6db-e76e-4c37-be81-72941ddd6b9a:DynamicScene
@@ -231,6 +231,6 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    ac68af4b33b31a5cdb4abbb40a2779fa: !Xenko.Navigation.NavigationBoundingBoxComponent,Xenko.Navigation
+                    ac68af4b33b31a5cdb4abbb40a2779fa: !Stride.Navigation.NavigationBoundingBoxComponent,Stride.Navigation
                         Id: f2d7142a-1536-468a-821c-361008f0a6de
                         Size: {X: 12.0, Y: 4.0, Z: 12.0}

@@ -1,6 +1,6 @@
 !Texture
 Id: 73a678b3-1b69-437f-a447-29d9b473864c
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/water.jpg
 Type: !ColorTextureType

@@ -1,6 +1,6 @@
 !Texture
 Id: bfd80f6e-ee15-401d-a04d-975e888a2164
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../Resources/Textures/normalmapLower.png
 Type: !NormalMapTextureType {}

@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		C4000C251C47A2B500DE7850 /* usbmux.py in Resources */ = {isa = PBXBuildFile; fileRef = C4000C241C47A2B500DE7850 /* usbmux.py */; };
-		C4000C261C47A2BA00DE7850 /* xenko-ios-relay.py in Resources */ = {isa = PBXBuildFile; fileRef = C4000C231C47A2A100DE7850 /* xenko-ios-relay.py */; };
+		C4000C261C47A2BA00DE7850 /* stride-ios-relay.py in Resources */ = {isa = PBXBuildFile; fileRef = C4000C231C47A2A100DE7850 /* stride-ios-relay.py */; };
 		C4488CEA1C3F9C5F00104B85 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = C4488CE91C3F9C5F00104B85 /* AppDelegate.m */; };
 		C4488CED1C3F9C5F00104B85 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C4488CEC1C3F9C5F00104B85 /* main.m */; };
 		C4488CF01C3F9C5F00104B85 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C4488CEF1C3F9C5F00104B85 /* ViewController.m */; };
@@ -17,9 +17,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C4000C231C47A2A100DE7850 /* xenko-ios-relay.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "xenko-ios-relay.py"; sourceTree = "<group>"; };
+		C4000C231C47A2A100DE7850 /* stride-ios-relay.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "stride-ios-relay.py"; sourceTree = "<group>"; };
 		C4000C241C47A2B500DE7850 /* usbmux.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = usbmux.py; sourceTree = "<group>"; };
-		C4488CE51C3F9C5F00104B85 /* Xenko iOS Relay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Xenko iOS Relay.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C4488CE51C3F9C5F00104B85 /* Stride iOS Relay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Stride iOS Relay.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4488CE81C3F9C5F00104B85 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		C4488CE91C3F9C5F00104B85 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		C4488CEC1C3F9C5F00104B85 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -44,7 +44,7 @@
 		C4488CDC1C3F9C5F00104B85 = {
 			isa = PBXGroup;
 			children = (
-				C4488CE71C3F9C5F00104B85 /* Xenko iOS Relay */,
+				C4488CE71C3F9C5F00104B85 /* Stride iOS Relay */,
 				C4488CE61C3F9C5F00104B85 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -52,16 +52,16 @@
 		C4488CE61C3F9C5F00104B85 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C4488CE51C3F9C5F00104B85 /* Xenko iOS Relay.app */,
+				C4488CE51C3F9C5F00104B85 /* Stride iOS Relay.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		C4488CE71C3F9C5F00104B85 /* Xenko iOS Relay */ = {
+		C4488CE71C3F9C5F00104B85 /* Stride iOS Relay */ = {
 			isa = PBXGroup;
 			children = (
 				C4000C241C47A2B500DE7850 /* usbmux.py */,
-				C4000C231C47A2A100DE7850 /* xenko-ios-relay.py */,
+				C4000C231C47A2A100DE7850 /* stride-ios-relay.py */,
 				C4488CE81C3F9C5F00104B85 /* AppDelegate.h */,
 				C4488CE91C3F9C5F00104B85 /* AppDelegate.m */,
 				C4488CEE1C3F9C5F00104B85 /* ViewController.h */,
@@ -71,7 +71,7 @@
 				C4488CF61C3F9C5F00104B85 /* Info.plist */,
 				C4488CEB1C3F9C5F00104B85 /* Supporting Files */,
 			);
-			path = "Xenko iOS Relay";
+			path = "Stride iOS Relay";
 			sourceTree = "<group>";
 		};
 		C4488CEB1C3F9C5F00104B85 /* Supporting Files */ = {
@@ -85,9 +85,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		C4488CE41C3F9C5F00104B85 /* Xenko iOS Relay */ = {
+		C4488CE41C3F9C5F00104B85 /* Stride iOS Relay */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C4488CF91C3F9C5F00104B85 /* Build configuration list for PBXNativeTarget "Xenko iOS Relay" */;
+			buildConfigurationList = C4488CF91C3F9C5F00104B85 /* Build configuration list for PBXNativeTarget "Stride iOS Relay" */;
 			buildPhases = (
 				C4488CE11C3F9C5F00104B85 /* Sources */,
 				C4488CE21C3F9C5F00104B85 /* Frameworks */,
@@ -97,9 +97,9 @@
 			);
 			dependencies = (
 			);
-			name = "Xenko iOS Relay";
-			productName = "Xenko iOS Relay";
-			productReference = C4488CE51C3F9C5F00104B85 /* Xenko iOS Relay.app */;
+			name = "Stride iOS Relay";
+			productName = "Stride iOS Relay";
+			productReference = C4488CE51C3F9C5F00104B85 /* Stride iOS Relay.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -109,14 +109,14 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0720;
-				ORGANIZATIONNAME = "Xenko";
+				ORGANIZATIONNAME = "Stride";
 				TargetAttributes = {
 					C4488CE41C3F9C5F00104B85 = {
 						CreatedOnToolsVersion = 7.2;
 					};
 				};
 			};
-			buildConfigurationList = C4488CE01C3F9C5F00104B85 /* Build configuration list for PBXProject "Xenko iOS Relay" */;
+			buildConfigurationList = C4488CE01C3F9C5F00104B85 /* Build configuration list for PBXProject "Stride iOS Relay" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -129,7 +129,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				C4488CE41C3F9C5F00104B85 /* Xenko iOS Relay */,
+				C4488CE41C3F9C5F00104B85 /* Stride iOS Relay */,
 			);
 		};
 /* End PBXProject section */
@@ -139,7 +139,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C4000C261C47A2BA00DE7850 /* xenko-ios-relay.py in Resources */,
+				C4000C261C47A2BA00DE7850 /* stride-ios-relay.py in Resources */,
 				C4000C251C47A2B500DE7850 /* usbmux.py in Resources */,
 				C4488CF21C3F9C5F00104B85 /* Assets.xcassets in Resources */,
 				C4488CF51C3F9C5F00104B85 /* Main.storyboard in Resources */,
@@ -257,10 +257,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = "Xenko iOS Relay/Info.plist";
+				INFOPLIST_FILE = "Stride iOS Relay/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
-				PRODUCT_BUNDLE_IDENTIFIER = "Xenko-iOS-Relay";
+				PRODUCT_BUNDLE_IDENTIFIER = "Stride-iOS-Relay";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -270,10 +270,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = "Xenko iOS Relay/Info.plist";
+				INFOPLIST_FILE = "Stride iOS Relay/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
-				PRODUCT_BUNDLE_IDENTIFIER = "Xenko-iOS-Relay";
+				PRODUCT_BUNDLE_IDENTIFIER = "Stride-iOS-Relay";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -281,7 +281,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C4488CE01C3F9C5F00104B85 /* Build configuration list for PBXProject "Xenko iOS Relay" */ = {
+		C4488CE01C3F9C5F00104B85 /* Build configuration list for PBXProject "Stride iOS Relay" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C4488CF71C3F9C5F00104B85 /* Debug */,
@@ -290,7 +290,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C4488CF91C3F9C5F00104B85 /* Build configuration list for PBXNativeTarget "Xenko iOS Relay" */ = {
+		C4488CF91C3F9C5F00104B85 /* Build configuration list for PBXNativeTarget "Stride iOS Relay" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C4488CFA1C3F9C5F00104B85 /* Debug */,

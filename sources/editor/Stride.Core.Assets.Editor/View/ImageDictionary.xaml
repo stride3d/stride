@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:assets="clr-namespace:Xenko.Core.Assets;assembly=Xenko.Core.Assets"
-                    xmlns:core="clr-namespace:Xenko.Core;assembly=Xenko.Core">
+                    xmlns:assets="clr-namespace:Stride.Core.Assets;assembly=Stride.Core.Assets"
+                    xmlns:core="clr-namespace:Stride.Core;assembly=Stride.Core">
 
   <!--  Generic action-related icons  -->
   <DrawingImage x:Key="ImageNew">
@@ -337,7 +337,7 @@
   </DrawingImage>
 
   <!--  Package icons  -->
-  <!--  ImagePackage: This icon can be considered as default Xenko solution  -->
+  <!--  ImagePackage: This icon can be considered as default Stride solution  -->
   <DrawingImage x:Key="ImagePackage">
     <DrawingImage.Drawing>
       <DrawingGroup>

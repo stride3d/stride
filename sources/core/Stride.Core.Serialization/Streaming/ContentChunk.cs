@@ -1,5 +1,5 @@
 #define USE_UNMANAGED
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -7,9 +7,9 @@ using System.Diagnostics;
 #if !USE_UNMANAGED
 using System.Runtime.InteropServices;
 #endif
-using Xenko.Core.IO;
+using Stride.Core.IO;
 
-namespace Xenko.Core.Streaming
+namespace Stride.Core.Streaming
 {
     /// <summary>
     /// Content storage data chunk.

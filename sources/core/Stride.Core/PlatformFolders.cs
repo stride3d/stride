@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.IO;
 using System.Reflection;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core
+namespace Stride.Core
 {
     /// <summary>
     /// Folders used for the running platform.
@@ -94,13 +94,13 @@ namespace Xenko.Core
         [NotNull]
         private static string GetApplicationLocalDirectory()
         {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             var directory = Path.Combine(PlatformAndroid.Context.FilesDir.AbsolutePath, "local");
             Directory.CreateDirectory(directory);
             return directory;
-#elif XENKO_PLATFORM_UWP
+#elif STRIDE_PLATFORM_UWP
             return Windows.Storage.ApplicationData.Current.LocalFolder.Path;
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
             var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "..", "Library", "Local");
             Directory.CreateDirectory(directory);
             return directory;
@@ -115,13 +115,13 @@ namespace Xenko.Core
         [NotNull]
         private static string GetApplicationRoamingDirectory()
         {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             var directory = Path.Combine(PlatformAndroid.Context.FilesDir.AbsolutePath, "roaming");
             Directory.CreateDirectory(directory);
             return directory;
-#elif XENKO_PLATFORM_UWP
+#elif STRIDE_PLATFORM_UWP
             return Windows.Storage.ApplicationData.Current.RoamingFolder.Path;
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
             var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "..", "Library", "Roaming");
             Directory.CreateDirectory(directory);
             return directory;
@@ -136,11 +136,11 @@ namespace Xenko.Core
         [NotNull]
         private static string GetApplicationCacheDirectory()
         {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             var directory = Path.Combine(PlatformAndroid.Context.FilesDir.AbsolutePath, "cache");
-#elif XENKO_PLATFORM_UWP
+#elif STRIDE_PLATFORM_UWP
             var directory = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "cache");
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
             var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "..", "Library", "Caches");
 #else
             // TODO: Should we add "local" ?
@@ -152,7 +152,7 @@ namespace Xenko.Core
 
         private static string GetApplicationExecutablePath()
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_MONO_MOBILE || XENKO_PLATFORM_UNIX
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE || STRIDE_PLATFORM_UNIX
             return Assembly.GetEntryAssembly()?.Location;
 #else
             return null;
@@ -168,11 +168,11 @@ namespace Xenko.Core
         [NotNull]
         private static string GetApplicationTemporaryDirectory()
         {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             return PlatformAndroid.Context.CacheDir.AbsolutePath;
-#elif XENKO_PLATFORM_UWP
+#elif STRIDE_PLATFORM_UWP
             return Windows.Storage.ApplicationData.Current.TemporaryFolder.Path;
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
             return Path.Combine (Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "..", "tmp");
 #else
             return Path.GetTempPath();
@@ -187,18 +187,18 @@ namespace Xenko.Core
 
         private static string GetApplicationExecutableDiretory()
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_MONO_MOBILE || XENKO_PLATFORM_UNIX
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE || STRIDE_PLATFORM_UNIX
             var executableName = GetApplicationExecutablePath();
             if (!string.IsNullOrEmpty(executableName))
             {
                 return Path.GetDirectoryName(executableName);
             }
-    #if XENKO_RUNTIME_CORECLR
+    #if STRIDE_RUNTIME_CORECLR
             return AppContext.BaseDirectory;
     #else
             return AppDomain.CurrentDomain.BaseDirectory;
     #endif
-#elif XENKO_PLATFORM_UWP
+#elif STRIDE_PLATFORM_UWP
             return Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
 #else
             throw new NotImplementedException();
@@ -208,7 +208,7 @@ namespace Xenko.Core
         static string FindCoreAssemblyDirectory(string entryDirectory)
         {
             //simple case
-            var corePath = Path.Combine(entryDirectory, "Xenko.Core.dll");
+            var corePath = Path.Combine(entryDirectory, "Stride.Core.dll");
             if (File.Exists(corePath))
             {
                 return entryDirectory;
@@ -217,7 +217,7 @@ namespace Xenko.Core
             {
                 foreach (var subfolder in Directory.GetDirectories(entryDirectory))
                 {
-                    corePath = Path.Combine(subfolder, "Xenko.Core.dll");
+                    corePath = Path.Combine(subfolder, "Stride.Core.dll");
                     if (File.Exists(corePath))
                     {
                         return subfolder;
@@ -232,11 +232,11 @@ namespace Xenko.Core
         [NotNull]
         private static string GetApplicationDataDirectory()
         {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             return Android.OS.Environment.ExternalStorageDirectory.AbsolutePath + "/Android/data/" + PlatformAndroid.Context.PackageName + "/data";
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
             return Foundation.NSBundle.MainBundle.BundlePath + "/data";
-#elif XENKO_PLATFORM_UWP
+#elif STRIDE_PLATFORM_UWP
             return Windows.ApplicationModel.Package.Current.InstalledLocation.Path + @"\data";
 #else
             return Path.Combine(GetApplicationBinaryDirectory(), "data");

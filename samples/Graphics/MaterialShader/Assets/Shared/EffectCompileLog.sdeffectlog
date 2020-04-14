@@ -1,6 +1,6 @@
 ﻿---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.VertexStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -131,7 +131,7 @@ EffectName: BackgroundShader
 UsedParameters: {}
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.VertexStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -256,9 +256,9 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1

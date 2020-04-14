@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections;
@@ -11,34 +11,34 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Assets.Editor.Components.Properties;
-using Xenko.Core.Assets.Editor.Components.Transactions;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.Settings;
-using Xenko.Core.Assets.Editor.ViewModel.Logs;
-using Xenko.Core.Assets.Editor.ViewModel.Progress;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.VisualStudio;
-using Xenko.Core.Presentation.Collections;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Dirtiables;
-using Xenko.Core.Presentation.Quantum.ViewModels;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.Presentation.Windows;
-using Xenko.Core.Translation;
-using Xenko.Core.Packages;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Components.Transactions;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModel.Logs;
+using Stride.Core.Assets.Editor.ViewModel.Progress;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Templates;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.VisualStudio;
+using Stride.Core.Presentation.Collections;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Dirtiables;
+using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.Windows;
+using Stride.Core.Translation;
+using Stride.Core.Packages;
 
-namespace Xenko.Core.Assets.Editor.ViewModel
+namespace Stride.Core.Assets.Editor.ViewModel
 {
     public class SessionViewModel : DirtiableEditableViewModel, IAssetFinder
     {
@@ -1531,7 +1531,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 string error;
                 if (!asset.CanDelete(out error))
                 {
-                    error = string.Format(Tr._p("Message", "Xenko can't delete the {0} asset. {1}{2}"), asset.Url, Environment.NewLine, error);
+                    error = string.Format(Tr._p("Message", "Stride can't delete the {0} asset. {1}{2}"), asset.Url, Environment.NewLine, error);
                     await Dialogs.MessageBox(error, MessageBoxButton.OK, MessageBoxImage.Error);
                     return false;
                 }
@@ -1541,7 +1541,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 string error;
                 if (!directory.CanDelete(out error))
                 {
-                    error = string.Format(Tr._p("Message", "Xenko can't delete the {0} folder. {1}{2}"), directory.Name, Environment.NewLine, error);
+                    error = string.Format(Tr._p("Message", "Stride can't delete the {0} folder. {1}{2}"), directory.Name, Environment.NewLine, error);
                     await Dialogs.MessageBox(error, MessageBoxButton.OK, MessageBoxImage.Error);
                     return false;
                 }
@@ -1587,7 +1587,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                     // Note: this should never happen. UI rules should ensure that the user cannot attempt a system package deletion.
                     if (selectedPackage.Package.IsSystem && !systemPackageWarningDisplayed)
                     {
-                        await Dialogs.MessageBox(Tr._p("Message", "Xenko can't delete the system package."), MessageBoxButton.OK, MessageBoxImage.Information);
+                        await Dialogs.MessageBox(Tr._p("Message", "Stride can't delete the system package."), MessageBoxButton.OK, MessageBoxImage.Information);
                         systemPackageWarningDisplayed = true;
                         continue;
                     }

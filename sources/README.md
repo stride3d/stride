@@ -1,4 +1,4 @@
-Xenko Sources
+Stride Sources
 =============
 
 Folders and projects layout
@@ -6,38 +6,38 @@ Folders and projects layout
 
 ### core ###
 
-* __Xenko.Core__:
+* __Stride.Core__:
    Reference counting, dependency property system (PropertyContainer/PropertyKey), low-level serialization, low-level memory operations (Utilities and NativeStream).
-* __Xenko.Core.Mathematics__:
-   Mathematics library (despite its name, no dependencies on Xenko.Core).
-* __Xenko.Core.IO__:
+* __Stride.Core.Mathematics__:
+   Mathematics library (despite its name, no dependencies on Stride.Core).
+* __Stride.Core.IO__:
    Virtual File System.
-* __Xenko.Core.Serialization__:
+* __Stride.Core.Serialization__:
    High-level serialization and git-like CAS storage system.
-* __Xenko.Core.MicroThreading__:
+* __Stride.Core.MicroThreading__:
    Micro-threading library based on C# 5.0 async (a.k.a. stackless programming)
-* __Xenko.Core.AssemblyProcessor__:
+* __Stride.Core.AssemblyProcessor__:
    Internal tool used to patch assemblies to add various features, such as Serialization auto-generation, various memory/pinning operations, module initializers, etc...
    
 ### presentation ###
 
-* __Xenko.Core.Presentation__: WPF UI library (themes, controls such as propertygrid, behaviors, etc...)
-* __Xenko.Core.SampleApp__: Simple property grid example.
-* __Xenko.Core.Quantum__: Advanced ViewModel library that gives ability to synchronize view-models over network (w/ diff), and at requested time intervals. That way, view models can be defined within engine without any UI dependencies.
+* __Stride.Core.Presentation__: WPF UI library (themes, controls such as propertygrid, behaviors, etc...)
+* __Stride.Core.SampleApp__: Simple property grid example.
+* __Stride.Core.Quantum__: Advanced ViewModel library that gives ability to synchronize view-models over network (w/ diff), and at requested time intervals. That way, view models can be defined within engine without any UI dependencies.
 
 ### buildengine ###
 
-* __Xenko.Core.BuildEngine.Common__:
+* __Stride.Core.BuildEngine.Common__:
    Common parts of the build engine. It can be reused to add new build steps, build commands, and also to build a new custom build engine client.
-* __Xenko.Core.BuildEngine__: Default implementation of build engine tool (executable)
-* __Xenko.Core.BuildEngine.Monitor__: WPF Display live results of build engine (similar to IncrediBuild)
-* __Xenko.Core.BuildEngine.Editor__: WPF Build engine rules editor
+* __Stride.Core.BuildEngine__: Default implementation of build engine tool (executable)
+* __Stride.Core.BuildEngine.Monitor__: WPF Display live results of build engine (similar to IncrediBuild)
+* __Stride.Core.BuildEngine.Editor__: WPF Build engine rules editor
 and used by most projects.
 
 ### shader ###
 
-* __Irony__: Parsing library, used by Xenko.Core.Shaders. Should later be replaced by ANTLR4.
-* __Xenko.Core.Shaders__: Shader parsing, type analysis and conversion library (used by HLSL->GLSL and Xenko Shader Language)
+* __Irony__: Parsing library, used by Stride.Core.Shaders. Should later be replaced by ANTLR4.
+* __Stride.Core.Shaders__: Shader parsing, type analysis and conversion library (used by HLSL->GLSL and Stride Shader Language)
 
 ### targets ###
 
@@ -61,19 +61,19 @@ Simply add the projects you want to use directly in your Visual Studio solution.
 
 ### Optional: Activate assembly processor ###
 
-If you want to use auto-generated `Serialization` code, some of `Utilities` functions or `ModuleInitializer`, you need to use __Xenko.Core.AssemblyProcessor__.
+If you want to use auto-generated `Serialization` code, some of `Utilities` functions or `ModuleInitializer`, you need to use __Stride.Core.AssemblyProcessor__.
 
 Steps:
 
-* Include both __Xenko.Core.AssemblyProcessor__ and __Xenko.Core.AssemblyProcessor.Common__ in your solution.
-* Add either a __Xenko.Core.PostSettings.Local.targets__ or a __YourSolutionName.PostSettings.Local.targets__ in your solution folder, with this content:
+* Include both __Stride.Core.AssemblyProcessor__ and __Stride.Core.AssemblyProcessor.Common__ in your solution.
+* Add either a __Stride.Core.PostSettings.Local.targets__ or a __YourSolutionName.PostSettings.Local.targets__ in your solution folder, with this content:
 
 ```xml
 <!-- Build file pre-included automatically by all projects in the solution -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <!-- Enable assembly processor -->
-    <XenkoAssemblyProcessorGlobal>true</XenkoAssemblyProcessorGlobal>
+    <StrideAssemblyProcessorGlobal>true</StrideAssemblyProcessorGlobal>
   </PropertyGroup>
 </Project>
 ```

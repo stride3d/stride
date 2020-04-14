@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Windows;
@@ -8,8 +8,8 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Xenko.Core.Presentation.Behaviors;
-using Xenko.Core.Presentation.Extensions;
+using Stride.Core.Presentation.Behaviors;
+using Stride.Core.Presentation.Extensions;
 using System.Linq;
 using GraphX;
 using System.Diagnostics;
@@ -22,10 +22,10 @@ using System.Collections.ObjectModel;
 using GraphX.Controls.Models;
 using GraphX.PCL.Common.Models;
 using QuickGraph;
-using Xenko.Core.Extensions;
-using Xenko.Core.Presentation.Graph.ViewModel;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.Graph.ViewModel;
 
-namespace Xenko.Core.Presentation.Graph.Behaviors
+namespace Stride.Core.Presentation.Graph.Behaviors
 {
     /// <summary>
     /// 

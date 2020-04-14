@@ -5,7 +5,7 @@ using ReactiveUI;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace xunit.runner.xenko.ViewModels
+namespace xunit.runner.stride.ViewModels
 {
     public class TestGroupViewModel : TestNodeViewModel
     {

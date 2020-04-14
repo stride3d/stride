@@ -1,6 +1,6 @@
 ﻿---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -144,7 +144,7 @@ EffectName: BackgroundShader
 UsedParameters: {}
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -218,7 +218,7 @@ UsedParameters:
             ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -292,7 +292,7 @@ UsedParameters:
             ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -508,7 +508,7 @@ UsedParameters:
         GenericArguments: [ParticleCustomShader.IntensityMap, TEXCOORD1, Material.Sampler.i0, r, Material.TextureScale.i1, Material.TextureOffset.i1]
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -587,7 +587,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -666,7 +666,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -745,7 +745,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -794,7 +794,7 @@ UsedParameters:
             ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -873,7 +873,7 @@ UsedParameters:
             ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -943,7 +943,7 @@ UsedParameters:
             ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -1075,7 +1075,7 @@ UsedParameters:
         GenericArguments: [ParticleBase.EmissiveValue]
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -1149,7 +1149,7 @@ UsedParameters:
             ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -1233,7 +1233,7 @@ UsedParameters:
             ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -1328,7 +1328,7 @@ UsedParameters:
             ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -1447,7 +1447,7 @@ UsedParameters:
             ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -1525,7 +1525,7 @@ UsedParameters:
             ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -1613,7 +1613,7 @@ UsedParameters:
             ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -1712,7 +1712,7 @@ UsedParameters:
             ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -1851,7 +1851,7 @@ UsedParameters:
                 GenericArguments: [ParticleBase.EmissiveMap, TEXCOORD0, Material.Sampler.i0, rgba, Material.TextureScale, Material.TextureOffset]
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -1933,15 +1933,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -2013,15 +2013,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -2093,15 +2093,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -2218,15 +2218,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -2303,13 +2303,13 @@ UsedParameters:
                 ClassName: MaterialStream
             - !ShaderClassSource
                 ClassName: MaterialPixelShadingStream
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -2386,13 +2386,13 @@ UsedParameters:
                 ClassName: MaterialStream
             - !ShaderClassSource
                 ClassName: MaterialPixelShadingStream
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -2469,13 +2469,13 @@ UsedParameters:
                 ClassName: MaterialStream
             - !ShaderClassSource
                 ClassName: MaterialPixelShadingStream
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -2522,15 +2522,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -2598,15 +2598,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -2683,15 +2683,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -2813,15 +2813,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -2893,15 +2893,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -2994,15 +2994,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -3084,15 +3084,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -3209,15 +3209,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -3293,15 +3293,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -3387,15 +3387,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -3492,15 +3492,15 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -3621,9 +3621,9 @@ UsedParameters:
     Lighting.EnvironmentLights:
         - !ShaderClassSource
             ClassName: LightSimpleAmbient
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1

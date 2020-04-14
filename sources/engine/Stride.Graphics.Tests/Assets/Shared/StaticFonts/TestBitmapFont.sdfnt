@@ -1,6 +1,6 @@
 !SpriteFont
 Id: 21069bb0-91b2-4570-be00-a70a1df67cb1
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 FontSource: !FileFontProvider
     Source: ../../../../../data/tests/TestFont.png

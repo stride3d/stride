@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using Xenko.Metrics.ServerApp.Models;
+using Stride.Metrics.ServerApp.Models;
 
-namespace Xenko.Metrics.ServerApp.Controllers
+namespace Stride.Metrics.ServerApp.Controllers
 {
     /// <summary>
     /// ApiController that provides MVC like View method.

@@ -1,41 +1,41 @@
 <Project>
   <PropertyGroup>
-    <XenkoRuntime>true</XenkoRuntime>
+    <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
-  <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   
   <PropertyGroup>
-    <Description>Core assembly for all Xenko assemblies.</Description>
+    <Description>Core assembly for all Stride assemblies.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
   
   <PropertyGroup>
-    <XenkoNativeOutputName>libcore</XenkoNativeOutputName>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorOptions>--auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
-    <XenkoBuildTags>*</XenkoBuildTags>
+    <StrideNativeOutputName>libcore</StrideNativeOutputName>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>*</StrideBuildTags>
     <RestorePackages>true</RestorePackages>
     <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
   </PropertyGroup>
   
   <Choose>
-    <When Condition=" '$(XenkoPlatform)' == 'Android' ">
+    <When Condition=" '$(StridePlatform)' == 'Android' ">
       <ItemGroup>
         <Reference Include="Mono.Android" />
       </ItemGroup>
     </When>
   </Choose>
   <Choose>
-    <When Condition=" '$(XenkoPlatform)' == 'iOS' ">
+    <When Condition=" '$(StridePlatform)' == 'iOS' ">
       <ItemGroup>
         <Reference Include="Xamarin.iOS" />
       </ItemGroup>
     </When>
   </Choose>
   <Choose>
-    <When Condition=" '$(XenkoNETRuntime)' == 'CoreCLR' ">
+    <When Condition=" '$(StrideNETRuntime)' == 'CoreCLR' ">
       <ItemGroup>
         <None Include="..\..\data\Linux\runtimeconfig.json">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -113,13 +113,13 @@
   </ItemGroup>
   
   <ItemGroup>
-    <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="Xenko.Core.dll.config" />
+    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.Core.dll.config" />
   </ItemGroup>
   
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
   
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 </Project>

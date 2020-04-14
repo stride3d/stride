@@ -1,11 +1,11 @@
-<UserControl x:Class="Xenko.Assets.Presentation.View.AddEntityComponentUserControl"
+<UserControl x:Class="Stride.Assets.Presentation.View.AddEntityComponentUserControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:xk="http://schemas.xenko.com/xaml/presentation"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-             xmlns:local="clr-namespace:Xenko.Assets.Presentation.View"
+             xmlns:local="clr-namespace:Stride.Assets.Presentation.View"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
   <UserControl.Resources>
@@ -19,22 +19,22 @@
     <ToggleButton SnapsToDevicePixels="True" x:Name="ToggleButton">
       <DockPanel Margin="4">
         <Image DockPanel.Dock="Left" Source="{DynamicResource ImageAdd}" Width="16" Height="16" Margin="4,0"/>
-        <TextBlock Text="{xk:Localize Add component}" Margin="4,0"/>
+        <TextBlock Text="{sd:Localize Add component}" Margin="4,0"/>
       </DockPanel>
       <i:Interaction.Behaviors>
-        <xk:ToggleButtonPopupBehavior/>
+        <sd:ToggleButtonPopupBehavior/>
       </i:Interaction.Behaviors>
     </ToggleButton>
     <Popup IsOpen="{Binding Path=IsChecked, Mode=TwoWay, ElementName=ToggleButton}" Placement="Bottom" x:Name="Popup"
                  StaysOpen="False"  AllowsTransparency="True" PopupAnimation="Slide">
-      <xk:FilteringComboBox x:Name="FilteringComboBox"
+      <sd:FilteringComboBox x:Name="FilteringComboBox"
                         ItemsSource="{Binding ComponentTypes}"
                         Text="{Binding SearchToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        Visibility="{Binding AvailableComponentTypes, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:VisibleOrHidden}}}"
+                        Visibility="{Binding AvailableComponentTypes, Converter={sd:Chained {sd:CountEnumerable}, {sd:NumericToBool}, {sd:VisibleOrHidden}}}"
                         ClearTextAfterValidation="True" ValidateOnLostFocus="False"
-                        WatermarkContent="{xk:Localize Search}" >
-        <xk:FilteringComboBox.Template>
-          <ControlTemplate TargetType="{x:Type xk:FilteringComboBox}">
+                        WatermarkContent="{sd:Localize Search}" >
+        <sd:FilteringComboBox.Template>
+          <ControlTemplate TargetType="{x:Type sd:FilteringComboBox}">
             <Grid x:Name="DropDown" SnapsToDevicePixels="True">
               <Border x:Name="DropDownBorder"  Background="{DynamicResource BackgroundBrush}" BorderBrush="Black" BorderThickness="1">
                 <Grid Margin="6" MaxHeight="380">
@@ -49,18 +49,18 @@
                               DockPanel.Dock="Right" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                               ClickMode="Press"
                               Command="{Binding AddNewScriptComponentCommand}" CommandParameter="{Binding SearchToken}"
-                              ToolTip="{xk:Localize New script, Context=ToolTip}" Width="20" Height="20" Padding="2">
+                              ToolTip="{sd:Localize New script, Context=ToolTip}" Width="20" Height="20" Padding="2">
                         <Image Source="{StaticResource ImageNewScript}" Width="16" Height="16"/>
                       </Button>-->
-                      <xk:TextBox x:Name="PART_EditableTextBox" ValidateOnLostFocus="False" VerticalAlignment="Center" Focusable="True"
-                                  WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"
-                                  Text="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox},
+                      <sd:TextBox x:Name="PART_EditableTextBox" ValidateOnLostFocus="False" VerticalAlignment="Center" Focusable="True"
+                                  WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource AncestorType=sd:FilteringComboBox}}"
+                                  Text="{Binding Text, RelativeSource={RelativeSource AncestorType=sd:FilteringComboBox},
                                   UpdateSourceTrigger=PropertyChanged}" ValidateOnTextChange="False" GetFocusOnLoad="True"
                                   IsEnabled="{TemplateBinding IsEnabled}" CancelWithEscape="False"/>
                     </DockPanel>
                     <ListBox x:Name="GroupList" MinWidth="160" VerticalAlignment="Top"
                              ItemsSource="{Binding AvailableComponentTypeGroups}"
-                             IsEnabled="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:InvertBool}}}">
+                             IsEnabled="{Binding Text, RelativeSource={RelativeSource AncestorType=sd:FilteringComboBox}, Converter={sd:Chained {sd:CountEnumerable}, {sd:NumericToBool}, {sd:InvertBool}}}">
                       <ListBox.Style>
                         <Style TargetType="{x:Type ListBox}" BasedOn="{StaticResource {x:Type ListBox}}">
                           <Style.Triggers>
@@ -112,7 +112,7 @@
                         </DataTemplate>
                       </ListBox.ItemTemplate>
                       <i:Interaction.Behaviors>
-                        <xk:ListBoxHighlightedItemBehavior IsEnabled="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Converter={xk:EmptyStringToBool}}"
+                        <sd:ListBoxHighlightedItemBehavior IsEnabled="{Binding Text, RelativeSource={RelativeSource AncestorType=sd:FilteringComboBox}, Converter={sd:EmptyStringToBool}}"
                                                            HighlightedItem="{Binding SelectedGroup, Mode=OneWayToSource}"
                                                            SelectHighlightedWhenEnteringControl="{Binding ElementName=PART_ListBox}"
                                                            UseSelectedItemIfAvailable="True" DelayToUpdate="0.2"/>
@@ -120,18 +120,18 @@
                     </ListBox>
                   </DockPanel>
                   <Separator Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="1" Background="{StaticResource NormalBrush}"
-                             Visibility="{Binding Items.Count, ElementName=PART_ListBox, Converter={xk:VisibleOrCollapsed}}"/>
+                             Visibility="{Binding Items.Count, ElementName=PART_ListBox, Converter={sd:VisibleOrCollapsed}}"/>
                   <ListBox x:Name="PART_ListBox" SnapsToDevicePixels="True" Width="{x:Static local:AddEntityComponentUserControl.ComponentListWidth}"
                            Margin="4" Grid.Column="2" Height="{Binding ActualHeight, ElementName=LeftPanel}"
                            FocusManager.IsFocusScope="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                           ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"
-                           SelectedIndex="{Binding SelectedIndex, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=TwoWay}"
-                           SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=TwoWay}"
-                           SelectedValue="{Binding SelectedValue, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=TwoWay}"
-                           SelectedValuePath="{Binding SelectedValuePath, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=OneWay}"
+                           ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=sd:FilteringComboBox}}"
+                           SelectedIndex="{Binding SelectedIndex, RelativeSource={RelativeSource AncestorType=sd:FilteringComboBox}, Mode=TwoWay}"
+                           SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=sd:FilteringComboBox}, Mode=TwoWay}"
+                           SelectedValue="{Binding SelectedValue, RelativeSource={RelativeSource AncestorType=sd:FilteringComboBox}, Mode=TwoWay}"
+                           SelectedValuePath="{Binding SelectedValuePath, RelativeSource={RelativeSource AncestorType=sd:FilteringComboBox}, Mode=OneWay}"
                            ItemTemplate="{TemplateBinding ItemTemplate}" ItemTemplateSelector="{TemplateBinding ItemTemplateSelector}"
                            ItemStringFormat="{TemplateBinding ItemStringFormat}"
-                           Visibility="{Binding Items.Count, RelativeSource={RelativeSource Self}, Converter={xk:VisibleOrCollapsed}}">
+                           Visibility="{Binding Items.Count, RelativeSource={RelativeSource Self}, Converter={sd:VisibleOrCollapsed}}">
                     <ListBox.ItemContainerStyle>
                       <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                         <Setter Property="Background" Value="Transparent"/>
@@ -142,26 +142,26 @@
               </Border>
             </Grid>
           </ControlTemplate>
-        </xk:FilteringComboBox.Template>
-        <xk:FilteringComboBox.ItemTemplate>
+        </sd:FilteringComboBox.Template>
+        <sd:FilteringComboBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal" Margin="2">
-              <Image Source="{Binding Converter={xk:Chained {xk:AbstractNodeEntryToType}, {xk:TypeToResource}}}" 
+              <Image Source="{Binding Converter={sd:Chained {sd:AbstractNodeEntryToType}, {sd:TypeToResource}}}" 
                  Width="16" Height="16"
                  RenderOptions.BitmapScalingMode="NearestNeighbor" Margin="0,0,4,0"/>
-              <TextBlock Text="{Binding Converter={xk:AbstractNodeEntryToDisplayName}}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+              <TextBlock Text="{Binding Converter={sd:AbstractNodeEntryToDisplayName}}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
             </StackPanel>
           </DataTemplate>
-        </xk:FilteringComboBox.ItemTemplate>
+        </sd:FilteringComboBox.ItemTemplate>
         <i:Interaction.Behaviors>
-          <xk:OnEventCommandBehavior EventName="Validated" 
+          <sd:OnEventCommandBehavior EventName="Validated" 
                                  Command="{Binding AddNewItemCommand}" 
-                                 CommandParameter="{Binding ValidatedItem, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"/>
+                                 CommandParameter="{Binding ValidatedItem, RelativeSource={RelativeSource AncestorType=sd:FilteringComboBox}}"/>
         </i:Interaction.Behaviors>
-      </xk:FilteringComboBox>
+      </sd:FilteringComboBox>
 
       <i:Interaction.Behaviors>
-        <xk:OnEventSetPropertyBehavior EventName="Validated" EventOwnerType="xk:FilteringComboBox" Property="{x:Static Popup.IsOpenProperty}" Value="{xk:False}"/>
+        <sd:OnEventSetPropertyBehavior EventName="Validated" EventOwnerType="sd:FilteringComboBox" Property="{x:Static Popup.IsOpenProperty}" Value="{sd:False}"/>
       </i:Interaction.Behaviors>
     </Popup>
   </Grid>  

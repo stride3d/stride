@@ -1,31 +1,31 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_GRAPHICS_API_OPENGL
+#if STRIDE_GRAPHICS_API_OPENGL
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using OpenTK.Graphics;
-using Xenko.Core;
-using Xenko.Core.Collections;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.Serialization;
-using Xenko.Shaders;
-#if XENKO_GRAPHICS_API_OPENGLES
+using Stride.Core;
+using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.Serialization;
+using Stride.Shaders;
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 #else
 using OpenTK.Graphics.OpenGL;
 #endif
 
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     class EffectProgram : GraphicsResourceBase
     {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
         // The ProgramParameter.ActiveUniformBlocks enum is not defined in OpenTK for OpenGL ES
         private const GetProgramParameterName XkActiveUniformBlocks = (GetProgramParameterName)0x8A36;
         private const ActiveUniformType FloatMat3x2 = (ActiveUniformType)0x8B67;
@@ -67,7 +67,7 @@ void main()
 
         public Dictionary<string, int> Attributes { get; } = new Dictionary<string, int>();
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
         // Fake cbuffer emulation binding
         internal struct Uniform
         {
@@ -188,7 +188,7 @@ void main()
                     GL.AttachShader(ProgramId, shaderId);
                 }
 
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                 // Mark program as retrievable (necessary for later GL.GetProgramBinary).
                 GL.ProgramParameter(ProgramId, ProgramParameterName.ProgramBinaryRetrievableHint, 1);
 #endif
@@ -270,7 +270,7 @@ void main()
             for (int uniformBlockIndex = 0; uniformBlockIndex < uniformBlockCount; ++uniformBlockIndex)
             {
                 // TODO: get previous name to find te actual constant buffer in the reflexion
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                 const int sbCapacity = 128;
                 int length;
                 var sb = new StringBuilder(sbCapacity);
@@ -315,7 +315,7 @@ void main()
                 
                 for (int uniformIndex = 0; uniformIndex < uniformIndices.Length; ++uniformIndex)
                 {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                     int size;
                     ActiveUniformType aut;
                     GL.GetActiveUniform(ProgramId, uniformIndices[uniformIndex], sbCapacity, out length, out size, out aut, sb);
@@ -411,7 +411,7 @@ void main()
 
                 int activeUniformCount;
                 GL.GetProgram(ProgramId, GetProgramParameterName.ActiveUniforms, out activeUniformCount);
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                 var uniformTypes = new int[activeUniformCount];
                 GL.GetActiveUniforms(ProgramId, activeUniformCount, Enumerable.Range(0, activeUniformCount).ToArray(), ActiveUniformParameter.UniformType, uniformTypes);
 #endif
@@ -423,7 +423,7 @@ void main()
 
                 for (int activeUniformIndex = 0; activeUniformIndex < activeUniformCount; ++activeUniformIndex)
                 {
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                     var uniformType = (ActiveUniformType)uniformTypes[activeUniformIndex];
                     var uniformName = GL.GetActiveUniformName(ProgramId, activeUniformIndex);
 #else
@@ -442,7 +442,7 @@ void main()
 
                     switch (uniformType)
                     {
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                         case ActiveUniformType.Sampler1D:
                         case ActiveUniformType.Sampler1DShadow:
                         case ActiveUniformType.IntSampler1D:
@@ -607,7 +607,7 @@ void main()
                 case ActiveUniformType.Sampler2DArrayShadow:
                 case ActiveUniformType.IntSampler2DArray:
                 case ActiveUniformType.UnsignedIntSampler2DArray:
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                 case ActiveUniformType.Sampler1D:
                 case ActiveUniformType.Sampler1DShadow:
                 case ActiveUniformType.Sampler2DRect:
@@ -622,7 +622,7 @@ void main()
                 case ActiveUniformType.UnsignedIntSampler1DArray:
 #endif
                     return 1;
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                 case ActiveUniformType.SamplerBuffer:
                 case ActiveUniformType.IntSamplerBuffer:
                 case ActiveUniformType.UnsignedIntSamplerBuffer:
@@ -690,7 +690,7 @@ void main()
                 case ActiveUniformType.UnsignedIntSampler3D:
                 case ActiveUniformType.UnsignedIntSamplerCube:
                 case ActiveUniformType.UnsignedIntSampler2DArray:
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                 case ActiveUniformType.Sampler1D:
                 case ActiveUniformType.Sampler1DShadow:
                 case ActiveUniformType.Sampler2DRect:
@@ -752,7 +752,7 @@ void main()
                 case ActiveUniformType.UnsignedIntVec3:
                 case ActiveUniformType.UnsignedIntVec4:
                     return EffectParameterType.UInt;
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                 case ActiveUniformType.Sampler1D:
                 case ActiveUniformType.Sampler1DShadow:
                 case ActiveUniformType.IntSampler1D:
@@ -763,7 +763,7 @@ void main()
                 case ActiveUniformType.Sampler2DShadow:
                 case ActiveUniformType.IntSampler2D:
                 case ActiveUniformType.UnsignedIntSampler2D:
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                 case ActiveUniformType.Sampler2DRect:
                 case ActiveUniformType.Sampler2DRectShadow:
                 case ActiveUniformType.IntSampler2DRect:
@@ -784,7 +784,7 @@ void main()
                 case ActiveUniformType.IntSampler2DArray:
                 case ActiveUniformType.UnsignedIntSampler2DArray:
                     return EffectParameterType.Texture2DArray;
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                 case ActiveUniformType.Sampler1DArray:
                 case ActiveUniformType.Sampler1DArrayShadow:
                 case ActiveUniformType.IntSampler1DArray:

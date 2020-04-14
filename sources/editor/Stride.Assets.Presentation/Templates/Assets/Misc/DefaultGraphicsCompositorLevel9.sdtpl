@@ -6,5 +6,5 @@ Scope: Asset
 Description: A graphics compositor used to customize the rendering pipeline. Targets D3D level 9 hardware (LDR without post effects)
 Group: Miscellaneous
 Order: -100
-Icon: ..\.xktpl\GraphicsCompositor.png
+Icon: ..\.sdtpl\GraphicsCompositor.png
 DefaultOutputName: GraphicsCompositor

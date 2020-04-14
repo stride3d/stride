@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Xenko.Core.Shaders.Properties
+namespace Stride.Core.Shaders.Properties
 {
 	public class Resources
 	{
@@ -16,7 +16,7 @@ namespace Xenko.Core.Shaders.Properties
 			{
                 if (object.ReferenceEquals(resourceMan, null)) 
 				{
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Xenko.Core.Shaders.Properties.Resources", typeof(Resources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.Core.Shaders.Properties.Resources", typeof(Resources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

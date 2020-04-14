@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 
-namespace Xenko.Rendering
+namespace Stride.Rendering
 {
     /// <summary>
-    /// Describe the different tessellation methods used in Xenko.
+    /// Describe the different tessellation methods used in Stride.
     /// </summary>
     [Flags]
-    public enum XenkoTessellationMethod
+    public enum StrideTessellationMethod
     {
         /// <summary>
         /// No tessellation

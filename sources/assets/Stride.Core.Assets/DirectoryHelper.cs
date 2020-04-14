@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
 
-namespace Xenko.Core.Assets
+namespace Stride.Core.Assets
 {
     /// <summary>
     /// Helper class that contains methods to retrieve and manipulate SDK locations.
     /// </summary>
     public static class DirectoryHelper
     {
-        private const string XenkoSolution = @"build\Xenko.sln";
-        private const string XenkoNuspec = @"xenko.nuspec";
+        private const string StrideSolution = @"build\Stride.sln";
+        private const string StrideNuspec = @"stride.nuspec";
         private static string packageDirectoryOverride;
 
         /// <summary>
@@ -34,8 +34,8 @@ namespace Xenko.Core.Assets
         public static bool IsRootDevDirectory(string directory)
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));
-            var xenkoSolution = Path.Combine(directory, XenkoSolution);
-            return File.Exists(xenkoSolution);
+            var strideSolution = Path.Combine(directory, StrideSolution);
+            return File.Exists(strideSolution);
         }
     }
 }

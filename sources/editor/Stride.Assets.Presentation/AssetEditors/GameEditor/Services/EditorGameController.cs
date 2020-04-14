@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -6,28 +6,28 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Presentation.Controls;
-using Xenko.Core.Presentation.Services;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
-using Xenko.Editor.Build;
-using Xenko.Editor.EditorGame.ContentLoader;
-using Xenko.Editor.EditorGame.Game;
-using Xenko.Editor.EditorGame.ViewModels;
-using Xenko.Editor.Engine;
-using Xenko.Engine.Processors;
-using Xenko.Games;
-using Xenko.Shaders.Compiler;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Quantum;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Controls;
+using Stride.Core.Presentation.Services;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Editor.Build;
+using Stride.Editor.EditorGame.ContentLoader;
+using Stride.Editor.EditorGame.Game;
+using Stride.Editor.EditorGame.ViewModels;
+using Stride.Editor.Engine;
+using Stride.Engine.Processors;
+using Stride.Games;
+using Stride.Shaders.Compiler;
 using Point = System.Windows.Point;
 
-namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.Services
+namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 {
     /// <summary>
     /// Represents a factory to create the <see cref="EditorServiceGame"/>.

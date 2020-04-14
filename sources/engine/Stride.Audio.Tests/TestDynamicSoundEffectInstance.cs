@@ -1,4 +1,4 @@
-//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+//// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 //// This file is distributed under GPL v3. See LICENSE.md for details.
 //using System;
 //using System.IO;
@@ -6,13 +6,13 @@
 //
 //using Xunit;
 //
-//using Xenko.Core;
-//using Xenko.Core.IO;
-//using Xenko.Core.Serialization.Assets;
-//using Xenko.Audio.Wave;
-//using Xenko.Engine;
+//using Stride.Core;
+//using Stride.Core.IO;
+//using Stride.Core.Serialization.Assets;
+//using Stride.Audio.Wave;
+//using Stride.Engine;
 //
-//namespace Xenko.Audio.Tests
+//namespace Stride.Audio.Tests
 //{
 //    /// <summary>
 //    /// Tests for <see cref="DynamicSoundEffectInstance"/>.
@@ -162,7 +162,7 @@
 //
 //            var sizeOfOneSubBuffer = 44100 * 200 / 1000;
 //
-//#if XENKO_PLATFORM_ANDROID
+//#if STRIDE_PLATFORM_ANDROID
 //            sizeOfOneSubBuffer = mono8Bits.SubBufferSize;
 //#endif
 //
@@ -598,7 +598,7 @@
 //
 //            GCHandle pinnedDataSayuriPart;
 //
-//#if XENKO_PLATFORM_ANDROID
+//#if STRIDE_PLATFORM_ANDROID
 //            LoadWaveFileIntoBuffers(out pinnedDataSayuriPart, out sayuriPart, "sayuriPart.wav");
 //            subBufferSize = sayuriPart.Instance.SubBufferSize;
 //            sayuriPart.Instance.Dispose();

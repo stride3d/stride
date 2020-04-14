@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -15,15 +15,15 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Presentation.Graph.Behaviors;
-using Xenko.Assets.Presentation.ViewModel;
-using Xenko.Assets.Scripts;
-using Block = Xenko.Assets.Scripts.Block;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Graph.Behaviors;
+using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Scripts;
+using Block = Stride.Assets.Scripts.Block;
 
-namespace Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor
+namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 {
     /// <summary>
     /// Interaction logic for GraphicsCompositorEditorView.xaml

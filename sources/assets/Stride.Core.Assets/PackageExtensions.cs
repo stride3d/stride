@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 
-namespace Xenko.Core.Assets
+namespace Stride.Core.Assets
 {
     /// <summary>
     /// Extensions for <see cref="Package"/>

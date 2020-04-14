@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Xenko.Metrics
+namespace Stride.Metrics
 {
     /// <summary>
     /// Common metrics used.

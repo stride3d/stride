@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Xenko.Core.Presentation.Behaviors
+namespace Stride.Core.Presentation.Behaviors
 {
     /// <summary>
     /// A behavior that can be attached to a <see cref="Control"/> and will close the window it is contained in when double-clicked.

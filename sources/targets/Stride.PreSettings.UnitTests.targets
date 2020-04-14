@@ -1,18 +1,18 @@
-<!-- Build file pre-included by all Xenko projects -->
+<!-- Build file pre-included by all Stride projects -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--Import Local Pre Settings for the solution being loaded -->
   <Import Project="$(SolutionDir)$(SolutionName).PreSettings.Local.targets" Condition="Exists('$(SolutionDir)$(SolutionName).PreSettings.Local.targets')" />
-  <Import Project="$(SolutionDir)Xenko.Core.PreSettings.Local.targets" Condition="Exists('$(SolutionDir)Xenko.Core.PreSettings.Local.targets')" />
+  <Import Project="$(SolutionDir)Stride.Core.PreSettings.Local.targets" Condition="Exists('$(SolutionDir)Stride.Core.PreSettings.Local.targets')" />
 
-  <Import Project="$(MSBuildThisDirectory)..\..\sources\core\Xenko.Core\build\Xenko.Core.props"/>
+  <Import Project="$(MSBuildThisDirectory)..\..\sources\core\Stride.Core\build\Stride.Core.props"/>
 
   <PropertyGroup>
     <!-- Default fallback -->
-    <XenkoPlatform Condition="'$(XenkoPlatform)' == ''">Windows</XenkoPlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == ''">Windows</StridePlatform>
     <OutputType>WinExe</OutputType>
 
-    <XenkoPlatformFullName>$(XenkoPlatform)</XenkoPlatformFullName>
-    <XenkoPlatformFullName Condition="'$(XenkoBuildDirExtension)' != ''">$(XenkoPlatformFullName)-$(XenkoBuildDirExtension)</XenkoPlatformFullName>
+    <StridePlatformFullName>$(StridePlatform)</StridePlatformFullName>
+    <StridePlatformFullName Condition="'$(StrideBuildDirExtension)' != ''">$(StridePlatformFullName)-$(StrideBuildDirExtension)</StridePlatformFullName>
 
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>

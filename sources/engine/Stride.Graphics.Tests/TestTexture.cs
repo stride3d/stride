@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -7,13 +7,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Xunit;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics.Regression;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Graphics.Regression;
 
-namespace Xenko.Graphics.Tests
+namespace Stride.Graphics.Tests
 {
     public class TestTexture : GameTestBase
     {
@@ -365,13 +365,13 @@ namespace Xenko.Graphics.Tests
         public void TestLoadSave(ImageFileType sourceFormat)
         {
             Skip.If(Platform.Type == PlatformType.Android && (
-                        sourceFormat == ImageFileType.Xenko || sourceFormat == ImageFileType.Dds || // TODO remove this when mipmap copy is supported on OpenGL by the engine.
+                        sourceFormat == ImageFileType.Stride || sourceFormat == ImageFileType.Dds || // TODO remove this when mipmap copy is supported on OpenGL by the engine.
                         sourceFormat == ImageFileType.Tiff), "Unsupported case"); // TODO remove when the tiff format is supported on android.
 
             PerformTest(
                 game =>
                 {
-                    var intermediateFormat = ImageFileType.Xenko;
+                    var intermediateFormat = ImageFileType.Stride;
 
                     if (sourceFormat == ImageFileType.Wmp) // no input image of this format.
                         return;

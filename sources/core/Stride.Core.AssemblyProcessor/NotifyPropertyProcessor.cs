@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
@@ -10,7 +10,7 @@ using Mono.Cecil.Rocks;
 using FieldAttributes = Mono.Cecil.FieldAttributes;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 
-namespace Xenko.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor
 {
     /// <summary>
     /// This class is no longer used now.
@@ -83,17 +83,17 @@ namespace Xenko.Core.AssemblyProcessor
 
             TypeDefinition propertyChangedExtendedEventArgsType;
 
-            ModuleDefinition xenkoCoreModule;
+            ModuleDefinition strideCoreModule;
             try
             {
-                xenkoCoreModule = assembly.GetXenkoCoreModule();
+                strideCoreModule = assembly.GetStrideCoreModule();
             }
             catch (Exception)
             {
                 return true;
             }
 
-            propertyChangedExtendedEventArgsType = xenkoCoreModule.GetTypes().First(x => x.Name == "PropertyChangedExtendedEventArgs").Resolve();
+            propertyChangedExtendedEventArgsType = strideCoreModule.GetTypes().First(x => x.Name == "PropertyChangedExtendedEventArgs").Resolve();
 
             var typeTokenInfoEx = mscorlibAssembly.MainModule.GetTypeResolved("System.Reflection.TypeInfo").Resolve();
             var getPropertyMethod = typeTokenInfoEx.Methods.First(x => x.Name == "GetDeclaredProperty" && x.Parameters.Count == 1);

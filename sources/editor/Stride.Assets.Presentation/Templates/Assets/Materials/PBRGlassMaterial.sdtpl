@@ -6,6 +6,6 @@ Scope: Asset
 Description: A thin glass material for physically-based rendering
 Group: Material
 Order: -80
-Icon: ..\.xktpl\MaterialGlass.png
+Icon: ..\.sdtpl\MaterialGlass.png
 DefaultOutputName: Glass
 FactoryTypeName: GlassMaterialFactory

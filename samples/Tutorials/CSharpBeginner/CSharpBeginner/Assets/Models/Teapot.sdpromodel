@@ -1,6 +1,6 @@
 !ProceduralModelAsset
 Id: 9a3a7dbc-7b08-478a-aab2-19afe1d6ce1c
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: !TeapotProceduralModel
     Scale: {X: 1.0, Y: 1.0, Z: 1.0}

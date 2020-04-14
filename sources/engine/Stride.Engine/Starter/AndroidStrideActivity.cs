@@ -1,7 +1,7 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 using System;
 using Android.App;
 using Android.Graphics;
@@ -13,26 +13,26 @@ using Android.Media;
 using Android.Runtime;
 using OpenTK.Graphics;
 using OpenTK.Platform.Android;
-using Xenko.Core;
-using Xenko.Engine;
-using Xenko.Games;
-using Xenko.Games.Android;
-using Xenko.Graphics.OpenGL;
+using Stride.Core;
+using Stride.Engine;
+using Stride.Games;
+using Stride.Games.Android;
+using Stride.Graphics.OpenGL;
 
-namespace Xenko.Starter
+namespace Stride.Starter
 {
-    using Resource = Xenko.Engine.Resource;
+    using Resource = Stride.Engine.Resource;
     
     // NOTE: the class should implement View.IOnSystemUiVisibilityChangeListener but doing so will prevent the engine to work on Android below 3.0 (API Level 11 is mandatory).
     // So the methods are implemented but the class does not implement View.IOnSystemUiVisibilityChangeListener.
     // Maybe this will change when support for API Level 10 is dropped
     // TODO: make this class implement View.IOnSystemUiVisibilityChangeListener when support of Android < 3.0 is dropped.
-    public class AndroidXenkoActivity : Activity
+    public class AndroidStrideActivity : Activity
     {
         /// <summary>
         /// The game view, internally a SurfaceView
         /// </summary>
-        protected AndroidXenkoGameView GameView;
+        protected AndroidStrideGameView GameView;
 
         /// <summary>
         /// The game context of the game instance.
@@ -64,9 +64,9 @@ namespace Xenko.Starter
             //await VirtualFileSystem.UnpackAPK();
             
             // Create the Android OpenGl view
-            GameView = new AndroidXenkoGameView(this);
+            GameView = new AndroidStrideGameView(this);
 
-            // setup the application view and xenko game context
+            // setup the application view and stride game context
             SetupGameViewAndGameContext();
 
             // set up a listener to the android ringer mode (Normal/Silent/Vibrate)
@@ -79,7 +79,7 @@ namespace Xenko.Starter
 
         public void OnSystemUiVisibilityChange(StatusBarVisibility visibility)
         {
-            //Log.Debug("Xenko", "OnSystemUiVisibilityChange: visibility=0x{0:X8}", (int)visibility);
+            //Log.Debug("Stride", "OnSystemUiVisibilityChange: visibility=0x{0:X8}", (int)visibility);
             var diffVisibility = lastVisibility ^ visibility;
             lastVisibility = visibility;
             if ((((int)diffVisibility & (int)SystemUiFlags.LowProfile) != 0) && (((int)visibility & (int)SystemUiFlags.LowProfile) == 0))
@@ -93,7 +93,7 @@ namespace Xenko.Starter
 
         public override void OnWindowFocusChanged(bool hasFocus)
         {
-            //Log.Debug("Xenko", "OnWindowFocusChanged: hasFocus={0}", hasFocus);
+            //Log.Debug("Stride", "OnWindowFocusChanged: hasFocus={0}", hasFocus);
             base.OnWindowFocusChanged(hasFocus);
             if (Build.VERSION.SdkInt >= BuildVersionCodes.Kitkat)
             {
@@ -172,7 +172,7 @@ namespace Xenko.Starter
 
         private void InitializeFullscreenViewCallback()
         {
-            //Log.Debug("Xenko", "InitializeFullscreenViewCallback");
+            //Log.Debug("Stride", "InitializeFullscreenViewCallback");
             if ((Build.VERSION.SdkInt >= BuildVersionCodes.IceCreamSandwich) && (Build.VERSION.SdkInt < BuildVersionCodes.Kitkat))
             {
                 setFullscreenViewCallback = SetFullscreenView;
@@ -183,7 +183,7 @@ namespace Xenko.Starter
 
         private void PostFullscreenViewCallback()
         {
-            //Log.Debug("Xenko", "PostFullscreenViewCallback");
+            //Log.Debug("Stride", "PostFullscreenViewCallback");
             var handler = Window.DecorView.Handler;
             if (handler != null)
             {
@@ -194,7 +194,7 @@ namespace Xenko.Starter
 
         private void RemoveFullscreenViewCallback()
         {
-            //Log.Debug("Xenko", "RemoveFullscreenViewCallback");
+            //Log.Debug("Stride", "RemoveFullscreenViewCallback");
             var handler = Window.DecorView.Handler;
             if (handler != null)
             {
@@ -205,7 +205,7 @@ namespace Xenko.Starter
 
         private void SetFullscreenView()
         {
-            //Log.Debug("Xenko", "SetFullscreenView");
+            //Log.Debug("Stride", "SetFullscreenView");
             if (Build.VERSION.SdkInt >= BuildVersionCodes.IceCreamSandwich) // http://redth.codes/such-android-api-levels-much-confuse-wow/
             {
                 var view = Window.DecorView;

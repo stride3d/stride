@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #include "Stdafx.h"
 
 #include "UtilityFunctions.h"
 
 using namespace System::Text;
-using namespace Xenko::Engine;
+using namespace Stride::Engine;
 
 
 String^ aiStringToString(aiString str)
@@ -70,8 +70,8 @@ Quaternion aiQuaternionToQuaternion(aiQuaterniont<float> quat)
 
 CompressedTimeSpan aiTimeToXkTimeSpan(double time, double aiTickPerSecond)
 {
-	double xkTime = CompressedTimeSpan::TicksPerSecond / aiTickPerSecond * time;
-	return CompressedTimeSpan((long)xkTime);
+	double sdTime = CompressedTimeSpan::TicksPerSecond / aiTickPerSecond * time;
+	return CompressedTimeSpan((long)sdTime);
 }
 
 

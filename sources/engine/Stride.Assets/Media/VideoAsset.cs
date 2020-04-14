@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
 using System.ComponentModel;
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Audio;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
+using Stride.Audio;
 
-namespace Xenko.Assets.Media
+namespace Stride.Assets.Media
 {
     [DataContract("Video")]
     [AssetDescription(FileExtension)]
@@ -17,7 +17,7 @@ namespace Xenko.Assets.Media
     [CategoryOrder(10, "Size")]
     [CategoryOrder(15, "Trimming")]
     [CategoryOrder(20, "Audio")]
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.1.0.0")]
+    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.1.0.0")]
     public partial class VideoAsset : Asset, IAssetWithSource
     {
         public VideoAsset()
@@ -30,7 +30,7 @@ namespace Xenko.Assets.Media
         /// <summary>
         /// The default file extension used by the <see cref="VideoAsset"/>.
         /// </summary>
-        public const string FileExtension = ".xkvid";
+        public const string FileExtension = ".sdvid";
 
         /// <summary>
         /// The source file of this asset.

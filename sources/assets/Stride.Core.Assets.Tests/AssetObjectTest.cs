@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
 
-namespace Xenko.Core.Assets.Tests
+namespace Stride.Core.Assets.Tests
 {
     [DataContract("!AssetObjectTest")]
     [AssetDescription(FileExtension)]
     public class AssetObjectTest : TestAssetWithParts, IEquatable<AssetObjectTest>
     {
-        private const string FileExtension = ".xktest";
+        private const string FileExtension = ".sdtest";
 
         [DefaultValue(null)]
         public AssetReference Reference { get; set; }
@@ -63,7 +63,7 @@ namespace Xenko.Core.Assets.Tests
     [AssetDescription(FileExtension)]
     public class TestAssetWithParts : AssetComposite
     {
-        private const string FileExtension = ".xkpart";
+        private const string FileExtension = ".sdpart";
 
         public TestAssetWithParts()
         {
@@ -142,7 +142,7 @@ namespace Xenko.Core.Assets.Tests
     }
 
     [DataContract("!AssetImportObjectTest")]
-    [AssetDescription(".xkimptest")]
+    [AssetDescription(".sdimptest")]
     public class AssetImportObjectTest : AssetWithSource
     {
         public AssetImportObjectTest()
@@ -157,7 +157,7 @@ namespace Xenko.Core.Assets.Tests
     }
 
     [DataContract("!AssetObjectTestSub")]
-    [AssetDescription(".xktestsub")]
+    [AssetDescription(".sdtestsub")]
     public class AssetObjectTestSub : Asset
     {
         public int Value { get; set; }

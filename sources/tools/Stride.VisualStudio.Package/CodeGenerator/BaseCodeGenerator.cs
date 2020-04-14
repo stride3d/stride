@@ -1,6 +1,6 @@
 ﻿/***************************************************************************
 
-Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 Copyright (c) Microsoft Corporation. All rights reserved.
 This code is licensed under the Visual Studio SDK license terms.
 THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
@@ -17,7 +17,7 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Xenko.VisualStudio.CodeGenerator
+namespace Stride.VisualStudio.CodeGenerator
 {
     /// <summary>
     /// A managed wrapper for VS's concept of an IVsSingleFileGenerator which is

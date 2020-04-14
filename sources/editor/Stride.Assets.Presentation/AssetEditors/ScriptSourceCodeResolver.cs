@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Microsoft.CodeAnalysis;
 using System;
@@ -8,18 +8,18 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Reflection;
-using Xenko.Core.Presentation.Services;
-using Xenko.Assets.Presentation.AssetEditors;
-using Xenko.Assets.Presentation.ViewModel;
-using Xenko.Assets.Scripts;
-using Xenko.Engine;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Reflection;
+using Stride.Core.Presentation.Services;
+using Stride.Assets.Presentation.AssetEditors;
+using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Scripts;
+using Stride.Engine;
 
-namespace Xenko.Assets.Presentation.AssetEditors
+namespace Stride.Assets.Presentation.AssetEditors
 {
     public static class SymbolExtensions
     {
@@ -77,7 +77,7 @@ namespace Xenko.Assets.Presentation.AssetEditors
 
             var assemblyFullName = gameProjectCompilation.Assembly.Identity.GetDisplayName();
 
-            var xenkoScriptType = gameProjectCompilation.GetTypeByMetadataName(typeof(ScriptComponent).FullName);
+            var strideScriptType = gameProjectCompilation.GetTypeByMetadataName(typeof(ScriptComponent).FullName);
 
             var symbols = gameProjectCompilation.GetSymbolsWithName(x => true, SymbolFilter.Type).Cast<ITypeSymbol>().ToList();
             if (!symbols.Any())
@@ -102,7 +102,7 @@ namespace Xenko.Assets.Presentation.AssetEditors
                 var scriptType = false;
                 while (baseType != null)
                 {
-                    if (baseType == xenkoScriptType)
+                    if (baseType == strideScriptType)
                     {
                         scriptType = true;
                         break;

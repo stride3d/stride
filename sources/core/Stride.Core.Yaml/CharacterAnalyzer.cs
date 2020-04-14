@@ -45,7 +45,7 @@
 
 using System.Diagnostics;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     internal class CharacterAnalyzer<TBuffer> where TBuffer : ILookAheadBuffer
     {

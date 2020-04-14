@@ -6,6 +6,6 @@ Scope: Asset
 Description: A static 3D model generated from a prefab
 Group: Model
 Order: 10
-Icon: ..\.xktpl\ProceduralModel.png
+Icon: ..\.sdtpl\ProceduralModel.png
 DefaultOutputName: PrefabModel
 ImportSource: false

@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
-using Xenko.Core.BuildEngine;
-using Xenko.Core.Annotations;
-using Xenko.Core.Serialization.Contents;
+using Stride.Core.BuildEngine;
+using Stride.Core.Annotations;
+using Stride.Core.Serialization.Contents;
 
-namespace Xenko.Core.Assets.Compiler
+namespace Stride.Core.Assets.Compiler
 {
     /// <summary>
     /// An <see cref="AssetCommand"/> that will create a default instance of the content type for a given asset, rather than compiling it.

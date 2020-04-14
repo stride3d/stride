@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Presentation.Services;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Presentation.Services;
 
-namespace Xenko.Core.Presentation.ViewModel
+namespace Stride.Core.Presentation.ViewModel
 {
     /// <summary>
     /// This abstract class is an implementation of <see cref="ViewModelBase"/> that uses a dispatcher to invoke

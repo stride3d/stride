@@ -6,7 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 
-namespace Xenko.Metrics.ServerApp.Controllers
+namespace Stride.Metrics.ServerApp.Controllers
 {
     /// <summary>
     /// Class that renders MVC views to a string using the

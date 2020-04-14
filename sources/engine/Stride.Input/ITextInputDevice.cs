@@ -1,7 +1,7 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     /// <summary>
     /// A device such as a keyboard that supports text input. This can be a windows keyboard with IME support or a touch keyboard on a smartphone device

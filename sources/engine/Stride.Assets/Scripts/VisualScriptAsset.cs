@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Serializers;
-using Xenko.Core;
-using Xenko.Core.Collections;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Serializers;
+using Stride.Core;
+using Stride.Core.Collections;
 
-namespace Xenko.Assets.Scripts
+namespace Stride.Assets.Scripts
 {
     [DataContract("VisualScriptAsset")]
     [AssetDescription(FileExtension)]
@@ -19,7 +19,7 @@ namespace Xenko.Assets.Scripts
         /// <summary>
         /// The default file extension used by the <see cref="VisualScriptAsset"/>.
         /// </summary>
-        public const string FileExtension = ".xkvs";
+        public const string FileExtension = ".sdvs";
 
         [DataMember(0)]
         [DefaultValue(Accessibility.Public)]
@@ -59,7 +59,7 @@ namespace Xenko.Assets.Scripts
 
         [DataMember(Mask = DataMemberAttribute.IgnoreMask)]
         [Display(Browsable = false)]
-        public string Generator { get; } = "XenkoVisualScriptGenerator";
+        public string Generator { get; } = "StrideVisualScriptGenerator";
 
         #endregion
 

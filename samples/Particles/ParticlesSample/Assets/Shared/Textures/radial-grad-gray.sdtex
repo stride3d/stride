@@ -1,6 +1,6 @@
 !Texture
 Id: d550fb3f-f109-494e-a0c5-a79f70f5a63c
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../Resources/radial-grad-gray.png
 IsCompressed: false

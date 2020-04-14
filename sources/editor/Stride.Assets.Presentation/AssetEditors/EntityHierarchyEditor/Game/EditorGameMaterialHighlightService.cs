@@ -1,30 +1,30 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization;
-using Xenko.Core.Presentation.Quantum;
-using Xenko.Core.Presentation.Quantum.ViewModels;
-using Xenko.Assets.Entities;
-using Xenko.Assets.Models;
-using Xenko.Assets.Presentation.AssetEditors.AssetHighlighters;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Xenko.Assets.Presentation.SceneEditor;
-using Xenko.Editor.EditorGame.Game;
-using Xenko.Engine;
-using Xenko.Input;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Assets.Entities;
+using Stride.Assets.Models;
+using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
+using Stride.Assets.Presentation.SceneEditor;
+using Stride.Editor.EditorGame.Game;
+using Stride.Engine;
+using Stride.Input;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
+namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
     public class EditorGameMaterialHighlightService : EditorGameMouseServiceBase, IEditorGameMaterialHighlightService, IEditorGameMaterialHighlightViewModelService
     {

@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.ComponentModel;
 using System.Globalization;
 
-namespace Xenko.Core.IO
+namespace Stride.Core.IO
 {
     /// <summary>
     /// An abstract implementation of <see cref="TypeConverter"/> used for types derived from <see cref="UPath"/> in order to convert then from a string.

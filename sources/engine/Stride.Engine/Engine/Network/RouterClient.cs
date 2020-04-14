@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
+using Stride.Core;
+using Stride.Core.Diagnostics;
 
-namespace Xenko.Engine.Network
+namespace Stride.Engine.Network
 {
     public class RouterClient
     {
@@ -81,7 +81,7 @@ namespace Xenko.Engine.Network
 
             try
             {
-                var serverAddress = Environment.GetEnvironmentVariable("XenkoConnectionRouterRemoteIP") ?? "127.0.0.1";
+                var serverAddress = Environment.GetEnvironmentVariable("StrideConnectionRouterRemoteIP") ?? "127.0.0.1";
 
                 // If connecting as a client, try once, otherwise try to listen multiple time (in case port is shared)
                 switch (ConnectionMode)

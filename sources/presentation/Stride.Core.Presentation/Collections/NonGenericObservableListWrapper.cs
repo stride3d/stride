@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Presentation.Collections
+namespace Stride.Core.Presentation.Collections
 {
     /// <summary>
     /// A class that wraps an instance of the <see cref="ObservableList{T}"/> class and implement the <see cref="IList"/> interface.

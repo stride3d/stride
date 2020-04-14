@@ -1,5 +1,5 @@
 //#define USE_TEST_MANUAL_QUALITY
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -8,23 +8,23 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Core.Streaming;
-using Xenko.Engine;
-using Xenko.Games;
-using Xenko.Graphics;
-using Xenko.Graphics.Data;
-using Xenko.Rendering;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
+using Stride.Core.Streaming;
+using Stride.Engine;
+using Stride.Games;
+using Stride.Graphics;
+using Stride.Graphics.Data;
+using Stride.Rendering;
 
-namespace Xenko.Streaming
+namespace Stride.Streaming
 {
     /// <summary>
     /// Performs content streaming.
     /// </summary>
-    /// <seealso cref="Xenko.Games.GameSystemBase" />
-    /// <seealso cref="Xenko.Graphics.Data.ITexturesStreamingProvider" />
+    /// <seealso cref="Stride.Games.GameSystemBase" />
+    /// <seealso cref="Stride.Graphics.Data.ITexturesStreamingProvider" />
     public class StreamingManager : GameSystemBase, IStreamingManager, ITexturesStreamingProvider
     {
         private readonly List<StreamableResource> resources = new List<StreamableResource>(512);
@@ -86,7 +86,7 @@ namespace Xenko.Streaming
         /// </summary>
         /// <param name="services">The servicies registry.</param>
         /// <remarks>
-        /// The GameSystem expects the following services to be registered: <see cref="T:Xenko.Games.IGame" /> and <see cref="T:Xenko.Core.Serialization.Contents.IContentManager" />.
+        /// The GameSystem expects the following services to be registered: <see cref="T:Stride.Games.IGame" /> and <see cref="T:Stride.Core.Serialization.Contents.IContentManager" />.
         /// </remarks>
         public StreamingManager([NotNull] IServiceRegistry services)
             : base(services)
@@ -446,11 +446,11 @@ namespace Xenko.Streaming
                     FlushSync();
 
 #if USE_TEST_MANUAL_QUALITY // Temporary testing code used for testing quality changing using K/L keys
-                    if (((Game)Game).Input.IsKeyPressed(Xenko.Input.Keys.K))
+                    if (((Game)Game).Input.IsKeyPressed(Stride.Input.Keys.K))
                     {
                         testQuality = Math.Min(testQuality + 5, 100);
                     }
-                    if (((Game)Game).Input.IsKeyPressed(Xenko.Input.Keys.L))
+                    if (((Game)Game).Input.IsKeyPressed(Stride.Input.Keys.L))
                     {
                         testQuality = Math.Max(testQuality - 5, 0);
                     }

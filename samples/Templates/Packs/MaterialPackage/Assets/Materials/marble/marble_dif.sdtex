@@ -1,6 +1,6 @@
 !Texture
 Id: b11813f8-5a15-47d5-90eb-c6f5a973d41a
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../Resources/Textures/marble/marble_dif.png
 Type: !ColorTextureType

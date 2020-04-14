@@ -1,11 +1,11 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
-    <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <OutputType>Library</OutputType>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
-    <XenkoBuildTags>WindowsTools</XenkoBuildTags>
+    <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Data.DataSetExtensions" />
@@ -18,19 +18,19 @@
     <Compile Remove="Frontend\TexArray.cs" />
   </ItemGroup>
   <ItemGroup>
-    <XenkoNativeLib Include="$(XenkoDependenciesDir)FreeImage\Release\**\*.dll">
+    <StrideNativeLib Include="$(StrideDependenciesDir)FreeImage\Release\**\*.dll">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </XenkoNativeLib>
-    <XenkoNativeLib Include="$(XenkoDependenciesDir)TextureWrappers\Release\**\*.dll">
+    </StrideNativeLib>
+    <StrideNativeLib Include="$(StrideDependenciesDir)TextureWrappers\Release\**\*.dll">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </XenkoNativeLib>
-    <XenkoNativeLib Include="$(XenkoDependenciesDir)PVRTT\**\*.dll">
+    </StrideNativeLib>
+    <StrideNativeLib Include="$(StrideDependenciesDir)PVRTT\**\*.dll">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-    </XenkoNativeLib>
+    </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
   </ItemGroup>
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 </Project>

@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_INPUT_RAWINPUT
+#if STRIDE_INPUT_RAWINPUT
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using WinFormsKeys = System.Windows.Forms.Keys;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     /// <summary>
-    /// Mapping between <see cref="WinFormsKeys"/> and <see cref="Xenko.Input.Keys"/> needed for
-    /// translating Winform key events into Xenko ones.
+    /// Mapping between <see cref="WinFormsKeys"/> and <see cref="Stride.Input.Keys"/> needed for
+    /// translating Winform key events into Stride ones.
     /// </summary>
     internal static class WinKeys
     {
@@ -18,7 +18,7 @@ namespace Xenko.Input
         internal static extern int MapVirtualKey(int uCode, uint uMapType);
 
         /// <summary>
-        /// Map between Winform keys and Xenko keys.
+        /// Map between Winform keys and Stride keys.
         /// </summary>
         internal static readonly Dictionary<WinFormsKeys, Keys> MapKeys = NewMapKeys();
 
@@ -31,7 +31,7 @@ namespace Xenko.Input
 #pragma warning restore SA1310 // Field names should not contain underscore
 
         /// <summary>
-        /// Create a mapping between <see cref="WinFormsKeys"/> and <see cref="Xenko.Input.Keys"/>
+        /// Create a mapping between <see cref="WinFormsKeys"/> and <see cref="Stride.Input.Keys"/>
         /// </summary>
         /// <returns>A new map.</returns>
         private static Dictionary<WinFormsKeys, Keys> NewMapKeys()

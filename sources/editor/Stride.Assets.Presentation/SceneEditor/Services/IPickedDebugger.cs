@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModel;
 
-namespace Xenko.Assets.Presentation.SceneEditor.Services
+namespace Stride.Assets.Presentation.SceneEditor.Services
 {
     public interface IPickedDebugger
     {

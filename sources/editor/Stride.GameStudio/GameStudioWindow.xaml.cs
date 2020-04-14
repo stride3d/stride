@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -11,25 +11,25 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Threading;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.Settings;
-using Xenko.Core.Assets.Editor.View.DebugTools;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core;
-using Xenko.Core.Extensions;
-using Xenko.Core.Serialization;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Extensions;
-using Xenko.Core.Presentation.Interop;
-using Xenko.Core.Presentation.Windows;
-using Xenko.Core.Translation;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.View.DebugTools;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core;
+using Stride.Core.Extensions;
+using Stride.Core.Serialization;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Extensions;
+using Stride.Core.Presentation.Interop;
+using Stride.Core.Presentation.Windows;
+using Stride.Core.Translation;
 using Xceed.Wpf.AvalonDock.Layout;
 #if DEBUG
-using Xenko.Assets.Presentation.Test;
+using Stride.Assets.Presentation.Test;
 #endif
 
-namespace Xenko.GameStudio
+namespace Stride.GameStudio
 {
     /// <summary>
     /// Interaction logic for GameStudioWindow.xaml
@@ -119,11 +119,11 @@ namespace Xenko.GameStudio
                 }
                 metricData.Remove(metricData.Length - 1, 1);
 
-                XenkoGameStudio.MetricsClient?.OpenProjectSession($"#projectUid:{projectUid}|{metricData}");
+                StrideGameStudio.MetricsClient?.OpenProjectSession($"#projectUid:{projectUid}|{metricData}");
             }
             else
             {
-                XenkoGameStudio.MetricsClient?.OpenProjectSession($"#projectUid:{projectUid}|#platform:None");
+                StrideGameStudio.MetricsClient?.OpenProjectSession($"#projectUid:{projectUid}|#platform:None");
             }
         }
 
@@ -136,12 +136,12 @@ namespace Xenko.GameStudio
 
         private static void CloseMetricsProjectSession()
         {
-            XenkoGameStudio.MetricsClient?.CloseProjectSession();
+            StrideGameStudio.MetricsClient?.CloseProjectSession();
         }
 
         public EditorViewModel Editor => (EditorViewModel)DataContext;
 
-        public string EditorTitle => Editor.Session.SolutionPath != null ? $"{Editor.Session.SolutionPath.GetFileName()} - {XenkoGameStudio.EditorName}" : XenkoGameStudio.EditorName;
+        public string EditorTitle => Editor.Session.SolutionPath != null ? $"{Editor.Session.SolutionPath.GetFileName()} - {StrideGameStudio.EditorName}" : StrideGameStudio.EditorName;
 
         public ICommandBase OpenDebugWindowCommand { get; }
 

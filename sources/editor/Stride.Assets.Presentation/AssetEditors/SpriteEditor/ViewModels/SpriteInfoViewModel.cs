@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -6,22 +6,22 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Editor.Components.Properties;
-using Xenko.Core.Assets.Editor.View.Behaviors;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Quantum;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.Quantum;
-using Xenko.Core.Translation;
-using Xenko.Assets.Sprite;
+using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.View.Behaviors;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Quantum;
+using Stride.Core.Translation;
+using Stride.Assets.Sprite;
 
-namespace Xenko.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
+namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
 {
     /// <summary>
     /// The class represents a single <see cref="SpriteInfo"/> into an <see cref="SpriteSheetEditorViewModel"/>.

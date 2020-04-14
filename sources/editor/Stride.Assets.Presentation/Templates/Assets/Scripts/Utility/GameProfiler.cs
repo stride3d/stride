@@ -1,12 +1,12 @@
 ﻿
 using System;
 using System.Threading.Tasks;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Diagnostics;
-using Xenko.Input;
-using Xenko.Engine;
-using Xenko.Profiling;
-using Xenko.Core;
+using Stride.Core.Mathematics;
+using Stride.Core.Diagnostics;
+using Stride.Input;
+using Stride.Engine;
+using Stride.Profiling;
+using Stride.Core;
 
 namespace ##Namespace##
 {

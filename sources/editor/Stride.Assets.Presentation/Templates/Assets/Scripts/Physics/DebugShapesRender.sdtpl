@@ -5,5 +5,5 @@ Name: Debug physics shapes
 Scope: Asset
 Description: Shows and hides physics debug shapes at runtime with a keyboard shortcut
 Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
+Icon: ..\..\.sdtpl\SourceCode.png
 DefaultOutputName: DebugPhysicsShapes

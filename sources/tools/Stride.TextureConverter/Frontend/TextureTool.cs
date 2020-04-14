@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
 using System.Collections.Generic;
 
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.TextureConverter.Requests;
-using Xenko.TextureConverter.TexLibraries;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.TextureConverter.Requests;
+using Stride.TextureConverter.TexLibraries;
 using System.Runtime.CompilerServices;
-using Xenko.TextureConverter.Backend.Requests;
+using Stride.TextureConverter.Backend.Requests;
 
-namespace Xenko.TextureConverter
+namespace Stride.TextureConverter
 {
 
     /// <summary>
@@ -56,7 +56,7 @@ namespace Xenko.TextureConverter
             {
                 new DxtTexLib(), // used to compress/decompress texture to DXT1-5 and load/save *.dds compressed texture files.
                 new FITexLib(), // used to open/save common bitmap image formats.
-                new XenkoTexLibrary(), // used to save/load xenko texture format.
+                new StrideTexLibrary(), // used to save/load stride texture format.
                 new PvrttTexLib(), // used to compress/decompress texture to PVRTC1-2 and ETC1-2 and load/save *.pvr compressed texture file.
                 new ColorKeyTexLibrary(), // used to apply ColorKey on R8G8B8A8/B8G8R8A8_Unorm
                 new AtlasTexLibrary(), // used to create and manipulate texture atlas
@@ -340,7 +340,7 @@ namespace Xenko.TextureConverter
         }
 
         /// <summary>
-        /// Loads the specified image of the class <see cref="Xenko.Graphics.Image"/>.
+        /// Loads the specified image of the class <see cref="Stride.Graphics.Image"/>.
         /// </summary>
         /// <param name="image">The image.</param>
         /// <param name="isSRgb">Indicate if the input file contains sRGB data</param>
@@ -965,7 +965,7 @@ namespace Xenko.TextureConverter
             if (texImage.Dimension != TexImage.TextureDimension.Texture2D || texImage.Format.IsCompressed())
                 throw new NotImplementedException();
 
-            Log.Info("Extracting region and exporting to Xenko Image ...");
+            Log.Info("Extracting region and exporting to Stride Image ...");
 
             // clamp the provided region to be sure it fits in provided image
             region.X = Math.Max(0, Math.Min(region.X, texImage.Width));
@@ -973,23 +973,23 @@ namespace Xenko.TextureConverter
             region.Width = Math.Max(0, Math.Min(region.Width, texImage.Width - region.X));
             region.Height = Math.Max(0, Math.Min(region.Height, texImage.Height - region.Y));
 
-            // create the xenko image
-            var xkImage = Image.New2D(region.Width, region.Height, 1, texImage.Format);
-            if (xkImage == null)
+            // create the stride image
+            var sdImage = Image.New2D(region.Width, region.Height, 1, texImage.Format);
+            if (sdImage == null)
             {
                 Log.Error("Image could not be created.");
                 throw new InvalidOperationException("Image could not be created.");
             }
 
-            // get the row pitch of the xenko image
-            var pixelBuffer = xkImage.GetPixelBuffer(0, 0);
+            // get the row pitch of the stride image
+            var pixelBuffer = sdImage.GetPixelBuffer(0, 0);
             var dstRowPitch = pixelBuffer.RowStride;
 
             // copy the data
             if (texImage.ArraySize > 0)
             {
                 var rowSrcPtr = texImage.SubImageArray[0].Data;
-                var rowDstPtr = xkImage.DataPointer;
+                var rowDstPtr = sdImage.DataPointer;
                 rowSrcPtr = IntPtr.Add(rowSrcPtr, region.Y * texImage.RowPitch);
                 for (int i = 0; i < region.Height; i++)
                 {
@@ -1004,19 +1004,19 @@ namespace Xenko.TextureConverter
                 }
             }
 
-            return xkImage;
+            return sdImage;
         }
 
 
         /// <summary>
-        /// Converts to xenko image.
+        /// Converts to stride image.
         /// </summary>
         /// <param name="image">The image.</param>
-        /// <returns>The converted Xenko <see cref="Xenko.Graphics.Image"/>.</returns>
+        /// <returns>The converted Stride <see cref="Stride.Graphics.Image"/>.</returns>
         /// <remarks>The user is the owner of the returned image, and has to dispose it after he finishes using it</remarks>
-        public Xenko.Graphics.Image ConvertToXenkoImage(TexImage image)
+        public Stride.Graphics.Image ConvertToStrideImage(TexImage image)
         {
-            var request = new ExportToXenkoRequest();
+            var request = new ExportToStrideRequest();
 
             ExecuteRequest(image, request);
 
@@ -1519,7 +1519,7 @@ namespace Xenko.TextureConverter
                 }
 
                 var cube = texTool.CreateTextureCube(list);
-                //texTool.Compress(cube, Xenko.Framework.Graphics.PixelFormat.BC3_UNorm);
+                //texTool.Compress(cube, Stride.Framework.Graphics.PixelFormat.BC3_UNorm);
                 texTool.GenerateMipMaps(cube, Filter.MipMapGeneration.Box);
 
                 texTool.Save(cube, @"C:\dev\data\test\cube.pvr");
@@ -1544,7 +1544,7 @@ namespace Xenko.TextureConverter
                 }
 
                 var array = texTool.CreateTextureArray(list);
-                texTool.Compress(array, Xenko.Framework.Graphics.PixelFormat.BC3_UNorm);
+                texTool.Compress(array, Stride.Framework.Graphics.PixelFormat.BC3_UNorm);
                 //texTool.GenerateMipMaps(array, Filter.MipMapGeneration.Box);
 
                 texTool.Save(array, @"C:\dev\data\test\array_before.dds");

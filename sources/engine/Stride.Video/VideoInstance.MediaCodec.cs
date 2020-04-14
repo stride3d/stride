@@ -1,23 +1,23 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_ANDROID && XENKO_VIDEO_MEDIACODEC
+#if STRIDE_PLATFORM_ANDROID && STRIDE_VIDEO_MEDIACODEC
 using System;
 using System.Collections.Generic;
 
-using Xenko.Core;
-using Xenko.Graphics;
-using Xenko.Core.Diagnostics;
-using Xenko.Audio;
-using Xenko.Media;
+using Stride.Core;
+using Stride.Graphics;
+using Stride.Core.Diagnostics;
+using Stride.Audio;
+using Stride.Media;
 
 using Android.Graphics;
 using Android.Views;
-using Xenko.Video.Android;
+using Stride.Video.Android;
 using System.Runtime.CompilerServices;
 using System.Linq;
 
-namespace Xenko.Video
+namespace Stride.Video
 {
     partial class VideoInstance
     {

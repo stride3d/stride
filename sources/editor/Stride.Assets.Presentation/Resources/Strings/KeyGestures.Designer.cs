@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Xenko.Assets.Presentation.Resources.Strings {
+namespace Stride.Assets.Presentation.Resources.Strings {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Xenko.Assets.Presentation.Resources.Strings {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Xenko.Assets.Presentation.Resources.Strings.KeyGestures", typeof(KeyGestures).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.Assets.Presentation.Resources.Strings.KeyGestures", typeof(KeyGestures).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

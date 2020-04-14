@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Particles.Updaters;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Particles.Updaters;
 
-namespace Xenko.Particles.Spawners
+namespace Stride.Particles.Spawners
 {
     /// <summary>
     /// <see cref="ParticleSpawnTriggerLifetime"/> triggers when the parent particle's remaining lifetime is within the specified limit

@@ -9,12 +9,12 @@ using System.Web.Optimization;
 using Microsoft.Owin.Builder;
 using Newtonsoft.Json.Serialization;
 using Owin;
-using Xenko.Metrics.ServerApp.Content;
-using Xenko.Metrics.ServerApp.Controllers;
-using Xenko.Metrics.ServerApp.Models;
+using Stride.Metrics.ServerApp.Content;
+using Stride.Metrics.ServerApp.Controllers;
+using Stride.Metrics.ServerApp.Models;
 using Thinktecture.IdentityServer.AccessTokenValidation;
 
-namespace Xenko.Metrics.ServerApp
+namespace Stride.Metrics.ServerApp
 {
     public static class MetricServerExtensions
     {

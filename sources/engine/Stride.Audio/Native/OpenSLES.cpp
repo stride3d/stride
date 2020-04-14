@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #include "Common.h"
@@ -14,7 +14,7 @@
 #include "../../../deps/NativePath/TINYSTL/unordered_set.h"
 #include "../../../../deps/OpenSLES/OpenSLES.h"
 #include "../../../../deps/OpenSLES/OpenSLES_Android.h"
-#include "../../Xenko.Native/XenkoNative.h"
+#include "../../Stride.Native/StrideNative.h"
 
 extern "C" {
 	class SpinLock

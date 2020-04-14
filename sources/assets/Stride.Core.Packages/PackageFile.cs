@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.IO;
 using NuGet.Packaging;
 
-namespace Xenko.Core.Packages
+namespace Stride.Core.Packages
 {
     /// <summary>
     /// Representation of a file in a package.

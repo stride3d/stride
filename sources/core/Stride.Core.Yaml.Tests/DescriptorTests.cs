@@ -50,10 +50,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using Xunit;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Serialization;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Serialization;
 
-namespace Xenko.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests
 {
     public class DescriptorTests
     {

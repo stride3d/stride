@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core.Shaders.Ast;
-using StorageQualifier = Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier;
+using Stride.Core.Shaders.Ast;
+using StorageQualifier = Stride.Core.Shaders.Ast.Hlsl.StorageQualifier;
 
-namespace Xenko.Core.Shaders.Ast.Xenko
+namespace Stride.Core.Shaders.Ast.Stride
 {
-    public static class XenkoStorageQualifier
+    public static class StrideStorageQualifier
     {
         /// <summary>
         ///   Stream keyword (stream).

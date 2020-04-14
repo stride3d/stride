@@ -1,6 +1,6 @@
 !Model
 Id: ac849bac-7dd5-4a3d-af3b-4f0b83d432ab
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/Floor5x0x2.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

@@ -44,9 +44,9 @@
 // SOFTWARE.
 
 using System;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Yaml.Serialization.Serializers
+namespace Stride.Core.Yaml.Serialization.Serializers
 {
     /// <summary>
     /// An implementation of <see cref="IYamlSerializable"/> that will call the <see cref="ReadYaml"/> and <see cref="WriteYaml"/> methods

@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_OPENGL
+#if STRIDE_GRAPHICS_API_OPENGL
 using System;
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 #else
 using OpenTK.Graphics.OpenGL;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     internal struct VertexAttrib : IEquatable<VertexAttrib>
     {
@@ -161,7 +161,7 @@ namespace Xenko.Graphics
                     return new ElementFormat(VertexAttribPointerType.Short, 2, true);
                 case PixelFormat.R16G16B16A16_SNorm:
                     return new ElementFormat(VertexAttribPointerType.Short, 4, true);
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                 // HALF_FLOAT for OpenGL ES 2.x (OES extension)
                 case PixelFormat.R16G16B16A16_Float:
                     return new ElementFormat((VertexAttribPointerType)0x8D61, 4); // HALF_FLOAT_OES

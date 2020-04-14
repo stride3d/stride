@@ -1,6 +1,6 @@
 !Texture
 Id: f8dfa4d7-d5e7-4f36-9e7c-2c9d3de0e154
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../data/tests/SmallPngInterpolated.png
 Type: !ColorTextureType

@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
-using Xenko.Core;
-using Xenko.Core.Annotations;
+using Stride.Core;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Assets.Editor.Services
+namespace Stride.Core.Assets.Editor.Services
 {
     /// <summary>
     /// Defines a selection scope that might contains multiple non-exclusive selection collections.

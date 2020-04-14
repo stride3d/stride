@@ -6,7 +6,7 @@ Scope: Asset
 Description: A non-spatialized sound imported from a source file and played from memory
 Group: Media
 Order: -50
-Icon: ..\.xktpl\SoundEffect.png
+Icon: ..\.sdtpl\SoundEffect.png
 DefaultOutputName: SoundEffect
 ImportSource: true
 FactoryTypeName: DefaultSoundFactory

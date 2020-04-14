@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -9,21 +9,21 @@ using System.Runtime.Remoting.Messaging;
 
 using Xunit;
 
-using Xenko.Core.Assets;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Storage;
-using Xenko.Assets.Materials;
-using Xenko.Rendering.Materials.ComputeColors;
-using Xenko.Rendering;
-using Xenko.Rendering.Materials;
-using Xenko.Graphics;
-using Xenko.Shaders.Compiler;
-using Xenko.Shaders.Parser.Mixins;
+using Stride.Core.Assets;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Storage;
+using Stride.Assets.Materials;
+using Stride.Rendering.Materials.ComputeColors;
+using Stride.Rendering;
+using Stride.Rendering.Materials;
+using Stride.Graphics;
+using Stride.Shaders.Compiler;
+using Stride.Shaders.Parser.Mixins;
 
-namespace Xenko.Shaders.Tests
+namespace Stride.Shaders.Tests
 {
     /// <summary>
     /// Tests for the mixins code generation and runtime API.
@@ -42,17 +42,17 @@ namespace Xenko.Shaders.Tests
         {
             var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider) { UseFileSystem = true };
             var currentPath = Core.PlatformFolders.ApplicationBinaryDirectory;
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Graphics\Shaders"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Shaders"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Core"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Lights"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Shadows"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Materials\Shaders"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Materials\ComputeColors\Shaders"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Skinning"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Shading"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Transformation"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Utils"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Graphics\Shaders"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Shaders"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Core"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Lights"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Shadows"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Materials\Shaders"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Materials\ComputeColors\Shaders"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Skinning"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Shading"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Transformation"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Utils"));
             var compilerParameters = new CompilerParameters { EffectParameters = { Platform = GraphicsPlatform.OpenGL } };
 
             var layers = new MaterialBlendLayers();
@@ -97,7 +97,7 @@ namespace Xenko.Shaders.Tests
             //compilerParameters.Set(MaterialParameters.HasSkinningNormal, true);
             compilerParameters.Set(MaterialKeys.HasNormalMap, true);
 
-            var results = compiler.Compile(new ShaderMixinGeneratorSource("XenkoEffectBase"), compilerParameters);
+            var results = compiler.Compile(new ShaderMixinGeneratorSource("StrideEffectBase"), compilerParameters);
 
             Assert.False(results.HasErrors);
         }
@@ -108,18 +108,18 @@ namespace Xenko.Shaders.Tests
         {
             var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider) { UseFileSystem = true };
             var currentPath = Core.PlatformFolders.ApplicationBinaryDirectory;
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Shaders.Tests\GameAssets\Compiler"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Graphics\Shaders"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Shaders"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Core"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Lights"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Shadows"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Materials\Shaders"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Materials\ComputeColors\Shaders"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Skinning"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Shading"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Transformation"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Utils"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Shaders.Tests\GameAssets\Compiler"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Graphics\Shaders"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Shaders"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Core"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Lights"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Shadows"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Materials\Shaders"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Materials\ComputeColors\Shaders"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Skinning"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Shading"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Transformation"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Engine\Rendering\Utils"));
             var compilerParameters = new CompilerParameters { EffectParameters = { Platform = GraphicsPlatform.Direct3D11 } };
             var results = compiler.Compile(new ShaderClassSource("TestStream"), compilerParameters);
 
@@ -135,8 +135,8 @@ namespace Xenko.Shaders.Tests
         {
             var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider) { UseFileSystem = true };
             var currentPath = Core.PlatformFolders.ApplicationBinaryDirectory;
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Graphics\Shaders"));
-            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Shaders.Tests\GameAssets\Mixins"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Graphics\Shaders"));
+            compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Stride.Shaders.Tests\GameAssets\Mixins"));
 
             var compilerParameters = new CompilerParameters { EffectParameters = { Platform = GraphicsPlatform.Direct3D11 } };
 
@@ -220,10 +220,10 @@ namespace Xenko.Shaders.Tests
             {
                 var database = new DatabaseFileProvider(assetIndexMap, objDatabase);
 
-                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\sources\shaders", "*.xksl"))
+                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\sources\shaders", "*.sdsl"))
                     CopyStream(database, shaderName);
 
-                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\sources\engine\Xenko.Shaders.Tests\GameAssets\Compiler", "*.xksl"))
+                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\sources\engine\Stride.Shaders.Tests\GameAssets\Compiler", "*.sdsl"))
                     CopyStream(database, shaderName);
 
                 var compiler = new EffectCompiler(database);
@@ -241,7 +241,7 @@ namespace Xenko.Shaders.Tests
         public void TestGlslCompiler()
         {
             VirtualFileSystem.RemountFileSystem("/shaders", "../../../../shaders");
-            VirtualFileSystem.RemountFileSystem("/baseShaders", "../../../../engine/Xenko.Graphics/Shaders");
+            VirtualFileSystem.RemountFileSystem("/baseShaders", "../../../../engine/Stride.Graphics/Shaders");
             VirtualFileSystem.RemountFileSystem("/compiler", "Compiler");
 
 
@@ -260,7 +260,7 @@ namespace Xenko.Shaders.Tests
         public void TestGlslESCompiler()
         {
             VirtualFileSystem.RemountFileSystem("/shaders", "../../../../shaders");
-            VirtualFileSystem.RemountFileSystem("/baseShaders", "../../../../engine/Xenko.Graphics/Shaders");
+            VirtualFileSystem.RemountFileSystem("/baseShaders", "../../../../engine/Stride.Graphics/Shaders");
             VirtualFileSystem.RemountFileSystem("/compiler", "Compiler");
 
             var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider);

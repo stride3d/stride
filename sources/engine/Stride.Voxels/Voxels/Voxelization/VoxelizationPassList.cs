@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Core.Mathematics;
+using Stride.Core.Mathematics;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public class VoxelizationPassList
     {

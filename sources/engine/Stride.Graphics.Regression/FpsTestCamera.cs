@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Engine.Processors;
-using Xenko.Input;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Engine.Processors;
+using Stride.Input;
 using System;
 using System.Threading.Tasks;
 
-namespace Xenko.Graphics.Regression
+namespace Stride.Graphics.Regression
 {
     /// <summary>
     /// Uyseful camera for unit tests.

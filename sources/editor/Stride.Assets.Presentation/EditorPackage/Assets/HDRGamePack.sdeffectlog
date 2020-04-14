@@ -1,6 +1,6 @@
 ﻿---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -71,7 +71,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -134,7 +134,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -201,7 +201,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -289,7 +289,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -388,7 +388,7 @@ UsedParameters:
         ClassName: RoughnessCubeMapEnvironmentColor
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -479,7 +479,7 @@ UsedParameters:
         ClassName: RoughnessCubeMapEnvironmentColor
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -591,7 +591,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -686,7 +686,7 @@ UsedParameters:
         ClassName: RoughnessCubeMapEnvironmentColor
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -725,7 +725,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -841,7 +841,7 @@ UsedParameters:
         ClassName: RoughnessCubeMapEnvironmentColor
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -908,7 +908,7 @@ UsedParameters:
         ClassName: RoughnessCubeMapEnvironmentColor
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -1158,7 +1158,7 @@ UsedParameters:
                         GenericArguments: [COLOR0, rgba]
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.VertexStageSurfaceShaders: !ShaderMixinSource
         Mixins:

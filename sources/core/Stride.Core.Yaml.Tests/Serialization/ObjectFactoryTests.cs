@@ -45,9 +45,9 @@
 
 using System.IO;
 using Xunit;
-using Xenko.Core.Yaml.Serialization;
+using Stride.Core.Yaml.Serialization;
 
-namespace Xenko.Core.Yaml.Tests.Serialization
+namespace Stride.Core.Yaml.Tests.Serialization
 {
     public class ObjectFactoryTests
     {

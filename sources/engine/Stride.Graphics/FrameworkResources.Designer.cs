@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Xenko.Graphics {
+namespace Stride.Graphics {
     using System;
     using System.Reflection;
     
@@ -40,7 +40,7 @@ namespace Xenko.Graphics {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Xenko.Graphics.FrameworkResources", typeof(FrameworkResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.Graphics.FrameworkResources", typeof(FrameworkResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

@@ -1,4 +1,4 @@
-namespace Xenko.Core.Serialization
+namespace Stride.Core.Serialization
 {
     /// <summary>
     /// Represents a Url to an asset.

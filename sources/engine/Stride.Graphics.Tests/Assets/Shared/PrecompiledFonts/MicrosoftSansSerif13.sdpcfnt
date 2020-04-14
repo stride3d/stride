@@ -1,6 +1,6 @@
 !PregeneratedSpriteFont
 Id: 21b75b22-569e-4338-b23f-4606d3c4d684
-SerializedVersion: {Xenko: 1.7.0-alpha01}
+SerializedVersion: {Stride: 1.7.0-alpha01}
 Tags: []
 OriginalFont: bf28a16e-9945-4f3f-87e3-815b61944bef:StaticFonts/MicrosoftSansSerif13
 FontDataFile: ../../../../../data/tests/PrecompileFonts/MicrosoftSansSerif10 (Precompiled).png

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -6,15 +6,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Reflection;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Storage;
-using Xenko.Core.Yaml;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Reflection;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Storage;
+using Stride.Core.Yaml;
 
-namespace Xenko.Core.Assets
+namespace Stride.Core.Assets
 {
     /// <summary>
     /// Allows to clone an asset or values stored in an asset.

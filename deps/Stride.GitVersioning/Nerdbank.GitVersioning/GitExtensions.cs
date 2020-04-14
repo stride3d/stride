@@ -1,6 +1,6 @@
 // The MIT License(MIT)
 // 
-// Copyright(c) Xenko contributors
+// Copyright(c) Stride contributors
 // Copyright(c) Silicon Studio
 // Copyright(c) Andrew Arnott
 // 

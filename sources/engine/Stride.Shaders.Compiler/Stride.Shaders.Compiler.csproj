@@ -1,16 +1,16 @@
 ﻿<Project>
   <PropertyGroup>
-    <XenkoRuntime>true</XenkoRuntime>
-    <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
-    <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorOptions>--auto-module-initializer</XenkoAssemblyProcessorOptions>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(DisableRegistryUse)' != 'true' And '$(XenkoPlatform)' == 'Windows'">
+  <PropertyGroup Condition="'$(DisableRegistryUse)' != 'true' And '$(StridePlatform)' == 'Windows'">
     <WindowsSdkDir_10 Condition="'$(WindowsSdkDir_10)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0@InstallationFolder)</WindowsSdkDir_10>
     <WindowsSdkDir_10 Condition="'$(WindowsSdkDir_10)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v10.0@InstallationFolder)</WindowsSdkDir_10>
   </PropertyGroup>
@@ -20,29 +20,29 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Shaders.Parser\Xenko.Shaders.Parser.csproj" />
-    <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP'" />
+    <ProjectReference Include="..\Stride.Shaders.Parser\Stride.Shaders.Parser.csproj" />
+    <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'UWP'" />
   </ItemGroup>
-  <ItemGroup Condition="'$(XenkoPlatform)' == 'Windows'">
-    <XenkoNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">
+  <ItemGroup Condition="'$(StridePlatform)' == 'Windows'">
+    <StrideNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </XenkoNativeLib>
-    <XenkoContent Include="..\..\..\deps\glslang\Windows\glslangValidator.exe">
+    </StrideNativeLib>
+    <StrideContent Include="..\..\..\deps\glslang\Windows\glslangValidator.exe">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </XenkoContent>
+    </StrideContent>
   </ItemGroup>
-  <ItemGroup Condition="('$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'macOS') And '$(XenkoGraphicsApi)' == 'Vulkan'">
-    <XenkoContent Include="..\..\..\deps\glslang\$(XenkoPlatform)\glslangValidator">
+  <ItemGroup Condition="('$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS') And '$(StrideGraphicsApi)' == 'Vulkan'">
+    <StrideContent Include="..\..\..\deps\glslang\$(StridePlatform)\glslangValidator">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </XenkoContent>
+    </StrideContent>
   </ItemGroup>
-  <Import Project="..\..\shared\Xenko.Core.ShellHelper\Xenko.Core.ShellHelper.projitems" Label="Shared" />
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 </Project>

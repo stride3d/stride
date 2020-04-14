@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Xenko.VisualStudio
+namespace Stride.VisualStudio
 {
     public class SolutionEventsListener : IVsSolutionEvents, IVsSolutionLoadEvents, IVsUpdateSolutionEvents3, IVsSelectionEvents, IDisposable
     {

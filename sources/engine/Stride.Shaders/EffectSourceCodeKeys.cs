@@ -1,8 +1,8 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Rendering;
+using Stride.Rendering;
 
-namespace Xenko.Shaders
+namespace Stride.Shaders
 {
     /// <summary>
     /// Keys used for sourcecode generation.
@@ -10,7 +10,7 @@ namespace Xenko.Shaders
     public static class EffectSourceCodeKeys
     {
         /// <summary>
-        /// When compiling a xksl, this will generate a source code file
+        /// When compiling a sdsl, this will generate a source code file
         /// </summary>
         public static readonly ObjectParameterKey<bool> Enable = ParameterKeys.NewObject<bool>();
 

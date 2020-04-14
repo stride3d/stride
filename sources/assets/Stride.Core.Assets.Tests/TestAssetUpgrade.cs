@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -6,18 +6,18 @@ using System.Collections.Generic;
 using System.IO;
 
 using Xunit;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Yaml;
-using Xenko.Core.Yaml.Serialization;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Core.Yaml;
+using Stride.Core.Yaml.Serialization;
 
-namespace Xenko.Core.Assets.Tests
+namespace Stride.Core.Assets.Tests
 {
     public class TestAssetUpgrade : TestBase
     {
         [DataContract("MyUpgradedAsset")]
-        [AssetDescription(".xkobj")]
+        [AssetDescription(".sdobj")]
         [AssetFormatVersion("TestPackage", 5, 1)]
         [AssetUpgrader("TestPackage", 1, 2, typeof(AssetUpgrader1))]
         [AssetUpgrader("TestPackage", 2, 4, typeof(AssetUpgrader2))]
@@ -131,7 +131,7 @@ namespace Xenko.Core.Assets.Tests
 
         private void TestUpgrade(MyUpgradedAsset asset, bool needMigration)
         {
-            var loadingFilePath = new PackageLoadingAssetFile(Path.Combine(DirectoryTestBase, "TestUpgrade\\Asset1.xkobj"), DirectoryTestBase);
+            var loadingFilePath = new PackageLoadingAssetFile(Path.Combine(DirectoryTestBase, "TestUpgrade\\Asset1.sdobj"), DirectoryTestBase);
             var outputFilePath = loadingFilePath.FilePath.FullPath;
             AssetFileSerializer.Save(outputFilePath, asset, null);
 

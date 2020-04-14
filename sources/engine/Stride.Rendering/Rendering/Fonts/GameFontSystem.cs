@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core;
-using Xenko.Core.IO;
-using Xenko.Games;
-using Xenko.Graphics.Font;
+using Stride.Core;
+using Stride.Core.IO;
+using Stride.Games;
+using Stride.Graphics.Font;
 
-namespace Xenko.Rendering.Fonts
+namespace Stride.Rendering.Fonts
 {
     /// <summary>
     /// The game system in charge of calling <see cref="FontSystem"/>.

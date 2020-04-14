@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #region Copyright and license
@@ -38,12 +38,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Xenko.Core.Annotations;
-using Xenko.Core.Presentation.Extensions;
+using Stride.Core.Annotations;
+using Stride.Core.Presentation.Extensions;
 
-namespace Xenko.Core.Presentation.Drawing
+namespace Stride.Core.Presentation.Drawing
 {
-    using Color = Xenko.Core.Mathematics.Color;
+    using Color = Stride.Core.Mathematics.Color;
 
     public class CanvasRenderer : IDrawingContext
     {

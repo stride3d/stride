@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 using Android.Widget;
 using OpenTK.Platform.Android;
-using Xenko.Games.Android;
+using Stride.Games.Android;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
     /// <summary>
     /// A <see cref="GameContext"/> to use for rendering to an existing WinForm <see cref="Control"/>.
     /// </summary>
-    public partial class GameContextAndroid : GameContext<AndroidXenkoGameView>
+    public partial class GameContextAndroid : GameContext<AndroidStrideGameView>
     {
         /// <inheritDoc/>
-        public GameContextAndroid(AndroidXenkoGameView control, RelativeLayout editTextLayout, int requestedWidth = 0, int requestedHeight = 0)
+        public GameContextAndroid(AndroidStrideGameView control, RelativeLayout editTextLayout, int requestedWidth = 0, int requestedHeight = 0)
             : base(control, requestedWidth, requestedHeight)
         {
             EditTextLayout = editTextLayout;

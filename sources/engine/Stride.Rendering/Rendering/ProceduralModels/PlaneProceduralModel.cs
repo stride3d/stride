@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
 
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.Graphics.GeometricPrimitives;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Graphics.GeometricPrimitives;
 
-namespace Xenko.Rendering.ProceduralModels
+namespace Stride.Rendering.ProceduralModels
 {
     /// <summary>
     /// The geometric descriptor for a plane.

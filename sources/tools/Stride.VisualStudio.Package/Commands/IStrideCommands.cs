@@ -1,25 +1,25 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using EnvDTE80;
 
 using NShader;
 
-namespace Xenko.VisualStudio.Commands
+namespace Stride.VisualStudio.Commands
 {
     /// <summary>
-    /// Describes xenko commands accessed by VS Package to current xenko package (so that VSPackage doesn't depend on Xenko assemblies).
+    /// Describes stride commands accessed by VS Package to current stride package (so that VSPackage doesn't depend on Stride assemblies).
     /// </summary>
     /// <remarks>
     /// WARNING: Modifying this contract or any of it's dependencies will break backwards compatibility!
-    /// Introduce a new contract instead (e.g. IXenkoCommands2).
+    /// Introduce a new contract instead (e.g. IStrideCommands2).
     /// </remarks>
-    public interface IXenkoCommands
+    public interface IStrideCommands
     {
         /// <summary>
         /// Initialize parsing (this method can be called from a separate thread).
         /// </summary>
-        void Initialize(string xenkoSdkDir);
+        void Initialize(string strideSdkDir);
 
         /// <summary>
         /// Test whether we should reload these commands (assemblies changed)
@@ -34,7 +34,7 @@ namespace Xenko.VisualStudio.Commands
         RawShaderNavigationResult AnalyzeAndGoToDefinition(string sourceCode, RawSourceSpan span);
     }
 
-    public interface IXenkoCommands2
+    public interface IStrideCommands2
     {
         RawShaderNavigationResult AnalyzeAndGoToDefinition(string projectPath, string sourceCode, RawSourceSpan span);
     }

@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Quantum;
-using Xenko.Assets.UI;
-using Xenko.UI;
-using Xenko.UI.Controls;
-using Xenko.UI.Panels;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Diagnostics;
+using Stride.Core.Quantum;
+using Stride.Assets.UI;
+using Stride.UI;
+using Stride.UI.Controls;
+using Stride.UI.Panels;
 
-namespace Xenko.Assets.Presentation.Quantum
+namespace Stride.Assets.Presentation.Quantum
 {
     [AssetPropertyGraph(typeof(UIAssetBase))]
     public class UIAssetPropertyGraph : AssetCompositeHierarchyPropertyGraph<UIElementDesign, UIElement>

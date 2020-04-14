@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
 using System;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.Input;
-using TextAlignment = Xenko.Graphics.TextAlignment;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Input;
+using TextAlignment = Stride.Graphics.TextAlignment;
 
-namespace Xenko.UI.Controls
+namespace Stride.UI.Controls
 {
     public partial class EditText
     {

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -8,12 +8,12 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using Mono.Options;
-using Xenko.ConnectionRouter;
-using Xenko.Engine.Network;
-using Xenko.Graphics.Regression;
+using Stride.ConnectionRouter;
+using Stride.Engine.Network;
+using Stride.Graphics.Regression;
 using static System.String;
 
-namespace Xenko.TestRunner
+namespace Stride.TestRunner
 {
     class TestServerHost : RouterServiceServer
     {
@@ -34,7 +34,7 @@ namespace Xenko.TestRunner
 
         private readonly AutoResetEvent clientResultsEvent = new AutoResetEvent(false);
 
-        public TestServerHost(int bn, string branch) : base("/task/Xenko.TestRunner.exe")
+        public TestServerHost(int bn, string branch) : base("/task/Stride.TestRunner.exe")
         {
             buildNumber = bn;
             branchName = branch;
@@ -71,10 +71,10 @@ namespace Xenko.TestRunner
                 var parameters = new StringBuilder();
                 parameters.Append("-s "); parameters.Append(device.Serial);
                 parameters.Append(@" shell am start -a android.intent.action.MAIN -n " + packageName + "/nunitlite.tests.MainActivity");
-                AddAndroidParameter(parameters, Graphics.Regression.TestRunner.XenkoVersion, XenkoVersion.NuGetVersion);
-                AddAndroidParameter(parameters, Graphics.Regression.TestRunner.XenkoBuildNumber, buildNumber.ToString());
+                AddAndroidParameter(parameters, Graphics.Regression.TestRunner.StrideVersion, StrideVersion.NuGetVersion);
+                AddAndroidParameter(parameters, Graphics.Regression.TestRunner.StrideBuildNumber, buildNumber.ToString());
                 if (!IsNullOrEmpty(branchName))
-                    AddAndroidParameter(parameters, Graphics.Regression.TestRunner.XenkoBranchName, branchName);
+                    AddAndroidParameter(parameters, Graphics.Regression.TestRunner.StrideBranchName, branchName);
                 Console.WriteLine(parameters.ToString());
 
                 adbOutputs = ShellHelper.RunProcessAndGetOutput(adbPath, parameters.ToString());
@@ -221,7 +221,7 @@ namespace Xenko.TestRunner
 
             var p = new OptionSet
             {
-                "Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved", "Xenko Test Suite Tool - Version: " + Format("{0}.{1}.{2}", typeof(Program).Assembly.GetName().Version.Major, typeof(Program).Assembly.GetName().Version.Minor, typeof(Program).Assembly.GetName().Version.Build) + Empty, Format("Usage: {0} [assemblies|apk] -option1 -option2:a", exeName), Empty, "=== Options ===", Empty, { "h|help", "Show this message and exit", v => showHelp = v != null }, { "result-path:", "Result .XML output path", v => resultPath = v }, { "no-reinstall-apk", "Do not reinstall APK", v => reinstall = false },
+                "Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved", "Stride Test Suite Tool - Version: " + Format("{0}.{1}.{2}", typeof(Program).Assembly.GetName().Version.Major, typeof(Program).Assembly.GetName().Version.Minor, typeof(Program).Assembly.GetName().Version.Build) + Empty, Format("Usage: {0} [assemblies|apk] -option1 -option2:a", exeName), Empty, "=== Options ===", Empty, { "h|help", "Show this message and exit", v => showHelp = v != null }, { "result-path:", "Result .XML output path", v => resultPath = v }, { "no-reinstall-apk", "Do not reinstall APK", v => reinstall = false },
             };
 
             try
@@ -255,11 +255,11 @@ namespace Xenko.TestRunner
 
             // get build number
             int buildNumber;
-            if (!Int32.TryParse(Environment.GetEnvironmentVariable("XENKO_BUILD_NUMBER"), out buildNumber))
+            if (!Int32.TryParse(Environment.GetEnvironmentVariable("STRIDE_BUILD_NUMBER"), out buildNumber))
                 buildNumber = -1;
 
             // get branch name
-            var branchName = Environment.GetEnvironmentVariable("XENKO_BRANCH_NAME");
+            var branchName = Environment.GetEnvironmentVariable("STRIDE_BRANCH_NAME");
 
             var exitCode = 0;
 

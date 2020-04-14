@@ -5,5 +5,5 @@ Name: Animation start
 Scope: Asset
 Description: Loads an animation sequence in an animation component and plays it
 Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
+Icon: ..\..\.sdtpl\SourceCode.png
 DefaultOutputName: AnimationStart

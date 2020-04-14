@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 // Copyright 2016 Eli Arbel
 //  Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,9 +16,9 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using Microsoft.CodeAnalysis.CodeActions;
 using RoslynPad.Roslyn.CodeActions;
-using Xenko.Core.Presentation.ValueConverters;
+using Stride.Core.Presentation.ValueConverters;
 
-namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor.Converters
+namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor.Converters
 {
     internal sealed class CodeActionsConverter : OneWayValueConverter<CodeActionsConverter>
     {

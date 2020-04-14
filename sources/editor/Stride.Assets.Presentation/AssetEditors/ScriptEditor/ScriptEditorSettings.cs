@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Settings;
-using Xenko.Core.Translation;
+using Stride.Core.Settings;
+using Stride.Core.Translation;
 
-namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
+namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 {
     internal static class ScriptEditorSettings
     {
@@ -13,7 +13,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
         static ScriptEditorSettings()
         {
             // Note: assignment cannot be moved to initializer, because category names need to be assigned first.
-            FontSize = new SettingsKey<int>("ScriptEditor/FontSize", Xenko.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, 12)
+            FontSize = new SettingsKey<int>("ScriptEditor/FontSize", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, 12)
             {
                 DisplayName = $"{ScriptEditor}/{Tr._p("Settings", "Font size")}"
             };
@@ -23,7 +23,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
 
         public static void Save()
         {
-            Xenko.Core.Assets.Editor.Settings.EditorSettings.Save();
+            Stride.Core.Assets.Editor.Settings.EditorSettings.Save();
         }
     }
 }

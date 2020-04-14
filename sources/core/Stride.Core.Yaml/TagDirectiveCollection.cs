@@ -45,9 +45,9 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Xenko.Core.Yaml.Tokens;
+using Stride.Core.Yaml.Tokens;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     /// <summary>
     /// Collection of <see cref="TagDirective"/>.

@@ -5,7 +5,7 @@ Scope: Session
 Description: Demonstrates different parts of the particle engine
 FullDescription: This sample contains scenes for simple particle systems, animated particles, lasers, ribbons, child particle systems, custom materials for particles, and custom particle updaters and modules.
 Group: Samples/Particles
-Icon: ../.xktpl/NewParticles.png
+Icon: ../.sdtpl/NewParticles.png
 DefaultOutputName: ParticlesSample
 Screenshots:
-    - .xktpl/screenshot_small.jpg
+    - .sdtpl/screenshot_small.jpg

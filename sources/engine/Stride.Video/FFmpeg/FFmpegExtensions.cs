@@ -1,9 +1,9 @@
-#if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_VIDEO_FFMPEG
+#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_VIDEO_FFMPEG
 using System;
 using FFmpeg.AutoGen;
 using SharpDX.Direct3D11;
 
-namespace Xenko.Video.FFmpeg
+namespace Stride.Video.FFmpeg
 {
     public static class FFmpegExtensions
     {

@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
 using System;
 using System.Runtime.InteropServices;
 using ObjCRuntime;
 
-namespace Xenko.Graphics.Regression
+namespace Stride.Graphics.Regression
 {
     public class iOSDeviceType
     {

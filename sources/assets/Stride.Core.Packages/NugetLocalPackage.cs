@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // This file is distributed under GPL v3. See LICENSE.md for details
 
 using System;
@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using NuGet.Protocol;
 
-namespace Xenko.Core.Packages
+namespace Stride.Core.Packages
 {
     /// <summary>
     /// Description of a package that has been installed locally.

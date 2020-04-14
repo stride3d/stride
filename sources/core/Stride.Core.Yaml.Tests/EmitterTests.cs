@@ -47,10 +47,10 @@ using System;
 using System.IO;
 using System.Linq;
 using Xunit;
-using Xenko.Core.Yaml.Events;
-using Xenko.Core.Yaml.Serialization;
+using Stride.Core.Yaml.Events;
+using Stride.Core.Yaml.Serialization;
 
-namespace Xenko.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests
 {
     public class EmitterTests : YamlTest
     {

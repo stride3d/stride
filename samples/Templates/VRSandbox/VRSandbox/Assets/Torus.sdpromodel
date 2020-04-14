@@ -1,6 +1,6 @@
 !ProceduralModelAsset
 Id: 6e183d09-6745-45d1-980e-dcae98b9b671
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: !TorusProceduralModel
     Thickness: 0.0125

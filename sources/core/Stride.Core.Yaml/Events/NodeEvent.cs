@@ -46,7 +46,7 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace Xenko.Core.Yaml.Events
+namespace Stride.Core.Yaml.Events
 {
     /// <summary>
     /// Contains the behavior that is common between node events.

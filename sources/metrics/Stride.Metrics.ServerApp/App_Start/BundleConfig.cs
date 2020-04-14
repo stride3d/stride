@@ -2,7 +2,7 @@
 using BundleTransformer.Core.Bundles;
 using BundleTransformer.Core.Orderers;
 
-namespace Xenko.Metrics.ServerApp.Content
+namespace Stride.Metrics.ServerApp.Content
 {
     public class BundleConfig
     {

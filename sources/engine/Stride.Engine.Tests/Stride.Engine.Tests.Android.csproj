@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--Import Local Pre Settings for the solution being loaded -->
-  <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -11,8 +11,8 @@
     <OutputType>Library</OutputType>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Xenko.Engine.Tests</RootNamespace>
-    <AssemblyName>Xenko.Engine.Tests</AssemblyName>
+    <RootNamespace>Stride.Engine.Tests</RootNamespace>
+    <AssemblyName>Stride.Engine.Tests</AssemblyName>
     <TargetFrameworkVersion>v8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AndroidApplication>true</AndroidApplication>
@@ -25,25 +25,25 @@
     <JavaMaximumHeapSize />
     <JavaOptions />
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
-    <XenkoPlatform>Android</XenkoPlatform>
-    <XenkoBuildProfile>Android</XenkoBuildProfile>
-    <XenkoPackageGuid>{c6c57562-42df-42ad-be2d-8d5889211366}</XenkoPackageGuid>
-    <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">OpenGLES</XenkoGraphicsApi>
-    <XenkoOutputFolder>Tests\$(XenkoGraphicsApi)\$(AssemblyName)</XenkoOutputFolder>
+    <StridePlatform>Android</StridePlatform>
+    <StrideBuildProfile>Android</StrideBuildProfile>
+    <StridePackageGuid>{c6c57562-42df-42ad-be2d-8d5889211366}</StridePackageGuid>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''">OpenGLES</StrideGraphicsApi>
+    <StrideOutputFolder>Tests\$(StrideGraphicsApi)\$(AssemblyName)</StrideOutputFolder>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
-    <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)Xenko.Engine.Tests.xkpkg</XenkoCurrentPackagePath>
-    <OutputPath>..\..\..\Bin\$(XenkoPlatformFullName)\$(XenkoOutputFolder)</OutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(XenkoPlatformFullName)-$(XenkoGraphicsApi)\$(Configuration)</IntermediateOutputPath>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)Stride.Engine.Tests.sdpkg</StrideCurrentPackagePath>
+    <OutputPath>..\..\..\Bin\$(StridePlatformFullName)\$(StrideOutputFolder)</OutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(StridePlatformFullName)-$(StrideGraphicsApi)\$(Configuration)</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Android' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
@@ -52,7 +52,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Android' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID</DefineConstants>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
@@ -61,7 +61,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|Android' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID</DefineConstants>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
@@ -70,25 +70,25 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AppStore|Android' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID</DefineConstants>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
     <AndroidLinkMode>SdkOnly</AndroidLinkMode>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Android" Label="Xenko.DoNotSync" />
+    <Reference Include="Mono.Android" Label="Stride.DoNotSync" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Label="Xenko.DoNotSync" Include="Properties\AssemblyInfo.cs" />
-    <Content Label="Xenko.DoNotSync" Include="Properties\AndroidManifest.xml" />
-    <AndroidResource Label="Xenko.DoNotSync" Include="Resources\Drawable\Icon.png" />
-    <Compile Label="Xenko.DoNotSync" Include="Resources\Resource.Designer.cs" />
-    <Compile Label="Xenko.DoNotSync" Include="..\..\..\sources\shared\tests\nunitlite\NUnitLiteLauncher.Android.cs">
+    <Compile Label="Stride.DoNotSync" Include="Properties\AssemblyInfo.cs" />
+    <Content Label="Stride.DoNotSync" Include="Properties\AndroidManifest.xml" />
+    <AndroidResource Label="Stride.DoNotSync" Include="Resources\Drawable\Icon.png" />
+    <Compile Label="Stride.DoNotSync" Include="Resources\Resource.Designer.cs" />
+    <Compile Label="Stride.DoNotSync" Include="..\..\..\sources\shared\tests\nunitlite\NUnitLiteLauncher.Android.cs">
       <Link>NUnitLiteLauncher.Android.cs</Link>
     </Compile>
-    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\Xenko.Graphics.Regression\Xenko.Graphics.Regression.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Compile Include="XunitAttributes.cs" />
@@ -120,53 +120,53 @@
     <None Include="effects_test.xml">
       <SubType>Designer</SubType>
     </None>
-    <None Include="GameAssets\01-Default.xkmat" />
-    <None Include="GameAssets\BallSprite1.xksheet" />
-    <None Include="GameAssets\BallSprite2.xksheet" />
-    <None Include="GameAssets\BasicDisplacementMap.xktex" />
-    <None Include="GameAssets\c100_body_cm.xktex" />
-    <None Include="GameAssets\c100_body_em.xktex" />
-    <None Include="GameAssets\c100_body_nm.xktex" />
-    <None Include="GameAssets\c100_body_sp.xktex" />
-    <None Include="GameAssets\c100_chr_ch00_Knight_KINGHT.xkmat" />
-    <None Include="GameAssets\c100_chr_ch00_Knight_KINGHT_iron.xkmat" />
-    <None Include="GameAssets\c100_chr_ch00_Knight_SWORD1.xkmat" />
-    <None Include="GameAssets\c100_weapon_cm.xktex" />
-    <None Include="GameAssets\c100_weapon_nm.xktex" />
-    <None Include="GameAssets\c100_weapon_sp.xktex" />
-    <None Include="GameAssets\CobbleDisplacementMap.xktex" />
-    <None Include="GameAssets\Cube\cube Model Skeleton.xkskel" />
-    <None Include="GameAssets\Cube\cube Model.xkm3d" />
-    <None Include="GameAssets\Cube\cube_Untitled.xktex" />
-    <None Include="GameAssets\Cube\lambert1.xkmat" />
-    <None Include="GameAssets\DebugSpriteSheet.xksheet" />
-    <None Include="GameAssets\FlatTessellation.xkmat" />
-    <None Include="GameAssets\FlatTessellationDispl.xkmat" />
-    <None Include="GameAssets\FlatTessellationDisplAE.xkmat" />
-    <None Include="GameAssets\Font.xkfnt" />
-    <None Include="GameAssets\GameSettings.xkgamesettings" />
-    <None Include="GameAssets\GraphicsCompositor.xkgfxcomp" />
-    <None Include="GameAssets\GroundSprite.xksheet" />
-    <None Include="GameAssets\knight Idle.xkanim" />
-    <None Include="GameAssets\knight Model.xkm3d" />
-    <None Include="GameAssets\knight Run.xkanim" />
-    <None Include="GameAssets\knight Skeleton.xkskel" />
-    <None Include="GameAssets\MainScene.xkscene" />
-    <None Include="GameAssets\megalodon Model.xkm3d" />
-    <None Include="GameAssets\megalodon.xktex" />
-    <None Include="GameAssets\NoTessellation.xkmat" />
-    <None Include="GameAssets\PNTessellation.xkmat" />
-    <None Include="GameAssets\PNTessellationAE.xkmat" />
-    <None Include="GameAssets\PNTessellationDisplAE.xkmat" />
-    <None Include="GameAssets\RotationSheet.xksheet" />
-    <None Include="GameAssets\Sphere1.xktex" />
-    <None Include="GameAssets\Sphere2.xktex" />
-    <None Include="Xenko.Engine.Tests.xkpkg" />
+    <None Include="GameAssets\01-Default.sdmat" />
+    <None Include="GameAssets\BallSprite1.sdsheet" />
+    <None Include="GameAssets\BallSprite2.sdsheet" />
+    <None Include="GameAssets\BasicDisplacementMap.sdtex" />
+    <None Include="GameAssets\c100_body_cm.sdtex" />
+    <None Include="GameAssets\c100_body_em.sdtex" />
+    <None Include="GameAssets\c100_body_nm.sdtex" />
+    <None Include="GameAssets\c100_body_sp.sdtex" />
+    <None Include="GameAssets\c100_chr_ch00_Knight_KINGHT.sdmat" />
+    <None Include="GameAssets\c100_chr_ch00_Knight_KINGHT_iron.sdmat" />
+    <None Include="GameAssets\c100_chr_ch00_Knight_SWORD1.sdmat" />
+    <None Include="GameAssets\c100_weapon_cm.sdtex" />
+    <None Include="GameAssets\c100_weapon_nm.sdtex" />
+    <None Include="GameAssets\c100_weapon_sp.sdtex" />
+    <None Include="GameAssets\CobbleDisplacementMap.sdtex" />
+    <None Include="GameAssets\Cube\cube Model Skeleton.sdskel" />
+    <None Include="GameAssets\Cube\cube Model.sdm3d" />
+    <None Include="GameAssets\Cube\cube_Untitled.sdtex" />
+    <None Include="GameAssets\Cube\lambert1.sdmat" />
+    <None Include="GameAssets\DebugSpriteSheet.sdsheet" />
+    <None Include="GameAssets\FlatTessellation.sdmat" />
+    <None Include="GameAssets\FlatTessellationDispl.sdmat" />
+    <None Include="GameAssets\FlatTessellationDisplAE.sdmat" />
+    <None Include="GameAssets\Font.sdfnt" />
+    <None Include="GameAssets\GameSettings.sdgamesettings" />
+    <None Include="GameAssets\GraphicsCompositor.sdgfxcomp" />
+    <None Include="GameAssets\GroundSprite.sdsheet" />
+    <None Include="GameAssets\knight Idle.sdanim" />
+    <None Include="GameAssets\knight Model.sdm3d" />
+    <None Include="GameAssets\knight Run.sdanim" />
+    <None Include="GameAssets\knight Skeleton.sdskel" />
+    <None Include="GameAssets\MainScene.sdscene" />
+    <None Include="GameAssets\megalodon Model.sdm3d" />
+    <None Include="GameAssets\megalodon.sdtex" />
+    <None Include="GameAssets\NoTessellation.sdmat" />
+    <None Include="GameAssets\PNTessellation.sdmat" />
+    <None Include="GameAssets\PNTessellationAE.sdmat" />
+    <None Include="GameAssets\PNTessellationDisplAE.sdmat" />
+    <None Include="GameAssets\RotationSheet.sdsheet" />
+    <None Include="GameAssets\Sphere1.sdtex" />
+    <None Include="GameAssets\Sphere2.sdtex" />
+    <None Include="Stride.Engine.Tests.sdpkg" />
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
-  <Import Project="$(XenkoPackageProps)" Condition="Exists('$(XenkoPackageProps)')" />
-  <Import Project="..\..\targets\Xenko.UnitTests.targets" Condition="Exists('..\..\targets\Xenko.UnitTests.targets')" />
+  <Import Project="$(StridePackageProps)" Condition="Exists('$(StridePackageProps)')" />
+  <Import Project="..\..\targets\Stride.UnitTests.targets" Condition="Exists('..\..\targets\Stride.UnitTests.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
     Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

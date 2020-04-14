@@ -1,6 +1,6 @@
 !Animation
 Id: e3bf5815-0836-4044-a686-3c73e4766fee
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../data/tests/knight/scenes/Guard_Idle.fbx
 ClipDuration:

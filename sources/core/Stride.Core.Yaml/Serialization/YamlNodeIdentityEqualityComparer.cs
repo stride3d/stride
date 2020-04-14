@@ -45,7 +45,7 @@
 
 using System.Collections.Generic;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Comparer that is based on identity comparisons.

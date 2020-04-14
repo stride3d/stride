@@ -5,7 +5,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".cs" #>
-namespace Xenko.UI.Tests.Regression
+namespace Stride.UI.Tests.Regression
 {
 
     public static class ElementTestDesigns

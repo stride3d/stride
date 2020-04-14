@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xenko.Core.Annotations;
-using Xenko.Core.Transactions;
-using Xenko.Core.Presentation.Dirtiables;
+using Stride.Core.Annotations;
+using Stride.Core.Transactions;
+using Stride.Core.Presentation.Dirtiables;
 
-namespace Xenko.Core.Presentation.Services
+namespace Stride.Core.Presentation.Services
 {
     public class UndoRedoService : IUndoRedoService
     {

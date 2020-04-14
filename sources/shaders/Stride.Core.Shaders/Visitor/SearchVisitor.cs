@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast;
 
-namespace Xenko.Core.Shaders.Visitor
+namespace Stride.Core.Shaders.Visitor
 {
     /// <summary>
     /// A visitor that takes a filter function to apply to each node.

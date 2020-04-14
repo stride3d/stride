@@ -1,22 +1,22 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
-using Xenko.Assets.Presentation.SceneEditor;
-using Xenko.Editor.Engine;
-using Xenko.Engine;
-using Xenko.Engine.Processors;
-using Xenko.Input;
-using static Xenko.Assets.Presentation.SceneEditor.SceneEditorSettings;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Assets.Presentation.SceneEditor;
+using Stride.Editor.Engine;
+using Stride.Engine;
+using Stride.Engine.Processors;
+using Stride.Input;
+using static Stride.Assets.Presentation.SceneEditor.SceneEditorSettings;
 
-namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
+namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
     public class EditorGameEntityCameraService : EditorGameCameraService, IEditorGameEntityCameraViewModelService
     {

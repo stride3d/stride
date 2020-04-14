@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Annotations;
-using Xenko.Core.Presentation.Quantum.ViewModels;
-using Xenko.Core.Presentation.View;
+using Stride.Core.Annotations;
+using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Presentation.View;
 
-namespace Xenko.Core.Presentation.Quantum.View
+namespace Stride.Core.Presentation.Quantum.View
 {
     /// <summary>
-    /// A base class for implementations of <see cref="ITemplateProvider"/> that can provide templates for <see cref="Xenko.Core.Presentation.Quantum.ViewModels.NodeViewModel"/> instances.
+    /// A base class for implementations of <see cref="ITemplateProvider"/> that can provide templates for <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel"/> instances.
     /// </summary>
     public abstract class NodeViewModelTemplateProvider : TemplateProviderBase
     {
@@ -20,7 +20,7 @@ namespace Xenko.Core.Presentation.Quantum.View
         }
 
         /// <summary>
-        /// Indicates whether this instance of <see cref="ITemplateProvider"/> can provide a template for the given <see cref="Xenko.Core.Presentation.Quantum.ViewModels.NodeViewModel"/>.
+        /// Indicates whether this instance of <see cref="ITemplateProvider"/> can provide a template for the given <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel"/>.
         /// </summary>
         /// <param name="node">The node to test.</param>
         /// <returns><c>true</c> if this template provider can provide a template for the given node, <c>false</c> otherwise.</returns>
@@ -28,8 +28,8 @@ namespace Xenko.Core.Presentation.Quantum.View
         public abstract bool MatchNode(NodeViewModel node);
 
         /// <summary>
-        /// Indicates whether the given node matches the given type, either with the <see cref="Xenko.Core.Presentation.Quantum.ViewModels.NodeViewModel.Type"/> property
-        /// or the type of the <see cref="Xenko.Core.Presentation.Quantum.ViewModels.NodeViewModel.Value"/> property.
+        /// Indicates whether the given node matches the given type, either with the <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel.Type"/> property
+        /// or the type of the <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel.Value"/> property.
         /// </summary>
         /// <param name="node">The node to check.</param>
         /// <param name="type">The type to match.</param>

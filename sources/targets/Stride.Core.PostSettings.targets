@@ -1,4 +1,4 @@
-<!-- Build file post-included by all Xenko projects -->
+<!-- Build file post-included by all Stride projects -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- Add Default targets used by Msbuild for undefined Platforms / or when skipping compilation under a platform -->
@@ -12,18 +12,18 @@
 
   <!--Import Local Post Settings for the solution being loaded -->
   <Import Project="$(SolutionDir)$(SolutionName).PostSettings.Local.targets" Condition="Exists('$(SolutionDir)$(SolutionName).PostSettings.Local.targets')" />
-  <Import Project="$(SolutionDir)Xenko.Core.PostSettings.Local.targets" Condition="Exists('$(SolutionDir)Xenko.Core.PostSettings.Local.targets')" />
+  <Import Project="$(SolutionDir)Stride.Core.PostSettings.Local.targets" Condition="Exists('$(SolutionDir)Stride.Core.PostSettings.Local.targets')" />
   
   <!-- Include platform dependent assembly when specified -->
   <Choose>
-    <When Condition="'$(XenkoPlatformDependent)' == 'true'">
+    <When Condition="'$(StridePlatformDependent)' == 'true'">
       <Choose>
-        <When Condition=" '$(XenkoPlatform)' == 'Android'">
+        <When Condition=" '$(StridePlatform)' == 'Android'">
           <ItemGroup>
             <Reference Include="Mono.Android" />
           </ItemGroup>
         </When>
-        <When Condition=" '$(XenkoPlatform)' == 'iOS'">
+        <When Condition=" '$(StridePlatform)' == 'iOS'">
           <ItemGroup>
             <Reference Include="Xamarin.iOS" />
           </ItemGroup>
@@ -37,18 +37,18 @@
     <VisualStudioVersion>11.0</VisualStudioVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(XenkoCodeAnalysis)' == 'true'">
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Xenko.ruleset</CodeAnalysisRuleSet>
+  <PropertyGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Stride.ruleset</CodeAnalysisRuleSet>
     <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
   </PropertyGroup>
-  <ItemGroup Condition="'$(XenkoCodeAnalysis)' == 'true'">
+  <ItemGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="All" />
   </ItemGroup>
-  <!-- Disable analyzers unless XenkoEnableCodeAnalysis is set (note: PackageReference can't depend on external Condition) -->
-  <Target Name="DisableAnalyzersForXenkoBuild"
+  <!-- Disable analyzers unless StrideEnableCodeAnalysis is set (note: PackageReference can't depend on external Condition) -->
+  <Target Name="DisableAnalyzersForStrideBuild"
         BeforeTargets="CoreCompile"
-        Condition="'$(XenkoEnableCodeAnalysis)' != 'true'">
+        Condition="'$(StrideEnableCodeAnalysis)' != 'true'">
     <ItemGroup>
       <Analyzer Remove="@(Analyzer)"/>
     </ItemGroup>
@@ -58,78 +58,78 @@
   <!-- Setup compiler targets per platform / language -->
   <PropertyGroup>
     <!-- On Android, everything is library (even Exe) -->
-    <OutputType Condition=" '$(XenkoPlatform)' == 'Android' ">Library</OutputType>
+    <OutputType Condition=" '$(StridePlatform)' == 'Android' ">Library</OutputType>
 
-    <OutputPath Condition="'$(XenkoProjectType)' == 'Cpp'">$(OutDir)</OutputPath>
-    <IntermediateOutputPath Condition="'$(XenkoProjectType)' == 'Cpp'">$(IntDir)</IntermediateOutputPath>
+    <OutputPath Condition="'$(StrideProjectType)' == 'Cpp'">$(OutDir)</OutputPath>
+    <IntermediateOutputPath Condition="'$(StrideProjectType)' == 'Cpp'">$(IntDir)</IntermediateOutputPath>
   </PropertyGroup>
 
   <!-- Workaround for https://github.com/onovotny/MSBuildSdkExtras/issues/174 -->
-  <Target Name="_XenkoRemoveNonExistingResgenFile" BeforeTargets="CoreCompile" Condition="'$(_SdkSetAndroidResgenFile)' == 'true' And '$(AndroidResgenFile)' != '' And !Exists('$(AndroidResgenFile)')">
+  <Target Name="_StrideRemoveNonExistingResgenFile" BeforeTargets="CoreCompile" Condition="'$(_SdkSetAndroidResgenFile)' == 'true' And '$(AndroidResgenFile)' != '' And !Exists('$(AndroidResgenFile)')">
     <ItemGroup>
       <Compile Remove="$(AndroidResgenFile)"/>
     </ItemGroup>
   </Target>
 
   <!-- User Documentation (.usrdoc) -->
-  <PropertyGroup Condition="'$(XenkoPublicApi)' == 'true'">
+  <PropertyGroup Condition="'$(StridePublicApi)' == 'true'">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.usrdoc</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_XenkoRegisterUserDocOutputs</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_StrideRegisterUserDocOutputs</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
-  <Target Name="_XenkoRegisterUserDocOutputs">
+  <Target Name="_StrideRegisterUserDocOutputs">
     <ItemGroup Condition="Exists('$(OutputPath)$(AssemblyName).usrdoc')">
       <BuildOutputInPackage Include="$(OutputPath)$(AssemblyName).usrdoc"/>
     </ItemGroup>
   </Target>
-  <Target Name="_XenkoRegisterUserDocReferenceRelatedFileExtensions" Condition="'$(XenkoPublicApi)' == 'true'" BeforeTargets="ResolveAssemblyReferences">
+  <Target Name="_StrideRegisterUserDocReferenceRelatedFileExtensions" Condition="'$(StridePublicApi)' == 'true'" BeforeTargets="ResolveAssemblyReferences">
     <PropertyGroup>
       <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.usrdoc</AllowedReferenceRelatedFileExtensions>
     </PropertyGroup>
   </Target>
 
   <PropertyGroup>
-    <XenkoCompilerTargetsEnable Condition=" '$(XenkoPlatform)' != 'Windows' and $(XenkoWindowsOnly) == 'true'">false</XenkoCompilerTargetsEnable>
+    <StrideCompilerTargetsEnable Condition=" '$(StridePlatform)' != 'Windows' and $(StrideWindowsOnly) == 'true'">false</StrideCompilerTargetsEnable>
 
     <!-- Skip unit tests if requested -->
-    <XenkoCompilerTargetsEnable Condition="'$(XenkoSkipUnitTests)' == 'true' And $(XenkoOutputFolder.StartsWith('Tests'))">false</XenkoCompilerTargetsEnable>
+    <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true' And $(StrideOutputFolder.StartsWith('Tests'))">false</StrideCompilerTargetsEnable>
 
-    <!-- If XenkoCompilerTargetsEnable is set to false, override LanguageTargets to an empty one -->
-    <LanguageTargets Condition="'$(XenkoCompilerTargetsEnable)' == 'false'">$(MSBuildThisFileDirectory)Xenko.Core.DisableBuild.targets</LanguageTargets>
+    <!-- If StrideCompilerTargetsEnable is set to false, override LanguageTargets to an empty one -->
+    <LanguageTargets Condition="'$(StrideCompilerTargetsEnable)' == 'false'">$(MSBuildThisFileDirectory)Stride.Core.DisableBuild.targets</LanguageTargets>
   </PropertyGroup>
   
   <!-- C++ doesn't auto-import language targets -->
-  <Import Condition="'$(XenkoProjectType)' == 'Cpp' And '$(XenkoCompilerTargetsEnable)' != 'false'" Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Condition="'$(StrideProjectType)' == 'Cpp' And '$(StrideCompilerTargetsEnable)' != 'false'" Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 
-  <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(XenkoAssemblyProcessorPath)" Condition=" '$(XenkoAssemblyProcessorPath)' != '' And '$(XenkoAssemblyProcessorDev)' != 'true' "/>
+  <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorPath)" Condition=" '$(StrideAssemblyProcessorPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
   
-  <Target Name="RunXenkoAssemblyProcessor" BeforeTargets="CopyFilesToOutputDirectory" Condition=" '$(XenkoAssemblyProcessor)' == 'true' and '$(XenkoAssemblyProcessorPath)' != '' and '$(XenkoAssemblyProcessorGlobal)' == 'true' and '$(XenkoAssemblyProcessorOptions)' != '' ">
-    <PropertyGroup Condition="'$(XenkoUserBuild)' != 'true'">
-      <!-- Add Xenko.Core path to assembly search directory -->
-      <XenkoAssemblyProcessorOptions Condition="'$(XenkoCoreAssemblyPath)' != ''">$(XenkoAssemblyProcessorOptions) --assembly="$(XenkoCoreAssemblyPath)"</XenkoAssemblyProcessorOptions>
+  <Target Name="RunStrideAssemblyProcessor" BeforeTargets="CopyFilesToOutputDirectory" Condition=" '$(StrideAssemblyProcessor)' == 'true' and '$(StrideAssemblyProcessorPath)' != '' and '$(StrideAssemblyProcessorGlobal)' == 'true' and '$(StrideAssemblyProcessorOptions)' != '' ">
+    <PropertyGroup Condition="'$(StrideUserBuild)' != 'true'">
+      <!-- Add Stride.Core path to assembly search directory -->
+      <StrideAssemblyProcessorOptions Condition="'$(StrideCoreAssemblyPath)' != ''">$(StrideAssemblyProcessorOptions) --assembly="$(StrideCoreAssemblyPath)"</StrideAssemblyProcessorOptions>
     </PropertyGroup>
 
-    <WriteLinesToFile File="$(IntermediateOutputPath)XenkoReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
+    <WriteLinesToFile File="$(IntermediateOutputPath)StrideReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
 
     <!--Add platform and target framework to assembly processor options-->
     <PropertyGroup>
-      <XenkoAssemblyProcessorOptions>--platform=$(XenkoPlatform) --targetFramework=$(TargetFrameworkVersion) $(XenkoAssemblyProcessorOptions)</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)XenkoReferences.cache"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(XenkoAssemblyProcessorOptions) --signkeyfile="$(AssemblyOriginatorKeyFile)"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(XenkoAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --Werror</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</XenkoAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions>--platform=$(StridePlatform) --targetFramework=$(TargetFrameworkVersion) $(StrideAssemblyProcessorOptions)</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)StrideReferences.cache"</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(StrideAssemblyProcessorOptions) --signkeyfile="$(AssemblyOriginatorKeyFile)"</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --Werror</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>
     </PropertyGroup>
 
     <!-- Run assembly processor -->
-    <Message Importance="High" Text="&quot;$(XenkoAssemblyProcessorPath)&quot; $(XenkoAssemblyProcessorOptions)"/>
-    <AssemblyProcessorTask Condition=" '$(XenkoAssemblyProcessorDev)' != 'true' " Arguments="$(XenkoAssemblyProcessorOptions)"/>
+    <Message Importance="High" Text="&quot;$(StrideAssemblyProcessorPath)&quot; $(StrideAssemblyProcessorOptions)"/>
+    <AssemblyProcessorTask Condition=" '$(StrideAssemblyProcessorDev)' != 'true' " Arguments="$(StrideAssemblyProcessorOptions)"/>
     <!-- Dev mode: don't use task to avoid locking the file -->
-    <Exec Condition=" '$(XenkoAssemblyProcessorDev)' == 'true' " Command="&quot;$(XenkoAssemblyProcessorPath)&quot; $(XenkoAssemblyProcessorOptions)"/>
+    <Exec Condition=" '$(StrideAssemblyProcessorDev)' == 'true' " Command="&quot;$(StrideAssemblyProcessorPath)&quot; $(StrideAssemblyProcessorOptions)"/>
 
     <!-- Copy User Documentation (.usrdoc) file to output -->
     <Copy
-      Condition="'$(XenkoPublicApi)' == 'true' And Exists('%(RelativeDir)%(Filename).usrdoc')"
+      Condition="'$(StridePublicApi)' == 'true' And Exists('%(RelativeDir)%(Filename).usrdoc')"
       SourceFiles="@(DocFileItem->'%(RelativeDir)%(Filename).usrdoc')"
       DestinationFolder="$(OutDir)"
       SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
@@ -143,12 +143,12 @@
     </Copy>
   </Target>
 
-  <Import Project="$(MSBuildThisFileDirectory)Xenko.Core.Sign.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.Sign.targets" />
   
   <Target Name="SetPrivateOnProjectReferences" BeforeTargets="BeforeCompile" AfterTargets="IncludeTransitiveProjectReferences">
     <!-- Automatically add Private on project references if they are already built in same folder as output folder -->
 	<!-- Also add PrivateAssets All to all Private projects -->
-    <ItemGroup Condition="'$(OutputPath)' == '$(XenkoOutputCommonDir)'">
+    <ItemGroup Condition="'$(OutputPath)' == '$(StrideOutputCommonDir)'">
       <ProjectReferenceNew Include="@(ProjectReference)">
         <Private>False</Private>
       </ProjectReferenceNew>
@@ -157,45 +157,45 @@
     </ItemGroup>
   </Target>
 
-  <Import Project="$(MSBuildThisFileDirectory)Xenko.Core.PostSettings.Dependencies.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.PostSettings.Dependencies.targets"/>
   
-  <Import Condition="'$(XenkoNativeOutputName)' != ''" Project="$(MSBuildThisFileDirectory)..\native\Xenko.Native.targets" />
+  <Import Condition="'$(StrideNativeOutputName)' != ''" Project="$(MSBuildThisFileDirectory)..\native\Stride.Native.targets" />
 
   <!-- Auto NuGet build packages and deploy them -->
-  <Target Name="XenkoAutoPackDeploy" AfterTargets="Pack">
-    <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\Xenko\NugetDev"/>
+  <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
+    <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\Stride\NugetDev"/>
     <!-- Deleting .sha512 file and/or .nupkg.metadata seems to be enough for NuGet restore to force extract new package and properly compile dependent projects -->
     <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\$(PackageId).$(PackageVersion).nupkg.sha512"/>
     <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\.nupkg.metadata"/>
   </Target>
-  <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(XenkoSkipAutoPack)' != 'true'">
+  <PropertyGroup Condition="$(DesignTimeBuild) != 'true' And '$(StrideSkipAutoPack)' != 'true'">
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
   <!-- Auto NuGet build packages and deploy them -->
-  <Import Project="$(MSBuildThisFileDirectory)Xenko.AutoPack.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)Stride.AutoPack.targets"/>
 
   <!-- Generate localization satellite assemblies -->
-  <Target Name="XenkoGenerateLocalizationSatelliteDlls" BeforeTargets="SatelliteDllsProjectOutputGroup" Returns="@(SatelliteDllsProjectOutputGroupOutput)" Condition="'$(XenkoLocalized)' == 'true' And '$(Configuration)' == 'Release'">
+  <Target Name="StrideGenerateLocalizationSatelliteDlls" BeforeTargets="SatelliteDllsProjectOutputGroup" Returns="@(SatelliteDllsProjectOutputGroupOutput)" Condition="'$(StrideLocalized)' == 'true' And '$(Configuration)' == 'Release'">
     <ItemGroup>
       <!-- Current list of languages to try to generate -->
-      <XenkoTraductions Include="fr;ja;es;de;ru;it;ko"/>
-      <XenkoTraductions Include="zh-Hans">
+      <StrideTraductions Include="fr;ja;es;de;ru;it;ko"/>
+      <StrideTraductions Include="zh-Hans">
         <Source>zh_HANS-CN</Source>
-      </XenkoTraductions>
+      </StrideTraductions>
 
-      <_XenkoTraductions Include="@(XenkoTraductions)">
-        <Source Condition="%(XenkoTraductions.Source) == ''">%(XenkoTraductions.Identity)</Source>
-      </_XenkoTraductions>
+      <_StrideTraductions Include="@(StrideTraductions)">
+        <Source Condition="%(StrideTraductions.Source) == ''">%(StrideTraductions.Identity)</Source>
+      </_StrideTraductions>
     </ItemGroup>
-    <Message Importance="High" Text="Generating traduction for %(_XenkoTraductions.Identity) %(_XenkoTraductions.SourceFolder)"/>
-    <Exec Condition="Exists('$(SolutionDir)..\sources\localization\%(_XenkoTraductions.Source)\$(TargetName).%(_XenkoTraductions.Source).po')" Command="Path=$(RoslynTargetsPath);$(Path)
-&quot;$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; --lib-dir &quot;$(SolutionDir)..\deps\Gettext.Net&quot; --resource $(TargetName) -d &quot;$(TargetDir).&quot; --locale %(_XenkoTraductions.Identity) &quot;$(MSBuildThisFileDirectory)..\localization\%(_XenkoTraductions.Source)\$(TargetName).%(_XenkoTraductions.Source).po&quot; --verbose" />
+    <Message Importance="High" Text="Generating traduction for %(_StrideTraductions.Identity) %(_StrideTraductions.SourceFolder)"/>
+    <Exec Condition="Exists('$(SolutionDir)..\sources\localization\%(_StrideTraductions.Source)\$(TargetName).%(_StrideTraductions.Source).po')" Command="Path=$(RoslynTargetsPath);$(Path)
+&quot;$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; --lib-dir &quot;$(SolutionDir)..\deps\Gettext.Net&quot; --resource $(TargetName) -d &quot;$(TargetDir).&quot; --locale %(_StrideTraductions.Identity) &quot;$(MSBuildThisFileDirectory)..\localization\%(_StrideTraductions.Source)\$(TargetName).%(_StrideTraductions.Source).po&quot; --verbose" />
     <ItemGroup>
-      <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_XenkoTraductions.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_XenkoTraductions.Identity)\$(TargetName).Messages.resources.dll')">
-        <TargetPath>%(_XenkoTraductions.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
-        <Culture>%(_XenkoTraductions.Identity)</Culture>
+      <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll')">
+        <TargetPath>%(_StrideTraductions.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
+        <Culture>%(_StrideTraductions.Identity)</Culture>
       </SatelliteDllsProjectOutputGroupOutputIntermediate>
     </ItemGroup>
   </Target>

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1310 // Field names must not contain underscore
 using System;
@@ -6,11 +6,11 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace Xenko.Core.IO
+namespace Stride.Core.IO
 {
     public static class NativeLockFile
     {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UWP
         [DllImport("Kernel32.dll", SetLastError = true)]
         internal static extern bool LockFileEx(Microsoft.Win32.SafeHandles.SafeFileHandle handle, uint flags, uint reserved, uint countLow, uint countHigh, ref System.Threading.NativeOverlapped overlapped);
 
@@ -23,14 +23,14 @@ namespace Xenko.Core.IO
 
         public static void LockFile(FileStream fileStream, long offset, long count, bool exclusive)
         {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             // Android does not support large file and thus is limited to files
             // whose sizes are less than 2GB.
             // We substract the offset to not go beyond the 2GB limit.
             count =  (count + offset > int.MaxValue) ? int.MaxValue - offset: count;
 #endif
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UWP
             var countLow = (uint)count;
             var countHigh = (uint)(count >> 32);
 
@@ -66,12 +66,12 @@ namespace Xenko.Core.IO
 
         public static void UnlockFile(FileStream fileStream, long offset, long count)
         {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             // See comment on `LockFile`.
             count =  (count + offset > int.MaxValue) ? int.MaxValue - offset: count;
 #endif
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UWP
             var countLow = (uint)count;
             var countHigh = (uint)(count >> 32);
 

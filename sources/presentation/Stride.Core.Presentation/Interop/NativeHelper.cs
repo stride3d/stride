@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 
-namespace Xenko.Core.Presentation.Interop
+namespace Stride.Core.Presentation.Interop
 {
     internal class ExternDll
     {

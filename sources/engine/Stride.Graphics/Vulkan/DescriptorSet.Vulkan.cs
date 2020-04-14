@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_VULKAN && !XENKO_GRAPHICS_NO_DESCRIPTOR_COPIES
+#if STRIDE_GRAPHICS_API_VULKAN && !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES
 using System;
 using System.Collections.Generic;
 using SharpVulkan;
-using Xenko.Shaders;
+using Stride.Shaders;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public partial struct DescriptorSet
     {

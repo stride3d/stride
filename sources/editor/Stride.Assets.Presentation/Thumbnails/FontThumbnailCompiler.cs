@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.IO;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.BuildEngine;
-using Xenko.Core.IO;
-using Xenko.Assets.SpriteFont;
-using Xenko.Editor.Resources;
-using Xenko.Editor.Thumbnails;
-using Xenko.Graphics;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.BuildEngine;
+using Stride.Core.IO;
+using Stride.Assets.SpriteFont;
+using Stride.Editor.Resources;
+using Stride.Editor.Thumbnails;
+using Stride.Graphics;
 
-namespace Xenko.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Presentation.Thumbnails
 {
     /// <summary>
     /// The compiler used by default to create thumbnails when the user has not explicitly defined the compiler to use for its asset.

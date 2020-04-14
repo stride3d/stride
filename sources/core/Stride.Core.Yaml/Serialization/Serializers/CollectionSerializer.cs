@@ -47,11 +47,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Events;
+using Stride.Core.Diagnostics;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Events;
 
-namespace Xenko.Core.Yaml.Serialization.Serializers
+namespace Stride.Core.Yaml.Serialization.Serializers
 {
     /// <summary>
     /// Class for serializing a <see cref="System.Collections.Generic.ICollection{T}"/> or <see cref="System.Collections.ICollection"/>

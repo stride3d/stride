@@ -13,14 +13,14 @@
 #   a. for X86 start vcvars32.bat
 #   b. for x64 start vcvars64.bat
 # 2. Then run MSYS2 command prompt (C:\workspace\windows\msys64\msys2_shell.cmd)
-# 3. Set the current working directory to where ffmpeg sources are installed (e.g. /c/Projects/xenko/externals/ffmpeg)
+# 3. Set the current working directory to where ffmpeg sources are installed (e.g. /c/Projects/stride/externals/ffmpeg)
 
 # cmds
 # C:\Windows\system32\cmd.exe
 # "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Auxiliary\Build\vcvars64.bat"
 # C:\workspace\msys64\msys2_shell.cmd -use-full-path
-# cd C:\\Dev\\xenko\\externals\\ffmpeg
-# C:\\Dev\\xenko\\deps\\FFmpeg\\Windows\\build.sh
+# cd C:\\Dev\\stride\\externals\\ffmpeg
+# C:\\Dev\\stride\\deps\\FFmpeg\\Windows\\build.sh
 
 clean() {
   # We could also do a distclean to also remove previously built binaries

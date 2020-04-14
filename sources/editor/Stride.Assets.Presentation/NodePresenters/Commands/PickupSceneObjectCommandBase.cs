@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Editor.Quantum;
-using Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Presentation.Quantum.Presenters;
-using Xenko.Core.Presentation.Services;
-using Xenko.Assets.Presentation.SceneEditor.Services;
+using Stride.Core.Assets.Editor.Quantum;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Presentation.Services;
+using Stride.Assets.Presentation.SceneEditor.Services;
 
-namespace Xenko.Assets.Presentation.NodePresenters.Commands
+namespace Stride.Assets.Presentation.NodePresenters.Commands
 {
     public abstract class PickupSceneObjectCommandBase : ChangeValueWithPickerCommandBase
     {

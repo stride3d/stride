@@ -1,6 +1,6 @@
 !SceneAsset
 Id: d8bf8c60-f185-4383-8c94-94b468749609
-SerializedVersion: {Xenko: 2.1.0.1}
+SerializedVersion: {Stride: 2.1.0.1}
 Tags: []
 ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}

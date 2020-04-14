@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -13,7 +13,7 @@ using System.Windows;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("361bd08b-e0a3-44f3-839a-d10a7089f7d0")]
 
-[assembly: InternalsVisibleTo("Xenko.GameStudio" + Xenko.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.GameStudio" + Stride.PublicKeys.Default)]
 
 [assembly: ThemeInfo(
     ResourceDictionaryLocation.None, //where theme specific resource dictionaries are located

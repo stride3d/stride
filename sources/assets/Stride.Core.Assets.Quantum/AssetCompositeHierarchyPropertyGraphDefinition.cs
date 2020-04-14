@@ -1,8 +1,8 @@
 ﻿using System;
-using Xenko.Core;
-using Xenko.Core.Quantum;
+using Stride.Core;
+using Stride.Core.Quantum;
 
-namespace Xenko.Core.Assets.Quantum
+namespace Stride.Core.Assets.Quantum
 {
     [AssetPropertyGraphDefinition(typeof(AssetCompositeHierarchy<,>))]
     public class AssetCompositeHierarchyPropertyGraphDefinition<TAssetPartDesign, TAssetPart> : AssetPropertyGraphDefinition

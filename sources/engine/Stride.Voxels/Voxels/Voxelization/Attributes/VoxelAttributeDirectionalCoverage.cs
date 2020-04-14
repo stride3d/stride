@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Shaders;
-using Xenko.Rendering.Materials;
-using Xenko.Core.Mathematics;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Shaders;
+using Stride.Rendering.Materials;
+using Stride.Core.Mathematics;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     [Display("Directional Coverage")]
@@ -50,7 +50,7 @@ namespace Xenko.Rendering.Voxels
 
 
         ShaderClassSource source = new ShaderClassSource("VoxelAttributeDirectionalCoverageShader");
-        ObjectParameterKey<Xenko.Graphics.Texture> DirectOutput;
+        ObjectParameterKey<Stride.Graphics.Texture> DirectOutput;
 
         public override ShaderSource GetVoxelizationShader()
         {

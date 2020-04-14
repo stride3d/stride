@@ -1,6 +1,6 @@
 !Animation
 Id: 70ad041e-e911-4cc8-8710-47a2d092df59
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Animation/Guard.fbx
 ClipDuration:

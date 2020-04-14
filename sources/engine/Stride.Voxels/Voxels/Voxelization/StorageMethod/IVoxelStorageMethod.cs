@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Xenko.Shaders;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public interface IVoxelStorageMethod
     {

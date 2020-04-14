@@ -1,7 +1,7 @@
-﻿<Window x:Class="Xenko.LauncherApp.Views.SelfUpdateWindow"
+﻿<Window x:Class="Stride.LauncherApp.Views.SelfUpdateWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:r="clr-namespace:Xenko.LauncherApp.Resources"
+        xmlns:r="clr-namespace:Stride.LauncherApp.Resources"
         Style="{DynamicResource WindowChromeStyle}" Icon="{DynamicResource LauncherIcon}" ResizeMode="NoResize"
         Title="{x:Static r:Strings.SelfUpdateTitle}" Height="300" Width="640" WindowStartupLocation="CenterOwner">
   <DockPanel>

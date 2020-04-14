@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Assets.Presentation.ViewModel;
-using Xenko.UI;
-using Xenko.UI.Controls;
-using Xenko.UI.Panels;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Assets.Presentation.ViewModel;
+using Stride.UI;
+using Stride.UI.Controls;
+using Stride.UI.Panels;
 
-namespace Xenko.Assets.Presentation.AssetEditors.UIEditor.Game
+namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
 {
     /// <summary>
     /// Helper class for updating the layout of a <see cref="UIElement"/>. Supports moving and resizing.

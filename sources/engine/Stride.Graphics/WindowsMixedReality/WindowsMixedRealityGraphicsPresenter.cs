@@ -1,7 +1,7 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
+#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
 
 using System;
 using System.Runtime.InteropServices;
@@ -10,7 +10,7 @@ using Windows.Graphics.DirectX.Direct3D11;
 using Windows.Graphics.Holographic;
 using Windows.UI.Core;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public class WindowsMixedRealityGraphicsPresenter : GraphicsPresenter
     {

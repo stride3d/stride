@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
 
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core;
+using Stride.Core.Assets.Compiler;
+using Stride.Core;
 
-namespace Xenko.Core.Assets
+namespace Stride.Core.Assets
 {
     /// <summary>
     /// A raw asset, an asset that is imported as-is.
@@ -17,7 +17,7 @@ namespace Xenko.Core.Assets
     [Display(1050, "Raw Asset")]
     public sealed class RawAsset : AssetWithSource
     {
-        public const string FileExtension = ".xkraw";
+        public const string FileExtension = ".sdraw";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RawAsset"/> class.

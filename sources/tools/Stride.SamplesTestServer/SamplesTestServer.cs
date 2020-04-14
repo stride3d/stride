@@ -1,22 +1,22 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core;
-using Xenko.ConnectionRouter;
-using Xenko.Engine.Network;
-using Xenko.Games.Testing;
-using Xenko.Games.Testing.Requests;
-using Xenko.Graphics;
+using Stride.Core;
+using Stride.ConnectionRouter;
+using Stride.Engine.Network;
+using Stride.Games.Testing;
+using Stride.Games.Testing.Requests;
+using Stride.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core.Extensions;
-using Xenko.Graphics.Regression;
+using Stride.Core.Extensions;
+using Stride.Graphics.Regression;
 
-namespace Xenko.SamplesTestServer
+namespace Stride.SamplesTestServer
 {
     public class SamplesTestServer : RouterServiceServer
     {
@@ -37,7 +37,7 @@ namespace Xenko.SamplesTestServer
         private SocketMessageLayer currentTester;
         private readonly object loggerLock = new object();
 
-        public SamplesTestServer() : base($"/service/Xenko.SamplesTestServer/{XenkoVersion.NuGetVersion}/Xenko.SamplesTestServer.exe")
+        public SamplesTestServer() : base($"/service/Stride.SamplesTestServer/{StrideVersion.NuGetVersion}/Stride.SamplesTestServer.exe")
         {
             GameTestingSystem.Initialized = true;
 

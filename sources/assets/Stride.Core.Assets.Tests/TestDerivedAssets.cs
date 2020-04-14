@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -7,13 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using Xenko.Core.Assets.Serializers;
-using Xenko.Core.Assets.Yaml;
-using Xenko.Core;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml;
+using Stride.Core.Assets.Serializers;
+using Stride.Core.Assets.Yaml;
+using Stride.Core;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml;
 
-namespace Xenko.Core.Assets.Tests
+namespace Stride.Core.Assets.Tests
 {
     public class TestDerivedAssets
     {

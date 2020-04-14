@@ -1,4 +1,4 @@
-namespace Xenko.Rendering.Materials
+namespace Stride.Rendering.Materials
 {
     /// <summary>
     /// Base interface for specular models supporting energy conservation.

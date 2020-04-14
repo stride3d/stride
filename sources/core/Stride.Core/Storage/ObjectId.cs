@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Runtime.InteropServices;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Storage
+namespace Stride.Core.Storage
 {
     /// <summary>
     /// A hash to uniquely identify data.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-#if !XENKO_ASSEMBLY_PROCESSOR
+#if !STRIDE_ASSEMBLY_PROCESSOR
     [DataContract("ObjectId")]
 #endif
     public unsafe partial struct ObjectId : IEquatable<ObjectId>, IComparable<ObjectId>
@@ -18,7 +18,7 @@ namespace Xenko.Core.Storage
         // ***************************************************************
         // NOTE: This file is shared with the AssemblyProcessor.
         // If this file is modified, the AssemblyProcessor has to be
-        // recompiled separately. See build\Xenko-AssemblyProcessor.sln
+        // recompiled separately. See build\Stride-AssemblyProcessor.sln
         // ***************************************************************
 
         // Murmurshash3 ahsh size is 128 bits.

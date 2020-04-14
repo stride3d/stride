@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -11,31 +11,31 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
-using Xenko.Core.Assets;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
+using Stride.Core.Assets;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 
-namespace Xenko.Assets
+namespace Stride.Assets
 {
-    public partial class XenkoPackageUpgrader
+    public partial class StridePackageUpgrader
     {
         private static string RemoveSiliconStudioNamespaces(string content)
         {
             // Namespaces
-            content = content.Replace("SiliconStudio.Xenko.Rendering.Composers", "SiliconStudio.Xenko.Rendering.Compositing");
+            content = content.Replace("SiliconStudio.Stride.Rendering.Composers", "SiliconStudio.Stride.Rendering.Compositing");
             content = content.Replace("SiliconStudio.Core.Serialization.Assets", "SiliconStudio.Core.Serialization.Contents");
-            content = content.Replace("SiliconStudio.Core", "Xenko.Core");
-            content = content.Replace("SiliconStudio.Xenko", "Xenko");
-            content = content.Replace("SiliconStudio.Common", "Xenko.Common");
-            content = content.Replace("SiliconStudio.", "Xenko.Core.");
-            content = content.Replace("SiliconStudioXenko", "Xenko");
-            content = content.Replace("SiliconStudio", "Xenko");
+            content = content.Replace("SiliconStudio.Core", "Stride.Core");
+            content = content.Replace("SiliconStudio.Stride", "Stride");
+            content = content.Replace("SiliconStudio.Common", "Stride.Common");
+            content = content.Replace("SiliconStudio.", "Stride.Core.");
+            content = content.Replace("SiliconStudioStride", "Stride");
+            content = content.Replace("SiliconStudio", "Stride");
 
             // Macros and defines
-            content = content.Replace("SILICONSTUDIO_XENKO", "XENKO");
-            content = content.Replace("SILICON_STUDIO_XENKO", "XENKO");
-            content = content.Replace("SILICON_STUDIO_", "XENKO_");
-            content = content.Replace("SILICONSTUDIO_", "XENKO_");
+            content = content.Replace("SILICONSTUDIO_STRIDE", "STRIDE");
+            content = content.Replace("SILICON_STUDIO_STRIDE", "STRIDE");
+            content = content.Replace("SILICON_STUDIO_", "STRIDE_");
+            content = content.Replace("SILICONSTUDIO_", "STRIDE_");
 
             return content;
         }

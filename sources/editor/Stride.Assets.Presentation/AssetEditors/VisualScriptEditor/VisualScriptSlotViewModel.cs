@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.ObjectModel;
 using System.Windows.Media;
-using Xenko.Core.Extensions;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.Quantum;
-using Xenko.Assets.Scripts;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Quantum;
+using Stride.Assets.Scripts;
 
-namespace Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor
+namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 {
     /// <summary>
     /// View model for a <see cref="Scripts.Slot"/>.

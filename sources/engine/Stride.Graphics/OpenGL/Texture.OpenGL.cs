@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_OPENGL
+#if STRIDE_GRAPHICS_API_OPENGL
 using System;
 using System.Runtime.InteropServices;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-#if XENKO_GRAPHICS_API_OPENGLES
+using Stride.Core;
+using Stride.Core.Mathematics;
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 using RenderbufferStorage = OpenTK.Graphics.ES30.RenderbufferInternalFormat;
 using PixelFormatGl = OpenTK.Graphics.ES30.PixelFormat;
@@ -16,7 +16,7 @@ using PixelFormatGl = OpenTK.Graphics.OpenGL.PixelFormat;
 #endif
 
 // TODO: remove these when OpenTK API is consistent between OpenGL, mobile OpenGL ES and desktop OpenGL ES
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
 using CompressedInternalFormat2D = OpenTK.Graphics.ES30.CompressedInternalFormat;
 using CompressedInternalFormat3D = OpenTK.Graphics.ES30.CompressedInternalFormat;
 using TextureComponentCount2D = OpenTK.Graphics.ES30.TextureComponentCount;
@@ -30,7 +30,7 @@ using TextureTarget2d = OpenTK.Graphics.OpenGL.TextureTarget;
 using TextureTarget3d = OpenTK.Graphics.OpenGL.TextureTarget;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// Abstract class for all textures
@@ -132,7 +132,7 @@ namespace Xenko.Graphics
             InitializeFromImpl();
         }
 
-#if XENKO_PLATFORM_ANDROID //&& USE_GLES_EXT_OES_TEXTURE
+#if STRIDE_PLATFORM_ANDROID //&& USE_GLES_EXT_OES_TEXTURE
         //Prototype: experiment creating GlTextureExternalOes texture
         private void InitializeForExternalOESImpl()
         {
@@ -158,7 +158,7 @@ namespace Xenko.Graphics
             switch (Dimension)
         	{
                 case TextureDimension.Texture1D:
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                         if (ArraySize > 1)
                             throw new PlatformNotSupportedException("Texture1DArray is not implemented under OpenGL");
                         return TextureTarget.Texture1D;
@@ -359,7 +359,7 @@ namespace Xenko.Graphics
                     stencilId = TextureId;
                 }
             }
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             else if (Description.MipLevels <= 1)
             {
                 GL.TexParameter(TextureTarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);   // TODO: Why does this use the nearest filter for minification? Using Linear filtering would result in a smoother appearance for minified textures.
@@ -378,7 +378,7 @@ namespace Xenko.Graphics
 
             if (Description.IsMultisample)
             {
-#if !XENKO_PLATFORM_IOS
+#if !STRIDE_PLATFORM_IOS
                 // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
                 GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, multisampleCount, internalFormat, width, height);
 #endif
@@ -392,7 +392,7 @@ namespace Xenko.Graphics
         private void CreateTexture1D(bool compressed, int width, int mipLevel, DataBox dataBox)
         {
             // TODO: STABILITY: Since 1D textures are not supported on OpenGL ES, what should we do in this case? Throw an exception? I mean currently we just silently ignore that case on OpenGL ES.
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
             if (compressed)
             {
                 GL.CompressedTexImage1D(TextureTarget, mipLevel, TextureInternalFormat, width, 0, dataBox.SlicePitch, dataBox.DataPointer);
@@ -413,14 +413,14 @@ namespace Xenko.Graphics
 
                 if (IsRenderbuffer)
                 {
-#if !XENKO_PLATFORM_IOS
+#if !STRIDE_PLATFORM_IOS
                     // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
                     GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, (int)Description.MultisampleCount, (RenderbufferStorage)TextureInternalFormat, width, height);
 #endif
                 }
                 else
                 {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                     throw new NotSupportedException("Multisample textures are not supported on OpenGL ES.");
 #else
                     GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, (int)Description.MultisampleCount, (TextureComponentCount2D)TextureInternalFormat, width, height, false);
@@ -518,7 +518,7 @@ namespace Xenko.Graphics
                 case PixelFormat.D16_UNorm:
                     depthFormat = RenderbufferStorage.DepthComponent16;
                     break;
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                 case PixelFormat.D24_UNorm_S8_UInt:
                     depthFormat = RenderbufferStorage.Depth24Stencil8;
                     break;
@@ -594,7 +594,7 @@ namespace Xenko.Graphics
         private static int TextureSetSize(TextureTarget target)
         {
             // TODO: improve that
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
             if (target == TextureTarget.Texture1D)
                 return 1;
 #endif

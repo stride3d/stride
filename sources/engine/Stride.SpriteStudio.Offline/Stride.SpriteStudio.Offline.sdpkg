@@ -4,5 +4,5 @@ TemplateFolders:
     - Path: !dir Templates/Assets
       Group: Assets
       Files:
-        - !file Templates/Assets/SpriteStudio/DefaultSpriteStudioAnimation.xktpl
-        - !file Templates/Assets/SpriteStudio/DefaultSpriteStudioModel.xktpl
+        - !file Templates/Assets/SpriteStudio/DefaultSpriteStudioAnimation.sdtpl
+        - !file Templates/Assets/SpriteStudio/DefaultSpriteStudioModel.sdtpl

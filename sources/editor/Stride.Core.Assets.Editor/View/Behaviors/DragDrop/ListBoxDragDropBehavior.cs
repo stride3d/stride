@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Extensions;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Extensions;
 
-namespace Xenko.Core.Assets.Editor.View.Behaviors
+namespace Stride.Core.Assets.Editor.View.Behaviors
 {
     public class ListBoxDragDropBehavior : DragDropBehavior<ListBox, ListBoxItem>
     {

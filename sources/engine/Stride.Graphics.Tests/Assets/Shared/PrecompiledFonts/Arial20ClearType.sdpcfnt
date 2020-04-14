@@ -1,6 +1,6 @@
 !PregeneratedSpriteFont
 Id: caebfee9-d821-4641-8a0e-56f20d857cdd
-SerializedVersion: {Xenko: 1.7.0-alpha01}
+SerializedVersion: {Stride: 1.7.0-alpha01}
 Tags: []
 OriginalFont: b742b0b2-c2a9-4291-89a0-56fb0cb214c1:StaticFonts/Arial20ClearType
 FontDataFile: ../../../../../data/tests/PrecompileFonts/Arial16ClearType (Precompiled).png

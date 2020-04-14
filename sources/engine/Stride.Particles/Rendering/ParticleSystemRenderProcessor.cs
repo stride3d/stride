@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Particles.Components;
-using Xenko.Rendering;
-using Xenko.Streaming;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Particles.Components;
+using Stride.Rendering;
+using Stride.Streaming;
 
-namespace Xenko.Particles.Rendering
+namespace Stride.Particles.Rendering
 {
     /// <summary>
     /// The processor in charge of updating and drawing the entities having sprite components.

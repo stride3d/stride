@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Presentation.Behaviors;
-using TreeViewItem = Xenko.Core.Presentation.Controls.TreeViewItem;
+using Stride.Core.Presentation.Behaviors;
+using TreeViewItem = Stride.Core.Presentation.Controls.TreeViewItem;
 
-namespace Xenko.Core.Assets.Editor.View.Behaviors
+namespace Stride.Core.Assets.Editor.View.Behaviors
 {
     public class TreeViewStopEditOnLostFocusBehavior : OnEventBehavior
     {

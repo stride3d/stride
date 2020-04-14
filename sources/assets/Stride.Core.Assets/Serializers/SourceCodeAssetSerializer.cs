@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.IO;
 using System.Text;
-using Xenko.Core.Assets.TextAccessors;
-using Xenko.Core.Assets.Yaml;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
+using Stride.Core.Assets.TextAccessors;
+using Stride.Core.Assets.Yaml;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 
-namespace Xenko.Core.Assets.Serializers
+namespace Stride.Core.Assets.Serializers
 {
     internal class SourceCodeAssetSerializer : IAssetSerializer, IAssetSerializerFactory
     {

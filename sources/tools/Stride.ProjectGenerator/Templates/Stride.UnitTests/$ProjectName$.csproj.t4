@@ -1,18 +1,18 @@
 <#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <#
-var curPlatform = (Xenko.Core.PlatformType)System.Enum.Parse(typeof(Xenko.Core.PlatformType), Properties.CurrentPlatform);
+var curPlatform = (Stride.Core.PlatformType)System.Enum.Parse(typeof(Stride.Core.PlatformType), Properties.CurrentPlatform);
 var needSigning = true;
 #>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--Import Local Pre Settings for the solution being loaded -->
-  <Import Project="<#= Properties.XenkoSdkRelativeDir #>\sources\targets\Xenko.PreSettings.UnitTests.targets" />
+  <Import Project="<#= Properties.StrideSdkRelativeDir #>\sources\targets\Stride.PreSettings.UnitTests.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{<#= ProjectGuid.ToString().ToUpperInvariant() #>}</ProjectGuid>
-<# if (curPlatform == Xenko.Core.PlatformType.Android) { #>
+<# if (curPlatform == Stride.Core.PlatformType.Android) { #>
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
@@ -26,7 +26,7 @@ var needSigning = true;
     <JavaMaximumHeapSize />
     <JavaOptions />
     <AssemblyName><#= ProjectName #></AssemblyName>
-<# } else if (curPlatform == Xenko.Core.PlatformType.iOS) { #>
+<# } else if (curPlatform == Stride.Core.PlatformType.iOS) { #>
     <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
@@ -34,18 +34,18 @@ var needSigning = true;
 <# } else { #>
     <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
-    <XenkoBuildTags>*</XenkoBuildTags>
+    <StrideBuildTags>*</StrideBuildTags>
     <AssemblyName><#= ProjectName #></AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
 <# } #>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace><#= Properties.Namespace #></RootNamespace>
-    <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoPlatform><#= curPlatform #></XenkoPlatform>
-    <XenkoBuildProfile>$(XenkoPlatform)</XenkoBuildProfile>
-    <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''"><#= curPlatform.GetDefaultGraphicsPlatform() #></XenkoGraphicsApi>
-    <XenkoOutputFolder>Tests\$(XenkoGraphicsApi)\$(AssemblyName)</XenkoOutputFolder>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StridePlatform><#= curPlatform #></StridePlatform>
+    <StrideBuildProfile>$(StridePlatform)</StrideBuildProfile>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''"><#= curPlatform.GetDefaultGraphicsPlatform() #></StrideGraphicsApi>
+    <StrideOutputFolder>Tests\$(StrideGraphicsApi)\$(AssemblyName)</StrideOutputFolder>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -56,32 +56,32 @@ var needSigning = true;
     <Compile Include="TestClass1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-<# if (curPlatform == Xenko.Core.PlatformType.Android) { #>
+<# if (curPlatform == Stride.Core.PlatformType.Android) { #>
   <ItemGroup>
-    <Reference Label="Xenko.DoNotSync" Include="Mono.Android" />
+    <Reference Label="Stride.DoNotSync" Include="Mono.Android" />
   </ItemGroup>
   <ItemGroup>
-    <Content Label="Xenko.DoNotSync" Include="Properties\AndroidManifest.xml" />
-    <AndroidResource Label="Xenko.DoNotSync" Include="Resources\Drawable\Icon.png" />
-    <Compile Label="Xenko.DoNotSync" Include="Resources\Resource.Designer.cs" />
-    <Compile Label="Xenko.DoNotSync" Include="<#= Properties.XenkoSdkRelativeDir #>\sources\shared\tests\nunitlite\NUnitLiteLauncher.Android.cs">
+    <Content Label="Stride.DoNotSync" Include="Properties\AndroidManifest.xml" />
+    <AndroidResource Label="Stride.DoNotSync" Include="Resources\Drawable\Icon.png" />
+    <Compile Label="Stride.DoNotSync" Include="Resources\Resource.Designer.cs" />
+    <Compile Label="Stride.DoNotSync" Include="<#= Properties.StrideSdkRelativeDir #>\sources\shared\tests\nunitlite\NUnitLiteLauncher.Android.cs">
       <Link>NUnitLiteLauncher.Android.cs</Link>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
-<# } else if (curPlatform == Xenko.Core.PlatformType.iOS) { #>
+<# } else if (curPlatform == Stride.Core.PlatformType.iOS) { #>
   <ItemGroup>
-    <Reference Label="Xenko.DoNotSync" Include="Xamarin.iOS" />
+    <Reference Label="Stride.DoNotSync" Include="Xamarin.iOS" />
   </ItemGroup>
   <ItemGroup>
-    <None Label="Xenko.DoNotSync" Include="Info.plist" />
-    <Compile Label="Xenko.DoNotSync" Include="<#= Properties.XenkoSdkRelativeDir #>\sources\shared\tests\nunitlite\NUnitLiteLauncher.iPhone.cs">
+    <None Label="Stride.DoNotSync" Include="Info.plist" />
+    <Compile Label="Stride.DoNotSync" Include="<#= Properties.StrideSdkRelativeDir #>\sources\shared\tests\nunitlite\NUnitLiteLauncher.iPhone.cs">
       <Link>NUnitLiteLauncher.iPhone.cs</Link>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 <# } else { #>
-  <Import Condition="'$(XenkoNETRuntime)' == ''" Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Condition="'$(StrideNETRuntime)' == ''" Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 <# } #>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
     Other similar extension points exist, see Microsoft.Common.targets.

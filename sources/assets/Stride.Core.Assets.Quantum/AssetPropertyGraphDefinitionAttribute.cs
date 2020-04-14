@@ -1,7 +1,7 @@
 using System;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Assets.Quantum
+namespace Stride.Core.Assets.Quantum
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     [BaseTypeRequired(typeof(AssetPropertyGraphDefinition))]

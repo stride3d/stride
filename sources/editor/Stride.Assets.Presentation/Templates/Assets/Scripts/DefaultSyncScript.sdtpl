@@ -6,5 +6,5 @@ Scope: Asset
 Description: A synchronous script with a Start method called when the script is loaded and a synchronous Update method called every frame
 Group: Script
 Order: -99
-Icon: ..\.xktpl\SourceCode.png
+Icon: ..\.sdtpl\SourceCode.png
 DefaultOutputName: Script

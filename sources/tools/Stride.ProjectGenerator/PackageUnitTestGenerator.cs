@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core;
-using Xenko.Core.IO;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Templates;
+using Stride.Core;
+using Stride.Core.IO;
 
-namespace Xenko.ProjectGenerator
+namespace Stride.ProjectGenerator
 {
     /// <summary>
     /// Create a package.
@@ -59,7 +59,7 @@ namespace Xenko.ProjectGenerator
         }
 
         /// <summary>
-        /// Creates a new Xenko package with the specified name
+        /// Creates a new Stride package with the specified name
         /// </summary>
         /// <param name="name">Name of the package</param>
         /// <returns>A new package instance</returns>

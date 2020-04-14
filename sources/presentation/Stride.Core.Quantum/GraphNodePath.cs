@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using Xenko.Core.Annotations;
-using Xenko.Core.Reflection;
+using Stride.Core.Annotations;
+using Stride.Core.Reflection;
 
-namespace Xenko.Core.Quantum
+namespace Stride.Core.Quantum
 {
     /// <summary>
     /// A class describing the path of a node, relative to a root node. The path can cross references, array, etc.

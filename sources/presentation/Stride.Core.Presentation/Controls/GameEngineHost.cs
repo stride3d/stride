@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -9,13 +9,13 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Presentation.Internal;
-using Xenko.Core.Presentation.Interop;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Internal;
+using Stride.Core.Presentation.Interop;
 using Point = System.Windows.Point;
 
-namespace Xenko.Core.Presentation.Controls
+namespace Stride.Core.Presentation.Controls
 {
     /// <summary>
     /// A <see cref="FrameworkElement"/> that can host a game engine window. This control is faster than <see cref="HwndHost"/> but might behave

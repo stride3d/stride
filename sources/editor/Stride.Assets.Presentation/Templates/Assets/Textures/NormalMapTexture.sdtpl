@@ -6,7 +6,7 @@ Scope: Asset
 Description: A normal map texture asset imported from a source file. Assumes linear space and two (RG) or three (RGB) channels
 Group: Texture
 Order: 20
-Icon: ..\.xktpl\TextureNormal.png
+Icon: ..\.sdtpl\TextureNormal.png
 DefaultOutputName: NormalMap
 FactoryTypeName: NormalMapTextureFactory
 ImportSource: true

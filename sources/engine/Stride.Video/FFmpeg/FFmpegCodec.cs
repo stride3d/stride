@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_VIDEO_FFMPEG
+#if STRIDE_VIDEO_FFMPEG
 
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
-using Xenko.Core.Diagnostics;
-using Xenko.Graphics;
+using Stride.Core.Diagnostics;
+using Stride.Graphics;
 
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
 using SharpDX.Direct3D11;
 #endif
 
-namespace Xenko.Video.FFmpeg
+namespace Stride.Video.FFmpeg
 {
     /// <summary>
     /// Represents a codec.
@@ -31,7 +31,7 @@ namespace Xenko.Video.FFmpeg
 
         private bool isDisposed = false;
 
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
         private VideoDecoder videoHardwareDecoder;
         private VideoDecoderOutputView videoHardwareDecoderView;
 #endif
@@ -77,7 +77,7 @@ namespace Xenko.Video.FFmpeg
 
         private AVHWDeviceType HardwareDeviceType => AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA;
 
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
         private static SharpDX.DXGI.Format DecoderOuputFormat => SharpDX.DXGI.Format.NV12;
 #endif
 
@@ -156,7 +156,7 @@ namespace Xenko.Video.FFmpeg
             pAVCodecContext = pCodecContext;
         }
 
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
         private void CreateHarwareAccelerationContext(GraphicsDevice graphicsDevice, AVCodecContext* pAVCodecContext, AVCodec* pCodec)
         {
             var videoDevice = graphicsDevice?.NativeDevice?.QueryInterface<VideoDevice1>();
@@ -278,7 +278,7 @@ namespace Xenko.Video.FFmpeg
             decoderConfigHandle?.Dispose();
             decoderOuputViewsHandle?.Dispose();
 
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
             videoHardwareDecoder?.Dispose();
             videoHardwareDecoderView?.Dispose();
 #endif

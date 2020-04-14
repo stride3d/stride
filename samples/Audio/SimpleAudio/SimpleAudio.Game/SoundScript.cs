@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Audio;
-using Xenko.Engine;
-using Xenko.Input;
-using Xenko.UI;
-using Xenko.UI.Controls;
-using Xenko.UI.Panels;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Audio;
+using Stride.Engine;
+using Stride.Input;
+using Stride.UI;
+using Stride.UI.Controls;
+using Stride.UI.Panels;
 
 namespace SimpleAudio
 {

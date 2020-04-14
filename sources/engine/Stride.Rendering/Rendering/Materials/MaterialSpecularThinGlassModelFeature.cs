@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Graphics;
-using Xenko.Shaders;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Graphics;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Materials
+namespace Stride.Rendering.Materials
 {
     [DataContract("MaterialSpecularThinGlassModelFeature")]
     [Display("Glass")]

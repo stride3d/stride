@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -7,10 +7,10 @@ using System.Text;
 using System.Windows.Input;
 using System.IO;
 using System.Windows;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.ViewModel;
 
-namespace Xenko.ConfigEditor.ViewModels
+namespace Stride.ConfigEditor.ViewModels
 {
     public class OptionsViewModel : ViewModelBase
     {
@@ -20,11 +20,11 @@ namespace Xenko.ConfigEditor.ViewModels
         {
             Options = Options.Load() ?? new Options();
 
-            XenkoPath = Options.XenkoPath;
-            XenkoConfigFilename = Options.XenkoConfigFilename;
+            StridePath = Options.StridePath;
+            StrideConfigFilename = Options.StrideConfigFilename;
 
-            CheckXenkoPath();
-            CheckXenkoConfigFilename();
+            CheckStridePath();
+            CheckStrideConfigFilename();
 
             BrowsePathCommand = new AnonymousCommand(BrowsePath);
             BrowseConfigFileCommand = new AnonymousCommand(BrowseConfigFile);
@@ -43,83 +43,83 @@ namespace Xenko.ConfigEditor.ViewModels
         {
             var dialog = new System.Windows.Forms.FolderBrowserDialog
             {
-                Description = "Select Xenko base directory",
+                Description = "Select Stride base directory",
                 ShowNewFolderButton = true,
             };
 
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                XenkoPath = dialog.SelectedPath;
+                StridePath = dialog.SelectedPath;
         }
 
         private void BrowseConfigFile()
         {
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
-                Title = "Select the Xenko configuration file",
+                Title = "Select the Stride configuration file",
                 Filter = "Xml Files (*.xml)|*.xml|All Files (*.*)|*.*",
                 Multiselect = false,
                 CheckFileExists = true,
             };
 
             if (dialog.ShowDialog() == true)
-                XenkoConfigFilename = dialog.FileName;
+                StrideConfigFilename = dialog.FileName;
         }
 
-        private string xenkoPath;
-        public string XenkoPath
+        private string stridePath;
+        public string StridePath
         {
-            get { return xenkoPath; }
+            get { return stridePath; }
             set
             {
-                if (SetValue(ref xenkoPath, value, "XenkoPath"))
-                    CheckXenkoPath();
+                if (SetValue(ref stridePath, value, "StridePath"))
+                    CheckStridePath();
             }
         }
 
-        private bool isXenkoPathValid;
-        public bool IsXenkoPathValid
+        private bool isStridePathValid;
+        public bool IsStridePathValid
         {
-            get { return isXenkoPathValid; }
-            set { SetValue(ref isXenkoPathValid, value, "IsXenkoPathValid"); }
+            get { return isStridePathValid; }
+            set { SetValue(ref isStridePathValid, value, "IsStridePathValid"); }
         }
 
-        private void CheckXenkoPath()
+        private void CheckStridePath()
         {
-            IsXenkoPathValid = Directory.Exists(XenkoPath);
+            IsStridePathValid = Directory.Exists(StridePath);
         }
 
-        private string xenkoConfigFilename;
-        public string XenkoConfigFilename
+        private string strideConfigFilename;
+        public string StrideConfigFilename
         {
-            get { return xenkoConfigFilename; }
+            get { return strideConfigFilename; }
             set
             {
-                if (SetValue(ref xenkoConfigFilename, value, "XenkoConfigFilename"))
-                    CheckXenkoConfigFilename();
+                if (SetValue(ref strideConfigFilename, value, "StrideConfigFilename"))
+                    CheckStrideConfigFilename();
             }
         }
 
-        private bool isXenkoConfigFilenameValid;
-        public bool IsXenkoConfigFilenameValid
+        private bool isStrideConfigFilenameValid;
+        public bool IsStrideConfigFilenameValid
         {
-            get { return isXenkoConfigFilenameValid; }
-            set { SetValue(ref isXenkoConfigFilenameValid, value, "IsXenkoConfigFilenameValid"); }
+            get { return isStrideConfigFilenameValid; }
+            set { SetValue(ref isStrideConfigFilenameValid, value, "IsStrideConfigFilenameValid"); }
         }
 
-        private void CheckXenkoConfigFilename()
+        private void CheckStrideConfigFilename()
         {
-            if (string.IsNullOrWhiteSpace(XenkoConfigFilename))
+            if (string.IsNullOrWhiteSpace(StrideConfigFilename))
             {
-                IsXenkoConfigFilenameValid = true;
+                IsStrideConfigFilenameValid = true;
                 return;
             }
 
-            var tempFilename = XenkoConfigFilename;
+            var tempFilename = StrideConfigFilename;
 
             if (Path.IsPathRooted(tempFilename) == false)
-                tempFilename = Path.Combine(XenkoPath, XenkoConfigFilename);
+                tempFilename = Path.Combine(StridePath, StrideConfigFilename);
 
-            IsXenkoConfigFilenameValid = File.Exists(tempFilename);
+            IsStrideConfigFilenameValid = File.Exists(tempFilename);
         }
 
         private ICommand acceptCommand;
@@ -135,21 +135,21 @@ namespace Xenko.ConfigEditor.ViewModels
 
         private void Accept()
         {
-            if (string.IsNullOrWhiteSpace(XenkoPath))
+            if (string.IsNullOrWhiteSpace(StridePath))
             {
-                MessageBox.Show("Invalid Xenko Path, this field must not be empty.", "Xenko Path Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Invalid Stride Path, this field must not be empty.", "Stride Path Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            if (Directory.Exists(XenkoPath) == false)
+            if (Directory.Exists(StridePath) == false)
             {
-                string message = string.Format("Invalid Xenko Path, the directory '{0}' does not exit.", XenkoPath);
-                MessageBox.Show(message, "Xenko Path Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                string message = string.Format("Invalid Stride Path, the directory '{0}' does not exit.", StridePath);
+                MessageBox.Show(message, "Stride Path Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            Options.XenkoPath = XenkoPath;
-            Options.XenkoConfigFilename = XenkoConfigFilename;
+            Options.StridePath = StridePath;
+            Options.StrideConfigFilename = StrideConfigFilename;
 
             Options.Save();
 

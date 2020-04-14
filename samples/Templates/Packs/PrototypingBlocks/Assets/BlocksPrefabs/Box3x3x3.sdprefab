@@ -1,6 +1,6 @@
 !PrefabAsset
 Id: 9c293769-836d-4b3d-86f6-3fe043789c19
-SerializedVersion: {Xenko: 3.1.0.1}
+SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
 Hierarchy:
     RootParts:

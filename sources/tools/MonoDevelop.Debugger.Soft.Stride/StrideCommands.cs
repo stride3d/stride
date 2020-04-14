@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Text;
 using MonoDevelop.Components.Commands;
 using MonoDevelop.Ide;
 
-namespace MonoDevelop.Debugger.Soft.Xenko
+namespace MonoDevelop.Debugger.Soft.Stride
 {
     public enum Commands
     {
@@ -18,7 +18,7 @@ namespace MonoDevelop.Debugger.Soft.Xenko
     {
         protected override void Run()
         {
-            IdeApp.ProjectOperations.DebugApplication("XenkoDebugServer", null, null, null);
+            IdeApp.ProjectOperations.DebugApplication("StrideDebugServer", null, null, null);
         }
     }
 
@@ -26,7 +26,7 @@ namespace MonoDevelop.Debugger.Soft.Xenko
     {
         protected override void Run()
         {
-            IdeApp.ProjectOperations.DebugApplication("XenkoDebugClient", null, null, null);
+            IdeApp.ProjectOperations.DebugApplication("StrideDebugClient", null, null, null);
         }
     }
 }

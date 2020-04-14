@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.Rendering.Materials.ComputeColors;
-using Xenko.Shaders;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Rendering.Materials.ComputeColors;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Materials
+namespace Stride.Rendering.Materials
 {
     [DataContract("MaterialClearCoatFeature")]
     [Display("Clear coat")]
@@ -224,7 +224,7 @@ namespace Xenko.Rendering.Materials
         /// </summary>
         /// <value><c>true</c> if this instance is xy normal; otherwise, <c>false</c>.</value>
         /// <userdoc>
-        /// If there's no Z component in the texture, reconstruct it from the X and Y components. This assumes that Z = sqrt(1 - x*x - y*y) and that Z is always positive, so no normal vector can point to the back side of the surface. We recommend you enable this option, as Xenko might remove the Z component when you compress normal maps.
+        /// If there's no Z component in the texture, reconstruct it from the X and Y components. This assumes that Z = sqrt(1 - x*x - y*y) and that Z is always positive, so no normal vector can point to the back side of the surface. We recommend you enable this option, as Stride might remove the Z component when you compress normal maps.
         /// </userdoc>
         [DataMember(260)]
         [DefaultValue(false)]

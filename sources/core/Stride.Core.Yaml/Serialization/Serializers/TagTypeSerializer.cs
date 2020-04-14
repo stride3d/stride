@@ -45,10 +45,10 @@
 
 using System;
 using System.Collections.Generic;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Events;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Events;
 
-namespace Xenko.Core.Yaml.Serialization.Serializers
+namespace Stride.Core.Yaml.Serialization.Serializers
 {
     internal class TagTypeSerializer : ChainedSerializer
     {

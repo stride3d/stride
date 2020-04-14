@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.ComponentModel;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Presentation.Quantum;
-using Xenko.Core.Quantum;
-using Xenko.Assets.Presentation.ViewModel;
+using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Quantum;
+using Stride.Assets.Presentation.ViewModel;
 
-namespace Xenko.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
+namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
 {
     public class TextureRegionViewModel : ResizableSpriteInfoPartViewModel
     {

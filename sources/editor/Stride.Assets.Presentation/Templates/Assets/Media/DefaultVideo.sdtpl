@@ -6,6 +6,6 @@ Scope: Asset
 Description: A video imported from a source file and played from memory
 Group: Media
 Order: -100
-Icon: ..\.xktpl\Video.png
+Icon: ..\.sdtpl\Video.png
 DefaultOutputName: Video
 ImportSource: true

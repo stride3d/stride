@@ -1,11 +1,11 @@
-<Application x:Class="Xenko.GameStudio.App"
+<Application x:Class="Stride.GameStudio.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Theme.AvalonDock.xaml"/>
-        <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/CommonResources.xaml"/>
+        <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml"/>
       </ResourceDictionary.MergedDictionaries>
 
       <BitmapImage x:Key="EditorIcon" UriSource="Resources/EditorIcon.png" />

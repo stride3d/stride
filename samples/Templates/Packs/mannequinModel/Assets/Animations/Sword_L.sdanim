@@ -1,6 +1,6 @@
 !Animation
 Id: 7650de68-b9f2-4ab1-a593-bd470dbb4e3d
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Animation/Sword_L.fbx
 ClipDuration:

@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core.Mathematics;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Game;
+using Stride.Core.Mathematics;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 
-namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
     /// <summary>
     /// A transformation gizmo based on axis.

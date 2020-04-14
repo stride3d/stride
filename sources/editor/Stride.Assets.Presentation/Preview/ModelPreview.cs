@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.IO;
-using Xenko.Assets.Models;
-using Xenko.Assets.Presentation.Preview.Views;
-using Xenko.Editor.Preview;
-using Xenko.Engine;
-using Xenko.Rendering;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.IO;
+using Stride.Assets.Models;
+using Stride.Assets.Presentation.Preview.Views;
+using Stride.Editor.Preview;
+using Stride.Engine;
+using Stride.Rendering;
 
-namespace Xenko.Assets.Presentation.Preview
+namespace Stride.Assets.Presentation.Preview
 {
     /// <summary>
     /// An implementation of the <see cref="AssetPreview"/> that can preview models.

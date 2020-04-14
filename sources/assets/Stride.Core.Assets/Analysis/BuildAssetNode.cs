@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.Assets.Visitors;
-using Xenko.Core;
-using Xenko.Core.Reflection;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.Assets.Visitors;
+using Stride.Core;
+using Stride.Core.Reflection;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 
-namespace Xenko.Core.Assets.Analysis
+namespace Stride.Core.Assets.Analysis
 {
     /// <summary>
     /// A structure representing a link (a dependency) between two <see cref="BuildAssetNode"/> instances (assets).

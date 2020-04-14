@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Reflection;
-using Xenko.Core;
-using Xenko.Core.Reflection;
-using Xenko.Core.Serialization;
-using Xenko.Updater;
+using Stride.Core;
+using Stride.Core.Reflection;
+using Stride.Core.Serialization;
+using Stride.Updater;
 
-namespace Xenko.Engine.Design
+namespace Stride.Engine.Design
 {
     internal class EntityChildPropertyResolver : UpdateMemberResolver
     {
@@ -34,7 +34,7 @@ namespace Xenko.Engine.Design
             var dotIndex = indexerName.LastIndexOf('.');
 
             // TODO: Temporary hack to get static field of the requested type/property name
-            // Need to have access to DataContract name<=>type mapping in the runtime (only accessible in Xenko.Core.Design now)
+            // Need to have access to DataContract name<=>type mapping in the runtime (only accessible in Stride.Core.Design now)
             var typeName = (dotIndex == -1) ? indexerName : indexerName.Substring(0, dotIndex);
             var type = DataSerializerFactory.GetTypeFromAlias(typeName);
             if (type == null)

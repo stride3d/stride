@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Graphics;
-using Xenko.Rendering.Background;
-using Xenko.Rendering.Images;
-using Xenko.Rendering.Lights;
-using Xenko.Rendering.Materials;
-using Xenko.Rendering.Shadows;
-using Xenko.Rendering.Sprites;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Graphics;
+using Stride.Rendering.Background;
+using Stride.Rendering.Images;
+using Stride.Rendering.Lights;
+using Stride.Rendering.Materials;
+using Stride.Rendering.Shadows;
+using Stride.Rendering.Sprites;
 
-namespace Xenko.Rendering.Compositing
+namespace Stride.Rendering.Compositing
 {
     /// <summary>
     /// Helper functions for creating <see cref="GraphicsCompositor"/>.
@@ -21,7 +21,7 @@ namespace Xenko.Rendering.Compositing
         /// <summary>
         /// Creates a typical graphics compositor programatically. It can render meshes, sprites and backgrounds.
         /// </summary>
-        public static GraphicsCompositor CreateDefault(bool enablePostEffects, string modelEffectName = "XenkoForwardShadingEffect", CameraComponent camera = null, Color4? clearColor = null, GraphicsProfile graphicsProfile = GraphicsProfile.Level_10_0, RenderGroupMask groupMask = RenderGroupMask.All)
+        public static GraphicsCompositor CreateDefault(bool enablePostEffects, string modelEffectName = "StrideForwardShadingEffect", CameraComponent camera = null, Color4? clearColor = null, GraphicsProfile graphicsProfile = GraphicsProfile.Level_10_0, RenderGroupMask groupMask = RenderGroupMask.All)
         {
             var opaqueRenderStage = new RenderStage("Opaque", "Main") { SortMode = new StateChangeSortMode() };
             var transparentRenderStage = new RenderStage("Transparent", "Main") { SortMode = new BackToFrontSortMode() };

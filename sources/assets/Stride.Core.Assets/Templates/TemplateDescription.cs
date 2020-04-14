@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Core.Yaml;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
+using Stride.Core.Yaml;
 
-namespace Xenko.Core.Assets.Templates
+namespace Stride.Core.Assets.Templates
 {
     /// <summary>
     /// Description of a template generator that can be displayed in the GameStudio.
@@ -23,7 +23,7 @@ namespace Xenko.Core.Assets.Templates
         /// <summary>
         /// The file extension used when loading/saving this template description.
         /// </summary>
-        public const string FileExtension = ".xktpl";
+        public const string FileExtension = ".sdtpl";
 
         /// <summary>
         /// Gets or sets the unique identifier.

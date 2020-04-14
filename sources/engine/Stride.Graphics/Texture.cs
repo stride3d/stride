@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
@@ -25,16 +25,16 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Core.ReferenceCounting;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Graphics.Data;
-using Utilities = Xenko.Core.Utilities;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Core.ReferenceCounting;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
+using Stride.Graphics.Data;
+using Utilities = Stride.Core.Utilities;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// Class used for all Textures (1D, 2D, 3D, DepthStencil, RenderTargets...etc.)
@@ -303,7 +303,7 @@ namespace Xenko.Graphics
         /// </summary>
         public IntPtr SharedHandle { get; private set; } = IntPtr.Zero;
 
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
         /// <summary>
         /// Gets the name of the shared Nt handle when created with TextureOption.SharedNthandle.
         /// </summary>
@@ -452,7 +452,7 @@ namespace Xenko.Graphics
             return InitializeFrom(null, description, new TextureViewDescription(), textureDatas);
         }
 
-#if XENKO_PLATFORM_ANDROID //&& USE_GLES_EXT_OES_TEXTURE
+#if STRIDE_PLATFORM_ANDROID //&& USE_GLES_EXT_OES_TEXTURE
         internal Texture InitializeForExternalOES()
         {
             InitializeForExternalOESImpl();
@@ -1105,9 +1105,9 @@ namespace Xenko.Graphics
             return new Texture(graphicsDevice).InitializeFrom(description, viewDescription, boxes);
         }
 
-#if XENKO_PLATFORM_ANDROID //&& USE_GLES_EXT_OES_TEXTURE
+#if STRIDE_PLATFORM_ANDROID //&& USE_GLES_EXT_OES_TEXTURE
         //create a new GL_TEXTURE_EXTERNAL_OES texture which will be managed by external API
-        //TODO: check how to integrate this properly in Xenko API
+        //TODO: check how to integrate this properly in Stride API
         public static Texture NewExternalOES(GraphicsDevice graphicsDevice)
         {
             if (graphicsDevice == null)

@@ -1,6 +1,6 @@
 ﻿---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -95,15 +95,15 @@ UsedParameters:
         GenericArguments: [3]
     LightSkyboxShader.LightSpecularColor.environmentLights[1]: !ShaderClassSource
         ClassName: RoughnessCubeMapEnvironmentColor
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -194,15 +194,15 @@ UsedParameters:
         GenericArguments: [3]
     LightSkyboxShader.LightSpecularColor.environmentLights[1]: !ShaderClassSource
         ClassName: RoughnessCubeMapEnvironmentColor
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -301,15 +301,15 @@ UsedParameters:
         GenericArguments: [3]
     LightSkyboxShader.LightSpecularColor.environmentLights[1]: !ShaderClassSource
         ClassName: RoughnessCubeMapEnvironmentColor
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -382,7 +382,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -421,7 +421,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -490,7 +490,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -587,7 +587,7 @@ UsedParameters:
         ClassName: RoughnessCubeMapEnvironmentColor
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -703,15 +703,15 @@ UsedParameters:
         GenericArguments: [3]
     LightSkyboxShader.LightSpecularColor.environmentLights[1]: !ShaderClassSource
         ClassName: RoughnessCubeMapEnvironmentColor
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -801,7 +801,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -915,7 +915,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -1016,7 +1016,7 @@ UsedParameters:
         ClassName: RoughnessCubeMapEnvironmentColor
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -1134,7 +1134,7 @@ UsedParameters:
         ClassName: RoughnessCubeMapEnvironmentColor
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -1199,7 +1199,7 @@ UsedParameters:
                 ClassName: MaterialPixelShadingStream
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -1278,7 +1278,7 @@ UsedParameters:
     Material.HasNormalMap: true
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -1418,15 +1418,15 @@ UsedParameters:
         GenericArguments: [3]
     LightSkyboxShader.LightSpecularColor.environmentLights[1]: !ShaderClassSource
         ClassName: RoughnessCubeMapEnvironmentColor
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -1568,7 +1568,7 @@ UsedParameters:
         ClassName: RoughnessCubeMapEnvironmentColor
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Mixins:
@@ -1661,7 +1661,7 @@ UsedParameters:
         ClassName: RoughnessCubeMapEnvironmentColor
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -1766,15 +1766,15 @@ UsedParameters:
         GenericArguments: [3]
     LightSkyboxShader.LightSpecularColor.environmentLights[1]: !ShaderClassSource
         ClassName: RoughnessCubeMapEnvironmentColor
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -1967,7 +1967,7 @@ UsedParameters:
         - !LuminanceToChannelTransform {}
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect.ShadowMapCaster
+EffectName: StrideForwardShadingEffect.ShadowMapCaster
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -2034,7 +2034,7 @@ UsedParameters:
         ClassName: RoughnessCubeMapEnvironmentColor
 ---
 !EffectCompileRequest
-EffectName: XenkoForwardShadingEffect
+EffectName: StrideForwardShadingEffect
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true
@@ -2099,9 +2099,9 @@ UsedParameters:
         GenericArguments: [3]
     LightSkyboxShader.LightSpecularColor.environmentLights[1]: !ShaderClassSource
         ClassName: RoughnessCubeMapEnvironmentColor
-    XenkoEffectBase.RenderTargetExtensions: !ShaderMixinSource
+    StrideEffectBase.RenderTargetExtensions: !ShaderMixinSource
         Macros:
-            -   Name: XENKO_RENDER_TARGET_COUNT
+            -   Name: STRIDE_RENDER_TARGET_COUNT
                 Definition: 1
-            -   Name: XENKO_MULTISAMPLE_COUNT
+            -   Name: STRIDE_MULTISAMPLE_COUNT
                 Definition: 1

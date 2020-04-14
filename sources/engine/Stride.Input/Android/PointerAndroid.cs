@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 using System;
 using System.Collections.Generic;
 using Android.Views;
-using Xenko.Core.Mathematics;
-using Xenko.Games.Android;
+using Stride.Core.Mathematics;
+using Stride.Games.Android;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     internal class PointerAndroid : PointerDeviceBase, IDisposable
     {
-        private readonly AndroidXenkoGameView uiControl;
+        private readonly AndroidStrideGameView uiControl;
 
-        public PointerAndroid(InputSourceAndroid source, AndroidXenkoGameView uiControl)
+        public PointerAndroid(InputSourceAndroid source, AndroidStrideGameView uiControl)
         {
             Source = source;
             this.uiControl = uiControl;

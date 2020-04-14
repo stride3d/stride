@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -7,24 +7,24 @@ using System.Linq;
 using System.Reflection;
 using System.ServiceModel;
 
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.Assets.Diagnostics;
-using Xenko.Core.BuildEngine;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Core.MicroThreading;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.Assets.Diagnostics;
+using Stride.Core.BuildEngine;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Core.MicroThreading;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Reflection;
-using Xenko.Core.Serialization.Contents;
-using Xenko;
-using Xenko.Assets;
-using Xenko.Graphics;
-using Xenko.Core.VisualStudio;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Reflection;
+using Stride.Core.Serialization.Contents;
+using Stride;
+using Stride.Assets;
+using Stride.Graphics;
+using Stride.Core.VisualStudio;
 
-namespace Xenko.Core.Assets.CompilerApp
+namespace Stride.Core.Assets.CompilerApp
 {
     public class PackageBuilder
     {
@@ -93,7 +93,7 @@ namespace Xenko.Core.Assets.CompilerApp
 
                 projectSession = projectSessionResult.Session;
 
-                // Find loaded package (either xkpkg or csproj) -- otherwise fallback to first one
+                // Find loaded package (either sdpkg or csproj) -- otherwise fallback to first one
                 var packageFile = (UFile)builderOptions.PackageFile;
                 var package = projectSession.LocalPackages.FirstOrDefault(x => x.FullPath == packageFile || (x.Container is SolutionProject project && project.FullPath == packageFile))
                     ?? projectSession.LocalPackages.First();

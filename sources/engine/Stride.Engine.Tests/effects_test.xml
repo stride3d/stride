@@ -1,6 +1,6 @@
-<RenderConfig xmlns="http://schemas.xenko.com/effects"
+<RenderConfig xmlns="http://schemas.stride3d.net/effects"
               xmlns:sys="clr-namespace:System;assembly=mscorlib"
-              xmlns:s="clr-namespace:Xenko.Rendering;assembly=ScriptShader"
+              xmlns:s="clr-namespace:Stride.Rendering;assembly=ScriptShader"
               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- Render passes -->
   <RenderPass Name="MainPassForward"/>

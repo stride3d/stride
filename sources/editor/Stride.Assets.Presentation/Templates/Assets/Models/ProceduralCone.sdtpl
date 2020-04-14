@@ -6,6 +6,6 @@ Scope: Asset
 Description: A procedurally-generated cone
 Group: Model
 Order: 20
-Icon: ..\.xktpl\ProceduralCone.png
+Icon: ..\.sdtpl\ProceduralCone.png
 DefaultOutputName: Cone
 FactoryTypeName: ProceduralModelConeFactory

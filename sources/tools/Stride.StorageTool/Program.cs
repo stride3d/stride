@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
@@ -7,7 +7,7 @@ using System.Security.Principal;
 using Microsoft.Win32;
 using Mono.Options;
 
-namespace Xenko.StorageTool
+namespace Stride.StorageTool
 {
     /// <summary>
     /// Tool to manage storage/bundles.
@@ -21,7 +21,7 @@ namespace Xenko.StorageTool
 
             var p = new OptionSet
                 {
-                    "Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved",
+                    "Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved",
                     "Storage Tool - Version: "
                     +
                     String.Format(
@@ -66,7 +66,7 @@ namespace Xenko.StorageTool
                         //[HKEY_CURRENT_USER\Software\Classes\.bundle]
                         //@="bundlefile"
                         //[HKEY_CURRENT_USER\Software\Classes\bundlefile]
-                        //@="Xenko Bundle file Extension"
+                        //@="Stride Bundle file Extension"
                         //[HKEY_CURRENT_USER\Software\Classes\bundlefile\shell\View\command]
                         //@="StorageTool.exe %1"
 
@@ -75,7 +75,7 @@ namespace Xenko.StorageTool
                         bundleKey.SetValue(null, "bundlefile");
 
                         var bundlefileKey = classesKey.CreateSubKey("bundlefile");
-                        bundlefileKey.SetValue(null, "Xenko Bundle file Extension");
+                        bundlefileKey.SetValue(null, "Stride Bundle file Extension");
 
                         var commandKey = bundlefileKey.CreateSubKey("shell").CreateSubKey("View").CreateSubKey("command");
                         commandKey.SetValue(null, Assembly.GetExecutingAssembly().Location + " view %1");

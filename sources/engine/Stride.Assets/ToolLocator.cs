@@ -5,9 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Xenko.Core.IO;
+using Stride.Core.IO;
 
-namespace Xenko.Assets
+namespace Stride.Assets
 {
     static class ToolLocator
     {

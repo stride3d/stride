@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core;
-using Xenko.Engine;
-using Xenko.Engine.Network;
-using Xenko.Games.Testing.Requests;
-using Xenko.Graphics;
-using Xenko.Input;
+using Stride.Core;
+using Stride.Engine;
+using Stride.Engine.Network;
+using Stride.Games.Testing.Requests;
+using Stride.Graphics;
+using Stride.Input;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Xenko.Graphics.Regression;
+using Stride.Graphics.Regression;
 
-namespace Xenko.Games.Testing
+namespace Stride.Games.Testing
 {
     /// <summary>
     /// This game system will be automatically injected by the Module initialized when included in the build processing via msbuild
@@ -50,7 +50,7 @@ namespace Xenko.Games.Testing
         {
             var game = (Game)Game;
 
-            var url = $"/service/Xenko.SamplesTestServer/{XenkoVersion.NuGetVersion}/Xenko.SamplesTestServer.exe";
+            var url = $"/service/Stride.SamplesTestServer/{StrideVersion.NuGetVersion}/Stride.SamplesTestServer.exe";
 
             var socketContext = await RouterClient.RequestServer(url);
 
@@ -103,7 +103,7 @@ namespace Xenko.Games.Testing
 
             Initialized = true;
 
-#if XENKO_PLATFORM_IOS || XENKO_PLATFORM_ANDROID || XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_WINDOWS_DESKTOP
             Console.WriteLine(@"Test initialized, waiting to start...");
 #endif
         }
@@ -138,16 +138,16 @@ namespace Xenko.Games.Testing
             }
         }
 
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
         [DllImport("__Internal", EntryPoint = "exit")]
         public static extern void exit(int status);
 #endif
 
         public static void Quit()
         {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             global::Android.OS.Process.KillProcess(global::Android.OS.Process.MyPid());
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
             exit(0);
 #endif
         }

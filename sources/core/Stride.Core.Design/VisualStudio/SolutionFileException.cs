@@ -1,6 +1,6 @@
 #region License
 
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // This file is distributed under MIT License. See LICENSE.md for details.
 //
 // SLNTools
@@ -25,7 +25,7 @@
 
 using System;
 
-namespace Xenko.Core.VisualStudio
+namespace Stride.Core.VisualStudio
 {
     class SolutionFileException
         : Exception

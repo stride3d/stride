@@ -1,9 +1,9 @@
 using System.Linq;
-using Xenko.Core.Assets.Editor.Quantum.NodePresenters;
-using Xenko.Core.Assets.Editor.Quantum.NodePresenters.Keys;
-using Xenko.Assets.Media;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
+using Stride.Assets.Media;
 
-namespace Xenko.Assets.Presentation.NodePresenters.Updaters
+namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
     internal sealed class VideoAssetNodeUpdater : AssetNodePresenterUpdaterBase
     {

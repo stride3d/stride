@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.IO;
 using Xunit;
-using Xenko.Core.Windows;
+using Stride.Core.Windows;
 
-namespace Xenko.Core.Design.Tests
+namespace Stride.Core.Design.Tests
 {
     public class TestFileLock
     {

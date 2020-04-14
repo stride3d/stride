@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -7,12 +7,12 @@ using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Xenko.LauncherApp.Resources;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.ViewModel;
+using Stride.LauncherApp.Resources;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModel;
 
-namespace Xenko.LauncherApp.ViewModels
+namespace Stride.LauncherApp.ViewModels
 {
     internal class DocumentationPageViewModel : DispatcherViewModel
     {
@@ -40,7 +40,7 @@ namespace Xenko.LauncherApp.ViewModels
         }
 
         /// <summary>
-        /// Gets the root url of the documentation that should be opened when the user want to open Xenko help.
+        /// Gets the root url of the documentation that should be opened when the user want to open Stride help.
         /// </summary>
         public string DocumentationRootUrl => GetDocumentationRootUrl(Version);
 

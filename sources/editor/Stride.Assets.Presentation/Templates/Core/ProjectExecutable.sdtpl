@@ -7,7 +7,7 @@ FullDescription: |
    Create a platform-agnostic game library with one executable per platform. The template comes with skybox, ground, sphere, light, camera, and preconfigured rendering pipeline.
 Group: General
 Order: -100
-Icon: .xktpl/NewGameIcon.png
+Icon: .sdtpl/NewGameIcon.png
 DefaultOutputName: MyGame
 Screenshots:
-    - .xktpl/NewGameScreenshot.jpg
+    - .sdtpl/NewGameScreenshot.jpg

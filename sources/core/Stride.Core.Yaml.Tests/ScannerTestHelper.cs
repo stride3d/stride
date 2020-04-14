@@ -43,9 +43,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using Xenko.Core.Yaml.Tokens;
+using Stride.Core.Yaml.Tokens;
 
-namespace Xenko.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests
 {
     public class ScannerTestHelper : YamlTest
     {

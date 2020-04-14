@@ -1,6 +1,6 @@
 !Animation
 Id: 6784fa36-34e7-4990-baf6-7a854e5caaa9
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/model/character/scene/ma03.FBX
 ClipDuration:

@@ -1,27 +1,27 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Reflection;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
 
-namespace Xenko.Native
+namespace Stride.Native
 {
     internal static class NativeInvoke
     {
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
         internal const string Library = "__Internal";
 #else
-        internal const string Library = "libxenko";
+        internal const string Library = "libstride";
 #endif
 
         internal static void PreLoad()
         {
-#if XENKO_PLATFORM_WINDOWS
+#if STRIDE_PLATFORM_WINDOWS
             NativeLibrary.PreloadLibrary(Library + ".dll", typeof(NativeInvoke));
 #else
             NativeLibrary.PreloadLibrary(Library + ".so", typeof(NativeInvoke));

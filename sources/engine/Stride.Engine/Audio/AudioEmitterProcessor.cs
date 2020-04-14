@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Specialized;
 using System.Linq;
-using Xenko.Core;
-using Xenko.Core.Collections;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Media;
-using Xenko.Rendering;
+using Stride.Core;
+using Stride.Core.Collections;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Media;
+using Stride.Rendering;
 
-namespace Xenko.Audio
+namespace Stride.Audio
 {
     /// <summary>
     /// Processor in charge of updating the <see cref="AudioEmitterComponent"/>s.
@@ -34,7 +34,7 @@ namespace Xenko.Audio
         public class AssociatedData
         {
             /// <summary>
-            /// The <see cref="Xenko.Audio.AudioEmitter"/> associated to the <see cref="AudioEmitterComponent"/>.
+            /// The <see cref="Stride.Audio.AudioEmitter"/> associated to the <see cref="AudioEmitterComponent"/>.
             /// </summary>
             public AudioEmitter AudioEmitter;
 

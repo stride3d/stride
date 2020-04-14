@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_DIRECT3D12
+#if STRIDE_GRAPHICS_API_DIRECT3D12
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using SharpDX;
 using SharpDX.Direct3D12;
 using SharpDX.Mathematics.Interop;
-using Xenko.Core.Mathematics;
-using Utilities = Xenko.Core.Utilities;
+using Stride.Core.Mathematics;
+using Utilities = Stride.Core.Utilities;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public partial class CommandList
     {

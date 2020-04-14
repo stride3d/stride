@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Assets.Presentation.AssetEditors.UIEditor.Adorners;
-using Xenko.Assets.Presentation.AssetEditors.UIEditor.Services;
-using Xenko.Assets.Presentation.ViewModel;
-using Xenko.Editor.EditorGame.Game;
-using Xenko.Editor.EditorGame.ViewModels;
-using Xenko.Engine;
-using Xenko.UI;
-using Xenko.UI.Panels;
-using Xenko.Rendering.Compositing;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners;
+using Stride.Assets.Presentation.AssetEditors.UIEditor.Services;
+using Stride.Assets.Presentation.ViewModel;
+using Stride.Editor.EditorGame.Game;
+using Stride.Editor.EditorGame.ViewModels;
+using Stride.Engine;
+using Stride.UI;
+using Stride.UI.Panels;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Assets.Presentation.AssetEditors.UIEditor.Game
+namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
 {
     internal sealed partial class UIEditorGameAdornerService : EditorGameServiceBase, IEditorGameViewModelService
     {

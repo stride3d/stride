@@ -1,6 +1,6 @@
 !PregeneratedSpriteFont
 Id: 016f522f-7283-4bd5-a8b1-03056f2c80bd
-SerializedVersion: {Xenko: 1.7.0-alpha01}
+SerializedVersion: {Stride: 1.7.0-alpha01}
 Tags: []
 OriginalFont: 5875a604-ea72-4efb-8d1b-dcdbf2f324b5:StaticFonts/Arial18
 FontDataFile: ../../../../../data/tests/PrecompileFonts/Arial13 (Precompiled).png

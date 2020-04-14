@@ -1,15 +1,15 @@
-//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+//// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 //// This file is distributed under GPL v3. See LICENSE.md for details.
 //using System;
 //
 //using Xunit;
 //
-//using Xenko.Core;
-//using Xenko.Core.IO;
-//using Xenko.Core.Serialization.Assets;
-//using Xenko.Engine;
+//using Stride.Core;
+//using Stride.Core.IO;
+//using Stride.Core.Serialization.Assets;
+//using Stride.Engine;
 //
-//namespace Xenko.Audio.Tests
+//namespace Stride.Audio.Tests
 //{
 //    /// <summary>
 //    /// Tests for <see cref="AudioEngine"/>

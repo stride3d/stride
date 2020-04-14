@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // -----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace Xenko.Core.Mathematics
+namespace Stride.Core.Mathematics
 {
     /// <summary>
     /// Represents a four dimensional mathematical quaternion.
@@ -41,22 +41,22 @@ namespace Xenko.Core.Mathematics
     public struct Quaternion : IEquatable<Quaternion>, IFormattable
     {
         /// <summary>
-        /// The size of the <see cref="Xenko.Core.Mathematics.Quaternion"/> type, in bytes.
+        /// The size of the <see cref="Stride.Core.Mathematics.Quaternion"/> type, in bytes.
         /// </summary>
         public static readonly int SizeInBytes = Utilities.SizeOf<Quaternion>();
 
         /// <summary>
-        /// A <see cref="Xenko.Core.Mathematics.Quaternion"/> with all of its components set to zero.
+        /// A <see cref="Stride.Core.Mathematics.Quaternion"/> with all of its components set to zero.
         /// </summary>
         public static readonly Quaternion Zero = new Quaternion();
 
         /// <summary>
-        /// A <see cref="Xenko.Core.Mathematics.Quaternion"/> with all of its components set to one.
+        /// A <see cref="Stride.Core.Mathematics.Quaternion"/> with all of its components set to one.
         /// </summary>
         public static readonly Quaternion One = new Quaternion(1.0f, 1.0f, 1.0f, 1.0f);
 
         /// <summary>
-        /// The identity <see cref="Xenko.Core.Mathematics.Quaternion"/> (0, 0, 0, 1).
+        /// The identity <see cref="Stride.Core.Mathematics.Quaternion"/> (0, 0, 0, 1).
         /// </summary>
         public static readonly Quaternion Identity = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -81,7 +81,7 @@ namespace Xenko.Core.Mathematics
         public float W;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Quaternion"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Quaternion"/> struct.
         /// </summary>
         /// <param name="value">The value that will be assigned to all components.</param>
         public Quaternion(float value)
@@ -93,7 +93,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Quaternion"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Quaternion"/> struct.
         /// </summary>
         /// <param name="value">A vector containing the values with which to initialize the components.</param>
         public Quaternion(Vector4 value)
@@ -105,7 +105,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Quaternion"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Quaternion"/> struct.
         /// </summary>
         /// <param name="value">A vector containing the values with which to initialize the X, Y, and Z components.</param>
         /// <param name="w">Initial value for the W component of the quaternion.</param>
@@ -118,7 +118,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Quaternion"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Quaternion"/> struct.
         /// </summary>
         /// <param name="value">A vector containing the values with which to initialize the X and Y components.</param>
         /// <param name="z">Initial value for the Z component of the quaternion.</param>
@@ -132,7 +132,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Quaternion"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Quaternion"/> struct.
         /// </summary>
         /// <param name="x">Initial value for the X component of the quaternion.</param>
         /// <param name="y">Initial value for the Y component of the quaternion.</param>
@@ -147,7 +147,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Quaternion"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Quaternion"/> struct.
         /// </summary>
         /// <param name="values">The values to assign to the X, Y, Z, and W components of the quaternion. This must be an array with four elements.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
@@ -297,7 +297,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <returns>The length of the quaternion.</returns>
         /// <remarks>
-        /// <see cref="Xenko.Core.Mathematics.Quaternion.LengthSquared"/> may be preferred when only the relative length is needed
+        /// <see cref="Stride.Core.Mathematics.Quaternion.LengthSquared"/> may be preferred when only the relative length is needed
         /// and speed is of the essence.
         /// </remarks>
         public float Length()
@@ -310,7 +310,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <returns>The squared length of the quaternion.</returns>
         /// <remarks>
-        /// This method may be preferred to <see cref="Xenko.Core.Mathematics.Quaternion.Length"/> when only a relative length is needed
+        /// This method may be preferred to <see cref="Stride.Core.Mathematics.Quaternion.Length"/> when only a relative length is needed
         /// and speed is of the essence.
         /// </remarks>
         public float LengthSquared()
@@ -486,14 +486,14 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="Xenko.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 2D triangle.
+        /// Returns a <see cref="Stride.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 2D triangle.
         /// </summary>
-        /// <param name="value1">A <see cref="Xenko.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.</param>
-        /// <param name="value2">A <see cref="Xenko.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of vertex 2 of the triangle.</param>
-        /// <param name="value3">A <see cref="Xenko.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of vertex 3 of the triangle.</param>
+        /// <param name="value1">A <see cref="Stride.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.</param>
+        /// <param name="value2">A <see cref="Stride.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of vertex 2 of the triangle.</param>
+        /// <param name="value3">A <see cref="Stride.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of vertex 3 of the triangle.</param>
         /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
         /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
-        /// <param name="result">When the method completes, contains a new <see cref="Xenko.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of the specified point.</param>
+        /// <param name="result">When the method completes, contains a new <see cref="Stride.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of the specified point.</param>
         public static void Barycentric(ref Quaternion value1, ref Quaternion value2, ref Quaternion value3, float amount1, float amount2, out Quaternion result)
         {
             Quaternion start, end;
@@ -503,14 +503,14 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="Xenko.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 2D triangle.
+        /// Returns a <see cref="Stride.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 2D triangle.
         /// </summary>
-        /// <param name="value1">A <see cref="Xenko.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.</param>
-        /// <param name="value2">A <see cref="Xenko.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of vertex 2 of the triangle.</param>
-        /// <param name="value3">A <see cref="Xenko.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of vertex 3 of the triangle.</param>
+        /// <param name="value1">A <see cref="Stride.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.</param>
+        /// <param name="value2">A <see cref="Stride.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of vertex 2 of the triangle.</param>
+        /// <param name="value3">A <see cref="Stride.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of vertex 3 of the triangle.</param>
         /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
         /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
-        /// <returns>A new <see cref="Xenko.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of the specified point.</returns>
+        /// <returns>A new <see cref="Stride.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of the specified point.</returns>
         public static Quaternion Barycentric(Quaternion value1, Quaternion value2, Quaternion value3, float amount1, float amount2)
         {
             Quaternion result;
@@ -1322,11 +1322,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="Xenko.Core.Mathematics.Quaternion"/> is equal to this instance.
+        /// Determines whether the specified <see cref="Stride.Core.Mathematics.Quaternion"/> is equal to this instance.
         /// </summary>
-        /// <param name="other">The <see cref="Xenko.Core.Mathematics.Quaternion"/> to compare with this instance.</param>
+        /// <param name="other">The <see cref="Stride.Core.Mathematics.Quaternion"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="Xenko.Core.Mathematics.Quaternion"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="Stride.Core.Mathematics.Quaternion"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(Quaternion other)
         {
@@ -1356,7 +1356,7 @@ namespace Xenko.Core.Mathematics
 
 #if SlimDX1xInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Quaternion"/> to <see cref="SlimDX.Quaternion"/>.
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Quaternion"/> to <see cref="SlimDX.Quaternion"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -1366,7 +1366,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="SlimDX.Quaternion"/> to <see cref="Xenko.Core.Mathematics.Quaternion"/>.
+        /// Performs an implicit conversion from <see cref="SlimDX.Quaternion"/> to <see cref="Stride.Core.Mathematics.Quaternion"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -1378,7 +1378,7 @@ namespace Xenko.Core.Mathematics
 
 #if WPFInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Quaternion"/> to <see cref="System.Windows.Media.Media3D.Quaternion"/>.
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Quaternion"/> to <see cref="System.Windows.Media.Media3D.Quaternion"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -1388,7 +1388,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Quaternion"/> to <see cref="Xenko.Core.Mathematics.Quaternion"/>.
+        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Quaternion"/> to <see cref="Stride.Core.Mathematics.Quaternion"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -1400,7 +1400,7 @@ namespace Xenko.Core.Mathematics
 
 #if XnaInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Quaternion"/> to <see cref="Microsoft.Xna.Framework.Quaternion"/>.
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Quaternion"/> to <see cref="Microsoft.Xna.Framework.Quaternion"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -1410,7 +1410,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Quaternion"/> to <see cref="Xenko.Core.Mathematics.Quaternion"/>.
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Quaternion"/> to <see cref="Stride.Core.Mathematics.Quaternion"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>

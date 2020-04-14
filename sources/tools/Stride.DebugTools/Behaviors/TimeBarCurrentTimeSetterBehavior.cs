@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xaml.Behaviors;
-using Xenko.Core.Presentation.Controls;
+using Stride.Core.Presentation.Controls;
 
-namespace Xenko.DebugTools.Behaviors
+namespace Stride.DebugTools.Behaviors
 {
     public class TimeBarCurrentTimeSetterBehavior : Behavior<ScaleBar>
     {

@@ -22,9 +22,9 @@ using System.Windows.Media;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-using Xenko.VisualStudio.BuildEngine;
+using Stride.VisualStudio.BuildEngine;
 
-namespace Xenko.VisualStudio
+namespace Stride.VisualStudio
 {
     public partial class OutputClassifier
     {
@@ -40,7 +40,7 @@ namespace Xenko.VisualStudio
 
 <#foreach (var classifier in classifiers)
 {#>
-        public const string AssetCompiler<#=classifier.Name#> = "Xenko.AssetCompiler.<#=classifier.Name#>";
+        public const string AssetCompiler<#=classifier.Name#> = "Stride.AssetCompiler.<#=classifier.Name#>";
 <#}#>
 
 <#foreach (var classifier in classifiers)
@@ -62,7 +62,7 @@ namespace Xenko.VisualStudio
             [ImportingConstructor]
             public AssetCompiler<#=classifier.Name#>Format(OutputClassificationColorManager colorManager)
             {
-                DisplayName = "Xenko AssetCompiler <#=classifier.Name#>";
+                DisplayName = "Stride AssetCompiler <#=classifier.Name#>";
                 this.IsBold = <#=classifier.IsBold.ToString().ToLower()#>;
                 var classificationColor = colorManager.GetClassificationColor(AssetCompiler<#=classifier.Name#>);
                 ForegroundColor = classificationColor.ForegroundColor;

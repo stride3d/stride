@@ -44,9 +44,9 @@
 // SOFTWARE.
 
 using System.Globalization;
-using Xenko.Core.Yaml.Tokens;
+using Stride.Core.Yaml.Tokens;
 
-namespace Xenko.Core.Yaml.Events
+namespace Stride.Core.Yaml.Events
 {
     /// <summary>
     /// Represents a document start event.

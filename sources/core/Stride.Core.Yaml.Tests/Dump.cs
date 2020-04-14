@@ -45,7 +45,7 @@
 
 using System.Diagnostics;
 
-namespace Xenko.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests
 {
     public class Dump
     {

@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Engine.Design;
-using Xenko.Engine.Processors;
-using Xenko.Rendering.Voxels.Debug;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Engine.Design;
+using Stride.Engine.Processors;
+using Stride.Rendering.Voxels.Debug;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     /// <summary>
     /// Voxelizes a region.

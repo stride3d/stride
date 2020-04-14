@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AskSurvey" xml:space="preserve">
-    <value>Xenkoをより良くするために、オンラインアンケートを実施中です。
+    <value>Strideをより良くするために、オンラインアンケートを実施中です。
 数分で完了しますので、ご協力をお願いします！</value>
   </data>
 </root>

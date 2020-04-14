@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Assets.Presentation.AssetEditors.UIEditor.ViewModels;
-using Xenko.Assets.Presentation.AssetEditors.UIEditor.Views;
-using Xenko.Assets.Presentation.AssetEditors.UILibraryEditor.ViewModels;
-using Xenko.Assets.Presentation.ViewModel;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.UIEditor.Views;
+using Stride.Assets.Presentation.AssetEditors.UILibraryEditor.ViewModels;
+using Stride.Assets.Presentation.ViewModel;
 
-namespace Xenko.Assets.Presentation.AssetEditors.UILibraryEditor.Views
+namespace Stride.Assets.Presentation.AssetEditors.UILibraryEditor.Views
 {
     public class UILibraryEditorView : UIEditorView
     {

@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1649 // File name must match first type name
 #pragma warning disable SA1402 // File may only contain a single class
 using System;
 using System.IO;
-using Xenko.Core.IO;
-using Xenko.Core.Serialization;
-using Xenko.Engine.Network;
+using Stride.Core.IO;
+using Stride.Core.Serialization;
+using Stride.Engine.Network;
 
-namespace Xenko.Shaders.Compiler.Internals
+namespace Stride.Shaders.Compiler.Internals
 {
     internal class DownloadFileQuery : SocketMessage
     {

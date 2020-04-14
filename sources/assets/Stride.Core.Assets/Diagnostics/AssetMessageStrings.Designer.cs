@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Xenko.Core.Assets.Diagnostics {
+namespace Stride.Core.Assets.Diagnostics {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Xenko.Core.Assets.Diagnostics {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Xenko.Core.Assets.Diagnostics.AssetMessageStrings", typeof(AssetMessageStrings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.Core.Assets.Diagnostics.AssetMessageStrings", typeof(AssetMessageStrings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

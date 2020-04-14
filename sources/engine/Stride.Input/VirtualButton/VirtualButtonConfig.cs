@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using Xenko.Core.Collections;
+using Stride.Core.Collections;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     /// <summary>
     /// Describes the configuration composed by a collection of <see cref="VirtualButtonBinding"/>.

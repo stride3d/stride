@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Xenko.LauncherApp.Resources {
+namespace Stride.LauncherApp.Resources {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Xenko.LauncherApp.Resources {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Xenko.LauncherApp.Resources.Strings", typeof(Strings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.LauncherApp.Resources.Strings", typeof(Strings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,7 +61,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to It seems you do not have any version of Xenko currently installed. Would you like to install the latest version?.
+        ///   Looks up a localized string similar to It seems you do not have any version of Stride currently installed. Would you like to install the latest version?.
         /// </summary>
         public static string AskInstallVersion {
             get {
@@ -79,7 +79,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Help us improve Xenko! We are making an online survey that takes about 5 minutes to complete. Would you like to answer it?.
+        ///   Looks up a localized string similar to Help us improve Stride! We are making an online survey that takes about 5 minutes to complete. Would you like to answer it?.
         /// </summary>
         public static string AskSurvey {
             get {
@@ -88,7 +88,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Close the launcher after starting Xenko.
+        ///   Looks up a localized string similar to Close the launcher after starting Stride.
         /// </summary>
         public static string AutoCloseLauncher {
             get {
@@ -115,7 +115,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Discuss about Xenko.
+        ///   Looks up a localized string similar to Discuss about Stride.
         /// </summary>
         public static string ButtonForums {
             get {
@@ -232,7 +232,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to connect to Xenko server. Switching to offline mode….
+        ///   Looks up a localized string similar to Unable to connect to Stride server. Switching to offline mode….
         /// </summary>
         public static string ErrorOfflineMode {
             get {
@@ -322,7 +322,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Xenko launcher.
+        ///   Looks up a localized string similar to Stride launcher.
         /// </summary>
         public static string LauncherTitle {
             get {
@@ -601,7 +601,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Install the latest available version of Xenko.
+        ///   Looks up a localized string similar to Install the latest available version of Stride.
         /// </summary>
         public static string ToolTipInstallLatestVersion {
             get {
@@ -610,7 +610,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Open this project with a more recent version of Xenko (the project will be upgraded).
+        ///   Looks up a localized string similar to Open this project with a more recent version of Stride (the project will be upgraded).
         /// </summary>
         public static string ToolTipOpenAndUpgradeProject {
             get {
@@ -637,7 +637,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Start Xenko Game Studio {0}.
+        ///   Looks up a localized string similar to Start Stride Game Studio {0}.
         /// </summary>
         public static string ToolTipStartButton {
             get {
@@ -682,7 +682,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Xenko {0}.
+        ///   Looks up a localized string similar to Stride {0}.
         /// </summary>
         public static string VersionButton {
             get {

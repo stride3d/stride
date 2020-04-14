@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.ComponentModel;
 using System.Globalization;
@@ -7,13 +7,13 @@ using System.Threading;
 
 using Xunit;
 
-using Xenko.Core.Mathematics;
-using Xenko.Core.TypeConverters;
+using Stride.Core.Mathematics;
+using Stride.Core.TypeConverters;
 
-namespace Xenko.Core.Design.Tests
+namespace Stride.Core.Design.Tests
 {
     /// <summary>
-    /// Tests for the <see cref="Xenko.Core.TypeConverters"/> classes.
+    /// Tests for the <see cref="Stride.Core.TypeConverters"/> classes.
     /// </summary>
     public class TestTypeConverter
     {

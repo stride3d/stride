@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Mono.Debugging.Soft;
 using MonoDevelop.Debugger.Soft;
 using Mono.Debugging.Client;
 
-namespace MonoDevelop.Debugger.Soft.Xenko
+namespace MonoDevelop.Debugger.Soft.Stride
 {
-	public class XenkoRemoteSoftDebuggerSession : SoftDebuggerSession
+	public class StrideRemoteSoftDebuggerSession : SoftDebuggerSession
 	{
-		public XenkoRemoteSoftDebuggerSession()
+		public StrideRemoteSoftDebuggerSession()
 		{
 			
 		}

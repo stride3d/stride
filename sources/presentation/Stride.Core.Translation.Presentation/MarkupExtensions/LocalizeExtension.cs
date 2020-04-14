@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Globalization;
@@ -7,9 +7,9 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
 using System.Xaml;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Translation.Presentation.MarkupExtensions
+namespace Stride.Core.Translation.Presentation.MarkupExtensions
 {
     /// <summary>
     /// Provides support for localization in XAML document.

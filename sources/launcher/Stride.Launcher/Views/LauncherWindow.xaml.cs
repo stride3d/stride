@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.ComponentModel;
@@ -9,15 +9,15 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 
-using Xenko.LauncherApp.Services;
-using Xenko.LauncherApp.ViewModels;
-using Xenko.Core.Packages;
-using Xenko.Core.Presentation.Dialogs;
-using Xenko.Core.Presentation.Extensions;
-using Xenko.Core.Presentation.View;
-using Xenko.Core.Presentation.ViewModel;
+using Stride.LauncherApp.Services;
+using Stride.LauncherApp.ViewModels;
+using Stride.Core.Packages;
+using Stride.Core.Presentation.Dialogs;
+using Stride.Core.Presentation.Extensions;
+using Stride.Core.Presentation.View;
+using Stride.Core.Presentation.ViewModel;
 
-namespace Xenko.LauncherApp.Views
+namespace Stride.LauncherApp.Views
 {
     /// <summary>
     /// Interaction logic for LauncherWindow.xaml
@@ -65,7 +65,7 @@ namespace Xenko.LauncherApp.Views
         {
             base.OnClosing(e);
 
-            if (ViewModel.XenkoVersions.Any(x => x.IsProcessing))
+            if (ViewModel.StrideVersions.Any(x => x.IsProcessing))
             {
                 var forceClose = Launcher.DisplayMessage("Some background operations are still in progress. Force close?");
 

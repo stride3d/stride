@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -24,9 +24,9 @@
 
 using System;
 using System.Reflection;
-using Xenko.Graphics;
+using Stride.Graphics;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
     /// <summary>
     /// Contains context used to render the game (Control for WinForm, a DrawingSurface for WP8...etc.).
@@ -39,7 +39,7 @@ namespace Xenko.Games
         public AppContextType ContextType { get; protected set; }
 
         /// <summary>
-        /// Indicating whether the user will call the main loop. E.g. Xenko is used as a library.
+        /// Indicating whether the user will call the main loop. E.g. Stride is used as a library.
         /// </summary>
         public bool IsUserManagingRun { get; protected set; }
 
@@ -89,12 +89,12 @@ namespace Xenko.Games
         {
             get
             {
-#if XENKO_PLATFORM_UWP
-                return "Xenko Game";
+#if STRIDE_PLATFORM_UWP
+                return "Stride Game";
 #else
                 var assembly = Assembly.GetEntryAssembly();
                 var productAttribute = assembly?.GetCustomAttribute<AssemblyProductAttribute>();
-                return productAttribute?.Product ?? "Xenko Game";
+                return productAttribute?.Product ?? "Stride Game";
 #endif
             }
         }
@@ -107,7 +107,7 @@ namespace Xenko.Games
         {
             get
             {
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
                 return string.Empty;
 #else
                 var assembly = Assembly.GetEntryAssembly();
@@ -118,7 +118,7 @@ namespace Xenko.Games
 
         // This code is for backward compatibility only where the generated games
         // would not explicitly create the context, but would just use a Winform
-#if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_UI_WINFORMS || XENKO_UI_WPF)        /// <summary>
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)        /// <summary>
         /// Performs an implicit conversion from <see cref="Control"/> to <see cref="GameContextWinforms"/>.
         /// </summary>
         /// <param name="control">Winform control</param>
@@ -130,7 +130,7 @@ namespace Xenko.Games
         }
 #endif
 
-#if (XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX) && XENKO_GRAPHICS_API_OPENGL && XENKO_UI_OPENTK
+#if (STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX) && STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
         /// <summary>
         /// Performs an implicit conversion from <see cref="OpenTK.GameWindow"/> to <see cref="GameContextOpenTK"/>.
         /// </summary>

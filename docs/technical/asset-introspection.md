@@ -70,11 +70,11 @@ When two assets that are connected with a base relationship are loaded, it is th
 
 ## Quantum
 
-In Xenko, we use an introspection framework called *Quantum*.
+In Stride, we use an introspection framework called *Quantum*.
 
 ### Type descriptors
 
-The first layer used to introspect object is in `Xenko.Core.Reflection`. This assembly contains type descriptors, which are basically objects abstracting the reflection infrastructure. It is currently using .NET reflection (`System.Reflection`) but could later be implemented in a more efficient way (using `Expression`, or IL code).
+The first layer used to introspect object is in `Stride.Core.Reflection`. This assembly contains type descriptors, which are basically objects abstracting the reflection infrastructure. It is currently using .NET reflection (`System.Reflection`) but could later be implemented in a more efficient way (using `Expression`, or IL code).
 
 The `TypeDescriptorFactory` allows to retrieve introspection information on any type. `ObjectDescriptor`s contains descriptor for members which allow to access them. Collections, dictionaries and arrays are also handled (NOTE: arrays are not fully supported in Quantum itself).
 
@@ -85,13 +85,13 @@ This assembly also provides an `AttributeRegistry` which allows to attach `Attri
 ### Node graphs
 
 In order to introspect object, we build graphs on top of each object, representing their members, and referencing the graphs of other objects they reference through members or collection.
-The classes handling theses graphs are in the `Xenko.Core.Quantum` assembly.
+The classes handling theses graphs are in the `Stride.Core.Quantum` assembly.
 
 #### Node containers
 
 Nodes of the graphs are created into an instance of `NodeContainer`. Usually a single instance of `NodeContainer` is enough, but we have some scenarios where we use multiple ones: for example each instance of scene editor contains its own `NodeContainer` instance to build graphs of game-side objects, which are different from asset-side (ie. UI-side) objects, have a different lifespan, and require different metadata.
 
-In the GameStudio, the `NodeContainer` class has two derivations: the `AssetNodeContainer` class, which expands the primitive types to add Xenko-specific types (such as `Vector3`, `Matrix`, `Guid`...). This class is inherited to a `SessionNodeContainer`, which additionally allows plugin to register their own primitive types and metadata.
+In the GameStudio, the `NodeContainer` class has two derivations: the `AssetNodeContainer` class, which expands the primitive types to add Stride-specific types (such as `Vector3`, `Matrix`, `Guid`...). This class is inherited to a `SessionNodeContainer`, which additionally allows plugin to register their own primitive types and metadata.
 
 #### Node builders
 

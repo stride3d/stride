@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using RoslynPad.Editor;
 using RoslynPad.Roslyn.Diagnostics;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Annotations;
-using Xenko.Assets.Presentation.ViewModel;
-using Xenko.Assets.Scripts;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Annotations;
+using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Scripts;
 
-namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
+namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 {
     /// <summary>
     /// View model for the script editor (using Roslyn & AvalonEdit and RoslynPad).
@@ -22,7 +22,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
         public ScriptEditorViewModel([NotNull] ScriptSourceFileAssetViewModel script, AvalonEditTextContainer sourceTextContainer)
             : base(script)
         {
-            Code = XenkoAssetsViewModel.Instance.Code;
+            Code = StrideAssetsViewModel.Instance.Code;
             SourceTextContainer = sourceTextContainer;
         }
 
@@ -63,9 +63,9 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
         /// <inheritdoc/>
         public sealed override async Task<bool> Initialize()
         {
-            var projectWatcher = await XenkoAssetsViewModel.Instance.Code.ProjectWatcher;
+            var projectWatcher = await StrideAssetsViewModel.Instance.Code.ProjectWatcher;
             RoslynHost = await projectWatcher.RoslynHost;
-            Workspace = await XenkoAssetsViewModel.Instance.Code.Workspace;
+            Workspace = await StrideAssetsViewModel.Instance.Code.Workspace;
 
             Workspace.HostDocumentClosed += WorkspaceHostDocumentClosed;
 

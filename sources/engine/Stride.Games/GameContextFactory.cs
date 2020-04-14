@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
     /// <summary>
     /// Given a <see cref="AppContextType"/> creates the corresponding GameContext instance based on the current executing platform.
@@ -15,25 +15,25 @@ namespace Xenko.Games
         {
             // Default context is Desktop
             AppContextType type = AppContextType.Desktop;
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX
-    #if XENKO_GRAPHICS_API_OPENGL
-        #if XENKO_UI_SDL
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
+    #if STRIDE_GRAPHICS_API_OPENGL
+        #if STRIDE_UI_SDL
             type = AppContextType.DesktopSDL;
-        #elif XENKO_UI_OPENTK
+        #elif STRIDE_UI_OPENTK
             type = AppContextType.DesktopOpenTK;
         #endif
-    #elif XENKO_GRAPHICS_API_VULKAN
-        #if XENKO_UI_SDL && !XENKO_UI_WINFORMS && !XENKO_UI_WPF
+    #elif STRIDE_GRAPHICS_API_VULKAN
+        #if STRIDE_UI_SDL && !STRIDE_UI_WINFORMS && !STRIDE_UI_WPF
             type = AppContextType.DesktopSDL;
         #endif
     #else
             type = AppContextType.Desktop;
     #endif
-#elif XENKO_PLATFORM_UWP
+#elif STRIDE_PLATFORM_UWP
             type = AppContextType.UWPXaml; // Can change later to CoreWindow
-#elif XENKO_PLATFORM_ANDROID
+#elif STRIDE_PLATFORM_ANDROID
             type = AppContextType.Android;
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
             type = AppContextType.iOS;
 #endif
             return NewGameContext(type);
@@ -84,7 +84,7 @@ namespace Xenko.Games
 
         public static GameContext NewGameContextiOS()
         {
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
             return new GameContextiOS(new iOSWindow(null, null, null), 0, 0);
 #else
             return null;
@@ -93,7 +93,7 @@ namespace Xenko.Games
 
         public static GameContext NewGameContextAndroid()
         {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             return new GameContextAndroid(null, null);
 #else
             return null;
@@ -102,13 +102,13 @@ namespace Xenko.Games
 
         public static GameContext NewGameContextDesktop()
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
-    #if XENKO_UI_OPENTK
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+    #if STRIDE_UI_OPENTK
             return new GameContextOpenTK(null);
     #else
-        #if XENKO_UI_SDL && !XENKO_UI_WINFORMS && !XENKO_UI_WPF
+        #if STRIDE_UI_SDL && !STRIDE_UI_WINFORMS && !STRIDE_UI_WPF
             return new GameContextSDL(null);
-        #elif (XENKO_UI_WINFORMS || XENKO_UI_WPF)
+        #elif (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
             return new GameContextWinforms(null);
         #else
             return null;
@@ -121,7 +121,7 @@ namespace Xenko.Games
 
         public static GameContext NewGameContextUWPXaml()
         {
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
             return new GameContextUWPXaml(null);
 #else
             return null;
@@ -130,7 +130,7 @@ namespace Xenko.Games
 
         public static GameContext NewGameContextUWPCoreWindow()
         {
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
             return new GameContextUWPCoreWindow(null);
 #else
             return null;
@@ -139,7 +139,7 @@ namespace Xenko.Games
 
         public static GameContext NewGameContextOpenTK()
         {
-#if (XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX) && XENKO_GRAPHICS_API_OPENGL && XENKO_UI_OPENTK
+#if (STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX) && STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
             return new GameContextOpenTK(null);
 #else
             return null;
@@ -148,7 +148,7 @@ namespace Xenko.Games
 
         public static GameContext NewGameContextSDL()
         {
-#if XENKO_UI_SDL
+#if STRIDE_UI_SDL
             return new GameContextSDL(null);
 #else
             return null;

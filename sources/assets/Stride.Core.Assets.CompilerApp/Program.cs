@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.IO;
 
-namespace Xenko.Core.Assets.CompilerApp
+namespace Stride.Core.Assets.CompilerApp
 {
     class Program
     {
@@ -13,10 +13,10 @@ namespace Xenko.Core.Assets.CompilerApp
             try
             {
                 // Running first time? If yes, create nuget redirect package.
-                //var packageVersion = new PackageVersion(XenkoVersion.NuGetVersion);
+                //var packageVersion = new PackageVersion(StrideVersion.NuGetVersion);
                 //if (PackageStore.Instance.IsDevelopmentStore)
                 //{
-                //    PackageStore.Instance.CheckDeveloperTargetRedirects("Xenko", packageVersion, PackageStore.Instance.InstallationPath).Wait();
+                //    PackageStore.Instance.CheckDeveloperTargetRedirects("Stride", packageVersion, PackageStore.Instance.InstallationPath).Wait();
                 //}
 
                 var packageBuilder = new PackageBuilderApp();

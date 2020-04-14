@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single class
 #pragma warning disable SA1649 // File name must match first type name
@@ -7,11 +7,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using Xenko.Core.Annotations;
-using Xenko.Core.Reflection;
-using Xenko.Core.Storage;
+using Stride.Core.Annotations;
+using Stride.Core.Reflection;
+using Stride.Core.Storage;
 
-namespace Xenko.Core.Serialization
+namespace Stride.Core.Serialization
 {
     /// <summary>
     /// An entry to a serialized object.

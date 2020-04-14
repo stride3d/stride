@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #include "Stdafx.h"
 
 
 using namespace System;
-using namespace Xenko::Animations;
-using namespace Xenko::Core::Diagnostics;
-using namespace Xenko::Core::Mathematics;
+using namespace Stride::Animations;
+using namespace Stride::Core::Diagnostics;
+using namespace Stride::Core::Mathematics;
 
 // Assimp types convertion
 String^ aiStringToString(aiString str);

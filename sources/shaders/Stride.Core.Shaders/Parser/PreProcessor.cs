@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.IO;
@@ -6,9 +6,9 @@ using System.Text;
 
 using CppNet;
 
-using Xenko.Core.Shaders.Parser;
+using Stride.Core.Shaders.Parser;
 
-namespace Xenko.Core.Shaders
+namespace Stride.Core.Shaders
 {
     /// <summary>
     /// C++ preprocessor using D3DPreprocess method from d3dcompiler API.

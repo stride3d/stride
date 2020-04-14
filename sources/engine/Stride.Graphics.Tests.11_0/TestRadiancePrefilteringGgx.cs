@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 using Xunit;
 
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Rendering;
-using Xenko.Rendering.ComputeEffect.GGXPrefiltering;
-using Xenko.Games;
-using Xenko.Input;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Rendering;
+using Stride.Rendering.ComputeEffect.GGXPrefiltering;
+using Stride.Games;
+using Stride.Input;
 
-namespace Xenko.Graphics.Tests
+namespace Stride.Graphics.Tests
 {
     public class TestRadiancePrefilteringGgx : GraphicTestGameBase
     {

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1405 // Debug.Assert must provide message text
 #pragma warning disable SA1402 // File may only contain a single class
@@ -7,10 +7,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core.Collections;
-using Xenko.Core.Diagnostics;
+using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
 
-namespace Xenko.Core.MicroThreading
+namespace Stride.Core.MicroThreading
 {
     /// <summary>
     /// Represents an execution context managed by a <see cref="Scheduler"/>, that can cooperatively yield execution to another <see cref="MicroThread"/> at any point (usually using async calls).

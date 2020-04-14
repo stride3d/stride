@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Collections;
-using Xenko.Graphics;
-using Xenko.Shaders;
+using Stride.Core.Collections;
+using Stride.Graphics;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Compositing
+namespace Stride.Rendering.Compositing
 {
     /// <summary>
     /// Represents how we setup the graphics pipeline output targets.
@@ -83,7 +83,7 @@ namespace Xenko.Rendering.Compositing
 
                 // Recalculate shader sources
                 ShaderSource = new ShaderMixinSource();
-                ShaderSource.Macros.Add(new ShaderMacro("XENKO_RENDER_TARGET_COUNT", renderTargets.Count));
+                ShaderSource.Macros.Add(new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", renderTargets.Count));
                 for (var index = 0; index < renderTargets.Count; index++)
                 {
                     var renderTarget = renderTargets[index];
@@ -91,7 +91,7 @@ namespace Xenko.Rendering.Compositing
                         ShaderSource.Compositions.Add($"ShadingColor{index}", renderTarget.Semantic.ShaderClass);
                 }
 
-                ShaderSource.Macros.Add(new ShaderMacro("XENKO_MULTISAMPLE_COUNT", (int)multisampleCount));
+                ShaderSource.Macros.Add(new ShaderMacro("STRIDE_MULTISAMPLE_COUNT", (int)multisampleCount));
             }
 
             renderStage.Output.RenderTargetCount = renderTargets.Count;
@@ -120,7 +120,7 @@ namespace Xenko.Rendering.Compositing
             {
                 // Recalculate shader sources
                 ShaderSource = new ShaderMixinSource();
-                ShaderSource.Macros.Add(new ShaderMacro("XENKO_MULTISAMPLE_COUNT", (int)multisampleCount));
+                ShaderSource.Macros.Add(new ShaderMacro("STRIDE_MULTISAMPLE_COUNT", (int)multisampleCount));
             }
 
             renderStage.Output = renderOutput;

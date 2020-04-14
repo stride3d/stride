@@ -7,7 +7,7 @@ ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
 RootAssets:
-    - 0a657835-0b2f-4ba6-9f52-01b3dceb3737:XenkoBackground
+    - 0a657835-0b2f-4ba6-9f52-01b3dceb3737:StrideBackground
     - 0e365de8-6419-4896-a380-aa41f9205026:MaterialTests/Features/MaterialTransparentBlend
     - 12fde36c-d5d6-4ead-b472-5d088d319b8c:BasicMaterial
     - 23c3cc2d-8606-4e10-af0b-bae57ced94a1:LightShaftsGraphicsCompositor

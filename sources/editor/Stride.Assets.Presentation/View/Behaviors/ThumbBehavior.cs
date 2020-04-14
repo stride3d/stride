@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using Microsoft.Xaml.Behaviors;
-using Xenko.Assets.Presentation.ViewModel;
+using Stride.Assets.Presentation.ViewModel;
 
-namespace Xenko.Assets.Presentation.View.Behaviors
+namespace Stride.Assets.Presentation.View.Behaviors
 {
     public class ThumbBehavior : Behavior<Thumb>
     {

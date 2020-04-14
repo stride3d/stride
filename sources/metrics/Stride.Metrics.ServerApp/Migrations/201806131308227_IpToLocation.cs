@@ -1,4 +1,4 @@
-namespace Xenko.Metrics.ServerApp.Migrations
+namespace Stride.Metrics.ServerApp.Migrations
 {
     using System;
     using System.Data.Entity.Migrations;

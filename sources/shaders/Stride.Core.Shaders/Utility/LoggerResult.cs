@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Xenko.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast;
 
-namespace Xenko.Core.Shaders.Utility
+namespace Stride.Core.Shaders.Utility
 {
     /// <summary>
     /// A class to collect parsing/expression messages.

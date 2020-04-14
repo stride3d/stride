@@ -1,20 +1,20 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:xk="http://schemas.xenko.com/xaml/presentation"
-    xmlns:views="clr-namespace:Xenko.Assets.Presentation.Preview.Views"
-    xmlns:valueConverters="clr-namespace:Xenko.Core.Assets.Editor.View.ValueConverters;assembly=Xenko.Core.Assets.Editor"
+    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+    xmlns:views="clr-namespace:Stride.Assets.Presentation.Preview.Views"
+    xmlns:valueConverters="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters;assembly=Stride.Core.Assets.Editor"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:behaviors="clr-namespace:Xenko.Assets.Presentation.View.Behaviors"
+    xmlns:behaviors="clr-namespace:Stride.Assets.Presentation.View.Behaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModel="clr-namespace:Xenko.Assets.Presentation.ViewModel.Preview"
-    xmlns:preview="clr-namespace:Xenko.Assets.Presentation.Preview"
+    xmlns:viewModel="clr-namespace:Stride.Assets.Presentation.ViewModel.Preview"
+    xmlns:preview="clr-namespace:Stride.Assets.Presentation.Preview"
     mc:Ignorable="d">
   <ResourceDictionary.MergedDictionaries>
-    <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/CommonResources.xaml"/>
-    <ResourceDictionary Source="/Xenko.Assets.Presentation;component/View/ImageDictionary.xaml"/>
-    <ResourceDictionary Source="/Xenko.Assets.Presentation;component/AssetEditors/VisualScriptEditor/Views/GraphTemplates.xaml"/>
+    <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml"/>
+    <ResourceDictionary Source="/Stride.Assets.Presentation;component/View/ImageDictionary.xaml"/>
+    <ResourceDictionary Source="/Stride.Assets.Presentation;component/AssetEditors/VisualScriptEditor/Views/GraphTemplates.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
   <Style TargetType="{x:Type views:AnimationPreviewView}">
@@ -25,10 +25,10 @@
             <Border DockPanel.Dock="Top" Background="{StaticResource NormalBrush}" x:Name="ToolBar">
               <StackPanel Margin="4" Orientation="Horizontal">
                 <Border Width="1" Margin="6,2,6,2" Background="{StaticResource NormalBorderBrush}"/>
-                <Button Command="{Binding PlayCommand}" Background="Transparent" ToolTip="{xk:Localize Play the animation, Context=ToolTip}">
+                <Button Command="{Binding PlayCommand}" Background="Transparent" ToolTip="{sd:Localize Play the animation, Context=ToolTip}">
                   <Image Source="{StaticResource ImagePlay}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
                 </Button>
-                <Button Command="{Binding PauseCommand}" Background="Transparent" ToolTip="{xk:Localize Pause the animation, Context=ToolTip}">
+                <Button Command="{Binding PauseCommand}" Background="Transparent" ToolTip="{sd:Localize Pause the animation, Context=ToolTip}">
                   <Image Source="{StaticResource ImagePause}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
                 </Button>
 
@@ -40,31 +40,31 @@
                 </TextBlock>
 
                 <Border Width="1" Margin="6,2,6,2" Background="{StaticResource NormalBorderBrush}"/>
-                <TextBlock DockPanel.Dock="Left" Text="{xk:Localize Time scale:}" VerticalAlignment="Center" Margin="4,0"/>
-                <xk:NumericTextBox Value="{Binding TimeScale}" SmallChange="0.1" LargeChange="1.0" Width="40"  DecimalPlaces="3" Minimum="0.0"/>
+                <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Time scale:}" VerticalAlignment="Center" Margin="4,0"/>
+                <sd:NumericTextBox Value="{Binding TimeScale}" SmallChange="0.1" LargeChange="1.0" Width="40"  DecimalPlaces="3" Minimum="0.0"/>
               </StackPanel>
             </Border>
             <Border DockPanel.Dock="Bottom">
-              <StackPanel Margin="10,5" Visibility="{Binding IsValid, Converter={xk:VisibleOrHidden}}">
-                <xk:ScaleBar VerticalAlignment="Top" Height="25" UnitsPerTick="1" StartUnit="0" Margin="5,0"
+              <StackPanel Margin="10,5" Visibility="{Binding IsValid, Converter={sd:VisibleOrHidden}}">
+                <sd:ScaleBar VerticalAlignment="Top" Height="25" UnitsPerTick="1" StartUnit="0" Margin="5,0"
                                IsZoomingOnMouseWheel="False" IsDraggingOnLeftMouseButton="False" ClipToBounds="False">
-                  <xk:ScaleBar.UnitSystem>
-                    <xk:UnitSystem Symbol="s"/>
-                  </xk:ScaleBar.UnitSystem>
+                  <sd:ScaleBar.UnitSystem>
+                    <sd:UnitSystem Symbol="s"/>
+                  </sd:ScaleBar.UnitSystem>
                   <i:Interaction.Behaviors>
                     <views:ScaleFromSliderBehavior Slider="{Binding ElementName=Slider}"/>
                   </i:Interaction.Behaviors>
-                </xk:ScaleBar>
+                </sd:ScaleBar>
                 <Slider Minimum="0" Maximum="{Binding Duration}" TickFrequency="0.0333" TickPlacement="BottomRight"
                         x:Name="Slider" Value="{Binding CurrentTime}" IsMoveToPointEnabled="True" Height="16">
                   <i:Interaction.Behaviors>
-                    <xk:SliderDragFromTrackBehavior/>
+                    <sd:SliderDragFromTrackBehavior/>
                     <behaviors:SuspendAnimationDuringSliderDragBehavior AnimatedPreviewViewModel="{Binding}"/>
                   </i:Interaction.Behaviors>
                 </Slider>
               </StackPanel>
             </Border>
-            <ContentPresenter x:Name="PART_XenkoView"/>
+            <ContentPresenter x:Name="PART_StrideView"/>
           </DockPanel>
         </ControlTemplate>
       </Setter.Value>
@@ -78,7 +78,7 @@
           <DockPanel d:DataContext="{d:DesignInstance viewModel:MaterialPreviewViewModel}">
             <Border DockPanel.Dock="Top" Background="{StaticResource NormalBrush}">
               <ListBox Margin="0" SelectedItem="{Binding SelectedPrimitive}" Padding="2" Background="Transparent" BorderThickness="0"
-                       ItemsSource="{Binding PrimitiveTypes, Converter={xk:EnumValues}}" Focusable="False"
+                       ItemsSource="{Binding PrimitiveTypes, Converter={sd:EnumValues}}" Focusable="False"
                        ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
@@ -100,7 +100,7 @@
                 </ItemsControl.ItemsPanel>
               </ListBox>
             </Border>
-            <ContentPresenter x:Name="PART_XenkoView"/>
+            <ContentPresenter x:Name="PART_StrideView"/>
           </DockPanel>
         </ControlTemplate>
       </Setter.Value>
@@ -114,12 +114,12 @@
           <DockPanel d:DataContext="{d:DesignInstance viewModel:ModelPreviewViewModel}">
             <Border DockPanel.Dock="Top" Background="{StaticResource NormalBrush}">
               <StackPanel Orientation="Horizontal"  Margin="6">
-                <Button Command="{Binding ResetModelCommand}" Background="Transparent" ToolTip="{xk:Localize Reset the camera, Context=ToolTip}">
+                <Button Command="{Binding ResetModelCommand}" Background="Transparent" ToolTip="{sd:Localize Reset the camera, Context=ToolTip}">
                   <Image Source="{StaticResource ImageResetCamera}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
                 </Button>
               </StackPanel>
             </Border>
-            <ContentPresenter x:Name="PART_XenkoView"/>
+            <ContentPresenter x:Name="PART_StrideView"/>
           </DockPanel>
         </ControlTemplate>
       </Setter.Value>
@@ -133,7 +133,7 @@
           <DockPanel d:DataContext="{d:DesignInstance viewModel:SkyboxPreviewViewModel}">
             <Border DockPanel.Dock="Top" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Vertical"  Margin="6" HorizontalAlignment="Stretch">
-                <Button Command="{Binding ResetModelCommand}" Background="Transparent" ToolTip="{xk:Localize Reset the camera, Context=ToolTip}" HorizontalAlignment="Left">
+                <Button Command="{Binding ResetModelCommand}" Background="Transparent" ToolTip="{sd:Localize Reset the camera, Context=ToolTip}" HorizontalAlignment="Left">
                   <Image Source="{StaticResource ImageResetCamera}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
                 </Button>
                 <Grid HorizontalAlignment="Stretch">
@@ -156,7 +156,7 @@
                 </Grid>
               </StackPanel>
             </Border>
-            <ContentPresenter x:Name="PART_XenkoView"/>
+            <ContentPresenter x:Name="PART_StrideView"/>
           </DockPanel>
         </ControlTemplate>
       </Setter.Value>
@@ -172,7 +172,7 @@
               <StackPanel Orientation="Horizontal"  Margin="6">
               </StackPanel>
             </Border>
-            <ContentPresenter x:Name="PART_XenkoView"/>
+            <ContentPresenter x:Name="PART_StrideView"/>
           </DockPanel>
         </ControlTemplate>
       </Setter.Value>
@@ -184,7 +184,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type views:ScenePreviewView}">
           <DockPanel Background="{StaticResource NormalBrush}">
-            <TextBlock Text="{xk:Localize Scenes can\'t be previewed. To see the scene\, open it in the scene editor.}"
+            <TextBlock Text="{sd:Localize Scenes can\'t be previewed. To see the scene\, open it in the scene editor.}"
                        VerticalAlignment="Center" HorizontalAlignment="Center"/>
           </DockPanel>
         </ControlTemplate>
@@ -197,18 +197,18 @@
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type views:SoundPreviewView}">
           <DockPanel Background="{StaticResource NormalBrush}" d:DataContext="{d:DesignInstance viewModel:SoundPreviewViewModel}">
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Visibility="{Binding IsAudioValid, Converter={xk:VisibleOrCollapsed}}">
-              <Button Command="{Binding PlayCommand}" Background="Transparent" ToolTip="{xk:Localize Play the sound, Context=ToolTip}">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Visibility="{Binding IsAudioValid, Converter={sd:VisibleOrCollapsed}}">
+              <Button Command="{Binding PlayCommand}" Background="Transparent" ToolTip="{sd:Localize Play the sound, Context=ToolTip}">
                 <Image Source="{StaticResource ImagePlay}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
               </Button>
-              <Button Command="{Binding PauseCommand}" Background="Transparent" ToolTip="{xk:Localize Pause the sound, Context=ToolTip}">
+              <Button Command="{Binding PauseCommand}" Background="Transparent" ToolTip="{sd:Localize Pause the sound, Context=ToolTip}">
                 <Image Source="{StaticResource ImagePause}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
               </Button>
               <Slider Height="8" Margin="5" Minimum="0" Maximum="1" Value="{Binding MasterVolume}" Width="60" IsMoveToPointEnabled="True"/>
             </StackPanel>
             <Border VerticalAlignment="Center">
               <StackPanel>
-                <Slider Height="20" Margin="15,5" Minimum="0" Maximum="{Binding Duration.TotalSeconds, Mode=OneWay}" Value="{Binding CurrentValue}" IsMoveToPointEnabled="True" Visibility="{Binding IsAudioValid, Converter={xk:VisibleOrCollapsed}}">
+                <Slider Height="20" Margin="15,5" Minimum="0" Maximum="{Binding Duration.TotalSeconds, Mode=OneWay}" Value="{Binding CurrentValue}" IsMoveToPointEnabled="True" Visibility="{Binding IsAudioValid, Converter={sd:VisibleOrCollapsed}}">
                   <Slider.Template>
                     <ControlTemplate TargetType="{x:Type Slider}">
                       <Grid x:Name="GridRoot" Focusable="False" MinHeight="{TemplateBinding MinHeight}">
@@ -234,10 +234,10 @@
                     </ControlTemplate>
                   </Slider.Template>
                 </Slider>
-                <TextBlock HorizontalAlignment="Center" Visibility="{Binding IsAudioValid, Converter={xk:VisibleOrCollapsed}}">
+                <TextBlock HorizontalAlignment="Center" Visibility="{Binding IsAudioValid, Converter={sd:VisibleOrCollapsed}}">
                   <Run Text="{Binding CurrentTime, StringFormat={}{0:mm\\:ss\\:fff}, Mode=OneWay}"/>/<Run Text="{Binding Duration, StringFormat={}{0:mm\\:ss\\:fff}, Mode=OneWay}"/>
                 </TextBlock>
-                <TextBlock Text="{xk:Localize Building preview sound asset...}" HorizontalAlignment="Center" Visibility="{Binding IsAudioValid, Converter={xk:Chained {xk:InvertBool}, {xk:VisibleOrCollapsed}}}"/>
+                <TextBlock Text="{sd:Localize Building preview sound asset...}" HorizontalAlignment="Center" Visibility="{Binding IsAudioValid, Converter={sd:Chained {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
               </StackPanel>
             </Border>
           </DockPanel>
@@ -267,30 +267,30 @@
                   <Image Source="{StaticResource ImageFitOnScreen}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
                 </Button>
                 <Border Width="1" Margin="6,2,6,2" Background="{StaticResource NormalBorderBrush}"/>
-                <ComboBox Width="120" ItemsSource="{Binding Source={x:Type preview:SpriteSheetDisplayMode}, Converter={xk:EnumValues}}" SelectedItem="{Binding DisplayMode}">
+                <ComboBox Width="120" ItemsSource="{Binding Source={x:Type preview:SpriteSheetDisplayMode}, Converter={sd:EnumValues}}" SelectedItem="{Binding DisplayMode}">
                   <ComboBox.ItemTemplate>
                     <DataTemplate>
-                      <TextBlock Text="{Binding Converter={xk:EnumToDisplayName}}"/>
+                      <TextBlock Text="{Binding Converter={sd:EnumToDisplayName}}"/>
                     </DataTemplate>
                   </ComboBox.ItemTemplate>
                 </ComboBox>
                 <Border Width="1" Margin="6,2,6,2" Background="{StaticResource NormalBorderBrush}"/>
-                <Button Command="{Binding PreviewPreviousFrameCommand}" Background="Transparent" ToolTip="{xk:Localize Previous sprite, Context=ToolTip}" Content="&lt;" Padding="4,0"/>
+                <Button Command="{Binding PreviewPreviousFrameCommand}" Background="Transparent" ToolTip="{sd:Localize Previous sprite, Context=ToolTip}" Content="&lt;" Padding="4,0"/>
                 <TextBlock VerticalAlignment="Center" Margin="4">
-                  <Run Text="{xk:Localize Sprite:}"/>
+                  <Run Text="{sd:Localize Sprite:}"/>
                   <Run Text="{Binding PreviewCurrentFrame, Mode=OneWay}"/>/<Run Text="{Binding PreviewFrameCount, Mode=OneWay}"/>
                 </TextBlock>
-                <Button Command="{Binding PreviewNextFrameCommand}" Background="Transparent" ToolTip="{xk:Localize Next sprite,  Context=ToolTip}" Content="&gt;" Padding="4,0"/>
+                <Button Command="{Binding PreviewNextFrameCommand}" Background="Transparent" ToolTip="{sd:Localize Next sprite,  Context=ToolTip}" Content="&gt;" Padding="4,0"/>
               </StackPanel>
             </DockPanel>
             <Border DockPanel.Dock="Bottom">
               <Slider Height="16" Margin="5" Minimum="1" Maximum="{Binding PreviewFrameCount, Mode=OneWay}" TickFrequency="1" TickPlacement="BottomRight" Value="{Binding PreviewCurrentFrame}" IsMoveToPointEnabled="True">
                 <i:Interaction.Behaviors>
-                  <xk:SliderDragFromTrackBehavior/>
+                  <sd:SliderDragFromTrackBehavior/>
                 </i:Interaction.Behaviors>
               </Slider>
             </Border>
-            <ContentPresenter x:Name="PART_XenkoView"/>
+            <ContentPresenter x:Name="PART_StrideView"/>
           </DockPanel>
         </ControlTemplate>
       </Setter.Value>
@@ -308,13 +308,13 @@
                   <ColumnDefinition Width="*" />
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <xk:TextBox UseTimedValidation="True" Text="{Binding PreviewString}" MaxHeight="32" WatermarkContent="{xk:Localize Preview text}" AcceptsReturn="True"/>
+                <sd:TextBox UseTimedValidation="True" Text="{Binding PreviewString}" MaxHeight="32" WatermarkContent="{sd:Localize Preview text}" AcceptsReturn="True"/>
                 <Button Grid.Column="1" Command="{Binding ClearTextCommand}" Background="Transparent">
                   <Image Source="{StaticResource ImageClear}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
                 </Button>
               </Grid>
             </Border>
-            <ContentPresenter x:Name="PART_XenkoView"/>
+            <ContentPresenter x:Name="PART_StrideView"/>
           </DockPanel>
         </ControlTemplate>
       </Setter.Value>
@@ -347,19 +347,19 @@
                   <Border Width="1" Margin="6,2,6,2" Background="{StaticResource NormalBorderBrush}"/>
                   <ComboBox ItemsSource="{Binding PreviewAvailableMipMaps}" MinWidth="100" SelectedItem="{Binding PreviewSelectedMipMap}" Margin="2"/>
                   <ComboBox x:Name="TextureCubeMode" MinWidth="100" SelectedItem="{Binding SelectedCubePreviewMode}" Margin="2" Visibility="Collapsed"
-                            ItemsSource="{Binding Source={x:Type preview:TextureCubePreviewMode}, Converter={xk:EnumValues}}"/>
+                            ItemsSource="{Binding Source={x:Type preview:TextureCubePreviewMode}, Converter={sd:EnumValues}}"/>
                 </StackPanel>
                 <DockPanel x:Name="Texture3DPanel" Visibility="Collapsed">
-                  <Button DockPanel.Dock="Left" Padding="4,0" Command="{Binding PreviewPreviousDepthCommand}" Background="Transparent" ToolTip="{xk:Localize Previous slice, Context=ToolTip}" Content="&lt;"/>
+                  <Button DockPanel.Dock="Left" Padding="4,0" Command="{Binding PreviewPreviousDepthCommand}" Background="Transparent" ToolTip="{sd:Localize Previous slice, Context=ToolTip}" Content="&lt;"/>
                   <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Margin="4" TextAlignment="Center" Width="60">
                     <Run Text="{Binding SelectedDepth, Mode=OneWay, StringFormat={}{0:0.##}}"/>/<Run Text="{Binding PreviewTextureDepth, Mode=OneWay}"/>
                   </TextBlock>
-                  <Button DockPanel.Dock="Right" Padding="4,0" Command="{Binding PreviewNextDepthCommand}" Background="Transparent" ToolTip="{xk:Localize Next slice, Context=ToolTip}" Content="&gt;"/>
+                  <Button DockPanel.Dock="Right" Padding="4,0" Command="{Binding PreviewNextDepthCommand}" Background="Transparent" ToolTip="{sd:Localize Next slice, Context=ToolTip}" Content="&gt;"/>
                   <Slider Height="16" Minimum="0" Maximum="{Binding PreviewTextureDepth, Mode=OneWay}" Value="{Binding SelectedDepth}" SmallChange="1" LargeChange="5"/>
                 </DockPanel>
               </DockPanel>
             </Grid>
-            <StatusBar DockPanel.Dock="Bottom" Visibility="{Binding Session, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}">
+            <StatusBar DockPanel.Dock="Bottom" Visibility="{Binding Session, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
               <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                   <Grid>
@@ -377,13 +377,13 @@
               <Separator Grid.Column="1"/>
               <StatusBarItem Grid.Column="2">
                 <StackPanel Orientation="Horizontal">
-                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewTextureWidth, StringFormat={xk:Localize W: {0}}}"/>
-                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewTextureHeight, StringFormat={xk:Localize H: {0}}}"/>
+                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewTextureWidth, StringFormat={sd:Localize W: {0}}}"/>
+                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewTextureHeight, StringFormat={sd:Localize H: {0}}}"/>
                 </StackPanel>
               </StatusBarItem>
             </StatusBar>
 
-            <ContentPresenter x:Name="PART_XenkoView"/>
+            <ContentPresenter x:Name="PART_StrideView"/>
           </DockPanel>
           <ControlTemplate.Triggers>
             <DataTrigger Binding="{Binding PreviewDimension}" Value="TextureCube">
@@ -424,7 +424,7 @@
                 </StackPanel>
               </DockPanel>
             </Grid>
-            <StatusBar DockPanel.Dock="Bottom" Visibility="{Binding Session, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}">
+            <StatusBar DockPanel.Dock="Bottom" Visibility="{Binding Session, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
               <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                   <Grid>
@@ -442,13 +442,13 @@
               <Separator Grid.Column="1"/>
               <StatusBarItem Grid.Column="2">
                 <StackPanel Orientation="Horizontal">
-                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewHeightmapWidth, StringFormat={xk:Localize W: {0}}}"/>
-                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewHeightmapLength, StringFormat={xk:Localize L: {0}}}"/>
+                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewHeightmapWidth, StringFormat={sd:Localize W: {0}}}"/>
+                  <TextBlock Margin="5" VerticalAlignment="Center" Text="{Binding PreviewHeightmapLength, StringFormat={sd:Localize L: {0}}}"/>
                 </StackPanel>
               </StatusBarItem>
             </StatusBar>
 
-            <ContentPresenter x:Name="PART_XenkoView"/>
+            <ContentPresenter x:Name="PART_StrideView"/>
           </DockPanel>
         </ControlTemplate>
       </Setter.Value>

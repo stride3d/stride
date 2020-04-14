@@ -6,6 +6,6 @@ AssetFolders:
 ResourceFolders:
     - !dir AssetPackage/Resources
 RootAssets:
-    - c90f3988-0544-4cbe-993f-13af7d9c23c6:XenkoDefaultFont
-    - d26edb11-10bd-403c-b3c2-9c7fcccf25e5:XenkoDefaultSplashScreen
-    - FF02239B-3697-4EBB-9F37-FE880659E64B:XenkoDebugSpriteFont
+    - c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
+    - d26edb11-10bd-403c-b3c2-9c7fcccf25e5:StrideDefaultSplashScreen
+    - FF02239B-3697-4EBB-9F37-FE880659E64B:StrideDebugSpriteFont

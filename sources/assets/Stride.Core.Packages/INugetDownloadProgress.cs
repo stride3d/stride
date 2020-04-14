@@ -1,4 +1,4 @@
-namespace Xenko.Core.Packages
+namespace Stride.Core.Packages
 {
     interface INugetDownloadProgress
     {

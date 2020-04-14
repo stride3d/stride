@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single type
 
 using System;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Reflection;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Reflection;
 
-namespace Xenko.Navigation
+namespace Stride.Navigation
 {
     /// <summary>
     /// A group that is used to distinguish between different agent types with it's <see cref="Id"/> used at run-time to acquire the navigation mesh for a group

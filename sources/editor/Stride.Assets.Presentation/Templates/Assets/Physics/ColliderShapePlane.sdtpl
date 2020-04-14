@@ -5,6 +5,6 @@ Name: Infinite plane
 Scope: Asset
 Description: A collider covering an infinite plane
 Group: Physics
-Icon: ..\.xktpl\ColliderPlane.png
+Icon: ..\.sdtpl\ColliderPlane.png
 DefaultOutputName: ColliderPlane
 FactoryTypeName: ColliderShapePlaneFactory

@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Navigation;
-using Xenko.Particles.Components;
-using Xenko.Rendering;
-using Xenko.SpriteStudio.Runtime;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Navigation;
+using Stride.Particles.Components;
+using Stride.Rendering;
+using Stride.SpriteStudio.Runtime;
 
-namespace Xenko.Editor.Engine
+namespace Stride.Editor.Engine
 {
     public static class EntityExtensions
     {

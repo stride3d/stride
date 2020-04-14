@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -8,19 +8,19 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Presentation.Services;
-using Xenko.Assets.Templates;
-using Xenko.Graphics;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
+using Stride.Core.Assets.Templates;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Presentation.Services;
+using Stride.Assets.Templates;
+using Stride.Graphics;
 
-namespace Xenko.Assets.Presentation.Templates
+namespace Stride.Assets.Presentation.Templates
 {
     public class TemplateSampleGenerator : SessionTemplateGenerator
     {
@@ -166,10 +166,10 @@ namespace Xenko.Assets.Presentation.Templates
                 var outputProject = (SolutionProject)Package.LoadProject(log, projectOutputFile);
                 var msbuildProject = VSProjectHelper.LoadProject(outputProject.FullPath, platform: "NoPlatform");
 
-                // If requested, add reference to Xenko.Games.Testing
+                // If requested, add reference to Stride.Games.Testing
                 if (parameters.TryGetTag(AddGamesTestingKey))
                 {
-                    var items = msbuildProject.AddItem("PackageReference", "Xenko.Games.Testing", new[] { new KeyValuePair<string, string>("Version", XenkoVersion.NuGetVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") });
+                    var items = msbuildProject.AddItem("PackageReference", "Stride.Games.Testing", new[] { new KeyValuePair<string, string>("Version", StrideVersion.NuGetVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") });
                     foreach (var item in items)
                     {
                         foreach (var metadata in item.Metadata)

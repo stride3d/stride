@@ -6,7 +6,7 @@ Scope: Asset
 Description: A mono spatialized sound imported from a source file, played from memory for use with sound emitters
 Group: Media
 Order: 0
-Icon: ..\.xktpl\SoundEffect.png
+Icon: ..\.sdtpl\SoundEffect.png
 DefaultOutputName: SpatializedSound
 ImportSource: true
 FactoryTypeName: SpatializedSoundFactory

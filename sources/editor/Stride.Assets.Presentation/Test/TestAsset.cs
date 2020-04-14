@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if DEBUG
 using System;
 using System.ComponentModel;
 
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 using System.Collections.Generic;
 
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Rendering;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Rendering;
 
-namespace Xenko.Assets.Presentation.Test
+namespace Stride.Assets.Presentation.Test
 {
     public enum TestEnum
     {
@@ -119,7 +119,7 @@ namespace Xenko.Assets.Presentation.Test
     [CategoryOrder(6, "Categories")]
     public sealed class TestAsset : Asset
     {
-        public const string FileExtension = ".xktest";
+        public const string FileExtension = ".sdtest";
 
         [DataMember(10)]
         [Display("String", "Primitive types")]

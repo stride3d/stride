@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -6,26 +6,26 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Xenko.Audio;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Storage;
-using Xenko.Engine.Design;
-using Xenko.Engine.Processors;
-using Xenko.Games;
-using Xenko.Graphics;
-using Xenko.Graphics.Font;
-using Xenko.Input;
-using Xenko.Profiling;
-using Xenko.Rendering;
-using Xenko.Rendering.Fonts;
-using Xenko.Rendering.Sprites;
-using Xenko.Shaders.Compiler;
-using Xenko.Streaming;
-using Xenko.VirtualReality;
+using Stride.Audio;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Core.Storage;
+using Stride.Engine.Design;
+using Stride.Engine.Processors;
+using Stride.Games;
+using Stride.Graphics;
+using Stride.Graphics.Font;
+using Stride.Input;
+using Stride.Profiling;
+using Stride.Rendering;
+using Stride.Rendering.Fonts;
+using Stride.Rendering.Sprites;
+using Stride.Shaders.Compiler;
+using Stride.Streaming;
+using Stride.VirtualReality;
 
-namespace Xenko.Engine
+namespace Stride.Engine
 {
     /// <summary>
     /// Main Game class system.
@@ -427,7 +427,7 @@ namespace Xenko.Engine
 
         protected override void EndDraw(bool present)
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             // Allow to make a screenshot using CTRL+c+F12 (on release of F12)
             if (Input.HasKeyboard)
             {

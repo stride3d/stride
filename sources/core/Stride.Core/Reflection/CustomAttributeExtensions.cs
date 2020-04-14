@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Reflection
+namespace Stride.Core.Reflection
 {
     public static class CustomAttributeExtensions
     {
@@ -17,7 +17,7 @@ namespace Xenko.Core.Reflection
 
         public static Attribute GetCustomAttributeEx([NotNull] this Assembly assembly, [NotNull] Type attributeType)
         {
-#if XENKO_PLATFORM_MONO_MOBILE
+#if STRIDE_PLATFORM_MONO_MOBILE
             return Attribute.GetCustomAttribute(assembly, attributeType);
 #else
             return assembly.GetCustomAttribute(attributeType);
@@ -26,7 +26,7 @@ namespace Xenko.Core.Reflection
 
         public static IEnumerable<Attribute> GetCustomAttributesEx([NotNull] this Assembly assembly, [NotNull] Type attributeType)
         {
-#if XENKO_PLATFORM_MONO_MOBILE
+#if STRIDE_PLATFORM_MONO_MOBILE
             return Attribute.GetCustomAttributes(assembly, attributeType);
 #else
             return assembly.GetCustomAttributes(attributeType);

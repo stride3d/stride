@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
 
-using Xenko.Core.Mathematics;
-using Xenko.Assets.Materials;
-using Xenko.Assets.Presentation.Preview.Views;
-using Xenko.Editor.Preview;
-using Xenko.Engine;
-using Xenko.Graphics.GeometricPrimitives;
-using Xenko.Rendering.ProceduralModels;
-using Xenko.Rendering;
+using Stride.Core.Mathematics;
+using Stride.Assets.Materials;
+using Stride.Assets.Presentation.Preview.Views;
+using Stride.Editor.Preview;
+using Stride.Engine;
+using Stride.Graphics.GeometricPrimitives;
+using Stride.Rendering.ProceduralModels;
+using Stride.Rendering;
 
-namespace Xenko.Assets.Presentation.Preview
+namespace Stride.Assets.Presentation.Preview
 {
     public enum MaterialPreviewPrimitive
     {
@@ -32,7 +32,7 @@ namespace Xenko.Assets.Presentation.Preview
     [AssetPreview(typeof(MaterialAsset), typeof(MaterialPreviewView))]
     public class MaterialPreview : PreviewFromEntity<MaterialAsset>
     {
-        public const string EditorMaterialPreviewEffect = "XenkoEditorMaterialPreviewEffect";
+        public const string EditorMaterialPreviewEffect = "StrideEditorMaterialPreviewEffect";
 
         private MaterialPreviewPrimitive previewPrimitive;
 

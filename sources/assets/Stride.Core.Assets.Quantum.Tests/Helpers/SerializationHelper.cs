@@ -5,12 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using Xenko.Core.Assets.Tests.Helpers;
-using Xenko.Core.Assets.Yaml;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml;
+using Stride.Core.Assets.Tests.Helpers;
+using Stride.Core.Assets.Yaml;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml;
 
-namespace Xenko.Core.Assets.Quantum.Tests.Helpers
+namespace Stride.Core.Assets.Quantum.Tests.Helpers
 {
     public static class SerializationHelper
     {

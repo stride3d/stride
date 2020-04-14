@@ -47,7 +47,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Manages the state of a <see cref="YamlDocument" /> while it is loading.

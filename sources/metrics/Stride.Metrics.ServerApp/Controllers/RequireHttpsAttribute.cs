@@ -8,7 +8,7 @@ using System.Web;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 
-namespace Xenko.Metrics.ServerApp.Controllers
+namespace Stride.Metrics.ServerApp.Controllers
 {
     /// <summary>
     /// Filter that redirects to HTTPS automatically

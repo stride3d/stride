@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2013, Milosz Krajewski
@@ -26,9 +26,9 @@
 using System;
 using System.IO;
 using System.IO.Compression;
-using Xenko.Core.IO;
+using Stride.Core.IO;
 
-namespace Xenko.Core.LZ4
+namespace Stride.Core.LZ4
 {
 	/// <summary>Block compression stream. Allows to use LZ4 for stream compression.</summary>
     public class LZ4Stream : NativeStream

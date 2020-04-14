@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Editor.Extensions;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Xenko.Assets.Presentation.SceneEditor;
-using Xenko.Editor.EditorGame.Game;
-using Xenko.Engine;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
+using Stride.Core.Assets.Editor.Extensions;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
+using Stride.Assets.Presentation.SceneEditor;
+using Stride.Editor.EditorGame.Game;
+using Stride.Engine;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
+namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
     public class EditorGameModelSelectionService : EditorGameServiceBase
     {
@@ -77,7 +77,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 meshRenderFeature.RenderFeatures.Add(wireframeRenderFeature);
                 wireframeRenderFeature.RegisterSelectionService(selectionService);
 
-                // Enable editor shaders for meshes (will use XenkoEditorForwardShadingEffect instead of XenkoForwardShadingEffect)
+                // Enable editor shaders for meshes (will use StrideEditorForwardShadingEffect instead of StrideForwardShadingEffect)
 				// TODO: Avoid hardcoding those shader names (maybe by letting the user mix himself editor mixin in his own effect?)
                 meshRenderFeature.RenderStageSelectors.Add(new MeshEditorRenderStageSelector());
             }
@@ -119,7 +119,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         }
 
         /// <summary>
-        /// Replaces all XenkoForwardShadingEffect into XenkoEditorForwardShadingEffect
+        /// Replaces all StrideForwardShadingEffect into StrideEditorForwardShadingEffect
         /// </summary>
         private class MeshEditorRenderStageSelector : RenderStageSelector
         {
@@ -130,10 +130,10 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     if (renderObject.ActiveRenderStages[index].Active)
                     {
                         var effectName = renderObject.ActiveRenderStages[index].EffectSelector.EffectName;
-                        if (effectName == "XenkoForwardShadingEffect"
-                            || effectName.StartsWith("XenkoForwardShadingEffect."))
+                        if (effectName == "StrideForwardShadingEffect"
+                            || effectName.StartsWith("StrideForwardShadingEffect."))
                         {
-                            effectName = effectName.Replace("XenkoForwardShadingEffect", "XenkoEditorForwardShadingEffect");
+                            effectName = effectName.Replace("StrideForwardShadingEffect", "StrideEditorForwardShadingEffect");
                             renderObject.ActiveRenderStages[index].EffectSelector = new EffectSelector(effectName);
                         }
                     }

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -9,10 +9,10 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
-using Xenko.Core.Presentation.ValueConverters;
-using Xenko.Assets.Presentation.Extensions;
+using Stride.Core.Presentation.ValueConverters;
+using Stride.Assets.Presentation.Extensions;
 
-namespace Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor.Converters
+namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor.Converters
 {
     public class MethodToDisplayName : OneWayValueConverter<MethodToDisplayName>
     {

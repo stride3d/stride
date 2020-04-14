@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Quantum;
-using Xenko.Assets.Rendering;
-using Xenko.Rendering.Images;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Quantum;
+using Stride.Assets.Rendering;
+using Stride.Rendering.Images;
 
-namespace Xenko.Assets.Presentation.ViewModel
+namespace Stride.Assets.Presentation.ViewModel
 {
     /// <summary>
     /// View model for a <see cref="GraphicsCompositorAsset"/>.

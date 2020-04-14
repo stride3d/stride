@@ -1,6 +1,6 @@
 !SpriteSheet
 Id: 5d7ecea5-50f2-49c1-8fe8-16e67dd65ab0
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: Sprite2D
 ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -21,20 +21,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#if XENKO_GRAPHICS_API_DIRECT3D
+#if STRIDE_GRAPHICS_API_DIRECT3D
 using System;
 using System.Reflection;
 using SharpDX;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
-using Xenko.Core.Collections;
-#if XENKO_GRAPHICS_API_DIRECT3D11
+using Stride.Core.Collections;
+#if STRIDE_GRAPHICS_API_DIRECT3D11
 using BackBufferResourceType = SharpDX.Direct3D11.Texture2D;
-#elif XENKO_GRAPHICS_API_DIRECT3D12
+#elif STRIDE_GRAPHICS_API_DIRECT3D12
 using BackBufferResourceType = SharpDX.Direct3D12.Resource;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// Graphics presenter for SwapChain.
@@ -47,7 +47,7 @@ namespace Xenko.Graphics
 
         private int bufferCount;
 
-#if XENKO_GRAPHICS_API_DIRECT3D12
+#if STRIDE_GRAPHICS_API_DIRECT3D12
         private int bufferSwapIndex;
 #endif
 
@@ -73,7 +73,7 @@ namespace Xenko.Graphics
         {
             get
             {
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
                 return false;
 #else
                 return swapChain.IsFullScreen;
@@ -82,7 +82,7 @@ namespace Xenko.Graphics
 
             set
             {
-#if !XENKO_PLATFORM_UWP
+#if !STRIDE_PLATFORM_UWP
                 if (swapChain == null)
                     return;
 
@@ -152,7 +152,7 @@ namespace Xenko.Graphics
             try
             {
                 swapChain.Present((int)PresentInterval, PresentFlags.None);
-#if XENKO_GRAPHICS_API_DIRECT3D12
+#if STRIDE_GRAPHICS_API_DIRECT3D12
                 // Manually swap back buffer
                 backBuffer.NativeResource.Dispose();
                 backBuffer.InitializeFromImpl(swapChain.GetBackBuffer<BackBufferResourceType>((++bufferSwapIndex) % bufferCount), Description.BackBufferFormat.IsSRgb());
@@ -210,7 +210,7 @@ namespace Xenko.Graphics
             // Manually update all children textures
             var fastList = DestroyChildrenTextures(backBuffer);
 
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
             var swapChainPanel = Description.DeviceWindowHandle.NativeWindow as Windows.UI.Xaml.Controls.SwapChainPanel;
             if (swapChainPanel != null)
             {
@@ -292,14 +292,14 @@ namespace Xenko.Graphics
                 throw new ArgumentException("DeviceWindowHandle cannot be null");
             }
 
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
             return CreateSwapChainForUWP();
 #else
             return CreateSwapChainForWindows();
 #endif
         }
 
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
         private SwapChain CreateSwapChainForUWP()
         {
             bufferCount = 2;
@@ -388,7 +388,7 @@ namespace Xenko.Graphics
         {
             bufferCount = 1;
             var backbufferFormat = Description.BackBufferFormat;
-#if XENKO_GRAPHICS_API_DIRECT3D12
+#if STRIDE_GRAPHICS_API_DIRECT3D12
             // TODO D3D12 (check if this setting make sense on D3D11 too?)
             backbufferFormat = backbufferFormat.ToNonSRgb();
             // TODO D3D12 Can we make it work with something else after?
@@ -400,9 +400,9 @@ namespace Xenko.Graphics
                     BufferCount = bufferCount, // TODO: Do we really need this to be configurable by the user?
                     OutputHandle = handle,
                     SampleDescription = new SampleDescription((int)Description.MultisampleCount, 0),
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
                     SwapEffect = SwapEffect.Discard,
-#elif XENKO_GRAPHICS_API_DIRECT3D12
+#elif STRIDE_GRAPHICS_API_DIRECT3D12
                     SwapEffect = SwapEffect.FlipDiscard,
 #endif
                     Usage = SharpDX.DXGI.Usage.BackBuffer | SharpDX.DXGI.Usage.RenderTargetOutput,
@@ -410,9 +410,9 @@ namespace Xenko.Graphics
                     Flags = Description.IsFullScreen ? SwapChainFlags.AllowModeSwitch : SwapChainFlags.None, 
                 };
 
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
             var newSwapChain = new SwapChain(GraphicsAdapterFactory.NativeFactory, GraphicsDevice.NativeDevice, description);
-#elif XENKO_GRAPHICS_API_DIRECT3D12
+#elif STRIDE_GRAPHICS_API_DIRECT3D12
             var newSwapChain = new SwapChain(GraphicsAdapterFactory.NativeFactory, GraphicsDevice.NativeCommandQueue, description);
 #endif
 

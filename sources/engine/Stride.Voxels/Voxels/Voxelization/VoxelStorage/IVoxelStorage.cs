@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Xenko.Graphics;
-using Xenko.Shaders;
+using Stride.Graphics;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public interface IVoxelStorage
     {
@@ -11,7 +11,7 @@ namespace Xenko.Rendering.Voxels
         void CollectVoxelizationPasses(ProcessedVoxelVolume data, VoxelStorageContext storageContext);
         
         int RequestTempStorage(int count);
-        void UpdateTexture(VoxelStorageContext context, ref IVoxelStorageTexture texture, Xenko.Graphics.PixelFormat pixelFormat, int layoutSize);
+        void UpdateTexture(VoxelStorageContext context, ref IVoxelStorageTexture texture, Stride.Graphics.PixelFormat pixelFormat, int layoutSize);
         void UpdateTempStorage(VoxelStorageContext context);
         void PostProcess(VoxelStorageContext context, RenderDrawContext drawContext, ProcessedVoxelVolume data);
     }

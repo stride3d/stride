@@ -1,6 +1,6 @@
 !SceneAsset
 Id: d18360d9-08c6-41e6-a8f0-dcc78e9a723d
-SerializedVersion: {Xenko: 3.1.0.1}
+SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
 ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -28,7 +28,7 @@ Hierarchy:
                         Children: {}
                     78ed79de0e773e44a0722e3574f9969e: !BackgroundComponent
                         Id: de79ed78-770e-443e-a072-2e3574f9969e
-                        Texture: a92a0e5c-6f9f-4d1d-bff8-38b596819274:XenkoBackground
+                        Texture: a92a0e5c-6f9f-4d1d-bff8-38b596819274:StrideBackground
                         Is2D: true
         -   Entity:
                 Id: 6e94af50-2da1-449e-bd03-f131494af639
@@ -281,7 +281,7 @@ Hierarchy:
                                         SamplerRotation: null
                                     Material: !ParticleCustomMaterial
                                         ComputeColor: !ComputeTextureColor
-                                            Texture: 53d52841-b695-4d71-af85-4f665f0705bc:Textures/XenkoLogoGray
+                                            Texture: 53d52841-b695-4d71-af85-4f665f0705bc:Textures/StrideLogoGray
                                             FallbackValue:
                                                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                             AddressModeU: Clamp

@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Assets.Editor.Extensions;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Assets.Skyboxes;
-using Xenko.Core.Presentation.Quantum;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.Quantum;
+using Stride.Core.Assets.Editor.Extensions;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Assets.Skyboxes;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Quantum;
 
-namespace Xenko.Assets.Presentation.ViewModel
+namespace Stride.Assets.Presentation.ViewModel
 {
     [AssetViewModel(typeof(SkyboxAsset))]
     public class SkyboxViewModel : AssetViewModel<SkyboxAsset>

@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-#	xenko-ios-relay.py - Xenko TCP connection relay for iOS devices to Windows developer host (using usbmuxd)
+#	stride-ios-relay.py - Stride TCP connection relay for iOS devices to Windows developer host (using usbmuxd)
 #
-# Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+# Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 # Copyright (C) 2009	Hector Martin "marcan" <hector@marcansoft.com>
 #
 # This program is free software; you can redistribute it and/or modify

@@ -1,12 +1,12 @@
 ﻿using System;
-using Xenko.Core;
-using Xenko.Rendering;
-using Xenko.Graphics;
-using Xenko.Shaders;
-using Xenko.Core.Mathematics;
-using Buffer = Xenko.Graphics.Buffer;
+using Stride.Core;
+using Stride.Rendering;
+using Stride.Graphics;
+using Stride.Shaders;
+using Stride.Core.Mathematics;
+using Buffer = Stride.Graphics.Buffer;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public static partial class Voxel2x2x2MipmapKeys
     {

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -9,12 +9,12 @@ using System.Text.RegularExpressions;
 namespace Nerdbank.GitVersioning
 {
     /// <summary>
-    /// Read version from .xkpkg, implemented for <see cref="GitExtensions"/>.
+    /// Read version from .sdpkg, implemented for <see cref="GitExtensions"/>.
     /// </summary>
     class VersionFile
     {
         /// <summary>
-        /// Reads version from the given .xkpkg file.
+        /// Reads version from the given .sdpkg file.
         /// </summary>
         /// <param name="packagePath"></param>
         /// <returns></returns>

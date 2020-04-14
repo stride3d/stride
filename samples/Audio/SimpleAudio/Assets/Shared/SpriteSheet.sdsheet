@@ -1,6 +1,6 @@
 !SpriteSheet
 Id: ae297c1f-91b7-45d3-8a13-fe64ddf8f9f2
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: UI
 ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
@@ -21,7 +21,7 @@ Sprites:
         Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
         BorderColor: {R: 0, G: 0, B: 0, A: 0}
     537b4047ed84d84b87f4ceb681ba5872:
-        Source: ../../Resources/XenkoBackground.jpg
+        Source: ../../Resources/StrideBackground.jpg
         Name: background
         TextureRegion: {X: 0, Y: 0, Width: 2048, Height: 2048}
         Center: {X: 0.0, Y: 0.0}

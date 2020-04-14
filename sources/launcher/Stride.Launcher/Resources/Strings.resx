@@ -118,8 +118,8 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AskInstallVersion" xml:space="preserve">
-    <value>It seems you do not have any version of Xenko currently installed. Would you like to install the latest version?</value>
-    <comment>Displayed when there is no installed version of Xenko</comment>
+    <value>It seems you do not have any version of Stride currently installed. Would you like to install the latest version?</value>
+    <comment>Displayed when there is no installed version of Stride</comment>
   </data>
   <data name="AskInstallVSIX" xml:space="preserve">
     <value>Would you like to install the latest version of the Visual Studio integration? This is highly recommended for programmers!</value>
@@ -130,7 +130,7 @@
     <comment>/!\ Text must be short</comment>
   </data>
   <data name="ButtonForums" xml:space="preserve">
-    <value>Discuss about Xenko</value>
+    <value>Discuss about Stride</value>
     <comment>/!\ Text must be short</comment>
   </data>
   <data name="ButtonGithub" xml:space="preserve">
@@ -174,7 +174,7 @@
     <comment>MessageBox text indicating that the installation of the VSIX failed.</comment>
   </data>
   <data name="ErrorOfflineMode" xml:space="preserve">
-    <value>Unable to connect to Xenko server. Switching to offline mode…</value>
+    <value>Unable to connect to Stride server. Switching to offline mode…</value>
     <comment>MessageBox text indicating that the launcher is going to offline mode.</comment>
   </data>
   <data name="ErrorOpeningBrowser" xml:space="preserve">
@@ -219,7 +219,7 @@
   </data>
   <data name="NoVersionInstalled" xml:space="preserve">
     <value>No version currently installed</value>
-    <comment>Displayed when no version of Xenko is currently installed</comment>
+    <comment>Displayed when no version of Stride is currently installed</comment>
   </data>
   <data name="OpenProjectWithVersion" xml:space="preserve">
     <value>Open with {0}</value>
@@ -282,7 +282,7 @@
     <comment>{0}: long version name</comment>
   </data>
   <data name="ToolTipOpenAndUpgradeProject" xml:space="preserve">
-    <value>Open this project with a more recent version of Xenko (the project will be upgraded)</value>
+    <value>Open this project with a more recent version of Stride (the project will be upgraded)</value>
     <comment>The tooltip of the upgrade project button that can appear on any recently used project</comment>
   </data>
   <data name="ToolTipSetActiveVersion" xml:space="preserve">
@@ -290,7 +290,7 @@
     <comment>{0}: long version name</comment>
   </data>
   <data name="ToolTipStartButton" xml:space="preserve">
-    <value>Start Xenko Game Studio {0}</value>
+    <value>Start Stride Game Studio {0}</value>
     <comment>{0}: long version name</comment>
   </data>
   <data name="ToolTipVisualStudioPlugin" xml:space="preserve">
@@ -302,7 +302,7 @@
     <comment>Unknown version</comment>
   </data>
   <data name="VersionButton" xml:space="preserve">
-    <value>Xenko {0}</value>
+    <value>Stride {0}</value>
     <comment>Caption of the version selection button. {0}: short version name</comment>
   </data>
   <data name="VersionButtonUninstalled" xml:space="preserve">
@@ -334,7 +334,7 @@
     <comment>Verb used in a sentence to indicate that the VSIX can be updated.</comment>
   </data>
   <data name="LauncherTitle" xml:space="preserve">
-    <value>Xenko launcher</value>
+    <value>Stride launcher</value>
     <comment>Title of the launcher window</comment>
   </data>
   <data name="NoProjectCreated" xml:space="preserve">
@@ -358,11 +358,11 @@
     <comment>Title of the self-update window</comment>
   </data>
   <data name="AskSurvey" xml:space="preserve">
-    <value>Help us improve Xenko! We are making an online survey that takes about 5 minutes to complete. Would you like to answer it?</value>
+    <value>Help us improve Stride! We are making an online survey that takes about 5 minutes to complete. Would you like to answer it?</value>
     <comment>Displayed at startup one time</comment>
   </data>
   <data name="AutoCloseLauncher" xml:space="preserve">
-    <value>Close the launcher after starting Xenko</value>
+    <value>Close the launcher after starting Stride</value>
   </data>
   <data name="ButtonRoadmap" xml:space="preserve">
     <value>Check the roadmap</value>
@@ -385,7 +385,7 @@
     <comment>{0}: long version name</comment>
   </data>
   <data name="ToolTipInstallLatestVersion" xml:space="preserve">
-    <value>Install the latest available version of Xenko</value>
+    <value>Install the latest available version of Stride</value>
     <comment>The tooltip of the button that will install the latest available version</comment>
   </data>
   <data name="ToolTipUninstall" xml:space="preserve">

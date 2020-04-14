@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Assets.Textures;
-using Xenko.Core;
-using Xenko.Core.Assets.Editor.Settings;
-using Xenko.Core.Assets.IO;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core.IO;
-using Xenko.Core.Reflection;
+using Stride.Assets.Textures;
+using Stride.Core;
+using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.IO;
+using Stride.Core.Assets.Templates;
+using Stride.Core.IO;
+using Stride.Core.Reflection;
 
-namespace Xenko.Assets.Presentation.Templates
+namespace Stride.Assets.Presentation.Templates
 {
     public class HeightmapFactoryTemplateGenerator : AssetFromFileTemplateGenerator
     {

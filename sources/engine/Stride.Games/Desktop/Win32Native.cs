@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
 #pragma warning disable SA1310 // Field names should not contain underscore
 #pragma warning disable SA1132 // Do not combine fields
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
@@ -30,7 +30,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
     internal static partial class Win32Native
     {

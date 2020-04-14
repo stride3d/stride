@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Core;
-using Xenko.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Core;
+using Stride.Core.Presentation.ViewModel;
 
-namespace Xenko.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
+namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
 {
     /// <summary>
     /// A view model that represents a viewport with a content.

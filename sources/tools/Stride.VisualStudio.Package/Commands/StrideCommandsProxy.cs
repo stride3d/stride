@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -12,16 +12,16 @@ using NShader;
 using NuGet.Common;
 using NuGet.Frameworks;
 using NuGet.Versioning;
-using Xenko.Core;
-using Xenko.Core.Assets;
-using Xenko.Core.Packages;
+using Stride.Core;
+using Stride.Core.Assets;
+using Stride.Core.Packages;
 
-namespace Xenko.VisualStudio.Commands
+namespace Stride.VisualStudio.Commands
 {
     /// <summary>
-    /// Proxies commands to real <see cref="IXenkoCommands"/> implementation.
+    /// Proxies commands to real <see cref="IStrideCommands"/> implementation.
     /// </summary>
-    public class XenkoCommandsProxy : MarshalByRefObject
+    public class StrideCommandsProxy : MarshalByRefObject
     {
         public static readonly PackageVersion MinimumVersion = new PackageVersion(1, 4, 0, 0);
 
@@ -40,10 +40,10 @@ namespace Xenko.VisualStudio.Commands
         private static bool solutionChanged;
 
         private static readonly object commandProxyLock = new object();
-        private static XenkoCommandsProxy currentInstance;
+        private static StrideCommandsProxy currentInstance;
         private static AppDomain currentAppDomain;
 
-        private readonly IXenkoCommands remote;
+        private readonly IStrideCommands remote;
         private readonly List<Tuple<string, DateTime>> assembliesLoaded = new List<Tuple<string, DateTime>>();
 
         public static PackageInfo CurrentPackageInfo
@@ -51,19 +51,19 @@ namespace Xenko.VisualStudio.Commands
             get { lock (computedPackageInfoLock) { return computedPackageInfo; } }
         }
 
-        static XenkoCommandsProxy()
+        static StrideCommandsProxy()
         {
             // This assembly resolve is only used to resolve the GetExecutingAssembly on the Default Domain
-            // when casting to XenkoCommandsProxy in the XenkoCommandsProxy.GetProxy method
+            // when casting to StrideCommandsProxy in the StrideCommandsProxy.GetProxy method
             AppDomain.CurrentDomain.AssemblyResolve += DefaultDomainAssemblyResolve;
         }
 
-        public XenkoCommandsProxy()
+        public StrideCommandsProxy()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += XenkoDomainAssemblyResolve;
+            AppDomain.CurrentDomain.AssemblyResolve += StrideDomainAssemblyResolve;
 
-            var assembly = Assembly.Load("Xenko.VisualStudio.Commands");
-            remote = (IXenkoCommands)assembly.CreateInstance("Xenko.VisualStudio.Commands.XenkoCommands");
+            var assembly = Assembly.Load("Stride.VisualStudio.Commands");
+            remote = (IStrideCommands)assembly.CreateInstance("Stride.VisualStudio.Commands.StrideCommands");
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Xenko.VisualStudio.Commands
         /// </summary>
         /// <param name="solutionPath">The full path to the solution file.</param>
         /// <param name="domain">The AppDomain to set the solution on, or null the current AppDomain.</param>
-        public static void InitializeFromSolution(string solutionPath, PackageInfo xenkoPackageInfo, AppDomain domain = null)
+        public static void InitializeFromSolution(string solutionPath, PackageInfo stridePackageInfo, AppDomain domain = null)
         {
             if (domain == null)
             {
@@ -79,7 +79,7 @@ namespace Xenko.VisualStudio.Commands
                 {
                     // Set the new solution and clear the package info, so it will be recomputed
                     solution = solutionPath;
-                    computedPackageInfo = xenkoPackageInfo;
+                    computedPackageInfo = stridePackageInfo;
                 }
 
                 lock (commandProxyLock)
@@ -90,7 +90,7 @@ namespace Xenko.VisualStudio.Commands
             else
             {
                 var initializationHelper = (InitializationHelper)domain.CreateInstanceFromAndUnwrap(typeof(InitializationHelper).Assembly.Location, typeof(InitializationHelper).FullName);
-                initializationHelper.Initialize(solutionPath, xenkoPackageInfo.SdkPaths, xenkoPackageInfo.ExpectedVersion?.ToString(), xenkoPackageInfo.LoadedVersion?.ToString());
+                initializationHelper.Initialize(solutionPath, stridePackageInfo.SdkPaths, stridePackageInfo.ExpectedVersion?.ToString(), stridePackageInfo.LoadedVersion?.ToString());
             }
         }
 
@@ -118,8 +118,8 @@ namespace Xenko.VisualStudio.Commands
         /// <summary>
         /// Gets the current proxy.
         /// </summary>
-        /// <returns>XenkoCommandsProxy.</returns>
-        public static XenkoCommandsProxy GetProxy()
+        /// <returns>StrideCommandsProxy.</returns>
+        public static StrideCommandsProxy GetProxy()
         {
             lock (commandProxyLock)
             {
@@ -143,16 +143,16 @@ namespace Xenko.VisualStudio.Commands
                         }
                         catch (Exception ex)
                         {
-                            Trace.WriteLine($"Unexpected exception when unloading AppDomain for XenkoCommandsProxy: {ex}");
+                            Trace.WriteLine($"Unexpected exception when unloading AppDomain for StrideCommandsProxy: {ex}");
                         }
                     }
 
-                    var xenkoPackageInfo = FindXenkoSdkDir(solution).Result;
-                    if (xenkoPackageInfo.LoadedVersion == null)
+                    var stridePackageInfo = FindStrideSdkDir(solution).Result;
+                    if (stridePackageInfo.LoadedVersion == null)
                         return null;
 
-                    currentAppDomain = CreateXenkoDomain();
-                    InitializeFromSolution(solution, xenkoPackageInfo, currentAppDomain);
+                    currentAppDomain = CreateStrideDomain();
+                    InitializeFromSolution(solution, stridePackageInfo, currentAppDomain);
                     currentInstance = CreateProxy(currentAppDomain);
                     currentInstance.Initialize();
                     solutionChanged = false;
@@ -163,22 +163,22 @@ namespace Xenko.VisualStudio.Commands
         }
 
         /// <summary>
-        /// Creates the xenko domain.
+        /// Creates the stride domain.
         /// </summary>
         /// <returns>AppDomain.</returns>
-        public static AppDomain CreateXenkoDomain()
+        public static AppDomain CreateStrideDomain()
         {
-            return AppDomain.CreateDomain("xenko-domain");
+            return AppDomain.CreateDomain("stride-domain");
         }
 
         /// <summary>
         /// Gets the current proxy.
         /// </summary>
-        /// <returns>XenkoCommandsProxy.</returns>
-        public static XenkoCommandsProxy CreateProxy(AppDomain domain)
+        /// <returns>StrideCommandsProxy.</returns>
+        public static StrideCommandsProxy CreateProxy(AppDomain domain)
         {
             if (domain == null) throw new ArgumentNullException(nameof(domain));
-            return (XenkoCommandsProxy)domain.CreateInstanceFromAndUnwrap(typeof(XenkoCommandsProxy).Assembly.Location, typeof(XenkoCommandsProxy).FullName);
+            return (StrideCommandsProxy)domain.CreateInstanceFromAndUnwrap(typeof(StrideCommandsProxy).Assembly.Location, typeof(StrideCommandsProxy).FullName);
         }
 
         public void Initialize()
@@ -223,7 +223,7 @@ namespace Xenko.VisualStudio.Commands
         {
 
             // TODO: We need to know which package is currently selected in order to query all valid shaders
-            if (remote is IXenkoCommands2 remote2)
+            if (remote is IStrideCommands2 remote2)
                 return remote2.AnalyzeAndGoToDefinition(projectPath, sourceCode, span);
             return remote.AnalyzeAndGoToDefinition(sourceCode, span);
         }
@@ -231,7 +231,7 @@ namespace Xenko.VisualStudio.Commands
         private static Assembly DefaultDomainAssemblyResolve(object sender, ResolveEventArgs args)
         {
             // This assembly resolve is only used to resolve the GetExecutingAssembly on the Default Domain
-            // when casting to XenkoCommandsProxy in the XenkoCommandsProxy.GetProxy method
+            // when casting to StrideCommandsProxy in the StrideCommandsProxy.GetProxy method
             var executingAssembly = Assembly.GetExecutingAssembly();
 
             // Redirect requests for earlier package versions to the current one
@@ -242,7 +242,7 @@ namespace Xenko.VisualStudio.Commands
             return null;
         }
 
-        private Assembly XenkoDomainAssemblyResolve(object sender, ResolveEventArgs args)
+        private Assembly StrideDomainAssemblyResolve(object sender, ResolveEventArgs args)
         {
             var assemblyName = new AssemblyName(args.Name);
 
@@ -284,41 +284,41 @@ namespace Xenko.VisualStudio.Commands
         }
 
         /// <summary>
-        /// Gets the xenko SDK dir.
+        /// Gets the stride SDK dir.
         /// </summary>
         /// <returns></returns>
-        internal static async Task<PackageInfo> FindXenkoSdkDir(string solution, string packageName = "Xenko.VisualStudio.Commands")
+        internal static async Task<PackageInfo> FindStrideSdkDir(string solution, string packageName = "Stride.VisualStudio.Commands")
         {
             // Resolve the sdk version to load from the solution's package
             var packageInfo = new PackageInfo { ExpectedVersion = await PackageSessionHelper.GetPackageVersion(solution), SdkPaths = new List<string>() };
 
             // Check if we are in a root directory with store/packages facilities
             var store = new NugetStore(null);
-            NugetLocalPackage xenkoPackage = null;
+            NugetLocalPackage stridePackage = null;
 
             // Try to find the package with the expected version
             if (packageInfo.ExpectedVersion != null && packageInfo.ExpectedVersion >= MinimumVersion)
             {
-                // Xenko up to 3.0
+                // Stride up to 3.0
                 if (packageInfo.ExpectedVersion < new PackageVersion(3, 1, 0, 0))
                 {
-                    xenkoPackage = store.GetPackagesInstalled(new[] { "Xenko" }).FirstOrDefault(package => package.Version == packageInfo.ExpectedVersion);
-                    if (xenkoPackage != null)
+                    stridePackage = store.GetPackagesInstalled(new[] { "Stride" }).FirstOrDefault(package => package.Version == packageInfo.ExpectedVersion);
+                    if (stridePackage != null)
                     {
-                        var xenkoSdkDir = store.GetRealPath(xenkoPackage);
+                        var strideSdkDir = store.GetRealPath(stridePackage);
 
-                        packageInfo.LoadedVersion = xenkoPackage.Version;
+                        packageInfo.LoadedVersion = stridePackage.Version;
 
                         foreach (var path in new[]
                         {
-                            // Xenko 2.x and 3.0
+                            // Stride 2.x and 3.0
                             @"Bin\Windows\Direct3D11",
                             @"Bin\Windows",
-                            // Xenko 1.x
+                            // Stride 1.x
                             @"Bin\Windows-Direct3D11"
                         })
                         {
-                            var fullPath = Path.Combine(xenkoSdkDir, path);
+                            var fullPath = Path.Combine(strideSdkDir, path);
                             if (Directory.Exists(fullPath))
                             {
                                 packageInfo.SdkPaths.AddRange(Directory.EnumerateFiles(fullPath, "*.dll", SearchOption.TopDirectoryOnly));
@@ -327,7 +327,7 @@ namespace Xenko.VisualStudio.Commands
                         }
                     }
                 }
-                // Xenko 3.1+
+                // Stride 3.1+
                 else
                 {
                     var logger = new Logger();

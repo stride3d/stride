@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 using System.Threading.Tasks;
-using Xenko.Core.Mathematics;
-using Xenko.Assets.Presentation.AssetEditors.Gizmos;
-using Xenko.Editor.EditorGame.Game;
-using Xenko.Engine;
-using Xenko.Rendering.Lights;
+using Stride.Core.Mathematics;
+using Stride.Assets.Presentation.AssetEditors.Gizmos;
+using Stride.Editor.EditorGame.Game;
+using Stride.Engine;
+using Stride.Rendering.Lights;
 
-namespace Xenko.Assets.Presentation.AssetEditors.PrefabEditor.Game
+namespace Stride.Assets.Presentation.AssetEditors.PrefabEditor.Game
 {
     public class PrefabEditorLightService : EditorGameServiceBase
     {

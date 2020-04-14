@@ -1,6 +1,6 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-namespace Xenko.Rendering.Shadows
+namespace Stride.Rendering.Shadows
 {
     /// <summary>
     /// Performs percentage closer filtering.
@@ -251,9 +251,9 @@ namespace Xenko.Rendering.Shadows
                 // Calculate the adjusted world space coordinate and shadow map coordinate of the current pixel:
 
 
-                // TODO: PERFORMANCE: Ideally we'd like to move this to "ShadowMapReceiverDirectional.xksl",
+                // TODO: PERFORMANCE: Ideally we'd like to move this to "ShadowMapReceiverDirectional.sdsl",
                 //                    because that way we can ensure that the adjusted pixel positions are calculated only once per pixel per light.
-                //                    Sadly this is not that easy because the offset depends on the filter width, which is only available inside of "ShadowMapFilterPcf.xksl".
+                //                    Sadly this is not that easy because the offset depends on the filter width, which is only available inside of "ShadowMapFilterPcf.sdsl".
                 
                 CalculateAdjustedShadowSpacePixelPosition(GetFilterRadiusInPixels(), pixelPositionWS, meshNormalWS,
                                                           worldToShadowCascadeUV, inverseWorldToShadowCascadeUV,

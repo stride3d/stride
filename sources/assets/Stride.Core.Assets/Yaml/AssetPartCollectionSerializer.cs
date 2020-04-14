@@ -2,15 +2,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Serializers;
-using Xenko.Core.Assets.Yaml;
-using Xenko.Core.Extensions;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Serialization;
-using Xenko.Core.Yaml.Serialization.Serializers;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Serializers;
+using Stride.Core.Assets.Yaml;
+using Stride.Core.Extensions;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Serialization;
+using Stride.Core.Yaml.Serialization.Serializers;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     /// <summary>
     /// A custom serializer for asset part collections, that serializes this dictionary in the form of a collection.

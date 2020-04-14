@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
-using Xenko.Assets.Physics;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Editor.Thumbnails;
-using Xenko.Graphics;
-using Xenko.Physics;
-using Xenko.Rendering;
+using Stride.Assets.Physics;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization.Contents;
+using Stride.Editor.Thumbnails;
+using Stride.Graphics;
+using Stride.Physics;
+using Stride.Rendering;
 
-namespace Xenko.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Presentation.Thumbnails
 {
     [AssetCompiler(typeof(HeightmapAsset), typeof(ThumbnailCompilationContext))]
     public class HeightmapThumbnailCompiler : ThumbnailCompilerBase<HeightmapAsset>

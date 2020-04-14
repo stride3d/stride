@@ -1,6 +1,6 @@
 <#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 <#
-var currentPlatform = (Xenko.Core.PlatformType)Properties.CurrentPlatform;
+var currentPlatform = (Stride.Core.PlatformType)Properties.CurrentPlatform;
 foreach(var platform in Properties.Platforms) 
 { 
     // Skip the platform if it is not current
@@ -9,7 +9,7 @@ foreach(var platform in Properties.Platforms)
         continue;
     }
 
-	var projectType = (Xenko.Core.Assets.ProjectType)Properties.ProjectType;
+	var projectType = (Stride.Core.Assets.ProjectType)Properties.ProjectType;
 
     foreach(var platformPart in platform.GetParts()) 
     {

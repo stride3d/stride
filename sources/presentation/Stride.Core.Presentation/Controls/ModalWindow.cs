@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
-using Xenko.Core.Presentation.Interop;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.Windows;
+using Stride.Core.Presentation.Interop;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Windows;
 
-namespace Xenko.Core.Presentation.Controls
+namespace Stride.Core.Presentation.Controls
 {
     public abstract class ModalWindow : Window, IModalDialogInternal
     {

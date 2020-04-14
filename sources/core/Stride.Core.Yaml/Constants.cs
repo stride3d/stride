@@ -43,9 +43,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using Xenko.Core.Yaml.Tokens;
+using Stride.Core.Yaml.Tokens;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     /// <summary>
     /// Defines constants thar relate to the YAML specification.

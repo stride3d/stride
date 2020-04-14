@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.ComponentModel;
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.IO;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.IO;
 
-namespace Xenko.Assets.Models
+namespace Stride.Assets.Models
 {
     [DataContract("AnimationAssetType")]
     public abstract class AnimationAssetType

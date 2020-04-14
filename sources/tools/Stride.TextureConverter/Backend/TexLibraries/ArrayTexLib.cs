@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.TextureConverter.Requests;
-using Xenko.Graphics;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.TextureConverter.Requests;
+using Stride.Graphics;
 
-namespace Xenko.TextureConverter.TexLibraries
+namespace Stride.TextureConverter.TexLibraries
 {
     /// <summary>
     /// Allows the creation and manipulation of texture arrays.

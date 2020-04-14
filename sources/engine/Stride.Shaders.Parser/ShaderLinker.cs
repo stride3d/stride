@@ -1,21 +1,21 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Xenko.Core.Mathematics;
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Shaders.Parser.Mixins;
-using Xenko.Shaders.Parser.Utility;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Visitor;
-using Xenko.Graphics;
+using Stride.Core.Mathematics;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Shaders.Parser.Mixins;
+using Stride.Shaders.Parser.Utility;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Visitor;
+using Stride.Graphics;
 
-using StorageQualifier = Xenko.Core.Shaders.Ast.StorageQualifier;
+using StorageQualifier = Stride.Core.Shaders.Ast.StorageQualifier;
 
-namespace Xenko.Shaders.Parser
+namespace Stride.Shaders.Parser
 {
     /// <summary>
     /// This AST Visitor will look for any "Link" annotation in order to bind EffectVariable to their associated HLSL variables.
@@ -138,7 +138,7 @@ namespace Xenko.Shaders.Parser
                                     samplerState.Filter = TextureFilter.Point;
                                     break;
                                 default:
-                                    parsingResult.Error(XenkoMessageCode.SamplerFilterNotSupported, variable.Span, value);
+                                    parsingResult.Error(StrideMessageCode.SamplerFilterNotSupported, variable.Span, value);
                                     break;
                             }
                         }
@@ -164,7 +164,7 @@ namespace Xenko.Shaders.Parser
                                     samplerState.AddressW = textureAddressMode;
                                     break;
                                 default:
-                                    parsingResult.Error(XenkoMessageCode.SamplerAddressModeNotSupported, variable.Span, key);
+                                    parsingResult.Error(StrideMessageCode.SamplerAddressModeNotSupported, variable.Span, key);
                                     break;
                             }
                         }
@@ -186,7 +186,7 @@ namespace Xenko.Shaders.Parser
                                         }
                                         else
                                         {
-                                            parsingResult.Error(XenkoMessageCode.SamplerBorderColorNotSupported, variable.Span, borderColor.Arguments[i]);
+                                            parsingResult.Error(StrideMessageCode.SamplerBorderColorNotSupported, variable.Span, borderColor.Arguments[i]);
                                         }
                                     }
 
@@ -194,12 +194,12 @@ namespace Xenko.Shaders.Parser
                                 }
                                 else
                                 {
-                                    parsingResult.Error(XenkoMessageCode.SamplerBorderColorNotSupported, variable.Span, variable);
+                                    parsingResult.Error(StrideMessageCode.SamplerBorderColorNotSupported, variable.Span, variable);
                                 }
                             }
                             else
                             {
-                                parsingResult.Error(XenkoMessageCode.SamplerBorderColorNotSupported, variable.Span, variable);
+                                parsingResult.Error(StrideMessageCode.SamplerBorderColorNotSupported, variable.Span, variable);
                             }
                         }
                         else if (key == "MinLOD")
@@ -216,7 +216,7 @@ namespace Xenko.Shaders.Parser
                         }
                         else
                         {
-                            parsingResult.Error(XenkoMessageCode.SamplerFieldNotSupported, variable.Span, variable);
+                            parsingResult.Error(StrideMessageCode.SamplerFieldNotSupported, variable.Span, variable);
                         }
                     }
 
@@ -291,9 +291,9 @@ namespace Xenko.Shaders.Parser
             var qualifiers = node as IQualifiers;
             var attributable = node as IAttributes;
 
-            if ((qualifiers != null && (qualifiers.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Static) ||
+            if ((qualifiers != null && (qualifiers.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Static) ||
                                         qualifiers.Qualifiers.Contains(StorageQualifier.Const) ||
-                                        qualifiers.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Groupshared)
+                                        qualifiers.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Groupshared)
                                        )) || attributable == null)
             {
                 return null;
@@ -311,13 +311,13 @@ namespace Xenko.Shaders.Parser
                 var variable = node as Variable;
                 if (variable != null)
                 {
-                    var cbuffer = (ConstantBuffer)variable.GetTag(XenkoTags.ConstantBuffer);
-                    if (cbuffer != null && cbuffer.Type == XenkoConstantBufferType.ResourceGroup)
+                    var cbuffer = (ConstantBuffer)variable.GetTag(StrideTags.ConstantBuffer);
+                    if (cbuffer != null && cbuffer.Type == StrideConstantBufferType.ResourceGroup)
                     {
                         parameterKey.ResourceGroup = cbuffer.Name;
                     }
 
-                    parameterKey.LogicalGroup = (string)variable.GetTag(XenkoTags.LogicalGroup);
+                    parameterKey.LogicalGroup = (string)variable.GetTag(StrideTags.LogicalGroup);
 
                     var variableType = variable.Type;
 
@@ -614,15 +614,15 @@ namespace Xenko.Shaders.Parser
 
         private void ParseConstantBufferVariable(string cbName, Variable variable)
         {
-            if (variable.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Static) ||
+            if (variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Static) ||
                 variable.Qualifiers.Contains(StorageQualifier.Const) ||
-                variable.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Groupshared)
+                variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Groupshared)
                 )
                 return;
 
-            if (variable.Qualifiers.Contains(XenkoStorageQualifier.Stream))
+            if (variable.Qualifiers.Contains(StrideStorageQualifier.Stream))
             {
-                parsingResult.Error(XenkoMessageCode.StreamVariableWithoutPrefix, variable.Span, variable);
+                parsingResult.Error(StrideMessageCode.StreamVariableWithoutPrefix, variable.Span, variable);
                 return;
             }
 
@@ -632,7 +632,7 @@ namespace Xenko.Shaders.Parser
                 {
                     if (attribute.Parameters.Count != 1)
                     {
-                        parsingResult.Error(XenkoMessageCode.LinkArgumentsError, variable.Span);
+                        parsingResult.Error(StrideMessageCode.LinkArgumentsError, variable.Span);
                     }
                 }
             }
@@ -646,7 +646,7 @@ namespace Xenko.Shaders.Parser
             }
             else
             {
-                parsingResult.Error(XenkoMessageCode.LinkError, variable.Span, variable);
+                parsingResult.Error(StrideMessageCode.LinkError, variable.Span, variable);
             }
         }
 
@@ -678,7 +678,7 @@ namespace Xenko.Shaders.Parser
                 {
                     KeyName = parameterKey.Name,
                 },
-                LogicalGroup = (string)variable.GetTag(XenkoTags.LogicalGroup),
+                LogicalGroup = (string)variable.GetTag(StrideTags.LogicalGroup),
                 Type = parameterKey.Type,
                 RawName = variable.Name,
             };

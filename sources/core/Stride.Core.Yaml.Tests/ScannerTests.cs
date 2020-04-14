@@ -44,9 +44,9 @@
 // SOFTWARE.
 
 using Xunit;
-using Xenko.Core.Yaml.Tokens;
+using Stride.Core.Yaml.Tokens;
 
-namespace Xenko.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests
 {
     public class ScannerTests : ScannerTestHelper
     {

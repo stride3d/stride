@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 using Xunit;
 
-using Xenko.Rendering;
-using Xenko.Engine.Shaders.Mixins;
-using Xenko.Core.IO;
-using Xenko.Shaders.Compiler;
-using Xenko.Core.Shaders.Utility;
+using Stride.Rendering;
+using Stride.Engine.Shaders.Mixins;
+using Stride.Core.IO;
+using Stride.Shaders.Compiler;
+using Stride.Core.Shaders.Utility;
 
-namespace Xenko.Core.Shaders.Tests
+namespace Stride.Core.Shaders.Tests
 {
     class TestRealMix
     {

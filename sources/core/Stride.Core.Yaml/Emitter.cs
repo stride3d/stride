@@ -51,11 +51,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Xenko.Core.Yaml.Events;
-using TagDirective = Xenko.Core.Yaml.Tokens.TagDirective;
-using VersionDirective = Xenko.Core.Yaml.Tokens.VersionDirective;
+using Stride.Core.Yaml.Events;
+using TagDirective = Stride.Core.Yaml.Tokens.TagDirective;
+using VersionDirective = Stride.Core.Yaml.Tokens.VersionDirective;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     /// <summary>
     /// Emits YAML streams.

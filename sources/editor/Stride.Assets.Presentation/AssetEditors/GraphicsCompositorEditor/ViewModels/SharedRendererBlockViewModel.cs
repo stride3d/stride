@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Quantum;
-using Xenko.Assets.Rendering;
-using Xenko.Rendering.Compositing;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Quantum;
+using Stride.Assets.Rendering;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
 {
     public class SharedRendererBlockViewModel : SharedRendererBlockBaseViewModel
     {

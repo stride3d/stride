@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 
-namespace Xenko.Core
+namespace Stride.Core
 {
     /// <summary>
     /// Describes the platform operating system.
     /// </summary>
-#if XENKO_ASSEMBLY_PROCESSOR
+#if STRIDE_ASSEMBLY_PROCESSOR
     // To avoid a CS1503 error when compiling projects that are using both the AssemblyProcessor
-    // and Xenko.Core.
+    // and Stride.Core.
     internal enum PlatformType
 #else
     [DataContract("PlatformType")]
@@ -20,7 +20,7 @@ namespace Xenko.Core
         // ***************************************************************
         // NOTE: This file is shared with the AssemblyProcessor.
         // If this file is modified, the AssemblyProcessor has to be
-        // recompiled separately. See build\Xenko-AssemblyProcessor.sln
+        // recompiled separately. See build\Stride-AssemblyProcessor.sln
         // ***************************************************************
 
         /// <summary>

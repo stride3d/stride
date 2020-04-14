@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Xenko.Assets.Presentation.AssetEditors.Gizmos;
-using Xenko.Editor.EditorGame.Game;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.Gizmos;
+using Stride.Editor.EditorGame.Game;
 
-namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.Game
+namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
 {
     public class EditorGameSpaceMarkerService : EditorGameServiceBase
     {

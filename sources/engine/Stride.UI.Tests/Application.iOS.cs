@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using MonoTouch.Foundation;
 using MonoTouch.UIKit;
-using Xenko.Starter;
-using Xenko.UI.Tests.Rendering;
+using Stride.Starter;
+using Stride.UI.Tests.Rendering;
 
-namespace Xenko.UI.Tests
+namespace Stride.UI.Tests
 {
     public class ManualApplication
     {
@@ -17,7 +17,7 @@ namespace Xenko.UI.Tests
     }
 
     [Register("ManualAppDelegate")]
-    public class ManualAppDelegate : XenkoApplicationDelegate
+    public class ManualAppDelegate : StrideApplicationDelegate
     {
         public override bool FinishedLaunching(UIApplication app, NSDictionary options)
         {

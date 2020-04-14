@@ -1,6 +1,6 @@
 ---
 !EffectCompileRequest
-EffectName: XenkoEditorForwardShadingEffect
+EffectName: StrideEditorForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Compositions:

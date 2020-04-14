@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.Shaders;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.ComputeEffect
+namespace Stride.Rendering.ComputeEffect
 {
     /// <summary>
     /// A compute effect based directly on a single compute shader.
@@ -53,7 +53,7 @@ namespace Xenko.Rendering.ComputeEffect
         public Int3 ThreadNumbers { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the input compute shader file (.xksl)
+        /// Gets or sets the name of the input compute shader file (.sdsl)
         /// </summary>
         public string ShaderSourceName { get; set; }
 

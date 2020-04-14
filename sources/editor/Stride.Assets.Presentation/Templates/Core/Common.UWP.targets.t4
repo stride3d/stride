@@ -1,16 +1,16 @@
 ﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 <# 
-  var currentPlatform = (Xenko.Core.PlatformType)Properties.CurrentPlatform;
+  var currentPlatform = (Stride.Core.PlatformType)Properties.CurrentPlatform;
   var orientation = "landscape";
-  switch ((Xenko.Graphics.DisplayOrientation)Properties.Orientation)
+  switch ((Stride.Graphics.DisplayOrientation)Properties.Orientation)
   {
-    case Xenko.Graphics.DisplayOrientation.LandscapeRight:
+    case Stride.Graphics.DisplayOrientation.LandscapeRight:
     orientation = "landscape";
     break;
-    case Xenko.Graphics.DisplayOrientation.LandscapeLeft:
+    case Stride.Graphics.DisplayOrientation.LandscapeLeft:
     orientation = "landscapeFlipped";
     break;
-    case Xenko.Graphics.DisplayOrientation.Portrait:
+    case Stride.Graphics.DisplayOrientation.Portrait:
     orientation = "portrait";
     break;
   }

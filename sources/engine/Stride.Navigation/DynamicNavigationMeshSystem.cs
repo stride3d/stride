@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single type
 
@@ -6,16 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Reflection;
-using Xenko.Engine;
-using Xenko.Engine.Design;
-using Xenko.Games;
-using Xenko.Navigation.Processors;
-using Xenko.Physics;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
+using Stride.Engine;
+using Stride.Engine.Design;
+using Stride.Games;
+using Stride.Navigation.Processors;
+using Stride.Physics;
 
-namespace Xenko.Navigation
+namespace Stride.Navigation
 {
     /// <summary>
     /// System that handles building of navigation meshes at runtime

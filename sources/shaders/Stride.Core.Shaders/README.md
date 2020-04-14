@@ -1,4 +1,4 @@
-Xenko.Core.Shader
+Stride.Core.Shader
 ====================
 
 Shader source code manipulation library.

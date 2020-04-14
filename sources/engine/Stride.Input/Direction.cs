@@ -1,7 +1,7 @@
 using System;
-using Xenko.Core.Mathematics;
+using Stride.Core.Mathematics;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     /// <summary>
     /// Represents a direction or neutral position

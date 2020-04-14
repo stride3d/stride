@@ -1,2 +1,2 @@
-set XenkoPlatforms=Windows;UWP;Android;iOS;Linux
-Xenko.sln
+set StridePlatforms=Windows;UWP;Android;iOS;Linux
+Stride.sln

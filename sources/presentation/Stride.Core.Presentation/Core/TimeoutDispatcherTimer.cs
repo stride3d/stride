@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
 using System.Windows.Threading;
 
-namespace Xenko.Core.Presentation.Core
+namespace Stride.Core.Presentation.Core
 {
     /// <summary>
     /// A timer that will raise a <see cref="Timeout"/> event if it's not reset within a given <see cref="Delay"/>.

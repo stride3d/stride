@@ -6,6 +6,6 @@ Scope: Asset
 Description: A procedurally-generated capsule
 Group: Model
 Order: 20
-Icon: ..\.xktpl\ProceduralCapsule.png
+Icon: ..\.sdtpl\ProceduralCapsule.png
 DefaultOutputName: Capsule
 FactoryTypeName: ProceduralModelCapsuleFactory

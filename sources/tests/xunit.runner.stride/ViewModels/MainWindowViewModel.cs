@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace xunit.runner.xenko.ViewModels
+namespace xunit.runner.stride.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {

@@ -5,6 +5,6 @@ Name: Capsule
 Scope: Asset
 Description: A capsule-shaped collider
 Group: Physics
-Icon: ..\.xktpl\ColliderCapsule.png
+Icon: ..\.sdtpl\ColliderCapsule.png
 DefaultOutputName: ColliderCapsule
 FactoryTypeName: ColliderShapeCapsuleFactory

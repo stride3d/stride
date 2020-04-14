@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO.Compression.Zip;
 using Android.Content.PM;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Serialization;
+using Stride.Core.Diagnostics;
+using Stride.Core.Serialization;
 
-namespace Xenko.Core.IO
+namespace Stride.Core.IO
 {
     public static partial class VirtualFileSystem
     {

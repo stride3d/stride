@@ -47,9 +47,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using Xenko.Core.Yaml.Events;
+using Stride.Core.Yaml.Events;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Represents an YAML document.

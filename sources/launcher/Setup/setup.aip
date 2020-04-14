@@ -11,26 +11,26 @@
     <ROW Property="AI_CLEAN_RESOURCES_USER_PROMPT_FULL_UI" Value="0"/>
     <ROW Property="AI_EXTERNALUIUNINSTALLERNAME" MultiBuildValue="DefaultBuild:aiui"/>
     <ROW Property="AI_FINDEXE_TITLE" Value="Select the installation package for [|ProductName]" ValueLocId="AI.Property.FindExeTitle"/>
-    <ROW Property="AI_PRODUCTNAME_ARP" Value="Xenko"/>
+    <ROW Property="AI_PRODUCTNAME_ARP" Value="Stride"/>
     <ROW Property="AI_SHORTCUTSREG" Value="0|0|0|0|"/>
     <ROW Property="AI_UNINSTALLER" Value="msiexec.exe"/>
     <ROW Property="ALLUSERS" Value="1" MultiBuildValue="DefaultBuild:2"/>
     <ROW Property="ARPCOMMENTS" Value="This installer database contains the logic and data required to install [|ProductName]." ValueLocId="*"/>
-    <ROW Property="ARPCONTACT" Value="contact@xenko.com"/>
+    <ROW Property="ARPCONTACT" Value="contact@stride3d.net"/>
     <ROW Property="ARPNOMODIFY" MultiBuildValue="DefaultBuild:1"/>
     <ROW Property="ARPNOREPAIR" Value="1" MultiBuildValue="DefaultBuild:1"/>
     <ROW Property="ARPPRODUCTICON" Value="Logo.exe" Type="8"/>
     <ROW Property="ARPSYSTEMCOMPONENT" Value="1"/>
-    <ROW Property="ARPURLINFOABOUT" Value="http://xenko.com"/>
+    <ROW Property="ARPURLINFOABOUT" Value="http://stride3d.net"/>
     <ROW Property="AiFeatIcoMainFeature" Value="Logo.exe" Type="8"/>
     <ROW Property="AiSkipExitDlg" Value="1"/>
-    <ROW Property="AppLogoIcon" Value="applogoicon" MultiBuildValue="DefaultBuild:XenkoLogoNoTextWhite.png" Type="1" MsiKey="AppLogoIcon"/>
-    <ROW Property="BuildExeName" Value="XenkoSetup"/>
+    <ROW Property="AppLogoIcon" Value="applogoicon" MultiBuildValue="DefaultBuild:StrideLogoNoTextWhite.png" Type="1" MsiKey="AppLogoIcon"/>
+    <ROW Property="BuildExeName" Value="StrideSetup"/>
     <ROW Property="CTRLS" Value="2"/>
-    <ROW Property="Manufacturer" Value="Xenko"/>
+    <ROW Property="Manufacturer" Value="Stride"/>
     <ROW Property="ProductCode" Value="1033:{B885587E-FD48-4B85-BC72-4CEC13838B84} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
-    <ROW Property="ProductName" Value="Xenko"/>
+    <ROW Property="ProductName" Value="Stride"/>
     <ROW Property="ProductVersion" Value="2.0.2" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
     <ROW Property="UpgradeCode" Value="{B48CDC88-F979-46BC-B73C-E65080AE8F3A}"/>
@@ -51,7 +51,7 @@
     <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1" DirectoryOptions="12"/>
     <ROW Directory="Cache_Dir" Directory_Parent="APPDIR" DefaultDir="Cache" DirectoryOptions="12"/>
     <ROW Directory="DesktopFolder" Directory_Parent="TARGETDIR" DefaultDir="DESKTO~1|DesktopFolder" IsPseudoRoot="1"/>
-    <ROW Directory="GamePackages_Dir" Directory_Parent="APPDIR" DefaultDir="xenko" DirectoryOptions="12"/>
+    <ROW Directory="GamePackages_Dir" Directory_Parent="APPDIR" DefaultDir="stride" DirectoryOptions="12"/>
     <ROW Directory="Prerequisites_Dir" Directory_Parent="APPDIR" DefaultDir="PREREQ~1|Prerequisites" DirectoryOptions="12"/>
     <ROW Directory="SHORTCUTDIR" Directory_Parent="TARGETDIR" DefaultDir="SHORTC~1|SHORTCUTDIR" IsPseudoRoot="1"/>
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
@@ -71,19 +71,19 @@
     <ROW Component="SHORTCUTDIR" ComponentId="{CB1F51BA-272B-4CC4-A7ED-F94A20625834}" Directory_="SHORTCUTDIR" Attributes="0"/>
     <ROW Component="Targets" ComponentId="{FD7FA82A-7C57-4C7D-BF3A-6A77FE7B7640}" Directory_="Targets_Dir" Attributes="0"/>
     <ROW Component="UserInstall" ComponentId="{C2DAD2F4-F15C-4BD0-B7AC-505DD4A0A46B}" Directory_="APPDIR" Attributes="4" Condition="AdminUser &lt;&gt; 1" KeyPath="Temp"/>
-    <ROW Component="Xenko.exe" ComponentId="{048BE390-6BC5-4847-A9E8-537982535C15}" Directory_="APPDIR" Attributes="0" KeyPath="Xenko.exe"/>
+    <ROW Component="Stride.exe" ComponentId="{048BE390-6BC5-4847-A9E8-537982535C15}" Directory_="APPDIR" Attributes="0" KeyPath="Stride.exe"/>
     <ROW Component="launcherprerequisites.exe" ComponentId="{148823E1-3AEC-46C3-A8B7-F9BA6EE2BAB7}" Directory_="Prerequisites_Dir" Attributes="0" KeyPath="launcherprerequisites.exe"/>
     <ROW Component="store.config" ComponentId="{D628FBE9-4C57-4F71-AB43-D376796DA617}" Directory_="APPDIR" Attributes="0" KeyPath="store.config" Type="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
-    <ROW Feature="Xenko" Title="Xenko" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="16" Components="AIShRegAnswer AI_CustomARPName AI_DisableModify AI_ExePath APPDIR AdminInstall Cache GamePackages Prerequisites ProductInformation SHORTCUTDIR Targets UserInstall Xenko.exe launcherprerequisites.exe store.config"/>
-    <ATTRIBUTE name="CurrentFeature" value="Xenko"/>
+    <ROW Feature="Stride" Title="Stride" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="16" Components="AIShRegAnswer AI_CustomARPName AI_DisableModify AI_ExePath APPDIR AdminInstall Cache GamePackages Prerequisites ProductInformation SHORTCUTDIR Targets UserInstall Stride.exe launcherprerequisites.exe store.config"/>
+    <ATTRIBUTE name="CurrentFeature" value="Stride"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
-    <ROW File="Xenko.exe" Component_="Xenko.exe" FileName="Xenko.exe" Attributes="0" SourcePath="..\Xenko.LauncherApp\bin\Release\Xenko.exe" SelfReg="false" NextFile="store.config"/>
-    <ROW File="Xenko.exe.config" Component_="store.config" FileName="XENKOE~1.CON|Xenko.exe.config" Attributes="0" SourcePath="..\Xenko.LauncherApp\bin\Release\Xenko.exe.config" SelfReg="false" NextFile="launcherprerequisites.exe"/>
+    <ROW File="Stride.exe" Component_="Stride.exe" FileName="Stride.exe" Attributes="0" SourcePath="..\Stride.LauncherApp\bin\Release\Stride.exe" SelfReg="false" NextFile="store.config"/>
+    <ROW File="Stride.exe.config" Component_="store.config" FileName="STRIDE~1.CON|Stride.exe.config" Attributes="0" SourcePath="..\Stride.LauncherApp\bin\Release\Stride.exe.config" SelfReg="false" NextFile="launcherprerequisites.exe"/>
     <ROW File="launcherprerequisites.exe" Component_="launcherprerequisites.exe" FileName="LAUNCH~1.EXE|launcher-prerequisites.exe" Attributes="0" SourcePath="..\Prerequisites\launcher-prerequisites.exe" SelfReg="false"/>
-    <ROW File="store.config" Component_="store.config" FileName="STORE~1.CON|store.config" Attributes="0" SourcePath="..\Xenko.LauncherApp\bin\Release\store.config" SelfReg="false" NextFile="Xenko.exe.config"/>
+    <ROW File="store.config" Component_="store.config" FileName="STORE~1.CON|store.config" Attributes="0" SourcePath="..\Stride.LauncherApp\bin\Release\store.config" SelfReg="false" NextFile="Stride.exe.config"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AiRemoveFileComponent">
     <ROW RemoveFile="__1" Condition="(AI_CLEAN_RESOURCES_UNINSTALL = &quot;1&quot;) AND (NOT UPGRADINGPRODUCTCODE)" Options="3"/>
@@ -140,7 +140,7 @@
     <ROW Name="ExternalUICleaner.dll" SourcePath="&lt;AI_CUSTACTS&gt;ExternalUICleaner.dll"/>
     <ROW Name="Prereq.dll" SourcePath="&lt;AI_CUSTACTS&gt;Prereq.dll"/>
     <ROW Name="ResourceCleaner.dll" SourcePath="&lt;AI_CUSTACTS&gt;ResourceCleaner.dll"/>
-    <ROW Name="XenkoLogoNoTextWhite.png" SourcePath="XenkoLogoNoTextWhite.png"/>
+    <ROW Name="StrideLogoNoTextWhite.png" SourcePath="StrideLogoNoTextWhite.png"/>
     <ROW Name="aicustact.dll" SourcePath="&lt;AI_CUSTACTS&gt;aicustact.dll"/>
     <ROW Name="lzmaextractor.dll" SourcePath="&lt;AI_CUSTACTS&gt;lzmaextractor.dll"/>
   </COMPONENT>
@@ -262,7 +262,7 @@
     <ROW Action="AI_FinishActions" Type="1" Source="aicustact.dll" Target="RunAllExitActions"/>
     <ROW Action="AI_GetArpIconPath" Type="1" Source="aicustact.dll" Target="GetArpIconPath"/>
     <ROW Action="AI_InstallModeCheck" Type="1" Source="aicustact.dll" Target="UpdateInstallMode" WithoutSeq="true"/>
-    <ROW Action="AI_LaunchApp" Type="1" Source="aicustact.dll" Target="[#Xenko.exe]"/>
+    <ROW Action="AI_LaunchApp" Type="1" Source="aicustact.dll" Target="[#Stride.exe]"/>
     <ROW Action="AI_PREPARE_UPGRADE" Type="65" Source="aicustact.dll" Target="PrepareUpgrade"/>
     <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Type="51" Source="AI_SETUPEXEPATH" Target="[AI_SETUPEXEPATH_ORIGINAL]"/>
     <ROW Action="AI_RESTORE_LOCATION" Type="65" Source="aicustact.dll" Target="RestoreLocation"/>
@@ -275,7 +275,7 @@
     <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[ProgramFiles64Folder][ProductName]"/>
     <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]"/>
     <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
-    <ROW Action="Xenko.exe" Type="82" Source="Xenko.exe" Target="/uninstall"/>
+    <ROW Action="Stride.exe" Type="82" Source="Stride.exe" Target="/uninstall"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="Logo.exe" SourcePath="Logo.ico" Index="0"/>
@@ -303,7 +303,7 @@
     <ROW Action="AI_DATA_SETTER" Sequence="3997"/>
     <ROW Action="AI_EstimateExtractFiles" Sequence="3999" Builds="DefaultBuild"/>
     <ROW Action="AI_SETMIXINSTLOCATION" Sequence="746"/>
-    <ROW Action="Xenko.exe" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1201"/>
+    <ROW Action="Stride.exe" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1201"/>
     <ROW Action="AI_GetArpIconPath" Sequence="1401"/>
     <ROW Action="AI_RemoveExternalUIStub" Condition="(REMOVE=&quot;ALL&quot;) AND ((VersionNT &gt; 500) OR((VersionNT = 500) AND (ServicePackLevel &gt;= 4)))" Sequence="1501"/>
     <ROW Action="AI_EnableDebugLog" Sequence="51"/>
@@ -382,8 +382,8 @@
     <ROW FileKey="__4" Component_="APPDIR" DirProperty="Prerequisites_Dir" InstallMode="2"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
-    <ROW Shortcut="Xenko" Directory_="SHORTCUTDIR" Name="Xenko|[|ProductName]" Component_="Xenko.exe" Target="[#Xenko.exe]" Description="Xenko Game Studio" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="APPDIR"/>
-    <ROW Shortcut="Xenko_1" Directory_="DesktopFolder" Name="Xenko|[|ProductName]" Component_="Xenko.exe" Target="[#Xenko.exe]" Description="Xenko Game Studio" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="APPDIR"/>
+    <ROW Shortcut="Stride" Directory_="SHORTCUTDIR" Name="Stride|[|ProductName]" Component_="Stride.exe" Target="[#Stride.exe]" Description="Stride Game Studio" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="APPDIR"/>
+    <ROW Shortcut="Stride_1" Directory_="DesktopFolder" Name="Stride|[|ProductName]" Component_="Stride.exe" Target="[#Stride.exe]" Description="Stride Game Studio" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="APPDIR"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
     <ATTRIBUTE name="UsedTheme" value="surface"/>

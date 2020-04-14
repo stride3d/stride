@@ -47,13 +47,13 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using Xenko.Core.Annotations;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Reflection;
-using Xenko.Core.Serialization;
-using Xenko.Core.Yaml.Schemas;
+using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
+using Stride.Core.Reflection;
+using Stride.Core.Serialization;
+using Stride.Core.Yaml.Schemas;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Default implementation of ITagTypeRegistry.

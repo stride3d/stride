@@ -7,7 +7,7 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Xenko.ProjectGenerator
+namespace Stride.ProjectGenerator
 {
     using System.Linq;
     using System.Text;
@@ -18,7 +18,7 @@ namespace Xenko.ProjectGenerator
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "C:\work\Stash\Xenko\sources\tools\Xenko.ProjectGenerator\ResharperDotSettings.tt"
+    #line 1 "C:\work\Stash\Stride\sources\tools\Stride.ProjectGenerator\ResharperDotSettings.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "14.0.0.0")]
     public partial class ResharperDotSettings : ResharperDotSettingsBase
     {
@@ -31,14 +31,14 @@ namespace Xenko.ProjectGenerator
             this.Write(@"<wpf:ResourceDictionary xml:space=""preserve"" xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"" xmlns:s=""clr-namespace:System;assembly=mscorlib"" xmlns:ss=""urn:shemas-jetbrains-com:settings-storage-xaml"" xmlns:wpf=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
 	<s:String x:Key=""/Default/Environment/InjectedLayers/FileInjectedLayer/=");
             
-            #line 7 "C:\work\Stash\Xenko\sources\tools\Xenko.ProjectGenerator\ResharperDotSettings.tt"
+            #line 7 "C:\work\Stash\Stride\sources\tools\Stride.ProjectGenerator\ResharperDotSettings.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(FileInjectedGuid.ToString("N").ToUpperInvariant()));
             
             #line default
             #line hidden
             this.Write("/RelativePath/@EntryValue\">..\\");
             
-            #line 7 "C:\work\Stash\Xenko\sources\tools\Xenko.ProjectGenerator\ResharperDotSettings.tt"
+            #line 7 "C:\work\Stash\Stride\sources\tools\Stride.ProjectGenerator\ResharperDotSettings.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(SharedSolutionDotSettings.Name));
             
             #line default
@@ -46,7 +46,7 @@ namespace Xenko.ProjectGenerator
             this.Write("</s:String>\r\n\t<s:Boolean x:Key=\"/Default/Environment/InjectedLayers/FileInjectedL" +
                     "ayer/=");
             
-            #line 8 "C:\work\Stash\Xenko\sources\tools\Xenko.ProjectGenerator\ResharperDotSettings.tt"
+            #line 8 "C:\work\Stash\Stride\sources\tools\Stride.ProjectGenerator\ResharperDotSettings.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(FileInjectedGuid.ToString("N").ToUpperInvariant()));
             
             #line default
@@ -54,7 +54,7 @@ namespace Xenko.ProjectGenerator
             this.Write("/@KeyIndexDefined\">True</s:Boolean>\r\n\t<s:Boolean x:Key=\"/Default/Environment/Inje" +
                     "ctedLayers/InjectedLayerCustomization/=File");
             
-            #line 9 "C:\work\Stash\Xenko\sources\tools\Xenko.ProjectGenerator\ResharperDotSettings.tt"
+            #line 9 "C:\work\Stash\Stride\sources\tools\Stride.ProjectGenerator\ResharperDotSettings.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(FileInjectedGuid.ToString("N").ToUpperInvariant()));
             
             #line default
@@ -62,7 +62,7 @@ namespace Xenko.ProjectGenerator
             this.Write("/@KeyIndexDefined\">True</s:Boolean>\r\n\t<s:Double x:Key=\"/Default/Environment/Injec" +
                     "tedLayers/InjectedLayerCustomization/=File");
             
-            #line 10 "C:\work\Stash\Xenko\sources\tools\Xenko.ProjectGenerator\ResharperDotSettings.tt"
+            #line 10 "C:\work\Stash\Stride\sources\tools\Stride.ProjectGenerator\ResharperDotSettings.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(FileInjectedGuid.ToString("N").ToUpperInvariant()));
             
             #line default

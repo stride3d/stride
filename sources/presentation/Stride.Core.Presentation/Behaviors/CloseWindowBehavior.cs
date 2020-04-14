@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Xaml.Behaviors;
-using Xenko.Core.Annotations;
-using Xenko.Core.Presentation.Services;
+using Stride.Core.Annotations;
+using Stride.Core.Presentation.Services;
 
-namespace Xenko.Core.Presentation.Behaviors
+namespace Stride.Core.Presentation.Behaviors
 {
     /// <summary>
     /// A base behavior that will close the window it is contained in an event occurs on a control. A command can be executed

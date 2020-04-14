@@ -1,6 +1,6 @@
 !Model
 Id: 01019ffb-11d0-42cb-a5c1-ce55f20e5042
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/Gate1x2x1.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

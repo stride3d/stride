@@ -1,30 +1,30 @@
 <Project>
   <PropertyGroup>
-    <XenkoRuntime>true</XenkoRuntime>
-    <XenkoRuntimeNetStandard>true</XenkoRuntimeNetStandard>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideRuntimeNetStandard>true</StrideRuntimeNetStandard>
   </PropertyGroup>
-  <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorOptions>--serialization</XenkoAssemblyProcessorOptions>
-    <XenkoBuildTags>*</XenkoBuildTags>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--serialization</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>*</StrideBuildTags>
   </PropertyGroup>
   <Choose>
-    <When Condition="('$(XenkoPlatform)' == 'UWP')">
+    <When Condition="('$(StridePlatform)' == 'UWP')">
       <ItemGroup>
         <Reference Include="CppNet">
           <HintPath>..\..\..\deps\CppNet\Store\CppNet.dll</HintPath>
         </Reference>
       </ItemGroup>
     </When>
-    <When Condition="'$(XenkoNETRuntime)' != ''">
+    <When Condition="'$(StrideNETRuntime)' != ''">
       <ItemGroup>
         <Reference Include="CppNet">
-          <HintPath>..\..\..\deps\CppNet\$(XenkoNETRuntime)\CppNet.dll</HintPath>
+          <HintPath>..\..\..\deps\CppNet\$(StrideNETRuntime)\CppNet.dll</HintPath>
         </Reference>
       </ItemGroup>
     </When>
@@ -69,7 +69,7 @@
     <None Include="Analysis\Hlsl\HlslDeclarations.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
     <ProjectReference Include="..\Irony\Irony.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -87,7 +87,7 @@
       <LastGenOutput>VisitorGenerated.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>

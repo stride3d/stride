@@ -5,7 +5,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>PDX Audio</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.xenko.audio.tests</string>
+	<string>com.stride.audio.tests</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleVersion</key>

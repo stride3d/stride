@@ -1,6 +1,6 @@
 !Skeleton
 Id: b906bf22-0ae2-4b1d-943e-8377d7d34303
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/HandModelLeft.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

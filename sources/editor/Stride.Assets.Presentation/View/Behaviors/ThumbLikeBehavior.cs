@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
-using Xenko.Core.Presentation.Behaviors;
-using Xenko.Assets.Presentation.ViewModel;
+using Stride.Core.Presentation.Behaviors;
+using Stride.Assets.Presentation.ViewModel;
 
-namespace Xenko.Assets.Presentation.View.Behaviors
+namespace Stride.Assets.Presentation.View.Behaviors
 {
     public sealed class ThumbLikeBehavior : MouseMoveCaptureBehaviorBase<UIElement>
     {

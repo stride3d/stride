@@ -5,7 +5,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>PDX Particles</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.xenko.particles.tests</string>
+	<string>com.stride.particles.tests</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleVersion</key>

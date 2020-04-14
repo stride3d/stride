@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:Xenko iOS Relay.xcodeproj">
+      location = "self:Stride iOS Relay.xcodeproj">
    </FileRef>
 </Workspace>

@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_OPENGL
+#if STRIDE_GRAPHICS_API_OPENGL
 using System;
 using System.Collections.Generic;
-using Xenko.Core;
-using Xenko.Core.Storage;
-using Xenko.Shaders;
-using Xenko.Core.Extensions;
-#if XENKO_GRAPHICS_API_OPENGLES
+using Stride.Core;
+using Stride.Core.Storage;
+using Stride.Shaders;
+using Stride.Core.Extensions;
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 using PrimitiveTypeGl = OpenTK.Graphics.ES30.PrimitiveType;
 #else
@@ -15,7 +15,7 @@ using OpenTK.Graphics.OpenGL;
 using PrimitiveTypeGl = OpenTK.Graphics.OpenGL.PrimitiveType;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public partial class PipelineState
     {

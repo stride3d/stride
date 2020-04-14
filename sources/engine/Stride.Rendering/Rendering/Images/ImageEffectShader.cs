@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.Shaders;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Images
+namespace Stride.Rendering.Images
 {
     /// <summary>
-    /// Post effect using an <see cref="Effect"/> (either xkfx or xksl).
+    /// Post effect using an <see cref="Effect"/> (either sdfx or sdsl).
     /// </summary>
     [DataContract("ImageEffectShader")]
     public class ImageEffectShader : ImageEffect

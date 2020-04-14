@@ -10,24 +10,24 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
-    <RootNamespace>Xenko.UI.Tests</RootNamespace>
-    <AssemblyName>XenkoUITests</AssemblyName>
-    <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoPlatform>iOS</XenkoPlatform>
-    <XenkoBuildProfile>iOS</XenkoBuildProfile>
-    <XenkoPackageGuid>{b18707e8-1d26-49fc-9911-3834506d8149}</XenkoPackageGuid>
+    <RootNamespace>Stride.UI.Tests</RootNamespace>
+    <AssemblyName>StrideUITests</AssemblyName>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StridePlatform>iOS</StridePlatform>
+    <StrideBuildProfile>iOS</StrideBuildProfile>
+    <StridePackageGuid>{b18707e8-1d26-49fc-9911-3834506d8149}</StridePackageGuid>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
   <PropertyGroup>
-    <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)Xenko.UI.Tests.xkpkg</XenkoCurrentPackagePath>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)Stride.UI.Tests.sdpkg</StrideCurrentPackagePath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_IOS</DefineConstants>
-    <XenkoGraphicsApi>OpenGLES</XenkoGraphicsApi>
+    <DefineConstants>DEBUG;TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
     <OutputPath>..\..\..\Bin\iOS-OpenGLES\</OutputPath>
     <IntermediateOutputPath>obj\iOS\Debug\</IntermediateOutputPath>
     <ErrorReport>prompt</ErrorReport>
@@ -41,8 +41,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_IOS</DefineConstants>
-    <XenkoGraphicsApi>OpenGLES</XenkoGraphicsApi>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
     <OutputPath>..\..\..\Bin\iOS-OpenGLES\</OutputPath>
     <IntermediateOutputPath>obj\iOS\Release\</IntermediateOutputPath>
     <ErrorReport>prompt</ErrorReport>
@@ -54,8 +54,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|iPhone' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_IOS</DefineConstants>
-    <XenkoGraphicsApi>OpenGLES</XenkoGraphicsApi>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
     <OutputPath>..\..\..\Bin\iOS-OpenGLES\</OutputPath>
     <IntermediateOutputPath>obj\iOS\Testing\</IntermediateOutputPath>
     <ErrorReport>prompt</ErrorReport>
@@ -69,8 +69,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AppStore|iPhone' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_IOS</DefineConstants>
-    <XenkoGraphicsApi>OpenGLES</XenkoGraphicsApi>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
     <OutputPath>..\..\..\Bin\iOS-OpenGLES\</OutputPath>
     <IntermediateOutputPath>obj\iOS\AppStore\</IntermediateOutputPath>
     <ErrorReport>prompt</ErrorReport>
@@ -83,8 +83,8 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_IOS</DefineConstants>
-    <XenkoGraphicsApi>OpenGLES</XenkoGraphicsApi>
+    <DefineConstants>DEBUG;TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
     <OutputPath>..\..\..\Bin\iOS-OpenGLES\</OutputPath>
     <IntermediateOutputPath>obj\iOS\Debug\</IntermediateOutputPath>
     <ErrorReport>prompt</ErrorReport>
@@ -94,8 +94,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_IOS</DefineConstants>
-    <XenkoGraphicsApi>OpenGLES</XenkoGraphicsApi>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
     <OutputPath>..\..\..\Bin\iOS-OpenGLES\</OutputPath>
     <IntermediateOutputPath>obj\iOS\Release\</IntermediateOutputPath>
     <ErrorReport>prompt</ErrorReport>
@@ -103,20 +103,20 @@
     <MtouchLink>None</MtouchLink>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Xenko.Core.Tests.Application</StartupObject>
+    <StartupObject>Stride.Core.Tests.Application</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Xamarin.iOS" Label="Xenko.DoNotSync" />
+    <Reference Include="Xamarin.iOS" Label="Stride.DoNotSync" />
   </ItemGroup>
   <ItemGroup>
-    <None Label="Xenko.DoNotSync" Include="Info.plist" />
-    <Compile Label="Xenko.DoNotSync" Include="Properties\AssemblyInfo.cs" />
-    <Compile Label="Xenko.DoNotSync" Include="..\..\..\sources\shared\tests\nunitlite\NUnitLiteLauncher.iPhone.cs">
+    <None Label="Stride.DoNotSync" Include="Info.plist" />
+    <Compile Label="Stride.DoNotSync" Include="Properties\AssemblyInfo.cs" />
+    <Compile Label="Stride.DoNotSync" Include="..\..\..\sources\shared\tests\nunitlite\NUnitLiteLauncher.iPhone.cs">
       <Link>NUnitLiteLauncher.iPhone.cs</Link>
     </Compile>
-    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\Xenko.UI\Xenko.UI.csproj" />
-    <ProjectReference Include="..\Xenko.Graphics.Regression\Xenko.Graphics.Regression.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Compile Include="XunitAttributes.cs" />
@@ -191,26 +191,26 @@
     <Compile Include="Regression\TransparencyTest.cs" />
     <Compile Include="Regression\UniformGridTest.cs" />
     <Compile Include="Regression\UITestGameBase.cs" />
-    <None Include="Assets\BorderButton.xktex" />
-    <None Include="Assets\BorderButtonCentered.xktex" />
-    <None Include="Assets\CourierNew12.xkfnt" />
-    <None Include="Assets\cube Model.xkm3d" />
-    <None Include="Assets\DebugSlider.xksheet" />
-    <None Include="Assets\DumbWhite.xktex" />
-    <None Include="Assets\GameSettings.xkgamesettings" />
-    <None Include="Assets\GraphicsCompositor.xkgfxcomp" />
-    <None Include="Assets\HanSans13.xkfnt" />
-    <None Include="Assets\ImageButtonNotPressed.xktex" />
-    <None Include="Assets\ImageButtonPressed.xktex" />
-    <None Include="Assets\lambert1.xkmat" />
-    <None Include="Assets\MainScene.xkscene" />
-    <None Include="Assets\MicrosoftSansSerif15.xkfnt" />
-    <None Include="Assets\RotatedImages.xksheet" />
-    <None Include="Assets\rotatedUV.xktex" />
-    <None Include="Assets\UIImages.xksheet" />
-    <None Include="Assets\Untitled.xktex" />
-    <None Include="Assets\uv.xktex" />
-    <None Include="Assets\XenkoBackground.xktex" />
+    <None Include="Assets\BorderButton.sdtex" />
+    <None Include="Assets\BorderButtonCentered.sdtex" />
+    <None Include="Assets\CourierNew12.sdfnt" />
+    <None Include="Assets\cube Model.sdm3d" />
+    <None Include="Assets\DebugSlider.sdsheet" />
+    <None Include="Assets\DumbWhite.sdtex" />
+    <None Include="Assets\GameSettings.sdgamesettings" />
+    <None Include="Assets\GraphicsCompositor.sdgfxcomp" />
+    <None Include="Assets\HanSans13.sdfnt" />
+    <None Include="Assets\ImageButtonNotPressed.sdtex" />
+    <None Include="Assets\ImageButtonPressed.sdtex" />
+    <None Include="Assets\lambert1.sdmat" />
+    <None Include="Assets\MainScene.sdscene" />
+    <None Include="Assets\MicrosoftSansSerif15.sdfnt" />
+    <None Include="Assets\RotatedImages.sdsheet" />
+    <None Include="Assets\rotatedUV.sdtex" />
+    <None Include="Assets\UIImages.sdsheet" />
+    <None Include="Assets\Untitled.sdtex" />
+    <None Include="Assets\uv.sdtex" />
+    <None Include="Assets\StrideBackground.sdtex" />
     <None Include="Regression\ElementTestDesigns.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ElementTestDesigns.cs</LastGenOutput>
@@ -221,7 +221,7 @@
     <None Include="Resources\ButtonPressed.dds" />
     <None Include="Resources\EditTextInactive.dds" />
     <None Include="Resources\EditTextOverred.dds" />
-    <None Include="Xenko.UI.Tests.xkpkg" />
+    <None Include="Stride.UI.Tests.sdpkg" />
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
     <None Include="Resources\ToggleChecked.dds" />
@@ -230,17 +230,17 @@
     <None Include="Resources\UIDesigns.dds" />
   </ItemGroup>
   <ItemGroup>
-    <BundleResource Include="Resources\Icon.png" Label="Xenko.DoNotSync" />
+    <BundleResource Include="Resources\Icon.png" Label="Stride.DoNotSync" />
   </ItemGroup>
   <ItemGroup>
-    <BundleResource Include="Resources\Icon%402x.png" Label="Xenko.DoNotSync" />
+    <BundleResource Include="Resources\Icon%402x.png" Label="Stride.DoNotSync" />
   </ItemGroup>
   <ItemGroup>
-    <BundleResource Include="Resources\Icon-60%402x.png" Label="Xenko.DoNotSync" />
+    <BundleResource Include="Resources\Icon-60%402x.png" Label="Stride.DoNotSync" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
-  <Import Project="$(XenkoPackageProps)" Condition="Exists('$(XenkoPackageProps)')" />
-  <Import Project="..\..\targets\Xenko.UnitTests.targets" Condition="Exists('..\..\targets\Xenko.UnitTests.targets')" />
+  <Import Project="$(StridePackageProps)" Condition="Exists('$(StridePackageProps)')" />
+  <Import Project="..\..\targets\Stride.UnitTests.targets" Condition="Exists('..\..\targets\Stride.UnitTests.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
     Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

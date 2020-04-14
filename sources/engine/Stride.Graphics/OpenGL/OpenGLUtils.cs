@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_OPENGL
+#if STRIDE_GRAPHICS_API_OPENGL
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using OpenTK.Graphics;
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 #else
 using OpenTK.Graphics.OpenGL;
 #endif
 
-namespace Xenko.Graphics.OpenGL
+namespace Stride.Graphics.OpenGL
 {
     /// <summary>
     /// Converts between feature level and opengl versions
     /// </summary>
     internal static class OpenGLUtils
     {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
         public static IEnumerable<int> GetGLVersions(GraphicsProfile[] graphicsProfiles)
         {
             yield return 3;
@@ -87,7 +87,7 @@ namespace Xenko.Graphics.OpenGL
             return GraphicsProfile.Level_9_1;
         }
 #endif
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
         public static GLVersion GetGLVersion(GraphicsProfile graphicsProfile)
         {
             switch (graphicsProfile)
@@ -119,7 +119,7 @@ namespace Xenko.Graphics.OpenGL
         {
             version = 0;
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             var versionVendorText = GL.GetString(StringName.Version);
             var match = MatchOpenGLVersion.Match(versionVendorText);
             if (!match.Success)

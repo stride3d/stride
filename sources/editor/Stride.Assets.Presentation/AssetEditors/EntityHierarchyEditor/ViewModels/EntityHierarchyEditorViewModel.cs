@@ -1,39 +1,39 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.View.Behaviors;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Interop;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.Windows;
-using Xenko.Core.Translation;
-using Xenko.Assets.Entities;
-using Xenko.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
-using Xenko.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
-using Xenko.Assets.Presentation.SceneEditor;
-using Xenko.Assets.Presentation.View;
-using Xenko.Assets.Presentation.ViewModel;
-using Xenko.Assets.Presentation.ViewModel.CopyPasteProcessors;
-using Xenko.Engine;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.View.Behaviors;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Interop;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Windows;
+using Stride.Core.Translation;
+using Stride.Assets.Entities;
+using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.GameEditor;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
+using Stride.Assets.Presentation.SceneEditor;
+using Stride.Assets.Presentation.View;
+using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
+using Stride.Engine;
 
-namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
+namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {
     /// <summary>
     /// Base class for the view model of an <see cref="EntityHierarchyViewModel"/> editor.
@@ -496,7 +496,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModel
                 // TODO: we should compute the actual total number of entities to be deleted here (children recursively, etc.)
                 if (entitiesToDelete.Count > 1)
                     confirmMessage = string.Format(Tr._p("Message", "Are you sure you want to delete these {0} entities?"), entitiesToDelete.Count);
-                var checkedMessage = string.Format(Xenko.Core.Assets.Editor.Settings.EditorSettings.AlwaysDeleteWithoutAsking, "entities");
+                var checkedMessage = string.Format(Stride.Core.Assets.Editor.Settings.EditorSettings.AlwaysDeleteWithoutAsking, "entities");
                 var buttons = DialogHelper.CreateButtons(new[] { Tr._p("Button", "Delete"), Tr._p("Button", "Cancel") }, 1, 2);
                 var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBox(confirmMessage, false, checkedMessage, buttons, MessageBoxImage.Question);
                 if (result.Result != 1)

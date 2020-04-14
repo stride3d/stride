@@ -1,6 +1,6 @@
 !Model
 Id: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/MaterialModel.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

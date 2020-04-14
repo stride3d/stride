@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Xenko.Core.Assets;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
-using Xenko.Graphics;
-using Xenko.Core.Presentation.Core;
-using Xenko.Editor.EditorGame.Game;
-using Scene =  Xenko.Engine.Scene;
+using Stride.Core.Assets;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
+using Stride.Graphics;
+using Stride.Core.Presentation.Core;
+using Stride.Editor.EditorGame.Game;
+using Scene =  Stride.Engine.Scene;
 
-namespace Xenko.Assets.Presentation.Preview
+namespace Stride.Assets.Presentation.Preview
 {
     /// <summary>
     /// A base class to implement sprite batch rendering previews.

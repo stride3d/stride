@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -8,21 +8,21 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Serialization;
-using Xenko.Assets.Effect;
-using Xenko.Assets.Presentation.ViewModel;
-using Xenko.ConnectionRouter;
-using Xenko.Engine.Network;
-using Xenko.Shaders.Compiler;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Dirtiables;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Extensions;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Serialization;
+using Stride.Assets.Effect;
+using Stride.Assets.Presentation.ViewModel;
+using Stride.ConnectionRouter;
+using Stride.Engine.Network;
+using Stride.Shaders.Compiler;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Dirtiables;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Extensions;
 
-namespace Xenko.Assets.Presentation
+namespace Stride.Assets.Presentation
 {
     /// <summary>
     /// Handle connection to EffectCompilerServer for a given <see cref="SessionViewModel"/>.
@@ -91,7 +91,7 @@ namespace Xenko.Assets.Presentation
             {
                 // Connect to effect compiler server
                 await routerLaunchedTask;
-                var effectCompilerServerSocket = await RouterClient.RequestServer($"/service/Xenko.EffectCompilerServer/{XenkoVersion.NuGetVersion}/Xenko.EffectCompilerServer.exe?mode=gamestudio&packagename={package.Package.Meta.Name}");
+                var effectCompilerServerSocket = await RouterClient.RequestServer($"/service/Stride.EffectCompilerServer/{StrideVersion.NuGetVersion}/Stride.EffectCompilerServer.exe?mode=gamestudio&packagename={package.Package.Meta.Name}");
 
                 // Cancellation by closing the socket handle
                 cancellationToken.Register(effectCompilerServerSocket.Dispose);

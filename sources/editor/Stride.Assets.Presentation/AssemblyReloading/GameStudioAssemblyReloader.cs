@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -7,27 +7,27 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Quantum;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Assets.Quantum.Visitors;
-using Xenko.Core.Assets.Serializers;
-using Xenko.Core.Assets.Visitors;
-using Xenko.Core.Assets.Yaml;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml;
-using Xenko.Core.Yaml.Events;
-using Xenko.Core.Yaml.Serialization;
-using Xenko.Core.Presentation.Dirtiables;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Quantum;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Quantum;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Quantum.Visitors;
+using Stride.Core.Assets.Serializers;
+using Stride.Core.Assets.Visitors;
+using Stride.Core.Assets.Yaml;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml;
+using Stride.Core.Yaml.Events;
+using Stride.Core.Yaml.Serialization;
+using Stride.Core.Presentation.Dirtiables;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Quantum;
 
-namespace Xenko.Assets.Presentation.AssemblyReloading
+namespace Stride.Assets.Presentation.AssemblyReloading
 {
     /// <summary>
     /// Helper to reload game assemblies within the editor.

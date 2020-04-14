@@ -45,11 +45,11 @@
 
 using System;
 using System.IO;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Events;
-using Xenko.Core.Yaml.Serialization.Serializers;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Events;
+using Stride.Core.Yaml.Serialization.Serializers;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Serializes and deserializes objects into and from YAML documents.

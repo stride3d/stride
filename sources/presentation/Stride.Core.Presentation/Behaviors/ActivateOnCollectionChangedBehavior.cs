@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Specialized;
 using System.Windows;
 using Microsoft.Xaml.Behaviors;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Presentation.Behaviors
+namespace Stride.Core.Presentation.Behaviors
 {
     /// <summary>
     /// The base class for a behavior that allows to activate the associated object when an observable collection changes.

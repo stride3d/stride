@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Xenko.Core;
-using Xenko.Core.Threading;
-using Xenko.Extensions;
-using Xenko.Graphics;
-using Xenko.Shaders;
-using Buffer = Xenko.Graphics.Buffer;
+using Stride.Core;
+using Stride.Core.Threading;
+using Stride.Extensions;
+using Stride.Graphics;
+using Stride.Shaders;
+using Buffer = Stride.Graphics.Buffer;
 
-namespace Xenko.Rendering.Materials
+namespace Stride.Rendering.Materials
 {
     /// <summary>
     /// Handles material by permuting shaders and uploading material data.
@@ -125,7 +125,7 @@ namespace Xenko.Rendering.Materials
                 ref var tessellationState = ref tessellationStates[staticObjectNode];
 
                 // Update draw data if tessellation is active
-                if (material.TessellationMethod != XenkoTessellationMethod.None)
+                if (material.TessellationMethod != StrideTessellationMethod.None)
                 {
                     var tessellationMeshDraw = tessellationState.MeshDraw;
 
@@ -385,7 +385,7 @@ namespace Xenko.Rendering.Materials
 
         private struct TessellationState : IDisposable
         {
-            public XenkoTessellationMethod Method;
+            public StrideTessellationMethod Method;
             public Buffer GeneratedIndicesAEN;
             public MeshDraw MeshDraw;
 

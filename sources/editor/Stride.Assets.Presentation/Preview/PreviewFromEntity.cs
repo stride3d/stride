@@ -1,27 +1,27 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Xenko.Editor.EditorGame.Game;
-using Xenko.Editor.Engine;
-using Xenko.Editor.Preview;
-using Xenko.Input;
-using Xenko.Rendering.Lights;
-using Xenko.Engine;
-using Xenko.Rendering.Compositing;
-using Xenko.Particles.Rendering;
-using Xenko.Rendering;
-using Xenko.Rendering.Sprites;
-using Xenko.Rendering.UI;
-using Xenko.SpriteStudio.Runtime;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Editor.EditorGame.Game;
+using Stride.Editor.Engine;
+using Stride.Editor.Preview;
+using Stride.Input;
+using Stride.Rendering.Lights;
+using Stride.Engine;
+using Stride.Rendering.Compositing;
+using Stride.Particles.Rendering;
+using Stride.Rendering;
+using Stride.Rendering.Sprites;
+using Stride.Rendering.UI;
+using Stride.SpriteStudio.Runtime;
 
-namespace Xenko.Assets.Presentation.Preview
+namespace Stride.Assets.Presentation.Preview
 {
     /// <summary>
     /// An implementation of the <see cref="AssetPreview"/> class that simply build an asset and create an entity for it

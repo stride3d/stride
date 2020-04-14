@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Xenko.VisualStudio {
+namespace Stride.VisualStudio {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Xenko.VisualStudio {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Xenko.VisualStudio.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.VisualStudio.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -70,7 +70,7 @@ namespace Xenko.VisualStudio {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Xenko View.
+        ///   Looks up a localized string similar to Stride View.
         /// </summary>
         internal static string ToolWindowTitle {
             get {

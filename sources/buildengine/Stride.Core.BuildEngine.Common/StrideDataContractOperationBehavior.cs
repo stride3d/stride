@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -7,18 +7,18 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Xml;
 
-namespace Xenko.Core.BuildEngine
+namespace Stride.Core.BuildEngine
 {
-    public class XenkoDataContractOperationBehavior : DataContractSerializerOperationBehavior
+    public class StrideDataContractOperationBehavior : DataContractSerializerOperationBehavior
     {
-        private static XenkoXmlObjectSerializer serializer = new XenkoXmlObjectSerializer();
+        private static StrideXmlObjectSerializer serializer = new StrideXmlObjectSerializer();
 
-        public XenkoDataContractOperationBehavior(OperationDescription operation)
+        public StrideDataContractOperationBehavior(OperationDescription operation)
             : base(operation)
         {
         }
 
-        public XenkoDataContractOperationBehavior(
+        public StrideDataContractOperationBehavior(
             OperationDescription operation,
             DataContractFormatAttribute dataContractFormatAttribute)
             : base(operation, dataContractFormatAttribute)

@@ -26,7 +26,7 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\core\Xenko.Core.Design\VisualStudio\VisualStudioVersions.cs">
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\VisualStudioVersions.cs">
       <Link>VisualStudioVersions.cs</Link>
     </Compile>
   </ItemGroup>
@@ -48,5 +48,5 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <Import Project="..\..\targets\Xenko.Core.Sign.targets" />
+  <Import Project="..\..\targets\Stride.Core.Sign.targets" />
 </Project>

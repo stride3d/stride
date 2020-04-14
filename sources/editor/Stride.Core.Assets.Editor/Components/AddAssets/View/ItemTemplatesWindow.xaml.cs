@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
-using Xenko.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
+using Stride.Core.Assets.Editor.Services;
 
-namespace Xenko.Core.Assets.Editor.Components.AddAssets.View
+namespace Stride.Core.Assets.Editor.Components.AddAssets.View
 {
     /// <summary>
     /// Interaction logic for AssetTemplatesWindow.xaml

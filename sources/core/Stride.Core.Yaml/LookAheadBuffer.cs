@@ -46,7 +46,7 @@
 using System;
 using System.IO;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     /// <summary>
     /// Provides access to a stream and allows to peek at the next characters,

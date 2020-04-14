@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using SharpDX.Direct3D11;
-using Xenko.Core.Mathematics;
-using Xenko.Games;
-using Xenko.Graphics;
-using CommandList = Xenko.Graphics.CommandList;
+using Stride.Core.Mathematics;
+using Stride.Games;
+using Stride.Graphics;
+using CommandList = Stride.Graphics.CommandList;
 
-namespace Xenko.VirtualReality
+namespace Stride.VirtualReality
 {
     internal class OculusOvrHmd : VRDevice
     {

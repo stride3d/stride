@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
-using Xenko.Core;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Engine;
-using Xenko.Extensions;
-using Xenko.Physics.Engine;
-using Xenko.Graphics;
-using Xenko.Physics;
-using Xenko.Rendering;
-using Xenko.Core.Assets;
+using Stride.Core;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Core.Shaders.Ast;
+using Stride.Engine;
+using Stride.Extensions;
+using Stride.Physics.Engine;
+using Stride.Graphics;
+using Stride.Physics;
+using Stride.Rendering;
+using Stride.Core.Assets;
 
-namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
     [GizmoComponent(typeof(PhysicsComponent), false)]
     public class PhysicsGizmo : EntityGizmo<PhysicsComponent>

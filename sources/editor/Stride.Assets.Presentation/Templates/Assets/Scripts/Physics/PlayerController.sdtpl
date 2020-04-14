@@ -5,5 +5,5 @@ Name: First-person player controller
 Scope: Asset
 Description: A basic first-person player controller
 Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
+Icon: ..\..\.sdtpl\SourceCode.png
 DefaultOutputName: PlayerController

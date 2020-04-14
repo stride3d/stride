@@ -1,6 +1,6 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-namespace Xenko.TextureConverter.Requests
+namespace Stride.TextureConverter.Requests
 {
     /// <summary>
     /// Request a texture to be rescale according to the given factor, new size will be : width = width * widthFactor and height = height * heightFactor

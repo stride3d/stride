@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-namespace Xenko.Rendering.Materials
+namespace Stride.Rendering.Materials
 {
     /// <summary>
     /// Performs subsurface scattering using shadow maps.
     /// </summary>
     class MaterialSurfaceSubsurfaceScatteringShading :
         IMaterialSubsurfaceScatteringScatteringProfile,
-        IMaterialSurfaceShading,    // Required for the "PrepareForLightingAndShading()", "ComputeDirectLightContribution()" and "AfterLightingAndShading()" functions. Already includes "MaterialPixelStream.xksl".
+        IMaterialSurfaceShading,    // Required for the "PrepareForLightingAndShading()", "ComputeDirectLightContribution()" and "AfterLightingAndShading()" functions. Already includes "MaterialPixelStream.sdsl".
         MaterialPixelShadingStream,  // Required for "streams.shadingColorAlpha".
         ShadowStream,    // Required for "streams.thicknessWS".
         Math

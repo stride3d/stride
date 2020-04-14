@@ -46,10 +46,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using Xenko.Core.Yaml.Events;
-using Event = Xenko.Core.Yaml.Events.ParsingEvent;
+using Stride.Core.Yaml.Events;
+using Event = Stride.Core.Yaml.Events.ParsingEvent;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     /// <summary>
     /// Reads events from a sequence of <see cref="Event" />.

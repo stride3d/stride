@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2011 SharpDX - Alexandre Mutel
@@ -25,9 +25,9 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using Xenko.Core.Serialization;
+using Stride.Core.Serialization;
 
-namespace Xenko.Core.Mathematics
+namespace Stride.Core.Mathematics
 {
     /// <summary>
     ///   A half precision (16 bit) floating point value.
@@ -148,7 +148,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        ///   Performs an explicit conversion from <see cref = "T:System.Single" /> to <see cref = "T:Xenko.Core.Mathematics.Half" />.
+        ///   Performs an explicit conversion from <see cref = "T:System.Single" /> to <see cref = "T:Stride.Core.Mathematics.Half" />.
         /// </summary>
         /// <param name = "value">The value to be converted.</param>
         /// <returns>The converted value.</returns>
@@ -158,7 +158,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        ///   Performs an implicit conversion from <see cref = "T:Xenko.Core.Mathematics.Half" /> to <see cref = "T:System.Single" />.
+        ///   Performs an implicit conversion from <see cref = "T:Stride.Core.Mathematics.Half" /> to <see cref = "T:System.Single" />.
         /// </summary>
         /// <param name = "value">The value to be converted.</param>
         /// <returns>The converted value.</returns>

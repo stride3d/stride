@@ -1,12 +1,12 @@
-﻿// Copyright (c) 2017 Xenko (https://xenko.com)
+﻿// Copyright (c) 2017 Stride (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Metrics.ServerApp.Models;
+using Stride.Metrics.ServerApp.Models;
 
-namespace Xenko.Metrics.ServerApp.Controllers
+namespace Stride.Metrics.ServerApp.Controllers
 {
     internal static class MetricCache
     {

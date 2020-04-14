@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -6,31 +6,31 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Collections;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization;
-using Xenko.Core.Quantum;
-using Xenko.Assets.Entities;
-using Xenko.Assets.Navigation;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Xenko.Assets.Presentation.AssetEditors.SceneEditor.Game;
-using Xenko.Assets.Presentation.AssetEditors.SceneEditor.Services;
-using Xenko.Editor.Build;
-using Xenko.Editor.EditorGame.Game;
-using Xenko.Engine;
-using Xenko.Extensions;
-using Xenko.Games;
-using Xenko.Graphics;
-using Xenko.Graphics.GeometricPrimitives;
-using Xenko.Navigation;
-using Xenko.Rendering;
-using Xenko.Rendering.Materials;
-using Xenko.Rendering.Materials.ComputeColors;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Collections;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
+using Stride.Core.Quantum;
+using Stride.Assets.Entities;
+using Stride.Assets.Navigation;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.SceneEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.SceneEditor.Services;
+using Stride.Editor.Build;
+using Stride.Editor.EditorGame.Game;
+using Stride.Engine;
+using Stride.Extensions;
+using Stride.Games;
+using Stride.Graphics;
+using Stride.Graphics.GeometricPrimitives;
+using Stride.Navigation;
+using Stride.Rendering;
+using Stride.Rendering.Materials;
+using Stride.Rendering.Materials.ComputeColors;
 
-namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
+namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
     /// <summary>
     /// Handles rendering of navigation meshes associated with the current scene

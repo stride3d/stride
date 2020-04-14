@@ -45,10 +45,10 @@
 
 using System;
 using System.Globalization;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Events;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Events;
 
-namespace Xenko.Core.Yaml.Serialization.Serializers
+namespace Stride.Core.Yaml.Serialization.Serializers
 {
     [YamlSerializerFactory(YamlSerializerFactoryAttribute.Default)]
     internal class PrimitiveSerializer : ScalarSerializerBase, IYamlSerializableFactory

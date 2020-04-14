@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Particles.DebugDraw;
-using Xenko.Particles.Updaters;
-using Xenko.Particles.Updaters.FieldShapes;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Particles.DebugDraw;
+using Stride.Particles.Updaters;
+using Stride.Particles.Updaters.FieldShapes;
 
-namespace Xenko.Particles.Modules
+namespace Stride.Particles.Modules
 {
     /// <summary>
     /// The <see cref="UpdaterCollider"/> is an updater which tests the particles against a preset surface or shape, making them bounce off it when they collide

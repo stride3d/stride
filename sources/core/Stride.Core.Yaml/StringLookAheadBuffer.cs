@@ -45,7 +45,7 @@
 
 using System;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     internal class StringLookAheadBuffer : ILookAheadBuffer
     {

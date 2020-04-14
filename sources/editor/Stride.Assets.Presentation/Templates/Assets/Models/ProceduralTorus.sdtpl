@@ -6,6 +6,6 @@ Scope: Asset
 Description: A procedurally-generated torus
 Group: Model
 Order: 20
-Icon: ..\.xktpl\ProceduralTore.png
+Icon: ..\.sdtpl\ProceduralTore.png
 DefaultOutputName: Torus
 FactoryTypeName: ProceduralModelTorusFactory

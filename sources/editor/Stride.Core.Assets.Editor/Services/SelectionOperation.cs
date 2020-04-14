@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Specialized;
-using Xenko.Core.Annotations;
-using Xenko.Core.Transactions;
+using Stride.Core.Annotations;
+using Stride.Core.Transactions;
 
-namespace Xenko.Core.Assets.Editor.Services
+namespace Stride.Core.Assets.Editor.Services
 {
     /// <summary>
     /// An operation consisting of switching the selection from one <see cref="SelectionState"/> to another.

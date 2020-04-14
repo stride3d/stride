@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -18,7 +18,7 @@ using NuGet.Protocol.Core.Types;
 using NuGet.RuntimeModel;
 using NuGet.Versioning;
 
-namespace Xenko.Core.Assets
+namespace Stride.Core.Assets
 {
     static class RestoreHelper
     {
@@ -58,7 +58,7 @@ namespace Xenko.Core.Assets
 
             var assemblies = new List<string>();
 
-            var projectPath = Path.Combine("XenkoNugetResolver.json");
+            var projectPath = Path.Combine("StrideNugetResolver.json");
             var spec = new PackageSpec()
             {
                 Name = Path.GetFileNameWithoutExtension(projectPath), // make sure this package never collides with a dependency
@@ -83,7 +83,7 @@ namespace Xenko.Core.Assets
                     ProjectName = Path.GetFileNameWithoutExtension(projectPath),
                     ProjectStyle = ProjectStyle.PackageReference,
                     ProjectUniqueName = projectPath,
-                    OutputPath = Path.Combine(Path.GetTempPath(), $"XenkoNugetResolver-{packageName}-{versionRange.MinVersion.ToString()}-{nugetFramework.GetShortFolderName()}-{runtimeIdentifier}"),
+                    OutputPath = Path.Combine(Path.GetTempPath(), $"StrideNugetResolver-{packageName}-{versionRange.MinVersion.ToString()}-{nugetFramework.GetShortFolderName()}-{runtimeIdentifier}"),
                     OriginalTargetFrameworks = new[] { nugetFramework.GetShortFolderName() },
                     ConfigFilePaths = settings.GetConfigFilePaths(),
                     PackagesPath = SettingsUtility.GetGlobalPackagesFolder(settings),
@@ -133,12 +133,12 @@ namespace Xenko.Core.Assets
                     }
                     catch (Exception e) when (e is UnauthorizedAccessException || e is IOException)
                     {
-                        // If we have an unauthorized access exception, it means assemblies are locked by running Xenko process
+                        // If we have an unauthorized access exception, it means assemblies are locked by running Stride process
                         // During first try, kill some known harmless processes, and try again
                         if (tryCount == 1)
                             throw;
 
-                        foreach (var process in new[] { "Xenko.ConnectionRouter" }.SelectMany(Process.GetProcessesByName))
+                        foreach (var process in new[] { "Stride.ConnectionRouter" }.SelectMany(Process.GetProcessesByName))
                         {
                             try
                             {

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #include "Common.h"
@@ -8,7 +8,7 @@
 #include "../../../deps/NativePath/NativePath.h"
 #include "../../../deps/NativePath/NativeThreading.h"
 #include "../../../deps/NativePath/NativeDynamicLinking.h"
-#include "../../Xenko.Native/XenkoNative.h"
+#include "../../Stride.Native/StrideNative.h"
 
 extern "C" {
 	class SpinLock

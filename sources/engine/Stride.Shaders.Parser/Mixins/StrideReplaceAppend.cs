@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Linq;
 
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Visitor;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Visitor;
 
-namespace Xenko.Shaders.Parser.Mixins
+namespace Stride.Shaders.Parser.Mixins
 {
-    internal class XenkoReplaceAppend : ShaderRewriter
+    internal class StrideReplaceAppend : ShaderRewriter
     {
         #region Private members
 
@@ -31,7 +31,7 @@ namespace Xenko.Shaders.Parser.Mixins
 
         #region Constructor
 
-        public XenkoReplaceAppend(HashSet<MethodInvocationExpression> appendList, List<Statement> output, VariableReferenceExpression vre)
+        public StrideReplaceAppend(HashSet<MethodInvocationExpression> appendList, List<Statement> output, VariableReferenceExpression vre)
             : base(false, false)
         {
             appendMethodsList = appendList;

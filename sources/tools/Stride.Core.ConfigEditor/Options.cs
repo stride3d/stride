@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -9,26 +9,26 @@ using System.IO;
 using System.Xml.Serialization;
 using System.ComponentModel;
 
-namespace Xenko.ConfigEditor
+namespace Stride.ConfigEditor
 {
     [XmlRoot(Namespace = "", IsNullable = false)]
     public class Options
     {
-        private string xenkoPath;
+        private string stridePath;
         [XmlElement]
-        public string XenkoPath
+        public string StridePath
         {
-            get { return xenkoPath; }
+            get { return stridePath; }
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("Invalid 'XenkoPath' property value");
-                xenkoPath = value;
+                    throw new ArgumentException("Invalid 'StridePath' property value");
+                stridePath = value;
             }
         }
 
         [XmlElement]
-        public string XenkoConfigFilename { get; set; }
+        public string StrideConfigFilename { get; set; }
 
         private static readonly XmlSerializer serializer = new XmlSerializer(typeof(Options));
 

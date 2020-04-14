@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.IO;
@@ -6,26 +6,26 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Grammar.Xenko;
-using Xenko.Core.Shaders.Parser;
-using Xenko.Core.Shaders.Visitor;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Grammar.Stride;
+using Stride.Core.Shaders.Parser;
+using Stride.Core.Shaders.Visitor;
 
-namespace Xenko.Shaders.Parser
+namespace Stride.Shaders.Parser
 {
     /// <summary>
-    /// Main class for parsing Xenko HLSL grammar.
+    /// Main class for parsing Stride HLSL grammar.
     /// </summary>
-    public static class XenkoShaderParser
+    public static class StrideShaderParser
     {
         /// <summary>
         /// Preinitialize the parser.
         /// </summary>
         public static void Initialize()
         {
-            ShaderParser.GetParser<XenkoGrammar>();
+            ShaderParser.GetParser<StrideGrammar>();
         }
 
         /// <summary>
@@ -36,10 +36,10 @@ namespace Xenko.Shaders.Parser
         /// <param name="macros">The macros defined for the preprocessor.</param>
         /// <param name="includeDirectories">The include directories used by the preprocessor..</param>
         /// <returns>Result of parsing</returns>
-        public static ParsingResult TryPreProcessAndParse(string source, string sourceFileName, Xenko.Core.Shaders.Parser.ShaderMacro[] macros = null, params string[] includeDirectories)
+        public static ParsingResult TryPreProcessAndParse(string source, string sourceFileName, Stride.Core.Shaders.Parser.ShaderMacro[] macros = null, params string[] includeDirectories)
         {
 
-            var result = ShaderParser.GetParser<XenkoGrammar>().TryPreProcessAndParse(source, sourceFileName, macros, includeDirectories);
+            var result = ShaderParser.GetParser<StrideGrammar>().TryPreProcessAndParse(source, sourceFileName, macros, includeDirectories);
             PrepareShader(result.Shader);
             return result;
         }
@@ -52,9 +52,9 @@ namespace Xenko.Shaders.Parser
         /// <param name="macros">The macros defined for the preprocessor.</param>
         /// <param name="includeDirectories">The include directories used by the preprocessor..</param>
         /// <returns>Result of parsing</returns>
-        public static Shader PreProcessAndParse(string source, string sourceFileName, Xenko.Core.Shaders.Parser.ShaderMacro[] macros = null, params string[] includeDirectories)
+        public static Shader PreProcessAndParse(string source, string sourceFileName, Stride.Core.Shaders.Parser.ShaderMacro[] macros = null, params string[] includeDirectories)
         {
-            return PrepareShader(ShaderParser.GetParser<XenkoGrammar>().PreProcessAndParse(source, sourceFileName, macros, includeDirectories));
+            return PrepareShader(ShaderParser.GetParser<StrideGrammar>().PreProcessAndParse(source, sourceFileName, macros, includeDirectories));
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Xenko.Shaders.Parser
         /// <param name="macros">The macros defined for the preprocessor.</param>
         /// <param name="includeDirectories">The include directories used by the preprocessor..</param>
         /// <returns>Result of parsing</returns>
-        public static ParsingResult TryPreProcessAndParse(string sourceFileName, Xenko.Core.Shaders.Parser.ShaderMacro[] macros = null, params string[] includeDirectories)
+        public static ParsingResult TryPreProcessAndParse(string sourceFileName, Stride.Core.Shaders.Parser.ShaderMacro[] macros = null, params string[] includeDirectories)
         {
             var result = TryPreProcessAndParse(File.ReadAllText(sourceFileName), sourceFileName, macros, includeDirectories);
             return result;
@@ -77,7 +77,7 @@ namespace Xenko.Shaders.Parser
         /// <param name="macros">The macros defined for the preprocessor.</param>
         /// <param name="includeDirectories">The include directories used by the preprocessor..</param>
         /// <returns>Result of parsing</returns>
-        public static Shader PreProcessAndParse(string sourceFileName, Xenko.Core.Shaders.Parser.ShaderMacro[] macros = null, params string[] includeDirectories)
+        public static Shader PreProcessAndParse(string sourceFileName, Stride.Core.Shaders.Parser.ShaderMacro[] macros = null, params string[] includeDirectories)
         {
             return PreProcessAndParse(File.ReadAllText(sourceFileName), sourceFileName, macros, includeDirectories);
         }
@@ -90,7 +90,7 @@ namespace Xenko.Shaders.Parser
         /// <returns></returns>
         public static Shader Parse(string sourceCode, string sourceFileName)
         {
-            return PrepareShader(ShaderParser.GetParser<XenkoGrammar>().ParseAndCheck(sourceCode, sourceFileName));
+            return PrepareShader(ShaderParser.GetParser<StrideGrammar>().ParseAndCheck(sourceCode, sourceFileName));
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Xenko.Shaders.Parser
         /// <returns></returns>
         public static ParsingResult TryParse(string sourceCode, string sourceFileName)
         {
-            var parsingResult = ShaderParser.GetParser<XenkoGrammar>().Parse(sourceCode, sourceFileName);
+            var parsingResult = ShaderParser.GetParser<StrideGrammar>().Parse(sourceCode, sourceFileName);
             PrepareShader(parsingResult.Shader);
             return parsingResult;
         }
@@ -130,8 +130,8 @@ namespace Xenko.Shaders.Parser
                             {
                                 foreach (var subVariable in variable.Instances())
                                 {
-                                    subVariable.SetTag(XenkoTags.ConstantBuffer, constantBuffer);
-                                    subVariable.SetTag(XenkoTags.ConstantBufferIndex, index);
+                                    subVariable.SetTag(StrideTags.ConstantBuffer, constantBuffer);
+                                    subVariable.SetTag(StrideTags.ConstantBufferIndex, index);
                                     if (variable.IsGroup && !ReferenceEquals(variable, subVariable))
                                     {
                                         subVariable.Qualifiers |= variable.Qualifiers;
@@ -156,7 +156,7 @@ namespace Xenko.Shaders.Parser
             return shader;
         }
 
-        internal static IEnumerable<ShaderClassType> GetShaderClassTypes(IEnumerable<Xenko.Core.Shaders.Ast.Node> nodes)
+        internal static IEnumerable<ShaderClassType> GetShaderClassTypes(IEnumerable<Stride.Core.Shaders.Ast.Node> nodes)
         {
             foreach (var node in nodes)
             {

@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Reflection
+namespace Stride.Core.Reflection
 {
     /// <summary>
     /// Allows to get/set a property/field value on a deeply nested object instance (supporting 
@@ -73,7 +73,7 @@ namespace Xenko.Core.Reflection
         }
 
         /// <summary>
-        /// Ensures the capacity of the paths definition when using <see cref="Push(Xenko.Core.Reflection.IMemberDescriptor)"/> methods.
+        /// Ensures the capacity of the paths definition when using <see cref="Push(Stride.Core.Reflection.IMemberDescriptor)"/> methods.
         /// </summary>
         /// <param name="pathCount">The path count.</param>
         public void EnsureCapacity(int pathCount)

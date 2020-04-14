@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.View.Behaviors;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.Translation;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.View.Behaviors;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Translation;
 
-namespace Xenko.Core.Assets.Editor.ViewModel
+namespace Stride.Core.Assets.Editor.ViewModel
 {
     public abstract class SessionObjectViewModel : DirtiableEditableViewModel, IAddChildViewModel, IIsEditableViewModel, ISessionObjectViewModel
     {

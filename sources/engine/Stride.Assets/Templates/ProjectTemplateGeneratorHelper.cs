@@ -1,22 +1,22 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Core.ProjectTemplating;
-using Xenko.Graphics;
-using Xenko.Shaders.Parser.Mixins;
-using Xenko.Core.VisualStudio;
-using Xenko.Core.Extensions;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Templates;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Core.ProjectTemplating;
+using Stride.Graphics;
+using Stride.Shaders.Parser.Mixins;
+using Stride.Core.VisualStudio;
+using Stride.Core.Extensions;
 
-namespace Xenko.Assets.Templates
+namespace Stride.Assets.Templates
 {
     public static class ProjectTemplateGeneratorHelper
     {
@@ -188,10 +188,10 @@ namespace Xenko.Assets.Templates
             List<string> generatedFiles;
             var project = GenerateTemplate(parameters, templateRelativePath, projectName, platformType, graphicsPlatform, projectType, out generatedFiles, projectGuid);
 
-            // Special case for xkfx files
+            // Special case for sdfx files
             foreach (var file in generatedFiles)
             {
-                if (file.EndsWith(".xkfx"))
+                if (file.EndsWith(".sdfx"))
                 {
                     ConvertXkfxToCSharp(file);
                 }
@@ -250,7 +250,7 @@ namespace Xenko.Assets.Templates
             var projectTemplate = ProjectTemplate.Load(templateFilePath);
             // TODO assemblies are not configurable from the outside
             projectTemplate.Assemblies.Add(typeof(ProjectType).Assembly.FullName);
-            projectTemplate.Assemblies.Add(typeof(XenkoConfig).Assembly.FullName);
+            projectTemplate.Assemblies.Add(typeof(StrideConfig).Assembly.FullName);
             projectTemplate.Assemblies.Add(typeof(GraphicsPlatform).Assembly.FullName);
             projectTemplate.Assemblies.Add(typeof(DisplayOrientation).Assembly.FullName);
 
@@ -283,11 +283,11 @@ namespace Xenko.Assets.Templates
             progress?.OnProgressChanged(new ProgressStatusEventArgs(message, stepIndex, stepCount));
         }
 
-        private static void ConvertXkfxToCSharp(string xkfxfile)
+        private static void ConvertXkfxToCSharp(string sdfxfile)
         {
-            var xkfileContent = File.ReadAllText(xkfxfile);
-            var result = ShaderMixinCodeGen.GenerateCsharp(xkfileContent, xkfxfile);
-            File.WriteAllText(Path.ChangeExtension(xkfxfile, ".cs"), result, Encoding.UTF8);
+            var sdfileContent = File.ReadAllText(sdfxfile);
+            var result = ShaderMixinCodeGen.GenerateCsharp(sdfileContent, sdfxfile);
+            File.WriteAllText(Path.ChangeExtension(sdfxfile, ".cs"), result, Encoding.UTF8);
         }
 
         private static void RemoveProject(ProjectReference projectReference, ILogger logger)

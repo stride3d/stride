@@ -6,5 +6,5 @@ Scope: Asset
 Description: A render target asset you can render to, or use as an input texture
 Group: Texture
 Order: 50
-Icon: ..\.xktpl\RenderTexture.png
+Icon: ..\.sdtpl\RenderTexture.png
 DefaultOutputName: RenderTexture

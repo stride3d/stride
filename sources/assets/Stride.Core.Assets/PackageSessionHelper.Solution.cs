@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using NuGet.ProjectModel;
 using System;
@@ -7,20 +7,20 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.VisualStudio;
-using Xenko.Core.Yaml;
-using Xenko.Core.Yaml.Serialization;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.VisualStudio;
+using Stride.Core.Yaml;
+using Stride.Core.Yaml.Serialization;
 using Version = System.Version;
 
-namespace Xenko.Core.Assets
+namespace Stride.Core.Assets
 {
     internal partial class PackageSessionHelper
     {
-        private const string XenkoPackage = "XenkoPackage";
-        private static readonly string[] SolutionPackageIdentifier = new[] { XenkoPackage, "SiliconStudioPackage" };
+        private const string StridePackage = "StridePackage";
+        private static readonly string[] SolutionPackageIdentifier = new[] { StridePackage, "SiliconStudioPackage" };
 
         public static async Task<PackageVersion> GetPackageVersion(string fullPath)
         {
@@ -28,11 +28,11 @@ namespace Xenko.Core.Assets
             {
                 // Solution file: extract projects
                 var solutionDirectory = Path.GetDirectoryName(fullPath) ?? "";
-                var solution = Xenko.Core.VisualStudio.Solution.FromFile(fullPath);
+                var solution = Stride.Core.VisualStudio.Solution.FromFile(fullPath);
 
                 foreach (var project in solution.Projects)
                 {
-                    // Xenko up to 3.0
+                    // Stride up to 3.0
                     try
                     {
                         string packagePath;
@@ -40,7 +40,7 @@ namespace Xenko.Core.Assets
                         {
                             var packageFullPath = Path.Combine(solutionDirectory, packagePath);
 
-                            // Load the package as a Yaml dynamic node, so that we can check Xenko version from dependencies
+                            // Load the package as a Yaml dynamic node, so that we can check Stride version from dependencies
                             var input = new StringReader(File.ReadAllText(packageFullPath));
                             var yamlStream = new YamlStream();
                             yamlStream.Load(input);
@@ -50,7 +50,7 @@ namespace Xenko.Core.Assets
                             {
                                 foreach (var dependency in yamlRootNode.Meta.Dependencies)
                                 {
-                                    if ((string)dependency.Name == "Xenko")
+                                    if ((string)dependency.Name == "Stride")
                                     {
                                         return new PackageVersion((string)dependency.Version);
                                     }
@@ -63,12 +63,12 @@ namespace Xenko.Core.Assets
                         e.Ignore();
                     }
 
-                    // Xenko 3.1+
+                    // Stride 3.1+
                     if (project.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharp || project.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharpNewSystem)
                     {
                         var projectPath = project.FullPath;
                         var projectAssetsJsonPath = Path.Combine(Path.GetDirectoryName(projectPath), @"obj", LockFileFormat.AssetsFileName);
-#if !XENKO_LAUNCHER
+#if !STRIDE_LAUNCHER
                         if (!File.Exists(projectAssetsJsonPath))
                         {
                             var log = new LoggerResult();
@@ -81,7 +81,7 @@ namespace Xenko.Core.Assets
                             var projectAssets = format.Read(projectAssetsJsonPath);
                             foreach (var library in projectAssets.Libraries)
                             {
-                                if ((library.Type == "package" || library.Type == "project") && library.Name == "Xenko.Engine")
+                                if ((library.Type == "package" || library.Type == "project") && library.Name == "Stride.Engine")
                                 {
                                     return new PackageVersion((string)library.Version.ToString());
                                 }

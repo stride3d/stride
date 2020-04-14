@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Engine;
-using Xenko.Games;
-using Xenko.Graphics;
-using Xenko.Streaming;
-using ComponentBase = Xenko.Core.ComponentBase;
-using IServiceRegistry = Xenko.Core.IServiceRegistry;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Engine;
+using Stride.Games;
+using Stride.Graphics;
+using Stride.Streaming;
+using ComponentBase = Stride.Core.ComponentBase;
+using IServiceRegistry = Stride.Core.IServiceRegistry;
 
-namespace Xenko.Rendering
+namespace Stride.Rendering
 {
     /// <summary>
     /// Rendering context.

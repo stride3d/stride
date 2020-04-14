@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_UI_SDL
+#if STRIDE_UI_SDL
 using System;
 using System.Collections.Generic;
 using SDL2;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Games;
-using Xenko.Graphics.SDL;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Games;
+using Stride.Graphics.SDL;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     /// <summary>
     /// Class handling finger touch inputs using the SDL backend

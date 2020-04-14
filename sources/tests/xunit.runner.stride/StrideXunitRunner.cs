@@ -3,12 +3,12 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Logging.Serilog;
 using Avalonia.ReactiveUI;
-using xunit.runner.xenko.ViewModels;
-using xunit.runner.xenko.Views;
+using xunit.runner.stride.ViewModels;
+using xunit.runner.stride.Views;
 
-namespace xunit.runner.xenko
+namespace xunit.runner.stride
 {
-    public class XenkoXunitRunner
+    public class StrideXunitRunner
     {
         // Initialization code. Don't use any Avalonia, third-party APIs or any
         // SynchronizationContext-reliant code before AppMain is called: things aren't initialized

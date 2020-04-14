@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Android.Hardware;
-using Xenko.Core.Mathematics;
-using Xenko.Games;
-using Xenko.Games.Android;
+using Stride.Core.Mathematics;
+using Stride.Games;
+using Stride.Games.Android;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     /// <summary>
     /// Provides support for pointer/keyboard/sensor input on Android
     /// </summary>
     internal class InputSourceAndroid : InputSourceBase
     {
-        private AndroidXenkoGameView uiControl;
+        private AndroidStrideGameView uiControl;
         
         private KeyboardAndroid keyboard;
         private PointerAndroid pointer;

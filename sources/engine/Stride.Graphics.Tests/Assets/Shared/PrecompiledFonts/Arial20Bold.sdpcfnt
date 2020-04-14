@@ -1,6 +1,6 @@
 !PregeneratedSpriteFont
 Id: 5a4ddca8-7c53-4b7d-b234-450bd84a408f
-SerializedVersion: {Xenko: 1.7.0-alpha01}
+SerializedVersion: {Stride: 1.7.0-alpha01}
 Tags: []
 OriginalFont: a8c5497e-7dea-46ec-a818-5728f34f5cc5:StaticFonts/Arial20Bold
 FontDataFile: ../../../../../data/tests/PrecompileFonts/Arial16Bold (Precompiled).png

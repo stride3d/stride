@@ -46,7 +46,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     internal class IdentityEqualityComparer<T> : IEqualityComparer<T> where T : class
     {

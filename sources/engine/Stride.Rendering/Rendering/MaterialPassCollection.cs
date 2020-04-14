@@ -1,10 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
-using Xenko.Core.Collections;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Serializers;
+using Stride.Core.Collections;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Serializers;
 
-namespace Xenko.Rendering
+namespace Stride.Rendering
 {
     /// <summary>
     /// A collection of <see cref="MaterialPass"/>.

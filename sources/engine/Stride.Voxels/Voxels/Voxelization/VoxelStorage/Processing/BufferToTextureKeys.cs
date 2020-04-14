@@ -1,6 +1,6 @@
-﻿using Xenko.Shaders;
+﻿using Stride.Shaders;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public partial class BufferToTextureKeys
     {

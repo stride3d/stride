@@ -1,8 +1,8 @@
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
 
-namespace Xenko.Rendering.Skyboxes
+namespace Stride.Rendering.Skyboxes
 {
     public class CubemapFromTextureRenderer : CubemapRendererBase
     {

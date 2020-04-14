@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -10,13 +10,13 @@ using System.Security.Cryptography;
 using System.Text;
 using Renci.SshNet;
 using Renci.SshNet.Common;
-using Xenko.Core.Annotations;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Translation;
+using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Translation;
 
-namespace Xenko.GameStudio
+namespace Stride.GameStudio
 {
     /// <summary>
     /// Various feature for doing remote tasks: login, copying, executing, ...
@@ -27,7 +27,7 @@ namespace Xenko.GameStudio
         /// Launch <paramref name="exePath"/> on remote host using credentials stored in EditorSettings.
         /// Before launching all the files requires by <paramref name="exePath"/> are copied over to host
         /// using the location specified in EditorSettings.Location. If <paramref name="isCoreCLR"/> is set
-        /// all the Xenko native libraries are copied over to the current directory of the game on the remote
+        /// all the Stride native libraries are copied over to the current directory of the game on the remote
         /// host via the `CoreCLRSetup` script.
         /// </summary>
         /// <param name="logger">Logger to show progress and any issues that may occur.</param>
@@ -39,12 +39,12 @@ namespace Xenko.GameStudio
             if (logger == null) throw new ArgumentNullException(nameof(logger));
             if (exePath == null) throw new ArgumentNullException(nameof(exePath));
 
-            var host = XenkoEditorSettings.Host.GetValue();
-            var username = XenkoEditorSettings.Username.GetValue();
-            var port = XenkoEditorSettings.Port.GetValue();
-            var password = Decrypt(XenkoEditorSettings.Password.GetValue());
-            var location = new UDirectory(XenkoEditorSettings.Location.GetValue());
-            var display = XenkoEditorSettings.Display.GetValue();
+            var host = StrideEditorSettings.Host.GetValue();
+            var username = StrideEditorSettings.Username.GetValue();
+            var port = StrideEditorSettings.Port.GetValue();
+            var password = Decrypt(StrideEditorSettings.Password.GetValue());
+            var location = new UDirectory(StrideEditorSettings.Location.GetValue());
+            var display = StrideEditorSettings.Display.GetValue();
 
             var connectInfo = NewConnectionInfo(host, port, username, password);
             if (SyncTo(connectInfo, exePath.GetFullDirectory(), UPath.Combine(location, new UDirectory(exePath.GetFileNameWithoutExtension())), logger))
@@ -87,9 +87,9 @@ namespace Xenko.GameStudio
                         var connectionRouter = string.Empty;
                         if (!string.IsNullOrEmpty(ipv4))
                         {
-                            connectionRouter = " XenkoConnectionRouterRemoteIP=" + ipv4;
+                            connectionRouter = " StrideConnectionRouterRemoteIP=" + ipv4;
                         }
-                        var dotnetEngine = XenkoEditorSettings.UseCoreCLR.GetValue() ? " dotnet " : " mono ";
+                        var dotnetEngine = StrideEditorSettings.UseCoreCLR.GetValue() ? " dotnet " : " mono ";
                         if (!string.IsNullOrEmpty(display))
                         {
                             display = " DISPLAY=" + display;

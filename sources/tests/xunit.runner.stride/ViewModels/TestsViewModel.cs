@@ -8,7 +8,7 @@ using Avalonia.Threading;
 using ReactiveUI;
 using Xunit;
 
-namespace xunit.runner.xenko.ViewModels
+namespace xunit.runner.stride.ViewModels
 {
     public class TestsViewModel : ViewModelBase
     {

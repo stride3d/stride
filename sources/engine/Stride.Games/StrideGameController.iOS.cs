@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
 
 using Foundation;
 using UIKit;
 using ObjCRuntime;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
-    public class XenkoGameController : UIViewController
+    public class StrideGameController : UIViewController
     {
         public delegate void OnTouchesBegan(NSSet touchesSet, UIEvent evt);
         public delegate void OnTouchesMoved(NSSet touchesSet, UIEvent evt);

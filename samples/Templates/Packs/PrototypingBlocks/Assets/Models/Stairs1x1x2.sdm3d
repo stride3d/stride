@@ -1,6 +1,6 @@
 !Model
 Id: da028d29-e641-4020-8977-dafaaf656ad4
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/Stairs1x1x2.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

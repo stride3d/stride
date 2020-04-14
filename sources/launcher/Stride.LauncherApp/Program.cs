@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-namespace Xenko.LauncherApp
+namespace Stride.LauncherApp
 {
     static class Program
     {
@@ -84,7 +84,7 @@ namespace Xenko.LauncherApp
             // these types are loaded
             // TODO: can we register this handler in the Module initializer?
             AppDomain.CurrentDomain.AssemblyResolve += OnResolveAssembly;
-            AppDomain.CurrentDomain.ExecuteAssemblyByName("Xenko.Launcher", null, args);
+            AppDomain.CurrentDomain.ExecuteAssemblyByName("Stride.Launcher", null, args);
         }
 
         private static bool CheckPrerequisites(StringBuilder prerequisiteLog)

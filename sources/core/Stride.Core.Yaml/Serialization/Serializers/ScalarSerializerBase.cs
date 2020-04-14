@@ -44,9 +44,9 @@
 // SOFTWARE.
 
 using System;
-using Xenko.Core.Yaml.Events;
+using Stride.Core.Yaml.Events;
 
-namespace Xenko.Core.Yaml.Serialization.Serializers
+namespace Stride.Core.Yaml.Serialization.Serializers
 {
     public abstract class ScalarSerializerBase : IYamlSerializable
     {

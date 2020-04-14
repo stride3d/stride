@@ -1,27 +1,27 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_OPENGL
+#if STRIDE_GRAPHICS_API_OPENGL
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using OpenTK.Graphics;
 using OpenTK.Platform;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Rendering;
-using Xenko.Shaders;
-using Xenko.Graphics.OpenGL;
-using Color4 = Xenko.Core.Mathematics.Color4;
-#if XENKO_PLATFORM_ANDROID
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Rendering;
+using Stride.Shaders;
+using Stride.Graphics.OpenGL;
+using Color4 = Stride.Core.Mathematics.Color4;
+#if STRIDE_PLATFORM_ANDROID
 using System.Text;
 using System.Runtime.InteropServices;
 using OpenTK.Platform.Android;
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
 using OpenTK.Platform.iPhoneOS;
 #endif
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 using DrawBuffersEnum = OpenTK.Graphics.ES30.DrawBufferMode;
 using FramebufferAttachmentObjectType = OpenTK.Graphics.ES30.All;
@@ -31,13 +31,13 @@ using TextureTarget2d = OpenTK.Graphics.OpenGL.TextureTarget;
 using TextureTarget3d = OpenTK.Graphics.OpenGL.TextureTarget;
 #endif
 
-#if XENKO_UI_SDL
-using WindowState = Xenko.Graphics.SDL.FormWindowState;
+#if STRIDE_UI_SDL
+using WindowState = Stride.Graphics.SDL.FormWindowState;
 #else
 using WindowState = OpenTK.WindowState;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// Performs primitive-based rendering, creates resources, handles system-level variables, adjusts gamma ramp levels, and creates shaders.
@@ -65,18 +65,18 @@ namespace Xenko.Graphics
         internal int CopyColorSourceFBO, CopyDepthSourceFBO;
 
         DebugProc debugCallbackInstance;
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
         DebugProcKhr debugCallbackInstanceKHR;
 #endif
 
         private const GraphicsPlatform GraphicPlatform =
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                                                             GraphicsPlatform.OpenGLES;
 #else
                                                             GraphicsPlatform.OpenGL;
 #endif
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
         // If context was set before Begin(), try to keep it after End()
         // (otherwise devices with no backbuffer flicker)
         private bool keepContextOnEnd;
@@ -107,7 +107,7 @@ namespace Xenko.Graphics
         internal bool HasKhronosDebug;
         internal bool HasTimerQueries;
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
         internal bool HasKhronosDebugKHR;
         internal bool HasExtTextureFormatBGRA8888;
 #endif
@@ -142,25 +142,25 @@ namespace Xenko.Graphics
         private OpenTK.Graphics.IGraphicsContext graphicsContext;
         private OpenTK.Platform.IWindowInfo windowInfo;
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX
-#if XENKO_UI_SDL
-        private Xenko.Graphics.SDL.Window gameWindow;
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
+#if STRIDE_UI_SDL
+        private Stride.Graphics.SDL.Window gameWindow;
 #else
         private OpenTK.GameWindow gameWindow;
 #endif
-#elif XENKO_PLATFORM_ANDROID
+#elif STRIDE_PLATFORM_ANDROID
         private AndroidGameView gameWindow;
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
         private iPhoneOSGameView gameWindow;
         public ThreadLocal<OpenGLES.EAGLContext> ThreadLocalContext { get; private set; }
 #endif
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
         [DllImport("libEGL.dll", EntryPoint = "eglGetCurrentContext")]
         internal static extern IntPtr EglGetCurrentContext();
 #endif
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
         // Need to change sampler state depending on if texture has mipmap or not during PreDraw
         private bool[] hasMipmaps = new bool[64];
 #endif
@@ -194,7 +194,7 @@ namespace Xenko.Graphics
         {
             get
             {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
                 if (graphicsContext != gameWindow.GraphicsContext)
                 {
                     return GraphicsDeviceStatus.Reset;
@@ -242,7 +242,7 @@ namespace Xenko.Graphics
             {
                 FrameCounter++;
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
                 if (Workaround_Context_Tegra2_Tegra3)
                 {
                     Monitor.Enter(asyncCreationLockObject, ref asyncCreationLockTaken);
@@ -275,7 +275,7 @@ namespace Xenko.Graphics
             --contextBeginCounter;
             if (contextBeginCounter == 0)
             {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
                 if (Workaround_Context_Tegra2_Tegra3)
                 {
                     graphicsContext.MakeCurrent(null);
@@ -337,7 +337,7 @@ namespace Xenko.Graphics
 
         private int CreateCopyProgram(bool srgb, out int offsetLocation, out int scaleLocation)
         {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             // We aim at OpenGLES 3.0 or greater.
             var shaderVersion = "#version 300 es";
 #else
@@ -413,7 +413,7 @@ namespace Xenko.Graphics
         internal void EnsureContextActive()
         {
             // TODO: Better checks (is active context the expected one?)
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             if (EglGetCurrentContext() == IntPtr.Zero)
                 throw new InvalidOperationException("No OpenGL context bound.");
 #else
@@ -555,7 +555,7 @@ namespace Xenko.Graphics
                 UpdateFBOColorAttachment(framebufferTarget, i, renderTargets[i]);
             }
 
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
             if (renderTargetCount <= 1)
             {
                 GL.DrawBuffer(renderTargetCount != 0 ? DrawBufferMode.ColorAttachment0 : DrawBufferMode.None);
@@ -588,7 +588,7 @@ namespace Xenko.Graphics
                 }
                 else
                 {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                     throw new NotSupportedException("Multisample textures are not supported on OpenGL ES.");
 #else
                     GL.FramebufferTexture2D(framebufferTarget, attachment, renderTarget.Texture.TextureTarget, renderTarget.Texture.TextureId, renderTarget.MipLevel);
@@ -606,7 +606,7 @@ namespace Xenko.Graphics
         {
             switch (renderTarget.Texture.TextureTarget)
             {
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                 case TextureTarget.Texture1D:
                     GL.FramebufferTexture1D(framebufferTarget, FramebufferAttachment.ColorAttachment0 + i, TextureTarget.Texture1D, renderTarget.Texture.TextureId, renderTarget.MipLevel);
                     break;
@@ -649,7 +649,7 @@ namespace Xenko.Graphics
                 TextureTarget2d textureTarget2d = TextureTarget2d.Texture2D;
                 if (depthStencilBuffer.Texture.IsMultisample)
                 {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                     throw new NotSupportedException("Multisample textures are not supported on OpenGL ES.");
 #else
                     textureTarget2d = TextureTarget2d.Texture2DMultisample;
@@ -762,21 +762,21 @@ namespace Xenko.Graphics
                 currentVersion = version;
             }
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             creationFlags |= GraphicsContextFlags.Embedded;
 #endif
 
             renderer = GL.GetString(StringName.Renderer);
 
-#if XENKO_PLATFORM_UNIX || XENKO_PLATFORM_WINDOWS_DESKTOP
-#if XENKO_UI_SDL
-            gameWindow = (Xenko.Graphics.SDL.Window)windowHandle.NativeWindow;
+#if STRIDE_PLATFORM_UNIX || STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_UI_SDL
+            gameWindow = (Stride.Graphics.SDL.Window)windowHandle.NativeWindow;
 #else
             gameWindow = (OpenTK.GameWindow)windowHandle.NativeWindow;
 #endif
-#elif XENKO_PLATFORM_ANDROID
+#elif STRIDE_PLATFORM_ANDROID
             gameWindow = (AndroidGameView)windowHandle.NativeWindow;
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
             gameWindow = (iPhoneOSGameView)windowHandle.NativeWindow;
             ThreadLocalContext = new ThreadLocal<OpenGLES.EAGLContext>(() => new OpenGLES.EAGLContext(OpenGLES.EAGLRenderingAPI.OpenGLES3, gameWindow.EAGLContext.ShareGroup));
 #endif
@@ -784,7 +784,7 @@ namespace Xenko.Graphics
             windowInfo = gameWindow.WindowInfo;
 
             // Doesn't seems to be working on Android
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             graphicsContext = gameWindow.GraphicsContext;
             gameWindow.Load += OnApplicationResumed;
             gameWindow.Unload += OnApplicationPaused;
@@ -819,7 +819,7 @@ namespace Xenko.Graphics
             }
 
             graphicsContextEglPtr = EglGetCurrentContext();
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
             graphicsContext = gameWindow.GraphicsContext;
             gameWindow.Load += OnApplicationResumed;
             gameWindow.Unload += OnApplicationPaused;
@@ -830,7 +830,7 @@ namespace Xenko.Graphics
             deviceCreationWindowInfo = windowInfo;
             gameWindow.MakeCurrent();
 #else
-#if XENKO_UI_SDL
+#if STRIDE_UI_SDL
             // Because OpenTK really wants a Sdl2GraphicsContext and not a dummy one, we will create
             // a new one using the dummy one and invalidate the dummy one.
             graphicsContext = new OpenTK.Graphics.GraphicsContext(gameWindow.DummyGLContext.GraphicsMode, windowInfo, version / 100, (version % 100) / 10, creationFlags);
@@ -869,10 +869,10 @@ namespace Xenko.Graphics
             // Restore FBO
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, boundFBO);
 
-#if !XENKO_PLATFORM_IOS
+#if !STRIDE_PLATFORM_IOS
             if (IsDebugMode && HasKhronosDebug)
             {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                 HasKhronosDebugKHR = false;
                 try
                 {
@@ -891,7 +891,7 @@ namespace Xenko.Graphics
 
                 // Also do it on async creation context
                 deviceCreationContext.MakeCurrent(deviceCreationWindowInfo);
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                 if (HasKhronosDebugKHR)
                 {
                     // If properly implemented, we should use that one before ES 3.2 otherwise the other one without KHR prefix
@@ -934,7 +934,7 @@ namespace Xenko.Graphics
                 asyncCreationLockObject = new object();
             }
 
-#if XENKO_PLATFORM_ANDROID || XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
             gameWindow.Load -= OnApplicationResumed;
             gameWindow.Unload -= OnApplicationPaused;
 #endif
@@ -984,14 +984,14 @@ namespace Xenko.Graphics
 #endif
 
             // TODO: Provide unified ClientSize from GameWindow
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
             WindowProvidedFrameBuffer = gameWindow.Framebuffer;
 
             // Scale for Retina display
             var width = (int)(gameWindow.Size.Width * gameWindow.ContentScaleFactor);
             var height = (int)(gameWindow.Size.Height * gameWindow.ContentScaleFactor);
 #else
-#if XENKO_GRAPHICS_API_OPENGLCORE
+#if STRIDE_GRAPHICS_API_OPENGLCORE
             var width = gameWindow.ClientSize.Width;
             var height = gameWindow.ClientSize.Height;
 #else
@@ -1072,7 +1072,7 @@ namespace Xenko.Graphics
         {
             get
             {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
                 return gameWindow.WindowState == WindowState.Fullscreen;
 #else
                 throw new NotImplementedException();
@@ -1081,7 +1081,7 @@ namespace Xenko.Graphics
 
             set
             {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
                 if (value ^ (gameWindow.WindowState == WindowState.Fullscreen))
                     gameWindow.WindowState = value ? WindowState.Fullscreen : WindowState.Normal;
 #else
@@ -1090,7 +1090,7 @@ namespace Xenko.Graphics
             }
         }
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
     // Execute pending asynchronous object creation
     // (on android devices where we can't create background context such as Tegra2/Tegra3)
         internal void ExecutePendingTasks()

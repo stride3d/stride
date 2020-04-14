@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 
-namespace Xenko.Core
+namespace Stride.Core
 {
     /// <summary>
     /// Internally this file is used by the ExecServer project in order to copy native dlls to shadow copy folders.
@@ -12,8 +12,8 @@ namespace Xenko.Core
     {
         private const string AppDomainCustomDllPathKey = "native_";
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
-#if !XENKO_RUNTIME_CORECLR
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if !STRIDE_RUNTIME_CORECLR
         public static void SetShadowPathForNativeDll(AppDomain appDomain, string dllFileName, string dllPath)
         {
             if (dllFileName == null) throw new ArgumentNullException("dllFileName");
@@ -26,8 +26,8 @@ namespace Xenko.Core
 
         public static string GetShadowPathForNativeDll(string dllFileName)
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
-#if !XENKO_RUNTIME_CORECLR
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if !STRIDE_RUNTIME_CORECLR
             if (dllFileName == null) throw new ArgumentNullException("dllFileName");
             var key = AppDomainCustomDllPathKey + dllFileName.ToLowerInvariant();
             return (string)AppDomain.CurrentDomain.GetData(key);

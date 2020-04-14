@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Xenko.Metrics.ServerApp.Models
+namespace Stride.Metrics.ServerApp.Models
 {
     /// <summary>
     /// A base class that provides a automatically <see cref="Created"/> field

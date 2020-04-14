@@ -6,5 +6,5 @@ Scope: Asset
 Description: An empty material
 Group: Material
 Order: -10
-Icon: ..\.xktpl\MaterialEmpty.png
+Icon: ..\.sdtpl\MaterialEmpty.png
 DefaultOutputName: Material

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -8,11 +8,11 @@ using Microsoft.Build.Execution;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Xenko.VisualStudio
+namespace Stride.VisualStudio
 {
     public class BuildLogPipeGenerator
     {
-        private string logPipeUrl = "net.pipe://localhost/Xenko.BuildEngine.Monitor." + Guid.NewGuid();
+        private string logPipeUrl = "net.pipe://localhost/Stride.BuildEngine.Monitor." + Guid.NewGuid();
         private SolutionEventsListener solutionEventsListener;
 
         public string LogPipeUrl
@@ -22,7 +22,7 @@ namespace Xenko.VisualStudio
 
         public BuildLogPipeGenerator(IServiceProvider serviceProvider)
         {
-            // Initialize the solution listener that will set XenkoVSBuilderMonitorGuid for this instance of VisualStudio.
+            // Initialize the solution listener that will set StrideVSBuilderMonitorGuid for this instance of VisualStudio.
             solutionEventsListener = new SolutionEventsListener(serviceProvider);
             solutionEventsListener.AfterProjectOpened += OnProjectOpened;
 
@@ -79,17 +79,17 @@ namespace Xenko.VisualStudio
                 globalProperties["Configuration"] = activeConfig.ConfigurationName;
                 globalProperties["Platform"] = activeConfig.PlatformName == "Any CPU" ? "AnyCPU" : activeConfig.PlatformName;
 
-                // Check if project matches: Condition="'$(XenkoCurrentPackagePath)' != '' and '$(XenkoIsExecutable)' == 'true'"
+                // Check if project matches: Condition="'$(StrideCurrentPackagePath)' != '' and '$(StrideIsExecutable)' == 'true'"
                 var projectInstance = new ProjectInstance(dteProject.FileName, globalProperties, null);
-                var packagePathProperty = projectInstance.Properties.FirstOrDefault(x => x.Name == "XenkoCurrentPackagePath");
-                var isExecutableProperty = projectInstance.Properties.FirstOrDefault(x => x.Name == "XenkoIsExecutable");
+                var packagePathProperty = projectInstance.Properties.FirstOrDefault(x => x.Name == "StrideCurrentPackagePath");
+                var isExecutableProperty = projectInstance.Properties.FirstOrDefault(x => x.Name == "StrideIsExecutable");
                 if (packagePathProperty == null || isExecutableProperty == null || isExecutableProperty.EvaluatedValue.ToLowerInvariant() != "true")
                     return;
 
                 var buildProjects = ProjectCollection.GlobalProjectCollection.GetLoadedProjects(dteProject.FileName);
                 foreach (var buildProject in buildProjects)
                 {
-                    buildProject.SetGlobalProperty("XenkoBuildEngineLogPipeUrl", logPipeUrl);
+                    buildProject.SetGlobalProperty("StrideBuildEngineLogPipeUrl", logPipeUrl);
                 }
             }
         }

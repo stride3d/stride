@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single class
 using System;
 using System.Runtime.CompilerServices;
 
-namespace Xenko.Updater
+namespace Stride.Updater
 {
     /// <summary>
     /// Base class for <see cref="UpdatableListAccessor{T}"/>.
@@ -45,7 +45,7 @@ namespace Xenko.Updater
             dup
             ldarg obj
             ldarg.0
-            ldfld int32 Xenko.Updater.UpdatableListAccessor::Index
+            ldfld int32 Stride.Updater.UpdatableListAccessor::Index
             callvirt instance !T class [mscorlib]System.Collections.Generic.IList`1<!T>::get_Item(int32)
             stobj !T
             ret
@@ -61,7 +61,7 @@ namespace Xenko.Updater
             ldarg data
             ldarg obj
             ldarg.0
-            ldfld int32 Xenko.Updater.UpdatableListAccessor::Index
+            ldfld int32 Stride.Updater.UpdatableListAccessor::Index
             callvirt instance !T class [mscorlib]System.Collections.Generic.IList`1<!T>::get_Item(int32)
             stobj !T
             ret
@@ -76,7 +76,7 @@ namespace Xenko.Updater
             // Note: IL is injected by UpdateEngineProcessor
             ldarg obj
             ldarg.0
-            ldfld int32 Xenko.Updater.UpdatableListAccessor::Index
+            ldfld int32 Stride.Updater.UpdatableListAccessor::Index
             ldarg data
             unbox.any !T
             callvirt instance void class [mscorlib]System.Collections.Generic.IList`1<!T>::set_Item(int32, !0)
@@ -92,7 +92,7 @@ namespace Xenko.Updater
             // Note: IL is injected by UpdateEngineProcessor
             ldarg obj
             ldarg.0
-            ldfld int32 Xenko.Updater.UpdatableListAccessor::Index
+            ldfld int32 Stride.Updater.UpdatableListAccessor::Index
             ldarg data
             ldobj !T
             callvirt instance void class [mscorlib]System.Collections.Generic.IList`1<!T>::set_Item(int32, !0)
@@ -108,7 +108,7 @@ namespace Xenko.Updater
             // Use method to set testI
             ldarg obj
             ldarg.0
-            ldfld int32 Xenko.Updater.UpdatableListAccessor::Index
+            ldfld int32 Stride.Updater.UpdatableListAccessor::Index
             callvirt instance !T class [mscorlib]System.Collections.Generic.IList`1<!T>::get_Item(int32)
             ret
 #endif
@@ -122,7 +122,7 @@ namespace Xenko.Updater
             // Note: IL is injected by UpdateEngineProcessor
             ldarg obj
             ldarg.0
-            ldfld int32 Xenko.Updater.UpdatableListAccessor::Index
+            ldfld int32 Stride.Updater.UpdatableListAccessor::Index
             ldarg data
             callvirt instance void class [mscorlib]System.Collections.Generic.IList`1<!T>::set_Item(int32, !0)
             ret

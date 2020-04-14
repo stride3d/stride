@@ -1,6 +1,6 @@
 !SpriteFont
 Id: bdc10dde-cc94-45e6-88ee-bd5fe156f982
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 FontSource: !SystemFontProvider
     FontName: Arial

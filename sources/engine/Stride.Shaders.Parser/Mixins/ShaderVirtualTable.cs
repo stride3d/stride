@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core;
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Shaders.Parser.Utility;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Utility;
+using Stride.Core;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Shaders.Parser.Utility;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Utility;
 
-namespace Xenko.Shaders.Parser.Mixins
+namespace Stride.Shaders.Parser.Mixins
 {
     [DataContract(Inherited = true)]
     internal class ShaderVirtualTable
@@ -49,26 +49,26 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="errorLogger"></param>
         public void ReplaceVirtualMethod(MethodDeclaration methodDeclaration, LoggerResult errorLogger)
         {
-            var baseDeclarationMixin = (string)methodDeclaration.GetTag(XenkoTags.BaseDeclarationMixin);
+            var baseDeclarationMixin = (string)methodDeclaration.GetTag(StrideTags.BaseDeclarationMixin);
             foreach (var dict in VirtualTableGroup.Select(x => x.Value))
             {
                 for (int i = 0; i < dict.Length; ++i)
                 {
                     var method = dict[i];
-                    var originalDecl = (string)method.GetTag(XenkoTags.BaseDeclarationMixin);
+                    var originalDecl = (string)method.GetTag(StrideTags.BaseDeclarationMixin);
 
                     // TODO: take typedefs into account...
                     if (originalDecl == baseDeclarationMixin && method.IsSameSignature(methodDeclaration))
                     {
-                        if (method.Qualifiers.Contains(XenkoStorageQualifier.Stage) && !methodDeclaration.Qualifiers.Contains(XenkoStorageQualifier.Stage))
+                        if (method.Qualifiers.Contains(StrideStorageQualifier.Stage) && !methodDeclaration.Qualifiers.Contains(StrideStorageQualifier.Stage))
                         {
-                            errorLogger.Warning(XenkoMessageCode.WarningMissingStageKeyword, methodDeclaration.Span, methodDeclaration, (methodDeclaration.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName);
-                            methodDeclaration.Qualifiers |= XenkoStorageQualifier.Stage;
+                            errorLogger.Warning(StrideMessageCode.WarningMissingStageKeyword, methodDeclaration.Span, methodDeclaration, (methodDeclaration.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName);
+                            methodDeclaration.Qualifiers |= StrideStorageQualifier.Stage;
                         }
-                        else if (!method.Qualifiers.Contains(XenkoStorageQualifier.Stage) && methodDeclaration.Qualifiers.Contains(XenkoStorageQualifier.Stage))
+                        else if (!method.Qualifiers.Contains(StrideStorageQualifier.Stage) && methodDeclaration.Qualifiers.Contains(StrideStorageQualifier.Stage))
                         {
-                            errorLogger.Error(XenkoMessageCode.ErrorExtraStageKeyword, methodDeclaration.Span, methodDeclaration, method, (methodDeclaration.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName);
-                            methodDeclaration.Qualifiers.Values.Remove(XenkoStorageQualifier.Stage);
+                            errorLogger.Error(StrideMessageCode.ErrorExtraStageKeyword, methodDeclaration.Span, methodDeclaration, method, (methodDeclaration.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName);
+                            methodDeclaration.Qualifiers.Values.Remove(StrideStorageQualifier.Stage);
                         }
 
                         dict[i] = methodDeclaration;
@@ -88,11 +88,11 @@ namespace Xenko.Shaders.Parser.Mixins
             var finalDict = new MethodDeclaration[methodDeclarations.Count];
             foreach (var methodDecl in methodDeclarations)
             {
-                var vtableReference = (VTableReference)methodDecl.GetTag(XenkoTags.VirtualTableReference);
+                var vtableReference = (VTableReference)methodDecl.GetTag(StrideTags.VirtualTableReference);
                 finalDict[vtableReference.Slot] = methodDecl;
 
                 // TODO: override/abstract behavior
-                //if (methodDecl.Qualifiers.Contains(XenkoStorageQualifier.Override))
+                //if (methodDecl.Qualifiers.Contains(StrideStorageQualifier.Override))
                     LookForBaseDeclarationMixin(methodDecl, errorLogger);
             }
 
@@ -106,7 +106,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <returns></returns>
         public VTableReference GetBaseDeclaration(MethodDeclaration methodDeclaration)
         {
-            var baseMethodDeclMixin = methodDeclaration.GetTag(XenkoTags.BaseDeclarationMixin) as string;
+            var baseMethodDeclMixin = methodDeclaration.GetTag(StrideTags.BaseDeclarationMixin) as string;
             var slot = -1;
             var vt = VirtualTableGroup[baseMethodDeclMixin];
             for (int i = 0; i < vt.Length; ++i)
@@ -153,32 +153,32 @@ namespace Xenko.Shaders.Parser.Mixins
                 for (int i = 0; i < dict.Length; ++i)
                 {
                     var method = dict[i];
-                    var baseDeclarationMixin = (string)method.GetTag(XenkoTags.BaseDeclarationMixin);
+                    var baseDeclarationMixin = (string)method.GetTag(StrideTags.BaseDeclarationMixin);
 
                     // TODO: take typedefs into account...
                     if (method.IsSameSignature(methodDeclaration))
                     {
-                        var sourceShader = ((ModuleMixin)methodDeclaration.GetTag(XenkoTags.ShaderScope)).MixinName;
+                        var sourceShader = ((ModuleMixin)methodDeclaration.GetTag(StrideTags.ShaderScope)).MixinName;
 
                         // test override
-                        if (methodDeclaration is MethodDefinition && method is MethodDefinition && !methodDeclaration.Qualifiers.Contains(XenkoStorageQualifier.Override))
-                            errorLogger.Error(XenkoMessageCode.ErrorMissingOverride, method.Span, methodDeclaration, sourceShader);
+                        if (methodDeclaration is MethodDefinition && method is MethodDefinition && !methodDeclaration.Qualifiers.Contains(StrideStorageQualifier.Override))
+                            errorLogger.Error(StrideMessageCode.ErrorMissingOverride, method.Span, methodDeclaration, sourceShader);
                         if (!(methodDeclaration is MethodDefinition))
-                            errorLogger.Error(XenkoMessageCode.ErrorOverrindingDeclaration, method.Span, methodDeclaration, sourceShader);
+                            errorLogger.Error(StrideMessageCode.ErrorOverrindingDeclaration, method.Span, methodDeclaration, sourceShader);
 
-                        if (method.Qualifiers.Contains(XenkoStorageQualifier.Stage) && !methodDeclaration.Qualifiers.Contains(XenkoStorageQualifier.Stage))
+                        if (method.Qualifiers.Contains(StrideStorageQualifier.Stage) && !methodDeclaration.Qualifiers.Contains(StrideStorageQualifier.Stage))
                         {
-                            errorLogger.Warning(XenkoMessageCode.WarningMissingStageKeyword, methodDeclaration.Span, methodDeclaration, (methodDeclaration.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName);
-                            methodDeclaration.Qualifiers |= XenkoStorageQualifier.Stage;
+                            errorLogger.Warning(StrideMessageCode.WarningMissingStageKeyword, methodDeclaration.Span, methodDeclaration, (methodDeclaration.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName);
+                            methodDeclaration.Qualifiers |= StrideStorageQualifier.Stage;
                         }
-                        else if (!method.Qualifiers.Contains(XenkoStorageQualifier.Stage) && methodDeclaration.Qualifiers.Contains(XenkoStorageQualifier.Stage))
+                        else if (!method.Qualifiers.Contains(StrideStorageQualifier.Stage) && methodDeclaration.Qualifiers.Contains(StrideStorageQualifier.Stage))
                         {
-                            errorLogger.Error(XenkoMessageCode.ErrorExtraStageKeyword, methodDeclaration.Span, methodDeclaration, method, (methodDeclaration.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName);
-                            methodDeclaration.Qualifiers.Values.Remove(XenkoStorageQualifier.Stage);
+                            errorLogger.Error(StrideMessageCode.ErrorExtraStageKeyword, methodDeclaration.Span, methodDeclaration, method, (methodDeclaration.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName);
+                            methodDeclaration.Qualifiers.Values.Remove(StrideStorageQualifier.Stage);
                         }
 
                         dict[i] = methodDeclaration;
-                        methodDeclaration.SetTag(XenkoTags.BaseDeclarationMixin, baseDeclarationMixin);
+                        methodDeclaration.SetTag(StrideTags.BaseDeclarationMixin, baseDeclarationMixin);
                     }
                 }
             }

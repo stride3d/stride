@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -11,27 +11,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Transactions;
-using Xenko.Core.Presentation.Collections;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Extensions;
-using Xenko.Core.Presentation.Quantum;
-using Xenko.Core.Presentation.Quantum.ViewModels;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.Quantum;
-using Xenko.Core.Quantum.References;
-using Xenko.Assets.Presentation.ViewModel;
-using Xenko.Assets.Scripts;
-using Xenko.Assets.Rendering;
-using Accessibility = Xenko.Assets.Scripts.Accessibility;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Core.Transactions;
+using Stride.Core.Presentation.Collections;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Extensions;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Quantum;
+using Stride.Core.Quantum.References;
+using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Scripts;
+using Stride.Assets.Rendering;
+using Accessibility = Stride.Assets.Scripts.Accessibility;
 using RoslynAccessibility = Microsoft.CodeAnalysis.Accessibility;
 
-namespace Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor
+namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 {
     [AssetEditorViewModel(typeof(VisualScriptAsset), typeof(VisualScriptEditorView))]
     public partial class VisualScriptEditorViewModel : AssetEditorViewModel
@@ -460,14 +460,14 @@ namespace Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor
                 {
                     int count = 0;
 
-                    // Go through namespace to find module ones, and sort by priority: current assembly, Xenko, others, System
+                    // Go through namespace to find module ones, and sort by priority: current assembly, Stride, others, System
                     foreach (var assembly in GetAssemblies(latestCompilation, cancellationToken)
                         .OrderBy(assembly =>
                         {
                             if (assembly == latestCompilation.Assembly)
                                 return 0;
 
-                            if (assembly.Name.Contains("Xenko"))
+                            if (assembly.Name.Contains("Stride"))
                                 return 1;
 
                             if (assembly.Name == "mscorlib" || assembly.Name.StartsWith("System"))

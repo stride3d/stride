@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Assets.Physics;
-using Xenko.Assets.Presentation.Preview.Views;
-using Xenko.Core.Mathematics;
-using Xenko.Editor.Preview;
-using Xenko.Graphics;
-using Xenko.Physics;
+using Stride.Assets.Physics;
+using Stride.Assets.Presentation.Preview.Views;
+using Stride.Core.Mathematics;
+using Stride.Editor.Preview;
+using Stride.Graphics;
+using Stride.Physics;
 
-namespace Xenko.Assets.Presentation.Preview
+namespace Stride.Assets.Presentation.Preview
 {
     [AssetPreview(typeof(HeightmapAsset), typeof(HeightmapPreviewView))]
     public class HeightmapPreview : PreviewFromSpriteBatch<HeightmapAsset>

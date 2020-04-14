@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Rendering.Images;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Rendering.Images;
 
-namespace Xenko.Rendering.Voxels.Debug
+namespace Stride.Rendering.Voxels.Debug
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     [Display("Debug")]

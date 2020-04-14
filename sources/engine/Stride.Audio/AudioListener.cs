@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Native;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Native;
 
-namespace Xenko.Audio
+namespace Stride.Audio
 {
     /// <summary>
     /// Represents a 3D audio listener in the audio scene. 
@@ -21,7 +21,7 @@ namespace Xenko.Audio
         {
             if (engine.State == AudioEngineState.Invalidated) return;
 
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
             if (engine.DefaultListener == null)
             {
                 Listener = AudioLayer.ListenerCreate(engine.AudioDevice);
@@ -127,7 +127,7 @@ namespace Xenko.Audio
         {
             if (Listener.Ptr == IntPtr.Zero) return;
 
-#if !XENKO_PLATFORM_IOS
+#if !STRIDE_PLATFORM_IOS
             AudioLayer.ListenerDisable(Listener);
             AudioLayer.ListenerDestroy(Listener);
 #endif

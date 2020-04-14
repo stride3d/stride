@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Extensions;
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Shaders.Parser.Utility;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Utility;
-using Xenko.Core.Shaders.Visitor;
+using Stride.Core.Extensions;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Shaders.Parser.Utility;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Utility;
+using Stride.Core.Shaders.Visitor;
 
-using ParameterQualifier = Xenko.Core.Shaders.Ast.ParameterQualifier;
+using ParameterQualifier = Stride.Core.Shaders.Ast.ParameterQualifier;
 
-namespace Xenko.Shaders.Parser.Mixins
+namespace Stride.Shaders.Parser.Mixins
 {
-    internal  class XenkoStreamCreator
+    internal  class StrideStreamCreator
     {
         #region private static members
 
@@ -58,7 +58,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <summary>
         /// Stream analyzer
         /// </summary>
-        private XenkoStreamAnalyzer streamAnalyzer;
+        private StrideStreamAnalyzer streamAnalyzer;
 
         /// <summary>
         /// the error logger
@@ -69,7 +69,7 @@ namespace Xenko.Shaders.Parser.Mixins
 
         #region Constructor
 
-        private XenkoStreamCreator(ShaderClassType shaderClassType, ModuleMixin mixin, List<ModuleMixin> mixins, ShaderMixinParsingResult result)
+        private StrideStreamCreator(ShaderClassType shaderClassType, ModuleMixin mixin, List<ModuleMixin> mixins, ShaderMixinParsingResult result)
         {
             shader = shaderClassType;
             mainModuleMixin = mixin;
@@ -79,7 +79,7 @@ namespace Xenko.Shaders.Parser.Mixins
 
         public static void Run(ShaderClassType shaderClassType, ModuleMixin mixin, List<ModuleMixin> mixins, ShaderMixinParsingResult result)
         {
-            var streamCreator = new XenkoStreamCreator(shaderClassType, mixin, mixins, result);
+            var streamCreator = new StrideStreamCreator(shaderClassType, mixin, mixins, result);
             streamCreator.Run();
         }
 
@@ -89,7 +89,7 @@ namespace Xenko.Shaders.Parser.Mixins
 
         public void Run()
         {
-            streamAnalyzer = new XenkoStreamAnalyzer(this.parsingResult);
+            streamAnalyzer = new StrideStreamAnalyzer(this.parsingResult);
             streamAnalyzer.Run(shader);
 
             if (this.parsingResult.HasErrors)
@@ -121,17 +121,17 @@ namespace Xenko.Shaders.Parser.Mixins
 
             if (!(hullShaderMethod == null && hullConstantShaderMethod == null && domainShaderMethod == null) && (hullShaderMethod == null || hullConstantShaderMethod == null || domainShaderMethod == null))
             {
-                this.parsingResult.Error(XenkoMessageCode.ErrorIncompleteTesselationShader, new SourceSpan());
+                this.parsingResult.Error(StrideMessageCode.ErrorIncompleteTesselationShader, new SourceSpan());
                 return;
             }
             
-            StreamStageUsage streamStageUsageVS = vertexShaderMethod == null ? null : StreamAnalysisPerShader(vertexShaderMethod.GetTag(XenkoTags.ShaderScope) as ModuleMixin, vertexShaderMethod, XkShaderStage.Vertex);
-            StreamStageUsage streamStageUsageHS = hullShaderMethod == null ? null : StreamAnalysisPerShader(hullShaderMethod.GetTag(XenkoTags.ShaderScope) as ModuleMixin, hullShaderMethod, XkShaderStage.Hull);
-            StreamStageUsage streamStageUsageHSCS = hullConstantShaderMethod == null ? null : StreamAnalysisPerShader(hullConstantShaderMethod.GetTag(XenkoTags.ShaderScope) as ModuleMixin, hullConstantShaderMethod, XkShaderStage.Constant);
-            StreamStageUsage streamStageUsageDS = domainShaderMethod == null ? null : StreamAnalysisPerShader(domainShaderMethod.GetTag(XenkoTags.ShaderScope) as ModuleMixin, domainShaderMethod, XkShaderStage.Domain);
-            StreamStageUsage streamStageUsageGS = geometryShaderMethod == null ? null : StreamAnalysisPerShader(geometryShaderMethod.GetTag(XenkoTags.ShaderScope) as ModuleMixin, geometryShaderMethod, XkShaderStage.Geometry);
-            StreamStageUsage streamStageUsagePS = pixelShaderMethod == null ? null : StreamAnalysisPerShader(pixelShaderMethod.GetTag(XenkoTags.ShaderScope) as ModuleMixin, pixelShaderMethod, XkShaderStage.Pixel);
-            StreamStageUsage streamStageUsageCS = computeShaderMethod == null ? null : StreamAnalysisPerShader(computeShaderMethod.GetTag(XenkoTags.ShaderScope) as ModuleMixin, computeShaderMethod, XkShaderStage.Compute);
+            StreamStageUsage streamStageUsageVS = vertexShaderMethod == null ? null : StreamAnalysisPerShader(vertexShaderMethod.GetTag(StrideTags.ShaderScope) as ModuleMixin, vertexShaderMethod, XkShaderStage.Vertex);
+            StreamStageUsage streamStageUsageHS = hullShaderMethod == null ? null : StreamAnalysisPerShader(hullShaderMethod.GetTag(StrideTags.ShaderScope) as ModuleMixin, hullShaderMethod, XkShaderStage.Hull);
+            StreamStageUsage streamStageUsageHSCS = hullConstantShaderMethod == null ? null : StreamAnalysisPerShader(hullConstantShaderMethod.GetTag(StrideTags.ShaderScope) as ModuleMixin, hullConstantShaderMethod, XkShaderStage.Constant);
+            StreamStageUsage streamStageUsageDS = domainShaderMethod == null ? null : StreamAnalysisPerShader(domainShaderMethod.GetTag(StrideTags.ShaderScope) as ModuleMixin, domainShaderMethod, XkShaderStage.Domain);
+            StreamStageUsage streamStageUsageGS = geometryShaderMethod == null ? null : StreamAnalysisPerShader(geometryShaderMethod.GetTag(StrideTags.ShaderScope) as ModuleMixin, geometryShaderMethod, XkShaderStage.Geometry);
+            StreamStageUsage streamStageUsagePS = pixelShaderMethod == null ? null : StreamAnalysisPerShader(pixelShaderMethod.GetTag(StrideTags.ShaderScope) as ModuleMixin, pixelShaderMethod, XkShaderStage.Pixel);
+            StreamStageUsage streamStageUsageCS = computeShaderMethod == null ? null : StreamAnalysisPerShader(computeShaderMethod.GetTag(StrideTags.ShaderScope) as ModuleMixin, computeShaderMethod, XkShaderStage.Compute);
             
             // pathc some usage so that variables are correctly passed even if they are not explicitely used.
             if (streamStageUsageGS != null && streamStageUsageVS != null)
@@ -210,7 +210,7 @@ namespace Xenko.Shaders.Parser.Mixins
             StructType outputStructure = null;
 
             // remove the now useless tags and typeinferences to accelerate cloning
-            var tagCleaner = new XenkoTagCleaner();
+            var tagCleaner = new StrideTagCleaner();
             tagCleaner.Run(shader);
             
             outputStructure = GenerateStreams(vertexShaderMethod, streamStageUsageVS, "VS", outputStructure);
@@ -350,7 +350,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 }
 
                 var method = mixin.LocalVirtualTable.Methods.FirstOrDefault(x => x.Method.Name.Text == name && x.Method is MethodDefinition);
-                if (method != null && (count == 0 || method.Method.Qualifiers.Contains(XenkoStorageQualifier.Clone)))
+                if (method != null && (count == 0 || method.Method.Qualifiers.Contains(StrideStorageQualifier.Clone)))
                     return method.Method as MethodDefinition;
             }
             return null;
@@ -383,7 +383,7 @@ namespace Xenko.Shaders.Parser.Mixins
         {
             if (visitedMethods.Contains(currentMethod))
             {
-                parsingResult.Error(XenkoMessageCode.ErrorRecursiveCall, currentMethod.Span, currentMethod);
+                parsingResult.Error(StrideMessageCode.ErrorRecursiveCall, currentMethod.Span, currentMethod);
                 return;
             }
 
@@ -419,7 +419,7 @@ namespace Xenko.Shaders.Parser.Mixins
                                 FindStreamsUsage(streamUsage.MethodDeclaration, inStreamList, outStreamList, newListVisitedMethods);
                         }
                         else if (streamUsage.CallType != StreamCallType.Direct) // should not happen
-                            parsingResult.Error(XenkoMessageCode.ErrorStreamUsageInitialization, streamUsage.Expression.Span, streamUsage.Expression);
+                            parsingResult.Error(StrideMessageCode.ErrorStreamUsageInitialization, streamUsage.Expression.Span, streamUsage.Expression);
                     }
                 }
             }
@@ -585,7 +585,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 var inStreamStruct = CreateInputStreamStructure(prevOutputStructure, streamStageUsage.InStreamList, stageName + "_INPUT");
                 var outStreamStruct = CreateStreamStructure(streamStageUsage.OutStreamList, stageName + "_OUTPUT");
 
-                var mixin = entryPoint.GetTag(XenkoTags.ShaderScope) as ModuleMixin;
+                var mixin = entryPoint.GetTag(StrideTags.ShaderScope) as ModuleMixin;
 
                 var intermediateStreamStruct = CreateIntermediateStructType(streamStageUsage, stageName);
 
@@ -597,7 +597,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 var outputStatements = CreateOutputFromStream(outStreamStruct, "output", intermediateStreamStruct, "streams").ToList();
                 var outputVre = new VariableReferenceExpression(((outputStatements.First() as DeclarationStatement).Content as Variable).Name);
 
-                var replacor = new XenkoReplaceAppend(streamAnalyzer.AppendMethodCalls, outputStatements, outputVre);
+                var replacor = new StrideReplaceAppend(streamAnalyzer.AppendMethodCalls, outputStatements, outputVre);
                 ReplaceAppendMethod(entryPoint, replacor);
                 
                 var visitedMethods = new Stack<MethodDeclaration>();
@@ -627,7 +627,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// </summary>
         /// <param name="entryPoint">the entrypoint method</param>
         /// <param name="replacor">the visitor</param>
-        private void ReplaceAppendMethod(MethodDefinition entryPoint, XenkoReplaceAppend replacor)
+        private void ReplaceAppendMethod(MethodDefinition entryPoint, StrideReplaceAppend replacor)
         {
             replacor.Run(entryPoint);
 
@@ -694,7 +694,7 @@ namespace Xenko.Shaders.Parser.Mixins
         {
             if (entryPoint != null)
             {
-                var constStreamStruct = CreateStreamStructure(mainModuleMixin.VirtualTable.Variables.Select(x => x.Variable).Where(x => x.Qualifiers.Contains(XenkoStorageQualifier.PatchStream)).Distinct().ToList<IDeclaration>(), "HS_CONSTANTS");
+                var constStreamStruct = CreateStreamStructure(mainModuleMixin.VirtualTable.Variables.Select(x => x.Variable).Where(x => x.Qualifiers.Contains(StrideStorageQualifier.PatchStream)).Distinct().ToList<IDeclaration>(), "HS_CONSTANTS");
                 var typeConst = new TypeName(constStreamStruct.Name);
 
                 var visitedMethods = new Stack<MethodDeclaration>();
@@ -947,22 +947,22 @@ namespace Xenko.Shaders.Parser.Mixins
         {
             if (inputName != null)
             {
-                var replacor = new XenkoReplaceVisitor(StreamsType.Input, inputName);
+                var replacor = new StrideReplaceVisitor(StreamsType.Input, inputName);
                 replacor.Run(methodDeclaration);
             }
             if (input2Name != null)
             {
-                var replacor = new XenkoReplaceVisitor(StreamsType.Input2, input2Name);
+                var replacor = new StrideReplaceVisitor(StreamsType.Input2, input2Name);
                 replacor.Run(methodDeclaration);
             }
             if (outputName != null)
             {
-                var replacor = new XenkoReplaceVisitor(StreamsType.Output, outputName);
+                var replacor = new StrideReplaceVisitor(StreamsType.Output, outputName);
                 replacor.Run(methodDeclaration);
             }
             if (constantsName != null)
             {
-                var replacor = new XenkoReplaceVisitor(StreamsType.Constants, constantsName);
+                var replacor = new StrideReplaceVisitor(StreamsType.Constants, constantsName);
                 replacor.Run(methodDeclaration);
             }
         }
@@ -983,7 +983,7 @@ namespace Xenko.Shaders.Parser.Mixins
                     {
                         if (stageList.Value.Contains(method))
                         {
-                            parsingResult.Error(XenkoMessageCode.ErrorCrossStageMethodCall, method.Span, method, stage, shaderStage);
+                            parsingResult.Error(StrideMessageCode.ErrorCrossStageMethodCall, method.Span, method, stage, shaderStage);
                         }
                     }
                 }
@@ -1043,7 +1043,7 @@ namespace Xenko.Shaders.Parser.Mixins
                             var forLoop = new ForStatement(start, condition, next);
 
                             var fieldAssigner = new StreamFieldVisitor(field, new VariableReferenceExpression(iterator));
-                            var clonedExpression = fieldAssigner.Run(XenkoAssignmentCloner.Run(initialValue));
+                            var clonedExpression = fieldAssigner.Run(StrideAssignmentCloner.Run(initialValue));
                             
                             forLoop.Body = new ExpressionStatement(
                                 new AssignmentExpression(
@@ -1057,7 +1057,7 @@ namespace Xenko.Shaders.Parser.Mixins
                         {
                             var fieldAssigner = new StreamFieldVisitor(field);
                             //var clonedExpression = fieldAssigner.Run(initialValue.DeepClone());
-                            var clonedExpression = fieldAssigner.Run(XenkoAssignmentCloner.Run(initialValue));
+                            var clonedExpression = fieldAssigner.Run(StrideAssignmentCloner.Run(initialValue));
                             
                             yield return new ExpressionStatement(
                                 new AssignmentExpression(

@@ -5,7 +5,7 @@ Name: Game Settings
 Scope: Asset
 Description: An asset containing Game Settings (startup scene, graphics resolution, etc...)
 Group: Miscellaneous
-Icon: ..\.xktpl\GameSettings.png
+Icon: ..\.sdtpl\GameSettings.png
 Order: 1000
 DefaultOutputName: GameSettings
 FactoryTypeName: GameSettingsFactory

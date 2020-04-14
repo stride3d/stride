@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.ComponentModel;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Reflection;
-using Xenko.Engine.Design;
-using Xenko.Engine.Processors;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
+using Stride.Engine.Design;
+using Stride.Engine.Processors;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Engine
+namespace Stride.Engine
 {
     /// <summary>
     /// Describes the camera projection and view.

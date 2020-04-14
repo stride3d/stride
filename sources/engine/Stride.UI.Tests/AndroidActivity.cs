@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Android.App;
 using Android.OS;
-using Xenko.Starter;
-using Xenko.UI.Tests.Rendering;
+using Stride.Starter;
+using Stride.UI.Tests.Rendering;
 
-namespace Xenko.UI.Tests
+namespace Stride.UI.Tests
 {
-    [Activity(Label = "Xenko UI", MainLauncher = true, Icon = "@drawable/icon")]
-    public class AndroidActivity : AndroidXenkoActivity
+    [Activity(Label = "Stride UI", MainLauncher = true, Icon = "@drawable/icon")]
+    public class AndroidActivity : AndroidStrideActivity
     {
         protected override void OnCreate(Bundle bundle)
         {

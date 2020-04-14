@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_GRAPHICS_API_DIRECT3D || XENKO_GRAPHICS_API_VULKAN) && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP && (STRIDE_GRAPHICS_API_DIRECT3D || STRIDE_GRAPHICS_API_VULKAN) && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
 using Form = System.Windows.Forms.Form;
 using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
     /// <summary>
     /// An abstract window.
@@ -344,12 +344,12 @@ namespace Xenko.Games
             }
         }
 
-        public override Xenko.Core.Mathematics.Rectangle ClientBounds
+        public override Stride.Core.Mathematics.Rectangle ClientBounds
         {
             get
             {
                 // Ensure width and height are at least 1 to avoid divisions by 0
-                return new Xenko.Core.Mathematics.Rectangle(0, 0, Math.Max(Control.ClientSize.Width, 1), Math.Max(Control.ClientSize.Height, 1));
+                return new Stride.Core.Mathematics.Rectangle(0, 0, Math.Max(Control.ClientSize.Width, 1), Math.Max(Control.ClientSize.Height, 1));
             }
         }
 

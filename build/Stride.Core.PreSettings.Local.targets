@@ -1,15 +1,15 @@
-﻿<!-- Build file pre-included by all Xenko projects -->
+﻿<!-- Build file pre-included by all Stride projects -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <XenkoPackageXenko Condition="'$(XenkoPackageXenko)' == ''">$(MSBuildThisFileDirectory)..</XenkoPackageXenko>
+    <StridePackageStride Condition="'$(StridePackageStride)' == ''">$(MSBuildThisFileDirectory)..</StridePackageStride>
 
-    <XenkoPlatformFullName>$(XenkoPlatform)</XenkoPlatformFullName>
-    <XenkoPlatformFullName Condition="'$(XenkoBuildDirExtension)' != ''">$(XenkoPlatformFullName)-$(XenkoBuildDirExtension)</XenkoPlatformFullName>
+    <StridePlatformFullName>$(StridePlatform)</StridePlatformFullName>
+    <StridePlatformFullName Condition="'$(StrideBuildDirExtension)' != ''">$(StridePlatformFullName)-$(StrideBuildDirExtension)</StridePlatformFullName>
     
     <!-- Resolve path (remove ".." elements), for better support on Xamarin iOS -->
-    <XenkoPackageXenko>$([System.IO.Path]::GetFullPath('$(XenkoPackageXenko)'))</XenkoPackageXenko>
-    <XenkoPackageXenkoBin Condition="'$(XenkoPackageXenkoBin)' == ''">$(XenkoPackageXenko)\Bin</XenkoPackageXenkoBin>
-    <XenkoPackageXenkoSdkBin Condition="'$(XenkoPackageXenkoSdkBin)' == ''">$(XenkoPackageXenkoBin)\Windows</XenkoPackageXenkoSdkBin>
-    <XenkoPackageXenkoPlatformBin Condition="'$(XenkoPackageXenkoPlatformBin)' == ''">$(XenkoPackageXenkoBin)\$(XenkoPlatformFullName)</XenkoPackageXenkoPlatformBin>
+    <StridePackageStride>$([System.IO.Path]::GetFullPath('$(StridePackageStride)'))</StridePackageStride>
+    <StridePackageStrideBin Condition="'$(StridePackageStrideBin)' == ''">$(StridePackageStride)\Bin</StridePackageStrideBin>
+    <StridePackageStrideSdkBin Condition="'$(StridePackageStrideSdkBin)' == ''">$(StridePackageStrideBin)\Windows</StridePackageStrideSdkBin>
+    <StridePackageStridePlatformBin Condition="'$(StridePackageStridePlatformBin)' == ''">$(StridePackageStrideBin)\$(StridePlatformFullName)</StridePackageStridePlatformBin>
   </PropertyGroup>
 </Project>

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Shaders;
-using Xenko.Rendering.Materials;
-using static Xenko.Rendering.Voxels.VoxelAttributeEmissionOpacity;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Shaders;
+using Stride.Rendering.Materials;
+using static Stride.Rendering.Voxels.VoxelAttributeEmissionOpacity;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     public class VoxelLayoutBase
@@ -115,7 +115,7 @@ namespace Xenko.Rendering.Voxels
         
 
         protected ValueParameterKey<float> BrightnessInvKey;
-        protected ObjectParameterKey<Xenko.Graphics.Texture> DirectOutput;
+        protected ObjectParameterKey<Stride.Graphics.Texture> DirectOutput;
 
         virtual public ShaderSource GetVoxelizationShader(List<VoxelModifierEmissionOpacity> modifiers)
         {

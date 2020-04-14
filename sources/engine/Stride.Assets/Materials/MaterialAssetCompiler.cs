@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.BuildEngine;
-using Xenko.Core.IO;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Assets.Textures;
-using Xenko.Graphics;
-using Xenko.Rendering.Materials;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.BuildEngine;
+using Stride.Core.IO;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
+using Stride.Assets.Textures;
+using Stride.Graphics;
+using Stride.Rendering.Materials;
 
-namespace Xenko.Assets.Materials
+namespace Stride.Assets.Materials
 {
     [AssetCompiler(typeof(MaterialAsset), typeof(AssetCompilationContext))]
     internal class MaterialAssetCompiler : AssetCompilerBase
@@ -30,8 +30,8 @@ namespace Xenko.Assets.Materials
         public override IEnumerable<ObjectUrl> GetInputFiles(AssetItem assetItem)
         {
             // Note: might not be needed in all cases, but let's not bother for now (they are only 9kb)
-            yield return new ObjectUrl(UrlType.Content, "XenkoEnvironmentLightingDFGLUT16");
-            yield return new ObjectUrl(UrlType.Content, "XenkoEnvironmentLightingDFGLUT8");
+            yield return new ObjectUrl(UrlType.Content, "StrideEnvironmentLightingDFGLUT16");
+            yield return new ObjectUrl(UrlType.Content, "StrideEnvironmentLightingDFGLUT8");
         }
 
         protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)

@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Assets.Presentation.Preview;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Editor.Preview;
-using Xenko.Editor.Preview.ViewModel;
+using Stride.Assets.Presentation.Preview;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Editor.Preview;
+using Stride.Editor.Preview.ViewModel;
 
-namespace Xenko.Assets.Presentation.ViewModel.Preview
+namespace Stride.Assets.Presentation.ViewModel.Preview
 {
     [AssetPreviewViewModel(typeof(HeightmapPreview))]
     public class HeightmapPreviewViewModel : TextureBasePreviewViewModel

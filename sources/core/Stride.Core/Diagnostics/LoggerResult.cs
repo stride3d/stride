@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single class
 using System;
 using System.Diagnostics;
 using System.Text;
-using Xenko.Core.Annotations;
-using Xenko.Core.Collections;
+using Stride.Core.Annotations;
+using Stride.Core.Collections;
 
-namespace Xenko.Core.Diagnostics
+namespace Stride.Core.Diagnostics
 {
     /// <summary>
     /// A logger that stores messages locally useful for internal log scenarios.

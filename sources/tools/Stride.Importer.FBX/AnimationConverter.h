@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma once
 
@@ -10,10 +10,10 @@ using namespace System::Text;
 using namespace System::IO;
 using namespace System::Collections::Generic;
 using namespace System::Runtime::InteropServices;
-using namespace Xenko::Core::Mathematics;
-using namespace Xenko::Importer::Common;
+using namespace Stride::Core::Mathematics;
+using namespace Stride::Importer::Common;
 
-namespace Xenko {
+namespace Stride {
 	namespace Importer {
 		namespace FBX {
 

@@ -1,10 +1,10 @@
 using System;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Collections;
-using Xenko.Core.Mathematics;
-using Xenko.Animations;
-using Xenko.Engine;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Collections;
+using Stride.Core.Mathematics;
+using Stride.Animations;
+using Stride.Engine;
 
 namespace ##Namespace##
 {

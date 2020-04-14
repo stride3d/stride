@@ -1,6 +1,6 @@
 !MaterialAsset
 Id: 8866a602-efc2-49ae-8797-bf22d0794b8d
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Attributes:
     Tessellation: !MaterialTessellationPNFeature

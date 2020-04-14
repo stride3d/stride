@@ -45,7 +45,7 @@
 
 using System;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     /// <summary>
     /// Exception that is thrown when a semantic error is detected on a YAML stream.

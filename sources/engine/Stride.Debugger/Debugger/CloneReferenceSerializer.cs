@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Serializers;
-using Xenko.Core;
-using Xenko.Core.Reflection;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Yaml;
-using Xenko.Core.Yaml.Serialization;
-using Xenko.Core.Yaml.Serialization.Serializers;
-using Xenko.Engine;
-using SerializerContext = Xenko.Core.Yaml.Serialization.SerializerContext;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Serializers;
+using Stride.Core;
+using Stride.Core.Reflection;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Yaml;
+using Stride.Core.Yaml.Serialization;
+using Stride.Core.Yaml.Serialization.Serializers;
+using Stride.Engine;
+using SerializerContext = Stride.Core.Yaml.Serialization.SerializerContext;
 
-namespace Xenko.Debugger.Target
+namespace Stride.Debugger.Target
 {
     /// <summary>
     /// When serializing/deserializing Yaml for live objects, this serializer will handle those objects as reference (similar to Clone serializer).

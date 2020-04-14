@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable 162 // Unreachable code detected (due to useCacheFonts)
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.BuildEngine;
-using Xenko.Core.IO;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Assets.SpriteFont.Compiler;
-using Xenko.Graphics;
-using Xenko.Graphics.Font;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.BuildEngine;
+using Stride.Core.IO;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
+using Stride.Assets.SpriteFont.Compiler;
+using Stride.Graphics;
+using Stride.Graphics.Font;
 
-namespace Xenko.Assets.SpriteFont
+namespace Stride.Assets.SpriteFont
 {
     [AssetCompiler(typeof(SpriteFontAsset), typeof(AssetCompilationContext))]
     public class SpriteFontAssetCompiler : AssetCompilerBase

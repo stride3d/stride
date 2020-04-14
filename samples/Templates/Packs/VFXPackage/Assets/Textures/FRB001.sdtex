@@ -1,6 +1,6 @@
 !Texture
 Id: b34370ba-2a1a-485a-8eaf-d8fbd228ca39
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Textures/Bonfire/FRB001.dds
 Type: !ColorTextureType

@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 /* THIS CODE IS DISABLED, WE WILL HAVE TO CLEANUP ASSEMBLY DEPENDENCIES
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
 using System;
 using System.IO;
 
 using Xunit;
 
-using Xenko.PublicApiCheck;
+using Stride.PublicApiCheck;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     // CANNOT WORK INSIDE THE SAME SOLUTION. NEED TO RUN THIS OUTSIDE THE SOLUTION
     [Description("Check public Graphics API consistency between Reference, Direct3D, OpenGL42, OpenGLES")]
@@ -29,7 +29,7 @@ namespace Xenko.Graphics
 
         private static string GraphicsPath(string api)
         {
-            return string.Format(PathPattern, Platform, api, Target, "Xenko.Graphics.dll");
+            return string.Format(PathPattern, Platform, api, Target, "Stride.Graphics.dll");
         }
 
 

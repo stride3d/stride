@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -8,11 +8,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Mono.Options;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Windows;
-using Xenko.Engine.Network;
+using Stride.Core.Diagnostics;
+using Stride.Core.Windows;
+using Stride.Engine.Network;
 
-namespace Xenko.ConnectionRouter
+namespace Stride.ConnectionRouter
 {
     partial class Program
     {
@@ -28,8 +28,8 @@ namespace Xenko.ConnectionRouter
 
             var p = new OptionSet
                 {
-                    "Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved",
-                    "Xenko Router Server - Version: "
+                    "Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved",
+                    "Stride Router Server - Version: "
                     +
                     String.Format(
                         "{0}.{1}.{2}",
@@ -78,7 +78,7 @@ namespace Xenko.ConnectionRouter
                 {
                     if (mutex == null)
                     {
-                        Console.WriteLine("Another instance of Xenko Router is already running");
+                        Console.WriteLine("Another instance of Stride Router is already running");
                         return -1;
                     }
 
@@ -136,7 +136,7 @@ namespace Xenko.ConnectionRouter
             var components = new System.ComponentModel.Container();
 
             var notifyIcon = new System.Windows.Forms.NotifyIcon(components);
-            notifyIcon.Text = "Xenko Connection Router";
+            notifyIcon.Text = "Stride Connection Router";
             notifyIcon.Icon = Properties.Resources.Logo;
             notifyIcon.Visible = true;
             notifyIcon.ContextMenu = new System.Windows.Forms.ContextMenu();
@@ -167,7 +167,7 @@ namespace Xenko.ConnectionRouter
                 var toolTipIcon = logMessage.Type < LogMessageType.Error ? System.Windows.Forms.ToolTipIcon.Warning : System.Windows.Forms.ToolTipIcon.Error;
 
                 // Display notification (for two second)
-                notifyIcon.ShowBalloonTip(2000, "Xenko Connection Router", logMessage.ToString(), toolTipIcon);
+                notifyIcon.ShowBalloonTip(2000, "Stride Connection Router", logMessage.ToString(), toolTipIcon);
             };
 
             System.Windows.Forms.Application.ApplicationExit += (sender, e) =>

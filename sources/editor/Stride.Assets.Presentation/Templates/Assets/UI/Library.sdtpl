@@ -6,5 +6,5 @@ Scope: Asset
 Description: A library of controls you can customize and use in any other UI asset
 Group: UI
 Order: -10
-Icon: ..\.xktpl\UI.png
+Icon: ..\.sdtpl\UI.png
 DefaultOutputName: UILibrary

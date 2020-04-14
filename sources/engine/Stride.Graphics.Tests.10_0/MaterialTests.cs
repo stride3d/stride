@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -6,15 +6,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Graphics.Regression;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
-using Xenko.Rendering.Materials;
-using Xenko.Rendering.Materials.ComputeColors;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Graphics.Regression;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
+using Stride.Rendering.Materials;
+using Stride.Rendering.Materials.ComputeColors;
 
-namespace Xenko.Graphics.Tests
+namespace Stride.Graphics.Tests
 {
     /// <summary>
     /// Test <see cref="Material"/>.

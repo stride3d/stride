@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Presentation.ValueConverters
+namespace Stride.Core.Presentation.ValueConverters
 {
     /// <summary>
     /// This converter will convert a double value to a <see cref="Thickness"/> structure that can be used for Margin, Padding, etc.
     /// A <see cref="Thickness"/> must be passed as a parameter of this converter. You can use the <see cref="MarkupExtensions.ThicknessExtension"/>
-    /// markup extension to easily pass one, with the following syntax: {xk:Thickness (arguments)}. The resulting thickness will
+    /// markup extension to easily pass one, with the following syntax: {sd:Thickness (arguments)}. The resulting thickness will
     /// be the parameter thickness multiplied bu the scalar double value.
     /// </summary>
     [ValueConversion(typeof(double), typeof(Thickness))]
@@ -33,7 +33,7 @@ namespace Xenko.Core.Presentation.ValueConverters
 
             if (!(parameter is Thickness))
             {
-                throw new ArgumentException("The parameter of this converter must be an instance of the Thickness structure. Use {xk:Thickness (arguments)} to construct one.");
+                throw new ArgumentException("The parameter of this converter must be an instance of the Thickness structure. Use {sd:Thickness (arguments)} to construct one.");
             }
 
             var thickness = (Thickness)parameter;

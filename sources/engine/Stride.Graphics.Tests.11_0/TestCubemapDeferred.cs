@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 using Xunit;
 
-using Xenko.Core.Mathematics;
-using Xenko.Effects;
-using Xenko.Effects.Cubemap;
-using Xenko.Effects.Renderers;
-using Xenko.Engine;
-using Xenko.EntityModel;
-using Xenko.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Effects;
+using Stride.Effects.Cubemap;
+using Stride.Effects.Renderers;
+using Stride.Engine;
+using Stride.EntityModel;
+using Stride.Extensions;
 
-namespace Xenko.Graphics.Tests
+namespace Stride.Graphics.Tests
 {
     public class TestCubemapDeferred : TestGameBase
     {
@@ -111,7 +111,7 @@ namespace Xenko.Graphics.Tests
             // Create G-buffer pass
             var gbufferPipeline = new RenderPipeline("GBuffer");
             // Renders the G-buffer for opaque geometry.
-            gbufferPipeline.Renderers.Add(new ModelRenderer(Services, "CubemapIBLEffect.XenkoGBufferShaderPass"));
+            gbufferPipeline.Renderers.Add(new ModelRenderer(Services, "CubemapIBLEffect.StrideGBufferShaderPass"));
             var gbufferProcessor = new GBufferRenderProcessor(Services, gbufferPipeline, GraphicsDevice.DepthStencilBuffer, false);
 
             // Add sthe G-buffer pass to the pipeline.

@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Extensions;
-using Xenko.Shaders.Parser.Analysis;
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Shaders.Parser.Utility;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Utility;
+using Stride.Core.Extensions;
+using Stride.Shaders.Parser.Analysis;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Shaders.Parser.Utility;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Utility;
 
-using StorageQualifier = Xenko.Core.Shaders.Ast.StorageQualifier;
+using StorageQualifier = Stride.Core.Shaders.Ast.StorageQualifier;
 
-namespace Xenko.Shaders.Parser.Mixins
+namespace Stride.Shaders.Parser.Mixins
 {
-    internal class XenkoShaderMixer
+    internal class StrideShaderMixer
     {
         #region Public members
 
@@ -82,7 +82,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// or
         /// context
         /// </exception>
-        public XenkoShaderMixer(ModuleMixin moduleMixin, ShaderMixinParsingResult log, Dictionary<string, ModuleMixin> context, CompositionDictionary compositionsPerVariable, CloneContext cloneContext = null)
+        public StrideShaderMixer(ModuleMixin moduleMixin, ShaderMixinParsingResult log, Dictionary<string, ModuleMixin> context, CompositionDictionary compositionsPerVariable, CloneContext cloneContext = null)
         {
             if (moduleMixin == null)
                 throw new ArgumentNullException("moduleMixin");
@@ -209,7 +209,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 var arrayType = composition.Key.Type as ArrayType;
                 if (arrayType.Dimensions.Count > 1)
                 {
-                    log.Error(XenkoMessageCode.ErrorMultidimensionalCompositionArray, arrayType.Span, arrayType, composition.Value.First().MixinName);
+                    log.Error(StrideMessageCode.ErrorMultidimensionalCompositionArray, arrayType.Span, arrayType, composition.Value.First().MixinName);
                     return;
                 }
                 arrayType.Dimensions[0] = new LiteralExpression(composition.Value.Count);
@@ -218,17 +218,17 @@ namespace Xenko.Shaders.Parser.Mixins
             // then rerun the semantic analysis
             foreach (var composition in CompositionsPerVariable.Where(x => x.Key.Type is ArrayType))
             {
-                var moduleMixin = GetTopMixin(composition.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin);
+                var moduleMixin = GetTopMixin(composition.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin);
                 var compilationContext = moduleMixin.MinimalContext.Where(x => !(moduleMixin.InheritanceList.Contains(x) || x == moduleMixin)).ToList();
 
                 // rerun the semantic analysis in all the shader that inherits from the one where the composition was declared.
                 foreach (var inheritedMixin in moduleMixin.InheritanceList)
-                    inheritedMixin.ParsingInfo = XenkoSemanticAnalysis.RunAnalysis(inheritedMixin, compilationContext, true);
-                moduleMixin.ParsingInfo = XenkoSemanticAnalysis.RunAnalysis(moduleMixin, compilationContext, true);
+                    inheritedMixin.ParsingInfo = StrideSemanticAnalysis.RunAnalysis(inheritedMixin, compilationContext, true);
+                moduleMixin.ParsingInfo = StrideSemanticAnalysis.RunAnalysis(moduleMixin, compilationContext, true);
 
                 if (moduleMixin.ParsingInfo.ErrorsWarnings.HasErrors)
                     return;
-                    //throw new Exception("Semantic analysis failed in XenkoShaderMixer");
+                    //throw new Exception("Semantic analysis failed in StrideShaderMixer");
             }
         }
 
@@ -302,7 +302,7 @@ namespace Xenko.Shaders.Parser.Mixins
 
             foreach (var variable in mixin.LocalVirtualTable.Variables.Select(x => x.Variable))
             {
-                if (variable.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern))
+                if (variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern))
                 {
                     List<ModuleMixin> mixins;
                     if (CompositionsPerVariable.TryGetValue(variable, out mixins))
@@ -323,9 +323,9 @@ namespace Xenko.Shaders.Parser.Mixins
                     }
                 }
 
-                if (!(variable.Qualifiers.Values.Contains(XenkoStorageQualifier.Stream)
-                      || variable.Qualifiers.Values.Contains(XenkoStorageQualifier.PatchStream)
-                      || variable.Qualifiers.Values.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern)))
+                if (!(variable.Qualifiers.Values.Contains(StrideStorageQualifier.Stream)
+                      || variable.Qualifiers.Values.Contains(StrideStorageQualifier.PatchStream)
+                      || variable.Qualifiers.Values.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern)))
                 {
                     var attribute = variable.Attributes.OfType<AttributeDeclaration>().FirstOrDefault(x => x.Name == "Link");
                     if (attribute == null)
@@ -356,7 +356,7 @@ namespace Xenko.Shaders.Parser.Mixins
                     }
 
                     // Append location to key in case it is a local variable
-                    if (!variable.Qualifiers.Values.Contains(XenkoStorageQualifier.Stage))
+                    if (!variable.Qualifiers.Values.Contains(StrideStorageQualifier.Stage))
                     {
                         attribute.Parameters[0].SubLiterals = null; // set to null to avoid conflict with the member Value
                         attribute.Parameters[0].Value = (string)attribute.Parameters[0].Value + context;
@@ -369,7 +369,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 var attribute = variable.Attributes.OfType<AttributeDeclaration>().FirstOrDefault(x => x.Name == "Link");
                 if (attribute == null)
                 {
-                    var baseClassName = (variable.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinGenericName;
+                    var baseClassName = (variable.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinGenericName;
 
                     attribute = new AttributeDeclaration { Name = new Identifier("Link"), Parameters = new List<Literal> { new Literal(baseClassName + "." + variable.Name.Text) } };
                     variable.Attributes.Add(attribute);
@@ -404,10 +404,10 @@ namespace Xenko.Shaders.Parser.Mixins
             
             foreach (var variable in mixin.LocalVirtualTable.Variables)
             {
-                if (variable.Variable.Qualifiers.Contains(XenkoStorageQualifier.Stage))
+                if (variable.Variable.Qualifiers.Contains(StrideStorageQualifier.Stage))
                 {
                     var shaderName = variable.Shader.Name.Text;
-                    var sameVar = mainModuleMixin.ClassReferences.VariablesReferences.FirstOrDefault(x => x.Key.Name.Text == variable.Variable.Name.Text && (x.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName == shaderName).Key;
+                    var sameVar = mainModuleMixin.ClassReferences.VariablesReferences.FirstOrDefault(x => x.Key.Name.Text == variable.Variable.Name.Text && (x.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName == shaderName).Key;
                     if (sameVar != null)
                         continue;
                 }
@@ -481,7 +481,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 index = (int)(indexerExpression.Index as LiteralExpression).Value;
             }
 
-            if (result != null && result.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern) && !(result.Type is ArrayType))
+            if (result != null && result.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern) && !(result.Type is ArrayType))
                 mixin = CompositionsPerVariable[result][index];
 
             return result;
@@ -496,7 +496,7 @@ namespace Xenko.Shaders.Parser.Mixins
             if (foundVar != null)
                 return foundVar.Variable;
 
-            log.Error(XenkoMessageCode.ErrorVariableNotFound, new SourceSpan(), varName, mixin.MixinName);
+            log.Error(StrideMessageCode.ErrorVariableNotFound, new SourceSpan(), varName, mixin.MixinName);
             return null;
         }
 
@@ -516,18 +516,18 @@ namespace Xenko.Shaders.Parser.Mixins
             var topMixin = GetTopMixin(mixin);
             if (topMixin == null)
             {
-                log.Error(XenkoMessageCode.ErrorTopMixinNotFound, expression.Span, expression);
+                log.Error(StrideMessageCode.ErrorTopMixinNotFound, expression.Span, expression);
                 return null;
             }
             var foundMethod = topMixin.GetMethodFromExpression(expression);
             if (foundMethod == null)
             {
-                log.Error(XenkoMessageCode.ErrorCallNotFound, expression.Span, expression);
+                log.Error(StrideMessageCode.ErrorCallNotFound, expression.Span, expression);
                 return null;
             }
-            if (foundMethod.Qualifiers.Contains(XenkoStorageQualifier.Abstract))
+            if (foundMethod.Qualifiers.Contains(StrideStorageQualifier.Abstract))
             {
-                log.Error(XenkoMessageCode.ErrorCallToAbstractMethod, expression.Span, expression, foundMethod);
+                log.Error(StrideMessageCode.ErrorCallToAbstractMethod, expression.Span, expression, foundMethod);
                 return null;
             }
             return foundMethod;
@@ -557,7 +557,7 @@ namespace Xenko.Shaders.Parser.Mixins
                     result = FindVariable(target, ref mixin);
 
                 var index = (int)(indexerExpression.Index as LiteralExpression).Value;
-                if (result != null && result.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern))
+                if (result != null && result.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern))
                     mixin = CompositionsPerVariable[result][index];
             }
         }
@@ -568,7 +568,7 @@ namespace Xenko.Shaders.Parser.Mixins
         private void BuildStageInheritance()
         {
             foreach (var mixin in MixinInheritance)
-                InsertStageMethods(mixin.LocalVirtualTable.Methods.Select(x => x.Method).Where(x => x.Qualifiers.Values.Contains(XenkoStorageQualifier.Stage)).ToList(), GetTopMixin(mixin));
+                InsertStageMethods(mixin.LocalVirtualTable.Methods.Select(x => x.Method).Where(x => x.Qualifiers.Values.Contains(StrideStorageQualifier.Stage)).ToList(), GetTopMixin(mixin));
         }
 
         /// <summary>
@@ -582,7 +582,7 @@ namespace Xenko.Shaders.Parser.Mixins
             {
                 if (extMethod is MethodDefinition)
                 {
-                    var isClone = extMethod.Qualifiers.Values.Contains(XenkoStorageQualifier.Clone);
+                    var isClone = extMethod.Qualifiers.Values.Contains(StrideStorageQualifier.Clone);
                     var newEntry = true;
 
                     // find a corresponding method
@@ -596,14 +596,14 @@ namespace Xenko.Shaders.Parser.Mixins
                             continue;
 
                         var firstOccurrence = stageMethodList.First();
-                        var occurrenceMixin = firstOccurrence.GetTag(XenkoTags.ShaderScope) as ModuleMixin;
+                        var occurrenceMixin = firstOccurrence.GetTag(StrideTags.ShaderScope) as ModuleMixin;
                         var listVTReference = occurrenceMixin.VirtualTable.GetBaseDeclaration(firstOccurrence);
 
                         if (vtReference.Slot != listVTReference.Slot || vtReference.Shader != listVTReference.Shader)
                             continue;
 
                         newEntry = false;
-                        var extMixin = extMethod.GetTag(XenkoTags.ShaderScope) as ModuleMixin;
+                        var extMixin = extMethod.GetTag(StrideTags.ShaderScope) as ModuleMixin;
                         if (isClone || extMixin.OccurrenceId == 1)
                             stageMethodList.Add(extMethod);
                     }
@@ -686,7 +686,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <returns>the correct called method</returns>
         private MethodDeclaration FindStaticMethod(MethodInvocationExpression expression)
         {
-            var defMixin = (expression.Target.TypeInference.Declaration as MethodDeclaration).GetTag(XenkoTags.ShaderScope) as ModuleMixin;
+            var defMixin = (expression.Target.TypeInference.Declaration as MethodDeclaration).GetTag(StrideTags.ShaderScope) as ModuleMixin;
             defMixin = mixContext[defMixin.MixinName];
             return defMixin.GetMethodFromExpression(expression.Target);
         }
@@ -698,7 +698,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <returns>the base declaration</returns>
         private MethodDeclaration GetBaseStageMethod(MethodInvocationExpression methodCall)
         {
-            var mixin = methodCall.GetTag(XenkoTags.CurrentShader) as ModuleMixin;
+            var mixin = methodCall.GetTag(StrideTags.CurrentShader) as ModuleMixin;
             var vtReference = mixin.VirtualTable.GetBaseDeclaration(methodCall.Target.TypeInference.Declaration as MethodDeclaration);
             foreach (var stageMethodList in StageMethodInheritance)
             {
@@ -706,7 +706,7 @@ namespace Xenko.Shaders.Parser.Mixins
                     continue;
 
                 var firstOccurrence = stageMethodList.First();
-                var occurrenceMixin = firstOccurrence.GetTag(XenkoTags.ShaderScope) as ModuleMixin;
+                var occurrenceMixin = firstOccurrence.GetTag(StrideTags.ShaderScope) as ModuleMixin;
                 var listVTReference = occurrenceMixin.VirtualTable.GetBaseDeclaration(firstOccurrence);
 
                 if (vtReference.Slot != listVTReference.Slot || vtReference.Shader != listVTReference.Shader)
@@ -716,13 +716,13 @@ namespace Xenko.Shaders.Parser.Mixins
                 for (int j = stageMethodList.Count - 1; j > 0; --j)
                 {
                     var decl = stageMethodList[j];
-                    if (decl.GetTag(XenkoTags.ShaderScope) as ModuleMixin == mixin)
+                    if (decl.GetTag(StrideTags.ShaderScope) as ModuleMixin == mixin)
                         return stageMethodList[j - 1];
                 }
                 //for (int j = stageMethodList.Count - 1; j >= 0; --j)
                 //{
                 //    var decl = stageMethodList[j];
-                //    if (decl.GetTag(XenkoTags.ShaderScope) as ModuleMixin == mixin)
+                //    if (decl.GetTag(StrideTags.ShaderScope) as ModuleMixin == mixin)
                 //    {
                 //        if (j == 0)
                 //            return stageMethodList[0];
@@ -740,7 +740,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <returns>the declaration</returns>
         private MethodDeclaration GetThisStageMethod(MethodInvocationExpression methodCall)
         {
-            var mixin = methodCall.GetTag(XenkoTags.CurrentShader) as ModuleMixin;
+            var mixin = methodCall.GetTag(StrideTags.CurrentShader) as ModuleMixin;
             var vtReference = mixin.VirtualTable.GetBaseDeclaration(methodCall.Target.TypeInference.Declaration as MethodDeclaration);
             foreach (var stageMethodList in StageMethodInheritance)
             {
@@ -748,7 +748,7 @@ namespace Xenko.Shaders.Parser.Mixins
                     continue;
 
                 var firstOccurrence = stageMethodList.First();
-                var occurrenceMixin = firstOccurrence.GetTag(XenkoTags.ShaderScope) as ModuleMixin;
+                var occurrenceMixin = firstOccurrence.GetTag(StrideTags.ShaderScope) as ModuleMixin;
                 var listVTReference = occurrenceMixin.VirtualTable.GetBaseDeclaration(firstOccurrence);
 
                 if (vtReference.Slot != listVTReference.Slot || vtReference.Shader != listVTReference.Shader)
@@ -773,7 +773,7 @@ namespace Xenko.Shaders.Parser.Mixins
             foreach (var baseCall in mixin.ParsingInfo.BaseMethodCalls)
             {
                 MethodDeclaration decl = null;
-                if ((baseCall.Target.TypeInference.Declaration as MethodDeclaration).Qualifiers.Contains(XenkoStorageQualifier.Stage))
+                if ((baseCall.Target.TypeInference.Declaration as MethodDeclaration).Qualifiers.Contains(StrideStorageQualifier.Stage))
                     decl = GetBaseStageMethod(baseCall);
                 else
                     decl = topMixin.GetBaseMethodFromExpression(baseCall.Target, mixin);
@@ -788,16 +788,16 @@ namespace Xenko.Shaders.Parser.Mixins
                     AddToMethodsReferences(baseCall);
                 }
                 else
-                    log.Error(XenkoMessageCode.ErrorImpossibleBaseCall, baseCall.Span, baseCall, mixin.MixinName);
+                    log.Error(StrideMessageCode.ErrorImpossibleBaseCall, baseCall.Span, baseCall, mixin.MixinName);
             }
 
             // resolve this calls
             foreach (var thisCall in mixin.ParsingInfo.ThisMethodCalls)
             {
                 MethodDeclaration decl = null;
-                if ((thisCall.Target.TypeInference.Declaration as MethodDeclaration).Qualifiers.Contains(XenkoStorageQualifier.Stage))
+                if ((thisCall.Target.TypeInference.Declaration as MethodDeclaration).Qualifiers.Contains(StrideStorageQualifier.Stage))
                     decl = GetThisStageMethod(thisCall);
-                else if (thisCall.ContainsTag(XenkoTags.StaticRef))
+                else if (thisCall.ContainsTag(StrideTags.StaticRef))
                     decl = FindStaticMethod(thisCall);
                 else
                     decl = topMixin.GetMethodFromExpression(thisCall.Target);
@@ -809,11 +809,11 @@ namespace Xenko.Shaders.Parser.Mixins
                     thisCall.TypeInference.TargetType = decl.ReturnType;
                     thisCall.Target.TypeInference.Declaration = decl;
 
-                    if (!thisCall.ContainsTag(XenkoTags.StaticRef))
+                    if (!thisCall.ContainsTag(StrideTags.StaticRef))
                         AddToMethodsReferences(thisCall);
                 }
                 else
-                    log.Error(XenkoMessageCode.ErrorImpossibleVirtualCall, thisCall.Span, thisCall, mixin.MixinName, mainModuleMixin.MixinName);
+                    log.Error(StrideMessageCode.ErrorImpossibleVirtualCall, thisCall.Span, thisCall, mixin.MixinName, mainModuleMixin.MixinName);
             }
         }
 
@@ -823,11 +823,11 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="externMix"></param>
         private void InferStageVariables(ModuleMixin externMix)
         {
-            var stageDict = externMix.ClassReferences.VariablesReferences.Where(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Stage)).ToDictionary(x => x.Key, x => x.Value);
+            var stageDict = externMix.ClassReferences.VariablesReferences.Where(x => x.Key.Qualifiers.Contains(StrideStorageQualifier.Stage)).ToDictionary(x => x.Key, x => x.Value);
             foreach (var variable in stageDict)
             {
-                var shaderName = (variable.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName;
-                var foundDeclaration = mainModuleMixin.ClassReferences.VariablesReferences.FirstOrDefault(x => x.Key.Name.Text == variable.Key.Name.Text && (x.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName == shaderName).Key;
+                var shaderName = (variable.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName;
+                var foundDeclaration = mainModuleMixin.ClassReferences.VariablesReferences.FirstOrDefault(x => x.Key.Name.Text == variable.Key.Name.Text && (x.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName == shaderName).Key;
                 if (foundDeclaration == null)// get by semantics if necessary
                 {
                     var semantic = variable.Key.Qualifiers.Values.OfType<Semantic>().FirstOrDefault();
@@ -855,7 +855,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 }
                 else
                 {
-                    log.Error(XenkoMessageCode.ErrorMissingStageVariable, variable.Key.Span, variable, externMix.MixinName);
+                    log.Error(StrideMessageCode.ErrorMissingStageVariable, variable.Key.Span, variable, externMix.MixinName);
                     return;
                 }
             }
@@ -881,12 +881,12 @@ namespace Xenko.Shaders.Parser.Mixins
                     var foundDefinition = FindVariable(expression.Expression, ref searchMixin);
                     if (foundDefinition != null) // should be always true
                     {
-                        if (foundDefinition.Qualifiers.Contains(XenkoStorageQualifier.Stage))
+                        if (foundDefinition.Qualifiers.Contains(StrideStorageQualifier.Stage))
                         {
 
                             var sameVar =
                                 mixin.ClassReferences.VariablesReferences.FirstOrDefault(
-                                    x => x.Key.Name.Text == foundDefinition.Name.Text && (x.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName == (foundDefinition.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName).Key;
+                                    x => x.Key.Name.Text == foundDefinition.Name.Text && (x.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName == (foundDefinition.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName).Key;
                             if (sameVar == null)
                             {
                                 mixin.ClassReferences.VariablesReferences.Add(foundDefinition, new HashSet<ExpressionNodeCouple>());
@@ -906,7 +906,7 @@ namespace Xenko.Shaders.Parser.Mixins
                         }
                     }
                     else
-                        log.Error(XenkoMessageCode.ErrorExternReferenceNotFound, expression.Expression.Span, expression, mixin.MixinName);
+                        log.Error(StrideMessageCode.ErrorExternReferenceNotFound, expression.Expression.Span, expression, mixin.MixinName);
                 }
             }
             mixin.ExternReferences.VariablesReferences.Clear();
@@ -925,7 +925,7 @@ namespace Xenko.Shaders.Parser.Mixins
                         methodInvoc.Target.TypeInference.Declaration = foundDefinition;
                     }
                     else
-                        log.Error(XenkoMessageCode.ErrorExternReferenceNotFound, methodInvoc.Span, methodInvoc, mixin.MixinName);
+                        log.Error(StrideMessageCode.ErrorExternReferenceNotFound, methodInvoc.Span, methodInvoc, mixin.MixinName);
                 }
             }
             mixin.ExternReferences.MethodsReferences.Clear();
@@ -939,19 +939,19 @@ namespace Xenko.Shaders.Parser.Mixins
         {
             foreach (var variable in moduleMixin.StageInitReferences.VariablesReferences)
             {
-                var varMixinName = ((ModuleMixin)variable.Key.GetTag(XenkoTags.ShaderScope)).MixinName;
+                var varMixinName = ((ModuleMixin)variable.Key.GetTag(StrideTags.ShaderScope)).MixinName;
                 var mixin = MixinInheritance.FirstOrDefault(x => x.MixinName == varMixinName);
                 if (mixin == null)
                 {
-                    log.Error(XenkoMessageCode.ErrorStageMixinNotFound, new SourceSpan(), varMixinName, moduleMixin.MixinName);
+                    log.Error(StrideMessageCode.ErrorStageMixinNotFound, new SourceSpan(), varMixinName, moduleMixin.MixinName);
                     return;
                 } 
                 
                 var trueVar = mixin.ClassReferences.VariablesReferences.FirstOrDefault(x => x.Key.Name.Text == variable.Key.Name.Text).Key;
                 if (trueVar == null)
                 {
-                    var sourceShader = ((ModuleMixin)variable.Key.GetTag(XenkoTags.ShaderScope)).MixinName;
-                    log.Error(XenkoMessageCode.ErrorStageMixinVariableNotFound, new SourceSpan(), varMixinName, sourceShader, moduleMixin.MixinName);
+                    var sourceShader = ((ModuleMixin)variable.Key.GetTag(StrideTags.ShaderScope)).MixinName;
+                    log.Error(StrideMessageCode.ErrorStageMixinVariableNotFound, new SourceSpan(), varMixinName, sourceShader, moduleMixin.MixinName);
                     return;
                 }
 
@@ -965,25 +965,25 @@ namespace Xenko.Shaders.Parser.Mixins
             }
             foreach (var method in moduleMixin.StageInitReferences.MethodsReferences)
             {
-                var varMixinName = ((ModuleMixin)method.Key.GetTag(XenkoTags.ShaderScope)).MixinName;
+                var varMixinName = ((ModuleMixin)method.Key.GetTag(StrideTags.ShaderScope)).MixinName;
                 var mixin = MixinInheritance.FirstOrDefault(x => x.MixinName == varMixinName);
                 if (mixin == null)
                 {
-                    log.Error(XenkoMessageCode.ErrorStageMixinNotFound, new SourceSpan(), varMixinName, moduleMixin.MixinName);
+                    log.Error(StrideMessageCode.ErrorStageMixinNotFound, new SourceSpan(), varMixinName, moduleMixin.MixinName);
                     return;
                 }
 
                 var trueVar = GetTopMixin(mixin).GetMethodFromDeclaration(method.Key);
                 if (trueVar == null)
                 {
-                    log.Error(XenkoMessageCode.ErrorStageMixinMethodNotFound, new SourceSpan(), varMixinName, method, moduleMixin.MixinName);
+                    log.Error(StrideMessageCode.ErrorStageMixinMethodNotFound, new SourceSpan(), varMixinName, method, moduleMixin.MixinName);
                     return;
                 }
 
                 foreach (var varRef in method.Value)
                 {
                     varRef.Target.TypeInference.Declaration = trueVar;
-                    varRef.Target.SetTag(XenkoTags.VirtualTableReference, trueVar.GetTag(XenkoTags.VirtualTableReference));
+                    varRef.Target.SetTag(StrideTags.VirtualTableReference, trueVar.GetTag(StrideTags.VirtualTableReference));
                 }
 
                 mainModuleMixin.ClassReferences.MethodsReferences[trueVar].UnionWith(method.Value);
@@ -1008,8 +1008,8 @@ namespace Xenko.Shaders.Parser.Mixins
             {
                 foreach (var variable in externMix.StaticReferences.VariablesReferences)
                 {
-                    var varMixinName = (variable.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName;
-                    var staticVars = mainModuleMixin.StaticReferences.VariablesReferences.Where(x => (x.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName == varMixinName && x.Key.Name.Text == variable.Key.Name.Text).ToDictionary(x => x.Key, x => x.Value);
+                    var varMixinName = (variable.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName;
+                    var staticVars = mainModuleMixin.StaticReferences.VariablesReferences.Where(x => (x.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName == varMixinName && x.Key.Name.Text == variable.Key.Name.Text).ToDictionary(x => x.Key, x => x.Value);
 
                     // if the entry already exists, append to it
                     if (staticVars.Count > 0)
@@ -1027,8 +1027,8 @@ namespace Xenko.Shaders.Parser.Mixins
                 }
                 foreach (var method in externMix.StaticReferences.MethodsReferences)
                 {
-                    var methodMixinName = (method.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName;
-                    var staticMethods = mainModuleMixin.StaticReferences.MethodsReferences.Where(x => (x.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName == methodMixinName && x.Key.IsSameSignature(method.Key)).ToDictionary(x => x.Key, x => x.Value);
+                    var methodMixinName = (method.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName;
+                    var staticMethods = mainModuleMixin.StaticReferences.MethodsReferences.Where(x => (x.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName == methodMixinName && x.Key.IsSameSignature(method.Key)).ToDictionary(x => x.Key, x => x.Value);
 
                     // if the entry already exists, append to it
                     if (staticMethods.Count > 0)
@@ -1068,7 +1068,7 @@ namespace Xenko.Shaders.Parser.Mixins
                     var memberReferenceExpression = varRef.Expression as MemberReferenceExpression;
                     if (memberReferenceExpression != null)
                     {
-                        if (variable.Key.Qualifiers.Contains(XenkoStorageQualifier.Stream)) // TODO: change test
+                        if (variable.Key.Qualifiers.Contains(StrideStorageQualifier.Stream)) // TODO: change test
                         {
                             memberReferenceExpression.Member = variable.Key.Name;
 
@@ -1076,7 +1076,7 @@ namespace Xenko.Shaders.Parser.Mixins
                             if (type == null || !type.IsStreamsType() || !type.IsStreamsMutable())
                                 memberReferenceExpression.Target = new VariableReferenceExpression(StreamsType.ThisStreams);
                         }
-                        else if (variable.Key.Qualifiers.Contains(XenkoStorageQualifier.PatchStream))
+                        else if (variable.Key.Qualifiers.Contains(StrideStorageQualifier.PatchStream))
                         {
                             memberReferenceExpression.Member = variable.Key.Name;
                         }
@@ -1188,7 +1188,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 }
                 
                 var method = mixin.LocalVirtualTable.Methods.FirstOrDefault(x => x.Method.Name.Text == name && x.Method is MethodDefinition);
-                if (method != null && (count == 0 || method.Method.Qualifiers.Contains(XenkoStorageQualifier.Clone)))
+                if (method != null && (count == 0 || method.Method.Qualifiers.Contains(StrideStorageQualifier.Clone)))
                     return method.Method as MethodDefinition;
             }
             return null;
@@ -1225,7 +1225,7 @@ namespace Xenko.Shaders.Parser.Mixins
             MixedShader.Members = MixedShader.Members.Distinct().ToList();
 
             // Create streams
-            XenkoStreamCreator.Run(MixedShader, mainModuleMixin, MixinInheritance, log);
+            StrideStreamCreator.Run(MixedShader, mainModuleMixin, MixinInheritance, log);
             
             if (log.HasErrors)
                 return;
@@ -1251,7 +1251,7 @@ namespace Xenko.Shaders.Parser.Mixins
             foreach (var node in nodes)
             {
                 var weight = -1;
-                var classSource = node.GetTag(XenkoTags.ShaderScope) as ModuleMixin;
+                var classSource = node.GetTag(StrideTags.ShaderScope) as ModuleMixin;
                 if (classSource == null)
                     throw new Exception("Node has no class source");
 
@@ -1288,15 +1288,15 @@ namespace Xenko.Shaders.Parser.Mixins
             }
 
             // Remove "extern" variables
-            MixedShader.Members.RemoveAll(x => x is Variable && (x as Variable).Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern));
+            MixedShader.Members.RemoveAll(x => x is Variable && (x as Variable).Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern));
             
-            var variableUsageVisitor = new XenkoVariableUsageVisitor(variablesUsages);
+            var variableUsageVisitor = new StrideVariableUsageVisitor(variablesUsages);
             variableUsageVisitor.Run(MixedShader);
 
             foreach (var variable in MixedShader.Members.OfType<Variable>().ToList())
             {
                 // Ignore variable with logical groups
-                if (variable.GetTag(XenkoTags.LogicalGroup) != null)
+                if (variable.GetTag(StrideTags.LogicalGroup) != null)
                     continue;
 
                 // Don't remove resources since they need to consistent between resource group layouts. The EffectCompiler will clean up reflection if possible
@@ -1329,7 +1329,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <returns>true/false</returns>
         private bool KeepVariableInCBuffer(Variable variable)
         {
-            return !(variable.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern) || variable.Qualifiers.Contains(XenkoStorageQualifier.Stream) || variable.Qualifiers.Contains(XenkoStorageQualifier.PatchStream) || IsOutOfCBufferVariable(variable) || variable.Qualifiers.Contains(StorageQualifier.Const));
+            return !(variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern) || variable.Qualifiers.Contains(StrideStorageQualifier.Stream) || variable.Qualifiers.Contains(StrideStorageQualifier.PatchStream) || IsOutOfCBufferVariable(variable) || variable.Qualifiers.Contains(StorageQualifier.Const));
         }
 
         // Group everything by constant buffers
@@ -1339,13 +1339,13 @@ namespace Xenko.Shaders.Parser.Mixins
             MergeReferenceVariables(mainModuleMixin.ClassReferences.VariablesReferences.Select(x => x.Key).ToList());
 
             // Order variables by cbuffer/rgroup (which still include logical group)
-            var variables = mainModuleMixin.ClassReferences.VariablesReferences.OrderBy(x => ((ConstantBuffer)x.Key.GetTag(XenkoTags.ConstantBuffer))?.Name.Text).ToList();
+            var variables = mainModuleMixin.ClassReferences.VariablesReferences.OrderBy(x => ((ConstantBuffer)x.Key.GetTag(StrideTags.ConstantBuffer))?.Name.Text).ToList();
 
             // Recreate cbuffer with proper logical groups
             var constantBuffers = new Dictionary<ConstantBuffer, ConstantBuffer>();
             foreach (var variable in variables)
             {
-                var cbuffer = (ConstantBuffer)variable.Key.GetTag(XenkoTags.ConstantBuffer);
+                var cbuffer = (ConstantBuffer)variable.Key.GetTag(StrideTags.ConstantBuffer);
                 if (cbuffer == null)
                     continue;
 
@@ -1370,17 +1370,17 @@ namespace Xenko.Shaders.Parser.Mixins
                 realCBuffer.Members.Add(variable.Key);
 
                 // Set cbuffer and logical groups
-                variable.Key.SetTag(XenkoTags.ConstantBuffer, realCBuffer);
-                variable.Key.SetTag(XenkoTags.ConstantBufferIndex, realCBuffer.Members.Count - 1);
-                variable.Key.SetTag(XenkoTags.LogicalGroup, cbufferLogicalGroupName);
+                variable.Key.SetTag(StrideTags.ConstantBuffer, realCBuffer);
+                variable.Key.SetTag(StrideTags.ConstantBufferIndex, realCBuffer.Members.Count - 1);
+                variable.Key.SetTag(StrideTags.LogicalGroup, cbufferLogicalGroupName);
             }
 
             var usefulVars = variables.Select(x => x.Key).Where(KeepVariableInCBuffer).ToList();
-            var varList = usefulVars.Where(x => x.ContainsTag(XenkoTags.ConstantBuffer)).ToList();
-            var groupedVarList = varList.GroupBy(x => (ConstantBuffer)x.GetTag(XenkoTags.ConstantBuffer)).Select(cbuffer => new
+            var varList = usefulVars.Where(x => x.ContainsTag(StrideTags.ConstantBuffer)).ToList();
+            var groupedVarList = varList.GroupBy(x => (ConstantBuffer)x.GetTag(StrideTags.ConstantBuffer)).Select(cbuffer => new
             {
                 Buffer = cbuffer.Key,
-                Members = cbuffer.OrderBy(x => (int)x.GetTag(XenkoTags.ConstantBufferIndex)).ToList(),
+                Members = cbuffer.OrderBy(x => (int)x.GetTag(StrideTags.ConstantBufferIndex)).ToList(),
             }
             ).GroupBy(cbuffer => cbuffer.Buffer.Name.Text);
 
@@ -1399,8 +1399,8 @@ namespace Xenko.Shaders.Parser.Mixins
                 MixedShader.Members.Add(cbuffer);
             }
 
-            var remainingVars = usefulVars.Where(x => !x.ContainsTag(XenkoTags.ConstantBuffer)).ToList();
-            var globalBuffer = new ConstantBuffer { Type = Xenko.Core.Shaders.Ast.Hlsl.ConstantBufferType.Constant, Name = "Globals" };
+            var remainingVars = usefulVars.Where(x => !x.ContainsTag(StrideTags.ConstantBuffer)).ToList();
+            var globalBuffer = new ConstantBuffer { Type = Stride.Core.Shaders.Ast.Hlsl.ConstantBufferType.Constant, Name = "Globals" };
             if (remainingVars.Count > 0)
             {
                 globalBuffer.Members.AddRange(remainingVars);
@@ -1423,7 +1423,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 foreach (var member in members.OfType<Variable>())
                 {
                     // Add padding if the logical group changes
-                    var logicalGroupName = (string)member.GetTag(XenkoTags.LogicalGroup);
+                    var logicalGroupName = (string)member.GetTag(StrideTags.LogicalGroup);
                     if (logicalGroupName != currentLogicalGroupName)
                     {
                         AddLogicalGroupPadding(constantBuffer, currentLogicalGroupName);
@@ -1451,8 +1451,8 @@ namespace Xenko.Shaders.Parser.Mixins
             // This is not optimal. Ideally we would define all layouts manually.
             var paddingVariable = new Variable(VectorType.Float4.ToNonGenericType(), $"_padding_{constantBuffer.Name}_{logicaGroupName}");
 
-            paddingVariable.SetTag(XenkoTags.ConstantBuffer, constantBuffer);
-            paddingVariable.SetTag(XenkoTags.LogicalGroup, logicaGroupName);
+            paddingVariable.SetTag(StrideTags.ConstantBuffer, constantBuffer);
+            paddingVariable.SetTag(StrideTags.LogicalGroup, logicaGroupName);
 
             // Satisfy the ShaderLinker. The link name needs to be well defined as it is used for hashing
             paddingVariable.Attributes.Add(new AttributeDeclaration { Name = new Identifier("Link"), Parameters = new List<Literal> { new Literal(paddingVariable.Name.Text) } });
@@ -1471,7 +1471,7 @@ namespace Xenko.Shaders.Parser.Mixins
             {
                 if (!duplicateVariables.Contains(variable))
                 {
-                    var sourceMixinName = (variable.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName;
+                    var sourceMixinName = (variable.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName;
 
                     var semantic = variable.Qualifiers.OfType<Semantic>().First();
 
@@ -1479,25 +1479,25 @@ namespace Xenko.Shaders.Parser.Mixins
 
                     foreach (var sameSemVar in sameSemanticVariables)
                     {
-                        var newMixinName = (sameSemVar.GetTag(XenkoTags.ShaderScope) as ModuleMixin).MixinName;
+                        var newMixinName = (sameSemVar.GetTag(StrideTags.ShaderScope) as ModuleMixin).MixinName;
 
                         // Check if declared in the same constant buffer
-                        var cbuffer = variable.ContainsTag(XenkoTags.ConstantBuffer) ? variable.GetTag(XenkoTags.ConstantBuffer) as ConstantBuffer : null;
-                        var newcbuffer = sameSemVar.ContainsTag(XenkoTags.ConstantBuffer) ? sameSemVar.GetTag(XenkoTags.ConstantBuffer) as ConstantBuffer : null;
+                        var cbuffer = variable.ContainsTag(StrideTags.ConstantBuffer) ? variable.GetTag(StrideTags.ConstantBuffer) as ConstantBuffer : null;
+                        var newcbuffer = sameSemVar.ContainsTag(StrideTags.ConstantBuffer) ? sameSemVar.GetTag(StrideTags.ConstantBuffer) as ConstantBuffer : null;
                         if (cbuffer != null ^ newcbuffer != null)
                         {
-                            variable.SetTag(XenkoTags.ConstantBuffer, cbuffer ?? newcbuffer);
-                            variable.SetTag(XenkoTags.ConstantBufferIndex, (cbuffer != null ? variable : sameSemVar).GetTag(XenkoTags.ConstantBufferIndex));
+                            variable.SetTag(StrideTags.ConstantBuffer, cbuffer ?? newcbuffer);
+                            variable.SetTag(StrideTags.ConstantBufferIndex, (cbuffer != null ? variable : sameSemVar).GetTag(StrideTags.ConstantBufferIndex));
                         }
                         else if (cbuffer != null && cbuffer != newcbuffer)
                         {
-                            log.Error(XenkoMessageCode.ErrorSemanticCbufferConflict, variable.Span, variable, sourceMixinName, sameSemVar, newMixinName, semantic, cbuffer, newcbuffer);
+                            log.Error(StrideMessageCode.ErrorSemanticCbufferConflict, variable.Span, variable, sourceMixinName, sameSemVar, newMixinName, semantic, cbuffer, newcbuffer);
                         }
 
                         // Check if declared as the same type
                         if (variable.Type != sameSemVar.Type)
                         {
-                            log.Error(XenkoMessageCode.ErrorSemanticTypeConflict, variable.Span, variable, sourceMixinName, sameSemVar, newMixinName, semantic, variable.Type, sameSemVar.Type);
+                            log.Error(StrideMessageCode.ErrorSemanticTypeConflict, variable.Span, variable, sourceMixinName, sameSemVar, newMixinName, semantic, variable.Type, sameSemVar.Type);
                         }
 
                         // Rewrite references
@@ -1564,12 +1564,12 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="mixin">the mixin</param>
         private static void ExpandForEachStatements(ModuleMixin mixin)
         {
-            foreach (var statementNodeCouple in mixin.ParsingInfo.ForEachStatements.Where(x => !(x.Statement as ForEachStatement).Variable.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern)))
+            foreach (var statementNodeCouple in mixin.ParsingInfo.ForEachStatements.Where(x => !(x.Statement as ForEachStatement).Variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Extern)))
             {
                 var newStatement = ExpandForEachStatement(statementNodeCouple.Statement as ForEachStatement);
                 if (newStatement != null)
                 {
-                    var replace = new XenkoReplaceVisitor(statementNodeCouple.Statement, newStatement);
+                    var replace = new StrideReplaceVisitor(statementNodeCouple.Statement, newStatement);
                     replace.Run(statementNodeCouple.Node);
                 }
             }
@@ -1634,7 +1634,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="parentNode">the parent node.</param>
         private static void ReplaceMemberReferenceExpressionByVariableReferenceExpression(MemberReferenceExpression memberReferenceExpression, VariableReferenceExpression variableReferenceExpression, Node parentNode)
         {
-            var replacor = new XenkoReplaceVisitor(memberReferenceExpression, variableReferenceExpression);
+            var replacor = new StrideReplaceVisitor(memberReferenceExpression, variableReferenceExpression);
             replacor.Run(parentNode);
         }
 

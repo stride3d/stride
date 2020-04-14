@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RenameVSWindowTitle>
   <SettingsSet
-    __SolutionName="Xenko"
+    __SolutionName="Stride"
     __ClosestParentDepth="1"
     __FarthestParentDepth="1"
     __AppendedString="*"
@@ -10,7 +10,7 @@
     PatternIfDesignMode="[parent:2]\[solutionName] - [ideName]" />
   <!--See following sample SettingsSet (remove -Example from the tag name to use as is). All overrides are specified as attributes.-->
   <SettingsSet-Example
-    SolutionName="Xenko"
+    SolutionName="Stride"
     ClosestParentDepth="1"
     FarthestParentDepth="1"
     AppendedString="*"

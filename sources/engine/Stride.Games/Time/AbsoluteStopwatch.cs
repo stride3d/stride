@@ -1,8 +1,8 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Diagnostics;
 
-namespace Xenko.Games.Time
+namespace Stride.Games.Time
 {
     /// <summary>
     /// Represent an absolute time measurement stopwatch. (with as few internal overhead as possible)

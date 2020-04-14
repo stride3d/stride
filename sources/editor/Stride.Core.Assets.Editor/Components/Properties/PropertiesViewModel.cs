@@ -1,23 +1,23 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands;
-using Xenko.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.Presentation.Quantum;
-using Xenko.Core.Presentation.Quantum.Presenters;
-using Xenko.Core.Presentation.Quantum.ViewModels;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.Quantum;
-using Xenko.Core.Translation;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Quantum;
+using Stride.Core.Translation;
 
-namespace Xenko.Core.Assets.Editor.Components.Properties
+namespace Stride.Core.Assets.Editor.Components.Properties
 {
     /// <summary>
     /// This class manages the construction of <see cref="GraphViewModel"/> of a selection of objects.

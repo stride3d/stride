@@ -1,6 +1,6 @@
 !MaterialAsset
 Id: c1d40f25-8760-420b-8e26-ef8a2b999678
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Attributes:
     MicroSurface: !MaterialGlossinessMapFeature

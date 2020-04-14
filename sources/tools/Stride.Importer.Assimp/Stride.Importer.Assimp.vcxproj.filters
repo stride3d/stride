@@ -24,12 +24,12 @@
     <ClInclude Include="UtilityFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Xenko.Importer.Common\ImporterUtils.h">
+    <ClInclude Include="..\Stride.Importer.Common\ImporterUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Xenko.Importer.Assimp.cpp">
+    <ClCompile Include="Stride.Importer.Assimp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AssemblyInfo.cpp">

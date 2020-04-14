@@ -1,14 +1,14 @@
 using System;
 using System.ComponentModel;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.Rendering.Compositing;
-using Xenko.Rendering.Images;
-using Xenko.Rendering.Materials;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Rendering.Compositing;
+using Stride.Rendering.Images;
+using Stride.Rendering.Materials;
 
-namespace Xenko.Rendering.SubsurfaceScattering
+namespace Stride.Rendering.SubsurfaceScattering
 {
     [DataContract("SubsurfaceScatteringBlur")]
     [Display("Subsurface Scattering Blur")]

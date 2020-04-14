@@ -1,6 +1,6 @@
 !UILibraryAsset
 Id: 79af0b55-a70f-4c7a-8f5b-967d55661736
-SerializedVersion: {Xenko: 2.1.0.1}
+SerializedVersion: {Stride: 2.1.0.1}
 Tags: []
 Design:
     Resolution: {X: 128.0, Y: 72.0, Z: 100.0}
@@ -51,13 +51,13 @@ Hierarchy:
                 Padding: {Left: 10.0, Top: 5.0, Right: 10.0, Bottom: 7.0}
                 Content: !TextBlock ref!! ac7f6048-d7d0-45ae-a8f3-e4bddafeec22
                 CheckedImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 11
                 UncheckedImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 13
                 IndeterminateImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 12
         -   UIElement: !ModalElement
                 Id: 4266a97c-9ff2-45fb-8afd-5bd88a04c101
@@ -79,7 +79,7 @@ Hierarchy:
                 VerticalAlignment: Center
                 Margin: {}
                 Text: Click me!
-                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:XenkoDefaultFont
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
                 TextSize: 20.0
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
         -   UIElement: !Border
@@ -97,7 +97,7 @@ Hierarchy:
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 Margin: {}
                 Name: TextBlock
-                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:XenkoDefaultFont
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
                 TextSize: 20.0
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
         -   UIElement: !Grid
@@ -118,7 +118,7 @@ Hierarchy:
                 Margin: {}
                 Name: ScrollingText
                 Text: 'Scrolling text! '
-                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:XenkoDefaultFont
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
         -   UIElement: !StackPanel
                 Id: 97a0fc3a-e627-4122-b585-d33a6a7cd785
@@ -167,7 +167,7 @@ Hierarchy:
                 VerticalAlignment: Center
                 Margin: {}
                 Text: Click me!
-                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:XenkoDefaultFont
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
                 TextSize: 20.0
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
         -   UIElement: !ImageElement
@@ -188,13 +188,13 @@ Hierarchy:
                 Padding: {Left: 10.0, Top: 5.0, Right: 10.0, Bottom: 7.0}
                 Content: !TextBlock ref!! 5b044962-d303-4961-8195-e27d497b9e2b
                 PressedImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 2
                 NotPressedImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 1
                 MouseOverImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
         -   UIElement: !EditText
                 Id: eef44bd6-bd2d-4abe-8335-0971d5d83b10
                 DependencyProperties: {}
@@ -204,17 +204,17 @@ Hierarchy:
                 Margin: {}
                 Name: EditText
                 Padding: {Left: 8.0, Top: 4.0, Right: 8.0, Bottom: 8.0}
-                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:XenkoDefaultFont
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
                 TextSize: 20.0
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
                 ActiveImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 3
                 InactiveImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 4
                 MouseOverImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 5
                 CaretColor: {R: 240, G: 240, B: 240, A: 255}
                 CaretWidth: 1.0
@@ -239,19 +239,19 @@ Hierarchy:
                 Margin: {}
                 Name: Slider
                 TrackBackgroundImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 9
                 TrackForegroundImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 12
                 TrackStartingOffsets: {X: 3.0, Y: 3.0}
                 ThumbImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 7
                 MouseOverThumbImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 6
                 TickImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:XenkoUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
                     CurrentFrame: 8
                 TickOffset: 13.0

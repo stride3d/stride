@@ -1,22 +1,22 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
 using System.ComponentModel;
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Rendering;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Rendering;
 
-namespace Xenko.Assets.Models
+namespace Stride.Assets.Models
 {
     [DataContract("Model")]
     [AssetDescription(FileExtension, AllowArchetype = true)]
     [AssetContentType(typeof(Model))]
     [Display((int)AssetDisplayPriority.Models + 80, "Model")]
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
     public sealed class ModelAsset : Asset, IAssetWithSource, IModelAsset
     {
         private const string CurrentVersion = "2.0.0.0";
@@ -24,7 +24,7 @@ namespace Xenko.Assets.Models
         /// <summary>
         /// The default file extension used by the <see cref="ModelAsset"/>.
         /// </summary>
-        public const string FileExtension = ".xkm3d;pdxm3d";
+        public const string FileExtension = ".sdm3d;pdxm3d";
 
         /// <summary>
         /// Gets or sets the source file of this asset.

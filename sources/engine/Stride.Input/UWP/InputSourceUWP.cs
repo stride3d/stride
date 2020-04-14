@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
 using System;
 using System.Collections.Generic;
 using Windows.Devices.Input;
 using Windows.Gaming.Input;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
-using Xenko.Core.Mathematics;
-using Xenko.Games;
+using Stride.Core.Mathematics;
+using Stride.Games;
 using WindowsAccelerometer = Windows.Devices.Sensors.Accelerometer;
 using WindowsGyroscope = Windows.Devices.Sensors.Gyrometer;
 using WindowsOrientation = Windows.Devices.Sensors.OrientationSensor;
 using WindowsCompass = Windows.Devices.Sensors.Compass;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     /// <summary>
     /// Input source for devices using the universal windows platform

@@ -1,6 +1,6 @@
 !Model
 Id: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/GridBase10x10.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

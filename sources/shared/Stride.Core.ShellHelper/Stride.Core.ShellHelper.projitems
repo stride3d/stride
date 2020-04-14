@@ -6,7 +6,7 @@
     <SharedGUID>3a3cb33c-64d9-4948-86c1-0d86320d23c3</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Xenko.Core.ShellHelper</Import_RootNamespace>
+    <Import_RootNamespace>Stride.Core.ShellHelper</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ProcessOutputs.cs" />

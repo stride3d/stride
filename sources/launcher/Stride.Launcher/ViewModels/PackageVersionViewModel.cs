@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Extensions;
-using Xenko.LauncherApp.Resources;
-using Xenko.Core.Packages;
-using Xenko.LauncherApp.Services;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.ViewModel;
+using Stride.Core;
+using Stride.Core.Extensions;
+using Stride.LauncherApp.Resources;
+using Stride.Core.Packages;
+using Stride.LauncherApp.Services;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModel;
 
-namespace Xenko.LauncherApp.ViewModels
+namespace Stride.LauncherApp.ViewModels
 {
     /// <summary>
     /// A view model class that represents a Nuget package, as it exists both locally and on a remote server.

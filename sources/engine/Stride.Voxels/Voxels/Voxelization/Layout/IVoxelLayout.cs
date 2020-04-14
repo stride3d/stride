@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Xenko.Shaders;
-using static Xenko.Rendering.Voxels.VoxelAttributeEmissionOpacity;
+using Stride.Shaders;
+using static Stride.Rendering.Voxels.VoxelAttributeEmissionOpacity;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public interface IVoxelLayout
     {

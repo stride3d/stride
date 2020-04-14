@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_MONO_MOBILE
+#if STRIDE_PLATFORM_MONO_MOBILE
 using System;
 using System.IO;
 using System.Linq;
 
-namespace Xenko.Core.IO
+namespace Stride.Core.IO
 {
     /// <summary>
     /// A file system implementation for IVirtualFileProvider.
     /// </summary>
     public partial class FileSystemProvider
     {
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
         public bool AutoSetSkipBackupAttribute { get; set; }
 #endif
 
@@ -37,7 +37,7 @@ namespace Xenko.Core.IO
             var filename = ConvertUrlToFullPath(url);
             var result = new FileStream(filename, (FileMode)mode, (FileAccess)access, (FileShare)share);
 
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
             if (AutoSetSkipBackupAttribute && (mode == VirtualFileMode.CreateNew || mode == VirtualFileMode.Create || mode == VirtualFileMode.OpenOrCreate))
             {
                 Foundation.NSFileManager.SetSkipBackupAttribute(filename, true);

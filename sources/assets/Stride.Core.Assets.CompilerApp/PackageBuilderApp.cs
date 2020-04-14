@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -12,22 +12,22 @@ using System.ServiceModel;
 using System.Text;
 
 using Mono.Options;
-using Xenko.Core.Assets.Diagnostics;
-using Xenko.Core.BuildEngine;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Yaml;
-using Xenko.Core.VisualStudio;
-using Xenko.Assets.Models;
-using Xenko.Assets.SpriteFont;
-using Xenko.Graphics;
-using Xenko.Particles;
-using Xenko.Rendering.Materials;
-using Xenko.Rendering.ProceduralModels;
-using Xenko.SpriteStudio.Offline;
-using Xenko.Core.Assets.CompilerApp.Tasks;
+using Stride.Core.Assets.Diagnostics;
+using Stride.Core.BuildEngine;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Yaml;
+using Stride.Core.VisualStudio;
+using Stride.Assets.Models;
+using Stride.Assets.SpriteFont;
+using Stride.Graphics;
+using Stride.Particles;
+using Stride.Rendering.Materials;
+using Stride.Rendering.ProceduralModels;
+using Stride.SpriteStudio.Offline;
+using Stride.Core.Assets.CompilerApp.Tasks;
 
-namespace Xenko.Core.Assets.CompilerApp
+namespace Stride.Core.Assets.CompilerApp
 {
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single, UseSynchronizationContext = false)]
     class PackageBuilderApp : IPackageBuilderApp
@@ -56,14 +56,14 @@ namespace Xenko.Core.Assets.CompilerApp
             RuntimeHelpers.RunModuleConstructor(typeof(SpriteStudioAnimationAsset).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(ParticleSystem).Module.ModuleHandle);
             //var project = new Package();
-            //project.Save("test.xkpkg");
+            //project.Save("test.sdpkg");
 
             //Thread.Sleep(10000);
             //var spriteFontAsset = StaticFontAsset.New();
-            //Content.Save("test.xkfnt", spriteFontAsset);
+            //Content.Save("test.sdfnt", spriteFontAsset);
             //project.Refresh();
 
-            //args = new string[] { "test.xkpkg", "-o:app_data", "-b:tmp", "-t:1" };
+            //args = new string[] { "test.sdpkg", "-o:app_data", "-b:tmp", "-t:1" };
 
             var exeName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var showHelp = false;
@@ -73,8 +73,8 @@ namespace Xenko.Core.Assets.CompilerApp
 
             var p = new OptionSet
             {
-                "Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved",
-                "Xenko Build Tool - Version: "
+                "Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved",
+                "Stride Build Tool - Version: "
                 +
                 String.Format(
                     "{0}.{1}.{2}",
@@ -334,7 +334,7 @@ namespace Xenko.Core.Assets.CompilerApp
         private static string FormatLog(ILogMessage message)
         {
             //$filename($row,$column): $error_type $error_code: $error_message
-            //C:\Code\Xenko\sources\assets\Xenko.Core.Assets.CompilerApp\PackageBuilder.cs(89,13,89,70): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+            //C:\Code\Stride\sources\assets\Stride.Core.Assets.CompilerApp\PackageBuilder.cs(89,13,89,70): warning CS1717: Assignment made to same variable; did you mean to assign something else?
             var builder = new StringBuilder();
             var assetLogMessage = message as AssetLogMessage;
             // Location

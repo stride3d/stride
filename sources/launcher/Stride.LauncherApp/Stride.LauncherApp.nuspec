@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <package>
   <metadata>
-    <id>Xenko.Launcher</id>
+    <id>Stride.Launcher</id>
     <version>3.0.9</version>
-    <authors>Xenko</authors>
-    <owners>Xenko</owners>
-    <licenseUrl>http://xenko.com/license.txt</licenseUrl>
-    <projectUrl>http://xenko.com/</projectUrl>
-    <copyright>&#169; Xenko contributors and Silicon Studio Corp.</copyright>
-    <description>Xenko Launcher</description>
+    <authors>Stride</authors>
+    <owners>Stride</owners>
+    <licenseUrl>http://stride3d.net/license.txt</licenseUrl>
+    <projectUrl>http://stride3d.net/</projectUrl>
+    <copyright>&#169; Stride contributors and Silicon Studio Corp.</copyright>
+    <description>Stride Launcher</description>
     <tags>internal</tags>
   </metadata>
   <files>
-    <file src="Xenko.exe" target="tools" />
-    <file src="Xenko.exe.config" target="tools" />
+    <file src="Stride.exe" target="tools" />
+    <file src="Stride.exe.config" target="tools" />
     <file src="store.config" target="tools" />
     <file src="..\..\..\Prerequisites\launcher-prerequisites.exe" target="tools\Prerequisites" />
   </files>

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -7,10 +7,10 @@ using System.IO;
 using System.Reflection;
 using Microsoft.Build.Locator;
 using Mono.Options;
-using Xenko.Core.Assets.CompilerApp.Tasks;
-using Xenko.Core.Diagnostics;
+using Stride.Core.Assets.CompilerApp.Tasks;
+using Stride.Core.Diagnostics;
 
-namespace Xenko.Core.Tasks
+namespace Stride.Core.Tasks
 {
     static class Program
     {
@@ -27,8 +27,8 @@ namespace Xenko.Core.Tasks
 
             var p = new OptionSet
             {
-                "Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved",
-                "Xenko Router Server - Version: "
+                "Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved",
+                "Stride Router Server - Version: "
                 +
                 String.Format(
                     "{0}.{1}.{2}",

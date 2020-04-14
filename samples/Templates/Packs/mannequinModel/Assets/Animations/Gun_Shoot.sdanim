@@ -1,6 +1,6 @@
 !Animation
 Id: a49fd478-024a-4aba-a973-5d2ec3d264cc
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Animation/Shoot.fbx
 ClipDuration:

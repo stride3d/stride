@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
-using Xenko.Core.Annotations;
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+using Stride.Core.Annotations;
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
 using System;
 using System.Runtime.InteropServices;
 
-namespace Xenko.Core.Diagnostics
+namespace Stride.Core.Diagnostics
 {
     /// <summary>
     /// This static class gives access to the Pause/Resume API of VTune Amplifier. It is available on Windows Desktop platform only.

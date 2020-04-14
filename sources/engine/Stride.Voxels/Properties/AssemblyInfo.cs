@@ -1,7 +1,7 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Xenko.Engine" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Xenko.Editor" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Xenko.Assets.Presentation" + Xenko.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Engine" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Editor" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Assets.Presentation" + Stride.PublicKeys.Default)]

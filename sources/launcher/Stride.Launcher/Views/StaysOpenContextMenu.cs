@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Xenko.LauncherApp.Views
+namespace Stride.LauncherApp.Views
 {
     public class StaysOpenContextMenu : ContextMenu
     {

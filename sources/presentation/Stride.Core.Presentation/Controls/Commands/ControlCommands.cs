@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
 
-namespace Xenko.Core.Presentation.Controls.Commands
+namespace Stride.Core.Presentation.Controls.Commands
 {
     /// <summary>
     /// This class provides an instance of all commands in the namespace <see cref="Commands"/>.

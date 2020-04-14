@@ -1,6 +1,6 @@
 !SpriteFont
 Id: 83cbacc4-ae04-4a9b-94ef-4ecd49557287
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 FontSource: !SystemFontProvider
     FontName: Calibri

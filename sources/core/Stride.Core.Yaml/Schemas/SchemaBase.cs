@@ -46,9 +46,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Xenko.Core.Yaml.Events;
+using Stride.Core.Yaml.Events;
 
-namespace Xenko.Core.Yaml.Schemas
+namespace Stride.Core.Yaml.Schemas
 {
     /// <summary>
     /// Base implementation for a based schema.

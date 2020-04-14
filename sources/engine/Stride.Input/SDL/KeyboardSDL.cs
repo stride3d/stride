@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_UI_SDL
+#if STRIDE_UI_SDL
 using System;
 using System.Collections.Generic;
 using System.Text;
 using SDL2;
-using Xenko.Graphics.SDL;
+using Stride.Graphics.SDL;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     internal class KeyboardSDL : KeyboardDeviceBase, ITextInputDevice, IDisposable
     {
@@ -57,7 +57,7 @@ namespace Xenko.Input
 
         private void OnKeyEvent(SDL.SDL_KeyboardEvent e)
         {
-            // Try to map to a xenko key
+            // Try to map to a stride key
             Keys key;
             if (SDLKeys.MapKeys.TryGetValue(e.keysym.sym, out key) && key != Keys.None)
             {
@@ -104,20 +104,20 @@ namespace Xenko.Input
         }
 
         /// <summary>
-        /// Mapping between <see cref="SDL.SDL_Keycode"/> and <see cref="Xenko.Input.Keys"/> needed for
-        /// translating SDL key events into Xenko ones.
+        /// Mapping between <see cref="SDL.SDL_Keycode"/> and <see cref="Stride.Input.Keys"/> needed for
+        /// translating SDL key events into Stride ones.
         /// </summary>
         private static class SDLKeys
         {
             /// <summary>
-            /// Map between SDL keys and Xenko keys.
+            /// Map between SDL keys and Stride keys.
             /// </summary>
             internal static readonly Dictionary<SDL.SDL_Keycode, Keys> MapKeys = NewMapKeys();
 
             /// <summary>
-            /// Create a mapping between <see cref="SDL.SDL_Keycode"/> and <see cref="Xenko.Input.Keys"/>
+            /// Create a mapping between <see cref="SDL.SDL_Keycode"/> and <see cref="Stride.Input.Keys"/>
             /// </summary>
-            /// <remarks>Not all <see cref="Xenko.Input.Keys"/> have a corresponding SDL entries. For the moment they are commented out in the code below.</remarks>
+            /// <remarks>Not all <see cref="Stride.Input.Keys"/> have a corresponding SDL entries. For the moment they are commented out in the code below.</remarks>
             /// <returns>A new map.</returns>
             private static Dictionary<SDL.SDL_Keycode, Keys> NewMapKeys()
             {

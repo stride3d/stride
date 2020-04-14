@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using Xenko.Core.Shaders.Analysis;
-using Xenko.Core.Shaders.Analysis.Hlsl;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Glsl;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Parser;
-using Xenko.Core.Shaders.Utility;
-using Xenko.Core.Shaders.Visitor;
-using Xenko.Core.Shaders.Writer.Hlsl;
-using LayoutQualifier = Xenko.Core.Shaders.Ast.Glsl.LayoutQualifier;
-using ParameterQualifier = Xenko.Core.Shaders.Ast.ParameterQualifier;
-using StorageQualifier = Xenko.Core.Shaders.Ast.StorageQualifier;
+using Stride.Core.Shaders.Analysis;
+using Stride.Core.Shaders.Analysis.Hlsl;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Glsl;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Parser;
+using Stride.Core.Shaders.Utility;
+using Stride.Core.Shaders.Visitor;
+using Stride.Core.Shaders.Writer.Hlsl;
+using LayoutQualifier = Stride.Core.Shaders.Ast.Glsl.LayoutQualifier;
+using ParameterQualifier = Stride.Core.Shaders.Ast.ParameterQualifier;
+using StorageQualifier = Stride.Core.Shaders.Ast.StorageQualifier;
 
-namespace Xenko.Core.Shaders.Convertor
+namespace Stride.Core.Shaders.Convertor
 {
     /// <summary>
     /// HLSL to GLSL conversion requires several steps:
@@ -4495,10 +4495,10 @@ namespace Xenko.Core.Shaders.Convertor
         {
             foreach (var constantBuffer in shader.Declarations.OfType<ConstantBuffer>())
             {
-                var layoutQualifier = constantBuffer.Qualifiers.OfType<Xenko.Core.Shaders.Ast.Glsl.LayoutQualifier>().FirstOrDefault();
+                var layoutQualifier = constantBuffer.Qualifiers.OfType<Stride.Core.Shaders.Ast.Glsl.LayoutQualifier>().FirstOrDefault();
                 if (layoutQualifier == null)
                 {
-                    layoutQualifier = new Xenko.Core.Shaders.Ast.Glsl.LayoutQualifier();
+                    layoutQualifier = new Stride.Core.Shaders.Ast.Glsl.LayoutQualifier();
                     constantBuffer.Qualifiers |= layoutQualifier;
                 }
                 layoutQualifier.Layouts.Add(new LayoutKeyValue("std140"));

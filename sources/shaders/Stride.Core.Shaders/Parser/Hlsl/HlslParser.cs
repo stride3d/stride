@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Grammar.Hlsl;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Grammar.Hlsl;
 
-// Use XenkoGrammar (compatiable with HLSL), in order to avoid initializing both Xenko and HLSL grammar
-using HlslGrammar = Xenko.Core.Shaders.Grammar.Xenko.XenkoGrammar;
+// Use StrideGrammar (compatiable with HLSL), in order to avoid initializing both Stride and HLSL grammar
+using HlslGrammar = Stride.Core.Shaders.Grammar.Stride.StrideGrammar;
 
-namespace Xenko.Core.Shaders.Parser.Hlsl
+namespace Stride.Core.Shaders.Parser.Hlsl
 {
     /// <summary>
     /// HlslParser.

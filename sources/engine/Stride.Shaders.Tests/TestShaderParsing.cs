@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
 using Xunit;
 
-using Xenko.Core.IO;
-using Xenko.Core.Serialization.Assets;
-using Xenko.Core.Storage;
-using Xenko.Shaders;
-using Xenko.Shaders.Parser;
-using Xenko.Shaders.Parser.Ast;
-using Xenko.Shaders.Parser.Mixins;
+using Stride.Core.IO;
+using Stride.Core.Serialization.Assets;
+using Stride.Core.Storage;
+using Stride.Shaders;
+using Stride.Shaders.Parser;
+using Stride.Shaders.Parser.Ast;
+using Stride.Shaders.Parser.Mixins;
 
-namespace Xenko.Engine.Tests
+namespace Stride.Engine.Tests
 {
     class TestShaderParsing
     {
@@ -40,12 +40,12 @@ namespace Xenko.Engine.Tests
             var moduleMixin = GetAnalyzedMixin("BasicMixin");
             var mixin = moduleMixin.Mixin;
             
-            Assert.Equal(1, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Stage)));
-            Assert.Equal(1, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Stream)));
+            Assert.Equal(1, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(StrideStorageQualifier.Stage)));
+            Assert.Equal(1, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(StrideStorageQualifier.Stream)));
             Assert.Equal(3, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count);
-            Assert.Equal(0, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Clone)));
+            Assert.Equal(0, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count(x => x.Key.Qualifiers.Contains(StrideStorageQualifier.Clone)));
             Assert.Equal(0, mixin.BaseMixins.Count);
-            Assert.Equal(1, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Stage)));
+            Assert.Equal(1, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count(x => x.Key.Qualifiers.Contains(StrideStorageQualifier.Stage)));
             Assert.Equal(3, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count);
         }
         
@@ -131,7 +131,7 @@ namespace Xenko.Engine.Tests
             Assert.IsNotNull(moduleMixin.Mixin);
             Assert.IsNotNull(moduleMixinTest.Mixin);
 
-            Assert.Equal(1, moduleMixinTest.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Extern)));
+            Assert.Equal(1, moduleMixinTest.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(StrideStorageQualifier.Extern)));
             var externVar = moduleMixinTest.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault();
 
             var externDef = moduleMixin.Mixin.Shader;
@@ -163,10 +163,10 @@ namespace Xenko.Engine.Tests
 
             Assert.False(mcm.ErrorWarningLog.HasErrors);
 
-            Assert.Equal(2, mcm.Mixins["DeepExternTest"].ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Extern)));
+            Assert.Equal(2, mcm.Mixins["DeepExternTest"].ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(StrideStorageQualifier.Extern)));
             var externVar = mcm.Mixins["DeepExternTest"].ParsingInfo.ClassReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault();
 
-            Assert.Equal(1, mcm.Mixins["DeepExtern"].ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Extern)));
+            Assert.Equal(1, mcm.Mixins["DeepExtern"].ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(StrideStorageQualifier.Extern)));
             var externVar2 = mcm.Mixins["DeepExtern"].ParsingInfo.ClassReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault();
 
             var externDef = mcm.Mixins["ExternMixin"].Shader;
@@ -316,7 +316,7 @@ namespace Xenko.Engine.Tests
         public void TestTessellation() // test tessellation shader, patchstream
         {
             var moduleMixin = GetAnalyzedMixin("TessellationTest");
-            Assert.Equal(2, moduleMixin.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.PatchStream)));
+            Assert.Equal(2, moduleMixin.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(StrideStorageQualifier.PatchStream)));
         }
         
         [Fact]
@@ -347,7 +347,7 @@ namespace Xenko.Engine.Tests
             mcmCyclic.Run();
 
             Assert.Equal(1, mcmCyclic.ErrorWarningLog.Messages.Count);
-            Assert.Equal(XenkoMessageCode.ErrorCyclicDependency.Code, mcmCyclic.ErrorWarningLog.Messages[0].Code);
+            Assert.Equal(StrideMessageCode.ErrorCyclicDependency.Code, mcmCyclic.ErrorWarningLog.Messages[0].Code);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -360,7 +360,7 @@ namespace Xenko.Engine.Tests
             mcmMissing.Run();
 
             Assert.Equal(1, mcmMissing.ErrorWarningLog.Messages.Count);
-            Assert.Equal(XenkoMessageCode.ErrorDependencyNotInModule.Code, mcmMissing.ErrorWarningLog.Messages[0].Code);
+            Assert.Equal(StrideMessageCode.ErrorDependencyNotInModule.Code, mcmMissing.ErrorWarningLog.Messages[0].Code);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -374,7 +374,7 @@ namespace Xenko.Engine.Tests
             mcmOverride.Run();
 
             Assert.Equal(1, mcmOverride.ErrorWarningLog.Messages.Count);
-            Assert.Equal(XenkoMessageCode.ErrorMissingOverride.Code, mcmOverride.ErrorWarningLog.Messages[0].Code);
+            Assert.Equal(StrideMessageCode.ErrorMissingOverride.Code, mcmOverride.ErrorWarningLog.Messages[0].Code);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -389,7 +389,7 @@ namespace Xenko.Engine.Tests
             mcmAmbiguous.Run();
 
             Assert.Equal(1, mcmAmbiguous.ErrorWarningLog.Messages.Count);
-            Assert.Equal(XenkoMessageCode.ErrorVariableNameAmbiguity.Code, mcmAmbiguous.ErrorWarningLog.Messages[0].Code);
+            Assert.Equal(StrideMessageCode.ErrorVariableNameAmbiguity.Code, mcmAmbiguous.ErrorWarningLog.Messages[0].Code);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -453,7 +453,7 @@ namespace Xenko.Engine.Tests
             mcmStream.Run();
 
             Assert.Equal(1, mcmStream.ErrorWarningLog.Messages.Count);
-            Assert.Equal(XenkoMessageCode.ErrorInOutStream.Code, mcmStream.ErrorWarningLog.Messages[0].Code);
+            Assert.Equal(StrideMessageCode.ErrorInOutStream.Code, mcmStream.ErrorWarningLog.Messages[0].Code);
         }
 
         [Fact]
@@ -468,7 +468,7 @@ namespace Xenko.Engine.Tests
                     "MacroTestChild"
                 };
 
-            var lib = new XenkoShaderLibrary(shaderClassSourceList);
+            var lib = new StrideShaderLibrary(shaderClassSourceList);
             lib.LoadClass = shaderLoader.LoadClassSource;
 
             Assert.Equal(4, lib.AvailableShaders.Count);
@@ -557,7 +557,7 @@ namespace Xenko.Engine.Tests
         {
             //VirtualFileSystem.MountFileSystem("/assets/shaders", "../../../../../shaders");
             VirtualFileSystem.MountFileSystem("/assets/shaders", "C:\\Users\\aurelien.serandour\\Desktop\\Shaders");
-            foreach (var file in VirtualFileSystem.ListFiles("/assets/shaders", "*.xksl", VirtualSearchOption.TopDirectoryOnly).Result)
+            foreach (var file in VirtualFileSystem.ListFiles("/assets/shaders", "*.sdsl", VirtualSearchOption.TopDirectoryOnly).Result)
             {
                 var fileParts = file.Split('.', '/');
                 var className = fileParts[fileParts.Length - 2];
@@ -579,7 +579,7 @@ namespace Xenko.Engine.Tests
         {
             VirtualFileSystem.MountFileSystem("/assets/shaders", "../../../../../shaders");
             //VirtualFileSystem.MountFileSystem("/assets/shaders", "C:\\Users\\aurelien.serandour\\Desktop\\Shaders\\Maya");
-            foreach (var file in VirtualFileSystem.ListFiles("/assets/shaders", "*.xksl", VirtualSearchOption.TopDirectoryOnly).Result)
+            foreach (var file in VirtualFileSystem.ListFiles("/assets/shaders", "*.sdsl", VirtualSearchOption.TopDirectoryOnly).Result)
             {
                 var fileParts = file.Split('.', '/');
                 var className = fileParts[fileParts.Length - 2];
@@ -596,7 +596,7 @@ namespace Xenko.Engine.Tests
         {
             var source = new ShaderMixinSource();
             source.Mixins.Add(new ShaderClassSource(mixinName));
-            shaderMixinParser.Parse(source, new Xenko.Shaders.ShaderMacro[0]);
+            shaderMixinParser.Parse(source, new Stride.Shaders.ShaderMacro[0]);
 
             var moduleMixin = shaderMixinParser.GetMixin(mixinName);
             Assert.IsNotNull(moduleMixin);

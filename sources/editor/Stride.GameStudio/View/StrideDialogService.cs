@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.GameStudio.Services;
-using Xenko.Core.Assets.Editor.View;
-using Xenko.Core.Extensions;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.Windows;
+using Stride.GameStudio.Services;
+using Stride.Core.Assets.Editor.View;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Windows;
 
-namespace Xenko.GameStudio.View
+namespace Stride.GameStudio.View
 {
-    public class XenkoDialogService : EditorDialogService, IXenkoDialogService
+    public class StrideDialogService : EditorDialogService, IStrideDialogService
     {
-        public XenkoDialogService(IDispatcherService dispatcher, string applicationName)
+        public StrideDialogService(IDispatcherService dispatcher, string applicationName)
             : base(dispatcher, applicationName)
         {
         }

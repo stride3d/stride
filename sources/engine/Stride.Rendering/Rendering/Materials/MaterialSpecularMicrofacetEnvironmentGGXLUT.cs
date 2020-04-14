@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Assets;
-using Xenko.Core.Serialization;
-using Xenko.Graphics;
-using Xenko.Shaders;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Assets;
+using Stride.Core.Serialization;
+using Stride.Graphics;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Materials
+namespace Stride.Rendering.Materials
 {
     /// <summary>
     /// Environment function for Schlick fresnel, Smith-Schlick GGX visibility and GGX normal distribution.
@@ -24,8 +24,8 @@ namespace Xenko.Rendering.Materials
         public ShaderSource Generate(MaterialGeneratorContext context)
         {
             var texture = context.GraphicsProfile >= GraphicsProfile.Level_10_0
-                ? AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("a49995f8-2380-4baa-a03e-f8d1da35b79a"), "XenkoEnvironmentLightingDFGLUT16")
-                : AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("87540190-ab97-4b4e-b3c2-d57d2fbb1ff3"), "XenkoEnvironmentLightingDFGLUT8");
+                ? AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("a49995f8-2380-4baa-a03e-f8d1da35b79a"), "StrideEnvironmentLightingDFGLUT16")
+                : AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("87540190-ab97-4b4e-b3c2-d57d2fbb1ff3"), "StrideEnvironmentLightingDFGLUT8");
             context.Parameters.Set(MaterialSpecularMicrofacetEnvironmentGGXLUTKeys.EnvironmentLightingDFG_LUT, texture);
 
             return new ShaderClassSource("MaterialSpecularMicrofacetEnvironmentGGXLUT");

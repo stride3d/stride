@@ -1,6 +1,6 @@
 !Texture
 Id: 02f115c6-5845-4127-8e1a-4eafc492a573
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Textures/CheckerGrid10x10.png
 Type: !ColorTextureType

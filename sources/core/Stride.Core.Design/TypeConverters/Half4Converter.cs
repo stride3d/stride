@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -50,10 +50,10 @@ using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.Globalization;
 using System.Reflection;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
 
-namespace Xenko.Core.TypeConverters
+namespace Stride.Core.TypeConverters
 {
     /// <summary>
     ///   Provides a type converter to convert <see cref = "T:SharpDX.Half4" /> objects to and from various

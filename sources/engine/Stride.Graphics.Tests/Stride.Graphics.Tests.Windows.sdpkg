@@ -38,7 +38,7 @@ RootAssets:
     - 90b99454-a7b4-4b88-8d42-638acc73e34b:StaticFonts/CourierNew13
     - 91749410-580d-4ab0-bf03-8db5cc703700:RotatedImages
     - 932ea3a2-3803-4674-93b0-ef049650f5be:StaticFonts/Arial20
-    - 95518128-cbb7-4b55-bd38-d3232de12a34:ImageTypes/xkimgImage
+    - 95518128-cbb7-4b55-bd38-d3232de12a34:ImageTypes/sdimgImage
     - 96066ad9-49e1-4fd0-9bac-6e192504573f:ImageTypes/jpgImage
     - 99bb5cc9-f931-4233-b71b-c57be97146d6:ImageTypes/debugImage
     - 9db45af0-fe3a-44c8-a533-b7d8f0ff3e5b:PrecompiledFonts/ExternFont

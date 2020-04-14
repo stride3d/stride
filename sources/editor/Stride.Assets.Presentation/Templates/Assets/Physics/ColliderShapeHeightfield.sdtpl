@@ -5,6 +5,6 @@ Name: Heightfield
 Scope: Asset
 Description: A heightfield collider
 Group: Physics
-Icon: ..\.xktpl\ColliderPlane.png
+Icon: ..\.sdtpl\ColliderPlane.png
 DefaultOutputName: ColliderHeightfield
 FactoryTypeName: ColliderShapeHeightfieldFactory

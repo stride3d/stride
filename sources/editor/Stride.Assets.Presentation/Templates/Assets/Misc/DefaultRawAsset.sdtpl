@@ -5,7 +5,7 @@ Name: Raw asset
 Scope: Asset
 Description: An asset containing binary or text data directly imported from a file
 Group: Miscellaneous
-Icon: ..\.xktpl\DefaultAsset.png
+Icon: ..\.sdtpl\DefaultAsset.png
 Order: 1000
 DefaultOutputName: RawAsset
 ImportSource: true

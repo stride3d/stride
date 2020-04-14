@@ -6,6 +6,6 @@ Scope: Asset
 Description: A runtime rasterized sprite font asset in which the font file is embedded in the application
 Group: Font
 Order: -80
-Icon: ..\.xktpl\SpriteFont.png
+Icon: ..\.sdtpl\SpriteFont.png
 DefaultOutputName: SpriteFont
 FactoryTypeName: RuntimeRasterizedSpriteFontFactory

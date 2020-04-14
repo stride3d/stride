@@ -1,6 +1,6 @@
 ---
 !EffectCompileRequest
-EffectName: XenkoEditorForwardShadingEffect
+EffectName: StrideEditorForwardShadingEffect
 UsedParameters:
     Lighting.DirectLightGroups: null
     Lighting.EnvironmentLights:
@@ -58,12 +58,12 @@ UsedParameters:
         Name: null
     Material.TessellationShader: null
     Material.VertexStageSurfaceShaders: null
-    XenkoEffectBase.ExtensionPostVertexStageShader: null
+    StrideEffectBase.ExtensionPostVertexStageShader: null
     SceneEditorParameters.IsEffectCompiling: true
     SceneEditorParameters.IsEffectError: false
 ---
 !EffectCompileRequest
-EffectName: XenkoEditorForwardShadingEffect.Picking
+EffectName: StrideEditorForwardShadingEffect.Picking
 UsedParameters:
     Lighting.DirectLightGroups: null
     Lighting.EnvironmentLights:
@@ -121,6 +121,6 @@ UsedParameters:
         Name: null
     Material.TessellationShader: null
     Material.VertexStageSurfaceShaders: null
-    XenkoEffectBase.ExtensionPostVertexStageShader: null
+    StrideEffectBase.ExtensionPostVertexStageShader: null
     SceneEditorParameters.IsEffectCompiling: true
     SceneEditorParameters.IsEffectError: false

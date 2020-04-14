@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -7,12 +7,12 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
-using Xenko.Core;
-using Xenko.Core.IO;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Storage;
+using Stride.Core;
+using Stride.Core.IO;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Storage;
 
-namespace Xenko.Shaders.Parser.Mixins
+namespace Stride.Shaders.Parser.Mixins
 {
     /// <summary>
     /// Class ShaderSourceManager
@@ -28,7 +28,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// </summary>
         private readonly IVirtualFileProvider fileProvider;
 
-        private const string DefaultEffectFileExtension = ".xksl";
+        private const string DefaultEffectFileExtension = ".sdsl";
 
         /// <summary>
         /// Gets the directory list.
@@ -209,7 +209,7 @@ namespace Xenko.Shaders.Parser.Mixins
                     }
                     else
                     {
-                        throw new FileNotFoundException($"Unable to find shader [{type}]", $"{type}.xksl");
+                        throw new FileNotFoundException($"Unable to find shader [{type}]", $"{type}.sdsl");
                     }
                 }
                 return shaderSource;
@@ -264,7 +264,7 @@ namespace Xenko.Shaders.Parser.Mixins
 
         private bool FileExists(string path)
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             if (UseFileSystem)
             {
                 var fileInfo = new FileInfo(path);
@@ -289,7 +289,7 @@ namespace Xenko.Shaders.Parser.Mixins
 
         private Stream OpenStream(string path)
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             if (UseFileSystem)
             {
                 // Try several times in case of IOException
@@ -311,7 +311,7 @@ namespace Xenko.Shaders.Parser.Mixins
             return fileProvider.OpenStream(path, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read);
         }
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
         [DllImport("kernel32.dll", EntryPoint = "GetLongPathNameW", SetLastError = true, CharSet = CharSet.Unicode)]
         static extern uint GetLongPathName(string shortPath, StringBuilder sb, int buffer);
 

@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Threading;
-using Xenko.Rendering.Compositing;
-using Xenko.Shaders;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Core.Threading;
+using Stride.Rendering.Compositing;
+using Stride.Shaders;
 
-namespace Xenko.Rendering
+namespace Stride.Rendering
 {
     /// <summary>
     /// Output per-pixel motion vectors to a separate render target
@@ -75,7 +75,7 @@ namespace Xenko.Rendering
 
                     if (renderEffect != null)
                     {
-                        renderEffect.EffectValidator.ValidateParameter(XenkoEffectBaseKeys.ComputeVelocityShader, new ShaderClassSource("MeshVelocity"));
+                        renderEffect.EffectValidator.ValidateParameter(StrideEffectBaseKeys.ComputeVelocityShader, new ShaderClassSource("MeshVelocity"));
                     }
                 }
             });

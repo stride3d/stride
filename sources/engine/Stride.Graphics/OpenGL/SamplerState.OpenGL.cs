@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_OPENGL 
+#if STRIDE_GRAPHICS_API_OPENGL 
 using System;
-using Xenko.Core.Mathematics;
-#if XENKO_GRAPHICS_API_OPENGLES
+using Stride.Core.Mathematics;
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 using TextureCompareMode = OpenTK.Graphics.ES30.All;
 #else
 using OpenTK.Graphics.OpenGL;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public partial class SamplerState
     {
@@ -23,7 +23,7 @@ namespace Xenko.Graphics
 
         private TextureMinFilter minFilter;
         private TextureMagFilter magFilter;
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
         private TextureMinFilter minFilterNoMipmap;
 #endif
 
@@ -91,7 +91,7 @@ namespace Xenko.Graphics
 
             maxAnisotropy = ((samplerStateDescription.Filter & AnisotropicMask) != 0) ? Description.MaxAnisotropy : 1;
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             // On OpenGL ES, we need to choose the appropriate min filter ourself if the texture doesn't contain mipmaps (done at PreDraw)
             minFilterNoMipmap = minFilter;
             if (minFilterNoMipmap == TextureMinFilter.LinearMipmapLinear)
@@ -121,7 +121,7 @@ namespace Xenko.Graphics
             if (compareFunc != oldSamplerState.compareFunc)
                 GL.TexParameter(target, TextureParameterName.TextureCompareFunc, (int)compareFunc);
 
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
             if (borderColor != oldSamplerState.borderColor)
                 GL.TexParameter(target, TextureParameterName.TextureBorderColor, borderColor);
             if (Description.MipMapLevelOfDetailBias != oldSamplerState.Description.MipMapLevelOfDetailBias)
@@ -134,7 +134,7 @@ namespace Xenko.Graphics
                 GL.TexParameter(target, TextureParameterName.TextureMinFilter, hasMipmap ? (int)minFilter : (int)minFilterNoMipmap);
 #endif
 
-#if !XENKO_PLATFORM_IOS
+#if !STRIDE_PLATFORM_IOS
             if (maxAnisotropy != oldSamplerState.maxAnisotropy && GraphicsDevice.HasAnisotropicFiltering)
                 GL.TexParameter(target, (TextureParameterName)OpenTK.Graphics.ES20.ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, Description.MaxAnisotropy);
 #endif

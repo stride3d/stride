@@ -1,6 +1,6 @@
 !SceneAsset
 Id: ee2eb459-7847-42b5-bd69-fc43a6625fd5
-SerializedVersion: {Xenko: 3.1.0.1}
+SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
 ChildrenIds: []
 Parent: 3ed06063-5bdf-4f8e-9090-47bcaba297e5:Scenes/MainScene

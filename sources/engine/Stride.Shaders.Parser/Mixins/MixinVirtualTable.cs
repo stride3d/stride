@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Linq;
 
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Shaders.Parser.Utility;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Utility;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Shaders.Parser.Utility;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Utility;
 
-namespace Xenko.Shaders.Parser.Mixins
+namespace Stride.Shaders.Parser.Mixins
 {
     internal class MixinVirtualTable : ShaderVirtualTable
     {
@@ -70,15 +70,15 @@ namespace Xenko.Shaders.Parser.Mixins
                     {
                         if (methodDecl.Method is MethodDefinition)
                         {
-                            if (!method.Method.Qualifiers.Contains(XenkoStorageQualifier.Override))
+                            if (!method.Method.Qualifiers.Contains(StrideStorageQualifier.Override))
                             {
-                                log.Error(XenkoMessageCode.ErrorMissingOverride, method.Method.Span, method.Method, mixinName);
+                                log.Error(StrideMessageCode.ErrorMissingOverride, method.Method.Span, method.Method, mixinName);
                                 continue;
                             }
                         }
-                        else if (method.Method.Qualifiers.Contains(XenkoStorageQualifier.Override))
+                        else if (method.Method.Qualifiers.Contains(StrideStorageQualifier.Override))
                         {
-                            log.Error(XenkoMessageCode.ErrorOverrideDeclaration, method.Method.Span, method.Method, mixinName);
+                            log.Error(StrideMessageCode.ErrorOverrideDeclaration, method.Method.Span, method.Method, mixinName);
                             continue;
                         }
                     }
@@ -87,9 +87,9 @@ namespace Xenko.Shaders.Parser.Mixins
                 }
                 else
                 {
-                    if (method.Method.Qualifiers.Contains(XenkoStorageQualifier.Override))
+                    if (method.Method.Qualifiers.Contains(StrideStorageQualifier.Override))
                     {
-                        log.Error(XenkoMessageCode.ErrorNoMethodToOverride, method.Method.Span, method.Method, mixinName);
+                        log.Error(StrideMessageCode.ErrorNoMethodToOverride, method.Method.Span, method.Method, mixinName);
                         continue;
                     }
                 }
@@ -112,9 +112,9 @@ namespace Xenko.Shaders.Parser.Mixins
             var conflict = false;
 
             // Note: we allow conflicts for static variables
-            foreach (var variable in virtualTable.Variables.Where(variable => !variable.Variable.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Static) && Variables.Any(x => x.Variable.Name.Text == variable.Variable.Name.Text)))
+            foreach (var variable in virtualTable.Variables.Where(variable => !variable.Variable.Qualifiers.Contains(Stride.Core.Shaders.Ast.Hlsl.StorageQualifier.Static) && Variables.Any(x => x.Variable.Name.Text == variable.Variable.Name.Text)))
             {
-                log.Error(XenkoMessageCode.ErrorVariableNameConflict, variable.Variable.Span, variable.Variable, "");
+                log.Error(StrideMessageCode.ErrorVariableNameConflict, variable.Variable.Span, variable.Variable, "");
                 conflict = true;
             }
 

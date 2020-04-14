@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Serialization.Serializers;
+using Stride.Core.Serialization.Serializers;
 
-namespace Xenko.Core.Serialization
+namespace Stride.Core.Serialization
 {
     /// <summary>
     /// Represents a Url to an asset.

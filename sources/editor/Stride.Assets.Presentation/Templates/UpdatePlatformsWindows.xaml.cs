@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core;
-using Xenko.Core.Presentation.Dialogs;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.View;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.Presentation.Windows;
-using Xenko.Core.Translation;
-using Xenko.Assets.Templates;
-using MessageBoxButton = Xenko.Core.Presentation.Services.MessageBoxButton;
-using MessageBoxImage = Xenko.Core.Presentation.Services.MessageBoxImage;
-using MessageBoxResult = Xenko.Core.Presentation.Services.MessageBoxResult;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core;
+using Stride.Core.Presentation.Dialogs;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.View;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.Windows;
+using Stride.Core.Translation;
+using Stride.Assets.Templates;
+using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
+using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
+using MessageBoxResult = Stride.Core.Presentation.Services.MessageBoxResult;
 
-namespace Xenko.Assets.Presentation.Templates
+namespace Stride.Assets.Presentation.Templates
 {
 
     /// <summary>
@@ -74,18 +74,18 @@ namespace Xenko.Assets.Presentation.Templates
                 if (result != 1)
                     return;
 
-                Result = Xenko.Core.Presentation.Services.DialogResult.Ok;
+                Result = Stride.Core.Presentation.Services.DialogResult.Ok;
                 Close();
                 return;
             }
 
-            Result = Xenko.Core.Presentation.Services.DialogResult.Ok;
+            Result = Stride.Core.Presentation.Services.DialogResult.Ok;
             Close();
         }
 
         private void ButtonCancel(object sender, RoutedEventArgs e)
         {
-            Result = Xenko.Core.Presentation.Services.DialogResult.Cancel;
+            Result = Stride.Core.Presentation.Services.DialogResult.Cancel;
             Close();
         }
     }

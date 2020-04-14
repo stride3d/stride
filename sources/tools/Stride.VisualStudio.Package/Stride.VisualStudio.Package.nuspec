@@ -1,21 +1,21 @@
 <?xml version="1.0"?>
 <package>
   <metadata>
-    <id>Xenko.VisualStudio.Package</id>
+    <id>Stride.VisualStudio.Package</id>
     <version>3.0.9</version>
-    <authors>Xenko</authors>
-    <owners>Xenko</owners>
-    <licenseUrl>https://github.com/xenko3d/xenko/blob/master/LICENSE.md</licenseUrl>
-    <projectUrl>http://xenko.com/</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/xenko3d/media/master/images/mainlogo/nuget/logo.png</iconUrl>
-    <repository type="git" url="https://github.com/xenko3d/xenko" />
-    <copyright>&#169; Xenko contributors and Silicon Studio Corp.</copyright>
-    <description>Visual Studio Integration Plugin for Xenko</description>
+    <authors>Stride</authors>
+    <owners>Stride</owners>
+    <licenseUrl>https://github.com/stride3d/stride/blob/master/LICENSE.md</licenseUrl>
+    <projectUrl>http://stride3d.net/</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/stride3d/media/master/images/mainlogo/nuget/logo.png</iconUrl>
+    <repository type="git" url="https://github.com/stride3d/stride" />
+    <copyright>&#169; Stride contributors and Silicon Studio Corp.</copyright>
+    <description>Visual Studio Integration Plugin for Stride</description>
     <tags>internal</tags>
   </metadata>
   <files>
-    <file src="bin\Xenko.vsix" target="tools" />
-    <file src="..\Xenko.VisualStudio.PackageInstall\bin\Release\packageinstall.exe" target="tools" />
-    <file src="..\Xenko.VisualStudio.PackageInstall\bin\Release\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="tools" />
+    <file src="bin\Stride.vsix" target="tools" />
+    <file src="..\Stride.VisualStudio.PackageInstall\bin\Release\packageinstall.exe" target="tools" />
+    <file src="..\Stride.VisualStudio.PackageInstall\bin\Release\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="tools" />
   </files>
 </package>

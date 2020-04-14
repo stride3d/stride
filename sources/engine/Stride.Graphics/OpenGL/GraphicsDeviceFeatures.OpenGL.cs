@@ -1,6 +1,6 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_OPENGL
+#if STRIDE_GRAPHICS_API_OPENGL
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,15 +22,15 @@
 // THE SOFTWARE.
 using System;
 using System.Collections.Generic;
-using Xenko.Graphics.OpenGL;
-using Xenko.Core.Diagnostics;
-#if XENKO_GRAPHICS_API_OPENGLES
+using Stride.Graphics.OpenGL;
+using Stride.Core.Diagnostics;
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 #else
 using OpenTK.Graphics.OpenGL;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// Features supported by a <see cref="GraphicsDevice"/>.
@@ -88,7 +88,7 @@ namespace Xenko.Graphics
             {
                 Vendor = GL.GetString(StringName.Vendor);
                 Renderer = GL.GetString(StringName.Renderer);
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                 SupportedExtensions = GL.GetString(StringName.Extensions).Split(' ');
 #else
                 int numExtensions;
@@ -101,7 +101,7 @@ namespace Xenko.Graphics
 #endif
             }
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             deviceRoot.HasExtTextureFormatBGRA8888 = SupportedExtensions.Contains("GL_EXT_texture_format_BGRA8888")
                                        || SupportedExtensions.Contains("GL_APPLE_texture_format_BGRA8888");
             deviceRoot.HasKhronosDebug = deviceRoot.currentVersion >= 320 || SupportedExtensions.Contains("GL_KHR_debug");

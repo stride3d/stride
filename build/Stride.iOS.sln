@@ -5,34 +5,34 @@ VisualStudioVersion = 16.0.28803.352
 MinimumVisualStudioVersion = 16.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10-CoreRuntime", "10-CoreRuntime", "{2E93E2B5-4500-4E47-9B65-E705218AB578}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "20-XenkoRuntime", "20-XenkoRuntime", "{4C142567-C42B-40F5-B092-798882190209}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "20-StrideRuntime", "20-StrideRuntime", "{4C142567-C42B-40F5-B092-798882190209}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Targets.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
 	ProjectSection(SolutionItems) = preProject
 		..\store.config = ..\store.config
-		..\sources\targets\Xenko.Core.Android.CSharp.targets = ..\sources\targets\Xenko.Core.Android.CSharp.targets
-		..\sources\targets\Xenko.Core.CoreCLR.Cpp.targets = ..\sources\targets\Xenko.Core.CoreCLR.Cpp.targets
-		..\sources\targets\Xenko.Core.CoreCLR.CSharp.targets = ..\sources\targets\Xenko.Core.CoreCLR.CSharp.targets
-		..\sources\targets\Xenko.Core.Cpp.targets = ..\sources\targets\Xenko.Core.Cpp.targets
-		..\sources\targets\Xenko.Core.CSharp.targets = ..\sources\targets\Xenko.Core.CSharp.targets
-		..\sources\targets\Xenko.Core.GlobalSettings.targets = ..\sources\targets\Xenko.Core.GlobalSettings.targets
-		..\sources\targets\Xenko.Core.iOS.CSharp.targets = ..\sources\targets\Xenko.Core.iOS.CSharp.targets
-		..\sources\targets\Xenko.Core.PostSettings.Dependencies.targets = ..\sources\targets\Xenko.Core.PostSettings.Dependencies.targets
-		..\sources\targets\Xenko.Core.PostSettings.targets = ..\sources\targets\Xenko.Core.PostSettings.targets
-		..\sources\targets\Xenko.Core.PreSettings.targets = ..\sources\targets\Xenko.Core.PreSettings.targets
-		..\sources\targets\Xenko.Core.Sign.targets = ..\sources\targets\Xenko.Core.Sign.targets
-		..\sources\targets\Xenko.Core.UWP.Cpp.targets = ..\sources\targets\Xenko.Core.UWP.Cpp.targets
-		..\sources\targets\Xenko.Core.UWP.CSharp.targets = ..\sources\targets\Xenko.Core.UWP.CSharp.targets
-		..\sources\targets\Xenko.GlobalSettings.targets = ..\sources\targets\Xenko.GlobalSettings.targets
-		..\sources\native\Xenko.Native.targets = ..\sources\native\Xenko.Native.targets
-		..\sources\targets\Xenko.PostSettings.References.targets = ..\sources\targets\Xenko.PostSettings.References.targets
-		..\sources\targets\Xenko.PostSettings.targets = ..\sources\targets\Xenko.PostSettings.targets
-		..\sources\targets\Xenko.PostSettings.User.targets = ..\sources\targets\Xenko.PostSettings.User.targets
-		..\sources\targets\Xenko.PreSettings.targets = ..\sources\targets\Xenko.PreSettings.targets
-		..\sources\targets\Xenko.PreSettings.UnitTests.targets = ..\sources\targets\Xenko.PreSettings.UnitTests.targets
-		..\sources\targets\Xenko.PreSettings.User.targets = ..\sources\targets\Xenko.PreSettings.User.targets
-		..\sources\targets\Xenko.UnitTests.DisableBuild.targets = ..\sources\targets\Xenko.UnitTests.DisableBuild.targets
-		..\sources\targets\Xenko.UnitTests.targets = ..\sources\targets\Xenko.UnitTests.targets
+		..\sources\targets\Stride.Core.Android.CSharp.targets = ..\sources\targets\Stride.Core.Android.CSharp.targets
+		..\sources\targets\Stride.Core.CoreCLR.Cpp.targets = ..\sources\targets\Stride.Core.CoreCLR.Cpp.targets
+		..\sources\targets\Stride.Core.CoreCLR.CSharp.targets = ..\sources\targets\Stride.Core.CoreCLR.CSharp.targets
+		..\sources\targets\Stride.Core.Cpp.targets = ..\sources\targets\Stride.Core.Cpp.targets
+		..\sources\targets\Stride.Core.CSharp.targets = ..\sources\targets\Stride.Core.CSharp.targets
+		..\sources\targets\Stride.Core.GlobalSettings.targets = ..\sources\targets\Stride.Core.GlobalSettings.targets
+		..\sources\targets\Stride.Core.iOS.CSharp.targets = ..\sources\targets\Stride.Core.iOS.CSharp.targets
+		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
+		..\sources\targets\Stride.Core.PostSettings.targets = ..\sources\targets\Stride.Core.PostSettings.targets
+		..\sources\targets\Stride.Core.PreSettings.targets = ..\sources\targets\Stride.Core.PreSettings.targets
+		..\sources\targets\Stride.Core.Sign.targets = ..\sources\targets\Stride.Core.Sign.targets
+		..\sources\targets\Stride.Core.UWP.Cpp.targets = ..\sources\targets\Stride.Core.UWP.Cpp.targets
+		..\sources\targets\Stride.Core.UWP.CSharp.targets = ..\sources\targets\Stride.Core.UWP.CSharp.targets
+		..\sources\targets\Stride.GlobalSettings.targets = ..\sources\targets\Stride.GlobalSettings.targets
+		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
+		..\sources\targets\Stride.PostSettings.References.targets = ..\sources\targets\Stride.PostSettings.References.targets
+		..\sources\targets\Stride.PostSettings.targets = ..\sources\targets\Stride.PostSettings.targets
+		..\sources\targets\Stride.PostSettings.User.targets = ..\sources\targets\Stride.PostSettings.User.targets
+		..\sources\targets\Stride.PreSettings.targets = ..\sources\targets\Stride.PreSettings.targets
+		..\sources\targets\Stride.PreSettings.UnitTests.targets = ..\sources\targets\Stride.PreSettings.UnitTests.targets
+		..\sources\targets\Stride.PreSettings.User.targets = ..\sources\targets\Stride.PreSettings.User.targets
+		..\sources\targets\Stride.UnitTests.DisableBuild.targets = ..\sources\targets\Stride.UnitTests.DisableBuild.targets
+		..\sources\targets\Stride.UnitTests.targets = ..\sources\targets\Stride.UnitTests.targets
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "80-Shaders", "80-Shaders", "{10D145AF-C8AE-428F-A80F-CA1B591D0DB2}"
@@ -42,139 +42,139 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Config", "00-Config", "{
 		..\sources\shared\SharedAssemblyInfo.cs = ..\sources\shared\SharedAssemblyInfo.cs
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Xenko.Shared", "Xenko.Shared", "{1AC70118-C90F-4EC6-9D8B-C628BDF900F7}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Stride.Shared", "Stride.Shared", "{1AC70118-C90F-4EC6-9D8B-C628BDF900F7}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "21-XenkoRuntime.Tests", "21-XenkoRuntime.Tests", "{A7ED9F01-7D78-4381-90A6-D50E51C17250}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "21-StrideRuntime.Tests", "21-StrideRuntime.Tests", "{A7ED9F01-7D78-4381-90A6-D50E51C17250}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "11-CoreRuntime.Tests", "11-CoreRuntime.Tests", "{22ADD4CD-092E-4ADC-A21E-64CF42230152}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Build", "00-Targets.Build", "{0B81090E-4066-4723-A658-8AEDBEADE619}"
 	ProjectSection(SolutionItems) = preProject
-		Xenko.build = Xenko.build
-		Xenko.Core.GlobalSettings.Local.targets = Xenko.Core.GlobalSettings.Local.targets
-		Xenko.Core.PostSettings.Local.targets = Xenko.Core.PostSettings.Local.targets
-		Xenko.Core.PreSettings.Local.targets = Xenko.Core.PreSettings.Local.targets
-		Xenko.PreSettings.Local.targets = Xenko.PreSettings.Local.targets
+		Stride.build = Stride.build
+		Stride.Core.GlobalSettings.Local.targets = Stride.Core.GlobalSettings.Local.targets
+		Stride.Core.PostSettings.Local.targets = Stride.Core.PostSettings.Local.targets
+		Stride.Core.PreSettings.Local.targets = Stride.Core.PreSettings.Local.targets
+		Stride.PreSettings.Local.targets = Stride.PreSettings.Local.targets
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Engine", "..\sources\engine\Xenko.Engine\Xenko.Engine.csproj", "{C121A566-555E-42B9-9B0A-1696529A9088}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine", "..\sources\engine\Stride.Engine\Stride.Engine.csproj", "{C121A566-555E-42B9-9B0A-1696529A9088}"
 	ProjectSection(ProjectDependencies) = postProject
 		{F2D52EDB-BC17-4243-B06D-33CD20F87A7F} = {F2D52EDB-BC17-4243-B06D-33CD20F87A7F}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Graphics", "..\sources\engine\Xenko.Graphics\Xenko.Graphics.csproj", "{FB06C76A-6BB7-40BE-9AFA-FEC13B045FB5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics", "..\sources\engine\Stride.Graphics\Stride.Graphics.csproj", "{FB06C76A-6BB7-40BE-9AFA-FEC13B045FB5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Engine.Tests.iOS", "..\sources\engine\Xenko.Engine.Tests\Xenko.Engine.Tests.iOS.csproj", "{A8F8D125-7A22-489F-99BC-9A02F545A17F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.Tests.iOS", "..\sources\engine\Stride.Engine.Tests\Stride.Engine.Tests.iOS.csproj", "{A8F8D125-7A22-489F-99BC-9A02F545A17F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Input.Tests.iOS", "..\sources\engine\Xenko.Input.Tests\Xenko.Input.Tests.iOS.csproj", "{01700344-CF44-482C-BEBC-60213B0F844C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Input.Tests.iOS", "..\sources\engine\Stride.Input.Tests\Stride.Input.Tests.iOS.csproj", "{01700344-CF44-482C-BEBC-60213B0F844C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Core.Tests.iOS", "..\sources\core\Xenko.Core.Tests\Xenko.Core.Tests.iOS.csproj", "{5AA408BA-E766-453E-B661-E3D7EC46E2A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Tests.iOS", "..\sources\core\Stride.Core.Tests\Stride.Core.Tests.iOS.csproj", "{5AA408BA-E766-453E-B661-E3D7EC46E2A6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Core.Shaders", "..\sources\shaders\Xenko.Core.Shaders\Xenko.Core.Shaders.csproj", "{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Shaders", "..\sources\shaders\Stride.Core.Shaders\Stride.Core.Shaders.csproj", "{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5210FB81-B807-49BB-AF0D-31FB6A83A572} = {5210FB81-B807-49BB-AF0D-31FB6A83A572}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Irony", "..\sources\shaders\Irony\Irony.csproj", "{D81F5C91-D7DB-46E5-BC99-49488FB6814C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Games", "..\sources\engine\Xenko.Games\Xenko.Games.csproj", "{42780CBD-3FE7-48E3-BD5B-59945EA20137}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Games", "..\sources\engine\Stride.Games\Stride.Games.csproj", "{42780CBD-3FE7-48E3-BD5B-59945EA20137}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Audio.Tests.iOS", "..\sources\engine\Xenko.Audio.Tests\Xenko.Audio.Tests.iOS.csproj", "{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Audio.Tests.iOS", "..\sources\engine\Stride.Audio.Tests\Stride.Audio.Tests.iOS.csproj", "{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Core", "..\sources\core\Xenko.Core\Xenko.Core.csproj", "{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core", "..\sources\core\Stride.Core\Stride.Core.csproj", "{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Core.Mathematics", "..\sources\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj", "{1677B922-CCF0-44DE-B57E-1CDD3D2B8E8A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Mathematics", "..\sources\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj", "{1677B922-CCF0-44DE-B57E-1CDD3D2B8E8A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5210FB81-B807-49BB-AF0D-31FB6A83A572} = {5210FB81-B807-49BB-AF0D-31FB6A83A572}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Core.Serialization", "..\sources\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj", "{5210FB81-B807-49BB-AF0D-31FB6A83A572}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Serialization", "..\sources\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj", "{5210FB81-B807-49BB-AF0D-31FB6A83A572}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Core.MicroThreading", "..\sources\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj", "{1320F627-EE43-4115-8E89-19D1753E51F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.MicroThreading", "..\sources\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj", "{1320F627-EE43-4115-8E89-19D1753E51F2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Core.IO", "..\sources\core\Xenko.Core.IO\Xenko.Core.IO.csproj", "{1DE01410-22C9-489B-9796-1ADDAB1F64E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.IO", "..\sources\core\Stride.Core.IO\Stride.Core.IO.csproj", "{1DE01410-22C9-489B-9796-1ADDAB1F64E5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Shaders.Parser", "..\sources\engine\Xenko.Shaders.Parser\Xenko.Shaders.Parser.csproj", "{14A47447-2A24-4ECD-B24D-6571499DCD4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Parser", "..\sources\engine\Stride.Shaders.Parser\Stride.Shaders.Parser.csproj", "{14A47447-2A24-4ECD-B24D-6571499DCD4C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Shaders", "..\sources\engine\Xenko.Shaders\Xenko.Shaders.csproj", "{273BDD15-7392-4078-91F0-AF23594A3D7B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders", "..\sources\engine\Stride.Shaders\Stride.Shaders.csproj", "{273BDD15-7392-4078-91F0-AF23594A3D7B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Audio", "..\sources\engine\Xenko.Audio\Xenko.Audio.csproj", "{DE042125-C270-4D1D-9270-0759C167567A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Audio", "..\sources\engine\Stride.Audio\Stride.Audio.csproj", "{DE042125-C270-4D1D-9270-0759C167567A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko", "..\sources\engine\Xenko\Xenko.csproj", "{72390339-B2A1-4F61-A800-31ED0975B515}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride", "..\sources\engine\Stride\Stride.csproj", "{72390339-B2A1-4F61-A800-31ED0975B515}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Shaders.Compiler", "..\sources\engine\Xenko.Shaders.Compiler\Xenko.Shaders.Compiler.csproj", "{E8B3553F-A79F-4E50-B75B-ACEE771C320C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Compiler", "..\sources\engine\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj", "{E8B3553F-A79F-4E50-B75B-ACEE771C320C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Input", "..\sources\engine\Xenko.Input\Xenko.Input.csproj", "{84DEB606-77ED-49CD-9AED-D2B13C1F5A1E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Input", "..\sources\engine\Stride.Input\Stride.Input.csproj", "{84DEB606-77ED-49CD-9AED-D2B13C1F5A1E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.UI", "..\sources\engine\Xenko.UI\Xenko.UI.csproj", "{BB9DEEEF-F18C-40D8-B016-6434CC71B8C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.UI", "..\sources\engine\Stride.UI\Stride.UI.csproj", "{BB9DEEEF-F18C-40D8-B016-6434CC71B8C3}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C121A566-555E-42B9-9B0A-1696529A9088} = {C121A566-555E-42B9-9B0A-1696529A9088}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.UI.Tests.iOS", "..\sources\engine\Xenko.UI.Tests\Xenko.UI.Tests.iOS.csproj", "{E7B1B17F-D04B-4978-B504-A6BB3EE846C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.UI.Tests.iOS", "..\sources\engine\Stride.UI.Tests\Stride.UI.Tests.iOS.csproj", "{E7B1B17F-D04B-4978-B504-A6BB3EE846C9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Graphics.Regression", "..\sources\engine\Xenko.Graphics.Regression\Xenko.Graphics.Regression.csproj", "{D002FEB1-00A6-4AB1-A83F-1F253465E64D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Regression", "..\sources\engine\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj", "{D002FEB1-00A6-4AB1-A83F-1F253465E64D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Physics", "..\sources\engine\Xenko.Physics\Xenko.Physics.csproj", "{DD592516-B341-40FE-9100-1B0FA784A060}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Physics", "..\sources\engine\Stride.Physics\Stride.Physics.csproj", "{DD592516-B341-40FE-9100-1B0FA784A060}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.SpriteStudio.Runtime", "..\sources\engine\Xenko.SpriteStudio.Runtime\Xenko.SpriteStudio.Runtime.csproj", "{9BC63BEC-F305-451D-BB31-262938EA964D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.SpriteStudio.Runtime", "..\sources\engine\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj", "{9BC63BEC-F305-451D-BB31-262938EA964D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Graphics.Tests.iOS", "..\sources\engine\Xenko.Graphics.Tests\Xenko.Graphics.Tests.iOS.csproj", "{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.iOS", "..\sources\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.iOS.csproj", "{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Graphics.Tests.10_0.iOS", "..\sources\engine\Xenko.Graphics.Tests.10_0\Xenko.Graphics.Tests.10_0.iOS.csproj", "{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.10_0.iOS", "..\sources\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.iOS.csproj", "{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Graphics.Tests.11_0.iOS", "..\sources\engine\Xenko.Graphics.Tests.11_0\Xenko.Graphics.Tests.11_0.iOS.csproj", "{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.11_0.iOS", "..\sources\engine\Stride.Graphics.Tests.11_0\Stride.Graphics.Tests.11_0.iOS.csproj", "{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Particles", "..\sources\engine\Xenko.Particles\Xenko.Particles.csproj", "{F32FDA80-B6DD-47A8-8681-437E2C0D3F31}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Particles", "..\sources\engine\Stride.Particles\Stride.Particles.csproj", "{F32FDA80-B6DD-47A8-8681-437E2C0D3F31}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Games.Testing", "..\sources\engine\Xenko.Games.Testing\Xenko.Games.Testing.csproj", "{B84ECB15-5E3F-4BD1-AB87-333BAE9B70F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Games.Testing", "..\sources\engine\Stride.Games.Testing\Stride.Games.Testing.csproj", "{B84ECB15-5E3F-4BD1-AB87-333BAE9B70F9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Native", "..\sources\engine\Xenko.Native\Xenko.Native.csproj", "{1DBBC150-F085-43EF-B41D-27C72D133770}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Native", "..\sources\engine\Stride.Native\Stride.Native.csproj", "{1DBBC150-F085-43EF-B41D-27C72D133770}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Particles.Tests.iOS", "..\sources\engine\Xenko.Particles.Tests\Xenko.Particles.Tests.iOS.csproj", "{33CC6216-3F30-4B5A-BB29-C5B47EFFA713}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Particles.Tests.iOS", "..\sources\engine\Stride.Particles.Tests\Stride.Particles.Tests.iOS.csproj", "{33CC6216-3F30-4B5A-BB29-C5B47EFFA713}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Xenko.Refactor", "..\sources\engine\Xenko.Shared\Refactor\Xenko.Refactor.shproj", "{B33E576F-2279-4BFC-A438-D9B84343B56B}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Refactor", "..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.shproj", "{B33E576F-2279-4BFC-A438-D9B84343B56B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Physics.Tests.iOS", "..\sources\engine\Xenko.Physics.Tests\Xenko.Physics.Tests.iOS.csproj", "{4F0E7E04-F067-4CE8-B8C8-1105F319D123}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Physics.Tests.iOS", "..\sources\engine\Stride.Physics.Tests\Stride.Physics.Tests.iOS.csproj", "{4F0E7E04-F067-4CE8-B8C8-1105F319D123}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.VirtualReality", "..\sources\engine\Xenko.VirtualReality\Xenko.VirtualReality.csproj", "{53782603-3096-40C2-ABD3-F8F311BAE4BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VirtualReality", "..\sources\engine\Stride.VirtualReality\Stride.VirtualReality.csproj", "{53782603-3096-40C2-ABD3-F8F311BAE4BE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Navigation", "..\sources\engine\Xenko.Navigation\Xenko.Navigation.csproj", "{FBE1FA7B-E699-4BB2-9C8F-41F4C9F3F088}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Navigation", "..\sources\engine\Stride.Navigation\Stride.Navigation.csproj", "{FBE1FA7B-E699-4BB2-9C8F-41F4C9F3F088}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Localization", "00-Localization", "{FC791F56-C1F1-4C41-A193-868D8197F8E2}"
 	ProjectSection(SolutionItems) = preProject
-		..\sources\localization\Xenko.Assets.Presentation.pot = ..\sources\localization\Xenko.Assets.Presentation.pot
-		..\sources\localization\Xenko.Core.Assets.Editor.pot = ..\sources\localization\Xenko.Core.Assets.Editor.pot
-		..\sources\localization\Xenko.Core.Presentation.pot = ..\sources\localization\Xenko.Core.Presentation.pot
-		..\sources\localization\Xenko.GameStudio.pot = ..\sources\localization\Xenko.GameStudio.pot
+		..\sources\localization\Stride.Assets.Presentation.pot = ..\sources\localization\Stride.Assets.Presentation.pot
+		..\sources\localization\Stride.Core.Assets.Editor.pot = ..\sources\localization\Stride.Core.Assets.Editor.pot
+		..\sources\localization\Stride.Core.Presentation.pot = ..\sources\localization\Stride.Core.Presentation.pot
+		..\sources\localization\Stride.GameStudio.pot = ..\sources\localization\Stride.GameStudio.pot
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ja", "ja", "{B4EABB0D-E495-405C-B7B1-E2A7A3711AF5}"
 	ProjectSection(SolutionItems) = preProject
-		..\sources\localization\ja\Xenko.Assets.Presentation.ja.po = ..\sources\localization\ja\Xenko.Assets.Presentation.ja.po
-		..\sources\localization\ja\Xenko.Core.Assets.Editor.ja.po = ..\sources\localization\ja\Xenko.Core.Assets.Editor.ja.po
-		..\sources\localization\ja\Xenko.Core.Presentation.ja.po = ..\sources\localization\ja\Xenko.Core.Presentation.ja.po
-		..\sources\localization\ja\Xenko.GameStudio.ja.po = ..\sources\localization\ja\Xenko.GameStudio.ja.po
+		..\sources\localization\ja\Stride.Assets.Presentation.ja.po = ..\sources\localization\ja\Stride.Assets.Presentation.ja.po
+		..\sources\localization\ja\Stride.Core.Assets.Editor.ja.po = ..\sources\localization\ja\Stride.Core.Assets.Editor.ja.po
+		..\sources\localization\ja\Stride.Core.Presentation.ja.po = ..\sources\localization\ja\Stride.Core.Presentation.ja.po
+		..\sources\localization\ja\Stride.GameStudio.ja.po = ..\sources\localization\ja\Stride.GameStudio.ja.po
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Video", "..\sources\engine\Xenko.Video\Xenko.Video.csproj", "{DA355C86-866F-4843-9B4D-63A173C750FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Video", "..\sources\engine\Stride.Video\Stride.Video.csproj", "{DA355C86-866F-4843-9B4D-63A173C750FB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fr", "fr", "{62E9A8E4-79AF-4081-84D5-FEC5A0B28598}"
 	ProjectSection(SolutionItems) = preProject
-		..\sources\localization\fr\Xenko.Assets.Presentation.fr.po = ..\sources\localization\fr\Xenko.Assets.Presentation.fr.po
-		..\sources\localization\fr\Xenko.Core.Assets.Editor.fr.po = ..\sources\localization\fr\Xenko.Core.Assets.Editor.fr.po
-		..\sources\localization\fr\Xenko.Core.Presentation.fr.po = ..\sources\localization\fr\Xenko.Core.Presentation.fr.po
-		..\sources\localization\fr\Xenko.GameStudio.fr.po = ..\sources\localization\fr\Xenko.GameStudio.fr.po
+		..\sources\localization\fr\Stride.Assets.Presentation.fr.po = ..\sources\localization\fr\Stride.Assets.Presentation.fr.po
+		..\sources\localization\fr\Stride.Core.Assets.Editor.fr.po = ..\sources\localization\fr\Stride.Core.Assets.Editor.fr.po
+		..\sources\localization\fr\Stride.Core.Presentation.fr.po = ..\sources\localization\fr\Stride.Core.Presentation.fr.po
+		..\sources\localization\fr\Stride.GameStudio.fr.po = ..\sources\localization\fr\Stride.GameStudio.fr.po
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Rendering", "..\sources\engine\Xenko.Rendering\Xenko.Rendering.csproj", "{AD4FDC24-B64D-4ED7-91AA-62C9EDA12FA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Rendering", "..\sources\engine\Stride.Rendering\Stride.Rendering.csproj", "{AD4FDC24-B64D-4ED7-91AA-62C9EDA12FA4}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		..\sources\engine\Xenko.Shared\Refactor\Xenko.Refactor.projitems*{b33e576f-2279-4bfc-a438-d9b84343b56b}*SharedItemsImports = 13
-		..\sources\engine\Xenko.Shared\Refactor\Xenko.Refactor.projitems*{c121a566-555e-42b9-9b0a-1696529a9088}*SharedItemsImports = 4
-		..\sources\shared\Xenko.Core.ShellHelper\Xenko.Core.ShellHelper.projitems*{e8b3553f-a79f-4e50-b75b-acee771c320c}*SharedItemsImports = 4
-		..\sources\engine\Xenko.Shared\Refactor\Xenko.Refactor.projitems*{fb06c76a-6bb7-40be-9afa-fec13b045fb5}*SharedItemsImports = 4
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{b33e576f-2279-4bfc-a438-d9b84343b56b}*SharedItemsImports = 13
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{c121a566-555e-42b9-9b0a-1696529a9088}*SharedItemsImports = 4
+		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{e8b3553f-a79f-4e50-b75b-acee771c320c}*SharedItemsImports = 4
+		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{fb06c76a-6bb7-40be-9afa-fec13b045fb5}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|iPhone = Debug|iPhone

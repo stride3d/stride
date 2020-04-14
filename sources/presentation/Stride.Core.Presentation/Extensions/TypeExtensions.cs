@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.CodeDom;
@@ -6,7 +6,7 @@ using Microsoft.CSharp;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace Xenko.Core.Presentation.Extensions
+namespace Stride.Core.Presentation.Extensions
 {
     /// <summary>
     /// Helper class to get formatted names from <see cref="Type"/>.

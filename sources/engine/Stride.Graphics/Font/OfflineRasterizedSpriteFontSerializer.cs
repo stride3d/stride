@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 
-using Xenko.Core;
-using Xenko.Core.Serialization;
+using Stride.Core;
+using Stride.Core.Serialization;
 
-namespace Xenko.Graphics.Font
+namespace Stride.Graphics.Font
 {
     /// <summary>
     /// Serializer for <see cref="RuntimeRasterizedSpriteFont"/>.
@@ -26,7 +26,7 @@ namespace Xenko.Graphics.Font
             parentSerializer = SerializerSelector.Default.GetSerializer<SpriteFont>();
             if (parentSerializer == null)
             {
-                throw new InvalidOperationException(string.Format("Could not find parent serializer for type {0}", "Xenko.Graphics.SpriteFont"));
+                throw new InvalidOperationException(string.Format("Could not find parent serializer for type {0}", "Stride.Graphics.SpriteFont"));
             }
         }
 

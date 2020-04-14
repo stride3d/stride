@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_VIDEO_FFMPEG && !XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_VIDEO_FFMPEG && !STRIDE_GRAPHICS_API_DIRECT3D11
 
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Video.FFmpeg;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Video.FFmpeg;
 
-namespace Xenko.Video
+namespace Stride.Video
 {
     public partial class VideoSystem
     {

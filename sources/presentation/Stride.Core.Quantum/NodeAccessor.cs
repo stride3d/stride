@@ -1,11 +1,11 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics.Contracts;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
 
-namespace Xenko.Core.Quantum
+namespace Stride.Core.Quantum
 {
     /// <summary>
     /// An object representing a single accessor of the value of a node, or one if its item.

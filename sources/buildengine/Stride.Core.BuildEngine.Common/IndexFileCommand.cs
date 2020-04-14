@@ -1,7 +1,7 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-namespace Xenko.Core.BuildEngine
+namespace Stride.Core.BuildEngine
 {
     /// <summary>
     /// A <see cref="Command"/> that reads and/or writes to the index file.

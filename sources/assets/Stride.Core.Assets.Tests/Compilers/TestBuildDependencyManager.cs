@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.BuildEngine;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.BuildEngine;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 
-namespace Xenko.Core.Assets.Tests.Compilers
+namespace Stride.Core.Assets.Tests.Compilers
 {
     public class TestBuildDependencyManager : CompilerTestBase
     {
@@ -209,7 +209,7 @@ namespace Xenko.Core.Assets.Tests.Compilers
         [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent13>), Profile = "Content")]
         public class MyContent13 { }
 
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent1))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent1))]
         public class MyAsset1 : Asset
         {
             public MyContent2 CompileAssetReference;
@@ -217,7 +217,7 @@ namespace Xenko.Core.Assets.Tests.Compilers
             public MyContent4 CompileRuntimeReference;
         }
 
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent2))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent2))]
         public class MyAsset2 : Asset
         {
             public MyContent5 CompileAssetReference;
@@ -225,7 +225,7 @@ namespace Xenko.Core.Assets.Tests.Compilers
             public MyContent7 CompileRuntimeReference;
         }
 
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent3))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent3))]
         public class MyAsset3 : Asset
         {
             public MyContent8 CompileAssetReference;
@@ -233,7 +233,7 @@ namespace Xenko.Core.Assets.Tests.Compilers
             public MyContent10 CompileRuntimeReference;
         }
 
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent4))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent4))]
         public class MyAsset4 : Asset
         {
             public MyContent11 CompileAssetReference;
@@ -241,23 +241,23 @@ namespace Xenko.Core.Assets.Tests.Compilers
             public MyContent13 CompileRuntimeReference;
         }
 
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent5))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent5))]
         public class MyAsset5 : Asset { }
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent6))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent6))]
         public class MyAsset6 : Asset { }
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent7))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent7))]
         public class MyAsset7 : Asset { }
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent8))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent8))]
         public class MyAsset8 : Asset { }
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent9))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent9))]
         public class MyAsset9 : Asset { }
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent10))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent10))]
         public class MyAsset10 : Asset { }
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent11))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent11))]
         public class MyAsset11 : Asset { }
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent12))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent12))]
         public class MyAsset12 : Asset { }
-        [DataContract, AssetDescription(".xkmytest"), AssetContentType(typeof(MyContent13))]
+        [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(MyContent13))]
         public class MyAsset13 : Asset { }
 
         [AssetCompiler(typeof(MyAsset1), typeof(AssetCompilationContext))]

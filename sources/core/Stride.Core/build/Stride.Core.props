@@ -4,7 +4,7 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'xamarinios10' ">
     <TargetFrameworkVersion>v1.0</TargetFrameworkVersion>
     <TargetFrameworkIdentifier>Xamarin.iOS</TargetFrameworkIdentifier>
-    <XenkoPlatformDefines>XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_IOS;NET45</XenkoPlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS;NET45</StridePlatformDefines>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
     <LanguageTargets>$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets</LanguageTargets>
   </PropertyGroup>
@@ -13,7 +13,7 @@
     <TargetFrameworkVersion>v8.1</TargetFrameworkVersion>
     <TargetFramework>monoandroid81</TargetFramework>
     <TargetFrameworkIdentifier>MonoAndroid</TargetFrameworkIdentifier>
-    <XenkoPlatformDefines>XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID;NET45</XenkoPlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID;NET45</StridePlatformDefines>
     <AndroidStoreUncompressedFileExtensions />
     <MandroidI18n />
     <LanguageTargets>$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets</LanguageTargets>

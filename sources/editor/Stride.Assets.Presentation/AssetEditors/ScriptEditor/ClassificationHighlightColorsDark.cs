@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,7 +7,7 @@ using ICSharpCode.AvalonEdit.Highlighting;
 using Microsoft.CodeAnalysis.Classification;
 using RoslynPad.Editor;
 
-namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
+namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 {
     /// <summary>
     /// Highlighting colors for dark theme.

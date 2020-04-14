@@ -45,7 +45,7 @@
 
 using System;
 
-namespace Xenko.Core.Yaml.Serialization.Serializers
+namespace Stride.Core.Yaml.Serialization.Serializers
 {
     /// <summary>
     /// This serializer is responsible to route to a specific serializer.

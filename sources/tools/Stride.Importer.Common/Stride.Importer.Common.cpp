@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #include "stdafx.h"
 
 using namespace System;
 using namespace System::Collections::Generic;
 using namespace System::IO;
-using namespace Xenko::Core::Assets;
-using namespace Xenko::Core::Diagnostics;
-using namespace Xenko::Core::Mathematics;
-using namespace Xenko::Core::Serialization;
-using namespace Xenko::Animations;
-using namespace Xenko::Rendering;
-using namespace Xenko::Rendering::Materials;
-using namespace Xenko::Rendering::Materials::ComputeColors;
-using namespace Xenko::Assets::Materials;
-using namespace Xenko::Engine;
-using namespace Xenko::Graphics;
-using namespace Xenko::Shaders;
+using namespace Stride::Core::Assets;
+using namespace Stride::Core::Diagnostics;
+using namespace Stride::Core::Mathematics;
+using namespace Stride::Core::Serialization;
+using namespace Stride::Animations;
+using namespace Stride::Rendering;
+using namespace Stride::Rendering::Materials;
+using namespace Stride::Rendering::Materials::ComputeColors;
+using namespace Stride::Assets::Materials;
+using namespace Stride::Engine;
+using namespace Stride::Graphics;
+using namespace Stride::Shaders;
 
-namespace Xenko { namespace Importer { namespace Common {
+namespace Stride { namespace Importer { namespace Common {
 
 public ref class AnimationInfo
 {

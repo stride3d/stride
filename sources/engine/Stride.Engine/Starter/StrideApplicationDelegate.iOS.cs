@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
 using System;
 using CoreGraphics;
 using Foundation;
 using OpenTK;
 using UIKit;
-using Xenko.Engine;
-using Xenko.Games;
+using Stride.Engine;
+using Stride.Games;
 
-namespace Xenko.Starter
+namespace Stride.Starter
 {
-    public class XenkoApplicationDelegate : UIApplicationDelegate
+    public class StrideApplicationDelegate : UIApplicationDelegate
     {
         /// <summary>
         /// The instance of the game to run.
@@ -33,12 +33,12 @@ namespace Xenko.Starter
             // create the game main windows
             MainWindow = new UIWindow(bounds);
 
-            var xenkoGameView = CreateView(bounds);
+            var strideGameView = CreateView(bounds);
 
-            var xenkoGameController = CreateViewController(xenkoGameView);
+            var strideGameController = CreateViewController(strideGameView);
 
             // create the game context
-            var gameContext = new GameContextiOS(new iOSWindow(MainWindow, xenkoGameView, xenkoGameController));
+            var gameContext = new GameContextiOS(new iOSWindow(MainWindow, strideGameView, strideGameController));
 
             // Force fullscreen
             UIApplication.SharedApplication.SetStatusBarHidden(true, false);
@@ -57,17 +57,17 @@ namespace Xenko.Starter
             return Game.IsRunning;
         }
 
-        protected virtual iOSXenkoView CreateView(CGRect bounds, nfloat? contentScaleFactor = null)
+        protected virtual iOSStrideView CreateView(CGRect bounds, nfloat? contentScaleFactor = null)
         {
-            // create the xenko game view 
+            // create the stride game view 
             var rect = new System.Drawing.RectangleF((float)bounds.X, (float)bounds.Y, (float)bounds.Height, (float)bounds.Width);
-            return new iOSXenkoView(rect) { ContentScaleFactor = contentScaleFactor ?? UIScreen.MainScreen.Scale };
+            return new iOSStrideView(rect) { ContentScaleFactor = contentScaleFactor ?? UIScreen.MainScreen.Scale };
         }
 
-        protected virtual XenkoGameController CreateViewController(iOSXenkoView xenkoGameView)
+        protected virtual StrideGameController CreateViewController(iOSStrideView strideGameView)
         {
-            // create the view controller used to display the xenko game
-            return new XenkoGameController { View = xenkoGameView };
+            // create the view controller used to display the stride game
+            return new StrideGameController { View = strideGameView };
         }
     }
 }

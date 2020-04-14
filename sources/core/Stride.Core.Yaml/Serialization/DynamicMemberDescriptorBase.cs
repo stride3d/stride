@@ -21,9 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Xenko.Core.Reflection;
+using Stride.Core.Reflection;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// A dynamic member to allow adding dynamic members to objects (that could store additional properties outside of the instance).

@@ -1,21 +1,21 @@
 <Project>
   <PropertyGroup>
-    <XenkoRuntime>true</XenkoRuntime>
+    <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
-  <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   
   <PropertyGroup>
-    <Description>Xenko Core IO assembly.</Description>
+    <Description>Stride Core IO assembly.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
   
   <PropertyGroup>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorOptions>--auto-module-initializer</XenkoAssemblyProcessorOptions>
-    <XenkoPlatformDependent>true</XenkoPlatformDependent>
-    <XenkoBuildTags>*</XenkoBuildTags>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
+    <StridePlatformDependent>true</StridePlatformDependent>
+    <StrideBuildTags>*</StrideBuildTags>
   </PropertyGroup>
   
   <Choose>
@@ -26,17 +26,17 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Remove="System.IO.Compression.Zip\*.cs" Condition=" '$(XenkoPlatform)' != 'Android' " />
+    <Compile Remove="System.IO.Compression.Zip\*.cs" Condition=" '$(StridePlatform)' != 'Android' " />
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj">
+    <ProjectReference Include="..\Stride.Core\Stride.Core.csproj">
 	  <PrivateAssets>contentfiles;analyzers</PrivateAssets>
 	</ProjectReference>
-    <PackageReference Include="SharpDX" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'UWP'" />
+    <PackageReference Include="SharpDX" Version="4.2.0" Condition="'$(StridePlatform)' == 'UWP'" />
   </ItemGroup>
   
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
 </Project>

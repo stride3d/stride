@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -9,13 +9,13 @@ using System.Runtime.CompilerServices;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-using Xenko.Core.AssemblyProcessor.Serializers;
-using Xenko.Core.Serialization;
+using Stride.Core.AssemblyProcessor.Serializers;
+using Stride.Core.Serialization;
 using FieldAttributes = Mono.Cecil.FieldAttributes;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 using TypeAttributes = Mono.Cecil.TypeAttributes;
 
-namespace Xenko.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor
 {
     internal partial class UpdateEngineProcessor : ICecilSerializerProcessor
     {
@@ -44,8 +44,8 @@ namespace Xenko.Core.AssemblyProcessor
             updateEngineType.Methods.Add(mainPrepareMethod);
 
             // Make sure it is called at module startup
-            var xenkoCoreModule = assembly.GetXenkoCoreModule();
-            var moduleInitializerAttribute = xenkoCoreModule.GetType("Xenko.Core.ModuleInitializerAttribute");
+            var strideCoreModule = assembly.GetStrideCoreModule();
+            var moduleInitializerAttribute = strideCoreModule.GetType("Stride.Core.ModuleInitializerAttribute");
             var ctorMethod = moduleInitializerAttribute.GetConstructors().Single(x => !x.IsStatic && !x.HasParameters);
             mainPrepareMethod.CustomAttributes.Add(new CustomAttribute(assembly.MainModule.ImportReference(ctorMethod)));
 
@@ -89,12 +89,12 @@ namespace Xenko.Core.AssemblyProcessor
 
             var coreAssembly = CecilExtensions.FindCorlibAssembly(context.Assembly);
 
-            // Only process assemblies depending on Xenko.Engine
-            if (!references.Any(x => x.Name.Name == "Xenko.Engine"))
+            // Only process assemblies depending on Stride.Engine
+            if (!references.Any(x => x.Name.Name == "Stride.Engine"))
             {
-                // Make sure Xenko.Engine.Serializers can access everything internally
+                // Make sure Stride.Engine.Serializers can access everything internally
                 var internalsVisibleToAttribute = coreAssembly.MainModule.GetTypeResolved(typeof(InternalsVisibleToAttribute).FullName);
-                var serializationAssemblyName = "Xenko.Engine.Serializers";
+                var serializationAssemblyName = "Stride.Engine.Serializers";
 
                 // Add [InteralsVisibleTo] attribute
                 var internalsVisibleToAttributeCtor = context.Assembly.MainModule.ImportReference(internalsVisibleToAttribute.GetConstructors().Single());
@@ -112,39 +112,39 @@ namespace Xenko.Core.AssemblyProcessor
 
 
 
-            var xenkoEngineAssembly = context.Assembly.Name.Name == "Xenko.Engine"
+            var strideEngineAssembly = context.Assembly.Name.Name == "Stride.Engine"
                     ? context.Assembly
-                    : context.Assembly.MainModule.AssemblyResolver.Resolve(new AssemblyNameReference("Xenko.Engine", null));
-            var xenkoEngineModule = xenkoEngineAssembly.MainModule;
+                    : context.Assembly.MainModule.AssemblyResolver.Resolve(new AssemblyNameReference("Stride.Engine", null));
+            var strideEngineModule = strideEngineAssembly.MainModule;
 
-            // Generate IL for Xenko.Core
-            if (context.Assembly.Name.Name == "Xenko.Engine")
+            // Generate IL for Stride.Core
+            if (context.Assembly.Name.Name == "Stride.Engine")
             {
-                ProcessXenkoEngineAssembly(context);
+                ProcessStrideEngineAssembly(context);
             }
 
-            var updatableFieldGenericType = xenkoEngineModule.GetType("Xenko.Updater.UpdatableField`1");
+            var updatableFieldGenericType = strideEngineModule.GetType("Stride.Updater.UpdatableField`1");
             updatableFieldGenericCtor = updatableFieldGenericType.Methods.First(x => x.IsConstructor && !x.IsStatic);
 
-            updatablePropertyGenericType = xenkoEngineModule.GetType("Xenko.Updater.UpdatableProperty`1");
+            updatablePropertyGenericType = strideEngineModule.GetType("Stride.Updater.UpdatableProperty`1");
             updatablePropertyGenericCtor = updatablePropertyGenericType.Methods.First(x => x.IsConstructor && !x.IsStatic);
 
-            var updatablePropertyObjectGenericType = xenkoEngineModule.GetType("Xenko.Updater.UpdatablePropertyObject`1");
+            var updatablePropertyObjectGenericType = strideEngineModule.GetType("Stride.Updater.UpdatablePropertyObject`1");
             updatablePropertyObjectGenericCtor = updatablePropertyObjectGenericType.Methods.First(x => x.IsConstructor && !x.IsStatic);
 
-            var updatableListUpdateResolverGenericType = xenkoEngineModule.GetType("Xenko.Updater.ListUpdateResolver`1");
+            var updatableListUpdateResolverGenericType = strideEngineModule.GetType("Stride.Updater.ListUpdateResolver`1");
             updatableListUpdateResolverGenericCtor = updatableListUpdateResolverGenericType.Methods.First(x => x.IsConstructor && !x.IsStatic);
 
-            var updatableArrayUpdateResolverGenericType = xenkoEngineModule.GetType("Xenko.Updater.ArrayUpdateResolver`1");
+            var updatableArrayUpdateResolverGenericType = strideEngineModule.GetType("Stride.Updater.ArrayUpdateResolver`1");
             updatableArrayUpdateResolverGenericCtor = updatableArrayUpdateResolverGenericType.Methods.First(x => x.IsConstructor && !x.IsStatic);
 
-            var parameterCollectionResolver = xenkoEngineModule.GetType("Xenko.Engine.Design.ParameterCollectionResolver");
+            var parameterCollectionResolver = strideEngineModule.GetType("Stride.Engine.Design.ParameterCollectionResolver");
             parameterCollectionResolverInstantiateValueAccessor = parameterCollectionResolver.Methods.First(x => x.Name == "InstantiateValueAccessor");
 
-            var registerMemberMethod = xenkoEngineModule.GetType("Xenko.Updater.UpdateEngine").Methods.First(x => x.Name == "RegisterMember");
+            var registerMemberMethod = strideEngineModule.GetType("Stride.Updater.UpdateEngine").Methods.First(x => x.Name == "RegisterMember");
             updateEngineRegisterMemberMethod = context.Assembly.MainModule.ImportReference(registerMemberMethod);
 
-            var registerMemberResolverMethod = xenkoEngineModule.GetType("Xenko.Updater.UpdateEngine") .Methods.First(x => x.Name == "RegisterMemberResolver");
+            var registerMemberResolverMethod = strideEngineModule.GetType("Stride.Updater.UpdateEngine") .Methods.First(x => x.Name == "RegisterMemberResolver");
             //pclVisitor.VisitMethod(registerMemberResolverMethod);
             updateEngineRegisterMemberResolverMethod = context.Assembly.MainModule.ImportReference(registerMemberResolverMethod);
 
@@ -157,8 +157,8 @@ namespace Xenko.Core.AssemblyProcessor
             var processedTypes = new HashSet<TypeDefinition>(TypeReferenceEqualityComparer.Default);
             foreach (var serializableType in context.SerializableTypesProfiles.SelectMany(x => x.Value.SerializableTypes))
             {
-                // Special case: when processing Xenko.Engine assembly, we automatically add dependent assemblies types too
-                if (!serializableType.Value.Local && xenkoEngineAssembly != context.Assembly)
+                // Special case: when processing Stride.Engine assembly, we automatically add dependent assemblies types too
+                if (!serializableType.Value.Local && strideEngineAssembly != context.Assembly)
                     continue;
 
                 var typeDefinition = serializableType.Key as TypeDefinition;
@@ -183,8 +183,8 @@ namespace Xenko.Core.AssemblyProcessor
             var il = mainPrepareMethod.Body.GetILProcessor();
             foreach (var serializableType in context.SerializableTypesProfiles.SelectMany(x => x.Value.SerializableTypes).ToArray())
             {
-                // Special case: when processing Xenko.Engine assembly, we automatically add dependent assemblies types too
-                if (!serializableType.Value.Local && xenkoEngineAssembly != context.Assembly)
+                // Special case: when processing Stride.Engine assembly, we automatically add dependent assemblies types too
+                if (!serializableType.Value.Local && strideEngineAssembly != context.Assembly)
                     continue;
 
                 // Try to find if original method definition was generated  
@@ -229,10 +229,10 @@ namespace Xenko.Core.AssemblyProcessor
                     var expectedUpdateMethodName = ComputeUpdateMethodName(typeDefinition);
                     var updateMethod = GetOrCreateUpdateType(typeDefinition.Module.Assembly, false)?.Methods.FirstOrDefault(x => x.Name == expectedUpdateMethodName && x.HasGenericParameters && x.GenericParameters.Count == genericInstanceType.GenericParameters.Count);
 
-                    // If nothing was found in main assembly, also look in Xenko.Engine assembly, just in case (it might defines some shared/corlib types -- currently not the case)
+                    // If nothing was found in main assembly, also look in Stride.Engine assembly, just in case (it might defines some shared/corlib types -- currently not the case)
                     if (updateMethod == null)
                     {
-                        updateMethod = GetOrCreateUpdateType(xenkoEngineAssembly, false)?.Methods.FirstOrDefault(x => x.Name == expectedUpdateMethodName && x.HasGenericParameters && x.GenericParameters.Count == genericInstanceType.GenericParameters.Count);
+                        updateMethod = GetOrCreateUpdateType(strideEngineAssembly, false)?.Methods.FirstOrDefault(x => x.Name == expectedUpdateMethodName && x.HasGenericParameters && x.GenericParameters.Count == genericInstanceType.GenericParameters.Count);
                     }
 
                     if (updateMethod != null)

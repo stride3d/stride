@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Globalization;
 using System.Linq;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Glsl;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Writer.Hlsl;
-using InterfaceType = Xenko.Core.Shaders.Ast.Hlsl.InterfaceType;
-using LayoutQualifier = Xenko.Core.Shaders.Ast.Glsl.LayoutQualifier;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Glsl;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Writer.Hlsl;
+using InterfaceType = Stride.Core.Shaders.Ast.Hlsl.InterfaceType;
+using LayoutQualifier = Stride.Core.Shaders.Ast.Glsl.LayoutQualifier;
 
-namespace Xenko.Core.Shaders.Convertor
+namespace Stride.Core.Shaders.Convertor
 {
     /// <summary>
     /// A writer for a shader.
@@ -198,7 +198,7 @@ namespace Xenko.Core.Shaders.Convertor
                         var layoutQualifier = constantBuffer.Qualifiers.OfType<LayoutQualifier>().FirstOrDefault();
                         if (layoutQualifier == null)
                         {
-                            layoutQualifier = new Xenko.Core.Shaders.Ast.Glsl.LayoutQualifier();
+                            layoutQualifier = new Stride.Core.Shaders.Ast.Glsl.LayoutQualifier();
                             constantBuffer.Qualifiers |= layoutQualifier;
                         }
 

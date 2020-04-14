@@ -28,7 +28,7 @@ namespace NShader
     {
         public void Load(string resource)
         {
-            Stream file = typeof(T).Assembly.GetManifestResourceStream(typeof(Xenko.VisualStudio.Resources).Namespace + ".NShader.Common." + resource);
+            Stream file = typeof(T).Assembly.GetManifestResourceStream(typeof(Stride.VisualStudio.Resources).Namespace + ".NShader.Common." + resource);
             TextReader textReader = new StreamReader(file);
             string line;
             while ((line = textReader.ReadLine()) != null )

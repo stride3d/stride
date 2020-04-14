@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Xunit;
-using Xenko.Core.Assets.Quantum.Internal;
-using Xenko.Core.Assets.Quantum.Tests.Helpers;
-using Xenko.Core.Assets.Tests.Helpers;
-using Xenko.Core.Reflection;
+using Stride.Core.Assets.Quantum.Internal;
+using Stride.Core.Assets.Quantum.Tests.Helpers;
+using Stride.Core.Assets.Tests.Helpers;
+using Stride.Core.Reflection;
 
-namespace Xenko.Core.Assets.Quantum.Tests
+namespace Stride.Core.Assets.Quantum.Tests
 {
     public class TestAssetPropertyGraph
     {

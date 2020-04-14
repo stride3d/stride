@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// Contains a list descriptors (such as textures) that can be bound together to the graphics pipeline.
@@ -15,7 +15,7 @@ namespace Xenko.Graphics
             return new DescriptorSet(graphicsDevice, pool, desc);
         }
 
-#if XENKO_GRAPHICS_API_DIRECT3D11 || XENKO_GRAPHICS_API_OPENGL || (XENKO_GRAPHICS_API_VULKAN && XENKO_GRAPHICS_NO_DESCRIPTOR_COPIES)
+#if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_OPENGL || (STRIDE_GRAPHICS_API_VULKAN && STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES)
         internal readonly DescriptorSetEntry[] HeapObjects;
         internal readonly int DescriptorStartOffset;
 

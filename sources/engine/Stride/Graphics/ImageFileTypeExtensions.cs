@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
@@ -22,7 +22,7 @@
 // THE SOFTWARE.
 #pragma warning disable SA1402 // File may only contain a single type
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public static class ImageFileTypeExtensions
     {
@@ -35,8 +35,8 @@ namespace Xenko.Graphics
         {
             switch (fileType)
             {
-                case ImageFileType.Xenko:
-                    return ".xkimg";
+                case ImageFileType.Stride:
+                    return ".sdimg";
                 default:
                     return "." + fileType.ToString().ToLowerInvariant();
             }

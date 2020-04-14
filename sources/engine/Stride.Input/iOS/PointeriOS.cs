@@ -1,29 +1,29 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
 using System;
 using System.Collections.Generic;
 using CoreGraphics;
 using Foundation;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Games;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Games;
 using UIKit;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     /// <summary>
     /// iOS pointer device
     /// </summary>
     internal class PointeriOS : PointerDeviceBase, IDisposable
     {
-        private readonly XenkoGameController gameController;
+        private readonly StrideGameController gameController;
         private readonly iOSWindow uiControl;
         private readonly Dictionary<int, int> touchFingerIndexMap = new Dictionary<int, int>();
         private int touchCounter;
 
-        public PointeriOS(InputSourceiOS source, iOSWindow uiControl, XenkoGameController gameController)
+        public PointeriOS(InputSourceiOS source, iOSWindow uiControl, StrideGameController gameController)
         {
             Source = source;
             this.uiControl = uiControl;

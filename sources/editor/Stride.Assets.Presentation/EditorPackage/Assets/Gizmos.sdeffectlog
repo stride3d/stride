@@ -1,6 +1,6 @@
 ---
 !EffectCompileRequest
-EffectName: XenkoEditorForwardShadingEffect
+EffectName: StrideEditorForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Compositions:
@@ -58,7 +58,7 @@ UsedParameters:
                     ClassName: LightSimpleAmbient
 ---
 !EffectCompileRequest
-EffectName: XenkoEditorForwardShadingEffect
+EffectName: StrideEditorForwardShadingEffect
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Compositions:
@@ -104,7 +104,7 @@ UsedParameters:
     SceneEditorParameters.IsEffectCompiling: true
 ---
 !EffectCompileRequest
-EffectName: XenkoEditorForwardShadingEffect.Wireframe
+EffectName: StrideEditorForwardShadingEffect.Wireframe
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Compositions:

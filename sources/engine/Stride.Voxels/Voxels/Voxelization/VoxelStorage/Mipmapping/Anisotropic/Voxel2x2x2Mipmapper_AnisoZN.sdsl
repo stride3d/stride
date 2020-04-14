@@ -1,4 +1,4 @@
-﻿namespace Xenko.Rendering.Voxels
+﻿namespace Stride.Rendering.Voxels
 {
     shader Voxel2x2x2Mipmapper_AnisoZN : Voxel2x2x2Mipmapper
     {

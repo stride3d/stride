@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Xenko.Metrics.ServerApp.Models
+namespace Stride.Metrics.ServerApp.Models
 {
     /// <summary>
     /// A group of markers.

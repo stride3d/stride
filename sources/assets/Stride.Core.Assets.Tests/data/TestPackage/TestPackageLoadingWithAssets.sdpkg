@@ -7,4 +7,4 @@ Profiles:
       AssetFolders:
         - Path: .
 LocalDependencies:
-    - 281321F0-7664-4523-B1DC-3CFC26F80F77:SubPackage/SubPackage.xkpkg
+    - 281321F0-7664-4523-B1DC-3CFC26F80F77:SubPackage/SubPackage.sdpkg

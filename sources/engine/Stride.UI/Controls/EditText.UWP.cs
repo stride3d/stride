@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
 using System;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Games;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Games;
 
-namespace Xenko.UI.Controls
+namespace Stride.UI.Controls
 {
     // Note: this completes EditText.Direct.cs
     public partial class EditText

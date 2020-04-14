@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using EnvDTE80;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Xenko.Core.Diagnostics;
+using Stride.Core.Diagnostics;
 
-namespace Xenko.VisualStudio.Commands
+namespace Stride.VisualStudio.Commands
 {
     public class BuildMonitorCallback : MarshalByRefObject, IBuildMonitorCallback
     {
-        private const string MessageHeader = "[Xenko.AssetCompiler]";
+        private const string MessageHeader = "[Stride.AssetCompiler]";
         private readonly IVsOutputWindowPane buildPane;
 
         public BuildMonitorCallback()

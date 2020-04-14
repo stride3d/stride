@@ -1,25 +1,25 @@
 ﻿<Project>
   <PropertyGroup>
-    <XenkoRuntime>true</XenkoRuntime>
-    <XenkoRuntimeWindowsDotNet>true</XenkoRuntimeWindowsDotNet>
-    <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideRuntimeWindowsDotNet>true</StrideRuntimeWindowsDotNet>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
-    <XenkoPlatformDependent>true</XenkoPlatformDependent>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoProjectPlatformDependentWindows>true</XenkoProjectPlatformDependentWindows>
-    <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
-    <DefineConstants Condition="'$(XenkoPlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))">$(DefineConstants);XENKO_INPUT_RAWINPUT</DefineConstants>
+    <StridePlatformDependent>true</StridePlatformDependent>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideProjectPlatformDependentWindows>true</StrideProjectPlatformDependentWindows>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
+    <DefineConstants Condition="'$(StridePlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))">$(DefineConstants);STRIDE_INPUT_RAWINPUT</DefineConstants>
   </PropertyGroup>
   <Choose>
     <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
     </When>
   </Choose>
-  <Import Condition="$(XenkoUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
-  <ItemGroup Condition="$(XenkoPlatform) == 'Windows' And $(TargetFramework.StartsWith('net4'))">
+  <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
+  <ItemGroup Condition="$(StridePlatform) == 'Windows' And $(TargetFramework.StartsWith('net4'))">
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
@@ -28,12 +28,12 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
-    <PackageReference Include="SharpDX.RawInput" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))" />
-    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'Windows'" />
-    <PackageReference Include="SharpDX.XInput" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'Windows'" />
+    <ProjectReference Include="..\Stride.Games\Stride.Games.csproj" />
+    <PackageReference Include="SharpDX.RawInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))" />
+    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.XInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
   </ItemGroup>
   <ItemGroup />
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 </Project>

@@ -1,26 +1,26 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.BuildEngine;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization;
-using Xenko.Rendering;
-using Xenko.Graphics.Data;
-using Xenko.Physics;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.BuildEngine;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
+using Stride.Rendering;
+using Stride.Graphics.Data;
+using Stride.Physics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Assets.Textures;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Serialization.Contents;
+using Stride.Assets.Textures;
 using VHACDSharp;
-using Buffer = Xenko.Graphics.Buffer;
+using Buffer = Stride.Graphics.Buffer;
 
-namespace Xenko.Assets.Physics
+namespace Stride.Assets.Physics
 {
     [AssetCompiler(typeof(ColliderShapeAsset), typeof(AssetCompilationContext))]
     internal class ColliderShapeAssetCompiler : AssetCompilerBase

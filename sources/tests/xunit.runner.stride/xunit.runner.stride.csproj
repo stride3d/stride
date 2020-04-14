@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
     <TargetFrameworks>net461</TargetFrameworks>
-    <XenkoSkipAutoPack>false</XenkoSkipAutoPack>
+    <StrideSkipAutoPack>false</StrideSkipAutoPack>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
@@ -23,6 +23,6 @@
   <ItemGroup>
     <Folder Include="Models\" />
   </ItemGroup>
-  <Import Project="..\..\targets\Xenko.PackageVersion.targets" />
-  <Import Project="..\..\targets\Xenko.AutoPack.targets" />
+  <Import Project="..\..\targets\Stride.PackageVersion.targets" />
+  <Import Project="..\..\targets\Stride.AutoPack.targets" />
 </Project>

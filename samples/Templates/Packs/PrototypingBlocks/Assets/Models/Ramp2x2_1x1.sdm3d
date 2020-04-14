@@ -1,6 +1,6 @@
 !Model
 Id: fe9e63cd-9e41-4e66-b66b-67d0e1f67a85
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/Ramp2x2_1x1.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

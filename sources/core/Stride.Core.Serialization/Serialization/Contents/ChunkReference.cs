@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xenko.Core.IO;
-using Xenko.Core.Reflection;
-using Xenko.Core.Serialization.Serializers;
+using Stride.Core.IO;
+using Stride.Core.Reflection;
+using Stride.Core.Serialization.Serializers;
 
-namespace Xenko.Core.Serialization.Contents
+namespace Stride.Core.Serialization.Contents
 {
     /// <summary>
     /// Describe a reference between an object and another.

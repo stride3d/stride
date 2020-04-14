@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Xenko.Metrics
+namespace Stride.Metrics
 {
     [DebuggerDisplay("Metric [{Name} : {MetridId}]")]
     internal class NewMetricDefinitionMessage

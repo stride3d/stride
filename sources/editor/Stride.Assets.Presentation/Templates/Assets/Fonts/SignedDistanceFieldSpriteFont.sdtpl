@@ -6,6 +6,6 @@ Scope: Asset
 Description: A sprite font rasterized at compile time using signed distance field, scalable at runtime
 Group: Font
 Order: -90
-Icon: ..\.xktpl\SpriteFont.png
+Icon: ..\.sdtpl\SpriteFont.png
 DefaultOutputName: SpriteFont
 FactoryTypeName: SignedDistanceFieldSpriteFontFactory

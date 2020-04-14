@@ -1,6 +1,6 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_DIRECT3D
+#if STRIDE_GRAPHICS_API_DIRECT3D
 // Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,11 +27,11 @@ using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-using Xenko.Core;
-using ComponentBase = Xenko.Core.ComponentBase;
-using Utilities = Xenko.Core.Utilities;
+using Stride.Core;
+using ComponentBase = Stride.Core.ComponentBase;
+using Utilities = Stride.Core.Utilities;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// Provides methods to retrieve and manipulate graphics adapters. This is the equivalent to <see cref="Adapter1"/>.
@@ -118,7 +118,7 @@ namespace Xenko.Graphics
         /// <returns>true if the profile is supported</returns>
         public bool IsProfileSupported(GraphicsProfile graphicsProfile)
         {
-#if XENKO_GRAPHICS_API_DIRECT3D12
+#if STRIDE_GRAPHICS_API_DIRECT3D12
             return true;
 #else
             // Did we check fo this or a higher profile, and it was supported?

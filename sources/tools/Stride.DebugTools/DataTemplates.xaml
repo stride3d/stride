@@ -1,8 +1,8 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:local="clr-namespace:Xenko.DebugTools"
-                    xmlns:hotei="clr-namespace:Xenko;assembly=Xenko.Engine"
-                    xmlns:vm="clr-namespace:Xenko.DebugTools.ViewModels">
+                    xmlns:local="clr-namespace:Stride.DebugTools"
+                    xmlns:hotei="clr-namespace:Stride;assembly=Stride.Engine"
+                    xmlns:vm="clr-namespace:Stride.DebugTools.ViewModels">
 
   <!--
     <DataTemplate x:Key="MicroThreadActionDataTemplate" DataType="{x:Type local:MicroThreadEventItem}">

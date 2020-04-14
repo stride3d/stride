@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Xenko.LauncherApp.Resources {
+namespace Stride.LauncherApp.Resources {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Xenko.LauncherApp.Resources {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Xenko.LauncherApp.Resources.Urls", typeof(Urls).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.LauncherApp.Resources.Urls", typeof(Urls).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -70,7 +70,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://doc.xenko.com/{0}/.
+        ///   Looks up a localized string similar to http://doc.stride3d.net/{0}/.
         /// </summary>
         public static string Documentation {
             get {
@@ -79,7 +79,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://www.facebook.com/xenko3d.
+        ///   Looks up a localized string similar to https://www.facebook.com/stride3d.
         /// </summary>
         public static string Facebook {
             get {
@@ -88,7 +88,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://forums.xenko.com/.
+        ///   Looks up a localized string similar to http://forums.stride3d.net/.
         /// </summary>
         public static string Forums {
             get {
@@ -97,7 +97,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://doc.xenko.com/{0}/studio_getting_started_links.txt.
+        ///   Looks up a localized string similar to http://doc.stride3d.net/{0}/studio_getting_started_links.txt.
         /// </summary>
         public static string GettingStarted {
             get {
@@ -106,7 +106,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/xenko3d/xenko/.
+        ///   Looks up a localized string similar to https://github.com/stride3d/stride/.
         /// </summary>
         public static string Github {
             get {
@@ -115,7 +115,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/xenko3d/xenko/issues/.
+        ///   Looks up a localized string similar to https://github.com/stride3d/stride/issues/.
         /// </summary>
         public static string Issues {
             get {
@@ -124,7 +124,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://www.patreon.com/xenko.
+        ///   Looks up a localized string similar to https://www.patreon.com/stride.
         /// </summary>
         public static string Patreon {
             get {
@@ -133,7 +133,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://www.reddit.com/r/xenko.
+        ///   Looks up a localized string similar to http://www.reddit.com/r/stride.
         /// </summary>
         public static string Reddit {
             get {
@@ -142,7 +142,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/xenko3d/xenko/projects/3.
+        ///   Looks up a localized string similar to https://github.com/stride3d/stride/projects/3.
         /// </summary>
         public static string Roadmap {
             get {
@@ -151,7 +151,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://xenko.com/feed.xml.
+        ///   Looks up a localized string similar to http://stride3d.net/feed.xml.
         /// </summary>
         public static string RssFeed {
             get {
@@ -160,7 +160,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://forums.xenko.com/c/showcase.
+        ///   Looks up a localized string similar to http://forums.stride3d.net/c/showcase.
         /// </summary>
         public static string Showcases {
             get {
@@ -169,7 +169,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://twitter.com/xenko3d.
+        ///   Looks up a localized string similar to https://twitter.com/stride3d.
         /// </summary>
         public static string Twitter {
             get {

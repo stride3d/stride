@@ -1,8 +1,8 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
-    <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
   </PropertyGroup>
@@ -23,11 +23,11 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\core\Xenko.Core\Native\NativeLibraryInternal.cs">
+    <Compile Include="..\..\core\Stride.Core\Native\NativeLibraryInternal.cs">
       <Link>NativeLibraryInternal.cs</Link>
     </Compile>
   </ItemGroup>
-  <Import Project="..\Xenko.Core.VisualStudio\Xenko.Core.VisualStudio.projitems" Label="Shared" />
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="..\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems" Label="Shared" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 </Project>

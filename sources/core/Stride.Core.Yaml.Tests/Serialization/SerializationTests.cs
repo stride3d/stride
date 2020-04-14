@@ -53,12 +53,12 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Xunit;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Events;
-using Xenko.Core.Yaml.Serialization;
-using Xenko.Core.Yaml.Serialization.Serializers;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Events;
+using Stride.Core.Yaml.Serialization;
+using Stride.Core.Yaml.Serialization.Serializers;
 
-namespace Xenko.Core.Yaml.Tests.Serialization
+namespace Stride.Core.Yaml.Tests.Serialization
 {
     public class SerializationTests : YamlTest
     {
@@ -942,7 +942,7 @@ Mother:
             var settings = new SerializerSettings();
             settings.RegisterAssembly(typeof(Z).Assembly);
             var sut = new Serializer(settings);
-            const string yaml = @"!Xenko.Core.Yaml.Tests.Serialization.SerializationTests+W
+            const string yaml = @"!Stride.Core.Yaml.Tests.Serialization.SerializationTests+W
     MyList:
         - aaa
         - bbb

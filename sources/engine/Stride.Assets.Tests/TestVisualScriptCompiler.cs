@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -9,10 +9,10 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
-using Xenko.Core.Diagnostics;
-using Xenko.Assets.Scripts;
+using Stride.Core.Diagnostics;
+using Stride.Assets.Scripts;
 
-namespace Xenko.Assets.Tests
+namespace Stride.Assets.Tests
 {
     public class TestVisualScriptCompiler
     {

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -13,13 +13,13 @@ using Mono.Cecil;
 using QuickGraph;
 using QuickGraph.Algorithms;
 using QuickGraph.Algorithms.Condensation;
-using Xenko.Core.Assets;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using AssemblyProcessorProgram = Xenko.Core.AssemblyProcessor.AssemblyProcessorProgram;
+using Stride.Core.Assets;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using AssemblyProcessorProgram = Stride.Core.AssemblyProcessor.AssemblyProcessorProgram;
 using ProjectReference = Microsoft.CodeAnalysis.ProjectReference;
 
-namespace Xenko.GameStudio.Debugging
+namespace Stride.GameStudio.Debugging
 {
     public partial class AssemblyRecompiler
     {
@@ -174,7 +174,7 @@ namespace Xenko.GameStudio.Debugging
 
                         // Load csproj to evaluate assembly processor parameters
                         var msbuildProject = await Task.Run(() => VSProjectHelper.LoadProject(gameProject.FilePath));
-                        if (msbuildProject.GetPropertyValue("XenkoAssemblyProcessor") == "true")
+                        if (msbuildProject.GetPropertyValue("StrideAssemblyProcessor") == "true")
                         {
                             var referenceBuild = await Task.Run(() => VSProjectHelper.CompileProjectAssemblyAsync(null, gameProject.FilePath, result, "ResolveReferences", flags: Microsoft.Build.Execution.BuildRequestDataFlags.ProvideProjectStateAfterBuild));
                             if (referenceBuild == null)
@@ -192,27 +192,27 @@ namespace Xenko.GameStudio.Debugging
                             foreach (var referencePath in referenceBuildResult.ProjectStateAfterBuild.Items.Where(x => x.ItemType == "ReferencePath"))
                             {
                                 assemblyProcessorApp.References.Add(referencePath.EvaluatedInclude);
-                                if (referencePath.EvaluatedInclude.EndsWith("Xenko.SpriteStudio.Runtime.dll")) //todo hard-coded! needs to go when plug in system is in
+                                if (referencePath.EvaluatedInclude.EndsWith("Stride.SpriteStudio.Runtime.dll")) //todo hard-coded! needs to go when plug in system is in
                                 {
                                     assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                                 }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Xenko.Physics.dll")) //todo hard-coded! needs to go when plug in system is in
+                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Physics.dll")) //todo hard-coded! needs to go when plug in system is in
                                 {
                                     assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                                 }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Xenko.Particles.dll")) //todo hard-coded! needs to go when plug in system is in
+                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Particles.dll")) //todo hard-coded! needs to go when plug in system is in
                                 {
                                     assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                                 }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Xenko.Native.dll")) //todo hard-coded! needs to go when plug in system is in
+                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Native.dll")) //todo hard-coded! needs to go when plug in system is in
                                 {
                                     assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                                 }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Xenko.UI.dll")) //todo hard-coded! needs to go when plug in system is in
+                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.UI.dll")) //todo hard-coded! needs to go when plug in system is in
                                 {
                                     assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                                 }
-                                else if (referencePath.EvaluatedInclude.EndsWith("Xenko.Video.dll")) //todo hard-coded! needs to go when plug in system is in
+                                else if (referencePath.EvaluatedInclude.EndsWith("Stride.Video.dll")) //todo hard-coded! needs to go when plug in system is in
                                 {
                                     assemblyProcessorApp.ReferencesToAdd.Add(referencePath.EvaluatedInclude);
                                 }

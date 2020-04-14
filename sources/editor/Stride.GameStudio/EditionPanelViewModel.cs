@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Runtime.CompilerServices;
-using Xenko.Core.Settings;
-using Xenko.Core.Presentation.ViewModel;
+using Stride.Core.Settings;
+using Stride.Core.Presentation.ViewModel;
 
-namespace Xenko.GameStudio
+namespace Stride.GameStudio
 {
     /// <summary>
     /// This view model represents the state of the different panel of the editor window.

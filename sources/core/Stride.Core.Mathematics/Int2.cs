@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // -----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace Xenko.Core.Mathematics
+namespace Stride.Core.Mathematics
 {
     /// <summary>
     /// Represents a three dimensional mathematical vector.
@@ -41,27 +41,27 @@ namespace Xenko.Core.Mathematics
     public struct Int2 : IEquatable<Int2>, IFormattable
     {
         /// <summary>
-        /// The size of the <see cref="Xenko.Core.Mathematics.Int2"/> type, in bytes.
+        /// The size of the <see cref="Stride.Core.Mathematics.Int2"/> type, in bytes.
         /// </summary>
         public static readonly int SizeInBytes = Utilities.SizeOf<Int2>();
 
         /// <summary>
-        /// A <see cref="Xenko.Core.Mathematics.Int2"/> with all of its components set to zero.
+        /// A <see cref="Stride.Core.Mathematics.Int2"/> with all of its components set to zero.
         /// </summary>
         public static readonly Int2 Zero = new Int2();
 
         /// <summary>
-        /// The X unit <see cref="Xenko.Core.Mathematics.Int2"/> (1, 0, 0).
+        /// The X unit <see cref="Stride.Core.Mathematics.Int2"/> (1, 0, 0).
         /// </summary>
         public static readonly Int2 UnitX = new Int2(1, 0);
 
         /// <summary>
-        /// The Y unit <see cref="Xenko.Core.Mathematics.Int2"/> (0, 1, 0).
+        /// The Y unit <see cref="Stride.Core.Mathematics.Int2"/> (0, 1, 0).
         /// </summary>
         public static readonly Int2 UnitY = new Int2(0, 1);
 
         /// <summary>
-        /// A <see cref="Xenko.Core.Mathematics.Int2"/> with all of its components set to one.
+        /// A <see cref="Stride.Core.Mathematics.Int2"/> with all of its components set to one.
         /// </summary>
         public static readonly Int2 One = new Int2(1, 1);
 
@@ -78,7 +78,7 @@ namespace Xenko.Core.Mathematics
         public int Y;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Int2"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Int2"/> struct.
         /// </summary>
         /// <param name="value">The value that will be assigned to all components.</param>
         public Int2(int value)
@@ -88,7 +88,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Int2"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Int2"/> struct.
         /// </summary>
         /// <param name="x">Initial value for the X component of the vector.</param>
         /// <param name="y">Initial value for the Y component of the vector.</param>
@@ -99,7 +99,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Int2"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Int2"/> struct.
         /// </summary>
         /// <param name="value">A vector containing the values with which to initialize the X and Y components.</param>
         public Int2(Vector2 value)
@@ -109,7 +109,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Int2"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Int2"/> struct.
         /// </summary>
         /// <param name="values">The values to assign to the X, Y, and Z components of the vector. This must be an array with three elements.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
@@ -161,7 +161,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <returns>The length of the vector.</returns>
         /// <remarks>
-        /// <see cref="Xenko.Core.Mathematics.Int2.LengthSquared"/> may be preferred when only the relative length is needed
+        /// <see cref="Stride.Core.Mathematics.Int2.LengthSquared"/> may be preferred when only the relative length is needed
         /// and speed is of the essence.
         /// </remarks>
         public int Length()
@@ -174,7 +174,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <returns>The squared length of the vector.</returns>
         /// <remarks>
-        /// This method may be preferred to <see cref="Xenko.Core.Mathematics.Int2.Length"/> when only a relative length is needed
+        /// This method may be preferred to <see cref="Stride.Core.Mathematics.Int2.Length"/> when only a relative length is needed
         /// and speed is of the essence.
         /// </remarks>
         public int LengthSquared()
@@ -602,7 +602,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Xenko.Core.Mathematics.Int2"/> to <see cref="Vector2"/>.
+        /// Performs an explicit conversion from <see cref="Stride.Core.Mathematics.Int2"/> to <see cref="Vector2"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -612,7 +612,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Xenko.Core.Mathematics.Int2"/> to <see cref="Vector4"/>.
+        /// Performs an explicit conversion from <see cref="Stride.Core.Mathematics.Int2"/> to <see cref="Vector4"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -687,11 +687,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="Xenko.Core.Mathematics.Int2"/> is equal to this instance.
+        /// Determines whether the specified <see cref="Stride.Core.Mathematics.Int2"/> is equal to this instance.
         /// </summary>
-        /// <param name="other">The <see cref="Xenko.Core.Mathematics.Int2"/> to compare with this instance.</param>
+        /// <param name="other">The <see cref="Stride.Core.Mathematics.Int2"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="Xenko.Core.Mathematics.Int2"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="Stride.Core.Mathematics.Int2"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(Int2 other)
         {
@@ -718,7 +718,7 @@ namespace Xenko.Core.Mathematics
         }
 #if WPFInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Int2"/> to <see cref="System.Windows.Media.Media3D.Int3D"/>.
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Int2"/> to <see cref="System.Windows.Media.Media3D.Int3D"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -728,7 +728,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Int3D"/> to <see cref="Xenko.Core.Mathematics.Int2"/>.
+        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Int3D"/> to <see cref="Stride.Core.Mathematics.Int2"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -740,7 +740,7 @@ namespace Xenko.Core.Mathematics
 
 #if XnaInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Int2"/> to <see cref="Microsoft.Xna.Framework.Int2"/>.
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Int2"/> to <see cref="Microsoft.Xna.Framework.Int2"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -750,7 +750,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Int2"/> to <see cref="Xenko.Core.Mathematics.Int2"/>.
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Int2"/> to <see cref="Stride.Core.Mathematics.Int2"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>

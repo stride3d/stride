@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Xenko.Core.Annotations;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Serializers;
+using Stride.Core.Annotations;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Serializers;
 
-namespace Xenko.Core.Collections
+namespace Stride.Core.Collections
 {
     /// <summary>
     /// A collection that maintains the order of the elements  and lightter implementation of <see cref="System.Collections.ObjectModel.Collection{T}"/> with value types enumerators to avoid allocation in foreach loops, and various helper functions.

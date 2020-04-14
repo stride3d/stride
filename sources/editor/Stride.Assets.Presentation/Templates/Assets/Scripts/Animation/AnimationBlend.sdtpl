@@ -5,5 +5,5 @@ Name: Animation blend
 Scope: Asset
 Description: Blends two animations
 Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
+Icon: ..\..\.sdtpl\SourceCode.png
 DefaultOutputName: AnimationBlend

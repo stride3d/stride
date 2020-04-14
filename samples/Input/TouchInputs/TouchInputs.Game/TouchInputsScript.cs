@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
-using Xenko.Graphics;
-using Xenko.Input;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
+using Stride.Graphics;
+using Stride.Input;
 
 namespace TouchInputs
 {

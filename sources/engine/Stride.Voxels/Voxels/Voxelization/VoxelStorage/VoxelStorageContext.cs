@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.Shaders;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public class VoxelStorageContext
     {

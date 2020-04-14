@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if DONT_BUILD_FOR_NOW && (XENKO_PLATFORM_IOS || XENKO_PLATFORM_ANDROID)
+#if DONT_BUILD_FOR_NOW && (STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID)
 
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
 using OpenTK.Graphics.ES20;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 using Java.Lang;
 using Android.App;
 using Android.Views;
 using Com.Google.VR.Ndk.Base;
-using Xenko.Games;
+using Stride.Games;
 #endif
 
-namespace Xenko.VirtualReality
+namespace Stride.VirtualReality
 {
     public static class GoogleVr
     {
@@ -26,7 +26,7 @@ namespace Xenko.VirtualReality
         [DllImport(NativeInvoke.Library, EntryPoint = "xnGvrStartup", CallingConvention = CallingConvention.Cdecl)]
         private static extern int InternalStartup(IntPtr ctx);
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 
         public static void Startup(Game game, Activity androidActivity)
         {
@@ -42,8 +42,8 @@ namespace Xenko.VirtualReality
                 }
                 AndroidCompat.SetVrModeEnabled(androidActivity, true);
 
-                ((ViewGroup)androidWindow.XenkoGameForm.Parent).RemoveView(androidWindow.XenkoGameForm);
-                layout.SetPresentationView(androidWindow.XenkoGameForm);
+                ((ViewGroup)androidWindow.StrideGameForm.Parent).RemoveView(androidWindow.StrideGameForm);
+                layout.SetPresentationView(androidWindow.StrideGameForm);
                 androidActivity.SetContentView(layout);
 
                 // Init native, we need to reflect some methods that xamarin failed to wrap
@@ -62,7 +62,7 @@ namespace Xenko.VirtualReality
             };
         }
 
-#elif XENKO_PLATFORM_IOS
+#elif STRIDE_PLATFORM_IOS
 
         public static void Startup(Game game)
         {

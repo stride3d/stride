@@ -1,26 +1,26 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Rendering;
-using Xenko.Rendering.ComputeEffect.GGXPrefiltering;
-using Xenko.Rendering.ComputeEffect.LambertianPrefiltering;
-using Xenko.Rendering.Skyboxes;
-using Xenko.Games;
-using Xenko.Graphics;
-using Xenko.Graphics.Data;
-using Xenko.Rendering.Materials;
-using Xenko.Shaders;
-using Xenko.Shaders.Compiler;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
+using Stride.Rendering;
+using Stride.Rendering.ComputeEffect.GGXPrefiltering;
+using Stride.Rendering.ComputeEffect.LambertianPrefiltering;
+using Stride.Rendering.Skyboxes;
+using Stride.Games;
+using Stride.Graphics;
+using Stride.Graphics.Data;
+using Stride.Rendering.Materials;
+using Stride.Shaders;
+using Stride.Shaders.Compiler;
 
-namespace Xenko.Assets.Skyboxes
+namespace Stride.Assets.Skyboxes
 {
     public class SkyboxGeneratorContext : ShaderGeneratorContext
     {

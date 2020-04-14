@@ -130,6 +130,6 @@
     <value>Can not create tool window.</value>
   </data>
   <data name="ToolWindowTitle" xml:space="preserve">
-    <value>Xenko View</value>
+    <value>Stride View</value>
   </data>
 </root>

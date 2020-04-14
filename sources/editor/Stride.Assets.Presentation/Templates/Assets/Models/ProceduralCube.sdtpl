@@ -6,6 +6,6 @@ Scope: Asset
 Description: A procedurally-generated cube
 Group: Model
 Order: 20
-Icon: ..\.xktpl\ProceduralCube.png
+Icon: ..\.sdtpl\ProceduralCube.png
 DefaultOutputName: Cube
 FactoryTypeName: ProceduralModelCubeFactory

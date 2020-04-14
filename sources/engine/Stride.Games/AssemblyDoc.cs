@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -20,10 +20,10 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-namespace Xenko.Games
+namespace Stride.Games
 {
     /// <summary>
-    /// The <see cref="A:Xenko.Games"/> assembly provides a high level Game API.
+    /// The <see cref="A:Stride.Games"/> assembly provides a high level Game API.
     /// </summary>
     [System.Runtime.CompilerServices.CompilerGenerated]
     internal class AssemblyDoc

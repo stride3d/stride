@@ -1,6 +1,6 @@
 !Model
 Id: 10df5408-fbd1-4177-b0c2-e0190d6311a3
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../data/tests/knight/scenes/mannequinModel.fbx
 Skeleton: eed299b6-ee92-4a0c-9dc9-ec478f235c9c:mannequinModel Skeleton

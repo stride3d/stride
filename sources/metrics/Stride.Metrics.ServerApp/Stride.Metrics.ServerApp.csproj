@@ -11,8 +11,8 @@
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Xenko.Metrics.ServerApp</RootNamespace>
-    <AssemblyName>Xenko.Metrics.ServerApp</AssemblyName>
+    <RootNamespace>Stride.Metrics.ServerApp</RootNamespace>
+    <AssemblyName>Stride.Metrics.ServerApp</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
@@ -409,11 +409,11 @@
       <DependentUpon>201806131308227_IpToLocation.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\ip2location\IP2LOCATION-LITE-DB1.CSV" />
-    <None Include="Properties\PublishProfiles\xenko-metrics - FTP %282%29.pubxml" />
-    <None Include="Properties\PublishProfiles\xenko-metrics - FTP.pubxml" />
-    <None Include="Properties\PublishProfiles\xenko-metrics - Web Deploy %282%29.pubxml" />
-    <None Include="Properties\PublishProfiles\xenko-metrics - Web Deploy.pubxml" />
-    <None Include="Properties\PublishProfiles\xenko-metrics.pubxml" />
+    <None Include="Properties\PublishProfiles\stride-metrics - FTP %282%29.pubxml" />
+    <None Include="Properties\PublishProfiles\stride-metrics - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\stride-metrics - Web Deploy %282%29.pubxml" />
+    <None Include="Properties\PublishProfiles\stride-metrics - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\stride-metrics.pubxml" />
     <None Include="Scripts\jquery-2.1.4.intellisense.js" />
     <Content Include="Scripts\jquery-2.1.4.js" />
     <Content Include="Scripts\jquery-2.1.4.min.js" />
@@ -448,9 +448,9 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Metrics\Xenko.Metrics.csproj">
+    <ProjectReference Include="..\Stride.Metrics\Stride.Metrics.csproj">
       <Project>{86ef9f59-83a1-4408-8679-4a7a0bd786d1}</Project>
-      <Name>Xenko.Metrics</Name>
+      <Name>Stride.Metrics</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

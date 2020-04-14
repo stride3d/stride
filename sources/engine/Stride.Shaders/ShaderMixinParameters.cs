@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Xenko.Core;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Serializers;
-using Xenko.Rendering;
-using Xenko.Shaders.Compiler;
+using Stride.Core;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Serializers;
+using Stride.Rendering;
+using Stride.Shaders.Compiler;
 
-namespace Xenko.Shaders
+namespace Stride.Shaders
 {
     /// <summary>
     /// Parameters used for mixin.

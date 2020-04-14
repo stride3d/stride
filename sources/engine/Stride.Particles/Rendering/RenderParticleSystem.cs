@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Engine;
-using Xenko.Particles.Components;
+using Stride.Engine;
+using Stride.Particles.Components;
 
-namespace Xenko.Particles.Rendering
+namespace Stride.Particles.Rendering
 {
     /// <summary>
     /// Defines a particle system to render.

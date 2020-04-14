@@ -5,27 +5,27 @@
     <AndroidApplication>true</AndroidApplication>
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
   </PropertyGroup>
-  <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{5AA408BA-E766-453E-B661-E3D7EC46E2A6}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Xenko.Core.Tests</RootNamespace>
-    <AssemblyName>Xenko.Core.Tests</AssemblyName>
+    <RootNamespace>Stride.Core.Tests</RootNamespace>
+    <AssemblyName>Stride.Core.Tests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorOptions>--auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
-    <XenkoBuildTags>Windows;Android;iOS</XenkoBuildTags>
-    <XenkoOutputFolder>Tests\$(AssemblyName)</XenkoOutputFolder>
-    <XenkoCompilerTargetsEnable Condition="'$(XenkoPackageBuild)' == 'true'">false</XenkoCompilerTargetsEnable>
-    <XenkoCompilerTargetsEnable Condition="'$(XenkoSkipUnitTests)' == 'true'">false</XenkoCompilerTargetsEnable>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>Windows;Android;iOS</StrideBuildTags>
+    <StrideOutputFolder>Tests\$(AssemblyName)</StrideOutputFolder>
+    <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
+    <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true'">false</StrideCompilerTargetsEnable>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Android" Label="Xenko.DoNotSync" />
-    <Reference Include="Xamarin.Android.NUnitLite" Label="Xenko.DoNotSync" />
-    <Content Label="Xenko.DoNotSync" Include="Properties\AndroidManifest.xml" />
-    <AndroidResource Label="Xenko.DoNotSync" Include="Resources\Drawable\Icon.png" />
+    <Reference Include="Mono.Android" Label="Stride.DoNotSync" />
+    <Reference Include="Xamarin.Android.NUnitLite" Label="Stride.DoNotSync" />
+    <Content Label="Stride.DoNotSync" Include="Properties\AndroidManifest.xml" />
+    <AndroidResource Label="Stride.DoNotSync" Include="Resources\Drawable\Icon.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -51,16 +51,16 @@
     <Compile Include="TestUnmanagedArray.cs" />
     <Compile Include="TestUtilities.cs" />
     <Compile Include="TestWatcher.cs" />
-    <ProjectReference Include="..\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
+    <ProjectReference Include="..\Stride.Core.Serialization\Stride.Core.Serialization.csproj">
       <Project>{5210FB81-B807-49BB-AF0D-31FB6A83A572}</Project>
-      <Name>Xenko.Core.Serialization</Name>
+      <Name>Stride.Core.Serialization</Name>
     </ProjectReference>
-    <XenkoEmbeddedNativeLibrary Include="$(XenkoPackageXenkoPlatformBin)\libcore">
+    <StrideEmbeddedNativeLibrary Include="$(StridePackageStridePlatformBin)\libcore">
       <Visible>false</Visible>
-    </XenkoEmbeddedNativeLibrary>
+    </StrideEmbeddedNativeLibrary>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

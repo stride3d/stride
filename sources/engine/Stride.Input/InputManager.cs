@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using Xenko.Core;
-using Xenko.Core.Collections;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Games;
+using Stride.Core;
+using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Games;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     /// <summary>
     /// Manages collecting input from connected input device in the form of <see cref="IInputDevice"/> objects. Also provides some convenience functions for most commonly used devices
@@ -53,7 +53,7 @@ namespace Xenko.Input
 
         private Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>> devicesCollectionChangedActions = new Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>>();
 
-#if XENKO_INPUT_RAWINPUT
+#if STRIDE_INPUT_RAWINPUT
         private bool rawInputEnabled = false;
 #endif
 
@@ -230,7 +230,7 @@ namespace Xenko.Input
         /// </summary>
         public bool UseRawInput
         {
-#if XENKO_INPUT_RAWINPUT
+#if STRIDE_INPUT_RAWINPUT
             get
             {
                 return rawInputEnabled;
@@ -583,35 +583,35 @@ namespace Xenko.Input
             // Create input sources
             switch (Game.Context.ContextType)
             {
-#if XENKO_UI_SDL
+#if STRIDE_UI_SDL
                 case AppContextType.DesktopSDL:
                     Sources.Add(new InputSourceSDL());
                     break;
 #endif
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
                 case AppContextType.Android:
                     Sources.Add(new InputSourceAndroid());
                     break;
 #endif
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
                 case AppContextType.iOS:
                     Sources.Add(new InputSourceiOS());
                     break;
 #endif
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
                 case AppContextType.UWPXaml:
                 case AppContextType.UWPCoreWindow:
                     Sources.Add(new InputSourceUWP());
                     break;
 #endif
                 case AppContextType.Desktop:
-#if XENKO_PLATFORM_WINDOWS && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
+#if STRIDE_PLATFORM_WINDOWS && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
                     Sources.Add(new InputSourceWinforms());
                     Sources.Add(new InputSourceWindowsDirectInput());
                     if (InputSourceWindowsXInput.IsSupported())
                         Sources.Add(new InputSourceWindowsXInput());
 #endif
-#if XENKO_INPUT_RAWINPUT
+#if STRIDE_INPUT_RAWINPUT
                     if (rawInputEnabled)
                         Sources.Add(new InputSourceWindowsRawInput());
 #endif

@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core.Assets.Editor.Quantum.NodePresenters.Keys;
-using Xenko.Core.Reflection;
-using Xenko.Core.Presentation.Quantum.View;
-using Xenko.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
+using Stride.Core.Reflection;
+using Stride.Core.Presentation.Quantum.View;
+using Stride.Core.Presentation.Quantum.ViewModels;
 
-namespace Xenko.Core.Assets.Editor.View.TemplateProviders
+namespace Stride.Core.Assets.Editor.View.TemplateProviders
 {
     public class RangedValueTemplateProvider : NodeViewModelTemplateProvider
     {

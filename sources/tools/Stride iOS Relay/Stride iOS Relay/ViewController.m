@@ -1,8 +1,8 @@
 //
 //  ViewController.m
-//  Xenko iOS Relay
+//  Stride iOS Relay
 //
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 
@@ -59,7 +59,7 @@
     {
         mTask = [[NSTask alloc] init];
         mTask.launchPath = @"/usr/bin/python";
-        NSString* cmd = [NSString stringWithFormat:@"%@/xenko-ios-relay.py", mBundleFolder];
+        NSString* cmd = [NSString stringWithFormat:@"%@/stride-ios-relay.py", mBundleFolder];
         mTask.arguments = @[@"-u", cmd, Address.stringValue];
         
         mPipe = [[NSPipe alloc] init];

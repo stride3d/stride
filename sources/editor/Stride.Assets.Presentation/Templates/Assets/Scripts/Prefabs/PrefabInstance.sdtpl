@@ -5,5 +5,5 @@ Name: Prefab instance
 Scope: Asset
 Description: Procedurally spawns a timed instance from a source prefab when a trigger key is pressed
 Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
+Icon: ..\..\.sdtpl\SourceCode.png
 DefaultOutputName: PrefabInstance

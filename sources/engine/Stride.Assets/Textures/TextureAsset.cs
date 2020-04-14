@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
 
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Yaml;
-using Xenko.Core.Yaml.Serialization;
-using Xenko.Graphics;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Yaml;
+using Stride.Core.Yaml.Serialization;
+using Stride.Graphics;
 
-namespace Xenko.Assets.Textures
+namespace Stride.Assets.Textures
 {
     /// <summary>
     /// Describes a texture asset.
@@ -20,7 +20,7 @@ namespace Xenko.Assets.Textures
     [AssetContentType(typeof(Texture))]
     [CategoryOrder(10, "Size")]
     [CategoryOrder(20, "Format")]
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
     public sealed partial class TextureAsset : AssetWithSource
     {
         private const string CurrentVersion = "2.0.0.0";
@@ -28,7 +28,7 @@ namespace Xenko.Assets.Textures
         /// <summary>
         /// The default file extension used by the <see cref="TextureAsset"/>.
         /// </summary>
-        public const string FileExtension = ".xktex";
+        public const string FileExtension = ".sdtex";
 
         /// <summary>
         /// Gets or sets the width.

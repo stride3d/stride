@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
     
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Annotations;
-using Xenko.Core.Quantum;
-using Xenko.Assets.Entities;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Xenko.Editor.EditorGame.Game;
-using Xenko.Engine;
-using Xenko.Engine.Design;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Annotations;
+using Stride.Core.Quantum;
+using Stride.Assets.Entities;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Editor.EditorGame.Game;
+using Stride.Engine;
+using Stride.Engine.Design;
 
-namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
+namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
     public abstract class EditorGameComponentChangeWatcherService : EditorGameServiceBase
     {

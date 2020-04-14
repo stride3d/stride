@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Globalization;
 using System.Linq;
 
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Presentation.Quantum.ViewModels;
-using Xenko.Core.Translation;
-using Xenko.Core.Translation.Presentation.ValueConverters;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Translation;
+using Stride.Core.Translation.Presentation.ValueConverters;
 
-namespace Xenko.Core.Assets.Editor.View.ValueConverters
+namespace Stride.Core.Assets.Editor.View.ValueConverters
 {
     public class ContentReferenceToUrl : LocalizableConverter<ContentReferenceToUrl>
     {

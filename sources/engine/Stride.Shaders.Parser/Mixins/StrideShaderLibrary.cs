@@ -1,25 +1,25 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Xenko.Core.Extensions;
-using Xenko.Core.Storage;
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Shaders.Parser.Utility;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Utility;
+using Stride.Core.Extensions;
+using Stride.Core.Storage;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Shaders.Parser.Utility;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Utility;
 
-namespace Xenko.Shaders.Parser.Mixins
+namespace Stride.Shaders.Parser.Mixins
 {
-    internal class XenkoShaderLibrary
+    internal class StrideShaderLibrary
     {
         #region Delegate
 
-        public delegate ShaderClassType LoadClassSourceDelegate(ShaderClassSource shaderClassSource, Xenko.Core.Shaders.Parser.ShaderMacro[] shaderMacros, out ObjectId hash, out ObjectId hashPreprocessSource);
+        public delegate ShaderClassType LoadClassSourceDelegate(ShaderClassSource shaderClassSource, Stride.Core.Shaders.Parser.ShaderMacro[] shaderMacros, out ObjectId hash, out ObjectId hashPreprocessSource);
 
         #endregion
         
@@ -60,7 +60,7 @@ namespace Xenko.Shaders.Parser.Mixins
 
         #region Constructor
 
-        public XenkoShaderLibrary(ShaderLoader loader)
+        public StrideShaderLibrary(ShaderLoader loader)
         {
             ShaderLoader = loader;
         }
@@ -78,7 +78,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="shaderSource">the ShaderSource to explore</param>
         /// <param name="macros">the macros used</param>
         /// <returns></returns>
-        public HashSet<ModuleMixinInfo> LoadShaderSource(ShaderSource shaderSource, Xenko.Core.Shaders.Parser.ShaderMacro[] macros)
+        public HashSet<ModuleMixinInfo> LoadShaderSource(ShaderSource shaderSource, Stride.Core.Shaders.Parser.ShaderMacro[] macros)
         {
             var mixinsToAnalyze = new HashSet<ModuleMixinInfo>();
             ExtendLibrary(shaderSource, macros, mixinsToAnalyze);
@@ -139,7 +139,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// </summary>
         /// <param name="shaderSource">the ShaderSource to explore</param>
         /// <param name="macros">the macros used</param>
-        private void ExtendLibrary(ShaderSource shaderSource, Xenko.Core.Shaders.Parser.ShaderMacro[] macros, HashSet<ModuleMixinInfo> mixinToAnalyze)
+        private void ExtendLibrary(ShaderSource shaderSource, Stride.Core.Shaders.Parser.ShaderMacro[] macros, HashSet<ModuleMixinInfo> mixinToAnalyze)
         {
             if (shaderSource is ShaderMixinSource)
             {
@@ -164,10 +164,10 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="macros">the macros</param>
         /// <param name="macrosString">the name of the macros</param>
         /// <returns>ModuleMixinInfo.</returns>
-        private ModuleMixinInfo GetModuleMixinInfo(ShaderSource shaderSource, Xenko.Core.Shaders.Parser.ShaderMacro[] macros, string macrosString = null)
+        private ModuleMixinInfo GetModuleMixinInfo(ShaderSource shaderSource, Stride.Core.Shaders.Parser.ShaderMacro[] macros, string macrosString = null)
         {
             if (macros == null)
-                macros = new Xenko.Core.Shaders.Parser.ShaderMacro[0];
+                macros = new Stride.Core.Shaders.Parser.ShaderMacro[0];
 
             if (macrosString == null)
             {
@@ -257,7 +257,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="shaderSource">the ShaderSource to load</param>
         /// <param name="macros">the macros applied on the source</param>
         /// <returns>the ModuleMixinInfo</returns>
-        private ModuleMixinInfo BuildMixinInfo(ShaderSource shaderSource, Xenko.Core.Shaders.Parser.ShaderMacro[] macros)
+        private ModuleMixinInfo BuildMixinInfo(ShaderSource shaderSource, Stride.Core.Shaders.Parser.ShaderMacro[] macros)
         {
             ModuleMixinInfo mixinInfo = null;
             
@@ -331,7 +331,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 if (classSource.GenericArguments == null || classSource.GenericArguments.Length == 0 || shaderType.GenericParameters.Count > classSource.GenericArguments.Length)
                 {
                     mixinInfo.Instanciated = false;
-                    mixinInfo.Log.Error(XenkoMessageCode.ErrorClassSourceNotInstantiated, shaderType.Span, classSource.ClassName);
+                    mixinInfo.Log.Error(StrideMessageCode.ErrorClassSourceNotInstantiated, shaderType.Span, classSource.ClassName);
                 }
                 else
                 {
@@ -349,7 +349,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="mixinInfo">The mixin to investigate</param>
         /// <param name="macros">The macros.</param>
         /// <param name="macrosString">The macros string.</param>
-        private void LoadNecessaryShaders(ModuleMixinInfo mixinInfo, Xenko.Core.Shaders.Parser.ShaderMacro[] macros, string macrosString)
+        private void LoadNecessaryShaders(ModuleMixinInfo mixinInfo, Stride.Core.Shaders.Parser.ShaderMacro[] macros, string macrosString)
         {
             if (!mixinInfo.Instanciated)
                 return;
@@ -439,9 +439,9 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="mixin">The mixin that will be looked at with the macros.</param>
         /// <param name="macros">The external macros.</param>
         /// <returns>An array with all the macros</returns>
-        private Xenko.Core.Shaders.Parser.ShaderMacro[] MergeMacroSets(ShaderMixinSource mixin, Xenko.Core.Shaders.Parser.ShaderMacro[] macros)
+        private Stride.Core.Shaders.Parser.ShaderMacro[] MergeMacroSets(ShaderMixinSource mixin, Stride.Core.Shaders.Parser.ShaderMacro[] macros)
         {
-            var newMacros = new List<Xenko.Core.Shaders.Parser.ShaderMacro>();
+            var newMacros = new List<Stride.Core.Shaders.Parser.ShaderMacro>();
 
             // get the parent macros
             foreach (var macro in macros)
@@ -454,7 +454,7 @@ namespace Xenko.Shaders.Parser.Mixins
             foreach (var macro in mixin.Macros)
             {
                 newMacros.RemoveAll(x => x.Name == macro.Name);
-                var tempMacro = new Xenko.Core.Shaders.Parser.ShaderMacro(macro.Name, macro.Definition);
+                var tempMacro = new Stride.Core.Shaders.Parser.ShaderMacro(macro.Name, macro.Definition);
                 newMacros.Add(tempMacro);
             }
 

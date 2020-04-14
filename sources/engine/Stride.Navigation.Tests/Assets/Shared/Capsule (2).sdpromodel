@@ -1,6 +1,6 @@
 !ProceduralModelAsset
 Id: d9b7780c-a109-4f21-929f-8bbbc4b266d1
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: !CapsuleProceduralModel
     Length: 0.4

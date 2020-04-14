@@ -1,6 +1,6 @@
 !Skeleton
 Id: 9f53d2c9-5a21-4440-aa65-f849e0385304
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/model/BG/scene/obj00.FBX
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

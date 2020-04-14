@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.IO;
 using System.Text;
 using Xunit;
-using Xenko.Core.Assets;
-using Xenko.Core.Diagnostics;
+using Stride.Core.Assets;
+using Stride.Core.Diagnostics;
 
-namespace Xenko.Assets.Tests
+namespace Stride.Assets.Tests
 {
     /// <summary>
     /// Test upgrade of scenes
@@ -25,7 +25,7 @@ namespace Xenko.Assets.Tests
             var logger = new LoggerResult();
 
             var samplesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\samples");
-            var files = Directory.EnumerateFiles(samplesPath, "*.xkscene", SearchOption.AllDirectories);
+            var files = Directory.EnumerateFiles(samplesPath, "*.sdscene", SearchOption.AllDirectories);
 
             foreach (var sceneFile in files)
             {
@@ -36,7 +36,7 @@ namespace Xenko.Assets.Tests
                 var file = new PackageLoadingAssetFile(sceneFile, Path.GetDirectoryName(sceneFile));
 
                 var context = new AssetMigrationContext(null, file.ToReference(), file.FilePath.ToWindowsPath(), logger);
-                var needMigration = AssetMigration.MigrateAssetIfNeeded(context, file, "Xenko");
+                var needMigration = AssetMigration.MigrateAssetIfNeeded(context, file, "Stride");
 
                 foreach (var message in logger.Messages)
                 {

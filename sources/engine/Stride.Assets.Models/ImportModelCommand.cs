@@ -1,22 +1,22 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core.BuildEngine;
-using Xenko.Core;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Rendering;
-using Xenko.Core.Serialization;
-using Xenko.Animations;
-using Xenko.Shaders;
+using Stride.Core.BuildEngine;
+using Stride.Core;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Rendering;
+using Stride.Core.Serialization;
+using Stride.Animations;
+using Stride.Shaders;
 using System.Linq;
-using Xenko.Core.Assets;
-using Xenko.Core.Serialization.Contents;
+using Stride.Core.Assets;
+using Stride.Core.Serialization.Contents;
 
-namespace Xenko.Assets.Models
+namespace Stride.Assets.Models
 {
     public abstract partial class ImportModelCommand : SingleFileImportCommand
     {

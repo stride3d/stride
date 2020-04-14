@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
-using Xenko.Core.BuildEngine;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Assets;
-using Xenko.Assets.SpriteFont;
-using Xenko.Assets.SpriteFont.Compiler;
-using Xenko.Engine;
-using Xenko.Engine.Design;
-using Xenko.Graphics;
-using Xenko.Rendering.Compositing;
-using Xenko.Shaders.Compiler;
+using Stride.Core.BuildEngine;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Assets;
+using Stride.Assets.SpriteFont;
+using Stride.Assets.SpriteFont.Compiler;
+using Stride.Engine;
+using Stride.Engine.Design;
+using Stride.Graphics;
+using Stride.Rendering.Compositing;
+using Stride.Shaders.Compiler;
 
-namespace Xenko.Editor.Preview
+namespace Stride.Editor.Preview
 {
     /// <summary>
     /// A <see cref="Game"/> instance specialized to render previews and create thumbnails

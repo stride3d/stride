@@ -1,7 +1,7 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #include "stdafx.h"
-#include "../Xenko.Importer.Common/ImporterUtils.h"
+#include "../Stride.Importer.Common/ImporterUtils.h"
 
 #include "SceneMapping.h"
 #include "AnimationConverter.h"
@@ -10,25 +10,25 @@ using namespace System;
 using namespace System::IO;
 using namespace System::Collections::Generic;
 using namespace System::Runtime::InteropServices;
-using namespace Xenko::Core::BuildEngine;
-using namespace Xenko::Core::Diagnostics;
-using namespace Xenko::Core::IO;
-using namespace Xenko::Core::Mathematics;
-using namespace Xenko::Core::Serialization;
-using namespace Xenko::Core::Serialization::Contents;
-using namespace Xenko::Rendering::Materials;
-using namespace Xenko::Rendering::Materials::ComputeColors;
-using namespace Xenko::Assets::Materials;
-using namespace Xenko::Animations;
-using namespace Xenko::Engine;
-using namespace Xenko::Extensions;
-using namespace Xenko::Graphics;
-using namespace Xenko::Graphics::Data;
-using namespace Xenko::Shaders;
+using namespace Stride::Core::BuildEngine;
+using namespace Stride::Core::Diagnostics;
+using namespace Stride::Core::IO;
+using namespace Stride::Core::Mathematics;
+using namespace Stride::Core::Serialization;
+using namespace Stride::Core::Serialization::Contents;
+using namespace Stride::Rendering::Materials;
+using namespace Stride::Rendering::Materials::ComputeColors;
+using namespace Stride::Assets::Materials;
+using namespace Stride::Animations;
+using namespace Stride::Engine;
+using namespace Stride::Extensions;
+using namespace Stride::Graphics;
+using namespace Stride::Graphics::Data;
+using namespace Stride::Shaders;
 
-using namespace Xenko::Importer::Common;
+using namespace Stride::Importer::Common;
 
-namespace Xenko { namespace Importer { namespace FBX {
+namespace Stride { namespace Importer { namespace FBX {
 
 static const char* MappingModeName[] = { "None", "ByControlPoint", "ByPolygonVertex", "ByPolygon", "ByEdge", "AllSame" };
 static const char* MappingModeSuggestion[] = { "", "", "", "", " Try using ByPolygon mapping instead.", "" };
@@ -684,7 +684,7 @@ public:
 		auto textureMap = gcnew Dictionary<IntPtr, ComputeTextureColor^>();
 		std::map<std::string, int> textureNameCount;
 
-		auto finalMaterial = gcnew Xenko::Assets::Materials::MaterialAsset();
+		auto finalMaterial = gcnew Stride::Assets::Materials::MaterialAsset();
 		
 		auto phongSurface = FbxCast<FbxSurfacePhong>(lMaterial);
 		auto lambertSurface = FbxCast<FbxSurfaceLambert>(lMaterial);
@@ -1003,7 +1003,7 @@ public:
 
 	IComputeNode^ GenerateSurfaceTextureTree(FbxSurfaceMaterial* lMaterial, std::map<std::string, size_t>& uvElementMapping, Dictionary<IntPtr, ComputeTextureColor^>^ textureMap,
 												std::map<std::string, int>& textureNameCount, char const* surfaceMaterial, char const* surfaceMaterialFactor,
-												Xenko::Assets::Materials::MaterialAsset^ finalMaterial)
+												Stride::Assets::Materials::MaterialAsset^ finalMaterial)
 	{
 		auto compositionTrees = gcnew cli::array<IComputeColor^>(2);
 
@@ -1202,7 +1202,7 @@ public:
 		return fileNameToUse;
 	}
 
-	ComputeTextureColor^ GenerateMaterialTextureNodeFBX(FbxFileTexture* lFileTexture, std::map<std::string, size_t>& uvElementMapping, Dictionary<IntPtr, ComputeTextureColor^>^ textureMap, std::map<std::string, int>& textureNameCount, Xenko::Assets::Materials::MaterialAsset^ finalMaterial)
+	ComputeTextureColor^ GenerateMaterialTextureNodeFBX(FbxFileTexture* lFileTexture, std::map<std::string, size_t>& uvElementMapping, Dictionary<IntPtr, ComputeTextureColor^>^ textureMap, std::map<std::string, int>& textureNameCount, Stride::Assets::Materials::MaterialAsset^ finalMaterial)
 	{
 		auto texScale = lFileTexture->GetUVScaling();		
 		auto texturePath = FindFilePath(lFileTexture);

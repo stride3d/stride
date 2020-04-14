@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -20,13 +20,13 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-#if (XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX) && XENKO_GRAPHICS_API_OPENGL && XENKO_UI_OPENTK
+#if (STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX) && STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
 using System;
 using OpenTK;
 using OpenTK.Graphics;
-using Xenko.Graphics.OpenGL;
+using Stride.Graphics.OpenGL;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
     /// <summary>
     /// A <see cref="GameContext"/> to use for rendering to an existing OpenTK Window.
@@ -45,7 +45,7 @@ namespace Xenko.Games
             }
 
             var creationFlags = GraphicsContextFlags.Default;
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             creationFlags |= GraphicsContextFlags.Embedded;
 #endif
             if ((this.DeviceCreationFlags & Graphics.DeviceCreationFlags.Debug) != 0)
@@ -62,7 +62,7 @@ namespace Xenko.Games
                 int version;
                 if (RequestedGraphicsProfile == null || RequestedGraphicsProfile.Length == 0)
                 {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                     version = 300;
 #else
                     // PC: 4.3 is commonly available (= compute shaders)
@@ -106,7 +106,7 @@ namespace Xenko.Games
         {
             try
             {
-#if XENKO_GRAPHICS_API_OPENGL || XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGL || STRIDE_GRAPHICS_API_OPENGLES
                 // Preload proper SDL native library (depending on CPU type)
                 // This is for OpenGL ES on desktop
                 Core.NativeLibrary.PreloadLibrary("SDL2.dll", typeof(GameContextOpenTK));

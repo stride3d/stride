@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Storage;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Translation;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Storage;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Translation;
 
-namespace Xenko.Core.Assets.Editor.ViewModel
+namespace Stride.Core.Assets.Editor.ViewModel
 {
     public sealed class DirectoryViewModel : DirectoryBaseViewModel, ISessionObjectViewModel
     {

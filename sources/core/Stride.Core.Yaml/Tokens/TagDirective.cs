@@ -47,7 +47,7 @@ using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Xenko.Core.Yaml.Tokens
+namespace Stride.Core.Yaml.Tokens
 {
     /// <summary>
     /// Represents a tag directive token.

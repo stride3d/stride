@@ -19,7 +19,7 @@ RootAssets:
     - 90569fac-e17d-41a0-9fc0-e7521aa05300:DebugSlider
     - 991d85cd-5087-4f4c-8cdd-36f48a145bf6:GraphicsCompositor
     - 9b63680d-c02b-4cbd-927e-47c732e84cfb:DumbWhite
-    - ad042de6-d40c-4350-b563-651599ab7110:XenkoBackground
+    - ad042de6-d40c-4350-b563-651599ab7110:StrideBackground
     - b28bf403-c197-43c7-8614-c422d702909c:MainScene
     - b31d00ed-5719-4ef1-be8e-c3d958a0a32b:rotatedUV
     - c8b6b4b7-12db-488a-8e90-ba0c661944c2:UIImages

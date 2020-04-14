@@ -8,18 +8,18 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
 using Newtonsoft.Json;
-using Xenko.Metrics.ServerApp.Models;
+using Stride.Metrics.ServerApp.Models;
 
-namespace Xenko.Metrics.ServerApp.Controllers
+namespace Stride.Metrics.ServerApp.Controllers
 {
     //[Authorize]
     [RoutePrefix("api")]
     internal class MetricApiController : CustomApiControllerBase
     {
-        // TODO: Generated queries for all get- are a bit invalid in case no events are occuring. We should have a 0 for the days users are not using Xenko for example.
+        // TODO: Generated queries for all get- are a bit invalid in case no events are occuring. We should have a 0 for the days users are not using Stride for example.
 
         /// <summary>
-        /// Use this guid on the client side in the variable XenkoMetricsSpecial to avoid loggin usage
+        /// Use this guid on the client side in the variable StrideMetricsSpecial to avoid loggin usage
         /// </summary>
         private static readonly Guid ByPassSpecialGuid = new Guid("AEA51F92-84DD-40D7-BFE6-442F37A308D6");
 
@@ -543,15 +543,15 @@ ORDER BY N.Year, N.Month";
         }
 
         [HttpGet]
-        [Route("get-xenko-downloads")]
-        public async Task<List<AggregationPerMonth>> GetXenkoDownloads()
+        [Route("get-stride-downloads")]
+        public async Task<List<AggregationPerMonth>> GetStrideDownloads()
         {
             // Get active users of version per month
             const string query = @"SELECT [Year], [Month], count(*) as [Count]
 FROM (
 SELECT DATEPART(year, a.Timestamp) as [Year], DATEPART(month, a.Timestamp) as [Month]
 FROM [MetricEvents] as a, [MetricEventDefinitions] as b
-WHERE a.MetricId = b.MetricId and b.MetricName = 'DownloadPackage' AND a.AppId = {0} AND CHARINDEX('Xenko', a.MetricValue) = 1 AND CHARINDEX('DownloadCompleted', a.MetricValue) >= 1
+WHERE a.MetricId = b.MetricId and b.MetricName = 'DownloadPackage' AND a.AppId = {0} AND CHARINDEX('Stride', a.MetricValue) = 1 AND CHARINDEX('DownloadCompleted', a.MetricValue) >= 1
 GROUP BY DATEPART(year, a.Timestamp), DATEPART(month, a.Timestamp), a.InstallId
 ) Q
 GROUP BY [Year], [Month]

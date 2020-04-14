@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 using System.Threading.Tasks;
-using Xenko.Core.Packages;
+using Stride.Core.Packages;
 
-namespace Xenko.Core.Assets
+namespace Stride.Core.Assets
 {
     /// <summary>
     /// Manage packages locally installed and accessible on the store.
@@ -32,7 +32,7 @@ namespace Xenko.Core.Assets
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageStore"/> class.
         /// </summary>
-        /// <exception cref="System.InvalidOperationException">Unable to find a valid Xenko installation path</exception>
+        /// <exception cref="System.InvalidOperationException">Unable to find a valid Stride installation path</exception>
         private PackageStore()
         {
             // Check if we are in a root directory with store/packages facilities
@@ -97,13 +97,13 @@ namespace Xenko.Core.Assets
                 var packageRoot = (UDirectory)store.GetRealPath(package);
                 var packageFilename = new UFile(packageName + Package.PackageFileExtension);
 
-                // First look for xkpkg at package root
+                // First look for sdpkg at package root
                 var packageFile = UPath.Combine(packageRoot, packageFilename);
                 if (File.Exists(packageFile))
                     return packageFile;
 
-                // Then look for xkpkg inside xenko subfolder
-                packageFile = UPath.Combine(UPath.Combine(packageRoot, (UDirectory)"xenko"), packageFilename);
+                // Then look for sdpkg inside stride subfolder
+                packageFile = UPath.Combine(UPath.Combine(packageRoot, (UDirectory)"stride"), packageFilename);
                 if (File.Exists(packageFile))
                     return packageFile;
             }

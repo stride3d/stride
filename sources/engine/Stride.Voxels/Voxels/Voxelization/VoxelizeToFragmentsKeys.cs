@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using Xenko.Rendering.Voxels;
-using Xenko.Shaders;
+using Stride.Rendering.Voxels;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public static partial class VoxelizeToFragmentsKeys
     {

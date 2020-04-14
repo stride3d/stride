@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1405 // Debug.Assert must provide message text
 using System;
 using System.Diagnostics;
-using Xenko.Core.Annotations;
-using Xenko.Core.Serialization;
-using Xenko.Core.Streaming;
+using Stride.Core.Annotations;
+using Stride.Core.Serialization;
+using Stride.Core.Streaming;
 
-namespace Xenko.Graphics.Data
+namespace Stride.Graphics.Data
 {
     /// <summary>
     /// Texture serialization data
@@ -117,13 +117,13 @@ namespace Xenko.Graphics.Data
                         PixelBuffers = pixelBuffers,
                     };
                     // TODO: We end up duplicating some of the texture data; we could find a way to avoid that by saving only the chunks of higher level mips?
-                    initialImage.Save(stream.NativeStream, ImageFileType.Xenko);
+                    initialImage.Save(stream.NativeStream, ImageFileType.Stride);
                 }
             }
             else
             {
                 // Write whole image (old texture content serialization)
-                Image.Save(stream.NativeStream, ImageFileType.Xenko);
+                Image.Save(stream.NativeStream, ImageFileType.Stride);
             }
         }
     }

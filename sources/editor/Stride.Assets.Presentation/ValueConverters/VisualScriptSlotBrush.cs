@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
-using Xenko.Core.Presentation.ValueConverters;
-using Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor;
+using Stride.Core.Presentation.ValueConverters;
+using Stride.Assets.Presentation.AssetEditors.VisualScriptEditor;
 
-namespace Xenko.Assets.Presentation.ValueConverters
+namespace Stride.Assets.Presentation.ValueConverters
 {
     public abstract class VisualScriptSlotBrush<T> : OneWayValueConverter<T> where T : class, IValueConverter, new()
     {

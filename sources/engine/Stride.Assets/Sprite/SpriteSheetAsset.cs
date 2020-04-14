@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
 using System.ComponentModel;
 
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Yaml;
-using Xenko.Assets.Textures;
-using Xenko.Graphics;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Core.Yaml;
+using Stride.Assets.Textures;
+using Stride.Graphics;
 
-namespace Xenko.Assets.Sprite
+namespace Stride.Assets.Sprite
 {
     /// <summary>
     /// This asset represents a sheet (group) of sprites.
@@ -25,7 +25,7 @@ namespace Xenko.Assets.Sprite
     [CategoryOrder(150, "Sprites")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(SpriteSheet))]
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
     public partial class SpriteSheetAsset : Asset
     {
         private const string CurrentVersion = "2.0.0.0";
@@ -33,7 +33,7 @@ namespace Xenko.Assets.Sprite
         /// <summary>
         /// The default file extension used by the <see cref="SpriteSheetAsset"/>.
         /// </summary>
-        public const string FileExtension = ".xksheet";
+        public const string FileExtension = ".sdsheet";
 
         /// <summary>
         /// Gets or sets the type of the current sheet

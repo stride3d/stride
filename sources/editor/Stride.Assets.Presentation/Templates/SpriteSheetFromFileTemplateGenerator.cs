@@ -1,23 +1,23 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Settings;
-using Xenko.Core.Assets.IO;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Reflection;
-using Xenko.TextureConverter;
-using Xenko.Assets.Sprite;
-using Xenko.Assets.Textures;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.IO;
+using Stride.Core.Assets.Templates;
+using Stride.Core;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
+using Stride.TextureConverter;
+using Stride.Assets.Sprite;
+using Stride.Assets.Textures;
 
-namespace Xenko.Assets.Presentation.Templates
+namespace Stride.Assets.Presentation.Templates
 {
     public class SpriteSheetFromFileTemplateGenerator : AssetFromFileTemplateGenerator
     {

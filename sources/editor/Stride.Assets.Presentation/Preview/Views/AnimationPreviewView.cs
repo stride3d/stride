@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using Microsoft.Xaml.Behaviors;
-using Xenko.Core.Presentation.Controls;
-using Xenko.Core.Presentation.Core;
-using Xenko.Editor.Preview.View;
+using Stride.Core.Presentation.Controls;
+using Stride.Core.Presentation.Core;
+using Stride.Editor.Preview.View;
 
-namespace Xenko.Assets.Presentation.Preview.Views
+namespace Stride.Assets.Presentation.Preview.Views
 {
     public class ScaleFromSliderBehavior : Behavior<ScaleBar>
     {
@@ -41,7 +41,7 @@ namespace Xenko.Assets.Presentation.Preview.Views
         }
     }
 
-    public class AnimationPreviewView : XenkoPreviewView
+    public class AnimationPreviewView : StridePreviewView
     {
         static AnimationPreviewView()
         {

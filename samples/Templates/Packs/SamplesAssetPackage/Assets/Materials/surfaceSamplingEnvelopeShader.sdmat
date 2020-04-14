@@ -1,11 +1,11 @@
 !MaterialAsset
 Id: 5cc77999-30d0-482b-8311-92e49b1bd549
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Attributes:
     Surface: !MaterialNormalMapFeature
         NormalMap: !ComputeTextureColor
-            Texture: 1e487469-480c-49cb-8761-3a0addf4ace6:Textures/xenko_coin_normals
+            Texture: 1e487469-480c-49cb-8761-3a0addf4ace6:Textures/stride_coin_normals
             FallbackValue:
                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
             Scale: {X: 1.0, Y: 1.0}
@@ -34,7 +34,7 @@ Attributes:
         NormalDistribution: !MaterialSpecularMicrofacetNormalDistributionGGX {}
     Occlusion: !MaterialOcclusionMapFeature
         AmbientOcclusionMap: !ComputeTextureScalar
-            Texture: e9c1d5ea-07cf-4705-9b57-a70266467bb7:Textures/xenko_coin_occlusion
+            Texture: e9c1d5ea-07cf-4705-9b57-a70266467bb7:Textures/stride_coin_occlusion
             FallbackValue:
                 Value: 1.0
             Scale: {X: 1.0, Y: 1.0}

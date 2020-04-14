@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_OPENGL 
+#if STRIDE_GRAPHICS_API_OPENGL 
 using System;
 using OpenTK.Graphics;
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 using ES30 = OpenTK.Graphics.ES30;
 using PixelFormatGl = OpenTK.Graphics.ES30.PixelFormat;
@@ -15,7 +15,7 @@ using PixelFormatGl = OpenTK.Graphics.OpenGL.PixelFormat;
 using PrimitiveTypeGl = OpenTK.Graphics.OpenGL.PrimitiveType;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     internal static class OpenGLConvertExtensions
     {
@@ -68,7 +68,7 @@ namespace Xenko.Graphics
             }
         }
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
         public static ES30.PrimitiveType ToOpenGLES(this PrimitiveType primitiveType)
         {
             switch (primitiveType)
@@ -111,13 +111,13 @@ namespace Xenko.Graphics
             switch (addressMode)
             {
                 case TextureAddressMode.Border:
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                     return TextureWrapMode.ClampToBorder;
 #endif
                 case TextureAddressMode.Clamp:
                     return TextureWrapMode.ClampToEdge;
                 case TextureAddressMode.Mirror:
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                     return (TextureWrapMode)EsVersion20.MirroredRepeat;
 #else
                     return TextureWrapMode.MirroredRepeat;
@@ -250,12 +250,12 @@ namespace Xenko.Graphics
                     pixelSize = 4;
                     break;
                 case PixelFormat.B8G8R8A8_UNorm:
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                     if (!graphicsDevice.HasExtTextureFormatBGRA8888)
                         throw new NotSupportedException();
 
                     // It seems iOS and Android expects different things
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
                     internalFormat = PixelInternalFormat.Rgba;
 #else
                     internalFormat = (PixelInternalFormat)ExtTextureFormatBgra8888.BgraExt;
@@ -274,7 +274,7 @@ namespace Xenko.Graphics
                     type = PixelType.UnsignedByte;
                     pixelSize = 4;
                     break;
-#if XENKO_GRAPHICS_API_OPENGLCORE
+#if STRIDE_GRAPHICS_API_OPENGLCORE
                 case PixelFormat.B8G8R8A8_UNorm_SRgb:
                     // TODO: Check on iOS/Android and OpenGL 3
                     internalFormat = PixelInternalFormat.Srgb8Alpha8;
@@ -494,7 +494,7 @@ namespace Xenko.Graphics
                     type = PixelType.Float;
                     pixelSize = 4;
                     break;
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                 // Desktop OpenGLES
                 case PixelFormat.ETC1:
                     // TODO: Runtime check for extension?

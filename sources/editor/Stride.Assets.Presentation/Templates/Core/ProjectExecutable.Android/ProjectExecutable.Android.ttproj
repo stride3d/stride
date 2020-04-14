@@ -4,4 +4,4 @@ Files:
   - {Source: $PackageGameNameShort$Activity.cs.t4, Target: $PackageGameNameShort$Activity.cs, IsTemplate: true}
   - {Source: Properties\AssemblyInfo.cs.t4, Target: Properties\AssemblyInfo.cs, IsTemplate: true}
   - {Source: Properties\AndroidManifest.xml.t4, Target: Properties\AndroidManifest.xml, IsTemplate: true}
-  - {Source: Resources\drawable\XenkoIcon.png, Target: Resources\drawable\Icon.png }
+  - {Source: Resources\drawable\StrideIcon.png, Target: Resources\drawable\Icon.png }

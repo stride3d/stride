@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Assets.Quantum.Internal;
-using Xenko.Core.Reflection;
-using Xenko.Core.Quantum;
-using Xenko.Core.Quantum.References;
+using Stride.Core.Assets.Quantum.Internal;
+using Stride.Core.Reflection;
+using Stride.Core.Quantum;
+using Stride.Core.Quantum.References;
 
-namespace Xenko.Core.Assets.Quantum
+namespace Stride.Core.Assets.Quantum
 {
     /// <summary>
     /// An implementation of <see cref="INodeFactory"/> that creates node capable of storing additional metadata, such as override information, connection

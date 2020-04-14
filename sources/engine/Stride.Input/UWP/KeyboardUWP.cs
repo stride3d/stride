@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
 using System;
 using Windows.UI.Core;
 using System.Collections.Generic;
 using Windows.System;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     internal class KeyboardUWP : KeyboardDeviceBase, IDisposable
     {
@@ -247,18 +247,18 @@ namespace Xenko.Input
             if (virtualKey == VirtualKey.F4 && this.IsKeyDown(Keys.LeftAlt))
                 return;
 
-            // Map key to xenko key
-            Keys xenkoKey;
-            if (!mapKeys.TryGetValue(virtualKey, out xenkoKey))
+            // Map key to stride key
+            Keys strideKey;
+            if (!mapKeys.TryGetValue(virtualKey, out strideKey))
                 return;
 
             if (isDown)
             {
-                HandleKeyDown(xenkoKey);
+                HandleKeyDown(strideKey);
             }
             else
             {
-                HandleKeyUp(xenkoKey);
+                HandleKeyUp(strideKey);
             }
         }
         

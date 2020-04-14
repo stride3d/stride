@@ -1,23 +1,23 @@
 ﻿<Project>
 
   <PropertyGroup>
-    <XenkoRuntime>true</XenkoRuntime>
-    <XenkoNativeOutputName>libxenkonavigation</XenkoNativeOutputName>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideNativeOutputName>libstridenavigation</StrideNativeOutputName>
   </PropertyGroup>
 
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorOptions>--serialization</XenkoAssemblyProcessorOptions>
-    <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--serialization</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Physics\Xenko.Physics.csproj" />
+    <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,10 +26,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Xenko.Navigation.dll.config">
+    <None Include="Stride.Navigation.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Xenko.Native.Libs.targets">
+    <None Include="Stride.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
@@ -42,7 +42,7 @@
     <None Include="NavigationMesh.hpp" />
   </ItemGroup>
 
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
 </Project>

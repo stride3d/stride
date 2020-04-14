@@ -46,7 +46,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     /// <summary>
     /// Implements an indexer through an IEnumerator&lt;T&gt;.

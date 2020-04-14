@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single type
 using System;
 using System.Reflection;
-using Xenko.Core;
-using Xenko.Core.Serialization;
-using Xenko.Core.Storage;
+using Stride.Core;
+using Stride.Core.Serialization;
+using Stride.Core.Storage;
 
-namespace Xenko.Rendering
+namespace Stride.Rendering
 {
     /// <summary>
     /// Key of an effect parameter.
@@ -263,7 +263,7 @@ namespace Xenko.Rendering
     }
 
     /// <summary>
-    /// A blittable value effect key, usually for use by shaders (.xksl).
+    /// A blittable value effect key, usually for use by shaders (.sdsl).
     /// </summary>
     /// <typeparam name="T">Type of the parameter key.</typeparam>
     [DataSerializer(typeof(ValueParameterKeySerializer<>), Mode = DataSerializerGenericMode.GenericArguments)]
@@ -284,7 +284,7 @@ namespace Xenko.Rendering
     }
 
     /// <summary>
-    /// An object (or boxed value) effect key, usually for use by shaders (.xksl).
+    /// An object (or boxed value) effect key, usually for use by shaders (.sdsl).
     /// </summary>
     /// <typeparam name="T">Type of the parameter key.</typeparam>
     [DataSerializer(typeof(ObjectParameterKeySerializer<>), Mode = DataSerializerGenericMode.GenericArguments)]
@@ -300,7 +300,7 @@ namespace Xenko.Rendering
     }
 
     /// <summary>
-    /// An effect permutation key, usually for use by effects (.xkfx).
+    /// An effect permutation key, usually for use by effects (.sdfx).
     /// </summary>
     /// <typeparam name="T">Type of the parameter key.</typeparam>
     [DataSerializer(typeof(PermutationParameterKeySerializer<>), Mode = DataSerializerGenericMode.GenericArguments)]

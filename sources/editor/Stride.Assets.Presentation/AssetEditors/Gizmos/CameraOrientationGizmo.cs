@@ -1,23 +1,23 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Xenko.Assets.SpriteFont;
-using Xenko.Assets.SpriteFont.Compiler;
-using Xenko.Engine;
-using Xenko.Extensions;
-using Xenko.Graphics;
-using Xenko.Graphics.Font;
-using Xenko.Graphics.GeometricPrimitives;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
+using Stride.Assets.SpriteFont;
+using Stride.Assets.SpriteFont.Compiler;
+using Stride.Engine;
+using Stride.Extensions;
+using Stride.Graphics;
+using Stride.Graphics.Font;
+using Stride.Graphics.GeometricPrimitives;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
     /// <summary>
     /// A script that manages the view gizmo in the scene editor.

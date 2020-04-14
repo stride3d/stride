@@ -1,6 +1,6 @@
 !Texture
 Id: 2c6491c4-701b-4eb7-b9f8-94d22d95b0cf
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../data/tests/SmallPngNoAlpha.png
 Type: !ColorTextureType

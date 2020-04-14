@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Xenko.Graphics;
-using Xenko.Shaders;
+using Stride.Graphics;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public interface IVoxelStorer
     {

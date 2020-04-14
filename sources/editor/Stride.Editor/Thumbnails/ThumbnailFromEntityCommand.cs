@@ -1,32 +1,32 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Assets;
-using Xenko.Editor.Engine;
-using Xenko.Engine;
-using Xenko.Graphics;
-using Xenko.Particles.Rendering;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
-using Xenko.Rendering.Lights;
-using Xenko.SpriteStudio.Runtime;
+using Stride.Core.Assets;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Assets;
+using Stride.Editor.Engine;
+using Stride.Engine;
+using Stride.Graphics;
+using Stride.Particles.Rendering;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
+using Stride.Rendering.Lights;
+using Stride.SpriteStudio.Runtime;
 
-namespace Xenko.Editor.Thumbnails
+namespace Stride.Editor.Thumbnails
 {
     /// <summary>
     /// A command that creates the thumbnail by rendering an entity.
     /// </summary>
     /// <typeparam name="TRuntimeAsset">The runtime type of the asset</typeparam>
-    public abstract class ThumbnailFromEntityCommand<TRuntimeAsset> : XenkoThumbnailCommand<TRuntimeAsset>
+    public abstract class ThumbnailFromEntityCommand<TRuntimeAsset> : StrideThumbnailCommand<TRuntimeAsset>
         where TRuntimeAsset : class
     {
         private static readonly string ThumbnailEntityGraphicsCompositorKey = nameof(ThumbnailEntityGraphicsCompositorKey);
-        public const string EditorForwardShadingEffect = "XenkoEditorForwardShadingEffect";
+        public const string EditorForwardShadingEffect = "StrideEditorForwardShadingEffect";
 
         /// <summary>
         /// The root entity used for the thumbnail.

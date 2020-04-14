@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Editor.EditorGame.Game;
-using Xenko.Engine;
-using Xenko.Engine.Processors;
-using Xenko.Graphics;
-using Xenko.Rendering;
-using Buffer = Xenko.Graphics.Buffer;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Editor.EditorGame.Game;
+using Stride.Engine;
+using Stride.Engine.Processors;
+using Stride.Graphics;
+using Stride.Rendering;
+using Buffer = Stride.Graphics.Buffer;
 
-namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
     /// <summary>
     /// A gizmo for the camera component.

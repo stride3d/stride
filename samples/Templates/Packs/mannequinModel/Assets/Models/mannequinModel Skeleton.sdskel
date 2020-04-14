@@ -1,6 +1,6 @@
 !Skeleton
 Id: a0d324bd-326a-4fd8-88a9-fc5e4dcc62e5
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/mannequinModel.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

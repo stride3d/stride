@@ -6,6 +6,6 @@ Scope: Asset
 Description: A procedurally-generated cylinder
 Group: Model
 Order: 20
-Icon: ..\.xktpl\ProceduralCylinder.png
+Icon: ..\.sdtpl\ProceduralCylinder.png
 DefaultOutputName: Cylinder
 FactoryTypeName: ProceduralModelCylinderFactory

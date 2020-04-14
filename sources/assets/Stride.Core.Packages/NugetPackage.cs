@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet;
-using Xenko.Core;
+using Stride.Core;
 using NuGet.Packaging.Core;
 using NuGet.ProjectManagement;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 using Constants = NuGet.ProjectManagement.Constants;
 using IPackageMetadata = NuGet.Packaging.IPackageMetadata;
 
-namespace Xenko.Core.Packages
+namespace Stride.Core.Packages
 {
     /// <summary>
     /// Nuget abstraction of a package.

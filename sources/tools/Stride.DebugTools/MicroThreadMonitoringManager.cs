@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Xenko.Framework;
-using Xenko.Framework.MicroThreading;
-using Xenko.Core.Extensions;
+using Stride.Framework;
+using Stride.Framework.MicroThreading;
+using Stride.Core.Extensions;
 using System.Diagnostics;
 using System.Threading;
-using Xenko.Framework.Time;
-using Xenko.DebugTools.DataStructures;
-using Xenko.Core.Presentation.Observable;
+using Stride.Framework.Time;
+using Stride.DebugTools.DataStructures;
+using Stride.Core.Presentation.Observable;
 
-namespace Xenko.DebugTools
+namespace Stride.DebugTools
 {
     /// <summary>
     /// Manager class that monitors the micro threads executions.

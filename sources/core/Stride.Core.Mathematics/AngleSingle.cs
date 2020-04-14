@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // -----------------------------------------------------------------------------
@@ -29,7 +29,7 @@
 using System;
 using System.Globalization;
 
-namespace Xenko.Core.Mathematics
+namespace Stride.Core.Mathematics
 {
     /// <summary>
     /// Represents a unit independant angle using a single-precision floating-point
@@ -118,7 +118,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Wraps this Xenko.Core.Mathematics.AngleSingle to be in the range [π, -π].
+        /// Wraps this Stride.Core.Mathematics.AngleSingle to be in the range [π, -π].
         /// </summary>
         public void Wrap()
         {
@@ -133,7 +133,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Wraps this Xenko.Core.Mathematics.AngleSingle to be in the range [0, 2π).
+        /// Wraps this Stride.Core.Mathematics.AngleSingle to be in the range [0, 2π).
         /// </summary>
         public void WrapPositive()
         {
@@ -146,7 +146,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets or sets the total number of revolutions this Xenko.Core.Mathematics.AngleSingle represents.
+        /// Gets or sets the total number of revolutions this Stride.Core.Mathematics.AngleSingle represents.
         /// </summary>
         [DataMemberIgnore]
         public float Revolutions
@@ -156,7 +156,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets or sets the total number of degrees this Xenko.Core.Mathematics.AngleSingle represents.
+        /// Gets or sets the total number of degrees this Stride.Core.Mathematics.AngleSingle represents.
         /// </summary>
         [DataMemberIgnore]
         public float Degrees
@@ -166,7 +166,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets or sets the minutes component of the degrees this Xenko.Core.Mathematics.AngleSingle represents.
+        /// Gets or sets the minutes component of the degrees this Stride.Core.Mathematics.AngleSingle represents.
         /// When setting the minutes, if the value is in the range (-60, 60) the whole degrees are
         /// not changed; otherwise, the whole degrees may be changed. Fractional values may set
         /// the seconds component.
@@ -200,7 +200,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets or sets the seconds of the degrees this Xenko.Core.Mathematics.AngleSingle represents.
+        /// Gets or sets the seconds of the degrees this Stride.Core.Mathematics.AngleSingle represents.
         /// When setting te seconds, if the value is in the range (-60, 60) the whole minutes
         /// or whole degrees are not changed; otherwise, the whole minutes or whole degrees
         /// may be changed.
@@ -246,7 +246,7 @@ namespace Xenko.Core.Mathematics
         }
         
         /// <summary>
-        /// Gets or sets the total number of radians this Xenko.Core.Mathematics.AngleSingle represents.
+        /// Gets or sets the total number of radians this Stride.Core.Mathematics.AngleSingle represents.
         /// </summary>
         public float Radians
         {
@@ -255,7 +255,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets or sets the total number of milliradians this Xenko.Core.Mathematics.AngleSingle represents.
+        /// Gets or sets the total number of milliradians this Stride.Core.Mathematics.AngleSingle represents.
         /// One milliradian is equal to 1/(2000π).
         /// </summary>
         [DataMemberIgnore]
@@ -266,7 +266,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets or sets the total number of gradians this Xenko.Core.Mathematics.AngleSingle represents.
+        /// Gets or sets the total number of gradians this Stride.Core.Mathematics.AngleSingle represents.
         /// </summary>
         [DataMemberIgnore]
         public float Gradians
@@ -276,7 +276,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a System.Boolean that determines whether this Xenko.Core.Mathematics.Angle
+        /// Gets a System.Boolean that determines whether this Stride.Core.Mathematics.Angle
         /// is a right angle (i.e. 90° or π/2).
         /// </summary>
         [DataMemberIgnore]
@@ -286,7 +286,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a System.Boolean that determines whether this Xenko.Core.Mathematics.Angle
+        /// Gets a System.Boolean that determines whether this Stride.Core.Mathematics.Angle
         /// is a straight angle (i.e. 180° or π).
         /// </summary>
         [DataMemberIgnore]
@@ -296,7 +296,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a System.Boolean that determines whether this Xenko.Core.Mathematics.Angle
+        /// Gets a System.Boolean that determines whether this Stride.Core.Mathematics.Angle
         /// is a full rotation angle (i.e. 360° or 2π).
         /// </summary>
         [DataMemberIgnore]
@@ -306,7 +306,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a System.Boolean that determines whether this Xenko.Core.Mathematics.Angle
+        /// Gets a System.Boolean that determines whether this Stride.Core.Mathematics.Angle
         /// is an oblique angle (i.e. is not 90° or a multiple of 90°).
         /// </summary>
         [DataMemberIgnore]
@@ -316,7 +316,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a System.Boolean that determines whether this Xenko.Core.Mathematics.Angle
+        /// Gets a System.Boolean that determines whether this Stride.Core.Mathematics.Angle
         /// is an acute angle (i.e. less than 90° but greater than 0°).
         /// </summary>
         [DataMemberIgnore]
@@ -326,7 +326,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a System.Boolean that determines whether this Xenko.Core.Mathematics.Angle
+        /// Gets a System.Boolean that determines whether this Stride.Core.Mathematics.Angle
         /// is an obtuse angle (i.e. greater than 90° but less than 180°).
         /// </summary>
         [DataMemberIgnore]
@@ -336,7 +336,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a System.Boolean that determines whether this Xenko.Core.Mathematics.Angle
+        /// Gets a System.Boolean that determines whether this Stride.Core.Mathematics.Angle
         /// is a reflex angle (i.e. greater than 180° but less than 360°).
         /// </summary>
         [DataMemberIgnore]
@@ -346,7 +346,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a Xenko.Core.Mathematics.AngleSingle instance that complements this angle (i.e. the two angles add to 90°).
+        /// Gets a Stride.Core.Mathematics.AngleSingle instance that complements this angle (i.e. the two angles add to 90°).
         /// </summary>
         [DataMemberIgnore]
         public AngleSingle Complement
@@ -355,7 +355,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a Xenko.Core.Mathematics.AngleSingle instance that supplements this angle (i.e. the two angles add to 180°).
+        /// Gets a Stride.Core.Mathematics.AngleSingle instance that supplements this angle (i.e. the two angles add to 180°).
         /// </summary>
         [DataMemberIgnore]
         public AngleSingle Supplement
@@ -364,10 +364,10 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Wraps the Xenko.Core.Mathematics.AngleSingle given in the value argument to be in the range [π, -π].
+        /// Wraps the Stride.Core.Mathematics.AngleSingle given in the value argument to be in the range [π, -π].
         /// </summary>
-        /// <param name="value">A Xenko.Core.Mathematics.AngleSingle to wrap.</param>
-        /// <returns>The Xenko.Core.Mathematics.AngleSingle that is wrapped.</returns>
+        /// <param name="value">A Stride.Core.Mathematics.AngleSingle to wrap.</param>
+        /// <returns>The Stride.Core.Mathematics.AngleSingle that is wrapped.</returns>
         public static AngleSingle Wrap(AngleSingle value)
         {
             value.Wrap();
@@ -375,10 +375,10 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Wraps the Xenko.Core.Mathematics.AngleSingle given in the value argument to be in the range [0, 2π).
+        /// Wraps the Stride.Core.Mathematics.AngleSingle given in the value argument to be in the range [0, 2π).
         /// </summary>
-        /// <param name="value">A Xenko.Core.Mathematics.AngleSingle to wrap.</param>
-        /// <returns>The Xenko.Core.Mathematics.AngleSingle that is wrapped.</returns>
+        /// <param name="value">A Stride.Core.Mathematics.AngleSingle to wrap.</param>
+        /// <returns>The Stride.Core.Mathematics.AngleSingle that is wrapped.</returns>
         public static AngleSingle WrapPositive(AngleSingle value)
         {
             value.WrapPositive();
@@ -386,11 +386,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Compares two Xenko.Core.Mathematics.AngleSingle instances and returns the smaller angle.
+        /// Compares two Stride.Core.Mathematics.AngleSingle instances and returns the smaller angle.
         /// </summary>
-        /// <param name="left">The first Xenko.Core.Mathematics.AngleSingle instance to compare.</param>
-        /// <param name="right">The second Xenko.Core.Mathematics.AngleSingle instance to compare.</param>
-        /// <returns>The smaller of the two given Xenko.Core.Mathematics.AngleSingle instances.</returns>
+        /// <param name="left">The first Stride.Core.Mathematics.AngleSingle instance to compare.</param>
+        /// <param name="right">The second Stride.Core.Mathematics.AngleSingle instance to compare.</param>
+        /// <returns>The smaller of the two given Stride.Core.Mathematics.AngleSingle instances.</returns>
         public static AngleSingle Min(AngleSingle left, AngleSingle right)
         {
             if (left.radians < right.radians)
@@ -400,11 +400,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Compares two Xenko.Core.Mathematics.AngleSingle instances and returns the greater angle.
+        /// Compares two Stride.Core.Mathematics.AngleSingle instances and returns the greater angle.
         /// </summary>
-        /// <param name="left">The first Xenko.Core.Mathematics.AngleSingle instance to compare.</param>
-        /// <param name="right">The second Xenko.Core.Mathematics.AngleSingle instance to compare.</param>
-        /// <returns>The greater of the two given Xenko.Core.Mathematics.AngleSingle instances.</returns>
+        /// <param name="left">The first Stride.Core.Mathematics.AngleSingle instance to compare.</param>
+        /// <param name="right">The second Stride.Core.Mathematics.AngleSingle instance to compare.</param>
+        /// <returns>The greater of the two given Stride.Core.Mathematics.AngleSingle instances.</returns>
         public static AngleSingle Max(AngleSingle left, AngleSingle right)
         {
             if (left.radians > right.radians)
@@ -414,7 +414,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Adds two Xenko.Core.Mathematics.AngleSingle objects and returns the result.
+        /// Adds two Stride.Core.Mathematics.AngleSingle objects and returns the result.
         /// </summary>
         /// <param name="left">The first object to add.</param>
         /// <param name="right">The second object to add.</param>
@@ -425,7 +425,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Subtracts two Xenko.Core.Mathematics.AngleSingle objects and returns the result.
+        /// Subtracts two Stride.Core.Mathematics.AngleSingle objects and returns the result.
         /// </summary>
         /// <param name="left">The first object to subtract.</param>
         /// <param name="right">The second object to subtract.</param>
@@ -436,7 +436,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Multiplies two Xenko.Core.Mathematics.AngleSingle objects and returns the result.
+        /// Multiplies two Stride.Core.Mathematics.AngleSingle objects and returns the result.
         /// </summary>
         /// <param name="left">The first object to multiply.</param>
         /// <param name="right">The second object to multiply.</param>
@@ -447,7 +447,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Divides two Xenko.Core.Mathematics.AngleSingle objects and returns the result.
+        /// Divides two Stride.Core.Mathematics.AngleSingle objects and returns the result.
         /// </summary>
         /// <param name="left">The numerator object.</param>
         /// <param name="right">The denominator object.</param>
@@ -458,7 +458,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a new Xenko.Core.Mathematics.AngleSingle instance that represents the zero angle (i.e. 0°).
+        /// Gets a new Stride.Core.Mathematics.AngleSingle instance that represents the zero angle (i.e. 0°).
         /// </summary>
         public static AngleSingle ZeroAngle
         {
@@ -466,7 +466,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a new Xenko.Core.Mathematics.AngleSingle instance that represents the right angle (i.e. 90° or π/2).
+        /// Gets a new Stride.Core.Mathematics.AngleSingle instance that represents the right angle (i.e. 90° or π/2).
         /// </summary>
         public static AngleSingle RightAngle
         {
@@ -474,7 +474,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a new Xenko.Core.Mathematics.AngleSingle instance that represents the straight angle (i.e. 180° or π).
+        /// Gets a new Stride.Core.Mathematics.AngleSingle instance that represents the straight angle (i.e. 180° or π).
         /// </summary>
         public static AngleSingle StraightAngle
         {
@@ -482,7 +482,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a new Xenko.Core.Mathematics.AngleSingle instance that represents the full rotation angle (i.e. 360° or 2π).
+        /// Gets a new Stride.Core.Mathematics.AngleSingle instance that represents the full rotation angle (i.e. 360° or 2π).
         /// </summary>
         public static AngleSingle FullRotationAngle
         {
@@ -490,7 +490,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a System.Boolean that indicates whether the values of two Xenko.Core.Mathematics.Angle
+        /// Returns a System.Boolean that indicates whether the values of two Stride.Core.Mathematics.Angle
         /// objects are equal.
         /// </summary>
         /// <param name="left">The first object to compare.</param>
@@ -502,7 +502,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a System.Boolean that indicates whether the values of two Xenko.Core.Mathematics.Angle
+        /// Returns a System.Boolean that indicates whether the values of two Stride.Core.Mathematics.Angle
         /// objects are not equal.
         /// </summary>
         /// <param name="left">The first object to compare.</param>
@@ -514,8 +514,8 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a System.Boolean that indicates whether a Xenko.Core.Mathematics.Angle
-        /// object is less than another Xenko.Core.Mathematics.AngleSingle object.
+        /// Returns a System.Boolean that indicates whether a Stride.Core.Mathematics.Angle
+        /// object is less than another Stride.Core.Mathematics.AngleSingle object.
         /// </summary>
         /// <param name="left">The first object to compare.</param>
         /// <param name="right">The second object to compare.</param>
@@ -526,8 +526,8 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a System.Boolean that indicates whether a Xenko.Core.Mathematics.Angle
-        /// object is greater than another Xenko.Core.Mathematics.AngleSingle object.
+        /// Returns a System.Boolean that indicates whether a Stride.Core.Mathematics.Angle
+        /// object is greater than another Stride.Core.Mathematics.AngleSingle object.
         /// </summary>
         /// <param name="left">The first object to compare.</param>
         /// <param name="right">The second object to compare.</param>
@@ -538,8 +538,8 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a System.Boolean that indicates whether a Xenko.Core.Mathematics.Angle
-        /// object is less than or equal to another Xenko.Core.Mathematics.AngleSingle object.
+        /// Returns a System.Boolean that indicates whether a Stride.Core.Mathematics.Angle
+        /// object is less than or equal to another Stride.Core.Mathematics.AngleSingle object.
         /// </summary>
         /// <param name="left">The first object to compare.</param>
         /// <param name="right">The second object to compare.</param>
@@ -550,8 +550,8 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a System.Boolean that indicates whether a Xenko.Core.Mathematics.Angle
-        /// object is greater than or equal to another Xenko.Core.Mathematics.AngleSingle object.
+        /// Returns a System.Boolean that indicates whether a Stride.Core.Mathematics.Angle
+        /// object is greater than or equal to another Stride.Core.Mathematics.AngleSingle object.
         /// </summary>
         /// <param name="left">The first object to compare.</param>
         /// <param name="right">The second object to compare.</param>
@@ -562,10 +562,10 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns the value of the Xenko.Core.Mathematics.AngleSingle operand. (The sign of
+        /// Returns the value of the Stride.Core.Mathematics.AngleSingle operand. (The sign of
         /// the operand is unchanged.)
         /// </summary>
-        /// <param name="value">A Xenko.Core.Mathematics.AngleSingle object.</param>
+        /// <param name="value">A Stride.Core.Mathematics.AngleSingle object.</param>
         /// <returns>The value of the value parameter.</returns>
         public static AngleSingle operator +(AngleSingle value)
         {
@@ -573,9 +573,9 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns the the negated value of the Xenko.Core.Mathematics.AngleSingle operand.
+        /// Returns the the negated value of the Stride.Core.Mathematics.AngleSingle operand.
         /// </summary>
-        /// <param name="value">A Xenko.Core.Mathematics.AngleSingle object.</param>
+        /// <param name="value">A Stride.Core.Mathematics.AngleSingle object.</param>
         /// <returns>The negated value of the value parameter.</returns>
         public static AngleSingle operator -(AngleSingle value)
         {
@@ -583,7 +583,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Adds two Xenko.Core.Mathematics.AngleSingle objects and returns the result.
+        /// Adds two Stride.Core.Mathematics.AngleSingle objects and returns the result.
         /// </summary>
         /// <param name="left">The first object to add.</param>
         /// <param name="right">The second object to add.</param>
@@ -594,7 +594,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Subtracts two Xenko.Core.Mathematics.AngleSingle objects and returns the result.
+        /// Subtracts two Stride.Core.Mathematics.AngleSingle objects and returns the result.
         /// </summary>
         /// <param name="left">The first object to subtract</param>
         /// <param name="right">The second object to subtract.</param>
@@ -605,7 +605,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Multiplies two Xenko.Core.Mathematics.AngleSingle objects and returns the result.
+        /// Multiplies two Stride.Core.Mathematics.AngleSingle objects and returns the result.
         /// </summary>
         /// <param name="left">The first object to multiply.</param>
         /// <param name="right">The second object to multiply.</param>
@@ -616,7 +616,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Divides two Xenko.Core.Mathematics.AngleSingle objects and returns the result.
+        /// Divides two Stride.Core.Mathematics.AngleSingle objects and returns the result.
         /// </summary>
         /// <param name="left">The numerator object.</param>
         /// <param name="right">The denominator object.</param>
@@ -659,7 +659,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Compares this instance to a second Xenko.Core.Mathematics.AngleSingle and returns
+        /// Compares this instance to a second Stride.Core.Mathematics.AngleSingle and returns
         /// an integer that indicates whether the value of this instance is less than,
         /// equal to, or greater than the value of the specified object.
         /// </summary>
@@ -684,11 +684,11 @@ namespace Xenko.Core.Mathematics
 
         /// <summary>
         /// Returns a value that indicates whether the current instance and a specified
-        /// Xenko.Core.Mathematics.AngleSingle object have the same value.
+        /// Stride.Core.Mathematics.AngleSingle object have the same value.
         /// </summary>
         /// <param name="other">The object to compare.</param>
         /// <returns>
-        /// Returns true if this Xenko.Core.Mathematics.AngleSingle object and another have the same value;
+        /// Returns true if this Stride.Core.Mathematics.AngleSingle object and another have the same value;
         /// otherwise, false.
         /// </returns>
         public bool Equals(AngleSingle other)
@@ -751,7 +751,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a hash code for this Xenko.Core.Mathematics.AngleSingle instance.
+        /// Returns a hash code for this Stride.Core.Mathematics.AngleSingle instance.
         /// </summary>
         /// <returns>A 32-bit signed integer hash code.</returns>
         public override int GetHashCode()
@@ -765,9 +765,9 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="obj">The object to compare.</param>
         /// <returns>
-        /// Returns true if the obj parameter is a Xenko.Core.Mathematics.AngleSingle object or a type
-        /// capable of implicit conversion to a Xenko.Core.Mathematics.AngleSingle value, and
-        /// its value is equal to the value of the current Xenko.Core.Mathematics.Angle
+        /// Returns true if the obj parameter is a Stride.Core.Mathematics.AngleSingle object or a type
+        /// capable of implicit conversion to a Stride.Core.Mathematics.AngleSingle value, and
+        /// its value is equal to the value of the current Stride.Core.Mathematics.Angle
         /// object; otherwise, false.
         /// </returns>
         public override bool Equals(object obj)

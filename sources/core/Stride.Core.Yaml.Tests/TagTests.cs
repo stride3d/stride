@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Xunit;
-using Xenko.Core.Annotations;
-using Xenko.Core.Yaml.Serialization;
+using Stride.Core.Annotations;
+using Stride.Core.Yaml.Serialization;
 
 // ReSharper disable once CheckNamespace - we explicitely want a custom namespace for the sake of the tests
-namespace Xenko.Core.Yaml.Tests.TestNamespace
+namespace Stride.Core.Yaml.Tests.TestNamespace
 {
     // Note: do not move these types! If the namespace must be changed, be sure to update TagTests.Namespace.
     #region Types
@@ -48,8 +48,8 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
 
     public class TagTests : YamlTest
     {
-        private const string AssemblyName = "Xenko.Core.Yaml.Tests";
-        private const string Namespace = "Xenko.Core.Yaml.Tests.TestNamespace";
+        private const string AssemblyName = "Stride.Core.Yaml.Tests";
+        private const string Namespace = "Stride.Core.Yaml.Tests.TestNamespace";
 
         [Fact]
         public void TestNullType()
@@ -82,7 +82,7 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             TestType(typeof(int?), "!System.Nullable%601[[System.Int32,mscorlib]],mscorlib");
             // TODO: we would like to have something like "!System.Guid?,mscorlib"
             TestType(typeof(Guid?), "!System.Nullable%601[[System.Guid,mscorlib]],mscorlib");
-            // TODO: we would like to have something like "!Xenko.Core.Yaml.Tests.TestNamespace.SimpleStruct?,Xenko.Core.Yaml.Tests"
+            // TODO: we would like to have something like "!Stride.Core.Yaml.Tests.TestNamespace.SimpleStruct?,Stride.Core.Yaml.Tests"
             TestType(typeof(SimpleStruct?), $"!System.Nullable%601[[{Namespace}.SimpleStruct,{AssemblyName}]],mscorlib");
         }
 
@@ -141,7 +141,7 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
         [Fact]
         public void TestGenericDataContractType()
         {
-            // TODO: we would like to have: !CustomName2[[Xenko.Core.Yaml.Tests.TestNamespace.SimpleType,Xenko.Core.Yaml.Tests]]
+            // TODO: we would like to have: !CustomName2[[Stride.Core.Yaml.Tests.TestNamespace.SimpleType,Stride.Core.Yaml.Tests]]
             TestType(typeof(GenericDataContractType<SimpleType>), $"!{Namespace}.GenericDataContractType%601[[{Namespace}.SimpleType,{AssemblyName}]],{AssemblyName}");
             // TODO: we would like to have: !GenericNestedTypeContainer%601[[CustomName]]
             TestType(typeof(GenericNestedTypeContainer<DataContractType>), $"!{Namespace}.GenericNestedTypeContainer%601[[{Namespace}.DataContractType,{AssemblyName}]],{AssemblyName}");
@@ -281,7 +281,7 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
         [Fact]
         public void TestGenericDataContractTypeArray()
         {
-            // TODO: we would like to have: !CustomName2[[Xenko.Core.Yaml.Tests.TestNamespace.SimpleType,Xenko.Core.Yaml.Tests]][]
+            // TODO: we would like to have: !CustomName2[[Stride.Core.Yaml.Tests.TestNamespace.SimpleType,Stride.Core.Yaml.Tests]][]
             TestType(typeof(GenericDataContractType<SimpleType>[]), $"!{Namespace}.GenericDataContractType%601[[{Namespace}.SimpleType,{AssemblyName}]][],{AssemblyName}");
             // TODO: we would like to have: !GenericNestedTypeContainer%601[[CustomName]][]
             TestType(typeof(GenericNestedTypeContainer<DataContractType>[]), $"!{Namespace}.GenericNestedTypeContainer%601[[{Namespace}.DataContractType,{AssemblyName}]][],{AssemblyName}");

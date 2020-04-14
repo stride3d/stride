@@ -5,8 +5,8 @@ Scope: Session
 Description: Demonstrates how to use sprite fonts
 FullDescription: This sample demonstrates properties of dynamic and static sprite fonts, and how to draw, rotate, scale, and align text using the SpriteBatch class.
 Group: Samples/Graphics
-Icon: .xktpl/Icon.png
+Icon: .sdtpl/Icon.png
 DefaultOutputName: SpriteFonts
 Screenshots:
-    - .xktpl/screenshot1_small.jpg
-    - .xktpl/screenshot2_small.jpg
+    - .sdtpl/screenshot1_small.jpg
+    - .sdtpl/screenshot2_small.jpg

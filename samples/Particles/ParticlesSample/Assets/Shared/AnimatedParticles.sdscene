@@ -1,6 +1,6 @@
 !SceneAsset
 Id: 2195e36c-46ec-496b-8072-098c114f4a7f
-SerializedVersion: {Xenko: 3.1.0.1}
+SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
 ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -66,7 +66,7 @@ Hierarchy:
                                         SamplerRotation: null
                                     Material: !ParticleMaterialComputeColor
                                         ComputeColor: !ComputeTextureColor
-                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/XenkoLogoWhite
+                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/StrideLogoWhite
                                             FallbackValue:
                                                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                             Scale: {X: 1.0, Y: 1.0}
@@ -164,7 +164,7 @@ Hierarchy:
                                         SamplerRotation: null
                                     Material: !ParticleMaterialComputeColor
                                         ComputeColor: !ComputeTextureColor
-                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/XenkoLogoWhite
+                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/StrideLogoWhite
                                             FallbackValue:
                                                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                             Scale: {X: 1.0, Y: 1.0}
@@ -254,7 +254,7 @@ Hierarchy:
                                                         TangentType: Linear
                                     Material: !ParticleMaterialComputeColor
                                         ComputeColor: !ComputeTextureColor
-                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/XenkoLogoWhite
+                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/StrideLogoWhite
                                             FallbackValue:
                                                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                             Scale: {X: 1.0, Y: 1.0}
@@ -344,7 +344,7 @@ Hierarchy:
                                         SamplerRotation: null
                                     Material: !ParticleMaterialComputeColor
                                         ComputeColor: !ComputeTextureColor
-                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/XenkoLogoWhite
+                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/StrideLogoWhite
                                             FallbackValue:
                                                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                             Scale: {X: 1.0, Y: 1.0}
@@ -483,7 +483,7 @@ Hierarchy:
                                         SamplerRotation: null
                                     Material: !ParticleMaterialComputeColor
                                         ComputeColor: !ComputeTextureColor
-                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/XenkoLogoWhite
+                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/StrideLogoWhite
                                             FallbackValue:
                                                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                             Scale: {X: 1.0, Y: 1.0}
@@ -644,7 +644,7 @@ Hierarchy:
                                         ComputeColor: !ComputeBinaryColor
                                             Operator: Multiply
                                             LeftChild: !ComputeTextureColor
-                                                Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/XenkoLogoWhite
+                                                Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/StrideLogoWhite
                                                 FallbackValue:
                                                     Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                                 Scale: {X: 1.0, Y: 1.0}
@@ -736,7 +736,7 @@ Hierarchy:
                         Children: {}
                     1d46f1608762fa45a1169640e5796f78: !BackgroundComponent
                         Id: 60f1461d-6287-45fa-a116-9640e5796f78
-                        Texture: a92a0e5c-6f9f-4d1d-bff8-38b596819274:XenkoBackground
+                        Texture: a92a0e5c-6f9f-4d1d-bff8-38b596819274:StrideBackground
                         Is2D: true
         -   Entity:
                 Id: c9164fb7-0dae-431d-b3fd-708d5554efe6
@@ -807,7 +807,7 @@ Hierarchy:
                                                         TangentType: Linear
                                     Material: !ParticleMaterialComputeColor
                                         ComputeColor: !ComputeTextureColor
-                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/XenkoLogoWhite
+                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/StrideLogoWhite
                                             FallbackValue:
                                                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                             Scale: {X: 1.0, Y: 1.0}
@@ -883,7 +883,7 @@ Hierarchy:
                                         SamplerRotation: null
                                     Material: !ParticleMaterialComputeColor
                                         ComputeColor: !ComputeTextureColor
-                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/XenkoLogoWhite
+                                            Texture: ad3bc951-0f20-464d-a236-fb9c3727f4e7:Textures/StrideLogoWhite
                                             FallbackValue:
                                                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                             Scale: {X: 1.0, Y: 1.0}

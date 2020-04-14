@@ -1,12 +1,12 @@
-#if XENKO_PLATFORM_ANDROID && XENKO_VIDEO_MEDIACODEC
+#if STRIDE_PLATFORM_ANDROID && STRIDE_VIDEO_MEDIACODEC
 
 using Android.Media;
 using System;
-using Xenko.Media;
+using Stride.Media;
 using Android.Views;
-using Xenko.Core;
+using Stride.Core;
 
-namespace Xenko.Video.Android
+namespace Stride.Video.Android
 {
     public class MediaCodecVideoMetadata
     {

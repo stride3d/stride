@@ -2,20 +2,20 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Xenko.Core;
-using Xenko.Core.Collections;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Shaders;
-using Xenko.Graphics;
-using Xenko.Rendering.Lights;
-using Xenko.Rendering.Voxels;
-using Xenko.Core.Extensions;
-using Xenko.Rendering;
+using Stride.Core;
+using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Shaders;
+using Stride.Graphics;
+using Stride.Rendering.Lights;
+using Stride.Rendering.Voxels;
+using Stride.Core.Extensions;
+using Stride.Rendering;
 
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     //Uses a geometry shader to project each triangle to the axis
     //of maximum coverage, and lets the pipeline generate fragments from there
@@ -92,7 +92,7 @@ namespace Xenko.Rendering.Voxels
             passList.AddDirect(storer, this, voxelizationView, attr, stage, output, shadows);
         }
 
-        Xenko.Graphics.Texture MSAARenderTarget = null;
+        Stride.Graphics.Texture MSAARenderTarget = null;
 
         public void Render(VoxelStorageContext storageContext, RenderDrawContext drawContext, RenderView view)
         {

@@ -7,7 +7,7 @@
 //     the code is regenerated.
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace Xenko.Core.Packages
+namespace Stride.Core.Packages
 {
     using System.Linq;
     using System;
@@ -16,7 +16,7 @@ namespace Xenko.Core.Packages
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+    #line 1 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
     public partial class TargetGenerator : TargetGeneratorBase
     {
@@ -30,7 +30,7 @@ namespace Xenko.Core.Packages
                     "//schemas.microsoft.com/developer/msbuild/2003\" InitialTargets=\"CheckPackages\">\r" +
                     "\n");
             
-            #line 6 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 6 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
   foreach (var package in packages)
 	{
         var packageVar = NugetStore.GetPackageVersionVariable(package.Id, packageVersionPrefix);
@@ -45,56 +45,56 @@ namespace Xenko.Core.Packages
             #line hidden
             this.Write("  <PropertyGroup>\r\n    <");
             
-            #line 16 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 16 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write(" Condition=\"\'$(");
             
-            #line 16 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 16 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write("Override)\' != \'\'\">$(");
             
-            #line 16 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 16 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write("Override)</");
             
-            #line 16 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 16 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write(">\r\n    <");
             
-            #line 17 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 17 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write("Saved>$(");
             
-            #line 17 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 17 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write(")</");
             
-            #line 17 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 17 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write("Saved>\r\n");
             
-            #line 18 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 18 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
       // List all the correspondances: Major.minor -> latest installed explicit version
 
         // Get all the related versions of the same package also installed, and order by Major.Minor
@@ -112,49 +112,49 @@ namespace Xenko.Core.Packages
             #line hidden
             this.Write("    <");
             
-            #line 30 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 30 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write("Revision Condition=\"\'$(");
             
-            #line 30 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 30 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write(")\' == \'");
             
-            #line 30 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 30 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(majorVersion));
             
             #line default
             #line hidden
             this.Write(".");
             
-            #line 30 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 30 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(minor.Key));
             
             #line default
             #line hidden
             this.Write("\'\">");
             
-            #line 30 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 30 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(latestPackageVersionNormalized));
             
             #line default
             #line hidden
             this.Write("</");
             
-            #line 30 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 30 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write("Revision>\r\n");
             
-            #line 31 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 31 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
           }
         }
             
@@ -162,91 +162,91 @@ namespace Xenko.Core.Packages
             #line hidden
             this.Write("    <");
             
-            #line 33 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 33 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write(">$(");
             
-            #line 33 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 33 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write("Revision)</");
             
-            #line 33 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 33 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write(">\r\n    <");
             
-            #line 34 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 34 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write("Invalid Condition=\"\'$(");
             
-            #line 34 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 34 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write(")\' == \'\' or !Exists(\'");
             
-            #line 34 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 34 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageTarget));
             
             #line default
             #line hidden
             this.Write("\')\">true</");
             
-            #line 34 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 34 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write("Invalid>\r\n    <");
             
-            #line 35 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 35 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write(" Condition=\"\'$(");
             
-            #line 35 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 35 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write("Invalid)\' == \'true\'\">");
             
-            #line 35 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 35 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(defaultPackageVersionNormalized));
             
             #line default
             #line hidden
             this.Write("</");
             
-            #line 35 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 35 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write(">\r\n  </PropertyGroup>\r\n");
             
-            #line 37 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 37 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
   } 
             
             #line default
             #line hidden
             this.Write("  <Target Name=\"CheckPackages\">\r\n");
             
-            #line 39 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 39 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
   foreach (var package in packages)
     {
 		    var packageVar = NugetStore.GetPackageVersionVariable(package.Id, packageVersionPrefix);
@@ -255,42 +255,42 @@ namespace Xenko.Core.Packages
             #line hidden
             this.Write("    <Message Condition=\"\'$(");
             
-            #line 42 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 42 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write("Invalid)\' == \'true\'\" Text=\"Package ");
             
-            #line 42 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 42 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(package.Id));
             
             #line default
             #line hidden
             this.Write(" with version [$(");
             
-            #line 42 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 42 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write("Saved)] not found. Use version $(");
             
-            #line 42 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 42 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write(") instead\" />\r\n");
             
-            #line 43 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 43 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
   } 
             
             #line default
             #line hidden
             this.Write("  </Target>\r\n");
             
-            #line 45 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 45 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
   foreach (var package in packages)
     {
         var packageVar = NugetStore.GetPackageVersionVariable(package.Id, packageVersionPrefix);
@@ -302,35 +302,35 @@ namespace Xenko.Core.Packages
             #line hidden
             this.Write("  <Import Project=\"");
             
-            #line 51 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 51 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageTarget));
             
             #line default
             #line hidden
             this.Write("\" Condition=\"Exists(\'");
             
-            #line 51 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 51 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageTarget));
             
             #line default
             #line hidden
             this.Write("\') And \'$(");
             
-            #line 51 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 51 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVar));
             
             #line default
             #line hidden
             this.Write(")\' == \'");
             
-            #line 51 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 51 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(packageVersion.Version.ToNuGetVersion().ToNormalizedString()));
             
             #line default
             #line hidden
             this.Write("\'\" />\r\n");
             
-            #line 52 "C:\DEV\xenko\sources\assets\Xenko.Core.Packages\TargetGenerator.tt"
+            #line 52 "C:\DEV\stride\sources\assets\Stride.Core.Packages\TargetGenerator.tt"
       }
     } 
             

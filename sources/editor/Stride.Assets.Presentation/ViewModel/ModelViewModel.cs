@@ -1,27 +1,27 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core.IO;
-using Xenko.Core.Reflection;
-using Xenko.Assets.Models;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Quantum;
-using Xenko.Core.Presentation.Quantum.ViewModels;
-using Xenko.Core.Quantum;
-using Xenko.Assets.Presentation.Templates;
-using Xenko.Rendering;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Templates;
+using Stride.Core.IO;
+using Stride.Core.Reflection;
+using Stride.Assets.Models;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Quantum;
+using Stride.Assets.Presentation.Templates;
+using Stride.Rendering;
 
-namespace Xenko.Assets.Presentation.ViewModel
+namespace Stride.Assets.Presentation.ViewModel
 {
     [AssetViewModel(typeof(ModelAsset))]
     public class ModelViewModel : ImportedAssetViewModel<ModelAsset>
@@ -36,7 +36,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             {
                 DisplayName = "Create Skeleton",
                 Tooltip = "Create a skeleton asset",
-                Icon = new Image { Source = new BitmapImage(new Uri("/Xenko.Assets.Presentation;component/Resources/Icons/create_skeleton-16.png", UriKind.RelativeOrAbsolute))},
+                Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Assets.Presentation;component/Resources/Icons/create_skeleton-16.png", UriKind.RelativeOrAbsolute))},
             }));
         }
 

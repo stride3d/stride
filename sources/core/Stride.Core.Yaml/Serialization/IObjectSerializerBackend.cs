@@ -19,10 +19,10 @@
 // THE SOFTWARE.
 
 using System;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Serialization.Serializers;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Serialization.Serializers;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// This interface is used by <see cref="ObjectSerializer"/>, <see cref="DictionarySerializer"/> and <see cref="CollectionSerializer"/>

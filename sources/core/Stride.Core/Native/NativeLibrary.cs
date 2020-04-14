@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1307 // Accessible fields must begin with upper-case letter
 #pragma warning disable SA1310 // Field names must not contain underscore
@@ -8,13 +8,13 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace Xenko.Core
+namespace Stride.Core
 {
     public static class NativeLibrary
     {
         private static readonly Dictionary<string, IntPtr> LoadedLibraries = new Dictionary<string, IntPtr>();
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
         [DllImport("kernel32", EntryPoint = "LoadLibrary", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr LoadLibrary(string lpFileName);
 
@@ -32,7 +32,7 @@ namespace Xenko.Core
         /// <exception cref="System.InvalidOperationException">Library could not be loaded.</exception>
         public static void PreloadLibrary(string libraryName, Type owner)
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             NormalizeLibName(ref libraryName);
             lock (LoadedLibraries)
             {
@@ -100,7 +100,7 @@ namespace Xenko.Core
         /// <param name="libraryName">Name of the library to unload.</param>
         public static void UnLoad(string libraryName)
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             NormalizeLibName(ref libraryName);
             lock (LoadedLibraries)
             {
@@ -119,7 +119,7 @@ namespace Xenko.Core
         /// </summary>
         public static void UnLoadAll()
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             lock (LoadedLibraries)
             {
                 foreach (var libraryItem in LoadedLibraries)
@@ -131,7 +131,7 @@ namespace Xenko.Core
 #endif
         }
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
         private static void NormalizeLibName(ref string libName)
         {
             libName = libName.ToLowerInvariant();
@@ -142,7 +142,7 @@ namespace Xenko.Core
         }
 #endif
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
         private const string SYSINFO_FILE = "kernel32.dll";
 
         [DllImport(SYSINFO_FILE)]

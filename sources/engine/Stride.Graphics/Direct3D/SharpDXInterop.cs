@@ -1,23 +1,23 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_GRAPHICS_API_DIRECT3D11 || XENKO_GRAPHICS_API_DIRECT3D12
+#if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_DIRECT3D12
 
 using SharpDX;
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
 using SharpDX.Direct3D11;
-#elif XENKO_GRAPHICS_API_DIRECT3D12
+#elif STRIDE_GRAPHICS_API_DIRECT3D12
 using SharpDX.Direct3D12;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public static class SharpDXInterop
     {
         /// <summary>
         /// Gets the native device (DX11/DX12)
         /// </summary>
-        /// <param name="device">The Xenko GraphicsDevice</param>
+        /// <param name="device">The Stride GraphicsDevice</param>
         /// <returns></returns>
         public static object GetNativeDevice(GraphicsDevice device)
         {
@@ -27,7 +27,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Gets the native device context (DX11)
         /// </summary>
-        /// <param name="device">The Xenko GraphicsDevice</param>
+        /// <param name="device">The Stride GraphicsDevice</param>
         /// <returns></returns>
         public static object GetNativeDeviceContext(GraphicsDevice device)
         {
@@ -37,7 +37,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Gets the native command queue (DX12 only)
         /// </summary>
-        /// <param name="device">The Xenko GraphicsDevice</param>
+        /// <param name="device">The Stride GraphicsDevice</param>
         /// <returns></returns>
         public static object GetNativeCommandQueue(GraphicsDevice device)
         {
@@ -47,7 +47,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Gets the DX11 native resource handle
         /// </summary>
-        /// <param name="resource">The Xenko GraphicsResourceBase</param>
+        /// <param name="resource">The Stride GraphicsResourceBase</param>
         /// <returns></returns>
         public static object GetNativeResource(GraphicsResource resource)
         {
@@ -74,18 +74,18 @@ namespace Xenko.Graphics
         /// <returns></returns>
         public static Texture CreateTextureFromNative(GraphicsDevice device, object dxTexture2D, bool takeOwnership)
         {
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
             return CreateTextureFromNativeImpl(device, (Texture2D)dxTexture2D, takeOwnership);
-#elif XENKO_GRAPHICS_API_DIRECT3D12
+#elif STRIDE_GRAPHICS_API_DIRECT3D12
             return CreateTextureFromNativeImpl(device, (Resource)dxTexture2D, takeOwnership);
 #endif
         }
 
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
         /// <summary>
         /// Gets the DX11 native device
         /// </summary>
-        /// <param name="device">The Xenko GraphicsDevice</param>
+        /// <param name="device">The Stride GraphicsDevice</param>
         /// <returns></returns>
         private static Device GetNativeDeviceImpl(GraphicsDevice device)
         {
@@ -105,7 +105,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Gets the DX11 native resource handle
         /// </summary>
-        /// <param name="resource">The Xenko GraphicsResourceBase</param>
+        /// <param name="resource">The Stride GraphicsResourceBase</param>
         /// <returns></returns>
         private static Resource GetNativeResourceImpl(GraphicsResource resource)
         {
@@ -145,11 +145,11 @@ namespace Xenko.Graphics
             return tex;
         }
 
-#elif XENKO_GRAPHICS_API_DIRECT3D12
+#elif STRIDE_GRAPHICS_API_DIRECT3D12
         /// <summary>
         /// Gets the DX11 native device
         /// </summary>
-        /// <param name="device">The Xenko GraphicsDevice</param>
+        /// <param name="device">The Stride GraphicsDevice</param>
         /// <returns></returns>
         private static Device GetNativeDeviceImpl(GraphicsDevice device)
         {
@@ -169,7 +169,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Gets the DX11 native resource handle
         /// </summary>
-        /// <param name="resource">The Xenko GraphicsResourceBase</param>
+        /// <param name="resource">The Stride GraphicsResourceBase</param>
         /// <returns></returns>
         private static Resource GetNativeResourceImpl(GraphicsResource resource)
         {

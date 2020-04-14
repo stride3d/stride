@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core;
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+using Stride.Core;
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
 using System;
 using System.IO;
 using System.Text;
 
 using Xunit;
-using Xenko.Core.Storage;
-using Xenko.Core.IO;
+using Stride.Core.Storage;
+using Stride.Core.IO;
 
-namespace Xenko.Core.Tests.Build
+namespace Stride.Core.Tests.Build
 {
     [Ignore("Need check")]
     public class TestStorage
@@ -111,53 +111,53 @@ namespace Xenko.Core.Tests.Build
             string s2 = "abcdefghijklmnopqrstuvwxyz";
             string s3 = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz123456789";
 
-            ObjectId xenkoHash;
+            ObjectId strideHash;
             ObjectId dotNetHash;
             using (var ds = new DigestStream(new MemoryStream()))
             {
                 ds.Write(Encoding.ASCII.GetBytes(s1), 0, s1.Length);
-                xenkoHash = ds.CurrentHash;
+                strideHash = ds.CurrentHash;
             }
             using (var hashAlgorithm = new System.Security.Cryptography.SHA1Managed())
             {
                 dotNetHash = new ObjectId(hashAlgorithm.ComputeHash(Encoding.ASCII.GetBytes(s1)));
             }
-            Assert.Equal(dotNetHash, xenkoHash);
+            Assert.Equal(dotNetHash, strideHash);
 
             using (var ds = new DigestStream(new MemoryStream()))
             {
                 ds.Write(Encoding.ASCII.GetBytes(s2), 0, s2.Length);
-                xenkoHash = ds.CurrentHash;
+                strideHash = ds.CurrentHash;
             }
             using (var hashAlgorithm = new System.Security.Cryptography.SHA1Managed())
             {
                 dotNetHash = new ObjectId(hashAlgorithm.ComputeHash(Encoding.ASCII.GetBytes(s2)));
             }
-            Assert.Equal(dotNetHash, xenkoHash);
+            Assert.Equal(dotNetHash, strideHash);
 
             using (var ds = new DigestStream(new MemoryStream()))
             {
                 ds.Write(Encoding.ASCII.GetBytes(s3), 0, s3.Length);
-                xenkoHash = ds.CurrentHash;
+                strideHash = ds.CurrentHash;
             }
             using (var hashAlgorithm = new System.Security.Cryptography.SHA1Managed())
             {
                 dotNetHash = new ObjectId(hashAlgorithm.ComputeHash(Encoding.ASCII.GetBytes(s3)));
             }
-            Assert.Equal(dotNetHash, xenkoHash);
+            Assert.Equal(dotNetHash, strideHash);
 
             using (var ds = new DigestStream(new MemoryStream()))
             {
                 ds.Write(Encoding.ASCII.GetBytes(s1), 0, s1.Length);
                 ds.Write(Encoding.ASCII.GetBytes(s2), 0, s2.Length);
                 ds.Write(Encoding.ASCII.GetBytes(s3), 0, s3.Length);
-                xenkoHash = ds.CurrentHash;
+                strideHash = ds.CurrentHash;
             }
             using (var hashAlgorithm = new System.Security.Cryptography.SHA1Managed())
             {
                 dotNetHash = new ObjectId(hashAlgorithm.ComputeHash(Encoding.ASCII.GetBytes(s1 + s2 + s3)));
             }
-            Assert.Equal(dotNetHash, xenkoHash);
+            Assert.Equal(dotNetHash, strideHash);
         }
 
         class TemporaryObjectDatabase : IDisposable

@@ -50,11 +50,11 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Xunit;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Serialization;
-using Xenko.Core.Yaml.Serialization.Serializers;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Serialization;
+using Stride.Core.Yaml.Serialization.Serializers;
 
-namespace Xenko.Core.Yaml.Tests.Serialization
+namespace Stride.Core.Yaml.Tests.Serialization
 {
     public class SerializationTests2
     {

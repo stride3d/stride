@@ -43,8 +43,8 @@ namespace NShader
         public const string CG_CG = ".cg";
         public const string CG_CGFX = ".cgfx";
 
-        // Xenko file extensions
-        public const string Xenko_Shader = ".xksl";
-        public const string Xenko_Effect = ".xkfx";
+        // Stride file extensions
+        public const string Stride_Shader = ".sdsl";
+        public const string Stride_Effect = ".sdfx";
     }
 }

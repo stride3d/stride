@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -7,9 +7,9 @@ using System.Text;
 using System.IO;
 using System.Security.Cryptography;
 using System.Runtime.InteropServices;
-using Xenko.TextureConverter.Requests;
+using Stride.TextureConverter.Requests;
 
-namespace Xenko.TextureConverter.Tests
+namespace Stride.TextureConverter.Tests
 {
     class TestTools
     {
@@ -59,22 +59,22 @@ namespace Xenko.TextureConverter.Tests
         private TestTools() {
             Checksum = new Dictionary<string, string>
             {
-                // XenkoTexLibrary
-                {"ExportTest_Texture3D_WMipMaps_ATC_RGBA_Explicit.xk", "b351c27d236ee7bd1dfd4c0e8a5a5c785a2b9c53"},
-                {"ExportTest_TextureArray_WMipMaps_ATC_RGBA_Explicit.xk", "cb04d7f022623eaf16741dc8820f6354ffe101f4"},
-                {"ExportTest_TextureCube_WMipMaps_RGBA8888.xk", "a1d07aced830ba66c965c2c7ab24fcc38a8ce9e7"},
-                {"ExportMinMipMapTest_512_TextureArray_WMipMaps_ATC_RGBA_Explicit.xk", "b12768b45f9eef2978e8d508dd0706246ee1f346"},
-                {"ExportMinMipMapTest_4_Texture3D_WMipMaps_ATC_RGBA_Explicit.xk", "b59b422af672e22f16d435f55b68203cf0121874"},
-                {"ExportMinMipMapTest_16_TextureCube_WMipMaps_RGBA8888.xk", "1d3640be224834c1f84a84fa24340519d56f2291"},
+                // StrideTexLibrary
+                {"ExportTest_Texture3D_WMipMaps_ATC_RGBA_Explicit.sd", "b351c27d236ee7bd1dfd4c0e8a5a5c785a2b9c53"},
+                {"ExportTest_TextureArray_WMipMaps_ATC_RGBA_Explicit.sd", "cb04d7f022623eaf16741dc8820f6354ffe101f4"},
+                {"ExportTest_TextureCube_WMipMaps_RGBA8888.sd", "a1d07aced830ba66c965c2c7ab24fcc38a8ce9e7"},
+                {"ExportMinMipMapTest_512_TextureArray_WMipMaps_ATC_RGBA_Explicit.sd", "b12768b45f9eef2978e8d508dd0706246ee1f346"},
+                {"ExportMinMipMapTest_4_Texture3D_WMipMaps_ATC_RGBA_Explicit.sd", "b59b422af672e22f16d435f55b68203cf0121874"},
+                {"ExportMinMipMapTest_16_TextureCube_WMipMaps_RGBA8888.sd", "1d3640be224834c1f84a84fa24340519d56f2291"},
 
 
                 // AtitcTexLibrary
-                {"CompressTest_ATC_RGBA_Explicit_TextureCube_WMipMaps_RGBA8888.xk", "38d7745886f590f9fe40425f8b86a2fc7d0dbb18"},
-                {"CompressTest_ATC_RGBA_Interpolated_TextureArray_WMipMaps_RGBA8888.xk", "205e81fe258bc93bb8f06af1742d1d2c507e91bd"},
-                {"CompressTest_ATC_RGBA_Explicit_Texture3D_WMipMap_RGBA8888.xk", "db42523c04e32205ed0fa92397f965172147c2c4"},
-                {"DecompressTest_Texture3D_WMipMaps_ATC_RGBA_Explicit.xk", "c8df38d68f24bb1d937596b2371a6344e9c52b7d"},
-                {"DecompressTest_TextureArray_WMipMaps_ATC_RGBA_Explicit.xk", "3d0eed304b118e2abf040b6fc64147caa3353613"},
-                {"DecompressTest_TextureCube_WMipMaps_ATC_RGBA_Explicit.xk", "227932d9ae0d026c15324c194848e8428a03a09b"},
+                {"CompressTest_ATC_RGBA_Explicit_TextureCube_WMipMaps_RGBA8888.sd", "38d7745886f590f9fe40425f8b86a2fc7d0dbb18"},
+                {"CompressTest_ATC_RGBA_Interpolated_TextureArray_WMipMaps_RGBA8888.sd", "205e81fe258bc93bb8f06af1742d1d2c507e91bd"},
+                {"CompressTest_ATC_RGBA_Explicit_Texture3D_WMipMap_RGBA8888.sd", "db42523c04e32205ed0fa92397f965172147c2c4"},
+                {"DecompressTest_Texture3D_WMipMaps_ATC_RGBA_Explicit.sd", "c8df38d68f24bb1d937596b2371a6344e9c52b7d"},
+                {"DecompressTest_TextureArray_WMipMaps_ATC_RGBA_Explicit.sd", "3d0eed304b118e2abf040b6fc64147caa3353613"},
+                {"DecompressTest_TextureCube_WMipMaps_ATC_RGBA_Explicit.sd", "227932d9ae0d026c15324c194848e8428a03a09b"},
 
                 // DxtTexLib
                 {"DecompressTest_TextureArray_WMipMaps_BC3.dds", "54e100f9fb5982a8e51984911918e2f663d21805"},
@@ -206,8 +206,8 @@ namespace Xenko.TextureConverter.Tests
                 {"TextureTool_Save_None_0_TextureArray_WMipMaps_BC3.pvr", "4e19941613918a5405490ffbc29b7e81f4c280b5"},
                 {"TextureTool_ProcessingTest_NormalMapNearest_BC3_UNorm_TextureArray_WMipMaps_PVRTC2_4bpp.pvr.dds", "734b1ad532e178bdac153b9323c733a0d52e5833"},
                 {"TextureTool_ProcessingTest_Nearest_BC3_UNorm_TextureArray_WMipMaps_PVRTC2_4bpp.pvr.dds", "fd9524866c9b464820f5d4aebe76ae8b7b536bfb"},
-                {"TextureTool_ProcessingTest_NormalMapLanczos3_BC3_UNorm_TextureCube_WMipMaps_ATC_RGBA_Explicit.xk.dds", "63ece6917444d4b7c49fec447517c543a8219907"},
-                {"TextureTool_ProcessingTest_Lanczos3_BC3_UNorm_TextureCube_WMipMaps_ATC_RGBA_Explicit.xk.dds", "168d7c218d666aa1acbe3de9eea5179c894f6ae6"},
+                {"TextureTool_ProcessingTest_NormalMapLanczos3_BC3_UNorm_TextureCube_WMipMaps_ATC_RGBA_Explicit.sd.dds", "63ece6917444d4b7c49fec447517c543a8219907"},
+                {"TextureTool_ProcessingTest_Lanczos3_BC3_UNorm_TextureCube_WMipMaps_ATC_RGBA_Explicit.sd.dds", "168d7c218d666aa1acbe3de9eea5179c894f6ae6"},
                 {"TextureTool_ProcessingTest_NormalMapBox_BC3_UNorm_duck.jpg.dds", "4c9d64c581d7351124e614d09f0eaf121f2f5b5d"},
                 {"TextureTool_ProcessingTest_Box_BC3_UNorm_duck.jpg.dds", "b4f286270c09dbc611fba9f028098ec8b96e2616"},
                 {"TextureTool_ProcessingTest_NormalMapCatmullRom_ETC2_RGBA_TextureCube_WMipMaps_BC3.dds.pvr", "90ed2d72f414d79583266ddc43eb40e7cb4c437a"},

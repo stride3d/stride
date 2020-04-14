@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_OPENGL 
+#if STRIDE_GRAPHICS_API_OPENGL 
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Xenko.Core;
-#if XENKO_GRAPHICS_API_OPENGLES
+using Stride.Core;
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 #else
 using OpenTK.Graphics.OpenGL;
@@ -13,7 +13,7 @@ using PixelFormatGl = OpenTK.Graphics.OpenGL.PixelFormat;
 using TextureTarget2d = OpenTK.Graphics.OpenGL.TextureTarget;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public partial class Buffer
     {
@@ -64,7 +64,7 @@ namespace Xenko.Graphics
             }
             else if ((ViewFlags & BufferFlags.UnorderedAccess) == BufferFlags.UnorderedAccess)
             {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                 throw new NotSupportedException("GLES not support UnorderedAccess buffer");
 #else
                 BufferTarget = BufferTarget.ShaderStorageBuffer;
@@ -72,7 +72,7 @@ namespace Xenko.Graphics
             }
             else if ((ViewFlags & BufferFlags.ShaderResource) == BufferFlags.ShaderResource && GraphicsDevice.HasTextureBuffers)
             {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                 Internal.Refactor.ThrowNotImplementedException();
 #else
                 BufferTarget = BufferTarget.TextureBuffer;
@@ -170,7 +170,7 @@ namespace Xenko.Graphics
 
                     if ((Flags & BufferFlags.ShaderResource) != 0)
                     {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                         Internal.Refactor.ThrowNotImplementedException();
 #else
                         TextureTarget = TextureTarget.TextureBuffer;

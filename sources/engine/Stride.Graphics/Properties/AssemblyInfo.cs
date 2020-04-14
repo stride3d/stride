@@ -1,26 +1,26 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-#pragma warning disable 436 // Xenko.PublicKeys is defined in multiple assemblies
+#pragma warning disable 436 // Stride.PublicKeys is defined in multiple assemblies
 
-// Make internals Xenko visible to Xenko assemblies
-[assembly: InternalsVisibleTo("Xenko.Graphics.Serializers" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Xenko.Graphics.ShaderCompiler" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Xenko.Engine" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Xenko.Rendering" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Xenko.Games" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Xenko.UI" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Xenko.Graphics.Tests" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("XenkoGraphicsTests" + Xenko.PublicKeys.Default)] // iOS removes dot
-[assembly: InternalsVisibleTo("Xenko.Engine.Tests" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("XenkoEngineTests" + Xenko.PublicKeys.Default)] // iOS removes dot
-[assembly: InternalsVisibleTo("Xenko.Graphics.Regression" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Xenko.Assets" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Xenko.VirtualReality" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Xenko.Video" + Xenko.PublicKeys.Default)]
+// Make internals Stride visible to Stride assemblies
+[assembly: InternalsVisibleTo("Stride.Graphics.Serializers" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Graphics.ShaderCompiler" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Engine" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Rendering" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Games" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.UI" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Graphics.Tests" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("StrideGraphicsTests" + Stride.PublicKeys.Default)] // iOS removes dot
+[assembly: InternalsVisibleTo("Stride.Engine.Tests" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("StrideEngineTests" + Stride.PublicKeys.Default)] // iOS removes dot
+[assembly: InternalsVisibleTo("Stride.Graphics.Regression" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Assets" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.VirtualReality" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Video" + Stride.PublicKeys.Default)]
 
-#if !XENKO_SIGNED
-[assembly: InternalsVisibleTo("Xenko.Assets.Presentation")]
+#if !STRIDE_SIGNED
+[assembly: InternalsVisibleTo("Stride.Assets.Presentation")]
 #endif

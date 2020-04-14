@@ -1,23 +1,23 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Globalization;
 
-using Xenko.Core;
-using Xenko.Core.Storage;
+using Stride.Core;
+using Stride.Core.Storage;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.MicroThreading;
-using Xenko.Core.IO;
-using Xenko.Core.Extensions;
-using Xenko.Core.Serialization.Contents;
+using Stride.Core.Diagnostics;
+using Stride.Core.MicroThreading;
+using Stride.Core.IO;
+using Stride.Core.Extensions;
+using Stride.Core.Serialization.Contents;
 
-namespace Xenko.Core.BuildEngine
+namespace Stride.Core.BuildEngine
 {
     public class Builder : IDisposable
     {
@@ -90,7 +90,7 @@ namespace Xenko.Core.BuildEngine
 
         public List<string> MonitorPipeNames { get; }
         
-        public const string MonitorPipeName = "net.pipe://localhost/Xenko.BuildEngine.Monitor";
+        public const string MonitorPipeName = "net.pipe://localhost/Stride.BuildEngine.Monitor";
 
         public IDictionary<string, string> InitialVariables { get; }
 

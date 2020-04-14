@@ -1,9 +1,9 @@
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Input;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Input;
 using System;
 using System.Threading.Tasks;
-using Xenko.Core;
+using Stride.Core;
 
 namespace ##Namespace##
 {

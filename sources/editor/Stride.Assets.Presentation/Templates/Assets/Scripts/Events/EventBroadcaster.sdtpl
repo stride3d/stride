@@ -5,5 +5,5 @@ Name: Event broadcaster
 Scope: Asset
 Description: Broadcasts an event when a key is pressed, or at regular intervals
 Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
+Icon: ..\..\.sdtpl\SourceCode.png
 DefaultOutputName: EventBroadcaster

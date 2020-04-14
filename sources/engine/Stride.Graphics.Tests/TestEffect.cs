@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 /*
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
 using System.IO;
 
 using Xunit;
-using Xenko.Core.IO;
-using Xenko.Core.Serialization.Assets;
-using Xenko.Core.Storage;
-using Xenko.Rendering;
-using Xenko.Games;
-using Xenko.Shaders;
-using Xenko.Shaders.Compiler;
-using EffectCompiler = Xenko.Shaders.Compiler.EffectCompiler;
+using Stride.Core.IO;
+using Stride.Core.Serialization.Assets;
+using Stride.Core.Storage;
+using Stride.Rendering;
+using Stride.Games;
+using Stride.Shaders;
+using Stride.Shaders.Compiler;
+using EffectCompiler = Stride.Shaders.Compiler.EffectCompiler;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public class TestEffect : Game
     {
@@ -65,10 +65,10 @@ namespace Xenko.Graphics
                 contentIndexMap.LoadNewValues();
                 var database = new DatabaseFileProvider(contentIndexMap, objDatabase);
 
-                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\..\..\shaders", "*.xksl"))
+                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\..\..\shaders", "*.sdsl"))
                     CopyStream(database, shaderName);
 
-                foreach (var shaderName in Directory.EnumerateFiles(@"Compiler", "*.xksl"))
+                foreach (var shaderName in Directory.EnumerateFiles(@"Compiler", "*.sdsl"))
                     CopyStream(database, shaderName);
 
                 var compiler = new EffectCompiler();
@@ -107,13 +107,13 @@ namespace Xenko.Graphics
                 contentIndexMap.LoadNewValues();
                 var database = new DatabaseFileProvider(contentIndexMap, objDatabase);
 
-                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\..\..\shaders", "*.xksl"))
+                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\..\..\shaders", "*.sdsl"))
                     CopyStream(database, shaderName);
 
-                foreach (var shaderName in Directory.EnumerateFiles(@"Compiler", "*.xksl"))
+                foreach (var shaderName in Directory.EnumerateFiles(@"Compiler", "*.sdsl"))
                     CopyStream(database, shaderName);
 
-                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\..\..\engine\Xenko.Graphics\Shaders", "*.xksl"))
+                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\..\..\engine\Stride.Graphics\Shaders", "*.sdsl"))
                     CopyStream(database, shaderName);
 
                 var compiler = new EffectCompiler();
@@ -152,13 +152,13 @@ namespace Xenko.Graphics
                 contentIndexMap.LoadNewValues();
                 var database = new DatabaseFileProvider(contentIndexMap, objDatabase);
 
-                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\..\..\shaders", "*.xksl"))
+                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\..\..\shaders", "*.sdsl"))
                     CopyStream(database, shaderName);
 
-                foreach (var shaderName in Directory.EnumerateFiles(@"Compiler", "*.xksl"))
+                foreach (var shaderName in Directory.EnumerateFiles(@"Compiler", "*.sdsl"))
                     CopyStream(database, shaderName);
 
-                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\..\..\engine\Xenko.Graphics\Shaders", "*.xksl"))
+                foreach (var shaderName in Directory.EnumerateFiles(@"..\..\..\..\engine\Stride.Graphics\Shaders", "*.sdsl"))
                     CopyStream(database, shaderName);
 
                 var compiler = new EffectCompiler();

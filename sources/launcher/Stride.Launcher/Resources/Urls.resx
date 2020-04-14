@@ -121,41 +121,41 @@
     <value>https://discord.gg/f6aerfE</value>
   </data>
   <data name="Documentation" xml:space="preserve">
-    <value>http://doc.xenko.com/{0}/</value>
-    <comment>{0}: the major version of Xenko (eg. 1.2)</comment>
+    <value>http://doc.stride3d.net/{0}/</value>
+    <comment>{0}: the major version of Stride (eg. 1.2)</comment>
   </data>
   <data name="Facebook" xml:space="preserve">
-    <value>https://www.facebook.com/xenko3d</value>
+    <value>https://www.facebook.com/stride3d</value>
   </data>
   <data name="Forums" xml:space="preserve">
-    <value>http://forums.xenko.com/</value>
+    <value>http://forums.stride3d.net/</value>
   </data>
   <data name="GettingStarted" xml:space="preserve">
-    <value>http://doc.xenko.com/{0}/studio_getting_started_links.txt</value>
-    <comment>{0}: the major version of Xenko (eg. 1.2)</comment>
+    <value>http://doc.stride3d.net/{0}/studio_getting_started_links.txt</value>
+    <comment>{0}: the major version of Stride (eg. 1.2)</comment>
   </data>
   <data name="Github" xml:space="preserve">
-    <value>https://github.com/xenko3d/xenko/</value>
+    <value>https://github.com/stride3d/stride/</value>
   </data>
   <data name="Issues" xml:space="preserve">
-    <value>https://github.com/xenko3d/xenko/issues/</value>
+    <value>https://github.com/stride3d/stride/issues/</value>
   </data>
   <data name="Patreon" xml:space="preserve">
-    <value>https://www.patreon.com/xenko</value>
+    <value>https://www.patreon.com/stride</value>
   </data>
   <data name="Reddit" xml:space="preserve">
-    <value>http://www.reddit.com/r/xenko</value>
+    <value>http://www.reddit.com/r/stride</value>
   </data>
   <data name="Roadmap" xml:space="preserve">
-    <value>https://github.com/xenko3d/xenko/projects/3</value>
+    <value>https://github.com/stride3d/stride/projects/3</value>
   </data>
   <data name="RssFeed" xml:space="preserve">
-    <value>http://xenko.com/feed.xml</value>
+    <value>http://stride3d.net/feed.xml</value>
   </data>
   <data name="Showcases" xml:space="preserve">
-    <value>http://forums.xenko.com/c/showcase</value>
+    <value>http://forums.stride3d.net/c/showcase</value>
   </data>
   <data name="Twitter" xml:space="preserve">
-    <value>https://twitter.com/xenko3d</value>
+    <value>https://twitter.com/stride3d</value>
   </data>
 </root>

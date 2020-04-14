@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.ComponentModel;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Data;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Data;
 
-namespace Xenko.Assets
+namespace Stride.Assets
 {
     [DataContract]
     [Display("Editor")]
@@ -24,7 +24,7 @@ namespace Xenko.Assets
         public RenderingMode RenderingMode = RenderingMode.HDR;
 
         /// <userdoc>
-        /// The framerate at which Xenko displays animations. Animation data itself isn't affected.
+        /// The framerate at which Stride displays animations. Animation data itself isn't affected.
         /// </userdoc>
         [DataMember(10)]
         [DefaultValue(30)]

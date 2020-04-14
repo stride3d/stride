@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace Xenko.Updater
+namespace Stride.Updater
 {
     /// <summary>
     /// Defines how to set and get values from a property for the <see cref="UpdateEngine"/>.
@@ -36,7 +36,7 @@ namespace Xenko.Updater
             // Note: IL is injected by UpdateEngineProcessor
             ldarg obj
             ldarg.0
-            ldfld native int class Xenko.Updater.UpdatableProperty::Getter
+            ldfld native int class Stride.Updater.UpdatableProperty::Getter
             calli instance object()
             ret
 #endif
@@ -56,7 +56,7 @@ namespace Xenko.Updater
             ldarg obj
             ldarg data
             ldarg.0
-            ldfld native int class Xenko.Updater.UpdatableProperty::Setter
+            ldfld native int class Stride.Updater.UpdatableProperty::Setter
             calli instance void(object)
             ret
 #endif

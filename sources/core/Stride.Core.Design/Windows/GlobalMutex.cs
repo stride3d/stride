@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Windows
+namespace Stride.Core.Windows
 {
     /// <summary>
     /// A class representing an thread-safe, process-safe mutex.
@@ -89,7 +89,7 @@ namespace Xenko.Core.Windows
             name = name.Replace("/", "_");
             name = name.Replace("\\", "_");
             string mutexId = string.Format("Global\\{0}", name);
-            // Benlitz: I suspect the MutexSecurity object to be responible of some issues such as this one: https://github.com/xenko3d/xenko/issues/252 so I'm disabling it.
+            // Benlitz: I suspect the MutexSecurity object to be responible of some issues such as this one: https://github.com/stride3d/stride/issues/252 so I'm disabling it.
             //var allowEveryoneRule = new MutexAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), MutexRights.FullControl, AccessControlType.Allow);
             //var securitySettings = new MutexSecurity();
             //securitySettings.AddAccessRule(allowEveryoneRule);

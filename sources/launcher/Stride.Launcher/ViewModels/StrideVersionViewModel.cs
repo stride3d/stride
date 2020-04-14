@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Packages;
-using Xenko.Core.Presentation.Commands;
+using Stride.Core.Packages;
+using Stride.Core.Presentation.Commands;
 
-namespace Xenko.LauncherApp.ViewModels
+namespace Stride.LauncherApp.ViewModels
 {
     /// <summary>
-    /// An implementation of the <see cref="PackageVersionViewModel"/> that represents a major version of Xenko.
+    /// An implementation of the <see cref="PackageVersionViewModel"/> that represents a major version of Stride.
     /// </summary>
-    internal abstract class XenkoVersionViewModel : PackageVersionViewModel, IComparable<XenkoVersionViewModel>, IComparable<Tuple<int, int>>
+    internal abstract class StrideVersionViewModel : PackageVersionViewModel, IComparable<StrideVersionViewModel>, IComparable<Tuple<int, int>>
     {
         private bool isVisible;
         private bool canStart;
 
-        internal XenkoVersionViewModel(LauncherViewModel launcher, NugetStore store, NugetLocalPackage localPackage, int major, int minor)
+        internal StrideVersionViewModel(LauncherViewModel launcher, NugetStore store, NugetLocalPackage localPackage, int major, int minor)
             : base(launcher, store, localPackage)
         {
             Major = major;
@@ -103,7 +103,7 @@ namespace Xenko.LauncherApp.ViewModels
                 Launcher.StartStudioCommand.IsEnabled = CanStart;
         }
 
-        public int CompareTo(XenkoVersionViewModel other)
+        public int CompareTo(StrideVersionViewModel other)
         {
             var r = Major.CompareTo(other.Major);
             return r != 0 ? -r : -Minor.CompareTo(other.Minor);

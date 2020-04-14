@@ -6,7 +6,7 @@ Scope: Asset
 Description: A color texture asset imported from a source file. Can be in sRGB or linear space. Assumes three (RGB) or four (RGBA) channels
 Group: Texture
 Order: 20
-Icon: ..\.xktpl\TextureColor.png
+Icon: ..\.sdtpl\TextureColor.png
 DefaultOutputName: ColorTexture
 FactoryTypeName: ColorTextureFactory
 ImportSource: true

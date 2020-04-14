@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Xenko.Core.IO
+namespace Stride.Core.IO
 {
     /// <summary>
     /// Virtual abstraction over a file system.
@@ -84,13 +84,13 @@ namespace Xenko.Core.IO
         {
             PlatformFolders.IsVirtualFileSystemInitialized = true;
             // TODO: find a better solution to customize the ApplicationDataDirectory, now we're very limited due to the initialization from a static constructor
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             ApplicationData = new ZipFileSystemProvider("/data", PlatformAndroid.Context.ApplicationInfo.SourceDir);
 #else
             ApplicationData = new FileSystemProvider("/data", Path.Combine(PlatformFolders.ApplicationDataDirectory, PlatformFolders.ApplicationDataSubDirectory));
 #endif
             ApplicationCache = new FileSystemProvider("/cache", PlatformFolders.ApplicationCacheDirectory);
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
             // On iOS, we don't want cache folder to be cleared by the OS.
             ((FileSystemProvider)ApplicationCache).AutoSetSkipBackupAttribute = true;
 #endif
@@ -342,7 +342,7 @@ namespace Xenko.Core.IO
             string filename;
             do
             {
-                filename = "xk" + (tempFileRandom.Next() + 1).ToString("x") + ".tmp";
+                filename = "sd" + (tempFileRandom.Next() + 1).ToString("x") + ".tmp";
                 try
                 {
                     stream = ApplicationTemporary.OpenStream(filename, VirtualFileMode.CreateNew, VirtualFileAccess.ReadWrite);

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -12,10 +12,10 @@ using System.ServiceModel;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core.VisualStudio;
+using Stride.Core.VisualStudio;
 using Binding = System.ServiceModel.Channels.Binding;
 
-namespace Xenko.ExecServer
+namespace Stride.ExecServer
 {
     /// <summary>
     /// ExecServer allows to keep in memory an exec loaded into an AppDomain with the benefits that JIT
@@ -121,7 +121,7 @@ namespace Xenko.ExecServer
 
         private static string GetExecServerErrorLogFilePath(string executablePath, int pid)
         {
-            return Path.Combine(Path.GetDirectoryName(executablePath), $"XenkoExecServer.pid{pid}.log");
+            return Path.Combine(Path.GetDirectoryName(executablePath), $"StrideExecServer.pid{pid}.log");
         }
 
         /// <summary>

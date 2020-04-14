@@ -6,5 +6,5 @@ Scope: Asset
 Description: A startup script with a Start method invoked when the script is loaded
 Group: Script
 Order: -98
-Icon: ..\.xktpl\SourceCode.png
+Icon: ..\.sdtpl\SourceCode.png
 DefaultOutputName: Script

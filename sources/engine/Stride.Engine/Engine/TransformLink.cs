@@ -1,8 +1,8 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Mathematics;
+using Stride.Core.Mathematics;
 
-namespace Xenko.Engine
+namespace Stride.Engine
 {
     /// <summary>
     /// Gives the ability to control how parent matrix is computed in a <see cref="TransformComponent"/>.

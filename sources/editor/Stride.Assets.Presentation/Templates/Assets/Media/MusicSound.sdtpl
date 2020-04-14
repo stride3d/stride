@@ -6,7 +6,7 @@ Scope: Asset
 Description: A high-quality stereo sound imported from a source file and streamed from disk
 Group: Media
 Order: 50
-Icon: ..\.xktpl\SoundMusic.png
+Icon: ..\.sdtpl\SoundMusic.png
 DefaultOutputName: Music
 ImportSource: true
 FactoryTypeName: MusicSoundFactory

@@ -44,9 +44,9 @@
 // SOFTWARE.
 
 using System;
-using Xenko.Core.Yaml.Events;
+using Stride.Core.Yaml.Events;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Provided the base implementation for an IEventEmitter that is a

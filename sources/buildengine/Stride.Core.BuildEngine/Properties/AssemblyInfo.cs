@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -10,12 +10,12 @@ using System.Runtime.InteropServices;
 
 #if !DEBUG
 [assembly: ObfuscateAssembly(false)]
-[assembly: Obfuscation(Feature = "embed Xenko.Effects.Modules.dll", Exclude = false)]
-[assembly: Obfuscation(Feature = "embed Xenko.Engine.dll", Exclude = false)]
-[assembly: Obfuscation(Feature = "embed Xenko.Framework.dll", Exclude = false)]
-[assembly: Obfuscation(Feature = "embed Xenko.Framework.Graphics.dll", Exclude = false)]
-[assembly: Obfuscation(Feature = "embed Xenko.Importer.FBX.dll", Exclude = false)]
-[assembly: Obfuscation(Feature = "embed Xenko.Importer.Assimp.dll", Exclude = false)]
+[assembly: Obfuscation(Feature = "embed Stride.Effects.Modules.dll", Exclude = false)]
+[assembly: Obfuscation(Feature = "embed Stride.Engine.dll", Exclude = false)]
+[assembly: Obfuscation(Feature = "embed Stride.Framework.dll", Exclude = false)]
+[assembly: Obfuscation(Feature = "embed Stride.Framework.Graphics.dll", Exclude = false)]
+[assembly: Obfuscation(Feature = "embed Stride.Importer.FBX.dll", Exclude = false)]
+[assembly: Obfuscation(Feature = "embed Stride.Importer.Assimp.dll", Exclude = false)]
 [assembly: Obfuscation(Feature = "embed Mono.Options.dll", Exclude = false)]
 [assembly: Obfuscation(Feature = "embed SharpDX.dll", Exclude = false)]
 [assembly: Obfuscation(Feature = "embed SharpDX.D3DCompiler.dll", Exclude = false)]

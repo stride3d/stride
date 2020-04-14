@@ -2,21 +2,21 @@
 using System.IO;
 using System.Reflection;
 
-namespace Xenko.Metrics.ServerApp.Migrations
+namespace Stride.Metrics.ServerApp.Migrations
 {
     using System;
     using System.Data.Entity;
     using System.Data.Entity.Migrations;
     using System.Linq;
 
-    internal sealed class Configuration : DbMigrationsConfiguration<Xenko.Metrics.ServerApp.Models.MetricDbContext>
+    internal sealed class Configuration : DbMigrationsConfiguration<Stride.Metrics.ServerApp.Models.MetricDbContext>
     {
         public Configuration()
         {
             AutomaticMigrationsEnabled = false;
         }
 
-        protected override void Seed(Xenko.Metrics.ServerApp.Models.MetricDbContext context)
+        protected override void Seed(Stride.Metrics.ServerApp.Models.MetricDbContext context)
         {
             //  This method will be called after migrating to the latest version.
 

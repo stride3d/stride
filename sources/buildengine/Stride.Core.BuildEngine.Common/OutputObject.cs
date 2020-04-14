@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Storage;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Storage;
 
-namespace Xenko.Core.BuildEngine
+namespace Stride.Core.BuildEngine
 {
     /// <summary>
     /// A build output object, as exposed by <see cref="ListBuildStep"/>. This object represents the hash of an output object and its associated url.

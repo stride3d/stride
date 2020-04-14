@@ -1,3 +1,3 @@
 CALL "%VS140COMNTOOLS%VsDevCmd.bat"
-msbuild Xenko.build /p:XenkoGenerateDoc=true /t:BuildWindows > NUL
+msbuild Stride.build /p:StrideGenerateDoc=true /t:BuildWindows > NUL
 

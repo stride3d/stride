@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -13,11 +13,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Xenko.Extensions;
-using Xenko.Framework.MicroThreading;
-using Xenko.DebugTools.ViewModels;
+using Stride.Extensions;
+using Stride.Framework.MicroThreading;
+using Stride.DebugTools.ViewModels;
 
-namespace Xenko.DebugTools
+namespace Stride.DebugTools
 {
     /// <summary>
     /// Interaction logic for ScriptListControl.xaml

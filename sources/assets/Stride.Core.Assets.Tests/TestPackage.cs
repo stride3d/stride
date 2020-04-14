@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Xunit;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 
-namespace Xenko.Core.Assets.Tests
+namespace Stride.Core.Assets.Tests
 {
   
     public class TestPackage : TestBase
@@ -20,7 +20,7 @@ namespace Xenko.Core.Assets.Tests
 
             var dirPath = DirectoryTestBase + @"TestBasicPackageCreateSaveLoad";
 
-            string testGenerated1 = Path.Combine(dirPath, "TestPackage_TestBasicPackageCreateSaveLoad_Generated1.xkpkg");
+            string testGenerated1 = Path.Combine(dirPath, "TestPackage_TestBasicPackageCreateSaveLoad_Generated1.sdpkg");
 
             // Force the PackageId to be the same each time we run the test
             // Usually the PackageId is unique and generated each time we create a new project
@@ -48,7 +48,7 @@ namespace Xenko.Core.Assets.Tests
             Assert.NotNull(rawSourceFolder);
             Assert.Equal(".", (string)rawSourceFolder.Path);
 
-            // Reload the package directly from the xkpkg
+            // Reload the package directly from the sdpkg
             var project2Result = PackageSession.Load(testGenerated1);
             AssertResult(project2Result);
             var project2 = project2Result.Session.LocalPackages.FirstOrDefault();
@@ -79,7 +79,7 @@ namespace Xenko.Core.Assets.Tests
         public void TestPackageLoadingWithAssets()
         {
             var basePath = Path.Combine(DirectoryTestBase, @"TestPackage");
-            var projectPath = Path.Combine(basePath, "TestPackageLoadingWithAssets.xkpkg");
+            var projectPath = Path.Combine(basePath, "TestPackageLoadingWithAssets.sdpkg");
 
             var sessionResult = PackageSession.Load(projectPath);
             AssertResult(sessionResult);
@@ -100,13 +100,13 @@ namespace Xenko.Core.Assets.Tests
             Assert.NotNull(folder.Path.IsAbsolute);
 
             // Save project back to disk on a different location
-            project.FullPath = Path.Combine(DirectoryTestBase, @"TestPackage2\TestPackage2.xkpkg");
+            project.FullPath = Path.Combine(DirectoryTestBase, @"TestPackage2\TestPackage2.sdpkg");
             var subPackage = session.Packages.Single(x => x.FullPath.GetFileNameWithoutExtension() == "SubPackage");
-            subPackage.FullPath = Path.Combine(DirectoryTestBase, @"TestPackage2\SubPackage\SubPackage.xkpkg");
+            subPackage.FullPath = Path.Combine(DirectoryTestBase, @"TestPackage2\SubPackage\SubPackage.sdpkg");
             var result = new LoggerResult();
             session.Save(result);
 
-            var project2Result = PackageSession.Load(DirectoryTestBase + @"TestPackage2\TestPackage2.xkpkg");
+            var project2Result = PackageSession.Load(DirectoryTestBase + @"TestPackage2\TestPackage2.sdpkg");
             AssertResult(project2Result);
             var project2 = project2Result.Session.Packages.Single(x => x.FullPath.GetFileNameWithoutExtension() == "TestPackage2");
             Assert.NotNull(project2);
@@ -117,7 +117,7 @@ namespace Xenko.Core.Assets.Tests
         public void TestMovingAssets()
         {
             var basePath = Path.Combine(DirectoryTestBase, @"TestPackage");
-            var projectPath = Path.Combine(basePath, "TestPackageLoadingWithAssets.xkpkg");
+            var projectPath = Path.Combine(basePath, "TestPackageLoadingWithAssets.sdpkg");
 
             var testAssetId = new AssetId("C2D80EF9-2160-43B2-9FEE-A19A903A0BE0");
 
@@ -136,18 +136,18 @@ namespace Xenko.Core.Assets.Tests
                 Assert.NotNull(testAssetItem);
 
                 var testAsset = (AssetObjectTest)testAssetItem.Asset;
-                Assert.Equal(new UFile(Path.Combine(basePath, "SubFolder/TestAsset.xktest")), testAsset.RawAsset);
+                Assert.Equal(new UFile(Path.Combine(basePath, "SubFolder/TestAsset.sdtest")), testAsset.RawAsset);
 
                 // First save a copy of the project to TestPackageMovingAssets1
-                project.FullPath = Path.Combine(DirectoryTestBase, @"TestPackageMovingAssets1\TestPackage2.xkpkg");
+                project.FullPath = Path.Combine(DirectoryTestBase, @"TestPackageMovingAssets1\TestPackage2.sdpkg");
                 var subPackage = session.Packages.Single(x => x.FullPath.GetFileNameWithoutExtension() == "SubPackage");
-                subPackage.FullPath = Path.Combine(DirectoryTestBase, @"TestPackageMovingAssets1\SubPackage\SubPackage.xkpkg");
+                subPackage.FullPath = Path.Combine(DirectoryTestBase, @"TestPackageMovingAssets1\SubPackage\SubPackage.sdpkg");
                 var result = new LoggerResult();
                 session.Save(result);
             }
 
             // Reload the project from the location TestPackageMovingAssets1
-            var sessionResult2 = PackageSession.Load(DirectoryTestBase + @"TestPackageMovingAssets1\TestPackage2.xkpkg");
+            var sessionResult2 = PackageSession.Load(DirectoryTestBase + @"TestPackageMovingAssets1\TestPackage2.sdpkg");
             {
                 AssertResult(sessionResult2);
                 var session = sessionResult2.Session;
@@ -164,15 +164,15 @@ namespace Xenko.Core.Assets.Tests
                 project.Assets.Add(newAssetItem);
 
                 // Save the whole project to a different location
-                project.FullPath = Path.Combine(DirectoryTestBase, @"TestPackageMovingAssets2\TestPackage2.xkpkg");
+                project.FullPath = Path.Combine(DirectoryTestBase, @"TestPackageMovingAssets2\TestPackage2.sdpkg");
                 var subPackage = session.Packages.Single(x => x.FullPath.GetFileNameWithoutExtension() == "TestPackage2");
-                subPackage.FullPath = Path.Combine(DirectoryTestBase, @"TestPackageMovingAssets2\SubPackage\SubPackage.xkpkg");
+                subPackage.FullPath = Path.Combine(DirectoryTestBase, @"TestPackageMovingAssets2\SubPackage\SubPackage.sdpkg");
                 var result = new LoggerResult();
                 session.Save(result);
             }
 
             // Reload the project from location TestPackageMovingAssets2
-            var sessionResult3 = PackageSession.Load(DirectoryTestBase + @"TestPackageMovingAssets2\TestPackage2.xkpkg");
+            var sessionResult3 = PackageSession.Load(DirectoryTestBase + @"TestPackageMovingAssets2\TestPackage2.sdpkg");
             {
                 AssertResult(sessionResult3);
                 var session = sessionResult3.Session;
@@ -186,9 +186,9 @@ namespace Xenko.Core.Assets.Tests
 
                 // Check that references were correctly updated
                 var assetChanged = (AssetObjectTest)assetItemChanged.Asset;
-                Assert.Equal(new UFile(Path.Combine(Environment.CurrentDirectory, DirectoryTestBase) + "/TestPackage/SubFolder/TestAsset.xktest"), assetChanged.RawAsset);
+                Assert.Equal(new UFile(Path.Combine(Environment.CurrentDirectory, DirectoryTestBase) + "/TestPackage/SubFolder/TestAsset.sdtest"), assetChanged.RawAsset);
                 var text = File.ReadAllText(assetItemChanged.FullPath);
-                Assert.Contains("../../TestPackage/SubFolder/TestAsset.xktest", text);
+                Assert.Contains("../../TestPackage/SubFolder/TestAsset.sdtest", text);
 
                 Assert.Equal("subTest/TestAsset2", assetChanged.Reference.Location);
             }
@@ -208,7 +208,7 @@ namespace Xenko.Core.Assets.Tests
             var clock = Stopwatch.StartNew();
             for (int i = 0; i < 10; i++)
             {
-                var session = PackageSession.Load(@"E:\Code\SengokuRun\SengokuRun\WindowsLauncher\GameAssets\Assets.xkpkg");
+                var session = PackageSession.Load(@"E:\Code\SengokuRun\SengokuRun\WindowsLauncher\GameAssets\Assets.sdpkg");
             }
             var elapsed = clock.ElapsedMilliseconds;
             Console.WriteLine("{0}ms", elapsed);

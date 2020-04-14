@@ -1,23 +1,23 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Threading;
-using Xenko.Graphics;
-using Xenko.Rendering;
-using Buffer = Xenko.Graphics.Buffer;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Core.Threading;
+using Stride.Graphics;
+using Stride.Rendering;
+using Buffer = Stride.Graphics.Buffer;
 
-namespace Xenko.Physics
+namespace Stride.Physics
 {
     namespace Shapes
     {
-        [Obsolete("This class will be deprecated. Use 'Xenko.Physics.HeightfieldColliderShape'.", false)]
-        public class HeightfieldColliderShape : Xenko.Physics.HeightfieldColliderShape
+        [Obsolete("This class will be deprecated. Use 'Stride.Physics.HeightfieldColliderShape'.", false)]
+        public class HeightfieldColliderShape : Stride.Physics.HeightfieldColliderShape
         {
             public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<short> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
                 : base(heightStickWidth, heightStickLength, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)

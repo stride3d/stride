@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Xenko.Core.Presentation.Interop;
-using Xenko.Core.Annotations;
-using Xenko.Core.Translation;
+using Stride.Core.Presentation.Interop;
+using Stride.Core.Annotations;
+using Stride.Core.Translation;
 
-namespace Xenko.Core.Presentation.Windows
+namespace Stride.Core.Presentation.Windows
 {
     using MessageBoxButton = Services.MessageBoxButton;
     using MessageBoxImage = Services.MessageBoxImage;

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections;
@@ -8,13 +8,13 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.Presentation.Core;
-using Xenko.Core.Presentation.Extensions;
-using Xenko.Core.Presentation.Internal;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.Core;
+using Stride.Core.Presentation.Extensions;
+using Stride.Core.Presentation.Internal;
 
-namespace Xenko.Core.Presentation.Controls
+namespace Stride.Core.Presentation.Controls
 {
     [TemplatePart(Name = "PART_EditableTextBox", Type = typeof(TextBox))]
     [TemplatePart(Name = "PART_ListBox", Type = typeof(ListBox))]
@@ -237,7 +237,7 @@ namespace Xenko.Core.Presentation.Controls
 
             editableTextBox = GetTemplateChild("PART_EditableTextBox") as TextBox;
             if (editableTextBox == null)
-                throw new InvalidOperationException("A part named 'PART_EditableTextBox' must be present in the ControlTemplate, and must be of type 'Xenko.Core.Presentation.Controls.Input.TextBox'.");
+                throw new InvalidOperationException("A part named 'PART_EditableTextBox' must be present in the ControlTemplate, and must be of type 'Stride.Core.Presentation.Controls.Input.TextBox'.");
 
             listBox = GetTemplateChild("PART_ListBox") as ListBox;
             if (listBox == null)

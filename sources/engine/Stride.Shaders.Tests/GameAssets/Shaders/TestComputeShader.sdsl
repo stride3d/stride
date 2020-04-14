@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #ifndef ThreadCountX
 # define ThreadCountX 10
@@ -22,7 +22,7 @@ shader TestComputeShader
     stage stream uint  ThreadGroupIndex;
 
     cbuffer PerDispatch {
-        //[Link("Xenko.Effects.ComputeShaderPluginKeys.ThreadGroupCount")]
+        //[Link("Stride.Effects.ComputeShaderPluginKeys.ThreadGroupCount")]
         stage uint3 ThreadGroupCountGlobal;
     };
 

@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
-using Xenko.Core.Mathematics;
-using Xenko.Core.MicroThreading;
-using Xenko.Engine;
-using Xenko.Games;
-using Xenko.Graphics.Regression;
-using Xenko.Physics;
-using Xenko.Rendering.Compositing;
+using Stride.Core.Mathematics;
+using Stride.Core.MicroThreading;
+using Stride.Engine;
+using Stride.Games;
+using Stride.Graphics.Regression;
+using Stride.Physics;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Navigation.Tests
+namespace Stride.Navigation.Tests
 {
     public class DynamicBarrierTest : Game
     {

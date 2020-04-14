@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace Xenko.Core.Reflection
+namespace Stride.Core.Reflection
 {
     /// <summary>
     /// Allows to attach dynamic properties to an object at runtime. Note that in order to use this object at runtime, you need to set to <c>true</c> the <see cref="Enable"/> property.

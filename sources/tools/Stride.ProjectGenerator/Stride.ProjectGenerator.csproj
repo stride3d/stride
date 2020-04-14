@@ -1,13 +1,13 @@
 <Project>
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
-    <XenkoBuildTags>WindowsTools</XenkoBuildTags>
-    <XenkoCompilerTargetsEnable Condition="'$(XenkoPackageBuild)' == 'true'">false</XenkoCompilerTargetsEnable>
+    <StrideBuildTags>WindowsTools</StrideBuildTags>
+    <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <Prefer32Bit>true</Prefer32Bit>
@@ -32,8 +32,8 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\engine\Xenko.Assets\Xenko.Assets.csproj" />
-    <ProjectReference Include="..\Xenko.Core.ProjectTemplating\Xenko.Core.ProjectTemplating.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.Assets\Stride.Assets.csproj" />
+    <ProjectReference Include="..\Stride.Core.ProjectTemplating\Stride.Core.ProjectTemplating.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -41,35 +41,35 @@
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ResharperDotSettings.cs</LastGenOutput>
     </None>
-    <None Include="Templates\Xenko.UnitTests\%24ProjectName%24.csproj.t4" />
-    <None Include="Templates\Xenko.UnitTests\%24ProjectName%24.Shared.targets.t4" />
+    <None Include="Templates\Stride.UnitTests\%24ProjectName%24.csproj.t4" />
+    <None Include="Templates\Stride.UnitTests\%24ProjectName%24.Shared.targets.t4" />
     <None Include="Templates\Common.PropertyGroups.targets.t4" />
-    <None Include="Templates\Xenko.UnitTests\MainPage.xaml.cs.t4" />
-    <None Include="Templates\Xenko.UnitTests\MainPage.xaml.t4" />
-    <None Include="Templates\Xenko.UnitTests\App.xaml.cs.t4" />
-    <None Include="Templates\Xenko.UnitTests\App.xaml.t4" />
-    <None Include="Templates\Xenko.UnitTests\Info.plist.t4" />
-    <None Include="Templates\Xenko.UnitTests\readme.md.t4" />
-    <None Include="Templates\Xenko.UnitTests\Xenko.UnitTests.ttproj" />
-    <None Include="Templates\Xenko.UnitTests\Properties\AndroidManifest.xml.t4">
+    <None Include="Templates\Stride.UnitTests\MainPage.xaml.cs.t4" />
+    <None Include="Templates\Stride.UnitTests\MainPage.xaml.t4" />
+    <None Include="Templates\Stride.UnitTests\App.xaml.cs.t4" />
+    <None Include="Templates\Stride.UnitTests\App.xaml.t4" />
+    <None Include="Templates\Stride.UnitTests\Info.plist.t4" />
+    <None Include="Templates\Stride.UnitTests\readme.md.t4" />
+    <None Include="Templates\Stride.UnitTests\Stride.UnitTests.ttproj" />
+    <None Include="Templates\Stride.UnitTests\Properties\AndroidManifest.xml.t4">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Templates\Xenko.UnitTests\Properties\AssemblyInfo.cs.t4" />
-    <None Include="Templates\Xenko.UnitTests\TestClass1.cs.t4" />
+    <None Include="Templates\Stride.UnitTests\Properties\AssemblyInfo.cs.t4" />
+    <None Include="Templates\Stride.UnitTests\TestClass1.cs.t4" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Templates\Xenko.UnitTests\Resources\drawable\Icon.png" />
+    <None Include="Templates\Stride.UnitTests\Resources\drawable\Icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Templates\Xenko.GraphicsRegressionTests\" />
+    <Folder Include="Templates\Stride.GraphicsRegressionTests\" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Templates\Xenko.UnitTests\Resources\XenkoSplashScreen620x300.png" />
-    <Resource Include="Templates\Xenko.UnitTests\Resources\XenkoSplashScreen480x800.png" />
-    <Resource Include="Templates\Xenko.UnitTests\Resources\XenkoIcon106x106.png" />
-    <Content Include="Templates\Xenko.UnitTests\Resources\XenkoIcon150x150.png" />
-    <Resource Include="Templates\Xenko.UnitTests\Resources\XenkoIcon54x54.png" />
+    <Resource Include="Templates\Stride.UnitTests\Resources\StrideSplashScreen620x300.png" />
+    <Resource Include="Templates\Stride.UnitTests\Resources\StrideSplashScreen480x800.png" />
+    <Resource Include="Templates\Stride.UnitTests\Resources\StrideIcon106x106.png" />
+    <Content Include="Templates\Stride.UnitTests\Resources\StrideIcon150x150.png" />
+    <Resource Include="Templates\Stride.UnitTests\Resources\StrideIcon54x54.png" />
   </ItemGroup>
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 </Project>

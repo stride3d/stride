@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -6,17 +6,17 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Storage;
-using Xenko.Engine;
-using Xenko.Graphics;
-using Xenko.Rendering;
-using Xenko.Rendering.LightProbes;
-using Buffer = Xenko.Graphics.Buffer;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Storage;
+using Stride.Engine;
+using Stride.Graphics;
+using Stride.Rendering;
+using Stride.Rendering.LightProbes;
+using Buffer = Stride.Graphics.Buffer;
 
-namespace Xenko.Rendering.Compositing
+namespace Stride.Rendering.Compositing
 {
     partial class ForwardRenderer
     {
@@ -74,7 +74,7 @@ namespace Xenko.Rendering.Compositing
             // First time initialization
             if (bakeLightProbes == null)
             {
-                bakeLightProbes = new DynamicEffectInstance("XenkoBakeLightProbeEffect");
+                bakeLightProbes = new DynamicEffectInstance("StrideBakeLightProbeEffect");
                 bakeLightProbes.Initialize(Services);
 
                 bakeLightProbesPipeline = new MutablePipelineState(GraphicsDevice);

@@ -1,8 +1,8 @@
 !Texture
 Id: FF02239B-3697-4EBB-9F37-FE880659E64B
-SerializedVersion: {Xenko: 2.0.0}
+SerializedVersion: {Stride: 2.0.0}
 Tags: []
-Source: !file ../../Resources/XenkoDebugSpriteFont.png
+Source: !file ../../Resources/StrideDebugSpriteFont.png
 IsCompressed: false
 Type: !ColorTextureType
     UseSRgbSampling: false

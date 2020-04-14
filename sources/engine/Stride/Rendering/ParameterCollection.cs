@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Xenko.Core;
-using Xenko.Core.Collections;
-using Xenko.Core.Extensions;
-using Xenko.Core.Serialization;
+using Stride.Core;
+using Stride.Core.Collections;
+using Stride.Core.Extensions;
+using Stride.Core.Serialization;
 
-namespace Xenko.Rendering
+namespace Stride.Rendering
 {
     /// <summary>
     /// Manage several effect parameters (resources and data). A specific data and resource layout can be forced (usually by the consuming effect).

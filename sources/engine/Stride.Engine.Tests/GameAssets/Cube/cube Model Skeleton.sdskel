@@ -1,6 +1,6 @@
 !Skeleton
 Id: e1b4aa1c-e0ab-409b-bbe4-a5fa0c1afc8d
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../../data/tests/cube/cube.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Windows;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Presentation.View;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
+using Stride.Core.Diagnostics;
+using Stride.Core.Presentation.View;
 
-namespace Xenko.Core.Assets.Editor
+namespace Stride.Core.Assets.Editor
 {
     public class AssetsEditorPlugin : AssetsPlugin
     {
@@ -19,7 +19,7 @@ namespace Xenko.Core.Assets.Editor
         public override void InitializePlugin(ILogger logger)
         {
             if (imageDictionary == null)
-                imageDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Xenko.Core.Assets.Editor;component/View/ImageDictionary.xaml", UriKind.RelativeOrAbsolute));
+                imageDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Core.Assets.Editor;component/View/ImageDictionary.xaml", UriKind.RelativeOrAbsolute));
         }
 
         /// <inheritdoc />

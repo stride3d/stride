@@ -13,28 +13,28 @@
     <MtouchDebug>true</MtouchDebug>
     <CodesignKey>iPhone Developer</CodesignKey>
   </PropertyGroup>
-  <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{5AA408BA-E766-453E-B661-E3D7EC46E2A6}</ProjectGuid>
     <OutputPath>bin\iPhone\Debug</OutputPath>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Xenko.Core.Tests</RootNamespace>
-    <AssemblyName>XenkoCoreTests</AssemblyName>
+    <RootNamespace>Stride.Core.Tests</RootNamespace>
+    <AssemblyName>StrideCoreTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorOptions>--auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
-    <XenkoBuildTags>Windows;Android;iOS</XenkoBuildTags>
-    <XenkoOutputFolder>Tests\$(AssemblyName)</XenkoOutputFolder>
-    <XenkoCompilerTargetsEnable Condition="'$(XenkoPackageBuild)' == 'true'">false</XenkoCompilerTargetsEnable>
-    <XenkoCompilerTargetsEnable Condition="'$(XenkoSkipUnitTests)' == 'true'">false</XenkoCompilerTargetsEnable>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>Windows;Android;iOS</StrideBuildTags>
+    <StrideOutputFolder>Tests\$(AssemblyName)</StrideOutputFolder>
+    <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
+    <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true'">false</StrideCompilerTargetsEnable>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Xamarin.iOS" Label="Xenko.DoNotSync" />
-    <Reference Include="MonoTouch.NUnitLite" Label="Xenko.DoNotSync" />
-    <None Include="Info.plist" Label="Xenko.DoNotSync" />
-    <Compile Include="..\..\tests\nunitlite\NUnitLiteLauncher.iPhone.cs" Label="Xenko.DoNotSync">
+    <Reference Include="Xamarin.iOS" Label="Stride.DoNotSync" />
+    <Reference Include="MonoTouch.NUnitLite" Label="Stride.DoNotSync" />
+    <None Include="Info.plist" Label="Stride.DoNotSync" />
+    <Compile Include="..\..\tests\nunitlite\NUnitLiteLauncher.iPhone.cs" Label="Stride.DoNotSync">
       <Link>NUnitLiteLauncher.iPhone.cs</Link>
     </Compile>
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -60,16 +60,16 @@
     <Compile Include="TestUnmanagedArray.cs" />
     <Compile Include="TestUtilities.cs" />
     <Compile Include="TestWatcher.cs" />
-    <ProjectReference Include="..\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
+    <ProjectReference Include="..\Stride.Core.Serialization\Stride.Core.Serialization.csproj">
       <Project>{5210FB81-B807-49BB-AF0D-31FB6A83A572}</Project>
-      <Name>Xenko.Core.Serialization</Name>
+      <Name>Stride.Core.Serialization</Name>
     </ProjectReference>
-    <XenkoEmbeddedNativeLibrary Include="$(XenkoPackageXenkoPlatformBin)\libcore">
+    <StrideEmbeddedNativeLibrary Include="$(StridePackageStridePlatformBin)\libcore">
       <Visible>false</Visible>
-    </XenkoEmbeddedNativeLibrary>
+    </StrideEmbeddedNativeLibrary>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
@@ -77,5 +77,5 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Import Condition="'$(XenkoCompilerTargetsEnable)' != 'false'" Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
+  <Import Condition="'$(StrideCompilerTargetsEnable)' != 'false'" Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>

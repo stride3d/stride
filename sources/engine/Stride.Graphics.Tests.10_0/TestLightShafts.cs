@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Engine.NextGen;
-using Xenko.Games;
-using Xenko.Graphics.Regression;
-using Xenko.Rendering.Compositing;
-using Xenko.Rendering.Images;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Engine.NextGen;
+using Stride.Games;
+using Stride.Graphics.Regression;
+using Stride.Rendering.Compositing;
+using Stride.Rendering.Images;
 
-namespace Xenko.Graphics.Tests
+namespace Stride.Graphics.Tests
 {
     public class TestLightShafts : GraphicTestGameBase
     {

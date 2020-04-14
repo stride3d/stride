@@ -1,6 +1,6 @@
 !SpriteSheet
 Id: e8e2f386-e79e-4875-993f-8bdaf0ef72c5
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: UI
 ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

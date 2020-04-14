@@ -1,6 +1,6 @@
 !Animation
 Id: 81b706c1-3f7e-4733-b0f4-e47c2c7f950e
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Animation/Sword_Idle.fbx
 ClipDuration:

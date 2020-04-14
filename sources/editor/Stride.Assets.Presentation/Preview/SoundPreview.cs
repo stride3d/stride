@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Xenko.Core.IO;
-using Xenko.Assets.Presentation.Preview.Views;
-using Xenko.Core.Presentation.Services;
-using Xenko.Assets.Media;
-using Xenko.Audio;
-using Xenko.Editor.Preview;
-using Xenko.Media;
+using Stride.Core.IO;
+using Stride.Assets.Presentation.Preview.Views;
+using Stride.Core.Presentation.Services;
+using Stride.Assets.Media;
+using Stride.Audio;
+using Stride.Editor.Preview;
+using Stride.Media;
 
-namespace Xenko.Assets.Presentation.Preview
+namespace Stride.Assets.Presentation.Preview
 {
     [AssetPreview(typeof(SoundAsset), typeof(SoundPreviewView))]
     public class SoundPreview : BuildAssetPreview<SoundAsset>

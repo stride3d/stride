@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Annotations;
-using Xenko.Core.Presentation.Quantum.Presenters;
-using Xenko.Core.Presentation.Quantum.ViewModels;
-using Xenko.Core.Quantum;
+using Stride.Core.Annotations;
+using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Quantum;
 
-namespace Xenko.Core.Presentation.Quantum
+namespace Stride.Core.Presentation.Quantum
 {
     /// <summary>
     /// An interface representing an view model that can provide properties to build an <see cref="GraphViewModel"/>.

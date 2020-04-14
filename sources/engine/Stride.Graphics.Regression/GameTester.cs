@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
 using UIKit;
-using Xenko.Starter;
+using Stride.Starter;
 #endif
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Engine;
-using Xenko.Games;
-using Xenko.Input;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Engine;
+using Stride.Games;
+using Stride.Input;
 
-namespace Xenko.Graphics.Regression
+namespace Stride.Graphics.Regression
 {
     public class GameTester
     {
@@ -23,18 +23,18 @@ namespace Xenko.Graphics.Regression
 
         public static void RunGameTest(Game game)
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
 
             using (game)
             {
                 game.Run();
             }
 
-#elif XENKO_PLATFORM_UWP
+#elif STRIDE_PLATFORM_UWP
 
             throw new NotImplementedException();
 
-#elif XENKO_PLATFORM_IOS || XENKO_PLATFORM_ANDROID
+#elif STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID
 
             lock(uniThreadLock)
             {
@@ -60,7 +60,7 @@ namespace Xenko.Graphics.Regression
                     game.UnhandledException += exceptionhandler;
 
                     Logger.Info(@"Starting activity");
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
                     game.Exiting += gameFinishedCallback;
 
                     UIApplication.SharedApplication.InvokeOnMainThread(() =>
@@ -68,15 +68,15 @@ namespace Xenko.Graphics.Regression
                         var window = UIApplication.SharedApplication.KeyWindow;
                         var rootNavigationController = (UINavigationController)window.RootViewController;
 
-                        // create the xenko game view 
+                        // create the stride game view 
                         var bounds = UIScreen.MainScreen.Bounds;
-                        var xenkoGameView = new iOSXenkoView((System.Drawing.RectangleF)bounds) { ContentScaleFactor = UIScreen.MainScreen.Scale };
+                        var strideGameView = new iOSStrideView((System.Drawing.RectangleF)bounds) { ContentScaleFactor = UIScreen.MainScreen.Scale };
 
-                        // create the view controller used to display the xenko game
-                        var xenkoGameController = new iOSGameTestController(game) { View = xenkoGameView };
+                        // create the view controller used to display the stride game
+                        var strideGameController = new iOSGameTestController(game) { View = strideGameView };
 
                         // create the game context
-                        var gameContext = new GameContextiOS(new iOSWindow(window, xenkoGameView, xenkoGameController));
+                        var gameContext = new GameContextiOS(new iOSWindow(window, strideGameView, strideGameController));
 
                         // push view
                         rootNavigationController.PushViewController(gameContext.Control.GameViewController, false);
@@ -84,7 +84,7 @@ namespace Xenko.Graphics.Regression
                         // launch the game
                         game.Run(gameContext);
                     });
-#elif XENKO_PLATFORM_ANDROID
+#elif STRIDE_PLATFORM_ANDROID
                     // Start activity
                     AndroidGameTestActivity.GameToStart = game;
                     AndroidGameTestActivity.Destroyed += gameFinishedCallback;
@@ -104,7 +104,7 @@ namespace Xenko.Graphics.Regression
                 }
                 finally
                 {
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
                     // iOS Cleanup
                     UIApplication.SharedApplication.InvokeOnMainThread(() =>
                     {
@@ -113,7 +113,7 @@ namespace Xenko.Graphics.Regression
 
                         rootNavigationController.PopViewController(false);
                     });
-#elif XENKO_PLATFORM_ANDROID
+#elif STRIDE_PLATFORM_ANDROID
                     AndroidGameTestActivity.Destroyed -= gameFinishedCallback;
                     AndroidGameTestActivity.GameToStart = null;
 #endif

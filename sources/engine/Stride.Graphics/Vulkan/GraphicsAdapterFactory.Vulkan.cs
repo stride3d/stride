@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_VULKAN
+#if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using SharpVulkan;
-using Xenko.Core;
+using Stride.Core;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public static partial class GraphicsAdapterFactory
     {
@@ -92,7 +92,7 @@ namespace Xenko.Graphics
             {
                 StructureType = StructureType.ApplicationInfo,
                 ApiVersion = new SharpVulkan.Version(1, 0, 0),
-                EngineName = Marshal.StringToHGlobalAnsi("Xenko"),
+                EngineName = Marshal.StringToHGlobalAnsi("Stride"),
                 //EngineVersion = new SharpVulkan.Version()
             };
 
@@ -147,15 +147,15 @@ namespace Xenko.Graphics
             if (!availableExtensionNames.Contains("VK_KHR_surface"))
                 throw new InvalidOperationException("Required extension VK_KHR_surface is not available");
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             desiredExtensionNames.Add("VK_KHR_win32_surface");
             if (!availableExtensionNames.Contains("VK_KHR_win32_surface"))
                 throw new InvalidOperationException("Required extension VK_KHR_win32_surface is not available");
-#elif XENKO_PLATFORM_ANDROID
+#elif STRIDE_PLATFORM_ANDROID
                 desiredExtensionNames.Add("VK_KHR_android_surface");
                 if (!availableExtensionNames.Contains("VK_KHR_android_surface"))
                     throw new InvalidOperationException("Required extension VK_KHR_android_surface is not available");
-#elif XENKO_PLATFORM_LINUX
+#elif STRIDE_PLATFORM_LINUX
                 if (availableExtensionNames.Contains("VK_KHR_xlib_surface"))
                 {
                     desiredExtensionNames.Add("VK_KHR_xlib_surface");

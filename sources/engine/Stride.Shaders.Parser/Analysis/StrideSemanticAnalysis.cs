@@ -1,28 +1,28 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Linq;
 
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Shaders.Parser.Mixins;
-using Xenko.Shaders.Parser.Utility;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Parser;
-using Xenko.Core.Shaders.Visitor;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Shaders.Parser.Mixins;
+using Stride.Shaders.Parser.Utility;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Parser;
+using Stride.Core.Shaders.Visitor;
 
-using StorageQualifier = Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier;
+using StorageQualifier = Stride.Core.Shaders.Ast.Hlsl.StorageQualifier;
 
-namespace Xenko.Shaders.Parser.Analysis
+namespace Stride.Shaders.Parser.Analysis
 {
-    internal class XenkoSemanticAnalysis : XenkoTypeAnalysis
+    internal class StrideSemanticAnalysis : StrideTypeAnalysis
     {
         #region Static members
 
         /// <summary>
         /// List of useful language keywords
         /// </summary>
-        private static readonly string[] XenkoKeywords = { "base", "streams", "this" };
+        private static readonly string[] StrideKeywords = { "base", "streams", "this" };
 
         #endregion
 
@@ -31,7 +31,7 @@ namespace Xenko.Shaders.Parser.Analysis
         /// <summary>
         /// The structure that will store all the information
         /// </summary>
-        private XenkoParsingInfo parsingInfo;
+        private StrideParsingInfo parsingInfo;
         
         /// <summary>
         /// List of all the mixins inside the module
@@ -68,12 +68,12 @@ namespace Xenko.Shaders.Parser.Analysis
         #region Constructor and helpers
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="XenkoSemanticAnalysis"/> class.
+        /// Initializes a new instance of the <see cref="StrideSemanticAnalysis"/> class.
         /// </summary>
         /// <param name="result">The result</param>
         /// <param name="analyzedMixin">the context in which the analysis is set</param>
         /// <param name="moduleMixinsInCompilationGroup">the list of all the modules that are not in the inheritance hierarchy of the context</param>
-        public XenkoSemanticAnalysis(ParsingResult result, ModuleMixin analyzedMixin, List<ModuleMixin> moduleMixinsInCompilationGroup)
+        public StrideSemanticAnalysis(ParsingResult result, ModuleMixin analyzedMixin, List<ModuleMixin> moduleMixinsInCompilationGroup)
             : base(result)
         {
             analyzedModuleMixin = analyzedMixin;
@@ -109,18 +109,18 @@ namespace Xenko.Shaders.Parser.Analysis
         /// <param name="mixinToAnalyze">the current context (virtual table) from mixin inheritance</param>
         /// <param name="compilationContext">List of all the mixin in the compilation context</param>
         /// <returns>true if the shader is correct, false otherwise</returns>
-        public static XenkoParsingInfo RunAnalysis(ModuleMixin mixinToAnalyze, List<ModuleMixin> compilationContext, bool transformForEach = false)
+        public static StrideParsingInfo RunAnalysis(ModuleMixin mixinToAnalyze, List<ModuleMixin> compilationContext, bool transformForEach = false)
         {
             var shader = new Shader();
             shader.Declarations.Add(mixinToAnalyze.Shader);
             var toParse = new ParsingResult { Shader = shader };
-            var analysis = new XenkoSemanticAnalysis(toParse, mixinToAnalyze, compilationContext) { parsingInfo = new XenkoParsingInfo() };
+            var analysis = new StrideSemanticAnalysis(toParse, mixinToAnalyze, compilationContext) { parsingInfo = new StrideParsingInfo() };
             analysis.expandForEachStatements = transformForEach;
             analysis.Run();
 
             // look at the static classes
-            analysis.parsingInfo.StaticClasses.UnionWith(analysis.parsingInfo.StaticReferences.VariablesReferences.Select(x => x.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin));
-            analysis.parsingInfo.StaticClasses.UnionWith(analysis.parsingInfo.StaticReferences.MethodsReferences.Select(x => x.Key.GetTag(XenkoTags.ShaderScope) as ModuleMixin));
+            analysis.parsingInfo.StaticClasses.UnionWith(analysis.parsingInfo.StaticReferences.VariablesReferences.Select(x => x.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin));
+            analysis.parsingInfo.StaticClasses.UnionWith(analysis.parsingInfo.StaticReferences.MethodsReferences.Select(x => x.Key.GetTag(StrideTags.ShaderScope) as ModuleMixin));
             analysis.parsingInfo.StaticClasses.Remove(mixinToAnalyze);
             analysis.parsingInfo.ErrorsWarnings = analysis.ParsingResult;
 
@@ -162,11 +162,11 @@ namespace Xenko.Shaders.Parser.Analysis
             foreach (var parameter in methodDeclaration.Parameters)
             {
                 if (parameter.Type.TypeInference.Declaration is ShaderClassType)
-                    Error(XenkoMessageCode.ErrorShaderClassTypeParameter, methodDeclaration.Span, methodDeclaration, parameter, analyzedModuleMixin.MixinName);
+                    Error(StrideMessageCode.ErrorShaderClassTypeParameter, methodDeclaration.Span, methodDeclaration, parameter, analyzedModuleMixin.MixinName);
             }
 
             if (methodDeclaration.ReturnType.TypeInference.Declaration is ShaderClassType)
-                Error(XenkoMessageCode.ErrorShaderClassReturnType, methodDeclaration.Span, methodDeclaration, analyzedModuleMixin.MixinName);
+                Error(StrideMessageCode.ErrorShaderClassReturnType, methodDeclaration.Span, methodDeclaration, analyzedModuleMixin.MixinName);
         }
 
         /// <summary>
@@ -177,10 +177,10 @@ namespace Xenko.Shaders.Parser.Analysis
         {
             currentVisitedMethod = methodDeclaration;
             
-            if (!methodDeclaration.Qualifiers.Contains(XenkoStorageQualifier.Abstract))
-                Error(XenkoMessageCode.ErrorMissingAbstract, methodDeclaration.Span, methodDeclaration, analyzedModuleMixin.MixinName);
-            if (methodDeclaration.Qualifiers.Contains(XenkoStorageQualifier.Override))
-                Error(XenkoMessageCode.ErrorUnnecessaryOverride, methodDeclaration.Span, methodDeclaration, analyzedModuleMixin.MixinName);
+            if (!methodDeclaration.Qualifiers.Contains(StrideStorageQualifier.Abstract))
+                Error(StrideMessageCode.ErrorMissingAbstract, methodDeclaration.Span, methodDeclaration, analyzedModuleMixin.MixinName);
+            if (methodDeclaration.Qualifiers.Contains(StrideStorageQualifier.Override))
+                Error(StrideMessageCode.ErrorUnnecessaryOverride, methodDeclaration.Span, methodDeclaration, analyzedModuleMixin.MixinName);
 
             base.Visit(methodDeclaration);
             PostMethodDeclarationVisit(methodDeclaration);
@@ -197,8 +197,8 @@ namespace Xenko.Shaders.Parser.Analysis
         {
             currentVisitedMethod = methodDefinition;
             
-            if (methodDefinition.Qualifiers.Contains(XenkoStorageQualifier.Abstract))
-                Error(XenkoMessageCode.ErrorUnnecessaryAbstract, methodDefinition.Span, methodDefinition, analyzedModuleMixin.MixinName);
+            if (methodDefinition.Qualifiers.Contains(StrideStorageQualifier.Abstract))
+                Error(StrideMessageCode.ErrorUnnecessaryAbstract, methodDefinition.Span, methodDefinition, analyzedModuleMixin.MixinName);
 
             var ret = base.Visit(methodDefinition);
 
@@ -259,7 +259,7 @@ namespace Xenko.Shaders.Parser.Analysis
                         if (variable.Qualifiers.Contains(StorageQualifier.Extern) && variable.Type.TypeInference.Declaration is ClassType)
                             parsingInfo.StageInitializedVariables.Add(variable);
                         else
-                            Error(XenkoMessageCode.ErrorStageInitNotClassType, variable.Span, variable, analyzedModuleMixin.MixinName);
+                            Error(StrideMessageCode.ErrorStageInitNotClassType, variable.Span, variable, analyzedModuleMixin.MixinName);
                     }
                 }
 
@@ -270,21 +270,21 @@ namespace Xenko.Shaders.Parser.Analysis
                         varType = (varType as ArrayType).Type;
 
                     if (!(varType.TypeInference.Declaration is ClassType))
-                        Error(XenkoMessageCode.ErrorExternNotClassType, variable.Span, variable, analyzedModuleMixin.MixinName);
+                        Error(StrideMessageCode.ErrorExternNotClassType, variable.Span, variable, analyzedModuleMixin.MixinName);
                 }
 
                 // should not happen because extern keyword is set in the ShaderCompilationContext
                 if (!variable.Qualifiers.Contains(StorageQualifier.Extern) && variable.Type.TypeInference.Declaration is ClassType)
-                    Error(XenkoMessageCode.ErrorMissingExtern, variable.Span, variable, analyzedModuleMixin.MixinName);
+                    Error(StrideMessageCode.ErrorMissingExtern, variable.Span, variable, analyzedModuleMixin.MixinName);
             }
 
             // check var type
             if (variable.Type is VarType)
             {
                 if (variable.InitialValue == null)
-                    Error(XenkoMessageCode.ErrorVarNoInitialValue, variable.Span, variable, analyzedModuleMixin.MixinName);
+                    Error(StrideMessageCode.ErrorVarNoInitialValue, variable.Span, variable, analyzedModuleMixin.MixinName);
                 else if (variable.InitialValue.TypeInference.TargetType == null)
-                    Error(XenkoMessageCode.ErrorVarNoTypeFound, variable.Span, variable, analyzedModuleMixin.MixinName);
+                    Error(StrideMessageCode.ErrorVarNoTypeFound, variable.Span, variable, analyzedModuleMixin.MixinName);
                 else
                 {
                     variable.Type = variable.InitialValue.TypeInference.TargetType.ResolveType();
@@ -296,7 +296,7 @@ namespace Xenko.Shaders.Parser.Analysis
                 }
             }
 
-            if (variable.ContainsTag(XenkoTags.ShaderScope))
+            if (variable.ContainsTag(StrideTags.ShaderScope))
             {
                 if (!parsingInfo.ClassReferences.VariablesReferences.ContainsKey(variable))
                     parsingInfo.ClassReferences.VariablesReferences.Add(variable, new HashSet<ExpressionNodeCouple>());
@@ -305,7 +305,7 @@ namespace Xenko.Shaders.Parser.Analysis
             if (currentVisitedMethod != null && !(ParentNode is ForEachStatement))
             {
                 if (FindFinalType(variable.Type) is ShaderClassType)
-                    Error(XenkoMessageCode.ErrorShaderVariable, variable.Span, variable, analyzedModuleMixin.MixinName);
+                    Error(StrideMessageCode.ErrorShaderVariable, variable.Span, variable, analyzedModuleMixin.MixinName);
             }
 
             return variable;
@@ -332,7 +332,7 @@ namespace Xenko.Shaders.Parser.Analysis
             base.Visit(typedef);
 
             if (currentVisitedMethod != null)
-                Error(XenkoMessageCode.ErrorTypedefInMethod, typedef.Span, typedef, currentVisitedMethod, analyzedModuleMixin.MixinName);
+                Error(StrideMessageCode.ErrorTypedefInMethod, typedef.Span, typedef, currentVisitedMethod, analyzedModuleMixin.MixinName);
 
             parsingInfo.Typedefs.Add(typedef);
 
@@ -345,7 +345,7 @@ namespace Xenko.Shaders.Parser.Analysis
         /// <param name="technique">the technique</param>
         public override Node Visit(Technique technique)
         {
-            Error(XenkoMessageCode.ErrorTechniqueFound, technique.Span, technique, analyzedModuleMixin.MixinName); // TODO: remove because parsing may fail before
+            Error(StrideMessageCode.ErrorTechniqueFound, technique.Span, technique, analyzedModuleMixin.MixinName); // TODO: remove because parsing may fail before
 
             return technique;
         }
@@ -381,9 +381,9 @@ namespace Xenko.Shaders.Parser.Analysis
                     if (!(ParentNode is MemberReferenceExpression) || varType is VectorType) // do not store the intermediate references, only the last one - except for vector types
                     {
                         if (IsStageInitMember(memberReference))
-                            memberReference.SetTag(XenkoTags.StageInitRef, null);
+                            memberReference.SetTag(StrideTags.StageInitRef, null);
                         else
-                            memberReference.SetTag(XenkoTags.ExternRef, null);
+                            memberReference.SetTag(StrideTags.ExternRef, null);
                     }
                 }
                 else if (shaderDecl != null)
@@ -393,7 +393,7 @@ namespace Xenko.Shaders.Parser.Analysis
                 }
                 else if (methodDecl == null)
                 {
-                    Error(XenkoMessageCode.ErrorExternMemberNotFound, memberReference.Span, memberReference, variableTargetDecl.Type, analyzedModuleMixin.MixinName);
+                    Error(StrideMessageCode.ErrorExternMemberNotFound, memberReference.Span, memberReference, variableTargetDecl.Type, analyzedModuleMixin.MixinName);
                 }
             }
             else if (targetDecl is ShaderClassType)
@@ -410,8 +410,8 @@ namespace Xenko.Shaders.Parser.Analysis
                 if (memberReference.TypeInference.Declaration is Variable)
                 {
                     var refAsVariable = memberReference.TypeInference.Declaration as Variable;
-                    if (!(refAsVariable.Type is MemberName) && !refAsVariable.Qualifiers.Contains(XenkoStorageQualifier.Stream) && !refAsVariable.Qualifiers.Contains(XenkoStorageQualifier.PatchStream))
-                        Error(XenkoMessageCode.ErrorExtraStreamsPrefix, memberReference.Span, memberReference, refAsVariable, analyzedModuleMixin.MixinName);
+                    if (!(refAsVariable.Type is MemberName) && !refAsVariable.Qualifiers.Contains(StrideStorageQualifier.Stream) && !refAsVariable.Qualifiers.Contains(StrideStorageQualifier.PatchStream))
+                        Error(StrideMessageCode.ErrorExtraStreamsPrefix, memberReference.Span, memberReference, refAsVariable, analyzedModuleMixin.MixinName);
                 }
             }
             else if (IsMutableMember(memberReference))
@@ -421,8 +421,8 @@ namespace Xenko.Shaders.Parser.Analysis
             else if (memberReference.TypeInference.Declaration is Variable)
             {
                 var variableDecl = (Variable)memberReference.TypeInference.Declaration;
-                if (variableDecl.Qualifiers.Contains(XenkoStorageQualifier.Stream) || variableDecl.Qualifiers.Contains(XenkoStorageQualifier.PatchStream))
-                    Error(XenkoMessageCode.ErrorMissingStreamsStruct, memberReference.Span, memberReference, analyzedModuleMixin.MixinName);
+                if (variableDecl.Qualifiers.Contains(StrideStorageQualifier.Stream) || variableDecl.Qualifiers.Contains(StrideStorageQualifier.PatchStream))
+                    Error(StrideMessageCode.ErrorMissingStreamsStruct, memberReference.Span, memberReference, analyzedModuleMixin.MixinName);
             }
 
             if (memberReference.TypeInference.Declaration is Variable) // TODO: check if it is a variable whose scope is inside the hierarchy
@@ -430,14 +430,14 @@ namespace Xenko.Shaders.Parser.Analysis
                 var isExtern = HasExternQualifier(memberReference);
                 var shouldStoreExpression = !(ParentNode is MemberReferenceExpression) ^ (memberReference.TypeInference.TargetType is VectorType || memberReference.TypeInference.TargetType is MatrixType);
                 if (shouldStoreExpression && isExtern)
-                    memberReference.SetTag(XenkoTags.ExternRef, null);
+                    memberReference.SetTag(StrideTags.ExternRef, null);
 
                 if (!isExtern && memberReference.Target.TypeInference.Declaration is ShaderClassType && !ReferenceEquals(analyzedModuleMixin.Shader, memberReference.Target.TypeInference.Declaration) && analyzedModuleMixin.InheritanceList.All(x => !ReferenceEquals(x.Shader, memberReference.Target.TypeInference.Declaration)))
-                    memberReference.SetTag(XenkoTags.StaticRef, null);
+                    memberReference.SetTag(StrideTags.StaticRef, null);
 
                 var varDecl = (Variable)memberReference.TypeInference.Declaration;
-                if (currentVisitedMethod != null && currentVisitedMethod.Qualifiers.Contains(StorageQualifier.Static) && varDecl != null && varDecl.GetTag(XenkoTags.BaseDeclarationMixin) != null)
-                    Error(XenkoMessageCode.ErrorNonStaticReferenceInStaticMethod, memberReference.Span, currentVisitedMethod, varDecl, analyzedModuleMixin.MixinName);
+                if (currentVisitedMethod != null && currentVisitedMethod.Qualifiers.Contains(StorageQualifier.Static) && varDecl != null && varDecl.GetTag(StrideTags.BaseDeclarationMixin) != null)
+                    Error(StrideMessageCode.ErrorNonStaticReferenceInStaticMethod, memberReference.Span, currentVisitedMethod, varDecl, analyzedModuleMixin.MixinName);
             }
 
             // Add to variable references list
@@ -467,7 +467,7 @@ namespace Xenko.Shaders.Parser.Analysis
             }
             else
             {
-                Error(XenkoMessageCode.ErrorStreamNotFound, memberReference.Span, memberReference.Member.Text, analyzedModuleMixin.MixinName);
+                Error(StrideMessageCode.ErrorStreamNotFound, memberReference.Span, memberReference.Member.Text, analyzedModuleMixin.MixinName);
             }
         }
 
@@ -493,7 +493,7 @@ namespace Xenko.Shaders.Parser.Analysis
                 if (variableDecl != null)
                 {
                     var isStream = IsStreamMember(memberReference);
-                    if (!isStream || variableDecl.Variable.Qualifiers.Contains(XenkoStorageQualifier.Stream))
+                    if (!isStream || variableDecl.Variable.Qualifiers.Contains(StrideStorageQualifier.Stream))
                     {
                         memberReference.TypeInference.Declaration = variableDecl.Variable;
                         memberReference.TypeInference.TargetType = variableDecl.Variable.Type.ResolveType();
@@ -569,9 +569,9 @@ namespace Xenko.Shaders.Parser.Analysis
             var res = base.FindDeclarations(name);
 
             if (res.OfType<Variable>().Any(x => analyzedModuleMixin.PotentialConflictingVariables.Contains(x)))
-                Error(XenkoMessageCode.ErrorVariableNameAmbiguity, new SourceSpan(), name, analyzedModuleMixin.MixinName);
+                Error(StrideMessageCode.ErrorVariableNameAmbiguity, new SourceSpan(), name, analyzedModuleMixin.MixinName);
             if (res.OfType<MethodDeclaration>().Any(x => analyzedModuleMixin.PotentialConflictingMethods.Contains(x)))
-                Error(XenkoMessageCode.ErrorMethodNameAmbiguity, new SourceSpan(), name, analyzedModuleMixin.MixinName);
+                Error(StrideMessageCode.ErrorMethodNameAmbiguity, new SourceSpan(), name, analyzedModuleMixin.MixinName);
             
             return res;
         }
@@ -582,12 +582,12 @@ namespace Xenko.Shaders.Parser.Analysis
         /// <param name="expression">the method expression</param>
         public override Node Visit(MethodInvocationExpression expression)
         {
-            expression.SetTag(XenkoTags.CurrentShader, analyzedModuleMixin);
+            expression.SetTag(StrideTags.CurrentShader, analyzedModuleMixin);
 
             base.Visit(expression);
 
             if (expression.TypeInference.TargetType == null && expression.Target.TypeInference.Declaration == null)
-                Error(XenkoMessageCode.ErrorMissingMethod, expression.Span, expression, analyzedModuleMixin.MixinName);
+                Error(StrideMessageCode.ErrorMissingMethod, expression.Span, expression, analyzedModuleMixin.MixinName);
             else if (!Equals(expression.TypeInference.Declaration, expression.Target.TypeInference.Declaration))
                 expression.TypeInference.Declaration = expression.Target.TypeInference.Declaration;
 
@@ -600,9 +600,9 @@ namespace Xenko.Shaders.Parser.Analysis
 
                 if (currentVisitedMethod.Qualifiers.Contains(StorageQualifier.Static)
                     && !methodDecl.Qualifiers.Contains(StorageQualifier.Static)
-                    && methodDecl.GetTag(XenkoTags.BaseDeclarationMixin) != null)
+                    && methodDecl.GetTag(StrideTags.BaseDeclarationMixin) != null)
                 {
-                    Error(XenkoMessageCode.ErrorNonStaticCallInStaticMethod, expression.Span, currentVisitedMethod, methodDecl, analyzedModuleMixin.MixinName);
+                    Error(StrideMessageCode.ErrorNonStaticCallInStaticMethod, expression.Span, currentVisitedMethod, methodDecl, analyzedModuleMixin.MixinName);
                 }
             }
 
@@ -610,7 +610,7 @@ namespace Xenko.Shaders.Parser.Analysis
             AddToMethodsReferences(expression);
 
             if (methodDecl != null)
-                expression.Target.SetTag(XenkoTags.VirtualTableReference, methodDecl.GetTag(XenkoTags.VirtualTableReference));
+                expression.Target.SetTag(StrideTags.VirtualTableReference, methodDecl.GetTag(StrideTags.VirtualTableReference));
 
             return expression;
         }
@@ -658,7 +658,7 @@ namespace Xenko.Shaders.Parser.Analysis
                                     expression.Target.TypeInference.Declaration = baseMethod;
                                 }
                                 else
-                                    Error(XenkoMessageCode.ErrorImpossibleBaseCall, memberReferenceExpression.Span, expression, analyzedModuleMixin.MixinName);
+                                    Error(StrideMessageCode.ErrorImpossibleBaseCall, memberReferenceExpression.Span, expression, analyzedModuleMixin.MixinName);
                                 break;
                             }
                         case "this":
@@ -677,7 +677,7 @@ namespace Xenko.Shaders.Parser.Analysis
                                     expression.Target.TypeInference.Declaration = topMethod;
                                 }
                                 else
-                                    Error(XenkoMessageCode.ErrorImpossibleVirtualCall, memberReferenceExpression.Span, expression, analyzedModuleMixin.MixinName, analyzedModuleMixin.MixinName);
+                                    Error(StrideMessageCode.ErrorImpossibleVirtualCall, memberReferenceExpression.Span, expression, analyzedModuleMixin.MixinName, analyzedModuleMixin.MixinName);
 
                                 memberReferenceExpression = null;
 
@@ -706,10 +706,10 @@ namespace Xenko.Shaders.Parser.Analysis
             {
                 // check if it is a recursive call
                 if (ReferenceEquals(currentVisitedMethod, expression.Target.TypeInference.Declaration)) // How to handle "this" keyword?
-                    Error(XenkoMessageCode.ErrorCyclicMethod, currentVisitedMethod.Span, currentVisitedMethod, analyzedModuleMixin.MixinName);
+                    Error(StrideMessageCode.ErrorCyclicMethod, currentVisitedMethod.Span, currentVisitedMethod, analyzedModuleMixin.MixinName);
 
                 // check if it is a build-in method
-                isBuiltIn = !methodDecl.ContainsTag(XenkoTags.ShaderScope);
+                isBuiltIn = !methodDecl.ContainsTag(StrideTags.ShaderScope);
 
                 if (memberReferenceExpression != null)
                 {
@@ -720,23 +720,23 @@ namespace Xenko.Shaders.Parser.Analysis
                     if (varDecl != null && varDecl.Qualifiers.Contains(StorageQualifier.Extern))
                     {
                         if (IsStageInitMember(memberReferenceExpression))
-                            expression.SetTag(XenkoTags.StageInitRef, null);
+                            expression.SetTag(StrideTags.StageInitRef, null);
                         else
-                            expression.SetTag(XenkoTags.ExternRef, null);
+                            expression.SetTag(StrideTags.ExternRef, null);
                     }
 
                     var shaderDecl = memberReferenceExpression.Target.TypeInference.Declaration as ShaderClassType;
                     if (shaderDecl != null && shaderDecl != analyzedModuleMixin.Shader && analyzedModuleMixin.InheritanceList.All(x => x.Shader != shaderDecl))
-                        expression.SetTag(XenkoTags.StaticRef, null);
+                        expression.SetTag(StrideTags.StaticRef, null);
                 }
 
                 if (!isBuiltIn)
                 {
                     // store if not a base call
-                    if (isNotBaseCall && !expression.ContainsTag(XenkoTags.ExternRef) && !expression.ContainsTag(XenkoTags.StageInitRef) && !expression.ContainsTag(XenkoTags.StaticRef))
+                    if (isNotBaseCall && !expression.ContainsTag(StrideTags.ExternRef) && !expression.ContainsTag(StrideTags.StageInitRef) && !expression.ContainsTag(StrideTags.StaticRef))
                         parsingInfo.ThisMethodCalls.Add(expression);
 
-                    if (methodDecl.Qualifiers.Contains(XenkoStorageQualifier.Stage))
+                    if (methodDecl.Qualifiers.Contains(StrideStorageQualifier.Stage))
                         parsingInfo.StageMethodCalls.Add(expression);
                 }
             }
@@ -768,7 +768,7 @@ namespace Xenko.Shaders.Parser.Analysis
         public override Node Visit(AssignmentExpression assignmentExpression)
         {
             if (currentAssignmentOperatorStatus != AssignmentOperatorStatus.Read)
-                Error(XenkoMessageCode.ErrorNestedAssignment, assignmentExpression.Span, assignmentExpression, analyzedModuleMixin.MixinName);
+                Error(StrideMessageCode.ErrorNestedAssignment, assignmentExpression.Span, assignmentExpression, analyzedModuleMixin.MixinName);
 
             assignmentExpression.Value = (Expression)VisitDynamic(assignmentExpression.Value);
             currentAssignmentOperatorStatus = (assignmentExpression.Operator != AssignmentOperator.Default) ? AssignmentOperatorStatus.ReadWrite : AssignmentOperatorStatus.Write;
@@ -798,7 +798,7 @@ namespace Xenko.Shaders.Parser.Analysis
             varCount = analyzedModuleMixin.VirtualTable.Variables.Count(x => x.Variable.Name.Text == name);
 
             if (varCount > 1)
-                Error(XenkoMessageCode.ErrorVariableNameAmbiguity, variableReferenceExpression.Span, variableReferenceExpression, analyzedModuleMixin.MixinName);
+                Error(StrideMessageCode.ErrorVariableNameAmbiguity, variableReferenceExpression.Span, variableReferenceExpression, analyzedModuleMixin.MixinName);
         }
 
         /// <summary>
@@ -824,7 +824,7 @@ namespace Xenko.Shaders.Parser.Analysis
             if (name == "stage")
             {
                 if (!(ParentNode is Variable && (ParentNode as Variable).InitialValue == variableReferenceExpression))
-                    Error(XenkoMessageCode.ErrorStageOutsideVariable, ParentNode.Span, ParentNode, analyzedModuleMixin.MixinName);
+                    Error(StrideMessageCode.ErrorStageOutsideVariable, ParentNode.Span, ParentNode, analyzedModuleMixin.MixinName);
 
                 return variableReferenceExpression;
             }
@@ -835,7 +835,7 @@ namespace Xenko.Shaders.Parser.Analysis
             }
             
             // check if the variable is double-defined
-            if (!XenkoKeywords.Contains(variableReferenceExpression.Name.Text))
+            if (!StrideKeywords.Contains(variableReferenceExpression.Name.Text))
                 CheckNameConflict(variableReferenceExpression);
 
             base.Visit(variableReferenceExpression);
@@ -848,25 +848,25 @@ namespace Xenko.Shaders.Parser.Analysis
                 if (variableReferenceExpression.TypeInference.TargetType == null)
                     variableReferenceExpression.TypeInference.TargetType = (variableReferenceExpression.TypeInference.Declaration as Variable).Type.ResolveType();
 
-                if (varDecl.ContainsTag(XenkoTags.ShaderScope))
+                if (varDecl.ContainsTag(StrideTags.ShaderScope))
                 {
                     // stream variable should be called within the streams scope
-                    if (varDecl.Qualifiers.Contains(XenkoStorageQualifier.Stream) || varDecl.Qualifiers.Contains(XenkoStorageQualifier.PatchStream))
-                        Error(XenkoMessageCode.ErrorMissingStreamsStruct, variableReferenceExpression.Span, variableReferenceExpression, analyzedModuleMixin.MixinName);
+                    if (varDecl.Qualifiers.Contains(StrideStorageQualifier.Stream) || varDecl.Qualifiers.Contains(StrideStorageQualifier.PatchStream))
+                        Error(StrideMessageCode.ErrorMissingStreamsStruct, variableReferenceExpression.Span, variableReferenceExpression, analyzedModuleMixin.MixinName);
                 }
             }
 
             var isMethodName = defaultDeclarations.Any(x => x.Name.Text == variableReferenceExpression.Name.Text);
 
-            if (!XenkoKeywords.Contains(variableReferenceExpression.Name.Text) && variableReferenceExpression.TypeInference.Declaration == null && !inSampler && !isMethodName)
-                Error(XenkoMessageCode.ErrorMissingVariable, variableReferenceExpression.Span, variableReferenceExpression, analyzedModuleMixin.MixinName);
+            if (!StrideKeywords.Contains(variableReferenceExpression.Name.Text) && variableReferenceExpression.TypeInference.Declaration == null && !inSampler && !isMethodName)
+                Error(StrideMessageCode.ErrorMissingVariable, variableReferenceExpression.Span, variableReferenceExpression, analyzedModuleMixin.MixinName);
 
             // update function static status
             if (!inSampler && !isMethodName && variableReferenceExpression.TypeInference.Declaration == null)
-                Error(XenkoMessageCode.ErrorNoTypeInference, variableReferenceExpression.Span, variableReferenceExpression, analyzedModuleMixin.MixinName);
+                Error(StrideMessageCode.ErrorNoTypeInference, variableReferenceExpression.Span, variableReferenceExpression, analyzedModuleMixin.MixinName);
 
-            if (currentVisitedMethod != null && currentVisitedMethod.Qualifiers.Contains(StorageQualifier.Static) && varDecl != null && varDecl.GetTag(XenkoTags.BaseDeclarationMixin) != null)
-                Error(XenkoMessageCode.ErrorNonStaticReferenceInStaticMethod, variableReferenceExpression.Span, currentVisitedMethod, varDecl, analyzedModuleMixin.MixinName);
+            if (currentVisitedMethod != null && currentVisitedMethod.Qualifiers.Contains(StorageQualifier.Static) && varDecl != null && varDecl.GetTag(StrideTags.BaseDeclarationMixin) != null)
+                Error(StrideMessageCode.ErrorNonStaticReferenceInStaticMethod, variableReferenceExpression.Span, currentVisitedMethod, varDecl, analyzedModuleMixin.MixinName);
 
             // Add to the variables references list
             AddToVariablesReference(variableReferenceExpression);
@@ -891,7 +891,7 @@ namespace Xenko.Shaders.Parser.Analysis
             {
                 var varDecl = indexerExpression.Target.TypeInference.Declaration as Variable;
                 if (varDecl.Qualifiers.Contains(StorageQualifier.Extern))
-                    Error(XenkoMessageCode.ErrorIndexerNotLiteral, indexerExpression.Span, indexerExpression, analyzedModuleMixin.MixinName);
+                    Error(StrideMessageCode.ErrorIndexerNotLiteral, indexerExpression.Span, indexerExpression, analyzedModuleMixin.MixinName);
             }
         }
 
@@ -901,7 +901,7 @@ namespace Xenko.Shaders.Parser.Analysis
         /// <param name="interfaceType">the interface.</param>
         public override Node Visit(InterfaceType interfaceType)
         {
-            Error(XenkoMessageCode.ErrorInterfaceFound, interfaceType.Span, interfaceType, analyzedModuleMixin.MixinName);
+            Error(StrideMessageCode.ErrorInterfaceFound, interfaceType.Span, interfaceType, analyzedModuleMixin.MixinName);
             return interfaceType;
         }
 
@@ -911,7 +911,7 @@ namespace Xenko.Shaders.Parser.Analysis
         /// <param name="structType">the structure definition</param>
         public override Node Visit(StructType structType)
         {
-            if (structType.ContainsTag(XenkoTags.ShaderScope))
+            if (structType.ContainsTag(StrideTags.ShaderScope))
                 parsingInfo.StructureDefinitions.Add(structType);
 
             return base.Visit(structType);
@@ -928,7 +928,7 @@ namespace Xenko.Shaders.Parser.Analysis
             foreach (var param in genericType.Parameters.OfType<TypeName>())
             {
                 if (param.TypeInference.TargetType is ShaderClassType)
-                    Error(XenkoMessageCode.ErrorMixinAsGeneric, param.Span, param, genericType, analyzedModuleMixin.MixinName);
+                    Error(StrideMessageCode.ErrorMixinAsGeneric, param.Span, param, genericType, analyzedModuleMixin.MixinName);
             }
 
             return genericType;
@@ -941,13 +941,13 @@ namespace Xenko.Shaders.Parser.Analysis
         private void AddToVariablesReference(Expression expression)
         {
             var variable = expression.TypeInference.Declaration as Variable;
-            if (variable != null && variable.ContainsTag(XenkoTags.ShaderScope))
+            if (variable != null && variable.ContainsTag(StrideTags.ShaderScope))
             {
-                if (expression.ContainsTag(XenkoTags.StaticRef) || variable.Qualifiers.Contains(StorageQualifier.Static))
+                if (expression.ContainsTag(StrideTags.StaticRef) || variable.Qualifiers.Contains(StorageQualifier.Static))
                     parsingInfo.StaticReferences.InsertVariable(variable, new ExpressionNodeCouple(expression, ParentNode));
-                else if (expression.ContainsTag(XenkoTags.ExternRef))
+                else if (expression.ContainsTag(StrideTags.ExternRef))
                     parsingInfo.ExternReferences.InsertVariable(variable, new ExpressionNodeCouple(expression, ParentNode));
-                else if (expression.ContainsTag(XenkoTags.StageInitRef))
+                else if (expression.ContainsTag(StrideTags.StageInitRef))
                     parsingInfo.StageInitReferences.InsertVariable(variable, new ExpressionNodeCouple(expression, ParentNode));
                 else
                     parsingInfo.ClassReferences.InsertVariable(variable, new ExpressionNodeCouple(expression, ParentNode));
@@ -965,13 +965,13 @@ namespace Xenko.Shaders.Parser.Analysis
         private void AddToMethodsReferences(MethodInvocationExpression expression)
         {
             var methodDecl = expression.Target.TypeInference.Declaration as MethodDeclaration;
-            if (methodDecl != null && methodDecl.ContainsTag(XenkoTags.ShaderScope))
+            if (methodDecl != null && methodDecl.ContainsTag(StrideTags.ShaderScope))
             {
-                if (expression.ContainsTag(XenkoTags.StaticRef) || methodDecl.Qualifiers.Contains(StorageQualifier.Static))
+                if (expression.ContainsTag(StrideTags.StaticRef) || methodDecl.Qualifiers.Contains(StorageQualifier.Static))
                     parsingInfo.StaticReferences.InsertMethod(methodDecl, expression);
-                else if (expression.ContainsTag(XenkoTags.ExternRef))
+                else if (expression.ContainsTag(StrideTags.ExternRef))
                     parsingInfo.ExternReferences.InsertMethod(methodDecl, expression);
-                else if (expression.ContainsTag(XenkoTags.StageInitRef))
+                else if (expression.ContainsTag(StrideTags.StageInitRef))
                     parsingInfo.StageInitReferences.InsertMethod(methodDecl, expression);
                 else
                     parsingInfo.ClassReferences.InsertMethod(methodDecl, expression);
@@ -1030,7 +1030,7 @@ namespace Xenko.Shaders.Parser.Analysis
 
                 if ((inference.Type as ArrayType).Dimensions.Count > 1)
                 {
-                    Error(XenkoMessageCode.ErrorMultiDimArray, forEachStatement.Span, inference, forEachStatement, analyzedModuleMixin.MixinName);
+                    Error(StrideMessageCode.ErrorMultiDimArray, forEachStatement.Span, inference, forEachStatement, analyzedModuleMixin.MixinName);
                     return forEachStatement;
                 }
 
@@ -1040,7 +1040,7 @@ namespace Xenko.Shaders.Parser.Analysis
                 for (int i = 0; i < dim; ++i)
                 {
                     var cloned = forEachStatement.DeepClone();
-                    var replace = new XenkoReplaceExtern(cloned.Variable, new IndexerExpression(cloned.Collection, new LiteralExpression(i)));
+                    var replace = new StrideReplaceExtern(cloned.Variable, new IndexerExpression(cloned.Collection, new LiteralExpression(i)));
                     replace.Run(cloned.Body);
                     result.Add(cloned.Body);
                 }

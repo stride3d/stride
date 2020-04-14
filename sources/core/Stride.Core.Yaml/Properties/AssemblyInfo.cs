@@ -46,4 +46,4 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Xenko.Core.Yaml.Tests")]
+[assembly: InternalsVisibleTo("Stride.Core.Yaml.Tests")]

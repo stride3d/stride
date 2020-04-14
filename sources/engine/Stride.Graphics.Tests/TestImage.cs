@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
@@ -25,13 +25,13 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Xunit;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Engine;
-using Xenko.Graphics.Regression;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Engine;
+using Stride.Graphics.Regression;
 
-namespace Xenko.Graphics.Tests
+namespace Stride.Graphics.Tests
 {
     /// <summary>
     /// Tests for <see cref="Texture"/>
@@ -284,7 +284,7 @@ namespace Xenko.Graphics.Tests
                 using (var outStream = VirtualFileSystem.ApplicationCache.OpenStream(fileName + extension, VirtualFileMode.Create, VirtualFileAccess.Write))
                     image.Save(outStream, intermediateFormat);
 
-                if (intermediateFormat == ImageFileType.Xenko || intermediateFormat == ImageFileType.Dds || (sourceFormat == intermediateFormat 
+                if (intermediateFormat == ImageFileType.Stride || intermediateFormat == ImageFileType.Dds || (sourceFormat == intermediateFormat 
                     && intermediateFormat != ImageFileType.Gif)) // TODO: remove this when Giff compression/decompression is fixed
                 {
                     int allowSmallDifferences;

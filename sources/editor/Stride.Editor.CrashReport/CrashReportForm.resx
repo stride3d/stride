@@ -173,7 +173,7 @@
 </value>
   </data>
   <data name="labelMainContent.Text" xml:space="preserve">
-    <value>Unfortunately, Game Studio has crashed. Please help us improve Xenko by sending information about this crash.
+    <value>Unfortunately, Game Studio has crashed. Please help us improve Stride by sending information about this crash.
 
 If you'd like to allow us to ask some questions about the crash, please enter your email (optional, we will never send you an email for any other reason)</value>
   </data>
@@ -257,9 +257,9 @@ If you'd like to allow us to ask some questions about the crash, please enter yo
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AAAA
         AAD///9+////if///4n///+J////gf///w////8A////GP///+vp5vT/0cvo/9HL6P/Pyef//Pz+////
         /7sAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//
-        /wAAAAAA////vPz8/v/Pyef/0cvo/9HL6P/p5fT/////6////xgAAAAA/////4R1wv8UAIr/GQCM/xkA
+        /wAAAAAA////vPz8/v/Pyef/0cvo/9HL6P/p5fT/////6////xgAAAAA/////4R1wv8UAIr/GQCM/sdA
         jP8+J5///v7//////7sAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        AAD///8AAAAAAP///7r+/v//Pief/xkAjP8ZAIz/FACK/4R1wv//////AAAAAAAAAAD///+l/////3lo
+        AAD///8AAAAAAP///7r+/v//Pief/sdAjP8ZAIz/FACK/4R1wv//////AAAAAAAAAAD///+l/////3lo
         vP8bAI7/IAWQ/yAFkP8+Jp///v7//////7sAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAA////AAAAAAD///+7/v7//z4nn/8gBZD/IAWQ/xwAjv93Z7z//////////6gAAAAA////AAAA
         AAD///+v/////3lovP8bAI7/IAWQ/yAFkP8+Jp///v7//////7sAAAAA////AAAAAAAAAAAAAAAAAAAA
@@ -271,7 +271,7 @@ If you'd like to allow us to ask some questions about the crash, please enter yo
         /7QAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAD///+v/////3hovP8bAI7/IAWQ/yAF
         kP9AKaD/0Mro/87I5//OyOf/zsjn/87I5//OyOf/zsjn/9DK6P9BKaD/IAWQ/yAFkP8cAI7/eGe8////
         //////+0AAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAD///+v/////3lo
-        vP8bAI7/IAWQ/yAFkP8ZAI3/GQCM/xkAjP8ZAIz/GQCM/xkAjP8ZAIz/GQCN/yAFkP8gBZD/HACO/3dn
+        vP8bAI7/IAWQ/yAFkP8ZAI3/GQCM/sdAjP8ZAIz/GQCM/sdAjP8ZAIz/GQCN/yAFkP8gBZD/HACO/3dn
         vP//////////swAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AAAA
         AAD///+v/////3lovP8bAI7/IAWQ/yAFkP8gBZD/IAWQ/yAFkP8gBZD/IAWQ/yAFkP8gBZD/IAWQ/xwA
         jv93Z7z//////////7IAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -286,7 +286,7 @@ If you'd like to allow us to ask some questions about the crash, please enter yo
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAA////r/////95abz/GwCO/yAF
         kP8gBZD/IAWQ/yAFkP8gBZD/IAWQ/yAFkP8gBZD/IAWQ/yAFkP8cAI7/d2e8//////////+yAAAAAP//
         /wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAP///6//////eWm8/xsA
-        jv8gBZD/IAWQ/xkAjf8ZAI3/GQCN/xkAjf8ZAI3/GQCN/xkAjf8ZAI3/IAWQ/yAFkP8cAI7/d2e8////
+        jv8gBZD/IAWQ/sdAjf8ZAI3/GQCN/sdAjf8ZAI3/GQCN/sdAjf8ZAI3/IAWQ/yAFkP8cAI7/d2e8////
         //////+yAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAD///+v/////3ho
         vP8bAI7/IAWQ/yAFkP9AKaD/zsnn/8zG5v/Mxub/zMbm/8zG5v/Mxub/zMbm/87J5/9BKaD/IAWQ/yAF
         kP8cAI7/eGe8//////////+zAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAA////sP//
@@ -299,7 +299,7 @@ If you'd like to allow us to ask some questions about the crash, please enter yo
         /wAAAAAA////pf////95aLz/GwCO/yAFkP8gBZD/PSaf//7+//////+7AAAAAP///wAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAA////u/7+//8+J5//IAWQ/yAFkP8cAI7/d2e8////
         //////+oAAAAAAAAAAD/////hHXC/xQAiv8ZAIz/GQCM/z4nn//+/v//////vAAAAAD///8AAAAAAAAA
-        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAA////u/7+//8+J5//GQCM/xkA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAA////u/7+//8+J5//GQCM/sdA
         jP8UAIr/hHXC//////8AAAAA////GP///+vp5vT/0cvo/9HL6P/Pyef//Pz+/////7wAAAAA////AAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAA////vPz8
         /v/Pyef/0cvo/9HL6P/p5fT/////6////xj///8A////D////4H///+J////if///4n///9+AAAAAP//
@@ -345,9 +345,9 @@ If you'd like to allow us to ask some questions about the crash, please enter yo
         1P+kmdL/5uPy///////////NAAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AAAAAAAAAAAA////zf//
         ///m4/L/pJnS/6id1P+ondT/qJ3U/6ab0//v7Pf//////////5v///8mAAAAAP///5T/////o5jR/xMA
-        if8ZAI3/GQCN/xkAjf8ZAI3/LhWX/9zX7f//////////zf///wwAAAAA////AAAAAAAAAAAAAAAAAAAA
+        if8ZAI3/GQCN/sdAjf8ZAI3/LhWX/9zX7f//////////zf///wwAAAAA////AAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAP//
-        /wv////M/////9zX7f8uFZf/GQCN/xkAjf8ZAI3/GQCN/xMAif+jmNH//////////5MAAAAAAAAAAP//
+        /wv////M/////9zX7f8uFZf/GQCN/sdAjf8ZAI3/GQCN/xMAif+jmNH//////////5MAAAAAAAAAAP//
         /2//////+/r9/3lovP8eAo//IAWQ/yAFkP8gBZD/HgOP/z4mn//b1u3//////////7v///8MAAAAAP//
         /wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//
         /wAAAAAA////DP///7r/////3Nft/z4nn/8eA4//IAWQ/yAFkP8gBZD/HgKP/3hovP/7+v3/////////
@@ -374,8 +374,8 @@ If you'd like to allow us to ask some questions about the crash, please enter yo
         //9vX7j/GACM/yAFkP8gBZD/IAWQ/x4Dj/8yGZn/n5PP/6WZ0v+kmNL/pJjS/6SY0v+kmNL/pJjS/6SY
         0v+kmNL/pJjS/6WZ0v+fk8//MhmZ/x4Dj/8gBZD/IAWQ/yAFkP8ZAIz/b164////////////////xP//
         /wkAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AAAA
-        AAAAAAAA////v///////////cF+4/x4Cj/8gBZD/IAWQ/yAFkP8gBZD/GgCN/xkAjf8aAI3/GgCN/xoA
-        jf8aAI3/GgCN/xoAjf8aAI3/GgCN/xkAjf8aAI3/IAWQ/yAFkP8gBZD/IAWQ/x4Cj/9uXrj/////////
+        AAAAAAAA////v///////////cF+4/x4Cj/8gBZD/IAWQ/yAFkP8gBZD/GgCN/sdAjf8aAI3/GgCN/xoA
+        jf8aAI3/GgCN/xoAjf8aAI3/GgCN/sdAjf8aAI3/IAWQ/yAFkP8gBZD/IAWQ/x4Cj/9uXrj/////////
         ///////DAAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAP///wAAAAAA////Bv///6///////////3lovP8eAo//IAWQ/yAFkP8gBZD/IAWQ/yAF
         kP8gBZD/IAWQ/yAFkP8gBZD/IAWQ/yAFkP8gBZD/IAWQ/yAFkP8gBZD/IAWQ/yAFkP8gBZD/HgKP/3dn
@@ -437,10 +437,10 @@ If you'd like to allow us to ask some questions about the crash, please enter yo
         ////////////xf///wQAAAAAAAAAAP///2//////+/r9/3lovP8eAo//IAWQ/yAFkP8gBZD/HgOP/z4m
         n//b1u3//////////7v///8MAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAP///wAAAAAA////DP///7v/////3Nft/z4nn/8eA4//IAWQ/yAF
-        kP8gBZD/HgKP/3hovP/7+v3//////////28AAAAAAAAAAP///5T/////o5jR/xMAif8ZAI3/GQCN/xkA
+        kP8gBZD/HgKP/3hovP/7+v3//////////28AAAAAAAAAAP///5T/////o5jR/xMAif8ZAI3/GQCN/sdA
         jf8ZAI3/LhWX/9zX7f//////////zv///wwAAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD///8AAAAAAP///wz////N/////9zX
-        7f8uFZf/GQCN/xkAjf8ZAI3/GQCN/xMAif+kmNH//////////5MAAAAA////Jv///5v/////7+z3/6ab
+        7f8uFZf/GQCN/sdAjf8ZAI3/GQCN/xMAif+kmNH//////////5MAAAAA////Jv///5v/////7+z3/6ab
         0/+ondT/qJ3U/6id1P+kmdL/5uPy///////////NAAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AAAA
         AAAAAAAA////zf/////m4/L/pJnS/6id1P+ondT/qJ3U/6ab0//v7Pf//////////5v///8mAAAAAP//

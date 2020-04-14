@@ -1,6 +1,6 @@
 !Texture
 Id: 9450bf71-a247-4f3d-9cbb-a3b6da1a3046
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../Resources/Knight/c100_weapon_nm.jpg
 Type: !ColorTextureType

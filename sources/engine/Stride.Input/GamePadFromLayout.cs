@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     /// <summary>
     /// A <see cref="IGamePadDevice"/> from a <see cref="IGameControllerDevice"/> using a <see cref="GamePadLayout"/> to create a mapping between the two

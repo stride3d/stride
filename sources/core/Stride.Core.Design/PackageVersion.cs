@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 // Copyright 2010-2014 Outercurve Foundation
 //  Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,10 +13,10 @@
 
 using System;
 using System.Text.RegularExpressions;
-using Xenko.Core.Annotations;
-using Xenko.Core.Serialization;
+using Stride.Core.Annotations;
+using Stride.Core.Serialization;
 
-namespace Xenko.Core
+namespace Stride.Core
 {
     /// <summary>
     /// A hybrid implementation of SemVer that supports semantic versioning as described at http://semver.org while not strictly enforcing it to

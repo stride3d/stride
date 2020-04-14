@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_OPENGL
+#if STRIDE_GRAPHICS_API_OPENGL
 
 using System;
 using System.Threading;
 using OpenTK.Graphics;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko;
-using Xenko.Shaders;
-using Color4 = Xenko.Core.Mathematics.Color4;
-#if XENKO_GRAPHICS_API_OPENGLES
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride;
+using Stride.Shaders;
+using Color4 = Stride.Core.Mathematics.Color4;
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 using PixelFormatGl = OpenTK.Graphics.ES30.PixelFormat;
 using PrimitiveTypeGl = OpenTK.Graphics.ES30.PrimitiveType;
@@ -23,7 +23,7 @@ using TextureTarget2d = OpenTK.Graphics.OpenGL.TextureTarget;
 using TextureTarget3d = OpenTK.Graphics.OpenGL.TextureTarget;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public partial class CommandList
     {
@@ -67,7 +67,7 @@ namespace Xenko.Graphics
 
         private VertexBufferView[] vertexBuffers = new VertexBufferView[8];
 
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
         private readonly float[] nativeViewports = new float[4 * MaxViewportAndScissorRectangleCount];
         private readonly int[] nativeScissorRectangles = new int[4 * MaxViewportAndScissorRectangleCount];
 #endif
@@ -89,7 +89,7 @@ namespace Xenko.Graphics
             DepthStencilBoundState.DepthBufferWriteEnable = true;
             DepthStencilBoundState.StencilWriteMask = 0xFF;
             RasterizerBoundState.FrontFaceDirection = FrontFaceDirection.Ccw;
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
             RasterizerBoundState.PolygonMode = PolygonMode.Fill;
 #endif
 
@@ -116,7 +116,7 @@ namespace Xenko.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             // Device with no background loading context: check if some loading is pending
             if (GraphicsDevice.AsyncPendingTaskWaiting)
                 GraphicsDevice.ExecutePendingTasks();
@@ -179,7 +179,7 @@ namespace Xenko.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             Internal.Refactor.ThrowNotImplementedException();
 #else
             if ((buffer.ViewFlags & BufferFlags.UnorderedAccess) != BufferFlags.UnorderedAccess)
@@ -197,7 +197,7 @@ namespace Xenko.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             Internal.Refactor.ThrowNotImplementedException();
 #else
             if ((buffer.ViewFlags & BufferFlags.UnorderedAccess) != BufferFlags.UnorderedAccess)
@@ -215,7 +215,7 @@ namespace Xenko.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             Internal.Refactor.ThrowNotImplementedException();
 #else
             if ((buffer.ViewFlags & BufferFlags.UnorderedAccess) != BufferFlags.UnorderedAccess)
@@ -233,7 +233,7 @@ namespace Xenko.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             Internal.Refactor.ThrowNotImplementedException();
 #else
             if (activeTexture != 0)
@@ -257,7 +257,7 @@ namespace Xenko.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             Internal.Refactor.ThrowNotImplementedException();
 #else
             if (activeTexture != 0)
@@ -281,7 +281,7 @@ namespace Xenko.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             Internal.Refactor.ThrowNotImplementedException();
 #else
             if (activeTexture != 0)
@@ -329,7 +329,7 @@ namespace Xenko.Graphics
             currentPipelineState.DepthStencilState.Apply(this);
             currentPipelineState.RasterizerState.Apply(this);
 
-#if XENKO_GRAPHICS_API_OPENGLCORE
+#if STRIDE_GRAPHICS_API_OPENGLCORE
             GL.Enable(EnableCap.FramebufferSrgb);
 #endif
         }
@@ -452,7 +452,7 @@ namespace Xenko.Graphics
 
                     switch (destTexture.TextureTarget)
                     {
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                         case TextureTarget.Texture1D:
                             GL.CopyTexSubImage1D(TextureTarget2d.Texture1D, mipLevel, dstX, sourceRectangle.Left, sourceRectangle.Top, sourceRectangle.Width);
                             break;
@@ -524,7 +524,7 @@ namespace Xenko.Graphics
             GL.ColorMask(true, true, true, true);
 
             // TODO find a better way to detect if sRGB conversion is needed (need to detect if main frame buffer is sRGB or not at init time)
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             // If we are copying from an SRgb texture to a non SRgb texture, we use a special SRGb copy shader
             bool needSRgbConversion = sourceTexture.Description.Format.IsSRgb() && destTexture == GraphicsDevice.WindowProvidedRenderTexture;
 #else
@@ -704,7 +704,7 @@ namespace Xenko.Graphics
                 blitFramebufferFilter = BlitFramebufferFilter.Linear;   // TODO: STABILITY: For integer formats this has to be set to Nearest.
             }
 
-#if !XENKO_PLATFORM_IOS
+#if !STRIDE_PLATFORM_IOS
             // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
             // Do the actual blitting operation:
             GL.BlitFramebuffer(0, 0, sourceMultisampleTexture.Width, sourceMultisampleTexture.Height, 0, 0, destTexture.Width, destTexture.Height, clearBufferMask, blitFramebufferFilter);
@@ -726,7 +726,7 @@ namespace Xenko.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
             GL.DispatchCompute(threadCountX, threadCountY, threadCountZ);
 #else
             Internal.Refactor.ThrowNotImplementedException();
@@ -739,7 +739,7 @@ namespace Xenko.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
             GL.BindBuffer(BufferTarget.DispatchIndirectBuffer, indirectBuffer.BufferId);
 
             GL.DispatchComputeIndirect((IntPtr)offsetInBytes);
@@ -788,7 +788,7 @@ namespace Xenko.Graphics
 #endif
             PreDraw();
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             if (baseVertexLocation != 0)
                 throw new NotSupportedException("DrawIndexed with no null baseVertexLocation is not supported on OpenGL ES.");
             GL.DrawElements(newPipelineState.PrimitiveType, indexCount, indexBuffer.Type, IntPtr.Zero + indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)); // conversion to IntPtr required on Android
@@ -814,7 +814,7 @@ namespace Xenko.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
             PreDraw();
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             Internal.Refactor.ThrowNotImplementedException();
 #else
             GL.DrawElementsInstancedBaseVertex(newPipelineState.PrimitiveType, indexCountPerInstance, indexBuffer.Type, (IntPtr)(indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)), instanceCount, baseVertexLocation);
@@ -880,7 +880,7 @@ namespace Xenko.Graphics
 
             PreDraw();
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             GraphicsDevice.FrameDrawCalls++;
             Internal.Refactor.ThrowNotImplementedException();
 #else
@@ -896,10 +896,10 @@ namespace Xenko.Graphics
 
         public void BeginProfile(Color4 profileColor, string name)
         {
-#if !XENKO_PLATFORM_IOS
+#if !STRIDE_PLATFORM_IOS
             if (GraphicsDevice.ProfileEnabled)
             {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                 if (GraphicsDevice.HasKhronosDebugKHR)
                     GL.Khr.PushDebugGroup(DebugSourceExternal.DebugSourceApplication, 1, -1, name);
                 else
@@ -911,10 +911,10 @@ namespace Xenko.Graphics
 
         public void EndProfile()
         {
-#if !XENKO_PLATFORM_IOS
+#if !STRIDE_PLATFORM_IOS
             if (GraphicsDevice.ProfileEnabled)
             {
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
                 if (GraphicsDevice.HasKhronosDebugKHR)
                     GL.Khr.PopDebugGroup();
                 else
@@ -931,9 +931,9 @@ namespace Xenko.Graphics
         /// <param name="index">The query index.</param>
         public void WriteTimestamp(QueryPool queryPool, int index)
         {
-#if XENKO_GRAPHICS_API_OPENGLES && !XENKO_PLATFORM_IOS
+#if STRIDE_GRAPHICS_API_OPENGLES && !STRIDE_PLATFORM_IOS
             GL.Ext.QueryCounter(queryPool.NativeQueries[index], QueryCounterTarget.TimestampExt);
-#elif !XENKO_PLATFORM_IOS
+#elif !STRIDE_PLATFORM_IOS
             GL.QueryCounter(queryPool.NativeQueries[index], QueryCounterTarget.Timestamp);
 #endif
         }
@@ -963,7 +963,7 @@ namespace Xenko.Graphics
 
                 GL.BindBuffer(buffer.BufferTarget, buffer.BufferId);
 
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                 //if (mapMode != MapMode.WriteDiscard && mapMode != MapMode.WriteNoOverwrite)
                 //    mapResult = GL.MapBuffer(buffer.bufferTarget, mapMode.ToOpenGL());
                 //else
@@ -1058,7 +1058,7 @@ namespace Xenko.Graphics
                     // Bind buffer to texture
                     switch (texture.TextureTarget)
                     {
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                         case TextureTarget.Texture1D:
                             GL.TexSubImage1D(TextureTarget.Texture1D, mipLevel, 0, texture.Width, texture.TextureFormat, texture.TextureType, IntPtr.Zero);
                             break;
@@ -1119,7 +1119,7 @@ namespace Xenko.Graphics
 
         internal unsafe void PreDraw()
         {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             // Device with no background loading context: check if some loading is pending
             if (GraphicsDevice.AsyncPendingTaskWaiting)
                 GraphicsDevice.ExecutePendingTasks();
@@ -1180,7 +1180,7 @@ namespace Xenko.Graphics
                         GL.EnableVertexAttribArray(vertexAttrib.AttributeIndex);
                     }
 
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                     if (vertexAttrib.IsInteger && !vertexAttrib.Normalized)
                         GL.VertexAttribIPointer(vertexAttrib.AttributeIndex, vertexAttrib.Size, (VertexAttribIntegerType)vertexAttrib.Type, vertexBufferView.Stride, (IntPtr)(vertexBufferView.Offset + vertexAttrib.Offset));
                     else
@@ -1331,7 +1331,7 @@ namespace Xenko.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             Internal.Refactor.ThrowNotImplementedException();
 #else
             for (int i = 0; i < scissorCount; ++i)
@@ -1477,7 +1477,7 @@ namespace Xenko.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
             // TODO: Check all non-empty viewports are identical and match what is active in FBO!
             UpdateViewport(viewports[0]);
 #else
@@ -1491,7 +1491,7 @@ namespace Xenko.Graphics
             GL.Viewport((int)viewport.X, (int)viewport.Y, (int)viewport.Width, (int)viewport.Height);
         }
 
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
         private void UpdateViewports()
         {
             int nbViewports = viewports.Length;
@@ -1573,7 +1573,7 @@ namespace Xenko.Graphics
                     var arraySlice = subResourceIndex / texture.MipLevels;
                     switch (texture.TextureTarget)
                     {
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                         case TextureTarget.Texture1D:
                             GL.TexSubImage1D(TextureTarget.Texture1D, mipLevel, 0, desc.Width, texture.TextureFormat, texture.TextureType, databox.DataPointer);
                             break;

@@ -1,26 +1,26 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.LauncherApp.Resources;
-using Xenko.Core.Presentation.Collections;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.LauncherApp.Services;
+using Stride.Core.Assets;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.LauncherApp.Resources;
+using Stride.Core.Presentation.Collections;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModel;
+using Stride.LauncherApp.Services;
 
-namespace Xenko.LauncherApp.ViewModels
+namespace Stride.LauncherApp.ViewModels
 {
     internal class RecentProjectViewModel : DispatcherViewModel
     {
         private readonly UFile fullPath;
-        private string xenkoVersionName;
-        private Version xenkoVersion;
+        private string strideVersionName;
+        private Version strideVersion;
 
         internal RecentProjectViewModel(LauncherViewModel launcher, UFile path)
             : base(launcher.SafeArgument(nameof(launcher)).ServiceProvider)
@@ -28,26 +28,26 @@ namespace Xenko.LauncherApp.ViewModels
             Name = path.GetFileNameWithoutExtension();
             Launcher = launcher;
             fullPath = path;
-            XenkoVersionName = Strings.ReportDiscovering;
+            StrideVersionName = Strings.ReportDiscovering;
             OpenCommand = new AnonymousTaskCommand(ServiceProvider, () => OpenWith(null)) { IsEnabled = false };
-            OpenWithCommand = new AnonymousTaskCommand<XenkoVersionViewModel>(ServiceProvider, OpenWith);
+            OpenWithCommand = new AnonymousTaskCommand<StrideVersionViewModel>(ServiceProvider, OpenWith);
             ExploreCommand = new AnonymousCommand(ServiceProvider, Explore);
             RemoveCommand = new AnonymousCommand(ServiceProvider, Remove);
-            CompatibleVersions = new ObservableList<XenkoVersionViewModel>();
-            DiscoverXenkoVersion();
+            CompatibleVersions = new ObservableList<StrideVersionViewModel>();
+            DiscoverStrideVersion();
         }
 
         public string Name { get; private set; }
 
         public string FullPath => fullPath.ToWindowsPath();
 
-        public string XenkoVersionName { get { return xenkoVersionName; } private set { SetValue(ref xenkoVersionName, value); } }
+        public string StrideVersionName { get { return strideVersionName; } private set { SetValue(ref strideVersionName, value); } }
 
-        public Version XenkoVersion { get { return xenkoVersion; } private set { SetValue(ref xenkoVersion, value); } }
+        public Version StrideVersion { get { return strideVersion; } private set { SetValue(ref strideVersion, value); } }
 
         public LauncherViewModel Launcher { get; }
 
-        public ObservableList<XenkoVersionViewModel> CompatibleVersions { get; private set; }
+        public ObservableList<StrideVersionViewModel> CompatibleVersions { get; private set; }
 
         public ICommandBase ExploreCommand { get; }
 
@@ -57,15 +57,15 @@ namespace Xenko.LauncherApp.ViewModels
 
         public ICommandBase RemoveCommand { get; }
 
-        private void DiscoverXenkoVersion()
+        private void DiscoverStrideVersion()
         {
             Task.Run(async () =>
             {
                 var packageVersion = await PackageSessionHelper.GetPackageVersion(fullPath);
-                XenkoVersion = new Version(packageVersion.Version.Major, packageVersion.Version.Minor);
-                XenkoVersionName = XenkoVersion?.ToString();
+                StrideVersion = new Version(packageVersion.Version.Major, packageVersion.Version.Minor);
+                StrideVersionName = StrideVersion?.ToString();
 
-                Dispatcher.Invoke(() => OpenCommand.IsEnabled = XenkoVersionName != null);
+                Dispatcher.Invoke(() => OpenCommand.IsEnabled = StrideVersionName != null);
             });
         }
 
@@ -78,47 +78,47 @@ namespace Xenko.LauncherApp.ViewModels
 
         private void Remove()
         {
-            //Remove files that's was deleted or upgraded by xenko versions <= 3.0
-            if (string.IsNullOrEmpty(this.XenkoVersionName) || string.Compare(this.XenkoVersionName, "3.0", StringComparison.Ordinal) <= 0)
+            //Remove files that's was deleted or upgraded by stride versions <= 3.0
+            if (string.IsNullOrEmpty(this.StrideVersionName) || string.Compare(this.StrideVersionName, "3.0", StringComparison.Ordinal) <= 0)
             {
                 //Get all installed versions 
-                var xenkoInstalledVersions = this.Launcher.XenkoVersions.Where(x => x.CanDelete)
+                var strideInstalledVersions = this.Launcher.StrideVersions.Where(x => x.CanDelete)
                     .Select(x => $"{x.Major}.{x.Minor}").ToList();
 
                 //If original version of files is not in list get and to add it.
-                if (!string.IsNullOrEmpty(this.XenkoVersionName) && !xenkoInstalledVersions.Any(x => x.Equals(this.XenkoVersionName)))
-                    xenkoInstalledVersions.Add(this.XenkoVersionName);
+                if (!string.IsNullOrEmpty(this.StrideVersionName) && !strideInstalledVersions.Any(x => x.Equals(this.StrideVersionName)))
+                    strideInstalledVersions.Add(this.StrideVersionName);
 
-                foreach (var item in xenkoInstalledVersions)
+                foreach (var item in strideInstalledVersions)
                 {
                     GameStudioSettings.RemoveMostRecentlyUsed(this.fullPath, item);
                 }
             }
             else
             {
-                GameStudioSettings.RemoveMostRecentlyUsed(this.fullPath, this.XenkoVersionName);
+                GameStudioSettings.RemoveMostRecentlyUsed(this.fullPath, this.StrideVersionName);
             }
         }
 
-        private async Task OpenWith(XenkoVersionViewModel version)
+        private async Task OpenWith(StrideVersionViewModel version)
         {
             string message;
-            version = version ?? Launcher.XenkoVersions.FirstOrDefault(x => x.Name == XenkoVersionName);
+            version = version ?? Launcher.StrideVersions.FirstOrDefault(x => x.Name == StrideVersionName);
             if (version == null)
             {
-                message = string.Format(Strings.ErrorDoNotFindVersion, XenkoVersion);
+                message = string.Format(Strings.ErrorDoNotFindVersion, StrideVersion);
                 await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             if (version.IsProcessing)
             {
-                message = string.Format(Strings.ErrorVersionBeingUpdated, XenkoVersion);
+                message = string.Format(Strings.ErrorVersionBeingUpdated, StrideVersion);
                 await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             if (!version.CanDelete)
             {
-                message = string.Format(Strings.ErrorVersionNotInstalled, XenkoVersion);
+                message = string.Format(Strings.ErrorVersionNotInstalled, StrideVersion);
                 var result = await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.YesNoCancel, MessageBoxImage.Information);
                 if (result == MessageBoxResult.Yes)
                 {

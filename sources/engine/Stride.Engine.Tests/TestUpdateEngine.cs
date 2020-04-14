@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using Xunit;
-using Xenko.Core;
-using Xenko.Engine.Design;
-using Xenko.Updater;
-using Xenko.Rendering;
+using Stride.Core;
+using Stride.Engine.Design;
+using Stride.Updater;
+using Stride.Rendering;
 
-namespace Xenko.Engine.Tests
+namespace Stride.Engine.Tests
 {
     public class TestUpdateEngine
     {
@@ -98,8 +98,8 @@ namespace Xenko.Engine.Tests
 
             var updateMemberInfo = new List<UpdateMemberInfo>
             {
-                new UpdateMemberInfo("ObjectField.(Xenko.Engine.Tests.TestClass,Xenko.Engine.Tests).IntField", 0),
-                new UpdateMemberInfo("ObjectProperty.(Xenko.Engine.Tests.TestClass,Xenko.Engine.Tests).IntField", 8),
+                new UpdateMemberInfo("ObjectField.(Stride.Engine.Tests.TestClass,Stride.Engine.Tests).IntField", 0),
+                new UpdateMemberInfo("ObjectProperty.(Stride.Engine.Tests.TestClass,Stride.Engine.Tests).IntField", 8),
             };
 
             var blittableData = new TestData[] { 123, 456 };
@@ -336,8 +336,8 @@ namespace Xenko.Engine.Tests
                 new UpdateMemberInfo("NonBlittableStructField.TestClassField.IntProperty", 0),
                 new UpdateMemberInfo("NonBlittableStructField.TestClassProperty.IntField", 0),
                 new UpdateMemberInfo("NonBlittableStructField.TestClassProperty.IntProperty", 0),
-                new UpdateMemberInfo("ObjectField.(Xenko.Engine.Tests.TestClass,Xenko.Engine.Tests).IntField", 0),
-                new UpdateMemberInfo("ObjectProperty.(Xenko.Engine.Tests.TestClass,Xenko.Engine.Tests).IntField", 0),
+                new UpdateMemberInfo("ObjectField.(Stride.Engine.Tests.TestClass,Stride.Engine.Tests).IntField", 0),
+                new UpdateMemberInfo("ObjectProperty.(Stride.Engine.Tests.TestClass,Stride.Engine.Tests).IntField", 0),
                 new UpdateMemberInfo("IntArray[0]", 0),
                 new UpdateMemberInfo("IntArray[2]", 0),
                 new UpdateMemberInfo("IntArray[3]", 0),

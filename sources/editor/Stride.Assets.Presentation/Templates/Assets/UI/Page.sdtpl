@@ -6,6 +6,6 @@ Scope: Asset
 Description: A user interface page
 Group: UI
 Order: -100
-Icon: .xktpl\UI.png
+Icon: .sdtpl\UI.png
 DefaultOutputName: Page
 FactoryTypeName: UIPageFactory

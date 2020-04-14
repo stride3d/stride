@@ -1,6 +1,6 @@
 !Model
 Id: 079463bb-d4f9-433d-a5f3-39ba388feaec
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/Gun.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

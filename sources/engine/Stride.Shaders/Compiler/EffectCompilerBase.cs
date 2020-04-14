@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using Xenko.Core;
-using Xenko.Core.IO;
-using Xenko.Core.Storage;
+using Stride.Core;
+using Stride.Core.IO;
+using Stride.Core.Storage;
 
-namespace Xenko.Shaders.Compiler
+namespace Stride.Shaders.Compiler
 {
     /// <summary>
     /// Base class for implementations of <see cref="IEffectCompiler"/>, providing some helper functions.
@@ -57,7 +57,7 @@ namespace Xenko.Shaders.Compiler
 
                 if (mixinToCompile == null)
                 {
-                    throw new ArgumentException("Unsupported ShaderSource type [{0}]. Supporting only ShaderMixinSource/xkfx, ShaderClassSource", "shaderSource");
+                    throw new ArgumentException("Unsupported ShaderSource type [{0}]. Supporting only ShaderMixinSource/sdfx, ShaderClassSource", "shaderSource");
                 }
                 if (string.IsNullOrEmpty(mixinToCompile.Name))
                 {
@@ -97,7 +97,7 @@ namespace Xenko.Shaders.Compiler
         {
             if (type == null) throw new ArgumentNullException("type");
             // TODO: harcoded values, bad bad bad
-            return DefaultSourceShaderFolder + "/" + type + ".xksl";
+            return DefaultSourceShaderFolder + "/" + type + ".sdsl";
         }
     }
 }

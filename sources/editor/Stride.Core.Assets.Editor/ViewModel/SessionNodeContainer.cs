@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Assets.Editor.Quantum;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Extensions;
+using Stride.Core.Assets.Editor.Quantum;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Extensions;
 
-namespace Xenko.Core.Assets.Editor.ViewModel
+namespace Stride.Core.Assets.Editor.ViewModel
 {
     public class SessionNodeContainer : AssetNodeContainer
     {

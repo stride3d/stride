@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_VULKAN
+#if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
 using System.Resources;
 using System.Runtime.InteropServices;
 using System.Text;
 using SharpVulkan;
-using Xenko.Core;
+using Stride.Core;
 
-using ComponentBase = Xenko.Core.ComponentBase;
-using Utilities = Xenko.Core.Utilities;
+using ComponentBase = Stride.Core.ComponentBase;
+using Utilities = Stride.Core.Utilities;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// Provides methods to retrieve and manipulate graphics adapters. This is the equivalent to <see cref="Adapter1"/>.

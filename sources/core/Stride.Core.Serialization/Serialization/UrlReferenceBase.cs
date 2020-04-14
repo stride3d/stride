@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Serialization.Contents;
+using Stride.Core.Serialization.Contents;
 
-namespace Xenko.Core.Serialization
+namespace Stride.Core.Serialization
 {
     /// <summary>
     /// Base class for <see cref="IUrlReference" /> implementations

@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
-using Xenko.Core.Serialization;
+using Stride.Core.Serialization;
 
-namespace Xenko.Core.AssemblyProcessor.Serializers
+namespace Stride.Core.AssemblyProcessor.Serializers
 {
     /// <summary>
     /// Fill <see cref="CecilSerializerContext.SerializableTypes"/> with serializable types handled by referenced assemblies.
@@ -54,7 +54,7 @@ namespace Xenko.Core.AssemblyProcessor.Serializers
             // Find DataSerializer attribute on assembly and/or types
             foreach (var dataSerializerAttribute in
                 assembly.CustomAttributes.Concat(assembly.MainModule.GetAllTypes().SelectMany(x => x.CustomAttributes)).Where(
-                    x => x.AttributeType.FullName == "Xenko.Core.Serialization.DataSerializerGlobalAttribute")
+                    x => x.AttributeType.FullName == "Stride.Core.Serialization.DataSerializerGlobalAttribute")
                     .OrderBy(x => x.ConstructorArguments[0].Value != null ? -1 : 1)) // Order so that we first have the ones which don't require us to go through GenerateSerializer
             {
                 var dataSerializerType = (TypeReference)dataSerializerAttribute.ConstructorArguments[0].Value;
@@ -107,7 +107,7 @@ namespace Xenko.Core.AssemblyProcessor.Serializers
                 var genericInstanceType = dataSerializerTypeCurrent as GenericInstanceType;
                 if (genericInstanceType != null)
                 {
-                    if (genericInstanceType.ElementType.FullName == "Xenko.Core.Serialization.DataSerializer`1")
+                    if (genericInstanceType.ElementType.FullName == "Stride.Core.Serialization.DataSerializer`1")
                     {
                         dataType = genericInstanceType.GenericArguments[0];
                         break;

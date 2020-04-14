@@ -1,12 +1,12 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.ComponentModel;
-using Xenko.Core;
-using Xenko.Core.Annotations;
+using Stride.Core;
+using Stride.Core.Annotations;
 
-namespace Xenko.Rendering.Images
+namespace Stride.Rendering.Images
 {
     /// <summary>
     /// A FXAA anti-aliasing pass.
@@ -69,7 +69,7 @@ namespace Xenko.Rendering.Images
 
         public static (int, int) GetQualityRange(DitherType dither)
         {
-            // Returns valid ranges for FXAA_QUALITY__PRESET (as in FXAAShader.xksl)
+            // Returns valid ranges for FXAA_QUALITY__PRESET (as in FXAAShader.sdsl)
             switch (dither)
             {
                 case DitherType.Medium:

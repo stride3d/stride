@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Core.Mathematics;
-using Xenko.Games;
-using Xenko.Engine;
-using Xenko.Shaders;
-using Xenko.Rendering.Voxels.Debug;
+using Stride.Core.Mathematics;
+using Stride.Games;
+using Stride.Engine;
+using Stride.Shaders;
+using Stride.Rendering.Voxels.Debug;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public class DataVoxelVolume
     {

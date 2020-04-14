@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
 using Xunit;
-using Xenko.Core.Assets.Editor.Quantum;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Assets.Quantum.Tests;
-using Xenko.Core.Presentation.Dirtiables;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Quantum;
+using Stride.Core.Assets.Editor.Quantum;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Quantum.Tests;
+using Stride.Core.Presentation.Dirtiables;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Quantum;
 
-namespace Xenko.Core.Assets.Editor.Tests
+namespace Stride.Core.Assets.Editor.Tests
 {
     /// <summary>
     /// This class repeats the tests done by <see cref="TestArchetypesBasic"/> and verifies that undo/redo works for them.

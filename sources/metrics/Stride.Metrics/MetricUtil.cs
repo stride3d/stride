@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
-namespace Xenko.Metrics
+namespace Stride.Metrics
 {
     static class MetricUtil
     {

@@ -46,9 +46,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Xenko.Core.Reflection;
+using Stride.Core.Reflection;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Creates objects using Activator.CreateInstance.

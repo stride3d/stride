@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     static class VoxelUtils
     {
-        public static bool DisposeBufferBySpecs(Xenko.Graphics.Buffer buf, int count)
+        public static bool DisposeBufferBySpecs(Stride.Graphics.Buffer buf, int count)
         {
             if (buf == null || buf.ElementCount != count)
             {
@@ -26,7 +26,7 @@ namespace Xenko.Rendering.Voxels
                     tex.Height == dim.Y &&
                     tex.Depth == dim.Z);
         }
-        public static bool DisposeTextureBySpecs(Xenko.Graphics.Texture tex, Vector3 dim, Xenko.Graphics.PixelFormat pixelFormat)
+        public static bool DisposeTextureBySpecs(Stride.Graphics.Texture tex, Vector3 dim, Stride.Graphics.PixelFormat pixelFormat)
         {
             if (tex == null || !TextureDimensionsEqual(tex, dim) || tex.Format != pixelFormat)
             {
@@ -37,7 +37,7 @@ namespace Xenko.Rendering.Voxels
             }
             return false;
         }
-        public static bool DisposeTextureBySpecs(Xenko.Graphics.Texture tex, Vector3 dim, Xenko.Graphics.PixelFormat pixelFormat, MultisampleCount samples)
+        public static bool DisposeTextureBySpecs(Stride.Graphics.Texture tex, Vector3 dim, Stride.Graphics.PixelFormat pixelFormat, MultisampleCount samples)
         {
             if (tex == null || !TextureDimensionsEqual(tex, dim) || tex.Format != pixelFormat || tex.MultisampleCount != samples)
             {

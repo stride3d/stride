@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using Xenko.Core.Annotations;
-using Xenko.Core.Presentation.Services;
+using Stride.Core.Annotations;
+using Stride.Core.Presentation.Services;
 
-namespace Xenko.Core.Presentation.View
+namespace Stride.Core.Presentation.View
 {
     /// <summary>
     /// This class is the implementation of the <see cref="IDispatcherService"/> interface for WPF.

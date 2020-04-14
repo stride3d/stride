@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core.Annotations;
-using Xenko.Core.MicroThreading;
+using Stride.Core.Annotations;
+using Stride.Core.MicroThreading;
 
-namespace Xenko.Core
+namespace Stride.Core
 {
     /// <summary>
     /// An hybrid lock that allows to do asynchrounous work when acquired from a <see cref="MicroThread"/>, and still allow to await for acquisition out of a

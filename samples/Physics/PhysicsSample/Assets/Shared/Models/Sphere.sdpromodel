@@ -1,6 +1,6 @@
 !ProceduralModelAsset
 Id: bbff2b2d-985f-4986-9c34-f08cdeff8669
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: !GeoSphereProceduralModel
     Radius: 1.0

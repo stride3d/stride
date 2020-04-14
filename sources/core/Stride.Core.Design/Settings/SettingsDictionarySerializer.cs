@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Events;
-using Xenko.Core.Yaml.Serialization;
-using Xenko.Core.Yaml.Serialization.Serializers;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Events;
+using Stride.Core.Yaml.Serialization;
+using Stride.Core.Yaml.Serialization.Serializers;
 
-namespace Xenko.Core.Settings
+namespace Stride.Core.Settings
 {
     [YamlSerializerFactory(SettingsProfileSerializer.YamlProfile)]
     internal class SettingsDictionarySerializer : DictionarySerializer

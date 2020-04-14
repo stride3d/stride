@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Assets;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization;
-using Xenko.Graphics;
-using Xenko.Rendering.Materials;
-using Xenko.Rendering.Materials.ComputeColors;
+using Stride.Core.Assets;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
+using Stride.Graphics;
+using Stride.Rendering.Materials;
+using Stride.Rendering.Materials.ComputeColors;
 
-namespace Xenko.Assets.Materials
+namespace Stride.Assets.Materials
 {
     public class DiffuseMaterialFactory : AssetFactory<MaterialAsset>
     {
@@ -152,20 +152,20 @@ namespace Xenko.Assets.Materials
             // Load default texture assets
             var clearCoatLayerNormalMap = new ComputeTextureColor
             {
-                Texture = AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("2f76bcba-ae9f-4954-b98d-f94c2102ff86"), "XenkoCarPaintOrangePeelNM"),
+                Texture = AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("2f76bcba-ae9f-4954-b98d-f94c2102ff86"), "StrideCarPaintOrangePeelNM"),
                 Scale = new Vector2(8, 8)
             };
             
             var metalFlakesNormalMap = new ComputeTextureColor
             {
-                Texture = AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb"), "XenkoCarPaintMetalFlakesNM"),
+                Texture = AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb"), "StrideCarPaintMetalFlakesNM"),
                 Scale = new Vector2(128, 128),
                 UseRandomTextureCoordinates = true
             };
 
             var metalFlakesMask = new ComputeTextureScalar
             {
-                Texture = AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb"), "XenkoCarPaintMetalFlakesNM"),
+                Texture = AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb"), "StrideCarPaintMetalFlakesNM"),
                 Scale = new Vector2(128, 128),
                 UseRandomTextureCoordinates = true
             };

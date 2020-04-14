@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.IO;
 
 using Xunit;
 
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Storage;
-using Xenko.Core.Mathematics;
-using Xenko.Games;
-using Xenko.Shaders.Parser.Mixins;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Storage;
+using Stride.Core.Mathematics;
+using Stride.Games;
+using Stride.Shaders.Parser.Mixins;
 
-using LoggerResult = Xenko.Core.Shaders.Utility.LoggerResult;
+using LoggerResult = Stride.Core.Shaders.Utility.LoggerResult;
 
-namespace Xenko.Shaders.Tests
+namespace Stride.Shaders.Tests
 {
     public class TestShaderLoadingString
     {
@@ -66,13 +66,13 @@ namespace Xenko.Shaders.Tests
 
             var shaderClassString = new ShaderClassString(ShaderSourceName, ShaderSourceCode, new Vector4(1, 1, 1, 1));
 
-            var simple = shaderLoader.LoadClassSource(shaderClassString, new Xenko.Core.Shaders.Parser.ShaderMacro[0], log, false)?.Type;
+            var simple = shaderLoader.LoadClassSource(shaderClassString, new Stride.Core.Shaders.Parser.ShaderMacro[0], log, false)?.Type;
 
             Assert.Single(simple.Members);
 
             var shaderClassString2 = new ShaderClassString(ShaderSourceName, ShaderSourceCode, new Vector4(1, 1, 1, 1));
 
-            var simple2 = shaderLoader.LoadClassSource(shaderClassString2, new Xenko.Core.Shaders.Parser.ShaderMacro[0], log, false)?.Type;
+            var simple2 = shaderLoader.LoadClassSource(shaderClassString2, new Stride.Core.Shaders.Parser.ShaderMacro[0], log, false)?.Type;
 
             // Make sure that a class is not duplicated in memory
             Assert.True(ReferenceEquals(simple, simple2));

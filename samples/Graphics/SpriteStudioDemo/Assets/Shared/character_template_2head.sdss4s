@@ -1,6 +1,6 @@
 !SpriteStudioSheetAsset
 Id: 7595b1d1-3f94-4cc5-bbfc-ec51687b96d6
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/character_template_2head.ssae
 NodeNames:

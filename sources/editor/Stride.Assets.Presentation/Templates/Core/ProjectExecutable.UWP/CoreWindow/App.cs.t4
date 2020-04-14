@@ -5,8 +5,8 @@ using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
 using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
-using Xenko.Engine;
-using Xenko.Games;
+using Stride.Engine;
+using Stride.Games;
 
 namespace <#= Properties.Namespace #>
 {

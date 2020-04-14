@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 using System;
-using Xenko.Core.Mathematics;
+using Stride.Core.Mathematics;
 using OpenTK;
 using OpenTK.Platform.Android;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public class SwapChainGraphicsPresenter : GraphicsPresenter
     {

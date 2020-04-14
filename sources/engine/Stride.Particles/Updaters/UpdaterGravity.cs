@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core;
-using Xenko.Core.Mathematics;
+using Stride.Core;
+using Stride.Core.Mathematics;
 
-namespace Xenko.Particles.Modules
+namespace Stride.Particles.Modules
 {
     /// <summary>
     /// The <see cref="UpdaterGravity"/> is a simple version of a force field which updates the particles' velocity over time and acts as a gravitational force

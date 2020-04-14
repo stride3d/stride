@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -13,17 +13,17 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
-using Xenko.Core.Diagnostics;
-using Xenko.Engine.Network;
+using Stride.Core.Diagnostics;
+using Stride.Engine.Network;
 
-namespace Xenko.ConnectionRouter
+namespace Stride.ConnectionRouter
 {
     /// <summary>
     /// Track Windows Phone devices (with IpOverUsbEnum.exe) and establish port mapping.
     /// </summary>
     class WindowsPhoneTracker
     {
-        private static string IpOverUsbXenkoName = "XenkoRouterServer";
+        private static string IpOverUsbStrideName = "StrideRouterServer";
         private static readonly Logger Log = GlobalLogger.GetLogger("WindowsPhoneTracker");
 
         public static void TrackDevices(Router router)
@@ -36,7 +36,7 @@ namespace Xenko.ConnectionRouter
                 return;
             }
 
-            var portRegex = new Regex(string.Format(@"{0} (\d+) ->", IpOverUsbXenkoName));
+            var portRegex = new Regex(string.Format(@"{0} (\d+) ->", IpOverUsbStrideName));
             var currentWinPhoneDevices = new Dictionary<int, ConnectedDevice>();
 
             bool checkIfPortMappingIsSetup = false;
@@ -67,9 +67,9 @@ namespace Xenko.ConnectionRouter
                     {
                         if (ipOverUsb != null)
                         {
-                            using (var ipOverUsbXenko = ipOverUsb.OpenSubKey(IpOverUsbXenkoName))
+                            using (var ipOverUsbStride = ipOverUsb.OpenSubKey(IpOverUsbStrideName))
                             {
-                                if (ipOverUsbXenko == null)
+                                if (ipOverUsbStride == null)
                                 {
                                     RegisterWindowsPhonePortMapping();
                                 }
@@ -134,12 +134,12 @@ namespace Xenko.ConnectionRouter
                     Log.Error("There is no IpOverUsb in registry. Is Windows Phone SDK properly installed?");
                     return;
                 }
-                using (var ipOverUsbXenko = ipOverUsb.CreateSubKey(IpOverUsbXenkoName))
+                using (var ipOverUsbStride = ipOverUsb.CreateSubKey(IpOverUsbStrideName))
                 {
-                    ipOverUsbXenko.SetValue("LocalAddress", "127.0.0.1");
-                    ipOverUsbXenko.SetValue("LocalPort", 40153);
-                    ipOverUsbXenko.SetValue("DestinationAddress", "127.0.0.1");
-                    ipOverUsbXenko.SetValue("DestinationPort", RouterClient.DefaultListenPort);
+                    ipOverUsbStride.SetValue("LocalAddress", "127.0.0.1");
+                    ipOverUsbStride.SetValue("LocalPort", 40153);
+                    ipOverUsbStride.SetValue("DestinationAddress", "127.0.0.1");
+                    ipOverUsbStride.SetValue("DestinationPort", RouterClient.DefaultListenPort);
                 }
             }
 

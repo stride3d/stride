@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
 
-using Xenko.Core;
-using Xenko.UI.Events;
+using Stride.Core;
+using Stride.UI.Events;
 
-namespace Xenko.UI.Controls
+namespace Stride.UI.Controls
 {
     /// <summary>
     /// Represents the base primitive for all the button-like controls

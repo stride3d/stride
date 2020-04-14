@@ -6,5 +6,5 @@ Scope: Asset
 Description: "A script implemented as a single Task in which async/await can be used"
 Group: Script
 Order: -100
-Icon: ..\.xktpl\SourceCode.png
+Icon: ..\.sdtpl\SourceCode.png
 DefaultOutputName: Script

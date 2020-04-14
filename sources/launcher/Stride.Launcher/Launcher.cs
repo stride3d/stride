@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -8,20 +8,20 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
-using Xenko.Core.Assets.Editor;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Windows;
-using Xenko.PrivacyPolicy;
-using Xenko.LauncherApp.CrashReport;
-using Xenko.LauncherApp.Services;
-using Xenko.Metrics;
+using Stride.Core.Assets.Editor;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Windows;
+using Stride.PrivacyPolicy;
+using Stride.LauncherApp.CrashReport;
+using Stride.LauncherApp.Services;
+using Stride.Metrics;
 using Dispatcher = System.Windows.Threading.Dispatcher;
-using Xenko.Core.Packages;
+using Stride.Core.Packages;
 using MessageBox = System.Windows.MessageBox;
 
-namespace Xenko.LauncherApp
+namespace Stride.LauncherApp
 {
     /// <summary>
     /// Entry point class of the Launcher.
@@ -31,7 +31,7 @@ namespace Xenko.LauncherApp
         internal static FileLock Mutex;
         internal static MetricsClient Metrics;
 
-        public const string ApplicationName = "Xenko Launcher";
+        public const string ApplicationName = "Stride Launcher";
 
         /// <summary>
         /// The entry point function of the launcher.
@@ -67,7 +67,7 @@ namespace Xenko.LauncherApp
         /// <returns>True if the user answered OK, False otherwise.</returns>
         internal static bool DisplayMessage(string message)
         {
-            var result = MessageBox.Show(message, "Xenko", MessageBoxButton.YesNo, MessageBoxImage.Information);
+            var result = MessageBox.Show(message, "Stride", MessageBoxButton.YesNo, MessageBoxImage.Information);
             return result == MessageBoxResult.Yes;
         }
 
@@ -77,7 +77,7 @@ namespace Xenko.LauncherApp
         /// <param name="message">The message to display.</param>
         internal static void DisplayError(string message)
         {
-            MessageBox.Show(message, "Xenko", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(message, "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         private static LauncherArguments ProcessArguments()
@@ -140,13 +140,13 @@ namespace Xenko.LauncherApp
                         return RunSingleInstance(false);
                     }
 
-                    MessageBox.Show("An instance of Xenko Launcher is already running.", "Xenko", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    MessageBox.Show("An instance of Stride Launcher is already running.", "Stride", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                     return LauncherErrorCode.ServerAlreadyRunning;
                 }
             }
             catch (Exception e)
             {
-                DisplayError($"Cannot start the instance of the Xenko Launcher due to the following exception:\n{e.Message}");
+                DisplayError($"Cannot start the instance of the Stride Launcher due to the following exception:\n{e.Message}");
                 return LauncherErrorCode.UnknownError;
             }
         }
@@ -155,17 +155,17 @@ namespace Xenko.LauncherApp
         {
             try
             {
-                // Only needed for Xenko up to 2.x (and possibly 3.0): setup the XenkoDir to make sure that it is passed to the underlying process (msbuild...etc.)
-                Environment.SetEnvironmentVariable("SiliconStudioXenkoDir", AppDomain.CurrentDomain.BaseDirectory);
-                Environment.SetEnvironmentVariable("XenkoDir", AppDomain.CurrentDomain.BaseDirectory);
+                // Only needed for Stride up to 2.x (and possibly 3.0): setup the StrideDir to make sure that it is passed to the underlying process (msbuild...etc.)
+                Environment.SetEnvironmentVariable("SiliconStudioStrideDir", AppDomain.CurrentDomain.BaseDirectory);
+                Environment.SetEnvironmentVariable("StrideDir", AppDomain.CurrentDomain.BaseDirectory);
 
                 // We need to do that before starting recording metrics
                 // TODO: we do not display Privacy Policy anymore from launcher, because it's either accepted from installer or shown again when a new version of GS with new Privacy Policy starts. Might want to reconsider that after the 2.0 free period
                 PrivacyPolicyHelper.RestartApplication = SelfUpdater.RestartApplication;
-                PrivacyPolicyHelper.EnsurePrivacyPolicyXenko30();
+                PrivacyPolicyHelper.EnsurePrivacyPolicyStride30();
 
                 // Install Metrics for the launcher
-                using (Metrics = new MetricsClient(CommonApps.XenkoLauncherAppId))
+                using (Metrics = new MetricsClient(CommonApps.StrideLauncherAppId))
                 {
                     // HACK: force resolve the presentation assembly prior to initializing the app. This is to fix an issue with XAML themes.
                     // see issue PDX-2899
@@ -189,12 +189,12 @@ namespace Xenko.LauncherApp
             {
                 // Kill all running processes
                 var path = new UFile(Assembly.GetEntryAssembly().Location).GetFullDirectory().ToWindowsPath();
-                if (!UninstallHelper.CloseProcessesInPath(DisplayMessage, "Xenko", path))
+                if (!UninstallHelper.CloseProcessesInPath(DisplayMessage, "Stride", path))
                     return LauncherErrorCode.UninstallCancelled; // User cancelled
 
                 // Uninstall packages (they might have uninstall actions)
                 var store = new NugetStore(path);
-                foreach (var package in store.MainPackageIds.SelectMany(store.GetLocalPackages).FilterXenkoMainPackages().ToList())
+                foreach (var package in store.MainPackageIds.SelectMany(store.GetLocalPackages).FilterStrideMainPackages().ToList())
                 {
                     store.UninstallPackage(package, null).Wait();
                 }

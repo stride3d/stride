@@ -6,7 +6,7 @@
     <SharedGUID>b33e576f-2279-4bfc-a438-d9b84343b56b</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Xenko.Internal</Import_RootNamespace>
+    <Import_RootNamespace>Stride.Internal</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Refactor.cs" />

@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 /// <remarks>
-/// XENKO_GRAPHICS_PROFILE: Macro - graphics profile level.
+/// STRIDE_GRAPHICS_PROFILE: Macro - graphics profile level.
 /// </remarks>
 
-namespace Xenko.Rendering.Images
+namespace Stride.Rendering.Images
 {
     /// <summary>
     /// A reduction shader
@@ -28,7 +28,7 @@ namespace Xenko.Rendering.Images
             {
                 float4 values;
 
-#if XENKO_GRAPHICS_PROFILE >= GRAPHICS_PROFILE_LEVEL_10_1
+#if STRIDE_GRAPHICS_PROFILE >= GRAPHICS_PROFILE_LEVEL_10_1
                 values = TextureMap.Gather(LinearSampler, streams.TexCoord);
 #else
                 values.x = TextureMap.Sample(PointSampler, streams.TexCoord, int2(-1, 0)).r;
@@ -46,7 +46,7 @@ namespace Xenko.Rendering.Images
             {
                 float4 minValues, maxValues;
 
-#if XENKO_GRAPHICS_PROFILE >= GRAPHICS_PROFILE_LEVEL_11_0
+#if STRIDE_GRAPHICS_PROFILE >= GRAPHICS_PROFILE_LEVEL_11_0
                 minValues = TextureReduction.GatherRed(LinearSampler, streams.TexCoord);
                 maxValues = TextureReduction.GatherGreen(LinearSampler, streams.TexCoord);
 #else

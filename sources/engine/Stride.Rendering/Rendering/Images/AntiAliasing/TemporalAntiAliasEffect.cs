@@ -1,10 +1,10 @@
 using System;
 using System.ComponentModel;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
 
-namespace Xenko.Rendering.Images
+namespace Stride.Rendering.Images
 {
     [DataContract("TemporalAntiAliasEffect")]
     public class TemporalAntiAliasEffect : ImageEffectShader, IScreenSpaceAntiAliasingEffect

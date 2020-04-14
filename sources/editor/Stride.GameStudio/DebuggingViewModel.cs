@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -11,27 +11,27 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Components.Status;
-using Xenko.Core.Assets.Editor.Settings;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.GameStudio.Logs;
-using Xenko.GameStudio.Debugging;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Assets.Presentation.AssemblyReloading;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Annotations;
-using Xenko.Core.Translation;
-using Xenko.Assets.Presentation.AssetEditors;
-using Xenko.GameStudio.Services;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Components.Status;
+using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.GameStudio.Logs;
+using Stride.GameStudio.Debugging;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Assets.Presentation.AssemblyReloading;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Annotations;
+using Stride.Core.Translation;
+using Stride.Assets.Presentation.AssetEditors;
+using Stride.GameStudio.Services;
 
-namespace Xenko.GameStudio
+namespace Stride.GameStudio
 {
     public class DebuggingViewModel : DispatcherViewModel, IDisposable
     {
@@ -81,7 +81,7 @@ namespace Xenko.GameStudio
 
             Task.Run(async () =>
             {
-                var watcher = await editor.XenkoAssets.Code.ProjectWatcher;
+                var watcher = await editor.StrideAssets.Code.ProjectWatcher;
                 await scriptsSorter.Initialize(editor.Session, watcher, assemblyTrackingCancellation.Token);
                 PullAssemblyChanges(watcher);
             });
@@ -391,8 +391,8 @@ namespace Xenko.GameStudio
                 var cpu = string.Empty; // Used only for Windows Phone so far, default to ARM (need to provide a selector or detection)
                 var extraProperties = new Dictionary<string, string>
                 {
-                    ["XenkoBuildEngineLogPipeUrl"] = BuildLog.PipeName,
-                    ["XenkoBuildEngineLogVerbose"] = "true",
+                    ["StrideBuildEngineLogPipeUrl"] = BuildLog.PipeName,
+                    ["StrideBuildEngineLogVerbose"] = "true",
                 };
 
                 var projectViewModel = Session.CurrentProject.Type == ProjectType.Executable ? Session.CurrentProject : null;
@@ -441,7 +441,7 @@ namespace Xenko.GameStudio
                         case PlatformType.Linux:
                             platformName = "Linux";
                             extraProperties.Add("SolutionPlatform", "Linux");
-                            if (XenkoEditorSettings.UseCoreCLR.GetValue())
+                            if (StrideEditorSettings.UseCoreCLR.GetValue())
                             {
                                 configuration = "CoreCLR_" + configuration;
                             }
@@ -450,7 +450,7 @@ namespace Xenko.GameStudio
                         case PlatformType.macOS:
                             platformName = "macOS";
                             extraProperties.Add("SolutionPlatform", "macOS");
-                            if (XenkoEditorSettings.UseCoreCLR.GetValue())
+                            if (StrideEditorSettings.UseCoreCLR.GetValue())
                             {
                                 configuration = "CoreCLR_" + configuration;
                             }
@@ -542,9 +542,9 @@ namespace Xenko.GameStudio
                                 }
 
                                 // Ask for credentials if requested, otherwise we use what we have stored.
-                                if (XenkoEditorSettings.AskForCredentials.GetValue())
+                                if (StrideEditorSettings.AskForCredentials.GetValue())
                                 {
-                                    var prompt = ServiceProvider.Get<IXenkoDialogService>().CreateCredentialsDialog();
+                                    var prompt = ServiceProvider.Get<IStrideDialogService>().CreateCredentialsDialog();
                                     await prompt.ShowModal();
                                     if (!prompt.AreCredentialsValid)
                                     {
@@ -554,7 +554,7 @@ namespace Xenko.GameStudio
                                 }
 
                                 // Launch game on remote host
-                                var launchApp = await Task.Run(() => RemoteFacilities.Launch(logger, new UFile(assemblyPath), XenkoEditorSettings.UseCoreCLR.GetValue()));
+                                var launchApp = await Task.Run(() => RemoteFacilities.Launch(logger, new UFile(assemblyPath), StrideEditorSettings.UseCoreCLR.GetValue()));
                                 if (!launchApp)
                                 {
                                     logger.Error(string.Format(Tr._p("Message", "Unable to launch project {0}"), new UFile(assemblyPath).GetFileName()));
@@ -629,8 +629,8 @@ namespace Xenko.GameStudio
                 var extraProperties = new Dictionary<string, string>
                 {
                     ["SolutionPlatform"] = "Any CPU",
-                    ["XenkoBuildEngineLogPipeUrl"] = BuildLog.PipeName,
-                    ["XenkoBuildEngineLogVerbose"] = "true",
+                    ["StrideBuildEngineLogPipeUrl"] = BuildLog.PipeName,
+                    ["StrideBuildEngineLogVerbose"] = "true",
                 };
 
                 currentBuild = VSProjectHelper.CompileProjectAssemblyAsync(Session?.SolutionPath, projectPath, logger, target, configuration, platformName, extraProperties, BuildRequestDataFlags.ProvideProjectStateAfterBuild);

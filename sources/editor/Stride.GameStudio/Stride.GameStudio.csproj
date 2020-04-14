@@ -1,10 +1,10 @@
 <Project>
-  <Import Project="..\Xenko.PrivacyPolicy\Xenko.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\Xenko.PrivacyPolicy\Xenko.PrivacyPolicy.projitems')" />
-  <Import Project="..\..\shared\Xenko.Core.ShellHelper\Xenko.Core.ShellHelper.projitems" Label="Shared" />
-  <Import Project="..\..\tools\Xenko.Core.VisualStudio\Xenko.Core.VisualStudio.projitems" Label="Shared" />
-  <Import Project="..\Xenko.Editor.CrashReport\Xenko.Editor.CrashReport.projitems" Label="Shared" />
-  <Import Project="..\..\shared\Xenko.NuGetResolver\Xenko.NuGetResolver.projitems" Label="Shared" />
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
+  <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
+  <Import Project="..\..\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems" Label="Shared" />
+  <Import Project="..\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems" Label="Shared" />
+  <Import Project="..\..\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -13,11 +13,11 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <AssemblyName>Xenko.GameStudio</AssemblyName>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorOptions>--auto-module-initializer</XenkoAssemblyProcessorOptions>
-    <XenkoLocalized>true</XenkoLocalized>
-    <DefineConstants>XENKO_NUGET_RESOLVER_UX;$(DefineConstants)</DefineConstants>
+    <AssemblyName>Stride.GameStudio</AssemblyName>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
+    <StrideLocalized>true</StrideLocalized>
+    <DefineConstants>STRIDE_NUGET_RESOLVER_UX;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -32,7 +32,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Xenko.GameStudio.Program</StartupObject>
+    <StartupObject>Stride.GameStudio.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Resources\Logo.ico</ApplicationIcon>
@@ -41,16 +41,16 @@
   <ItemGroup>
     <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="EnvDTE" Version="8.0.1" />
-    <PackageReference Include="Xenko.Metrics" Version="1.0.0" />
-    <PackageReference Include="Xenko.CrashReport" Version="1.0.1" />
+    <PackageReference Include="Stride.Metrics" Version="1.0.0" />
+    <PackageReference Include="Stride.CrashReport" Version="1.0.1" />
     <PackageReference Include="Mono.Cecil" Version="0.10.4" />
     <Reference Include="Renci.SshNet, Version=2016.0.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\deps\SSH.NET\Renci.SshNet.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Xenko.Core.AssemblyProcessor">
-      <HintPath>..\..\..\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.exe</HintPath>
+    <Reference Include="Stride.Core.AssemblyProcessor">
+      <HintPath>..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.exe</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Composition.Convention">
@@ -73,22 +73,22 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="..\..\core\Xenko.Core.IO\TemporaryFile.cs">
+    <Compile Include="..\..\core\Stride.Core.IO\TemporaryFile.cs">
       <Link>Debugging\TemporaryFile.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <None Include="..\..\tools\Xenko.PackageInstall\bin\$(Configuration)\*.*" PackagePath="tools\" Pack="true" />
+    <None Include="..\..\tools\Stride.PackageInstall\bin\$(Configuration)\*.*" PackagePath="tools\" Pack="true" />
   </ItemGroup>
   <ItemGroup>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\engine\Xenko.Debugger\Xenko.Debugger.csproj" />
-    <ProjectReference Include="..\..\tools\Xenko.ConnectionRouter\Xenko.ConnectionRouter.csproj" />
-    <ProjectReference Include="..\Xenko.Assets.Presentation\Xenko.Assets.Presentation.csproj" />
-    <ProjectReference Include="..\..\tools\Xenko.EffectCompilerServer\Xenko.EffectCompilerServer.csproj" IncludeAssets="Build" />
+    <ProjectReference Include="..\..\engine\Stride.Debugger\Stride.Debugger.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.ConnectionRouter\Stride.ConnectionRouter.csproj" />
+    <ProjectReference Include="..\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj" IncludeAssets="Build" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\BACKERS.md" Link="BACKERS.md">
@@ -123,7 +123,7 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
   <PropertyGroup>
@@ -133,7 +133,7 @@
   <Target Name="IncludeExtraAssemblies">
     <ItemGroup>
       <BuildOutputInPackage Include="$(OutputPath)Mono.Cecil.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Xenko.Core.AssemblyProcessor.exe" />
+      <BuildOutputInPackage Include="$(OutputPath)Stride.Core.AssemblyProcessor.exe" />
     </ItemGroup>
   </Target>
 </Project>

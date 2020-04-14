@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -23,9 +23,9 @@
 
 using System;
 
-using Xenko.Graphics;
+using Stride.Graphics;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
     public class GraphicsDeviceInformation : IEquatable<GraphicsDeviceInformation>
     {

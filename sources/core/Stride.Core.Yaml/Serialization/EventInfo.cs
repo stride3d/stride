@@ -45,7 +45,7 @@
 
 using System;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     public abstract class EventInfo
     {

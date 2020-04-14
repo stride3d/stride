@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Core.Settings;
-using Xenko.Core.VisualStudio;
-using Xenko.Core.Translation;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
+using Stride.Core.Settings;
+using Stride.Core.VisualStudio;
+using Stride.Core.Translation;
 
-namespace Xenko.Core.Assets.Editor.Settings
+namespace Stride.Core.Assets.Editor.Settings
 {
     public static class EditorSettings
     {

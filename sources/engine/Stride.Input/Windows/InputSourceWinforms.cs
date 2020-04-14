@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using Xenko.Games;
+using Stride.Games;
 using WinFormsKeys = System.Windows.Forms.Keys;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     /// <summary>
     /// Provides support for mouse and keyboard input on windows forms
@@ -61,13 +61,13 @@ namespace Xenko.Input
 
         /// <summary>
         /// This function houses a hack to fix the window missing some input events,
-        /// see Xenko pull #181 for more information (https://github.com/xenko3d/xenko/pull/181).
+        /// see Stride pull #181 for more information (https://github.com/stride3d/stride/pull/181).
         /// TODO: Find a proper solution to replace this workaround.
         /// </summary>
         /// <param name="winformControl"></param>
         private void MissingInputHack(Control winformControl)
         {
-#if XENKO_INPUT_RAWINPUT
+#if STRIDE_INPUT_RAWINPUT
             if (winformControl.Handle == IntPtr.Zero)
             {
                 winformControl.HandleCreated += (sender, args) =>

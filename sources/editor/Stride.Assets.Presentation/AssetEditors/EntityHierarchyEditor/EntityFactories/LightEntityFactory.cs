@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Xenko.Assets.Skyboxes;
-using Xenko.Engine;
-using Xenko.Rendering.Lights;
-using Xenko.Rendering.Skyboxes;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Assets.Skyboxes;
+using Stride.Engine;
+using Stride.Rendering.Lights;
+using Stride.Rendering.Skyboxes;
 
-namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
+namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
 {
     [Display(10, "Directional light", "Light")]
     public class DirectionalLightEntityFactory : EntityFactory

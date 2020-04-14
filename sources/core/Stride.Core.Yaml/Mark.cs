@@ -45,7 +45,7 @@
 
 using System;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     /// <summary>
     /// Represents a location inside a file

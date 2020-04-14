@@ -1,7 +1,7 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,9 +24,9 @@
 using System;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
-using Xenko.Core;
+using Stride.Core;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public partial class Texture
     {
@@ -165,10 +165,10 @@ namespace Xenko.Graphics
                     var sharedResource = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource>();
                     SharedHandle = sharedResource.SharedHandle;
                     break;
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
                 case TextureOptions.SharedNthandle | TextureOptions.SharedKeyedmutex:
                     var sharedResource1 = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource1>();
-                    var uniqueName = "Xenko:" + Guid.NewGuid().ToString();
+                    var uniqueName = "Stride:" + Guid.NewGuid().ToString();
                     SharedHandle = sharedResource1.CreateSharedHandle(uniqueName, SharpDX.DXGI.SharedResourceFlags.Write);
                     SharedNtHandleName = uniqueName;
                     break; 
@@ -603,7 +603,7 @@ namespace Xenko.Graphics
 
             if ((description.OptionFlags & ResourceOptionFlags.Shared) != 0)
                 desc.Options |= TextureOptions.Shared;
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
             if ((description.OptionFlags & ResourceOptionFlags.SharedKeyedmutex) != 0)
                 desc.Options |= TextureOptions.SharedKeyedmutex;
             if ((description.OptionFlags & ResourceOptionFlags.SharedNthandle) != 0)

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -13,17 +13,17 @@ using Microsoft.Build.Framework;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Xenko.Core.Packages;
-using Xenko.VisualStudio.BuildEngine;
-using Xenko.VisualStudio.Commands;
+using Stride.Core.Packages;
+using Stride.VisualStudio.BuildEngine;
+using Stride.VisualStudio.Commands;
 using Process = System.Diagnostics.Process;
 using Project = EnvDTE.Project;
 using ProjectItem = EnvDTE.ProjectItem;
 using Task = System.Threading.Tasks.Task;
 
-namespace Xenko.VisualStudio
+namespace Stride.VisualStudio
 {
-    public static class XenkoCommands
+    public static class StrideCommands
     {
         static class ProjectItemKind
         {
@@ -47,11 +47,11 @@ namespace Xenko.VisualStudio
                 return;
 
             // Locate GameStudio
-            var packageInfo = await XenkoCommandsProxy.FindXenkoSdkDir(solutionFile, "Xenko.GameStudio");
+            var packageInfo = await StrideCommandsProxy.FindStrideSdkDir(solutionFile, "Stride.GameStudio");
             if (packageInfo.LoadedVersion == null || packageInfo.SdkPaths.Count == 0)
                 return;
 
-            var mainExecutable = packageInfo.SdkPaths.First(x => Path.GetFileName(x) == "Xenko.GameStudio.exe");
+            var mainExecutable = packageInfo.SdkPaths.First(x => Path.GetFileName(x) == "Stride.GameStudio.exe");
             if (mainExecutable == null)
             {
                 throw new InvalidOperationException("Could not locate GameStudio process");
@@ -184,14 +184,14 @@ namespace Xenko.VisualStudio
             globalProperties["Configuration"] = activeConfig.ConfigurationName;
             globalProperties["Platform"] = activeConfig.PlatformName == "Any CPU" ? "AnyCPU" : activeConfig.PlatformName;
 
-            // Check if project has a XenkoCurrentPackagePath
+            // Check if project has a StrideCurrentPackagePath
             var projectInstance = new ProjectInstance(project.FileName, globalProperties, null);
-            var packagePathProperty = projectInstance.Properties.FirstOrDefault(x => x.Name == "XenkoCurrentPackagePath");
+            var packagePathProperty = projectInstance.Properties.FirstOrDefault(x => x.Name == "StrideCurrentPackagePath");
             if (packagePathProperty == null)
                 return;
 
             // Prepare build request
-            var request = new BuildRequestData(project.FileName, globalProperties, null, new[] { "XenkoCleanAsset" }, null);
+            var request = new BuildRequestData(project.FileName, globalProperties, null, new[] { "StrideCleanAsset" }, null);
             var pc = new Microsoft.Build.Evaluation.ProjectCollection();
             var buildParameters = new BuildParameters(pc);
             var buildLogger = new IDEBuildLogger(GetOutputPane(), new TaskProvider(ServiceProvider), VsHelper.ToHierarchy(project));
@@ -247,18 +247,18 @@ namespace Xenko.VisualStudio
         
         internal static void RegisterCommands(OleMenuCommandService mcs)
         {
-            // Create command for Xenko -> Clean intermediate assets for Solution
-            var openWithGameStudioCommandID = new CommandID(GuidList.guidXenko_VisualStudio_PackageCmdSet, (int)XenkoPackageCmdIdList.cmdXenkoOpenWithGameStudio);
+            // Create command for Stride -> Clean intermediate assets for Solution
+            var openWithGameStudioCommandID = new CommandID(GuidList.guidStride_VisualStudio_PackageCmdSet, (int)StridePackageCmdIdList.cmdStrideOpenWithGameStudio);
             var openWithGameStudioMenuCommand = new OleMenuCommand(OpenWithGameStudioMenuCommand_Callback, openWithGameStudioCommandID);
             mcs.AddCommand(openWithGameStudioMenuCommand);
 
-            // Create command for Xenko -> Clean intermediate assets for Solution
-            var cleanIntermediateAssetsSolutionCommandID = new CommandID(GuidList.guidXenko_VisualStudio_PackageCmdSet, (int)XenkoPackageCmdIdList.cmdXenkoCleanIntermediateAssetsSolutionCommand);
+            // Create command for Stride -> Clean intermediate assets for Solution
+            var cleanIntermediateAssetsSolutionCommandID = new CommandID(GuidList.guidStride_VisualStudio_PackageCmdSet, (int)StridePackageCmdIdList.cmdStrideCleanIntermediateAssetsSolutionCommand);
             var cleanIntermediateAssetsSolutionMenuCommand = new OleMenuCommand(CleanIntermediateAssetsSolutionMenuCommand_Callback, cleanIntermediateAssetsSolutionCommandID);
             mcs.AddCommand(cleanIntermediateAssetsSolutionMenuCommand);
 
-            // Create command for Xenko -> Clean intermediate assets for {selected project}
-            var cleanIntermediateAssetsProjectCommandID = new CommandID(GuidList.guidXenko_VisualStudio_PackageCmdSet, (int)XenkoPackageCmdIdList.cmdXenkoCleanIntermediateAssetsProjectCommand);
+            // Create command for Stride -> Clean intermediate assets for {selected project}
+            var cleanIntermediateAssetsProjectCommandID = new CommandID(GuidList.guidStride_VisualStudio_PackageCmdSet, (int)StridePackageCmdIdList.cmdStrideCleanIntermediateAssetsProjectCommand);
             var cleanIntermediateAssetsProjectMenuCommand = new OleMenuCommand(CleanIntermediateAssetsProjectMenuCommand_Callback, cleanIntermediateAssetsProjectCommandID);
             cleanIntermediateAssetsProjectMenuCommand.BeforeQueryStatus += CleanIntermediateAssetsProjectMenuCommand_BeforeQueryStatus;
             cleanIntermediateAssetsProjectMenuCommand.Enabled = false;

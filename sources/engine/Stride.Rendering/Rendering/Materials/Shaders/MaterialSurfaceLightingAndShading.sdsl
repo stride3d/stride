@@ -1,6 +1,6 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-namespace Xenko.Rendering.Materials
+namespace Stride.Rendering.Materials
 {
     /// <summary>
     /// Performs the shading of a material according to the lights
@@ -16,7 +16,7 @@ namespace Xenko.Rendering.Materials
             UpdateNormalFromTangentSpace(streams.matNormal);
             
             // Flip the normal so it is facing the right direction for back faces
-#if XENKO_GRAPHICS_API_DIRECT3D && XENKO_GRAPHICS_PROFILE < GRAPHICS_PROFILE_LEVEL_10_0
+#if STRIDE_GRAPHICS_API_DIRECT3D && STRIDE_GRAPHICS_PROFILE < GRAPHICS_PROFILE_LEVEL_10_0
             //streams.normalWS = streams.normalWS * sign(streams.IsFrontFace);// FIXME: VFACE seems to not work in a proper way
 #else
             if(!streams.IsFrontFace)

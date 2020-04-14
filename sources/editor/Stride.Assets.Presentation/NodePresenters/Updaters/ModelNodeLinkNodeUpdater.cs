@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Assets.Editor.Quantum.NodePresenters;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Assets.Models;
-using Xenko.Assets.Presentation.NodePresenters.Keys;
-using Xenko.Engine;
-using Xenko.Rendering;
-using Xenko.SpriteStudio.Offline;
-using Xenko.SpriteStudio.Runtime;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Assets.Models;
+using Stride.Assets.Presentation.NodePresenters.Keys;
+using Stride.Engine;
+using Stride.Rendering;
+using Stride.SpriteStudio.Offline;
+using Stride.SpriteStudio.Runtime;
 
-namespace Xenko.Assets.Presentation.NodePresenters.Updaters
+namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
     internal sealed class ModelNodeLinkNodeUpdater : AssetNodePresenterUpdaterBase
     {

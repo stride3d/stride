@@ -1,9 +1,9 @@
-﻿// Copyright (c) 2017 Xenko (https://xenko.com)
+﻿// Copyright (c) 2017 Stride (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 
-namespace Xenko.Metrics
+namespace Stride.Metrics
 {
     /// <summary>
     /// Identifies a metric application.

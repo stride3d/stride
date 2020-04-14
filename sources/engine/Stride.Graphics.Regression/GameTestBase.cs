@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -10,16 +10,16 @@ using System.Threading.Tasks;
 
 using Xunit;
 
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Games;
-using Xenko.Input;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Games;
+using Stride.Input;
+using Stride.Rendering;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Graphics.Regression
+namespace Stride.Graphics.Regression
 {
     public abstract class GameTestBase : Game
     {
@@ -140,7 +140,7 @@ namespace Xenko.Graphics.Regression
             set
             {
                 backBufferSizeMode = value;
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
                 switch (backBufferSizeMode)
                 {
                     case BackBufferSizeMode.FitToDesiredValues:
@@ -210,7 +210,7 @@ namespace Xenko.Graphics.Regression
             if (!ForceInteractiveMode)
                 InitializeSimulatedInputSource();
 
-#if !XENKO_UI_SDL
+#if !STRIDE_UI_SDL
             // Disabled for SDL as a position of (0,0) actually means that the client area of the
             // window will be at (0,0) not the top left corner of the non-client area of the window.
             Window.Position = Int2.Zero; // avoid possible side effects due to position of the window in the screen.
@@ -325,18 +325,18 @@ namespace Xenko.Graphics.Regression
             Assert.True(failedTests.Count == 0, $"Some image comparison tests failed: {string.Join(", ", failedTests.Select(x => x))}");
         }
 
-        private static string FindXenkoRootFolder()
+        private static string FindStrideRootFolder()
         {
             // Make sure our nuget local store is added to nuget config
             var folder = PlatformFolders.ApplicationBinaryDirectory;
             while (folder != null)
             {
-                if (File.Exists(Path.Combine(folder, @"build\Xenko.sln")))
+                if (File.Exists(Path.Combine(folder, @"build\Stride.sln")))
                     return folder;
                 folder = Path.GetDirectoryName(folder);
             }
 
-            throw new InvalidOperationException("Could not locate Xenko folder");
+            throw new InvalidOperationException("Could not locate Stride folder");
         }
 
         /// <summary>
@@ -355,14 +355,14 @@ namespace Xenko.Graphics.Regression
             //if (!ImageTester.ImageTestResultConnection.DeviceName.Contains("_"))
             //    ImageTester.ImageTestResultConnection.DeviceName += "_" + GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' '); // Workaround for sharpDX bug: Description ends with an series trailing of '\0' characters
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             var platformSpecific = $"Windows_{GraphicsDevice.Platform}_{GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ')}";
 #else
             var platformSpecific = string.Empty;
             throw new NotImplementedException();
 #endif
 
-            var rootFolder = FindXenkoRootFolder();
+            var rootFolder = FindStrideRootFolder();
 
             var testFilename = GenerateName(Path.Combine(rootFolder, "tests"), frame, platformSpecific);
             var testFilenamePattern = GenerateName(Path.Combine(rootFolder, "tests"), frame, null);
@@ -420,7 +420,7 @@ namespace Xenko.Graphics.Regression
 
         protected void SaveTexture(Texture texture, string filename)
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             using (var image = texture.GetDataAsImage(GraphicsContext.CommandList))
             {
                 using (var resultFileStream = File.OpenWrite(filename))

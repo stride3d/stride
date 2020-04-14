@@ -1,6 +1,6 @@
 !Texture
 Id: 7afe22a8-e2fe-44c1-8d80-1e8aed3fd661
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../Resources/Textures/iron_blend/rust/iton_rust_mtl.png
 Type: !ColorTextureType

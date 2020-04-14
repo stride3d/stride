@@ -1,7 +1,7 @@
 using NuGet.Protocol.Core.Types;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Packages
+namespace Stride.Core.Packages
 {
     public class NugetServerPackage : NugetPackage
     {

@@ -43,7 +43,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-namespace Xenko.Core.Yaml.Events
+namespace Stride.Core.Yaml.Events
 {
     /// <summary>
     /// Represents a stream start event.

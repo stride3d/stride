@@ -44,7 +44,7 @@ using System.Runtime.InteropServices;
 using FreeImageAPI.IO;
 using FreeImageAPI.Metadata;
 
-using XenkoPixelFormat = Xenko.Graphics.PixelFormat;
+using StridePixelFormat = Stride.Graphics.PixelFormat;
 
 namespace FreeImageAPI
 {
@@ -2757,7 +2757,7 @@ namespace FreeImageAPI
         /// <summary>
         /// Retrieves all parameters needed to create a new FreeImage bitmap from the pixel format.
         /// </summary>
-        /// <param name="format">The <see cref="Xenko.Graphics.PixelFormat"/> of the image.</param>
+        /// <param name="format">The <see cref="Stride.Graphics.PixelFormat"/> of the image.</param>
         /// <param name="type">Returns the type used for the new bitmap.</param>
         /// <param name="bpp">Returns the color depth for the new bitmap.</param>
         /// <param name="redMask">Returns the red_mask for the new bitmap.</param>
@@ -2766,7 +2766,7 @@ namespace FreeImageAPI
         /// <returns>True in case a matching conversion exists; else false.
         /// </returns>
         public static bool GetFormatParameters(
-            XenkoPixelFormat format,
+            StridePixelFormat format,
             out FREE_IMAGE_TYPE type,
             out uint bpp,
             out uint redMask,
@@ -2782,77 +2782,77 @@ namespace FreeImageAPI
 
             switch (format)
             {
-                case XenkoPixelFormat.R32G32B32A32_Float:
+                case StridePixelFormat.R32G32B32A32_Float:
                     type = FREE_IMAGE_TYPE.FIT_RGBAF;
                     bpp = 128;
                     break;
-                case XenkoPixelFormat.R32G32B32_Float:
+                case StridePixelFormat.R32G32B32_Float:
                     type = FREE_IMAGE_TYPE.FIT_RGBF;
                     bpp = 96;
                     break;
-                case XenkoPixelFormat.R16G16B16A16_Typeless:
-                case XenkoPixelFormat.R16G16B16A16_Float:
-                case XenkoPixelFormat.R16G16B16A16_UNorm:
-                case XenkoPixelFormat.R16G16B16A16_UInt:
-                case XenkoPixelFormat.R16G16B16A16_SNorm:
-                case XenkoPixelFormat.R16G16B16A16_SInt:
+                case StridePixelFormat.R16G16B16A16_Typeless:
+                case StridePixelFormat.R16G16B16A16_Float:
+                case StridePixelFormat.R16G16B16A16_UNorm:
+                case StridePixelFormat.R16G16B16A16_UInt:
+                case StridePixelFormat.R16G16B16A16_SNorm:
+                case StridePixelFormat.R16G16B16A16_SInt:
                     type = FREE_IMAGE_TYPE.FIT_RGBA16;
                     bpp = 64;
                     break;
-                case XenkoPixelFormat.D32_Float:
-                case XenkoPixelFormat.R32_Float:
+                case StridePixelFormat.D32_Float:
+                case StridePixelFormat.R32_Float:
                     type = FREE_IMAGE_TYPE.FIT_FLOAT;
                     bpp = 32;
                     break;
-                case XenkoPixelFormat.R32_SInt:
+                case StridePixelFormat.R32_SInt:
                     type = FREE_IMAGE_TYPE.FIT_INT32;
                     bpp = 32;
                     break;
-                case XenkoPixelFormat.R32_UInt:
+                case StridePixelFormat.R32_UInt:
                     type = FREE_IMAGE_TYPE.FIT_UINT32;
                     bpp = 32;
                     break;
-                case XenkoPixelFormat.R16_SInt:
+                case StridePixelFormat.R16_SInt:
                     type = FREE_IMAGE_TYPE.FIT_INT16;
                     bpp = 16;
                     break;
-                case XenkoPixelFormat.R16_UInt:
+                case StridePixelFormat.R16_UInt:
                     type = FREE_IMAGE_TYPE.FIT_UINT16;
                     bpp = 16;
                     break;
-                case XenkoPixelFormat.R32_Typeless:
+                case StridePixelFormat.R32_Typeless:
                     type = FREE_IMAGE_TYPE.FIT_BITMAP;
                     bpp = 32;
                     break;
-                case XenkoPixelFormat.R8G8B8A8_Typeless:
-                case XenkoPixelFormat.R8G8B8A8_UNorm:
-                case XenkoPixelFormat.R8G8B8A8_UNorm_SRgb:
-                case XenkoPixelFormat.R8G8B8A8_UInt:
-                case XenkoPixelFormat.R8G8B8A8_SNorm:
-                case XenkoPixelFormat.R8G8B8A8_SInt:
+                case StridePixelFormat.R8G8B8A8_Typeless:
+                case StridePixelFormat.R8G8B8A8_UNorm:
+                case StridePixelFormat.R8G8B8A8_UNorm_SRgb:
+                case StridePixelFormat.R8G8B8A8_UInt:
+                case StridePixelFormat.R8G8B8A8_SNorm:
+                case StridePixelFormat.R8G8B8A8_SInt:
                     type = FREE_IMAGE_TYPE.FIT_BITMAP;
                     bpp = 32;
                     redMask = FI_RGBA_RED_MASK;
                     greenMask = FI_RGBA_GREEN_MASK;
                     blueMask = FI_RGBA_BLUE_MASK;
                     break;
-                case XenkoPixelFormat.R16G16_Typeless:
-                case XenkoPixelFormat.R16G16_Float:
-                case XenkoPixelFormat.R16G16_UNorm:
-                case XenkoPixelFormat.R16G16_UInt:
-                case XenkoPixelFormat.R16G16_SNorm:
-                case XenkoPixelFormat.R16G16_SInt:
+                case StridePixelFormat.R16G16_Typeless:
+                case StridePixelFormat.R16G16_Float:
+                case StridePixelFormat.R16G16_UNorm:
+                case StridePixelFormat.R16G16_UInt:
+                case StridePixelFormat.R16G16_SNorm:
+                case StridePixelFormat.R16G16_SInt:
                     type = FREE_IMAGE_TYPE.FIT_BITMAP;
                     bpp = 32;
                     redMask = 0xFFFF0000;
                     greenMask = 0x0000FFFF;
                     break;
-                case XenkoPixelFormat.B8G8R8A8_Typeless:
-                case XenkoPixelFormat.B8G8R8A8_UNorm_SRgb:
-                case XenkoPixelFormat.B8G8R8X8_Typeless:
-                case XenkoPixelFormat.B8G8R8X8_UNorm_SRgb:
-                case XenkoPixelFormat.B8G8R8A8_UNorm:
-                case XenkoPixelFormat.B8G8R8X8_UNorm:
+                case StridePixelFormat.B8G8R8A8_Typeless:
+                case StridePixelFormat.B8G8R8A8_UNorm_SRgb:
+                case StridePixelFormat.B8G8R8X8_Typeless:
+                case StridePixelFormat.B8G8R8X8_UNorm_SRgb:
+                case StridePixelFormat.B8G8R8A8_UNorm:
+                case StridePixelFormat.B8G8R8X8_UNorm:
                     type = FREE_IMAGE_TYPE.FIT_BITMAP;
                     bpp = 32;
                     redMask = FI_RGBA_BLUE_MASK;
@@ -2860,48 +2860,48 @@ namespace FreeImageAPI
                     blueMask = FI_RGBA_RED_MASK;
                     break;
 
-                case XenkoPixelFormat.B5G6R5_UNorm:
+                case StridePixelFormat.B5G6R5_UNorm:
                     type = FREE_IMAGE_TYPE.FIT_BITMAP;
                     bpp = 16;
                     redMask = FI16_565_RED_MASK;
                     greenMask = FI16_565_GREEN_MASK;
                     blueMask = FI16_565_BLUE_MASK;
                     break;
-                case XenkoPixelFormat.B5G5R5A1_UNorm:
+                case StridePixelFormat.B5G5R5A1_UNorm:
                     type = FREE_IMAGE_TYPE.FIT_BITMAP;
                     bpp = 16;
                     redMask = FI16_555_RED_MASK;
                     greenMask = FI16_555_GREEN_MASK;
                     blueMask = FI16_555_BLUE_MASK;
                     break;
-                case XenkoPixelFormat.R16_Typeless:
-                case XenkoPixelFormat.R16_Float:
-                case XenkoPixelFormat.D16_UNorm:
-                case XenkoPixelFormat.R16_UNorm:
-                case XenkoPixelFormat.R16_SNorm:
+                case StridePixelFormat.R16_Typeless:
+                case StridePixelFormat.R16_Float:
+                case StridePixelFormat.D16_UNorm:
+                case StridePixelFormat.R16_UNorm:
+                case StridePixelFormat.R16_SNorm:
                     type = FREE_IMAGE_TYPE.FIT_UINT16;
                     bpp = 16;
                     break;
-                case XenkoPixelFormat.R8G8_Typeless:
-                case XenkoPixelFormat.R8G8_UNorm:
-                case XenkoPixelFormat.R8G8_UInt:
-                case XenkoPixelFormat.R8G8_SNorm:
-                case XenkoPixelFormat.R8G8_SInt:
+                case StridePixelFormat.R8G8_Typeless:
+                case StridePixelFormat.R8G8_UNorm:
+                case StridePixelFormat.R8G8_UInt:
+                case StridePixelFormat.R8G8_SNorm:
+                case StridePixelFormat.R8G8_SInt:
                     type = FREE_IMAGE_TYPE.FIT_BITMAP;
                     bpp = 16;
                     redMask = 0xFF00;
                     greenMask= 0x00FF;
                     break;
-                case XenkoPixelFormat.R8_Typeless:
-                case XenkoPixelFormat.R8_UNorm:
-                case XenkoPixelFormat.R8_UInt:
-                case XenkoPixelFormat.R8_SNorm:
-                case XenkoPixelFormat.R8_SInt:
-                case XenkoPixelFormat.A8_UNorm:
+                case StridePixelFormat.R8_Typeless:
+                case StridePixelFormat.R8_UNorm:
+                case StridePixelFormat.R8_UInt:
+                case StridePixelFormat.R8_SNorm:
+                case StridePixelFormat.R8_SInt:
+                case StridePixelFormat.A8_UNorm:
                     type = FREE_IMAGE_TYPE.FIT_BITMAP;
                     bpp = 8;
                     break;
-                case XenkoPixelFormat.R1_UNorm:
+                case StridePixelFormat.R1_UNorm:
                     type = FREE_IMAGE_TYPE.FIT_BITMAP;
                     bpp = 1;
                     break;

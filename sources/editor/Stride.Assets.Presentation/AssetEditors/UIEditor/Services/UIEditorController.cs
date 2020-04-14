@@ -1,36 +1,36 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Assets.Quantum;
-using Xenko.Core.Assets.Quantum.Visitors;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Quantum;
-using Xenko.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.PrefabEditor.Game;
-using Xenko.Assets.Presentation.AssetEditors.UIEditor.Game;
-using Xenko.Assets.Presentation.AssetEditors.UIEditor.ViewModels;
-using Xenko.Assets.SpriteFont;
-using Xenko.Assets.SpriteFont.Compiler;
-using Xenko.Assets.UI;
-using Xenko.Editor.EditorGame.Game;
-using Xenko.Engine;
-using Xenko.Graphics.Font;
-using Xenko.Rendering;
-using Xenko.Shaders.Compiler;
-using Xenko.UI;
-using Xenko.UI.Controls;
-using Xenko.UI.Panels;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Quantum.Visitors;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Core.Quantum;
+using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.UIEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels;
+using Stride.Assets.SpriteFont;
+using Stride.Assets.SpriteFont.Compiler;
+using Stride.Assets.UI;
+using Stride.Editor.EditorGame.Game;
+using Stride.Engine;
+using Stride.Graphics.Font;
+using Stride.Rendering;
+using Stride.Shaders.Compiler;
+using Stride.UI;
+using Stride.UI.Controls;
+using Stride.UI.Panels;
 
-namespace Xenko.Assets.Presentation.AssetEditors.UIEditor.Services
+namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Services
 {
     /// <summary>
     /// Game controller for the UI editor.

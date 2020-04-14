@@ -1,24 +1,24 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
   <PropertyGroup>
     <TargetFrameworks>net461</TargetFrameworks>
-    <AssemblyName>Xenko.UI.Tests</AssemblyName>
-    <RootNamespace>Xenko.UI.Tests</RootNamespace>
+    <AssemblyName>Stride.UI.Tests</AssemblyName>
+    <RootNamespace>Stride.UI.Tests</RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
-    <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoCompileAssets>true</XenkoCompileAssets>
-    <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCompileAssets>true</StrideCompileAssets>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>xunit.runner.xenko.Program</StartupObject>
+    <StartupObject>xunit.runner.stride.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.xenko\xunit.runner.xenko.csproj" />
-    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\Xenko.UI\Xenko.UI.csproj" />
-    <ProjectReference Include="..\Xenko.Graphics.Regression\Xenko.Graphics.Regression.csproj" />
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="XunitAttributes.cs" />
@@ -95,26 +95,26 @@
     <Compile Include="Regression\UITestGameBase.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\BorderButton.xktex" />
-    <None Include="Assets\BorderButtonCentered.xktex" />
-    <None Include="Assets\CourierNew12.xkfnt" />
-    <None Include="Assets\cube Model.xkm3d" />
-    <None Include="Assets\DebugSlider.xksheet" />
-    <None Include="Assets\DumbWhite.xktex" />
-    <None Include="Assets\GameSettings.xkgamesettings" />
-    <None Include="Assets\GraphicsCompositor.xkgfxcomp" />
-    <None Include="Assets\HanSans13.xkfnt" />
-    <None Include="Assets\ImageButtonNotPressed.xktex" />
-    <None Include="Assets\ImageButtonPressed.xktex" />
-    <None Include="Assets\lambert1.xkmat" />
-    <None Include="Assets\MainScene.xkscene" />
-    <None Include="Assets\MicrosoftSansSerif15.xkfnt" />
-    <None Include="Assets\RotatedImages.xksheet" />
-    <None Include="Assets\rotatedUV.xktex" />
-    <None Include="Assets\UIImages.xksheet" />
-    <None Include="Assets\Untitled.xktex" />
-    <None Include="Assets\uv.xktex" />
-    <None Include="Assets\XenkoBackground.xktex" />
+    <None Include="Assets\BorderButton.sdtex" />
+    <None Include="Assets\BorderButtonCentered.sdtex" />
+    <None Include="Assets\CourierNew12.sdfnt" />
+    <None Include="Assets\cube Model.sdm3d" />
+    <None Include="Assets\DebugSlider.sdsheet" />
+    <None Include="Assets\DumbWhite.sdtex" />
+    <None Include="Assets\GameSettings.sdgamesettings" />
+    <None Include="Assets\GraphicsCompositor.sdgfxcomp" />
+    <None Include="Assets\HanSans13.sdfnt" />
+    <None Include="Assets\ImageButtonNotPressed.sdtex" />
+    <None Include="Assets\ImageButtonPressed.sdtex" />
+    <None Include="Assets\lambert1.sdmat" />
+    <None Include="Assets\MainScene.sdscene" />
+    <None Include="Assets\MicrosoftSansSerif15.sdfnt" />
+    <None Include="Assets\RotatedImages.sdsheet" />
+    <None Include="Assets\rotatedUV.sdtex" />
+    <None Include="Assets\UIImages.sdsheet" />
+    <None Include="Assets\Untitled.sdtex" />
+    <None Include="Assets\uv.sdtex" />
+    <None Include="Assets\StrideBackground.sdtex" />
     <None Include="Regression\ElementTestDesigns.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ElementTestDesigns.cs</LastGenOutput>
@@ -125,7 +125,7 @@
     <None Include="Resources\ButtonPressed.dds" />
     <None Include="Resources\EditTextInactive.dds" />
     <None Include="Resources\EditTextOverred.dds" />
-    <None Include="Xenko.UI.Tests.xkpkg" />
+    <None Include="Stride.UI.Tests.sdpkg" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\ToggleChecked.dds" />
@@ -135,5 +135,5 @@
   <ItemGroup>
     <None Include="Resources\UIDesigns.dds" />
   </ItemGroup>
-  <Import Project="..\..\targets\Xenko.UnitTests.targets" />
+  <Import Project="..\..\targets\Stride.UnitTests.targets" />
 </Project>

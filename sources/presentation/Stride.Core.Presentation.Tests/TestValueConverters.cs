@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -6,10 +6,10 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xenko.Core.Presentation.ValueConverters;
+using Stride.Core.Presentation.ValueConverters;
 using Xunit;
 
-namespace Xenko.Core.Presentation.Tests
+namespace Stride.Core.Presentation.Tests
 {
     public class TestValueConverters
     {

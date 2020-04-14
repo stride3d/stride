@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Xenko.Editor.Resources {
+namespace Stride.Editor.Resources {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Xenko.Editor.Resources {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Xenko.Editor.Resources.DefaultThumbnails", typeof(DefaultThumbnails).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Stride.Editor.Resources.DefaultThumbnails", typeof(DefaultThumbnails).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

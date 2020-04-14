@@ -1,30 +1,30 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
 using Xunit;
-using Xenko.Core.Assets.Quantum.Tests.Helpers;
-using Xenko.Core.Assets.Tests.Helpers;
-using Xenko.Core.Reflection;
+using Stride.Core.Assets.Quantum.Tests.Helpers;
+using Stride.Core.Assets.Tests.Helpers;
+using Stride.Core.Reflection;
 
-namespace Xenko.Core.Assets.Quantum.Tests
+namespace Stride.Core.Assets.Quantum.Tests
 {
     public class TestReconcileWithBase
     {
         [Fact]
         public void TestPrimitiveMember()
         {
-            const string primitiveMemberBaseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset1,Xenko.Core.Assets.Quantum.Tests
+            const string primitiveMemberBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset1,Stride.Core.Assets.Quantum.Tests
 Id: 10000000-0000-0000-0000-000000000000
 Tags: []
 MyString: MyBaseString
 ";
-            const string primitiveMemberOverridenYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset1,Xenko.Core.Assets.Quantum.Tests
+            const string primitiveMemberOverridenYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset1,Stride.Core.Assets.Quantum.Tests
 Id: 30000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []
 MyString*: MyDerivedString
 ";
-            const string primitiveMemberToReconcileYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset1,Xenko.Core.Assets.Quantum.Tests
+            const string primitiveMemberToReconcileYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset1,Stride.Core.Assets.Quantum.Tests
 Id: 20000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []
@@ -48,7 +48,7 @@ MyString: MyDerivedString
         [Fact]
         public void TestCollectionMismatchItem()
         {
-            const string baseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+            const string baseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 10000000-0000-0000-0000-000000000000
 Tags: []
 Struct:
@@ -57,7 +57,7 @@ MyStrings:
     0a0000000a0000000a0000000a000000: String1
     14000000140000001400000014000000: String2
 ";
-            const string derivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+            const string derivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 20000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []
@@ -104,7 +104,7 @@ MyStrings:
         [Fact]
         public void TestCollectionMismatchId()
         {
-            const string baseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+            const string baseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 10000000-0000-0000-0000-000000000000
 Tags: []
 Struct:
@@ -113,7 +113,7 @@ MyStrings:
     0a0000000a0000000a0000000a000000: String1
     14000000140000001400000014000000: String2
 ";
-            const string derivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+            const string derivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 20000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []
@@ -160,7 +160,7 @@ MyStrings:
         [Fact]
         public void TestCollectionAddedItemInBase()
         {
-            const string baseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+            const string baseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 10000000-0000-0000-0000-000000000000
 Tags: []
 Struct:
@@ -170,7 +170,7 @@ MyStrings:
     15000000150000001500000015000000: String2.5
     14000000140000001400000014000000: String2
 ";
-            const string derivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+            const string derivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 20000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []
@@ -223,7 +223,7 @@ MyStrings:
         [Fact]
         public void TestCollectionRemovedItemFromBase()
         {
-            const string baseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+            const string baseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 10000000-0000-0000-0000-000000000000
 Tags: []
 Struct:
@@ -232,7 +232,7 @@ MyStrings:
     0a0000000a0000000a0000000a000000: String1
     14000000140000001400000014000000: String3
 ";
-            const string derivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+            const string derivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 20000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []
@@ -282,7 +282,7 @@ MyStrings:
         [Fact]
         public void TestCollectionRemovedDeletedItemFromBase()
         {
-            const string baseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+            const string baseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 10000000-0000-0000-0000-000000000000
 Tags: []
 Struct:
@@ -291,7 +291,7 @@ MyStrings:
     0a0000000a0000000a0000000a000000: String1
     24000000240000002400000024000000: String3
 ";
-            const string derivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+            const string derivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 20000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []
@@ -340,14 +340,14 @@ MyStrings:
         [Fact]
         public void TestDictionaryMismatchValue()
         {
-            const string baseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+            const string baseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 10000000-0000-0000-0000-000000000000
 Tags: []
 MyDictionary:
     0a0000000a0000000a0000000a000000~Key1: String1
     14000000140000001400000014000000~Key2: String2
 ";
-            const string derivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+            const string derivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 20000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []
@@ -392,7 +392,7 @@ MyDictionary:
         [Fact]
         public void TestDictionaryAddedKeyInBase()
         {
-            const string baseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+            const string baseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 10000000-0000-0000-0000-000000000000
 Tags: []
 MyDictionary:
@@ -400,7 +400,7 @@ MyDictionary:
     15000000150000001500000015000000~Key2.5: String2.5
     14000000140000001400000014000000~Key2: String2
 ";
-            const string derivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+            const string derivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 20000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []
@@ -451,14 +451,14 @@ MyDictionary:
         [Fact]
         public void TestDictionaryKeyCollision()
         {
-            const string baseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+            const string baseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 10000000-0000-0000-0000-000000000000
 Tags: []
 MyDictionary:
     0a0000000a0000000a0000000a000000~Key1: String1
     14000000140000001400000014000000~Key2: String2
 ";
-            const string derivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+            const string derivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 20000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []
@@ -504,14 +504,14 @@ MyDictionary:
         [Fact]
         public void TestDictionaryRemovedItemFromBase()
         {
-            const string baseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+            const string baseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 10000000-0000-0000-0000-000000000000
 Tags: []
 MyDictionary:
     0a0000000a0000000a0000000a000000~Key1: String1
     14000000140000001400000014000000~Key3: String3
 ";
-            const string derivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+            const string derivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 20000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []
@@ -559,14 +559,14 @@ MyDictionary:
         [Fact]
         public void TestDictionaryRemovedDeletedItemFromBase()
         {
-            const string baseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+            const string baseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 10000000-0000-0000-0000-000000000000
 Tags: []
 MyDictionary:
     0a0000000a0000000a0000000a000000~Key1: String1
     24000000240000002400000024000000~Key3: String3
 ";
-            const string derivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+            const string derivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 20000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []
@@ -613,7 +613,7 @@ MyDictionary:
         [Fact]
         public void TestDictionaryRenameItemFromBase()
         {
-            const string baseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+            const string baseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 10000000-0000-0000-0000-000000000000
 Tags: []
 MyDictionary:
@@ -622,7 +622,7 @@ MyDictionary:
     14000000140000001400000014000000~Key3Renamed: String3
     34000000340000003400000034000000~Key4Renamed: String4
 ";
-            const string derivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+            const string derivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 20000000-0000-0000-0000-000000000000
 Archetype: 10000000-0000-0000-0000-000000000000:MyAsset
 Tags: []

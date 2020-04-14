@@ -1,7 +1,7 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_GRAPHICS_API_DIRECT3D12
+#if STRIDE_GRAPHICS_API_DIRECT3D12
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,9 +26,9 @@ using System.Collections.Generic;
 using System.Linq;
 using SharpDX.Direct3D12;
 using SharpDX.Mathematics.Interop;
-using Xenko.Core;
+using Stride.Core;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public partial class Texture
     {

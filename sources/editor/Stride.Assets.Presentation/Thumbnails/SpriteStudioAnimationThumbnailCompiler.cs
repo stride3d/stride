@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Assets.Compiler;
-using Xenko.Assets.Models;
-using Xenko.Assets.Presentation.Resources.Thumbnails;
-using Xenko.Editor.Resources;
-using Xenko.Editor.Thumbnails;
-using Xenko.SpriteStudio.Offline;
+using Stride.Core.Assets.Compiler;
+using Stride.Assets.Models;
+using Stride.Assets.Presentation.Resources.Thumbnails;
+using Stride.Editor.Resources;
+using Stride.Editor.Thumbnails;
+using Stride.SpriteStudio.Offline;
 
-namespace Xenko.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Presentation.Thumbnails
 {
     [AssetCompiler(typeof(SpriteStudioAnimationAsset), typeof(ThumbnailCompilationContext))]
     public class SpriteStudioAnimationThumbnailCompiler : StaticThumbnailCompiler<SpriteStudioAnimationAsset>

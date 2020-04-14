@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.Serialization;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Xenko.Assets.Rendering;
-using Xenko.Editor.Build;
-using Xenko.Engine;
-using Xenko.Engine.Processors;
-using Xenko.Rendering.Compositing;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.Serialization;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Assets.Rendering;
+using Stride.Editor.Build;
+using Stride.Engine;
+using Stride.Engine.Processors;
+using Stride.Rendering.Compositing;
 
-namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
+namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
 {
     [Display(10, "Perspective camera", "Camera")]
     public class PerspectiveCameraEntityFactory : EntityFactory

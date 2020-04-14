@@ -1,8 +1,8 @@
 using Xunit;
-using Xenko.Core.Assets.Quantum.Tests.Helpers;
-using Xenko.Core.Assets.Tests.Helpers;
+using Stride.Core.Assets.Quantum.Tests.Helpers;
+using Stride.Core.Assets.Tests.Helpers;
 
-namespace Xenko.Core.Assets.Quantum.Tests
+namespace Stride.Core.Assets.Quantum.Tests
 {
     public class TestAssetCompositeHierarchySerialization
     {

@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if (XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX) && XENKO_GRAPHICS_API_OPENGL
-using Xenko.Core.Mathematics;
+#if (STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX) && STRIDE_GRAPHICS_API_OPENGL
+using Stride.Core.Mathematics;
 using OpenTK;
-using Rectangle = Xenko.Core.Mathematics.Rectangle;
-#if XENKO_UI_SDL
-using WindowState = Xenko.Graphics.SDL.FormWindowState;
-using OpenGLWindow = Xenko.Graphics.SDL.Window;
+using Rectangle = Stride.Core.Mathematics.Rectangle;
+#if STRIDE_UI_SDL
+using WindowState = Stride.Graphics.SDL.FormWindowState;
+using OpenGLWindow = Stride.Graphics.SDL.Window;
 #else
 using WindowState = OpenTK.WindowState;
 using OpenGLWindow = OpenTK.GameWindow;
 #endif
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 #else
 using OpenTK.Graphics.OpenGL;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public class SwapChainGraphicsPresenter : GraphicsPresenter
     {

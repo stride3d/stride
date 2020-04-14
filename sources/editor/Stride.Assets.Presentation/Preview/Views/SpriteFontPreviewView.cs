@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Windows;
-using Xenko.Editor.Preview.View;
+using Stride.Editor.Preview.View;
 
-namespace Xenko.Assets.Presentation.Preview.Views
+namespace Stride.Assets.Presentation.Preview.Views
 {
-    public class SpriteFontPreviewView : XenkoPreviewView
+    public class SpriteFontPreviewView : StridePreviewView
     {
         static SpriteFontPreviewView()
         {

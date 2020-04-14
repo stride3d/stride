@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Presentation.Quantum;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.Quantum;
-using Xenko.Assets.Presentation.AssetEditors;
-using Xenko.Assets.Scripts;
+using Stride.Core.Diagnostics;
+using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Quantum;
+using Stride.Assets.Presentation.AssetEditors;
+using Stride.Assets.Scripts;
 
-namespace Xenko.Assets.Presentation.ViewModel
+namespace Stride.Assets.Presentation.ViewModel
 {
     /// <summary>
     /// View model for a <see cref="Method"/> inside a <see cref="VisualScriptAsset"/>.

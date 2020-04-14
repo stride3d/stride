@@ -31,14 +31,14 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Xenko.VisualStudio.Classifiers;
-using Xenko.VisualStudio.Commands;
+using Stride.VisualStudio.Classifiers;
+using Stride.VisualStudio.Commands;
 
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using VsShell = Microsoft.VisualStudio.Shell.VsShellUtilities;
 using Task = System.Threading.Tasks.Task;
 using EnvDTE;
-using Xenko.VisualStudio;
+using Stride.VisualStudio;
 
 namespace NShader
 {
@@ -75,14 +75,14 @@ namespace NShader
 
             m_colorableItems = new NShaderColorableItem[]
                                    {
-                                        /*1*/ new NShaderColorableItem(currentTheme, "Xenko.ShaderLanguage.Keyword", "Xenko Shader Language - Keyword", COLORINDEX.CI_BLUE, COLORINDEX.CI_AQUAMARINE, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(86, 156, 214), Color.Empty, FONTFLAGS.FF_DEFAULT),
-                                        /*2*/ new NShaderColorableItem(currentTheme, "Xenko.ShaderLanguage.Comment", "Xenko Shader Language - Comment", COLORINDEX.CI_DARKGREEN, COLORINDEX.CI_GREEN, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(87, 166, 74), Color.Empty, FONTFLAGS.FF_DEFAULT),
-                                        /*3*/ new NShaderColorableItem(currentTheme, "Xenko.ShaderLanguage.Identifier", "Xenko Shader Language - Identifier", COLORINDEX.CI_SYSPLAINTEXT_FG, COLORINDEX.CI_SYSPLAINTEXT_FG, COLORINDEX.CI_USERTEXT_BK, FONTFLAGS.FF_DEFAULT),
-                                        /*4*/ new NShaderColorableItem(currentTheme, "Xenko.ShaderLanguage.String", "Xenko Shader Language - String", COLORINDEX.CI_RED, COLORINDEX.CI_RED, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(214, 157, 133), Color.Empty, FONTFLAGS.FF_DEFAULT),
-                                        /*5*/ new NShaderColorableItem(currentTheme, "Xenko.ShaderLanguage.Number", "Xenko Shader Language - Number", COLORINDEX.CI_DARKBLUE, COLORINDEX.CI_BLUE, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(181, 206, 168), Color.Empty, FONTFLAGS.FF_DEFAULT),
-                                        /*6*/ new NShaderColorableItem(currentTheme, "Xenko.ShaderLanguage.Intrinsic", "Xenko Shader Language - Intrinsic", COLORINDEX.CI_MAROON, COLORINDEX.CI_CYAN, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(239, 242, 132), Color.Empty, FONTFLAGS.FF_BOLD),
-                                        /*7*/ new NShaderColorableItem(currentTheme, "Xenko.ShaderLanguage.Special", "Xenko Shader Language - Special", COLORINDEX.CI_AQUAMARINE, COLORINDEX.CI_MAGENTA, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(78, 201, 176), Color.Empty, FONTFLAGS.FF_DEFAULT),
-                                        /*8*/ new NShaderColorableItem(currentTheme, "Xenko.ShaderLanguage.Preprocessor", "Xenko Shader Language - Preprocessor", COLORINDEX.CI_DARKGRAY, COLORINDEX.CI_LIGHTGRAY, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(155, 155, 155), Color.Empty, FONTFLAGS.FF_DEFAULT),
+                                        /*1*/ new NShaderColorableItem(currentTheme, "Stride.ShaderLanguage.Keyword", "Stride Shader Language - Keyword", COLORINDEX.CI_BLUE, COLORINDEX.CI_AQUAMARINE, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(86, 156, 214), Color.Empty, FONTFLAGS.FF_DEFAULT),
+                                        /*2*/ new NShaderColorableItem(currentTheme, "Stride.ShaderLanguage.Comment", "Stride Shader Language - Comment", COLORINDEX.CI_DARKGREEN, COLORINDEX.CI_GREEN, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(87, 166, 74), Color.Empty, FONTFLAGS.FF_DEFAULT),
+                                        /*3*/ new NShaderColorableItem(currentTheme, "Stride.ShaderLanguage.Identifier", "Stride Shader Language - Identifier", COLORINDEX.CI_SYSPLAINTEXT_FG, COLORINDEX.CI_SYSPLAINTEXT_FG, COLORINDEX.CI_USERTEXT_BK, FONTFLAGS.FF_DEFAULT),
+                                        /*4*/ new NShaderColorableItem(currentTheme, "Stride.ShaderLanguage.String", "Stride Shader Language - String", COLORINDEX.CI_RED, COLORINDEX.CI_RED, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(214, 157, 133), Color.Empty, FONTFLAGS.FF_DEFAULT),
+                                        /*5*/ new NShaderColorableItem(currentTheme, "Stride.ShaderLanguage.Number", "Stride Shader Language - Number", COLORINDEX.CI_DARKBLUE, COLORINDEX.CI_BLUE, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(181, 206, 168), Color.Empty, FONTFLAGS.FF_DEFAULT),
+                                        /*6*/ new NShaderColorableItem(currentTheme, "Stride.ShaderLanguage.Intrinsic", "Stride Shader Language - Intrinsic", COLORINDEX.CI_MAROON, COLORINDEX.CI_CYAN, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(239, 242, 132), Color.Empty, FONTFLAGS.FF_BOLD),
+                                        /*7*/ new NShaderColorableItem(currentTheme, "Stride.ShaderLanguage.Special", "Stride Shader Language - Special", COLORINDEX.CI_AQUAMARINE, COLORINDEX.CI_MAGENTA, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(78, 201, 176), Color.Empty, FONTFLAGS.FF_DEFAULT),
+                                        /*8*/ new NShaderColorableItem(currentTheme, "Stride.ShaderLanguage.Preprocessor", "Stride Shader Language - Preprocessor", COLORINDEX.CI_DARKGRAY, COLORINDEX.CI_LIGHTGRAY, COLORINDEX.CI_USERTEXT_BK, Color.Empty, Color.FromArgb(155, 155, 155), Color.Empty, FONTFLAGS.FF_DEFAULT),
                                    };
         }
 
@@ -303,7 +303,7 @@ namespace NShader
 
         public RawShaderNavigationResult AnalyzeAndGoToDefinition(string projectFile, string text, RawSourceSpan span)
         {
-            return XenkoCommandsProxy.GetProxy()?.AnalyzeAndGoToDefinition(projectFile, text, span) ?? new RawShaderNavigationResult();
+            return StrideCommandsProxy.GetProxy()?.AnalyzeAndGoToDefinition(projectFile, text, span) ?? new RawShaderNavigationResult();
         }
 
         private NShaderSource GetCurrentNShaderSource()
@@ -332,7 +332,7 @@ namespace NShader
 
         public override string Name
         {
-            get { return "Xenko Shader Language"; }
+            get { return "Stride Shader Language"; }
         }
 
         public void OutputAnalysisAndGotoLocation(RawShaderNavigationResult result, IVsTextView textView)

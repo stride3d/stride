@@ -1,8 +1,8 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 
-namespace Xenko.Core.Presentation.View
+namespace Stride.Core.Presentation.View
 {
     /// <summary>
     /// A base class to compare instances of <see cref="ITemplateProvider"/> in order to determine which template to use when multiple template providers match the same object.

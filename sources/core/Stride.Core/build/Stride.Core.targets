@@ -1,22 +1,22 @@
-<Project InitialTargets="_XenkoCheckVisualCRuntime2015" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project InitialTargets="_StrideCheckVisualCRuntime2015" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Check if Visual C++ Runtime 2015 is properly installed -->
-  <Target Name="_XenkoCheckVisualCRuntime2015" Condition="'$(MSBuildRuntimeType)' == 'Full'">
+  <Target Name="_StrideCheckVisualCRuntime2015" Condition="'$(MSBuildRuntimeType)' == 'Full'">
     <ItemGroup>
-      <_XenkoVisualCRuntime2015 Include="Visual C++ Redistributable for Visual Studio 2015 x86">
+      <_StrideVisualCRuntime2015 Include="Visual C++ Redistributable for Visual Studio 2015 x86">
         <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Version', null, RegistryView.Registry32))</Version>
         <ExpectedVersion>14.0.23026</ExpectedVersion>
         <DownloadUrl>http://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x86.exe</DownloadUrl>
-      </_XenkoVisualCRuntime2015>
-      <_XenkoVisualCRuntime2015 Include="Visual C++ Redistributable for Visual Studio 2015 x64">
+      </_StrideVisualCRuntime2015>
+      <_StrideVisualCRuntime2015 Include="Visual C++ Redistributable for Visual Studio 2015 x64">
         <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Version', null, RegistryView.Registry64))</Version>
         <ExpectedVersion>14.0.23026</ExpectedVersion>
         <DownloadUrl>http://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x64.exe</DownloadUrl>
-      </_XenkoVisualCRuntime2015>
+      </_StrideVisualCRuntime2015>
 
-      <_XenkoVisualCRuntime2015NotInstalled Include="@(_XenkoVisualCRuntime2015)" Condition="'%(_XenkoVisualCRuntime2015.Version)' == '' Or $([System.Version]::Parse('%(Version)').CompareTo($([System.Version]::Parse('%(_XenkoVisualCRuntime2015.ExpectedVersion)')))) &lt; 0" />
+      <_StrideVisualCRuntime2015NotInstalled Include="@(_StrideVisualCRuntime2015)" Condition="'%(_StrideVisualCRuntime2015.Version)' == '' Or $([System.Version]::Parse('%(Version)').CompareTo($([System.Version]::Parse('%(_StrideVisualCRuntime2015.ExpectedVersion)')))) &lt; 0" />
     </ItemGroup>
 
-    <Error Condition="'@(_XenkoVisualCRuntime2015NotInstalled)' != ''" Text="@(_XenkoVisualCRuntime2015NotInstalled->'%(Identity) is not installed. Please download from %(DownloadUrl)', '%0a')"/>
+    <Error Condition="'@(_StrideVisualCRuntime2015NotInstalled)' != ''" Text="@(_StrideVisualCRuntime2015NotInstalled->'%(Identity) is not installed. Please download from %(DownloadUrl)', '%0a')"/>
   </Target>
   
   <!-- 
@@ -26,18 +26,18 @@
   -->
   <PropertyGroup>
     <!-- Windows10 was renammed into UWP -->
-    <XenkoPlatform Condition="'$(XenkoPlatform)' == 'Windows10'">UWP</XenkoPlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == 'Windows10'">UWP</StridePlatform>
     <!-- Default mappings -->
-    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetPlatformIdentifier)' == 'UAP'">UWP</XenkoPlatform>
-    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'MonoAndroid'">Android</XenkoPlatform>
-    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'Xamarin.iOS'">iOS</XenkoPlatform>
-    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And $(RuntimeIdentifier.StartsWith('linux'))">Linux</XenkoPlatform>
-    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And $(RuntimeIdentifier.StartsWith('osx'))">macOS</XenkoPlatform>
-    <XenkoPlatform Condition="'$(XenkoPlatform)' == ''">Windows</XenkoPlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetPlatformIdentifier)' == 'UAP'">UWP</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'MonoAndroid'">Android</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'Xamarin.iOS'">iOS</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And $(RuntimeIdentifier.StartsWith('linux'))">Linux</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And $(RuntimeIdentifier.StartsWith('osx'))">macOS</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == ''">Windows</StridePlatform>
   </PropertyGroup>
 
   <!-- If not set, Android executable doesn't work properly because ResolveNuGetPackageAssets has no NuGetRuntimeIdentifier and use only the ref assemblies -->
-  <PropertyGroup Condition="'$(XenkoPlatform)' == 'Android' And '$(AndroidApplication)' == 'true'">
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Android' And '$(AndroidApplication)' == 'true'">
     <RuntimeIdentifier>win</RuntimeIdentifier>
     <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
   </PropertyGroup>
@@ -49,43 +49,43 @@
   -->
   <PropertyGroup>
     <!--By default, turn on assembly processor-->
-    <XenkoAssemblyProcessor Condition="'$(XenkoAssemblyProcessor)' == ''">true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed2.exe')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed2.exe</XenkoAssemblyProcessorPath>
-    <XenkoAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed2.exe')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed2.exe</XenkoAssemblyProcessorPath>
+    <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe</StrideAssemblyProcessorPath>
+    <StrideAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe</StrideAssemblyProcessorPath>
   </PropertyGroup>
-  <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(XenkoAssemblyProcessorPath)" Condition=" '$(XenkoAssemblyProcessorPath)' != '' And '$(XenkoAssemblyProcessorDev)' != 'true' "/>
-  <Target Name="XenkoRunAssemblyProcessor" DependsOnTargets="ResolveAssemblyReferences">
-    <WriteLinesToFile File="$(IntermediateOutputPath)XenkoReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
+  <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorPath)" Condition=" '$(StrideAssemblyProcessorPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
+  <Target Name="StrideRunAssemblyProcessor" DependsOnTargets="ResolveAssemblyReferences">
+    <WriteLinesToFile File="$(IntermediateOutputPath)StrideReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
     <ItemGroup>
       <!-- We want list of references coming from direct and explicit PackageReference. We are using metadata to combine ReferencePath and PackageReference items https://stackoverflow.com/a/18032552 -->
-      <XenkoAddReference Include="@(ReferencePath)" Condition="'%(PackageReference.IsImplicitlyDefined)' != 'true'">
+      <StrideAddReference Include="@(ReferencePath)" Condition="'%(PackageReference.IsImplicitlyDefined)' != 'true'">
         <NuGetPackageReference>%(PackageReference.Identity)</NuGetPackageReference>
-      </XenkoAddReference>
-      <XenkoAddReference Remove="@(XenkoAddReference)" Condition="'%(XenkoAddReference.NuGetPackageId)' != '%(XenkoAddReference.NuGetPackageReference)' Or ('%(XenkoAddReference.ExternallyResolved)' != 'true' And '%(XenkoAddReference.BuildReference)' != 'true')"/>
+      </StrideAddReference>
+      <StrideAddReference Remove="@(StrideAddReference)" Condition="'%(StrideAddReference.NuGetPackageId)' != '%(StrideAddReference.NuGetPackageReference)' Or ('%(StrideAddReference.ExternallyResolved)' != 'true' And '%(StrideAddReference.BuildReference)' != 'true')"/>
       <!-- Also include non-nuget references (Reference and ProjectReference) -->
-      <XenkoAddReference Include="@(ReferencePath)" Condition="'%(ReferencePath.NuGetPackageId)' == ''"/>
+      <StrideAddReference Include="@(ReferencePath)" Condition="'%(ReferencePath.NuGetPackageId)' == ''"/>
     </ItemGroup>
     <PropertyGroup>
-      <XenkoAssemblyProcessorOptions Condition="'$(XenkoAssemblyProcessorOptions)' == ''">--auto-notify-property --parameter-key --auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(XenkoAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</XenkoAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--auto-notify-property --parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
       <!-- Physics, Particles and SpriteStudio assembly is actually hard coded/referenced here, remove once a better system is in place! -->
       <!-- Please keep in sync with AssemblyRecompiler.cs -->
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) @(XenkoAddReference->'--add-reference=%22%(Identity)%22',' ')</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(XenkoAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)XenkoReferences.cache"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --platform=$(XenkoPlatform) --targetFramework=$(XenkoNETFrameworkVersion) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(XenkoAssemblyProcessorOptions) --signkeyfile="$(AssemblyOriginatorKeyFile)" --delete-on-error</XenkoAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) @(StrideAddReference->'--add-reference=%22%(Identity)%22',' ')</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)StrideReferences.cache"</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --platform=$(StridePlatform) --targetFramework=$(StrideNETFrameworkVersion) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(StrideAssemblyProcessorOptions) --signkeyfile="$(AssemblyOriginatorKeyFile)" --delete-on-error</StrideAssemblyProcessorOptions>
     </PropertyGroup>
     
     <!-- Run assembly processor -->
-    <Message Condition=" '$(XenkoAssemblyProcessorDev)' != 'true' " Importance="low" Text="&quot;$(XenkoAssemblyProcessorPath)&quot; $(XenkoAssemblyProcessorOptions)"/>
-    <AssemblyProcessorTask Condition=" '$(XenkoAssemblyProcessorDev)' != 'true' " Arguments="$(XenkoAssemblyProcessorOptions)"/>
+    <Message Condition=" '$(StrideAssemblyProcessorDev)' != 'true' " Importance="low" Text="&quot;$(StrideAssemblyProcessorPath)&quot; $(StrideAssemblyProcessorOptions)"/>
+    <AssemblyProcessorTask Condition=" '$(StrideAssemblyProcessorDev)' != 'true' " Arguments="$(StrideAssemblyProcessorOptions)"/>
     <!-- Dev mode: don't use task to avoid locking the file -->
-    <Exec Condition=" '$(XenkoAssemblyProcessorDev)' == 'true' " Command="&quot;$(XenkoAssemblyProcessorPath)&quot; $(XenkoAssemblyProcessorOptions)"/>
+    <Exec Condition=" '$(StrideAssemblyProcessorDev)' == 'true' " Command="&quot;$(StrideAssemblyProcessorPath)&quot; $(StrideAssemblyProcessorOptions)"/>
   </Target>
-  <PropertyGroup Condition=" '$(XenkoAssemblyProcessor)' == 'true'">
+  <PropertyGroup Condition=" '$(StrideAssemblyProcessor)' == 'true'">
     <PrepareForRunDependsOn>
-      XenkoRunAssemblyProcessor;
+      StrideRunAssemblyProcessor;
       $(PrepareForRunDependsOn)
     </PrepareForRunDependsOn>
   </PropertyGroup>
@@ -96,7 +96,7 @@
   *****************************************************************************************************************************
   -->
   <!-- Workaround to copy .xml and .pdb files for new csproj targeting (https://github.com/dotnet/sdk/issues/1458#issuecomment-401497095) -->
-  <Target Name="_XenkoResolveCopyLocalNuGetPackagePdbsAndXml"
+  <Target Name="_StrideResolveCopyLocalNuGetPackagePdbsAndXml"
            Condition="$(CopyLocalLockFileAssemblies) == true"
            AfterTargets="ResolveReferences">
     <ItemGroup>
@@ -114,101 +114,101 @@
   <!-- 
   *****************************************************************************************************************************
   Dependencies reading (from .ssdeps)
-  Important: Please keep in sync with Xenko.Core.PostSettings.Dependencies.Targets
+  Important: Please keep in sync with Stride.Core.PostSettings.Dependencies.Targets
   *****************************************************************************************************************************
   -->
   <!-- List dependency files from .ssdeps -->
   <PropertyGroup>
-    <_XenkoListDepsFilesDependsOn>ResolveAssemblyReferences</_XenkoListDepsFilesDependsOn>
-    <_XenkoListDepsFilesDependsOn Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'macOS'">$(_XenkoListDepsFilesDependsOn);ResolvePackageAssets</_XenkoListDepsFilesDependsOn>
+    <_StrideListDepsFilesDependsOn>ResolveAssemblyReferences</_StrideListDepsFilesDependsOn>
+    <_StrideListDepsFilesDependsOn Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS'">$(_StrideListDepsFilesDependsOn);ResolvePackageAssets</_StrideListDepsFilesDependsOn>
   </PropertyGroup>
-  <Target Name="_XenkoListDepsFiles" DependsOnTargets="$(_XenkoListDepsFilesDependsOn)">
+  <Target Name="_StrideListDepsFiles" DependsOnTargets="$(_StrideListDepsFilesDependsOn)">
     <ItemGroup>
-      <_XenkoDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
-      <_XenkoDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
-      <_XenkoDepsFile Include="@(RuntimeCopyLocalItems->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
-      <_XenkoDepsFile Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(RuntimeCopyLocalItems->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <!-- Android -->
-      <_XenkoDepsFile Include="@(_ReferencesFromNuGetPackages->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
-      <None Include="@(_XenkoDepsFile)" CopyToOutputDirectory="PreserveNewest" />
+      <_StrideDepsFile Include="@(_ReferencesFromNuGetPackages->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <None Include="@(_StrideDepsFile)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 
   <!-- Note: this target Outputs are not real, used so that it gets expanded for each file
-             also, if _XenkoDepsFile is empty the target is still called so check for it -->
-  <Target Name="_XenkoBuildDependencies" DependsOnTargets="_XenkoListDepsFiles" Outputs="%(_XenkoDepsFile.Identity)">
+             also, if _StrideDepsFile is empty the target is still called so check for it -->
+  <Target Name="_StrideBuildDependencies" DependsOnTargets="_StrideListDepsFiles" Outputs="%(_StrideDepsFile.Identity)">
     <!-- Read dependencies from file -->
-    <ReadLinesFromFile File="%(_XenkoDepsFile.Identity)" Condition="'%(_XenkoDepsFile.Identity)' != ''">
-      <Output TaskParameter="Lines" ItemName="_XenkoDependencyLocal"/>
+    <ReadLinesFromFile File="%(_StrideDepsFile.Identity)" Condition="'%(_StrideDepsFile.Identity)' != ''">
+      <Output TaskParameter="Lines" ItemName="_StrideDependencyLocal"/>
     </ReadLinesFromFile>
     <PropertyGroup>
-      <_XenkoSourceDir>%(_XenkoDepsFile.RootDir)%(_XenkoDepsFile.Directory)</_XenkoSourceDir>
+      <_StrideSourceDir>%(_StrideDepsFile.RootDir)%(_StrideDepsFile.Directory)</_StrideSourceDir>
     </PropertyGroup>
     <ItemGroup>
-      <_XenkoDependencyLocal>
+      <_StrideDependencyLocal>
         <!-- Note: Using regex match rather than regex split or string split to avoid MSBuild MissingMethodException -->
         <Type>$([System.Text.RegularExpressions.Regex]::Match('%(Identity)', `(.*);(.*);(.*)`).get_Groups().get_Item(1).ToString())</Type>
         <SourcePath>$([System.Text.RegularExpressions.Regex]::Match('%(Identity)', `(.*);(.*);(.*)`).get_Groups().get_Item(2).ToString())</SourcePath>
         <Link>$([System.Text.RegularExpressions.Regex]::Match('%(Identity)', `(.*);(.*);(.*)`).get_Groups().get_Item(3).ToString())</Link>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </_XenkoDependencyLocal>
-      <_XenkoDependencyContent Include="@(_XenkoDependencyLocal->'$(_XenkoSourceDir)%(SourcePath)')" Condition="'%(_XenkoDependencyLocal.Type)' == 'Content'"/>
-      <_XenkoDependencyNativeLib Include="@(_XenkoDependencyLocal->'$(_XenkoSourceDir)%(SourcePath)')" Condition="'%(_XenkoDependencyLocal.Type)' == 'NativeLib'"/>
+      </_StrideDependencyLocal>
+      <_StrideDependencyContent Include="@(_StrideDependencyLocal->'$(_StrideSourceDir)%(SourcePath)')" Condition="'%(_StrideDependencyLocal.Type)' == 'Content'"/>
+      <_StrideDependencyNativeLib Include="@(_StrideDependencyLocal->'$(_StrideSourceDir)%(SourcePath)')" Condition="'%(_StrideDependencyLocal.Type)' == 'NativeLib'"/>
     </ItemGroup>
 
     <!-- Message -->
-    <Message Importance="Normal" Text="Detected dependency from %(_XenkoDepsFile.FileName)" Condition="'%(_XenkoDepsFile.Identity)' != ''"/>
-    <Message Importance="Normal" Text="  %(_XenkoDependencyLocal.Type): %(_XenkoDependencyLocal.Identity) => %(_XenkoDependencyLocal.Link)"/>
+    <Message Importance="Normal" Text="Detected dependency from %(_StrideDepsFile.FileName)" Condition="'%(_StrideDepsFile.Identity)' != ''"/>
+    <Message Importance="Normal" Text="  %(_StrideDependencyLocal.Type): %(_StrideDependencyLocal.Identity) => %(_StrideDependencyLocal.Link)"/>
 
-    <!-- Cleanup so that _XenkoDependencyLocal is local -->
+    <!-- Cleanup so that _StrideDependencyLocal is local -->
     <ItemGroup>
-      <_XenkoDependencyLocal Remove="@(_XenkoDependencyLocal)"/>
+      <_StrideDependencyLocal Remove="@(_StrideDependencyLocal)"/>
     </ItemGroup>
   </Target>
 
-  <Target Name="_XenkoCopyContent" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences">
+  <Target Name="_StrideCopyContent" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences">
     <ItemGroup>
-      <Content Include="@(_XenkoDependencyContent)"/>
+      <Content Include="@(_StrideDependencyContent)"/>
     </ItemGroup>
   </Target>
 
   <!-- Copy native libraries to output -->
-  <Target Name="_XenkoSetupNativeLibrariesWindows" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="('$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'macOS' Or '$(XenkoPlatform)' == 'Linux') And '$(CopyLocalLockFileAssemblies)' != 'false'">
+  <Target Name="_StrideSetupNativeLibrariesWindows" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="('$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'macOS' Or '$(StridePlatform)' == 'Linux') And '$(CopyLocalLockFileAssemblies)' != 'false'">
     <ItemGroup>
-      <None Include="@(_XenkoDependencyNativeLib)">
+      <None Include="@(_StrideDependencyNativeLib)">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
   </Target>
-  <!-- When publishing, copy native libraries (only needed if CopyLocalLockFileAssemblies is set to false since _XenkoSetupNativeLibrariesWindows won't run) -->
-  <Target Name="_XenkoSetupNativeLibrariesDotNetPublish" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ComputeFilesToPublish" Condition="'$(UsingMicrosoftNETSdk)' == 'true' And '$(CopyLocalLockFileAssemblies)' == 'false'">
+  <!-- When publishing, copy native libraries (only needed if CopyLocalLockFileAssemblies is set to false since _StrideSetupNativeLibrariesWindows won't run) -->
+  <Target Name="_StrideSetupNativeLibrariesDotNetPublish" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ComputeFilesToPublish" Condition="'$(UsingMicrosoftNETSdk)' == 'true' And '$(CopyLocalLockFileAssemblies)' == 'false'">
     <ItemGroup>
-      <ResolvedFileToPublish Include="@(_XenkoDependencyNativeLib)">
-        <RelativePath>%(_XenkoDependencyNativeLib.Link)</RelativePath>
+      <ResolvedFileToPublish Include="@(_StrideDependencyNativeLib)">
+        <RelativePath>%(_StrideDependencyNativeLib.Link)</RelativePath>
       </ResolvedFileToPublish>
     </ItemGroup>
   </Target>
-  <Target Name="_XenkoSetupNativeLibrariesUWP" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(XenkoPlatform)' == 'UWP'">
+  <Target Name="_StrideSetupNativeLibrariesUWP" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(StridePlatform)' == 'UWP'">
     <PropertyGroup>
-      <XenkoCPU Condition="'$(Platform)' == 'x86'">x86</XenkoCPU>
-      <XenkoCPU Condition="'$(Platform)' == 'x64'">x64</XenkoCPU>
-      <XenkoCPU Condition="'$(Platform)' == 'ARM'">ARM</XenkoCPU>
+      <StrideCPU Condition="'$(Platform)' == 'x86'">x86</StrideCPU>
+      <StrideCPU Condition="'$(Platform)' == 'x64'">x64</StrideCPU>
+      <StrideCPU Condition="'$(Platform)' == 'ARM'">ARM</StrideCPU>
     </PropertyGroup>
     <ItemGroup>
-      <Content Include="@(_XenkoDependencyNativeLib)" Condition="$([System.String]::Copy('%(_XenkoDependencyNativeLib.Link)').StartsWith('$(XenkoCPU)'))">
+      <Content Include="@(_StrideDependencyNativeLib)" Condition="$([System.String]::Copy('%(_StrideDependencyNativeLib.Link)').StartsWith('$(StrideCPU)'))">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <Link Condition="'$(XenkoCPU)' != ''">$([System.String]::Copy('%(_XenkoDependencyNativeLib.Link)').Replace('$(XenkoCPU)\', ''))</Link>
+        <Link Condition="'$(StrideCPU)' != ''">$([System.String]::Copy('%(_StrideDependencyNativeLib.Link)').Replace('$(StrideCPU)\', ''))</Link>
       </Content>
     </ItemGroup>
   </Target>
-  <Target Name="_XenkoSetupNativeLibrariesAndroid" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(XenkoPlatform)' == 'Android'">
+  <Target Name="_StrideSetupNativeLibrariesAndroid" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(StridePlatform)' == 'Android'">
     <ItemGroup>
-      <AndroidNativeLibrary Include="@(_XenkoDependencyNativeLib)"/>
+      <AndroidNativeLibrary Include="@(_StrideDependencyNativeLib)"/>
     </ItemGroup>
   </Target>
-  <Target Name="_XenkoSetupNativeLibrariesiOS" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition=" '$(OutputType)' == 'Exe' And '$(XenkoPlatform)' == 'iOS'">
+  <Target Name="_StrideSetupNativeLibrariesiOS" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition=" '$(OutputType)' == 'Exe' And '$(StridePlatform)' == 'iOS'">
     <ItemGroup>
-      <NativeReference Include="@(_XenkoDependencyNativeLib)">
+      <NativeReference Include="@(_StrideDependencyNativeLib)">
         <Kind>Static</Kind>
       </NativeReference>
     </ItemGroup>

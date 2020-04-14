@@ -1,7 +1,7 @@
-using Xenko.Core;
-using Xenko.Graphics;
+using Stride.Core;
+using Stride.Graphics;
 
-namespace Xenko.Rendering
+namespace Stride.Rendering
 {
     /// <summary>
     /// Describes a single rendering pass of a <see cref="Rendering.Material"/>.
@@ -51,7 +51,7 @@ namespace Xenko.Rendering
         /// <summary>
         /// The tessellation method used by the material.
         /// </summary>
-        public XenkoTessellationMethod TessellationMethod;
+        public StrideTessellationMethod TessellationMethod;
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance has transparent.

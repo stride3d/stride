@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xenko.Core.Mathematics;
-using Xenko;
-using Xenko.Rendering;
-using Xenko.Engine;
-using Xenko.Graphics;
+using Stride.Core.Mathematics;
+using Stride;
+using Stride.Rendering;
+using Stride.Engine;
+using Stride.Graphics;
 
 namespace <#= Properties.Namespace #>
 {

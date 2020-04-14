@@ -33,27 +33,27 @@
     <OutputPath>bin\Debug\</OutputPath>
     <Prefer32Bit>false</Prefer32Bit>
     <UseVSHostingProcess>false</UseVSHostingProcess>
-    <DefineConstants>TRACE;XENKO_LAUNCHER</DefineConstants>
+    <DefineConstants>TRACE;STRIDE_LAUNCHER</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;XENKO_LAUNCHER</DefineConstants>
+    <DefineConstants>TRACE;STRIDE_LAUNCHER</DefineConstants>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Resources\Logo.ico</ApplicationIcon>
-    <RootNamespace>Xenko.LauncherApp</RootNamespace>
+    <RootNamespace>Stride.LauncherApp</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Announcements\Release30.md" />
     <None Remove="Resources\list-26.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Xenko.Metrics" Version="1.0.0" />
-    <PackageReference Include="Xenko.CrashReport" Version="1.0.1" />
+    <PackageReference Include="Stride.Metrics" Version="1.0.0" />
+    <PackageReference Include="Stride.CrashReport" Version="1.0.1" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Diagnostics.Debug" />
     <Reference Include="System.Management" />
@@ -71,13 +71,13 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\assets\Xenko.Core.Assets\PackageSessionHelper.Solution.cs">
+    <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs">
       <Link>Packages\PackageSessionHelper.Solution.cs</Link>
     </Compile>
-    <Compile Include="..\..\assets\Xenko.Core.Assets\Package.Constants.cs">
+    <Compile Include="..\..\assets\Stride.Core.Assets\Package.Constants.cs">
       <Link>Packages\Package.Constants.cs</Link>
     </Compile>
-    <Compile Include="..\..\editor\Xenko.Core.Assets.Editor\EditorPath.cs">
+    <Compile Include="..\..\editor\Stride.Core.Assets.Editor\EditorPath.cs">
       <Link>Editor\EditorPath.cs</Link>
     </Compile>
     <Compile Update="App.xaml.cs">
@@ -180,16 +180,16 @@
     <EmbeddedResource Include="Announcements\Release30.md" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Packages\Xenko.Core.Packages.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Yaml\Xenko.Core.Yaml.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation.Dialogs\Xenko.Core.Presentation.Dialogs.csproj" />
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation\Xenko.Core.Presentation.csproj" />
+    <ProjectReference Include="..\..\assets\Stride.Core.Packages\Stride.Core.Packages.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.IO\Stride.Core.IO.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Reflection\Stride.Core.Reflection.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Yaml\Stride.Core.Yaml.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
+    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Dialogs\Stride.Core.Presentation.Dialogs.csproj" />
+    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -197,11 +197,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <Import Project="..\..\editor\Xenko.PrivacyPolicy\Xenko.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\..\editor\Xenko.PrivacyPolicy\Xenko.PrivacyPolicy.projitems')" />
-  <Import Project="..\..\editor\Xenko.Core.MostRecentlyUsedFiles\Xenko.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
-  <Import Project="..\..\assets\Xenko.Core.Assets.Yaml\Xenko.Core.Assets.Yaml.projitems" Label="Shared" />
-  <Import Project="..\..\editor\Xenko.Editor.CrashReport\Xenko.Editor.CrashReport.projitems" Label="Shared" />
-  <Import Project="..\..\targets\Xenko.Core.Sign.targets" />
+  <Import Project="..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
+  <Import Project="..\..\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
+  <Import Project="..\..\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems" Label="Shared" />
+  <Import Project="..\..\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems" Label="Shared" />
+  <Import Project="..\..\targets\Stride.Core.Sign.targets" />
   <!--   <Target Name="AfterResolveReferences">
     <ItemGroup>
       <EmbeddedResource Update="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Extension)' == '.dll'">

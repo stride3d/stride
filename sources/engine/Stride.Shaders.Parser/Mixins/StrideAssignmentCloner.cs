@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Core.Shaders.Ast;
 
-namespace Xenko.Shaders.Parser.Mixins
+namespace Stride.Shaders.Parser.Mixins
 {
     /// <summary>
     /// Class used to clone an expression without the references it may contain
     /// </summary>
-    internal static class XenkoAssignmentCloner
+    internal static class StrideAssignmentCloner
     {
         public static Expression Run(Expression expression)
         {

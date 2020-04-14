@@ -6,6 +6,6 @@ Scope: Asset
 Description: A simple material with a diffuse map
 Group: Material
 Order: -50
-Icon: ..\.xktpl\MaterialDiffuse.png
+Icon: ..\.sdtpl\MaterialDiffuse.png
 DefaultOutputName: Material
 FactoryTypeName: DiffuseMaterialFactory

@@ -8,7 +8,7 @@ Meta:
     Owners: []
     RootNamespace: EditorPackage
     Dependencies:
-        -   Name: Xenko
+        -   Name: Stride
             Version: 1.11.1.2
             RootAssets: []
 LocalDependencies: []
@@ -21,7 +21,7 @@ Profiles:
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: 550c1b7c-b7ad-46df-acf3-c36aef35d5ff
-                Location: ../Xenko.Assets.Presentation.csproj
+                Location: ../Stride.Assets.Presentation.csproj
                 Type: Plugin
     -   Name: Shared
         Platform: Shared

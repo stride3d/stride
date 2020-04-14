@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Assets.Yaml
+namespace Stride.Core.Assets.Yaml
 {
     /// <summary>
     /// Equality comparer for <see cref="YamlAssetPath"/> hwne used as a key in a hashing collection (e.g. <see cref="Dictionary{TKey,TValue}"/>.

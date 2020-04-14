@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core;
-using Xenko.Shaders;
+using Stride.Core;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Materials
+namespace Stride.Rendering.Materials
 {
     /// <summary>
     /// Material for flat (dicing) tessellation.    
@@ -21,7 +21,7 @@ namespace Xenko.Rendering.Materials
                 return;
 
             // set the tessellation method used enumeration
-            context.MaterialPass.TessellationMethod |= XenkoTessellationMethod.Flat;
+            context.MaterialPass.TessellationMethod |= StrideTessellationMethod.Flat;
 
             // create and affect the shader source
             var tessellationShader = new ShaderMixinSource();

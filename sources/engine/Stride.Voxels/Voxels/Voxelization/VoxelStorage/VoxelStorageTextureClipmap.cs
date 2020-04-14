@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.Rendering.Shadows;
-using Xenko.Shaders;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Rendering.Shadows;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     public class VoxelStorageTextureClipmap : IVoxelStorageTexture
     {
@@ -17,9 +17,9 @@ namespace Xenko.Rendering.Voxels
 
         public bool DownsampleFinerClipMaps;
 
-        public Xenko.Graphics.Texture ClipMaps = null;
-        public Xenko.Graphics.Texture MipMaps = null;
-        public Xenko.Graphics.Texture[] TempMipMaps = null;
+        public Stride.Graphics.Texture ClipMaps = null;
+        public Stride.Graphics.Texture MipMaps = null;
+        public Stride.Graphics.Texture[] TempMipMaps = null;
 
         public Vector4[] PerMapOffsetScale = new Vector4[20];
         public Vector4[] PerMapOffsetScaleCurrent = new Vector4[20];
@@ -36,10 +36,10 @@ namespace Xenko.Rendering.Voxels
             parameters.Set(MainKey, ClipMaps);
         }
 
-        Xenko.Rendering.ComputeEffect.ComputeEffectShader VoxelMipmapSimple;
+        Stride.Rendering.ComputeEffect.ComputeEffectShader VoxelMipmapSimple;
         //Memory leaks if the ThreadGroupCounts/Numbers/Composition changes (I suppose due to recompiles...?)
         //so instead cache them as seperate shaders.
-        Xenko.Rendering.ComputeEffect.ComputeEffectShader[][] VoxelMipmapSimpleGroups;
+        Stride.Rendering.ComputeEffect.ComputeEffectShader[][] VoxelMipmapSimpleGroups;
 
         public void PostProcess(RenderDrawContext drawContext, ShaderSource[] mipmapShaders)
         {
@@ -50,7 +50,7 @@ namespace Xenko.Rendering.Voxels
 
             if (VoxelMipmapSimple == null)
             {
-                VoxelMipmapSimple = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(drawContext.RenderContext) { ShaderSourceName = "Voxel2x2x2MipmapEffect" };
+                VoxelMipmapSimple = new Stride.Rendering.ComputeEffect.ComputeEffectShader(drawContext.RenderContext) { ShaderSourceName = "Voxel2x2x2MipmapEffect" };
             }
 
             if (VoxelMipmapSimpleGroups == null || VoxelMipmapSimpleGroups.Length != LayoutSize || VoxelMipmapSimpleGroups[0].Length != TempMipMaps.Length)
@@ -68,13 +68,13 @@ namespace Xenko.Rendering.Voxels
                         }
                     }
                 }
-                VoxelMipmapSimpleGroups = new Xenko.Rendering.ComputeEffect.ComputeEffectShader[LayoutSize][];
+                VoxelMipmapSimpleGroups = new Stride.Rendering.ComputeEffect.ComputeEffectShader[LayoutSize][];
                 for (int axis = 0; axis < LayoutSize; axis++)
                 {
-                    VoxelMipmapSimpleGroups[axis] = new Xenko.Rendering.ComputeEffect.ComputeEffectShader[TempMipMaps.Length];
+                    VoxelMipmapSimpleGroups[axis] = new Stride.Rendering.ComputeEffect.ComputeEffectShader[TempMipMaps.Length];
                     for (int i = 0; i < VoxelMipmapSimpleGroups[axis].Length; i++)
                     {
-                        VoxelMipmapSimpleGroups[axis][i] = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(drawContext.RenderContext) { ShaderSourceName = "Voxel2x2x2MipmapEffect" };
+                        VoxelMipmapSimpleGroups[axis][i] = new Stride.Rendering.ComputeEffect.ComputeEffectShader(drawContext.RenderContext) { ShaderSourceName = "Voxel2x2x2MipmapEffect" };
                     }
                 }
             }

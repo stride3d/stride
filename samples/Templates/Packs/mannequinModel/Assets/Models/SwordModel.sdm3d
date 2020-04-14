@@ -1,6 +1,6 @@
 !Model
 Id: 74b88cdd-45d9-494f-b463-cd0c478df1e8
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/SwordModel.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

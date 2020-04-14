@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 //  This file is part of YamlDotNet - A .NET library for YAML.
@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Xenko.VisualStudio.Assets
+namespace Stride.VisualStudio.Assets
 {
 	#region Format definition
 	[Export(typeof(EditorFormatDefinition))]
@@ -41,7 +41,7 @@ namespace Xenko.VisualStudio.Assets
         [ImportingConstructor]
         public YamlAnchorFormat(AssetObjectClassificationColorManager colorManager)
 		{
-			DisplayName = "Xenko YAML Anchor"; //human readable version of the name
+			DisplayName = "Stride YAML Anchor"; //human readable version of the name
             var classificationColor = colorManager.GetClassificationColor(AssetObjectDefinitions.AnchorClassificationName);
             ForegroundColor = classificationColor.ForegroundColor;
             BackgroundColor = classificationColor.BackgroundColor;
@@ -59,7 +59,7 @@ namespace Xenko.VisualStudio.Assets
         [ImportingConstructor]
         public YamlAliasFormat(AssetObjectClassificationColorManager colorManager)
 		{
-            DisplayName = "Xenko YAML Alias"; //human readable version of the name
+            DisplayName = "Stride YAML Alias"; //human readable version of the name
             var classificationColor = colorManager.GetClassificationColor(AssetObjectDefinitions.AliasClassificationName);
             ForegroundColor = classificationColor.ForegroundColor;
             BackgroundColor = classificationColor.BackgroundColor;
@@ -77,7 +77,7 @@ namespace Xenko.VisualStudio.Assets
         [ImportingConstructor]
         public YamlKeyFormat(AssetObjectClassificationColorManager colorManager)
         {
-            DisplayName = "Xenko YAML Key"; //human readable version of the name
+            DisplayName = "Stride YAML Key"; //human readable version of the name
             var classificationColor = colorManager.GetClassificationColor(AssetObjectDefinitions.KeyClassificationName);
             ForegroundColor = classificationColor.ForegroundColor;
             BackgroundColor = classificationColor.BackgroundColor;
@@ -95,7 +95,7 @@ namespace Xenko.VisualStudio.Assets
         [ImportingConstructor]
         public YamlNumberFormat(AssetObjectClassificationColorManager colorManager)
         {
-            DisplayName = "Xenko YAML Number"; //human readable version of the name
+            DisplayName = "Stride YAML Number"; //human readable version of the name
             var classificationColor = colorManager.GetClassificationColor(AssetObjectDefinitions.NumberClassificationName);
             ForegroundColor = classificationColor.ForegroundColor;
             BackgroundColor = classificationColor.BackgroundColor;
@@ -113,7 +113,7 @@ namespace Xenko.VisualStudio.Assets
         [ImportingConstructor]
         public YamlErrorFormat(AssetObjectClassificationColorManager colorManager)
         {
-            DisplayName = "Xenko YAML Error"; //human readable version of the name
+            DisplayName = "Stride YAML Error"; //human readable version of the name
             var classificationColor = colorManager.GetClassificationColor(AssetObjectDefinitions.ErrorClassificationName);
             ForegroundColor = classificationColor.ForegroundColor;
             BackgroundColor = classificationColor.BackgroundColor;

@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Markup.Xaml;
 
-namespace xunit.runner.xenko
+namespace xunit.runner.stride
 {
     public class App : Application
     {

@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Engine;
 
-namespace Xenko.Games.Testing
+namespace Stride.Games.Testing
 {
-    //This is how we inject the assembly to run automatically at game start, paired with Xenko.targets and the msbuild property XenkoAutoTesting
+    //This is how we inject the assembly to run automatically at game start, paired with Stride.targets and the msbuild property StrideAutoTesting
     internal class Module
     {
         [ModuleInitializer]
@@ -21,7 +21,7 @@ namespace Xenko.Games.Testing
                 await Task.Delay(20000);
                 if (!GameTestingSystem.Initialized)
                 {
-#if XENKO_PLATFORM_IOS || XENKO_PLATFORM_ANDROID || XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_WINDOWS_DESKTOP
                     Console.WriteLine(@"FATAL: Test launch timeout. Aborting.");
 #endif
                     GameTestingSystem.Quit();

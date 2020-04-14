@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
 
-namespace Xenko.Rendering.Images
+namespace Stride.Rendering.Images
 {
     /// <summary>
     /// Applies an ambient occlusion effect to a scene. Ambient occlusion is a technique which fakes occlusion for objects close to other opaque objects.
@@ -68,7 +68,7 @@ namespace Xenko.Rendering.Images
         public float ParamIntensity { get; set; } = 0.2f;
 
         /// <userdoc>
-        /// The angle at which Xenko considers an area of geometry an occluder. At high values, only narrow joins and crevices are considered occluders.
+        /// The angle at which Stride considers an area of geometry an occluder. At high values, only narrow joins and crevices are considered occluders.
         /// </userdoc>
         [DataMember(40)]
         [DefaultValue(0.01f)]

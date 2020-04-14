@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.BuildEngine;
-using Xenko.Assets.Effect;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.BuildEngine;
+using Stride.Assets.Effect;
 
-namespace Xenko.Editor.Build
+namespace Stride.Editor.Build
 {
-    public class XenkoShaderImporter
+    public class StrideShaderImporter
     {
         /// <summary>
         /// The current session being processed

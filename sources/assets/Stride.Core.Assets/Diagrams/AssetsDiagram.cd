@@ -18,7 +18,7 @@
   <Comment CommentText="Diagrams for assets">
     <Position X="0.5" Y="0.5" Height="0.292" Width="1.367" />
   </Comment>
-  <Class Name="Xenko.Core.Assets.Asset" Collapsed="true">
+  <Class Name="Stride.Core.Assets.Asset" Collapsed="true">
     <Position X="3.25" Y="1" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAACAAAAQAAAAEAEAAAACCAAIAAAgUAQAAAAAAIAQwA=</HashCode>
@@ -26,7 +26,7 @@
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Xenko.Core.Assets.AssetComposite" Collapsed="true">
+  <Class Name="Stride.Core.Assets.AssetComposite" Collapsed="true">
     <Position X="0.5" Y="3" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAAAAAEAAAAAIAAAAAA=</HashCode>
@@ -34,22 +34,22 @@
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Xenko.Core.Assets.AssetImport" Collapsed="true">
+  <Class Name="Stride.Core.Assets.AssetImport" Collapsed="true">
     <Position X="2.25" Y="3" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAgAAAAAAAAAAAAAACAAAAEAABAAAAAIAAAA=</HashCode>
       <FileName>AssetImport.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Xenko.Core.Assets.Package" Collapsed="true">
+  <Class Name="Stride.Core.Assets.Package" Collapsed="true">
     <Position X="5.75" Y="3" Width="1.5" />
     <NestedTypes>
-      <Class Name="Xenko.Core.Assets.Package.RemoveRawImports" Collapsed="true">
+      <Class Name="Stride.Core.Assets.Package.RemoveRawImports" Collapsed="true">
         <TypeIdentifier>
           <NewMemberFileName>Package.cs</NewMemberFileName>
         </TypeIdentifier>
       </Class>
-      <Class Name="Xenko.Core.Assets.Package.RenameSystemPackage" Collapsed="true">
+      <Class Name="Stride.Core.Assets.Package.RenameSystemPackage" Collapsed="true">
         <TypeIdentifier>
           <NewMemberFileName>Package.cs</NewMemberFileName>
         </TypeIdentifier>
@@ -64,31 +64,31 @@
     </ShowAsCollectionAssociation>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Xenko.Core.Assets.SourceCodeAsset" Collapsed="true">
+  <Class Name="Stride.Core.Assets.SourceCodeAsset" Collapsed="true">
     <Position X="4" Y="3" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAgIAAAAAAAAAAAAAAAAAAAAAAAEgIAAAACAAAAAA=</HashCode>
       <FileName>SourceCodeAsset.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Xenko.Core.Assets.AssetImportTracked" Collapsed="true">
+  <Class Name="Stride.Core.Assets.AssetImportTracked" Collapsed="true">
     <Position X="1.25" Y="5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>AssetImportTracked.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Xenko.Core.Assets.RawAsset" Collapsed="true">
+  <Class Name="Stride.Core.Assets.RawAsset" Collapsed="true">
     <Position X="3.5" Y="5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAA=</HashCode>
       <FileName>RawAsset.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Xenko.Core.Assets.AssetItem" Collapsed="true">
+  <Class Name="Stride.Core.Assets.AssetItem" Collapsed="true">
     <Position X="8.25" Y="3" Width="1.5" />
     <NestedTypes>
-      <Class Name="Xenko.Core.Assets.AssetItem.AssetItemComparerById" Collapsed="true">
+      <Class Name="Stride.Core.Assets.AssetItem.AssetItemComparerById" Collapsed="true">
         <TypeIdentifier>
           <NewMemberFileName>AssetItem.cs</NewMemberFileName>
         </TypeIdentifier>

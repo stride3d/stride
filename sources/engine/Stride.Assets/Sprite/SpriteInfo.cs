@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.ComponentModel;
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
 
-namespace Xenko.Assets.Sprite
+namespace Stride.Assets.Sprite
 {
     /// <summary>
     /// This class contains all the information to describe one sprite.

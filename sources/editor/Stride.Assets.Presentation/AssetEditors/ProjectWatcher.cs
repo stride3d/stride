@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -14,16 +14,16 @@ using Microsoft.Build.Construction;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.IO;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.IO;
 using Microsoft.CodeAnalysis.MSBuild;
-using Xenko.Core.Collections;
-using Xenko.Core.Extensions;
-using Xenko.Assets.Presentation.AssetEditors.ScriptEditor;
+using Stride.Core.Collections;
+using Stride.Core.Extensions;
+using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Project = Microsoft.CodeAnalysis.Project;
 
-namespace Xenko.Assets.Presentation.AssetEditors
+namespace Stride.Assets.Presentation.AssetEditors
 {
     public enum AssemblyChangeType
     {
@@ -391,7 +391,7 @@ namespace Xenko.Assets.Presentation.AssetEditors
                             else 
                             {
                                 // Fallback to checking the tools version on the csproj 
-                                //  this happens when you open an xkpkg instead of a sln file as a project
+                                //  this happens when you open an sdpkg instead of a sln file as a project
                                 ProjectRootElement xml = ProjectRootElement.Open(projectPath);
                                 Version toolsVersion;
                                 if (Version.TryParse(xml.ToolsVersion, out toolsVersion))

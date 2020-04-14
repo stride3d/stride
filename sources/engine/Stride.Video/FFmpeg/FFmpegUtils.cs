@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_VIDEO_FFMPEG
+#if STRIDE_VIDEO_FFMPEG
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Video.FFmpeg
+namespace Stride.Video.FFmpeg
 {
     /// <summary>
     /// Collection of utilities when invoking <see cref="global::FFmpeg.AutoGen"/>.
@@ -21,7 +21,7 @@ namespace Xenko.Video.FFmpeg
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CheckPlatformSupport()
         {
-#if (XENKO_PLATFORM_WINDOWS && !XENKO_RUNTIME_CORECLR) || XENKO_PLATFORM_ANDROID
+#if (STRIDE_PLATFORM_WINDOWS && !STRIDE_RUNTIME_CORECLR) || STRIDE_PLATFORM_ANDROID
             return true;
 #else
             return false;
@@ -76,7 +76,7 @@ namespace Xenko.Video.FFmpeg
             //   |---- avformat
             //   |---- avcodec
             //   |---- avutil
-#if XENKO_PLATFORM_WINDOWS
+#if STRIDE_PLATFORM_WINDOWS
             var type = typeof(FFmpegUtils);
             Core.NativeLibrary.PreloadLibrary("avutil-55", type);
             Core.NativeLibrary.PreloadLibrary("swresample-2", type);

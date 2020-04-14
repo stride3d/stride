@@ -6,7 +6,7 @@ Scope: Asset
 Description: A sprite sheet built from a set of images, used to display 2D sprites
 Group: Sprite
 Order: -100
-Icon: ..\.xktpl\Sprite.png
+Icon: ..\.sdtpl\Sprite.png
 DefaultOutputName: SpriteSheet
 FactoryTypeName: SpriteSheetSprite2DFactory
 ImportSource: true

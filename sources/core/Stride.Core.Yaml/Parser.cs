@@ -47,16 +47,16 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Xenko.Core.Yaml.Tokens;
-using AnchorAlias = Xenko.Core.Yaml.Tokens.AnchorAlias;
-using DocumentEnd = Xenko.Core.Yaml.Tokens.DocumentEnd;
-using DocumentStart = Xenko.Core.Yaml.Tokens.DocumentStart;
-using Event = Xenko.Core.Yaml.Events.ParsingEvent;
-using Scalar = Xenko.Core.Yaml.Tokens.Scalar;
-using StreamEnd = Xenko.Core.Yaml.Tokens.StreamEnd;
-using StreamStart = Xenko.Core.Yaml.Tokens.StreamStart;
+using Stride.Core.Yaml.Tokens;
+using AnchorAlias = Stride.Core.Yaml.Tokens.AnchorAlias;
+using DocumentEnd = Stride.Core.Yaml.Tokens.DocumentEnd;
+using DocumentStart = Stride.Core.Yaml.Tokens.DocumentStart;
+using Event = Stride.Core.Yaml.Events.ParsingEvent;
+using Scalar = Stride.Core.Yaml.Tokens.Scalar;
+using StreamEnd = Stride.Core.Yaml.Tokens.StreamEnd;
+using StreamStart = Stride.Core.Yaml.Tokens.StreamStart;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     /// <summary>
     /// Parses YAML streams.

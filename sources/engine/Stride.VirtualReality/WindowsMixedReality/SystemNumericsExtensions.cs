@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
 
-using Xenko.Core.Mathematics;
+using Stride.Core.Mathematics;
 
-namespace Xenko.VirtualReality
+namespace Stride.VirtualReality
 {
     internal static class SystemNumericsExtensions
     {
         /// <summary>
-        /// Performs a conversion from <see cref="System.Numerics.Matrix4x4"/> to <see cref="Xenko.Core.Mathematics.Matrix"/>.
+        /// Performs a conversion from <see cref="System.Numerics.Matrix4x4"/> to <see cref="Stride.Core.Mathematics.Matrix"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -26,7 +26,7 @@ namespace Xenko.VirtualReality
         }
 
         /// <summary>
-        /// Performs a conversion from <see cref="System.Numerics.Quaternion"/> to <see cref="Xenko.Core.Mathematics.Quaternion"/>.
+        /// Performs a conversion from <see cref="System.Numerics.Quaternion"/> to <see cref="Stride.Core.Mathematics.Quaternion"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -36,7 +36,7 @@ namespace Xenko.VirtualReality
         }
 
         /// <summary>
-        /// Performs a conversion from <see cref="System.Numerics.Vector3"/> to <see cref="Xenko.Core.Mathematics.Vector3"/>.
+        /// Performs a conversion from <see cref="System.Numerics.Vector3"/> to <see cref="Stride.Core.Mathematics.Vector3"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>

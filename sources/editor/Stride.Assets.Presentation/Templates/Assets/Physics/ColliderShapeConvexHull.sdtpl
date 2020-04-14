@@ -5,6 +5,6 @@ Name: Convex hull
 Scope: Asset
 Description: A convex hull-shaped collider, computed from a 3D model
 Group: Physics
-Icon: ..\.xktpl\ColliderHull.png
+Icon: ..\.sdtpl\ColliderHull.png
 DefaultOutputName: ColliderHull
 FactoryTypeName: ColliderShapeConvexHullFactory

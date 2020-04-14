@@ -1,22 +1,22 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Assets.Entities;
-using Xenko.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor;
-using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
-using Xenko.Assets.Presentation.AssetEditors.PrefabEditor.Services;
-using Xenko.Assets.Presentation.AssetEditors.PrefabEditor.Views;
-using Xenko.Assets.Presentation.SceneEditor;
-using Xenko.Assets.Presentation.ViewModel;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Assets.Entities;
+using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Services;
+using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Views;
+using Stride.Assets.Presentation.SceneEditor;
+using Stride.Assets.Presentation.ViewModel;
 
-namespace Xenko.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels
+namespace Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels
 {
     /// <summary>
     /// View model of a <see cref="PrefabViewModel"/> editor.

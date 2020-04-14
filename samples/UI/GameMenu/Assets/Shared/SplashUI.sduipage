@@ -1,6 +1,6 @@
 !UIPageAsset
 Id: 62c493c2-13ea-4fac-bbaf-578afafac104
-SerializedVersion: {Xenko: 2.1.0.1}
+SerializedVersion: {Stride: 2.1.0.1}
 Tags: []
 Design:
     Resolution: {X: 640.0, Y: 1136.0, Z: 1000.0}
@@ -129,8 +129,8 @@ Hierarchy:
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 HorizontalAlignment: Center
                 Margin: {}
-                Name: XenkoSamples
-                Text: Xenko Samples
+                Name: StrideSamples
+                Text: Stride Samples
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 60.0
                 TextColor: {R: 255, G: 255, B: 255, A: 255}

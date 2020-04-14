@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if DONT_BUILD_FOR_NOW && (XENKO_PLATFORM_IOS || XENKO_PLATFORM_ANDROID)
+#if DONT_BUILD_FOR_NOW && (STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID)
 
 using System;
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 using Android.App;
 #endif
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Games;
-using Xenko.Graphics;
-using Xenko.Rendering;
-using Xenko.Rendering.Composers;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Games;
+using Stride.Graphics;
+using Stride.Rendering;
+using Stride.Rendering.Composers;
 
-namespace Xenko.VirtualReality
+namespace Stride.VirtualReality
 {
     internal class GoogleVrHmd : Hmd
     {
@@ -23,7 +23,7 @@ namespace Xenko.VirtualReality
 
         public GoogleVrHmd(IServiceRegistry registry) : base(registry)
         {
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             GoogleVr.Startup(Game, (Activity)PlatformAndroid.Context);
 #else
             GoogleVr.Startup(Game);

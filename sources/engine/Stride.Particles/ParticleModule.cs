@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Particles.DebugDraw;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Particles.DebugDraw;
 
-namespace Xenko.Particles
+namespace Stride.Particles
 {
     /// <summary>
     /// The <see cref="ParticleModule"/> is a base class for all plugins (initializers and updaters) used by the emitter

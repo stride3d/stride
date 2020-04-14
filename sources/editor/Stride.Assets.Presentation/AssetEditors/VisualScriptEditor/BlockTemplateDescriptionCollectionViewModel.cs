@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -6,16 +6,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.Reflection;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Assets.Scripts;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
+using Stride.Core.Assets.Templates;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.Reflection;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Assets.Scripts;
 
-namespace Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor
+namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 {
     public class BlockTemplateDescriptionViewModel : TemplateDescriptionViewModel
     {

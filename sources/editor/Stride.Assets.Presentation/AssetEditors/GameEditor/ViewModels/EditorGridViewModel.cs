@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 
-namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels
+namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {
     /// <summary>
     /// A view model controlling a grid in an editor game.

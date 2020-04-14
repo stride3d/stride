@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core.Annotations;
-using Xenko.Core.Quantum;
-using Xenko.Animations;
+using Stride.Core.Annotations;
+using Stride.Core.Quantum;
+using Stride.Animations;
 
-namespace Xenko.Assets.Presentation.CurveEditor.ViewModels
+namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {
     using WindowsPoint = System.Windows.Point;
 

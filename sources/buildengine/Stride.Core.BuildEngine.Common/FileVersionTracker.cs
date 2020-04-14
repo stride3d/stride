@@ -1,21 +1,21 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Storage;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Storage;
 
-namespace Xenko.Core.BuildEngine
+namespace Stride.Core.BuildEngine
 {
     /// <summary>
     /// A tracker of file date.
     /// </summary>
     public class FileVersionTracker : IDisposable
     {
-        private const string DefaultFileVersionTrackerFile = @"Xenko\FileVersionTracker.cache";
+        private const string DefaultFileVersionTrackerFile = @"Stride\FileVersionTracker.cache";
         private readonly FileVersionStorage storage;
         private readonly Dictionary<FileVersionKey, object> locks;
         private static readonly Logger log = GlobalLogger.GetLogger("FileVersionTracker");

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Package;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-using Xenko.VisualStudio.Commands;
+using Stride.VisualStudio.Commands;
 
 using Constants = Microsoft.VisualStudio.OLE.Interop.Constants;
 
@@ -81,7 +81,7 @@ namespace NShader
 
             try
             {
-                var remoteCommands = XenkoCommandsProxy.GetProxy();
+                var remoteCommands = StrideCommandsProxy.GetProxy();
                 if (remoteCommands == null)
                     return;
                 var location = new RawSourceSpan()

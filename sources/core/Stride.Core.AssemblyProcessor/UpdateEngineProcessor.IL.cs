@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -7,13 +7,13 @@ using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-using Xenko.Core.AssemblyProcessor.Serializers;
+using Stride.Core.AssemblyProcessor.Serializers;
 
-namespace Xenko.Core.AssemblyProcessor
+namespace Stride.Core.AssemblyProcessor
 {
     internal partial class UpdateEngineProcessor
     {
-        private void ProcessXenkoEngineAssembly(CecilSerializerContext context)
+        private void ProcessStrideEngineAssembly(CecilSerializerContext context)
         {
             var assembly = context.Assembly;
 
@@ -26,7 +26,7 @@ namespace Xenko.Core.AssemblyProcessor
 
         private static void GenerateUpdateEngineHelperCode(AssemblyDefinition assembly)
         {
-            var updateEngineHelperType = assembly.MainModule.GetType("Xenko.Updater.UpdateEngineHelper");
+            var updateEngineHelperType = assembly.MainModule.GetType("Stride.Updater.UpdateEngineHelper");
 
             // UpdateEngineHelper.ObjectToPtr
             var objectToPtr = RewriteBody(updateEngineHelperType.Methods.First(x => x.Name == "ObjectToPtr"));
@@ -56,8 +56,8 @@ namespace Xenko.Core.AssemblyProcessor
 
         private static void GenerateUpdatableFieldCode(AssemblyDefinition assembly)
         {
-            var updatableFieldType = assembly.MainModule.GetType("Xenko.Updater.UpdatableField");
-            var updatableFieldGenericType = assembly.MainModule.GetType("Xenko.Updater.UpdatableField`1");
+            var updatableFieldType = assembly.MainModule.GetType("Stride.Updater.UpdatableField");
+            var updatableFieldGenericType = assembly.MainModule.GetType("Stride.Updater.UpdatableField`1");
 
             // UpdatableField.GetObject
             var getObject = RewriteBody(updatableFieldType.Methods.First(x => x.Name == "GetObject"));
@@ -160,8 +160,8 @@ namespace Xenko.Core.AssemblyProcessor
             public UpdatablePropertyCodeGenerator(AssemblyDefinition assembly) : base(assembly)
             {
                 // GetObject/SetObject are on the non-generic implementation
-                declaringTypeForObjectMethods = assembly.MainModule.GetType("Xenko.Updater.UpdatableProperty");
-                declaringType = assembly.MainModule.GetType("Xenko.Updater.UpdatableProperty`1");
+                declaringTypeForObjectMethods = assembly.MainModule.GetType("Stride.Updater.UpdatableProperty");
+                declaringType = assembly.MainModule.GetType("Stride.Updater.UpdatableProperty`1");
 
                 updatablePropertyGetter = declaringTypeForObjectMethods.Fields.First(x => x.Name == "Getter");
                 updatablePropertySetter = declaringTypeForObjectMethods.Fields.First(x => x.Name == "Setter");
@@ -269,8 +269,8 @@ namespace Xenko.Core.AssemblyProcessor
 
             public UpdatableListCodeGenerator(AssemblyDefinition assembly) : base(assembly)
             {
-                declaringType = assembly.MainModule.GetType("Xenko.Updater.UpdatableListAccessor`1");
-                indexField = assembly.MainModule.GetType("Xenko.Updater.UpdatableListAccessor").Fields.First(x => x.Name == "Index");
+                declaringType = assembly.MainModule.GetType("Stride.Updater.UpdatableListAccessor`1");
+                indexField = assembly.MainModule.GetType("Stride.Updater.UpdatableListAccessor").Fields.First(x => x.Name == "Index");
 
                 // TODO: Update to new method to resolve collection assembly
                 var mscorlibAssembly = CecilExtensions.FindCorlibAssembly(assembly);

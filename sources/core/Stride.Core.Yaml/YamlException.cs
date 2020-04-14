@@ -45,7 +45,7 @@
 
 using System;
 
-namespace Xenko.Core.Yaml
+namespace Stride.Core.Yaml
 {
     /// <summary>
     /// Base exception that is thrown when the a problem occurs in the SharpYaml library.

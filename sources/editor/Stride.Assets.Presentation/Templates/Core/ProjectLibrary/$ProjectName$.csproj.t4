@@ -10,15 +10,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Xenko.Engine" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Engine" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
 
-    <PackageReference Include="Xenko.Video" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.Physics" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.Navigation" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.Particles" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.UI" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.Core" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Video" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Physics" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Navigation" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Particles" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.UI" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Core" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
 
-    <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
   </ItemGroup>
 </Project>

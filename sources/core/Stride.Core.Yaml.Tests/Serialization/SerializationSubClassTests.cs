@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.ComponentModel;
-using Xenko.Core.Yaml.Serialization;
+using Stride.Core.Yaml.Serialization;
 using Xunit;
 
-namespace Xenko.Core.Yaml.Tests.Serialization
+namespace Stride.Core.Yaml.Tests.Serialization
 {
     public class SerializationSubClassTests
     {

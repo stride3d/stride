@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.BuildEngine;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.BuildEngine;
 
-namespace Xenko.Core.Assets.Tests.Compilers
+namespace Stride.Core.Assets.Tests.Compilers
 {
     public class TestAssertCompiler<T> : TestCompilerBase where T : Asset
     {

@@ -1,6 +1,6 @@
 !Model
 Id: f68ea240-695a-4de5-9884-60d77544fcd6
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/mannequinModel.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

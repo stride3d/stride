@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Concurrent;
@@ -16,40 +16,40 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.Settings;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.MostRecentlyUsedFiles;
-using Xenko.Core.Presentation.Interop;
-using Xenko.Core.Presentation.View;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.Presentation.Windows;
-using Xenko.Core.Translation;
-using Xenko.Core.Translation.Providers;
-using Xenko.Core.VisualStudio;
-using Xenko.Assets.Presentation;
-using Xenko.Editor.Build;
-using Xenko.Editor.Engine;
-using Xenko.Editor.Preview;
-using Xenko.GameStudio.View;
-using Xenko.Graphics;
-using Xenko.Metrics;
-using Xenko.PrivacyPolicy;
-using EditorSettings = Xenko.Core.Assets.Editor.Settings.EditorSettings;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.MostRecentlyUsedFiles;
+using Stride.Core.Presentation.Interop;
+using Stride.Core.Presentation.View;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.Windows;
+using Stride.Core.Translation;
+using Stride.Core.Translation.Providers;
+using Stride.Core.VisualStudio;
+using Stride.Assets.Presentation;
+using Stride.Editor.Build;
+using Stride.Editor.Engine;
+using Stride.Editor.Preview;
+using Stride.GameStudio.View;
+using Stride.Graphics;
+using Stride.Metrics;
+using Stride.PrivacyPolicy;
+using EditorSettings = Stride.Core.Assets.Editor.Settings.EditorSettings;
 using MessageBox = System.Windows.MessageBox;
 using MessageBoxButton = System.Windows.MessageBoxButton;
 using MessageBoxImage = System.Windows.MessageBoxImage;
 
-namespace Xenko.GameStudio
+namespace Stride.GameStudio
 {
     public static class Program
     {
@@ -64,16 +64,16 @@ namespace Xenko.GameStudio
         public static void Main()
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-            EditorPath.EditorTitle = XenkoGameStudio.EditorName;
+            EditorPath.EditorTitle = StrideGameStudio.EditorName;
 
             if (IntPtr.Size == 4)
             {
-                MessageBox.Show("Xenko GameStudio requires a 64bit OS to run.", "Xenko", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Stride GameStudio requires a 64bit OS to run.", "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
                 Environment.Exit(1);
             }
 
             PrivacyPolicyHelper.RestartApplication = RestartApplication;
-            PrivacyPolicyHelper.EnsurePrivacyPolicyXenko30();
+            PrivacyPolicyHelper.EnsurePrivacyPolicyStride30();
 
             // We use MRU of the current version only when we're trying to reload last session.
             var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);
@@ -83,13 +83,13 @@ namespace Xenko.GameStudio
             Thread.CurrentThread.Name = "Main thread";
 
             // Install Metrics for the editor
-            using (XenkoGameStudio.MetricsClient = new MetricsClient(CommonApps.XenkoEditorAppId))
+            using (StrideGameStudio.MetricsClient = new MetricsClient(CommonApps.StrideEditorAppId))
             {
                 try
                 {
                     // Environment.GetCommandLineArgs correctly process arguments regarding the presence of '\' and '"'
                     var args = Environment.GetCommandLineArgs().Skip(1).ToList();
-                    var startupSessionPath = XenkoEditorSettings.StartupSession.GetValue();
+                    var startupSessionPath = StrideEditorSettings.StartupSession.GetValue();
                     var lastSessionPath = EditorSettings.ReloadLastSession.GetValue() ? mru.MostRecentlyUsedFiles.FirstOrDefault() : null;
                     var initialSessionPath = !UPath.IsNullOrEmpty(startupSessionPath) ? startupSessionPath : lastSessionPath?.FilePath;
 
@@ -148,11 +148,11 @@ namespace Xenko.GameStudio
                         app = new App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
                         app.Activated += (sender, eventArgs) =>
                         {
-                            XenkoGameStudio.MetricsClient?.SetActiveState(true);
+                            StrideGameStudio.MetricsClient?.SetActiveState(true);
                         };
                         app.Deactivated += (sender, eventArgs) =>
                         {
-                            XenkoGameStudio.MetricsClient?.SetActiveState(false);
+                            StrideGameStudio.MetricsClient?.SetActiveState(false);
                         };
 
                         app.InitializeComponent();
@@ -254,8 +254,8 @@ namespace Xenko.GameStudio
                 var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);
                 mru.LoadFromSettings();
                 var editor = new GameStudioViewModel(serviceProvider, mru);
-                AssetsPlugin.RegisterPlugin(typeof(XenkoDefaultAssetsPlugin));
-                AssetsPlugin.RegisterPlugin(typeof(XenkoEditorPlugin));
+                AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
+                AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
 
                 // Attempt to load the startup session, if available
                 if (!UPath.IsNullOrEmpty(initialSessionPath))
@@ -360,7 +360,7 @@ namespace Xenko.GameStudio
         {
             // TODO: this should be done elsewhere
             var dispatcherService = new DispatcherService(Dispatcher.CurrentDispatcher);
-            var dialogService = new XenkoDialogService(dispatcherService, XenkoGameStudio.EditorName);
+            var dialogService = new StrideDialogService(dispatcherService, StrideGameStudio.EditorName);
             var pluginService = new PluginService();
             var services = new List<object>{ new DispatcherService(Dispatcher.CurrentDispatcher), dialogService, pluginService };
             if (renderDocManager != null)

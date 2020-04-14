@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 shader SpriteEffectExtTexture : ShaderBase
 {
@@ -7,10 +7,10 @@ shader SpriteEffectExtTexture : ShaderBase
     //stage float4 Color = float4(1,1,1,1);
 
     //[ExternalOES]
-    stage Texture2D XenkoInternal_TextureExt0;    // DO NOT RENAME THIS VARIABLE! The ShaderCompiler specifically looks for "TextureExt0".
+    stage Texture2D StrideInternal_TextureExt0;    // DO NOT RENAME THIS VARIABLE! The ShaderCompiler specifically looks for "TextureExt0".
     stage float MipLevel;
     stage float Gamma;
-    //stage Texture2DExternalOES XenkoInternal_TextureExt0;
+    //stage Texture2DExternalOES StrideInternal_TextureExt0;
 
     stage SamplerState Sampler;
 
@@ -87,16 +87,16 @@ shader SpriteEffectExtTexture : ShaderBase
 
     stage float4 Shading()
     {
-        //return XenkoInternal_TextureExt0.Sample(Sampler, streams.TexCoord) * Color;
+        //return StrideInternal_TextureExt0.Sample(Sampler, streams.TexCoord) * Color;
 
         // Generate a "random" color based on the mip level, for debug purposes:
         //float4 debugColor = GetMipmapLevelDebugMask();
 
         //float4 debugColor = 1.0f;
-        //float4 textureColor = XenkoInternal_TextureExt0.SampleLevel(Sampler, streams.TexCoord, MipLevel);  //Failed to compile on GLSL
+        //float4 textureColor = StrideInternal_TextureExt0.SampleLevel(Sampler, streams.TexCoord, MipLevel);  //Failed to compile on GLSL
         //return float4(ConvertToLinearSpace(textureColor.rgb), 1.0f) * debugColor;
 
-        float4 textureColor = XenkoInternal_TextureExt0.Sample(Sampler, streams.TexCoord);
+        float4 textureColor = StrideInternal_TextureExt0.Sample(Sampler, streams.TexCoord);
         return float4(ConvertToLinearSpace(textureColor.rgb), 1.0f);
     }
 };

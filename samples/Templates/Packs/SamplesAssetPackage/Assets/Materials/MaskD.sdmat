@@ -1,11 +1,11 @@
 !MaterialAsset
 Id: f3a8308f-8154-4df0-99a7-ee8beeae4608
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Attributes:
     Surface: !MaterialNormalMapFeature
         NormalMap: !ComputeTextureColor
-            Texture: 13ad1467-0e79-4492-a615-41f43d953864:Textures/xenko_box_normals
+            Texture: 13ad1467-0e79-4492-a615-41f43d953864:Textures/stride_box_normals
             FallbackValue:
                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
             Scale: {X: 1.0, Y: 1.0}
@@ -34,7 +34,7 @@ Attributes:
         NormalDistribution: !MaterialSpecularMicrofacetNormalDistributionGGX {}
     Occlusion: !MaterialOcclusionMapFeature
         AmbientOcclusionMap: !ComputeTextureScalar
-            Texture: 57ddc50d-9565-431e-943c-a7da593efd69:Textures/xenko_box_occlusion
+            Texture: 57ddc50d-9565-431e-943c-a7da593efd69:Textures/stride_box_occlusion
             FallbackValue:
                 Value: 1.0
             Scale: {X: 1.0, Y: 1.0}
@@ -54,7 +54,7 @@ Attributes:
         EmissiveMap: !ComputeBinaryColor
             Operator: Multiply
             LeftChild: !ComputeTextureColor
-                Texture: aebdd268-c404-4639-ba4b-0aaab560fbd6:Textures/xenko_box_mask
+                Texture: aebdd268-c404-4639-ba4b-0aaab560fbd6:Textures/stride_box_mask
                 FallbackValue:
                     Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                 Scale: {X: 1.0, Y: 1.0}

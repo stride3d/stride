@@ -6,5 +6,5 @@ Scope: Asset
 Description: A subset of the world that can be loaded into the game at any time
 Group: Scene
 Order: -100
-Icon: ..\.xktpl\Scene.png
+Icon: ..\.sdtpl\Scene.png
 DefaultOutputName: Scene

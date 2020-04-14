@@ -46,9 +46,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Core.Yaml.Events;
+using Stride.Core.Yaml.Events;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Represents a mapping node in the YAML document.

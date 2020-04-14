@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -7,11 +7,11 @@ using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Engine.Network;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Engine.Network;
 
-namespace Xenko.ConnectionRouter
+namespace Stride.ConnectionRouter
 {
     public class IosTracker
     {

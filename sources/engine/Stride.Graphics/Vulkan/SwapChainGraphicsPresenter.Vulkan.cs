@@ -1,6 +1,6 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_VULKAN
+#if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using SharpVulkan;
 using ImageLayout = SharpVulkan.ImageLayout;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// Graphics presenter for SwapChain.
@@ -68,7 +68,7 @@ namespace Xenko.Graphics
 
             set
             {
-//#if !XENKO_PLATFORM_UWP
+//#if !STRIDE_PLATFORM_UWP
 //                if (swapChain == null)
 //                    return;
 
@@ -349,11 +349,11 @@ namespace Xenko.Graphics
                 throw new ArgumentException("DeviceWindowHandle cannot be null");
             }
             // Create surface
-#if XENKO_UI_SDL
+#if STRIDE_UI_SDL
             var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
             SDL2.SDL.SDL_Vulkan_CreateSurface(control.SdlHandle, GraphicsDevice.NativeInstance.NativeHandle, out IntPtr surfacePtr);
             surface = new Surface(surfacePtr);
-#elif XENKO_PLATFORM_WINDOWS
+#elif STRIDE_PLATFORM_WINDOWS
             var controlHandle = Description.DeviceWindowHandle.Handle;
             if (controlHandle == IntPtr.Zero)
             {
@@ -367,9 +367,9 @@ namespace Xenko.Graphics
                 WindowHandle = controlHandle,
             };
             surface = GraphicsDevice.NativeInstance.CreateWin32Surface(surfaceCreateInfo);
-#elif XENKO_PLATFORM_ANDROID
+#elif STRIDE_PLATFORM_ANDROID
             throw new NotImplementedException();
-#elif XENKO_PLATFORM_LINUX
+#elif STRIDE_PLATFORM_LINUX
             throw new NotSupportedException("Only SDL is supported for the time being on Linux");
 #else
             throw new NotSupportedException();

@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
 using ObjCRuntime;
 #endif
 
-namespace Xenko.Core.Native
+namespace Stride.Core.Native
 {
     public static class NativeInvoke
     {
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
         internal const string Library = "__Internal";
         internal const string LibraryName = "libcore.so";
 #else
         internal const string Library = "libcore";
-#if XENKO_PLATFORM_WINDOWS
+#if STRIDE_PLATFORM_WINDOWS
         internal const string LibraryName = "libcore.dll";
 #else
         internal const string LibraryName = "libcore.so";
@@ -43,7 +43,7 @@ namespace Xenko.Core.Native
 
         private static ManagedLogDelegate managedLogDelegateSingleton;
 
-#if XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_IOS
         [MonoPInvokeCallback(typeof(ManagedLogDelegate))]
 #endif
         private static void ManagedLog(string log)
@@ -55,7 +55,7 @@ namespace Xenko.Core.Native
         {
             managedLogDelegateSingleton = ManagedLog;
 
-#if !XENKO_PLATFORM_IOS
+#if !STRIDE_PLATFORM_IOS
             var ptr = Marshal.GetFunctionPointerForDelegate(managedLogDelegateSingleton);
 #else
             var ptr = managedLogDelegateSingleton;
@@ -64,7 +64,7 @@ namespace Xenko.Core.Native
             CoreNativeSetup(ptr);
         }
 
-#if !XENKO_PLATFORM_IOS
+#if !STRIDE_PLATFORM_IOS
         [SuppressUnmanagedCodeSecurity]
         [DllImport(Library, EntryPoint = "cnSetup", CallingConvention = CallingConvention.Cdecl)]
         private static extern void CoreNativeSetup(IntPtr logger);

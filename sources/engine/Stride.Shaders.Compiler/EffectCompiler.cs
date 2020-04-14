@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -8,21 +8,21 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Core.Storage;
-using Xenko.Rendering;
-using Xenko.Graphics;
-using Xenko.Shaders.Parser;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Utility;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Core.Serialization.Contents;
+using Stride.Core.Storage;
+using Stride.Rendering;
+using Stride.Graphics;
+using Stride.Shaders.Parser;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Utility;
 using Encoding = System.Text.Encoding;
-using LoggerResult = Xenko.Core.Diagnostics.LoggerResult;
+using LoggerResult = Stride.Core.Diagnostics.LoggerResult;
 
-namespace Xenko.Shaders.Compiler
+namespace Stride.Shaders.Compiler
 {
     /// <summary>
     /// An <see cref="IEffectCompiler"/> which will compile effect into multiple shader code, and compile them with a <see cref="IShaderCompiler"/>.
@@ -105,30 +105,30 @@ namespace Xenko.Shaders.Compiler
             switch (effectParameters.Platform)
             {
                 case GraphicsPlatform.Direct3D11:
-                    shaderMixinSource.AddMacro("XENKO_GRAPHICS_API_DIRECT3D", 1);
-                    shaderMixinSource.AddMacro("XENKO_GRAPHICS_API_DIRECT3D11", 1);
+                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_DIRECT3D", 1);
+                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_DIRECT3D11", 1);
                     break;
                 case GraphicsPlatform.Direct3D12:
-                    shaderMixinSource.AddMacro("XENKO_GRAPHICS_API_DIRECT3D", 1);
-                    shaderMixinSource.AddMacro("XENKO_GRAPHICS_API_DIRECT3D12", 1);
+                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_DIRECT3D", 1);
+                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_DIRECT3D12", 1);
                     break;
                 case GraphicsPlatform.OpenGL:
-                    shaderMixinSource.AddMacro("XENKO_GRAPHICS_API_OPENGL", 1);
-                    shaderMixinSource.AddMacro("XENKO_GRAPHICS_API_OPENGLCORE", 1);
+                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_OPENGL", 1);
+                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_OPENGLCORE", 1);
                     break;
                 case GraphicsPlatform.OpenGLES:
-                    shaderMixinSource.AddMacro("XENKO_GRAPHICS_API_OPENGL", 1);
-                    shaderMixinSource.AddMacro("XENKO_GRAPHICS_API_OPENGLES", 1);
+                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_OPENGL", 1);
+                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_OPENGLES", 1);
                     break;
                 case GraphicsPlatform.Vulkan:
-                    shaderMixinSource.AddMacro("XENKO_GRAPHICS_API_VULKAN", 1);
+                    shaderMixinSource.AddMacro("STRIDE_GRAPHICS_API_VULKAN", 1);
                     break;
                 default:
                     throw new NotSupportedException();
             }
 
             // Generate profile-specific macros
-            shaderMixinSource.AddMacro("XENKO_GRAPHICS_PROFILE", (int)effectParameters.Profile);
+            shaderMixinSource.AddMacro("STRIDE_GRAPHICS_PROFILE", (int)effectParameters.Profile);
             shaderMixinSource.AddMacro("GRAPHICS_PROFILE_LEVEL_9_1", (int)GraphicsProfile.Level_9_1);
             shaderMixinSource.AddMacro("GRAPHICS_PROFILE_LEVEL_9_2", (int)GraphicsProfile.Level_9_2);
             shaderMixinSource.AddMacro("GRAPHICS_PROFILE_LEVEL_9_3", (int)GraphicsProfile.Level_9_3);
@@ -138,7 +138,7 @@ namespace Xenko.Shaders.Compiler
             shaderMixinSource.AddMacro("GRAPHICS_PROFILE_LEVEL_11_1", (int)GraphicsProfile.Level_11_1);
             shaderMixinSource.AddMacro("GRAPHICS_PROFILE_LEVEL_11_2", (int)GraphicsProfile.Level_11_2);
 
-            // In .xksl, class has been renamed to shader to avoid ambiguities with HLSL
+            // In .sdsl, class has been renamed to shader to avoid ambiguities with HLSL
             shaderMixinSource.AddMacro("class", "shader");
 
             var parsingResult = GetMixinParser().Parse(shaderMixinSource, shaderMixinSource.Macros.ToArray());
@@ -153,7 +153,7 @@ namespace Xenko.Shaders.Compiler
             }
 
             // Convert the AST to HLSL
-            var writer = new Xenko.Core.Shaders.Writer.Hlsl.HlslWriter
+            var writer = new Stride.Core.Shaders.Writer.Hlsl.HlslWriter
             {
                 EnablePreprocessorLine = false, // Allow to output links to original pdxsl via #line pragmas
             };
@@ -169,7 +169,7 @@ namespace Xenko.Shaders.Compiler
             // -------------------------------------------------------
             // Save shader log
             // TODO: TEMP code to allow debugging generated shaders on Windows Desktop
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             var shaderId = ObjectId.FromBytes(Encoding.UTF8.GetBytes(shaderSourceText));
 
             var logDir = Path.Combine(PlatformFolders.ApplicationBinaryDirectory, "log");
@@ -197,7 +197,7 @@ namespace Xenko.Shaders.Compiler
             IShaderCompiler compiler;
             switch (effectParameters.Platform)
             {
-#if XENKO_PLATFORM_WINDOWS
+#if STRIDE_PLATFORM_WINDOWS
                 case GraphicsPlatform.Direct3D11:
                 case GraphicsPlatform.Direct3D12:
                     compiler = new Direct3D.ShaderCompiler();
@@ -241,7 +241,7 @@ namespace Xenko.Shaders.Compiler
 
             var shaderStageBytecodes = new List<ShaderBytecode>();
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             var stageStringBuilder = new StringBuilder();
 #endif
             // if the shader (non-compute) does not have a pixel shader, we should add it for OpenGL and OpenGL ES.
@@ -264,7 +264,7 @@ namespace Xenko.Shaders.Compiler
 
                 // -------------------------------------------------------
                 // Append bytecode id to shader log
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
                 stageStringBuilder.AppendLine("@G    {0} => {1}".ToFormat(stageBinding.Key, result.Bytecode.Id));
                 if (result.DisassembleText != null)
                 {
@@ -284,7 +284,7 @@ namespace Xenko.Shaders.Compiler
             CleanupReflection(bytecode.Reflection);
             bytecode.Stages = shaderStageBytecodes.ToArray();
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             int shaderSourceLineOffset = 0;
             int shaderSourceCharacterOffset = 0;
             string outputShaderLog;
@@ -385,7 +385,7 @@ namespace Xenko.Shaders.Compiler
             return new EffectBytecodeCompilerResult(bytecode, log);
         }
 
-        private static void CopyLogs(Xenko.Core.Shaders.Utility.LoggerResult inputLog, LoggerResult outputLog)
+        private static void CopyLogs(Stride.Core.Shaders.Utility.LoggerResult inputLog, LoggerResult outputLog)
         {
             foreach (var inputMessage in inputLog.Messages)
             {

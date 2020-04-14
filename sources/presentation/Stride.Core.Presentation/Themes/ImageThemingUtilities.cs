@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Windows;
 using System.Windows.Media;
-using Xenko.Core.Presentation.Drawing;
+using Stride.Core.Presentation.Drawing;
 
-namespace Xenko.Core.Presentation.Themes
+namespace Stride.Core.Presentation.Themes
 {
     using Media = System.Windows.Media;
 

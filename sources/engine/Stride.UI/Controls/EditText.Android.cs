@@ -1,6 +1,6 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 using System;
 using Android.Content;
 using Android.Text;
@@ -8,11 +8,11 @@ using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
 using Android.Text.Method;
-using Xenko.Core;
-using Xenko.Games;
+using Stride.Core;
+using Stride.Games;
 using Exception = System.Exception;
 
-namespace Xenko.UI.Controls
+namespace Stride.UI.Controls
 {
     public partial class EditText
     {

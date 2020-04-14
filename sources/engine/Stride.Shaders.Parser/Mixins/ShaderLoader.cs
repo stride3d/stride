@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_EFFECT_COMPILER
+#if STRIDE_EFFECT_COMPILER
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-using Xenko.Core.Extensions;
-using Xenko.Core.Storage;
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Shaders.Parser.Utility;
-using Xenko.Core.Shaders;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Grammar.Xenko;
-using Xenko.Core.Shaders.Parser;
-using Xenko.Core.Shaders.Utility;
+using Stride.Core.Extensions;
+using Stride.Core.Storage;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Shaders.Parser.Utility;
+using Stride.Core.Shaders;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Grammar.Stride;
+using Stride.Core.Shaders.Parser;
+using Stride.Core.Shaders.Utility;
 
-namespace Xenko.Shaders.Parser.Mixins
+namespace Stride.Shaders.Parser.Mixins
 {
     /// <summary>
     /// Provides methods for loading a <see cref="ShaderClassType"/>.
@@ -92,7 +92,7 @@ namespace Xenko.Shaders.Parser.Mixins
         /// <param name="autoGenericInstances"></param>
         /// <returns>A ShaderClassType or null if there was some errors.</returns>
         /// <exception cref="System.ArgumentNullException">shaderClassSource</exception>
-        public LoadedShaderClassType LoadClassSource(ShaderClassCode shaderClassSource, Xenko.Core.Shaders.Parser.ShaderMacro[] shaderMacros, LoggerResult log, bool autoGenericInstances)
+        public LoadedShaderClassType LoadClassSource(ShaderClassCode shaderClassSource, Stride.Core.Shaders.Parser.ShaderMacro[] shaderMacros, LoggerResult log, bool autoGenericInstances)
         {
             if (shaderClassSource == null) throw new ArgumentNullException("shaderClassSource");
 
@@ -127,7 +127,7 @@ namespace Xenko.Shaders.Parser.Mixins
 
                 if (shaderClassSource.GenericArguments.Length != shaderClassType.Type.ShaderGenerics.Count)
                 {
-                    log.Error(XenkoMessageCode.WrongGenericNumber, shaderClassType.Type.Span, shaderClassSource.ClassName);
+                    log.Error(StrideMessageCode.WrongGenericNumber, shaderClassType.Type.Span, shaderClassSource.ClassName);
                     return null;
                 }
 
@@ -137,7 +137,7 @@ namespace Xenko.Shaders.Parser.Mixins
                     foreach (var genericCompare in shaderClassType.Type.ShaderGenerics.Where(x => x != generic))
                     {
                         if (generic.Name.Text == genericCompare.Name.Text)
-                            log.Error(XenkoMessageCode.SameNameGenerics, generic.Span, generic, genericCompare, shaderClassSource.ClassName);
+                            log.Error(StrideMessageCode.SameNameGenerics, generic.Span, generic, genericCompare, shaderClassSource.ClassName);
                     }
                 }
 
@@ -154,7 +154,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 var genericAssociation = CreateGenericAssociation(shaderClassType.Type.ShaderGenerics, shaderClassSource.GenericArguments);
                 var identifierGenerics = GenerateIdentifierFromGenerics(genericAssociation);
                 var expressionGenerics = GenerateGenericsExpressionValues(shaderClassType.Type.ShaderGenerics, shaderClassSource.GenericArguments);
-                XenkoClassInstantiator.Instantiate(shaderClassType.Type, expressionGenerics, identifierGenerics, autoGenericInstances, log);
+                StrideClassInstantiator.Instantiate(shaderClassType.Type, expressionGenerics, identifierGenerics, autoGenericInstances, log);
                 shaderClassType.Type.ShaderGenerics.Clear();
                 shaderClassType.IsInstanciated = true;
             }
@@ -271,11 +271,11 @@ namespace Xenko.Shaders.Parser.Mixins
         Expression CreateExpressionFromString(string name)
         {
             // TODO: catch errors
-            var result = ShaderParser.GetParser<XenkoGrammar>(ShaderParser.GetGrammar<XenkoGrammar>().ExpressionNonTerminal).Parser.Parse(name, "");
+            var result = ShaderParser.GetParser<StrideGrammar>(ShaderParser.GetGrammar<StrideGrammar>().ExpressionNonTerminal).Parser.Parse(name, "");
             return (Expression)result.Root.AstNode;
         }
 
-        private LoadedShaderClassType LoadShaderClass(ShaderClassCode classSource, string generics, LoggerResult log, Xenko.Core.Shaders.Parser.ShaderMacro[] macros = null)
+        private LoadedShaderClassType LoadShaderClass(ShaderClassCode classSource, string generics, LoggerResult log, Stride.Core.Shaders.Parser.ShaderMacro[] macros = null)
         {
             var type = classSource.ClassName;
             if (type == null) throw new ArgumentNullException("type");
@@ -314,7 +314,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 var hashPreprocessSource = ObjectId.FromBytes(byteArray);
    
                 // Compile
-                var parsingResult = XenkoShaderParser.TryParse(preprocessedSource, shaderSource.Path);
+                var parsingResult = StrideShaderParser.TryParse(preprocessedSource, shaderSource.Path);
                 parsingResult.CopyTo(log);
 
                 if (parsingResult.HasErrors)
@@ -324,8 +324,8 @@ namespace Xenko.Shaders.Parser.Mixins
 
                 var shader = parsingResult.Shader;
 
-                // As shaders can be embedded in namespaces, get only the shader class and make sure there is only one in a xksl.
-                var shaderClassTypes = XenkoShaderParser.GetShaderClassTypes(shader.Declarations).ToList();
+                // As shaders can be embedded in namespaces, get only the shader class and make sure there is only one in a sdsl.
+                var shaderClassTypes = StrideShaderParser.GetShaderClassTypes(shader.Declarations).ToList();
                 if (shaderClassTypes.Count != 1)
                 {
                     var sourceSpan = new SourceSpan(new SourceLocation(shaderSource.Path, 0, 0, 0), 1);
@@ -333,7 +333,7 @@ namespace Xenko.Shaders.Parser.Mixins
                     {
                         sourceSpan = shaderClassTypes[1].Span;
                     }
-                    log.Error(XenkoMessageCode.ShaderMustContainSingleClassDeclaration, sourceSpan, type);
+                    log.Error(StrideMessageCode.ShaderMustContainSingleClassDeclaration, sourceSpan, type);
                     return null;
                 }
 
@@ -350,7 +350,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 // If the file name is not matching the class name, provide an error
                 if (shaderClass.Type.Name.Text != type)
                 {
-                    log.Error(XenkoMessageCode.FileNameNotMatchingClassName, shaderClass.Type.Name.Span, type, shaderClass.Type.Name.Text);
+                    log.Error(StrideMessageCode.FileNameNotMatchingClassName, shaderClass.Type.Name.Span, type, shaderClass.Type.Name.Text);
                     return null;
                 }
 
@@ -362,7 +362,7 @@ namespace Xenko.Shaders.Parser.Mixins
 
         public static ShaderClassType ParseSource(string shaderSource, LoggerResult log)
         {
-            var parsingResult = XenkoShaderParser.TryParse(shaderSource, null);
+            var parsingResult = StrideShaderParser.TryParse(shaderSource, null);
             parsingResult.CopyTo(log);
 
             if (parsingResult.HasErrors)
@@ -437,10 +437,10 @@ namespace Xenko.Shaders.Parser.Mixins
         {
             public readonly string TypeName;
             private readonly string generics;
-            private readonly Xenko.Core.Shaders.Parser.ShaderMacro[] shaderMacros;
+            private readonly Stride.Core.Shaders.Parser.ShaderMacro[] shaderMacros;
             private readonly int hashCode;
 
-            public ShaderSourceKey(string typeName, string generics, Xenko.Core.Shaders.Parser.ShaderMacro[] shaderMacros)
+            public ShaderSourceKey(string typeName, string generics, Stride.Core.Shaders.Parser.ShaderMacro[] shaderMacros)
             {
                 this.TypeName = typeName;
                 this.generics = generics;

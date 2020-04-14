@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.View;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.Windows;
-using Xenko.Assets.Templates;
-using Xenko.Core.Assets.Editor.Components.TemplateDescriptions;
-using Xenko.Core.Extensions;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.View;
+using Stride.Core.Assets.Templates;
+using Stride.Core;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Windows;
+using Stride.Assets.Templates;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
+using Stride.Core.Extensions;
 
-namespace Xenko.Assets.Presentation.Templates
+namespace Stride.Assets.Presentation.Templates
 {
     /// <summary>
     /// Generator to create a library and add it to the selected package.

@@ -21,7 +21,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Xenko.Core.Reflection
+namespace Stride.Core.Reflection
 {
     public class DefaultKeyComparer : IComparer<object>
     {

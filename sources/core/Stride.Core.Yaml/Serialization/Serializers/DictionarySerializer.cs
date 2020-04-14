@@ -46,12 +46,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Events;
-using Scalar = Xenko.Core.Yaml.Events.Scalar;
+using Stride.Core.Diagnostics;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Events;
+using Scalar = Stride.Core.Yaml.Events.Scalar;
 
-namespace Xenko.Core.Yaml.Serialization.Serializers
+namespace Stride.Core.Yaml.Serialization.Serializers
 {
     /// <summary>
     /// Class for serializing a <see cref="IDictionary{TKey,TValue}"/> or <see cref="System.Collections.IDictionary"/>

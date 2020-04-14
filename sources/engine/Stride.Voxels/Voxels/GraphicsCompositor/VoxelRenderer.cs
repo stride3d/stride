@@ -2,19 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using Xenko.Core;
-using Xenko.Core.Collections;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Shaders;
-using Xenko.Graphics;
-using Xenko.Rendering.Lights;
-using Xenko.Rendering.Voxels;
-using Xenko.Core.Extensions;
+using Stride.Core;
+using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Shaders;
+using Stride.Graphics;
+using Stride.Rendering.Lights;
+using Stride.Rendering.Voxels;
+using Stride.Core.Extensions;
 using System.Linq;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     public class VoxelRenderer : IVoxelRenderer

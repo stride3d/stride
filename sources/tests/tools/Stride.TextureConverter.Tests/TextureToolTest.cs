@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -6,10 +6,10 @@ using System.IO;
 using System.Collections.Generic;
 
 using Xunit;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
 
-namespace Xenko.TextureConverter.Tests
+namespace Stride.TextureConverter.Tests
 {
     public class TextureToolTest : IDisposable
     {
@@ -159,31 +159,31 @@ namespace Xenko.TextureConverter.Tests
 
         [Theory(Skip = "Need check")]
         [InlineData("TextureArray_WMipMaps_BC3.dds")]
-        public void ConvertToXenkoImageTest(string file)
+        public void ConvertToStrideImageTest(string file)
         {
             TexImage image = texTool.Load(Module.PathToInputImages + file);
-            var xk = texTool.ConvertToXenkoImage(image);
-            Assert.True(xk.TotalSizeInBytes == image.DataSize);
-            Assert.True(xk.Description.MipLevels == image.MipmapCount);
+            var sd = texTool.ConvertToStrideImage(image);
+            Assert.True(sd.TotalSizeInBytes == image.DataSize);
+            Assert.True(sd.Description.MipLevels == image.MipmapCount);
             image.Dispose();
-            xk.Dispose();
+            sd.Dispose();
         }
 
         [Theory(Skip = "Need check")]
         [InlineData("TextureArray_WMipMaps_BC3.dds")]
-        public void LoadXenkoImageTest(string file)
+        public void LoadStrideImageTest(string file)
         {
             TexImage image = texTool.Load(Module.PathToInputImages + file);
 
-            var xk = texTool.ConvertToXenkoImage(image);
+            var sd = texTool.ConvertToStrideImage(image);
 
-            TexImage xkImage = texTool.Load(xk, false);
+            TexImage sdImage = texTool.Load(sd, false);
 
-            Assert.True(image.Equals(xkImage));
+            Assert.True(image.Equals(sdImage));
 
-            xk.Dispose();
+            sd.Dispose();
             image.Dispose();
-            xkImage.Dispose();
+            sdImage.Dispose();
         }
 
         [Theory(Skip = "Need check")]
@@ -293,7 +293,7 @@ namespace Xenko.TextureConverter.Tests
         [Theory(Skip = "Need check")]
         [InlineData("TextureCube_WMipMaps_BC3.dds", ".pvr", Filter.Rescaling.CatmullRom, PixelFormat.ETC2_RGBA)]
         [InlineData("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", ".dds", Filter.Rescaling.Nearest, PixelFormat.BC3_UNorm)]
-        [InlineData("TextureCube_WMipMaps_ATC_RGBA_Explicit.xk", ".dds", Filter.Rescaling.Lanczos3, PixelFormat.BC3_UNorm)]
+        [InlineData("TextureCube_WMipMaps_ATC_RGBA_Explicit.sd", ".dds", Filter.Rescaling.Lanczos3, PixelFormat.BC3_UNorm)]
         [InlineData("duck.jpg", ".dds", Filter.Rescaling.Box, PixelFormat.BC3_UNorm)]
         public void ProcessingTest(string source, string extension, Filter.Rescaling rescaleFiler, PixelFormat format)
         {

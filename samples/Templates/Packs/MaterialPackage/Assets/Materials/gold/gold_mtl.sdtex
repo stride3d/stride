@@ -1,6 +1,6 @@
 !Texture
 Id: 365580e7-c677-46aa-9512-ec560dc561be
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../Resources/Textures/gold/gold_mtl.png
 Type: !ColorTextureType

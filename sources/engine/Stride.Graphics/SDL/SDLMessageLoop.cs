@@ -1,9 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_UI_SDL
+#if STRIDE_UI_SDL
 using System;
 
-namespace Xenko.Graphics.SDL
+namespace Stride.Graphics.SDL
 {
         // Using is here otherwise it would conflict with the current namespace that also defines SDL.
     using SDL2;

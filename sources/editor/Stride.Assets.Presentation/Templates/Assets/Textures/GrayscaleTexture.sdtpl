@@ -6,7 +6,7 @@ Scope: Asset
 Description: A grayscale texture asset imported from a source file. Assumes linear color space and a single channel
 Group: Texture
 Order: 20
-Icon: ..\.xktpl\TextureGray.png
+Icon: ..\.sdtpl\TextureGray.png
 DefaultOutputName: GrayscaleTexture
 FactoryTypeName: GrayscaleTextureFactory
 ImportSource: true

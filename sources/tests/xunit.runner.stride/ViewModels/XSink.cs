@@ -4,7 +4,7 @@ using System.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace xunit.runner.xenko.ViewModels
+namespace xunit.runner.stride.ViewModels
 {
     public class XSink : IExecutionSink
     {

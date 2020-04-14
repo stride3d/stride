@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.Xaml.Behaviors;
-using Xenko.Core.Annotations;
-using Xenko.Core.Presentation.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Presentation.Core;
 
-namespace Xenko.Core.Presentation.Behaviors
+namespace Stride.Core.Presentation.Behaviors
 {
     public class ItemsControlCollectionViewBehavior : Behavior<ItemsControl>
     {

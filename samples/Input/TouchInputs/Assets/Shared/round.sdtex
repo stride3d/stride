@@ -1,6 +1,6 @@
 !Texture
 Id: f21cc317-81d3-41f1-b524-d12766abf594
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/round.png
 Type: !ColorTextureType

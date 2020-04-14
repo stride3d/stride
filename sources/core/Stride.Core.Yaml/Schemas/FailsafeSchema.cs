@@ -43,9 +43,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using Xenko.Core.Yaml.Events;
+using Stride.Core.Yaml.Events;
 
-namespace Xenko.Core.Yaml.Schemas
+namespace Stride.Core.Yaml.Schemas
 {
     /// <summary>
     /// Implements the YAML failsafe schema.

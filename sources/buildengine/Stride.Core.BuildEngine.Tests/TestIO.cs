@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Xunit;
-using Xenko.Core.Storage;
-using Xenko.Core.BuildEngine.Tests.Commands;
-using Xenko.Core.IO;
+using Stride.Core.Storage;
+using Stride.Core.BuildEngine.Tests.Commands;
+using Stride.Core.IO;
 using System.Linq;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Serialization.Contents;
+using Stride.Core.Diagnostics;
+using Stride.Core.Serialization.Contents;
 
-namespace Xenko.Core.BuildEngine.Tests
+namespace Stride.Core.BuildEngine.Tests
 {
     public class TestIO
     {

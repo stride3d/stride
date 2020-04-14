@@ -1,26 +1,26 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using NShader;
-using Xenko.Core.Assets;
-using Xenko.Shaders.Parser;
-using Xenko.VisualStudio.BuildEngine;
-using Xenko.VisualStudio.Commands.Shaders;
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Utility;
-using Xenko.Core;
+using Stride.Core.Assets;
+using Stride.Shaders.Parser;
+using Stride.VisualStudio.BuildEngine;
+using Stride.VisualStudio.Commands.Shaders;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Utility;
+using Stride.Core;
 
-namespace Xenko.VisualStudio.Commands
+namespace Stride.VisualStudio.Commands
 {
-    public class XenkoCommands : IXenkoCommands, IXenkoCommands2
+    public class StrideCommands : IStrideCommands, IStrideCommands2
     {
-        public void Initialize(string xenkoSdkDir)
+        public void Initialize(string strideSdkDir)
         {
-            //DirectoryHelper.PackageDirectoryOverride = xenkoSdkDir;
+            //DirectoryHelper.PackageDirectoryOverride = strideSdkDir;
             // Don't necessarely initialize the shaders
-            //XenkoShaderParser.Initialize();
+            //StrideShaderParser.Initialize();
         }
 
         public bool ShouldReload()
@@ -61,7 +61,7 @@ namespace Xenko.VisualStudio.Commands
                 }
             }
 
-            var resultAnalysis = navigation.AnalyzeAndGoToDefinition(sourceCode, new Xenko.Core.Shaders.Ast.SourceLocation(span.File, 0, span.Line, span.Column), shaderDirectories);
+            var resultAnalysis = navigation.AnalyzeAndGoToDefinition(sourceCode, new Stride.Core.Shaders.Ast.SourceLocation(span.File, 0, span.Line, span.Column), shaderDirectories);
 
             if (resultAnalysis.DefinitionLocation.Location.FileSource != null)
             {
@@ -108,7 +108,7 @@ namespace Xenko.VisualStudio.Commands
         {
             if (packagePath == null)
             {
-                packagePath = PackageStore.Instance.GetPackageFileName("Xenko.Engine", new PackageVersionRange(new PackageVersion(XenkoVersion.NuGetVersion)));
+                packagePath = PackageStore.Instance.GetPackageFileName("Stride.Engine", new PackageVersionRange(new PackageVersion(StrideVersion.NuGetVersion)));
             }
 
             var defaultLoad = PackageLoadParameters.Default();

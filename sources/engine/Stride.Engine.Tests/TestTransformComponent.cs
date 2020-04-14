@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Engine.Design;
-using Xenko.Rendering;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Engine.Design;
+using Stride.Rendering;
 
-namespace Xenko.Engine.Tests
+namespace Stride.Engine.Tests
 {
     /// <summary>
     /// Tests for <see cref="TransformComponent"/>.

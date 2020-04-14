@@ -1,6 +1,6 @@
 !Animation
 Id: 5f286f7e-7d38-44cf-9bc1-3aad7be4f0fa
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Animation/Idle.fbx
 ClipDuration:

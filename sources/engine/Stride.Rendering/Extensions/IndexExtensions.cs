@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core;
-using Xenko.Graphics;
-using Xenko.Graphics.Data;
-using Xenko.Rendering;
-using Buffer = Xenko.Graphics.Buffer;
+using Stride.Core;
+using Stride.Graphics;
+using Stride.Graphics.Data;
+using Stride.Rendering;
+using Buffer = Stride.Graphics.Buffer;
 
-namespace Xenko.Extensions
+namespace Stride.Extensions
 {
     public static class IndexExtensions
     {

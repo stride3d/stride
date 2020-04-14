@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.IO;
 using System.Linq;
 using Xunit;
-using Xenko.Core.Assets.Quantum.Internal;
-using Xenko.Core.Assets.Quantum.Tests.Helpers;
-using Xenko.Core.Assets.Tests.Helpers;
-using Xenko.Core.Assets.Yaml;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml;
-using Xenko.Core.Quantum;
+using Stride.Core.Assets.Quantum.Internal;
+using Stride.Core.Assets.Quantum.Tests.Helpers;
+using Stride.Core.Assets.Tests.Helpers;
+using Stride.Core.Assets.Yaml;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml;
+using Stride.Core.Quantum;
 
-namespace Xenko.Core.Assets.Quantum.Tests
+namespace Stride.Core.Assets.Quantum.Tests
 {
     public class TestOverrideSerialization
     {
@@ -21,29 +21,29 @@ namespace Xenko.Core.Assets.Quantum.Tests
          * class prop set to null
          */
 
-        private const string SimplePropertyUpdateBaseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset1,Xenko.Core.Assets.Quantum.Tests
+        private const string SimplePropertyUpdateBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset1,Stride.Core.Assets.Quantum.Tests
 Id: 00000001-0001-0000-0100-000001000000
 Tags: []
 MyString: MyBaseString
 ";
-        private const string SimplePropertyUpdateDerivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset1,Xenko.Core.Assets.Quantum.Tests
+        private const string SimplePropertyUpdateDerivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset1,Stride.Core.Assets.Quantum.Tests
 Id: 00000002-0002-0000-0200-000002000000
 Tags: []
 Archetype: 00000001-0001-0000-0100-000001000000:MyAsset
 MyString*: MyDerivedString
 ";
-        private const string SimplePropertyWithOverrideToDefaultValueBaseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset10,Xenko.Core.Assets.Quantum.Tests
+        private const string SimplePropertyWithOverrideToDefaultValueBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset10,Stride.Core.Assets.Quantum.Tests
 Id: 00000001-0001-0000-0100-000001000000
 Tags: []
 MyBool: false
 ";
-        private const string SimplePropertyWithOverrideToDefaultValueDerivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset10,Xenko.Core.Assets.Quantum.Tests
+        private const string SimplePropertyWithOverrideToDefaultValueDerivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset10,Stride.Core.Assets.Quantum.Tests
 Id: 00000002-0002-0000-0200-000002000000
 Tags: []
 Archetype: 00000001-0001-0000-0100-000001000000:MyAsset
 MyBool*: true
 ";
-        private const string SimpleCollectionUpdateBaseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+        private const string SimpleCollectionUpdateBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 00000001-0001-0000-0100-000001000000
 Tags: []
 Struct:
@@ -52,7 +52,7 @@ MyStrings:
     0a0000000a0000000a0000000a000000: String1
     14000000140000001400000014000000: MyBaseString
 ";
-        private const string SimpleCollectionUpdateDerivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+        private const string SimpleCollectionUpdateDerivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 00000002-0002-0000-0200-000002000000
 Tags: []
 Archetype: 00000001-0001-0000-0100-000001000000:MyAsset
@@ -62,14 +62,14 @@ MyStrings:
     0a0000000a0000000a0000000a000000*: MyDerivedString
     14000000140000001400000014000000: MyBaseString
 ";
-        private const string SimpleDictionaryUpdateBaseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+        private const string SimpleDictionaryUpdateBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 00000001-0001-0000-0100-000001000000
 Tags: []
 MyDictionary:
     0a0000000a0000000a0000000a000000~Key1: String1
     14000000140000001400000014000000~Key2: MyBaseString
 ";
-        private const string SimpleDictionaryUpdateDerivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+        private const string SimpleDictionaryUpdateDerivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 00000002-0002-0000-0200-000002000000
 Tags: []
 Archetype: 00000001-0001-0000-0100-000001000000:MyAsset
@@ -77,7 +77,7 @@ MyDictionary:
     0a0000000a0000000a0000000a000000*~Key1: MyDerivedString
     14000000140000001400000014000000~Key2: MyBaseString
 ";
-        private const string CollectionInStructBaseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+        private const string CollectionInStructBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 00000001-0001-0000-0100-000001000000
 Tags: []
 Struct:
@@ -86,7 +86,7 @@ Struct:
         14000000140000001400000014000000: MyBaseString
 MyStrings: {}
 ";
-        private const string CollectionInStructDerivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+        private const string CollectionInStructDerivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 00000002-0002-0000-0200-000002000000
 Tags: []
 Archetype: 00000001-0001-0000-0100-000001000000:MyAsset
@@ -96,7 +96,7 @@ Struct:
         14000000140000001400000014000000: MyBaseString
 MyStrings: {}
 ";
-        private const string SimpleCollectionAddBaseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+        private const string SimpleCollectionAddBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 00000001-0001-0000-0100-000001000000
 Tags: []
 Struct:
@@ -106,7 +106,7 @@ MyStrings:
     14000000140000001400000014000000: String2
     {0}: String4
 ";
-        private const string SimpleCollectionAddDerivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Xenko.Core.Assets.Quantum.Tests
+        private const string SimpleCollectionAddDerivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset2,Stride.Core.Assets.Quantum.Tests
 Id: 00000002-0002-0000-0200-000002000000
 Tags: []
 Archetype: 00000001-0001-0000-0100-000001000000:MyAsset
@@ -118,7 +118,7 @@ MyStrings:
     {0}: String4
     {1}*: String3
 ";
-        private const string SimpleDictionaryAddBaseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+        private const string SimpleDictionaryAddBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 00000001-0001-0000-0100-000001000000
 Tags: []
 MyDictionary:
@@ -126,7 +126,7 @@ MyDictionary:
     14000000140000001400000014000000~Key2: String2
     {0}~Key4: String4
 ";
-        private const string SimpleDictionaryAddDerivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Xenko.Core.Assets.Quantum.Tests
+        private const string SimpleDictionaryAddDerivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset3,Stride.Core.Assets.Quantum.Tests
 Id: 00000002-0002-0000-0200-000002000000
 Tags: []
 Archetype: 00000001-0001-0000-0100-000001000000:MyAsset
@@ -136,7 +136,7 @@ MyDictionary:
     {1}*~Key3: String3
     {0}~Key4: String4
 ";
-        private const string ObjectCollectionUpdateBaseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset4,Xenko.Core.Assets.Quantum.Tests
+        private const string ObjectCollectionUpdateBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset4,Stride.Core.Assets.Quantum.Tests
 Id: 00000001-0001-0000-0100-000001000000
 Tags: []
 MyObjects:
@@ -145,7 +145,7 @@ MyObjects:
     14000000140000001400000014000000:
         Value: MyBaseString
 ";
-        private const string ObjectCollectionUpdateDerivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset4,Xenko.Core.Assets.Quantum.Tests
+        private const string ObjectCollectionUpdateDerivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset4,Stride.Core.Assets.Quantum.Tests
 Id: 00000002-0002-0000-0200-000002000000
 Tags: []
 Archetype: 00000001-0001-0000-0100-000001000000:MyAsset
@@ -155,7 +155,7 @@ MyObjects:
     14000000140000001400000014000000:
         Value: MyBaseString
 ";
-        private const string ObjectCollectionAddBaseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset4,Xenko.Core.Assets.Quantum.Tests
+        private const string ObjectCollectionAddBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset4,Stride.Core.Assets.Quantum.Tests
 Id: 00000001-0001-0000-0100-000001000000
 Tags: []
 MyObjects:
@@ -166,7 +166,7 @@ MyObjects:
     {0}:
         Value: String4
 ";
-        private const string ObjectCollectionAddDerivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset4,Xenko.Core.Assets.Quantum.Tests
+        private const string ObjectCollectionAddDerivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset4,Stride.Core.Assets.Quantum.Tests
 Id: 00000002-0002-0000-0200-000002000000
 Tags: []
 Archetype: 00000001-0001-0000-0100-000001000000:MyAsset
@@ -180,7 +180,7 @@ MyObjects:
     {1}*:
         Value: String3
 ";
-        private const string ObjectCollectionPropertyUpdateBaseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset4,Xenko.Core.Assets.Quantum.Tests
+        private const string ObjectCollectionPropertyUpdateBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset4,Stride.Core.Assets.Quantum.Tests
 Id: 00000001-0001-0000-0100-000001000000
 Tags: []
 MyObjects:
@@ -189,7 +189,7 @@ MyObjects:
     14000000140000001400000014000000:
         Value: MyBaseString
 ";
-        private const string ObjectCollectionPropertyUpdateDerivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset4,Xenko.Core.Assets.Quantum.Tests
+        private const string ObjectCollectionPropertyUpdateDerivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset4,Stride.Core.Assets.Quantum.Tests
 Id: 00000002-0002-0000-0200-000002000000
 Tags: []
 Archetype: 00000001-0001-0000-0100-000001000000:MyAsset
@@ -199,14 +199,14 @@ MyObjects:
     14000000140000001400000014000000:
         Value: MyBaseString
 ";
-        private const string NonIdentifiableObjectCollectionPropertyUpdateBaseYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset8,Xenko.Core.Assets.Quantum.Tests
+        private const string NonIdentifiableObjectCollectionPropertyUpdateBaseYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset8,Stride.Core.Assets.Quantum.Tests
 Id: 00000001-0001-0000-0100-000001000000
 Tags: []
 MyObjects:
     -   Value: String1
     -   Value: MyBaseString
 ";
-        private const string NonIdentifiableObjectCollectionPropertyUpdateDerivedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset8,Xenko.Core.Assets.Quantum.Tests
+        private const string NonIdentifiableObjectCollectionPropertyUpdateDerivedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+MyAsset8,Stride.Core.Assets.Quantum.Tests
 Id: 00000002-0002-0000-0200-000002000000
 Tags: []
 Archetype: 00000001-0001-0000-0100-000001000000:MyAsset
@@ -774,7 +774,7 @@ MyObjects:
         [Fact]
         public void TestGenerateOverridesForSerializationOfObjectMember()
         {
-            const string expectedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+SomeObject,Xenko.Core.Assets.Quantum.Tests
+            const string expectedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+SomeObject,Stride.Core.Assets.Quantum.Tests
 Value*: OverriddenString
 ";
             var asset = new Types.MyAsset9 { MyObject = new Types.SomeObject { Value = "String1" } };
@@ -814,7 +814,7 @@ Value*: OverriddenString
         [Fact]
         public void TestGenerateOverridesForSerializationOfCollectionItem()
         {
-            const string expectedYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+SomeObject,Xenko.Core.Assets.Quantum.Tests
+            const string expectedYaml = @"!Stride.Core.Assets.Quantum.Tests.Helpers.Types+SomeObject,Stride.Core.Assets.Quantum.Tests
 Value*: OverriddenString
 ";
             var asset = new Types.MyAsset4 { MyObjects = { new Types.SomeObject { Value = "String1" }, new Types.SomeObject { Value = "String2" } } };

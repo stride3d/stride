@@ -1,6 +1,6 @@
 using System;
 
-namespace Xenko.Audio
+namespace Stride.Audio
 {
     public static class TimeSpanExtensions
     {

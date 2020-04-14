@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Core.ReferenceCounting;
-using Xenko.Games;
-using Xenko.Graphics;
-using Xenko.Shaders;
-using Xenko.Shaders.Compiler;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Core.ReferenceCounting;
+using Stride.Games;
+using Stride.Graphics;
+using Stride.Shaders;
+using Stride.Shaders.Compiler;
 
-namespace Xenko.Rendering
+namespace Stride.Rendering
 {
     /// <summary>
     /// The effect system.
@@ -29,7 +29,7 @@ namespace Xenko.Rendering
         private EffectCompilerBase compiler;
         private readonly Dictionary<string, List<CompilerResults>> earlyCompilerCache = new Dictionary<string, List<CompilerResults>>();
         private Dictionary<EffectBytecode, Effect> cachedEffects = new Dictionary<EffectBytecode, Effect>();
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
         private DirectoryWatcher directoryWatcher;
 #endif
         private bool isInitialized;
@@ -69,11 +69,11 @@ namespace Xenko.Rendering
             // Get graphics device service
             graphicsDeviceService = Services.GetSafeServiceAs<IGraphicsDeviceService>();
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             Enabled = true;
-            directoryWatcher = new DirectoryWatcher("*.xksl");
+            directoryWatcher = new DirectoryWatcher("*.sdsl");
             directoryWatcher.Modified += FileModifiedEvent;
-            // TODO: xkfx too
+            // TODO: sdfx too
 #endif
         }
 
@@ -98,7 +98,7 @@ namespace Xenko.Rendering
                 isInitialized = false;
             }
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             if (directoryWatcher != null)
             {
                 directoryWatcher.Modified -= FileModifiedEvent;
@@ -213,7 +213,7 @@ namespace Xenko.Rendering
                     effect = new Effect(graphicsDeviceService.GraphicsDevice, bytecode) { Name = effectName };
                     cachedEffects.Add(bytecode, effect);
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
                     foreach (var type in bytecode.HashSources.Keys)
                     {
                         // TODO: the "/path" is hardcoded, used in ImportStreamCommand and ShaderSourceManager. Find a place to share this correctly.

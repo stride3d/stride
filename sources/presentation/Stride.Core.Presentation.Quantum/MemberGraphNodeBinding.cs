@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core.Annotations;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Quantum;
+using Stride.Core.Annotations;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Quantum;
 
-namespace Xenko.Core.Presentation.Quantum
+namespace Stride.Core.Presentation.Quantum
 {
     /// <summary>
     /// This class allows to bind a property of a view model to an <see cref="IMemberNode"/> and properly trigger property change notifications

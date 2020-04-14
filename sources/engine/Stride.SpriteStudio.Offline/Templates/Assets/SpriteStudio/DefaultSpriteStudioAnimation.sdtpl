@@ -6,6 +6,6 @@ Scope: Asset
 Description: A sprite animation created with SpriteStudio® imported from a source file
 Group: Sprite
 Order: -80
-Icon: ..\.xktpl\SpriteStudioAnimation.png
+Icon: ..\.sdtpl\SpriteStudioAnimation.png
 DefaultOutputName: SpriteStudioModel
 ImportSource: True

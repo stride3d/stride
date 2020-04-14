@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
+#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
 
 using Windows.Perception;
 using Windows.Perception.Spatial;
 using Windows.UI.Input.Spatial;
-using Xenko.Core.Mathematics;
+using Stride.Core.Mathematics;
 
-namespace Xenko.VirtualReality
+namespace Stride.VirtualReality
 {
     internal class WindowsMixedRealityTouchController : TouchController
     {

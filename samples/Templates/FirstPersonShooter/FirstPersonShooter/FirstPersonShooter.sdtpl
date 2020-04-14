@@ -5,7 +5,7 @@ Scope: Session
 Description: A first-person shooter game template
 FullDescription: This template implements a first-person camera, collision detection via raycasting, and visual effects instance spawning.
 Group: Templates
-Icon: ../../.xktpl/Icon2FPS.png
+Icon: ../../.sdtpl/Icon2FPS.png
 DefaultOutputName: FirstPersonShooter
 Screenshots:
-    - .xktpl/screenshot_small.jpg
+    - .sdtpl/screenshot_small.jpg

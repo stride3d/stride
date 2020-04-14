@@ -1,4 +1,4 @@
-<Window x:Class="Xenko.ConfigEditor.OptionsWindow"
+<Window x:Class="Stride.ConfigEditor.OptionsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Options" Width="640" Height="480" MinWidth="640" MinHeight="480" WindowStartupLocation="CenterScreen" Background="WhiteSmoke">

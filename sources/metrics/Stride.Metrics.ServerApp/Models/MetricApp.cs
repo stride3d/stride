@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Xenko.Metrics.ServerApp.Models
+namespace Stride.Metrics.ServerApp.Models
 {
     /// <summary>
     /// Defines a metric application.

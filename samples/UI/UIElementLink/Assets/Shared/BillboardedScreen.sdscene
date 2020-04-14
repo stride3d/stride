@@ -1,6 +1,6 @@
 !SceneAsset
 Id: a140a866-a7b3-4c89-8953-5f7adc428c0a
-SerializedVersion: {Xenko: 3.1.0.1}
+SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
 ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -24,7 +24,7 @@ Hierarchy:
                         Children: {}
                     b155210323b4b54db4cd4538259e1123: !BackgroundComponent
                         Id: 032155b1-b423-4db5-b4cd-4538259e1123
-                        Texture: 16a0b153-2f28-481b-a88d-732348e47464:XenkoBackground
+                        Texture: 16a0b153-2f28-481b-a88d-732348e47464:StrideBackground
                         Is2D: true
         -   Entity:
                 Id: 57b67568-c112-44f5-8d1a-589ca71f1900

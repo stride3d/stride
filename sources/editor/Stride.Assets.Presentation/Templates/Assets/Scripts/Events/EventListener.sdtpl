@@ -5,5 +5,5 @@ Name: Event listener
 Scope: Asset
 Description: Listens for an event, then catches it and runs game logic
 Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
+Icon: ..\..\.sdtpl\SourceCode.png
 DefaultOutputName: EventListener

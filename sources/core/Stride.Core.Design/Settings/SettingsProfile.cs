@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Core.Serialization;
-using Xenko.Core.Transactions;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
+using Stride.Core.Serialization;
+using Stride.Core.Transactions;
 
-namespace Xenko.Core.Settings
+namespace Stride.Core.Settings
 {
     /// <summary>
     /// This class represents a collection of values for all registered <see cref="SettingsKey"/>. It may also contains values for settings keys that

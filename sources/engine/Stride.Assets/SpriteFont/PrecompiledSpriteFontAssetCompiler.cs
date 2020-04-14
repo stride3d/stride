@@ -1,17 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.BuildEngine;
-using Xenko.Core.Serialization.Contents;
-using Xenko.TextureConverter;
-using Xenko.Graphics;
-using Xenko.Graphics.Font;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.BuildEngine;
+using Stride.Core.Serialization.Contents;
+using Stride.TextureConverter;
+using Stride.Graphics;
+using Stride.Graphics.Font;
 
-namespace Xenko.Assets.SpriteFont
+namespace Stride.Assets.SpriteFont
 {
     [AssetCompiler(typeof(PrecompiledSpriteFontAsset), typeof(AssetCompilationContext))]
     public class PrecompiledSpriteFontAssetCompiler : AssetCompilerBase
@@ -45,7 +45,7 @@ namespace Xenko.Assets.SpriteFont
                     //make sure we are RGBA and not BGRA
                     texTool.Convert(texImage, Parameters.IsSrgb ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm);
 
-                    var image = texTool.ConvertToXenkoImage(texImage);
+                    var image = texTool.ConvertToStrideImage(texImage);
 
                     Graphics.SpriteFont staticFont = FontDataFactory.NewStatic(
                         Parameters.Size,

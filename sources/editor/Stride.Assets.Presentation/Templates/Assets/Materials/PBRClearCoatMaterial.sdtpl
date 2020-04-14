@@ -6,6 +6,6 @@ Scope: Asset
 Description: A realistic clear coat material for physically-based rendering
 Group: Material
 Order: -110
-Icon: ..\.xktpl\MaterialClearCoat.png
+Icon: ..\.sdtpl\MaterialClearCoat.png
 DefaultOutputName: ClearCoat
 FactoryTypeName: ClearCoatMaterialFactory

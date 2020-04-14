@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -6,15 +6,15 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Assets.Effect;
-using Xenko.ConnectionRouter;
-using Xenko.Engine.Network;
-using Xenko.Shaders.Compiler;
-using Xenko.Shaders.Compiler.Internals;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Assets.Effect;
+using Stride.ConnectionRouter;
+using Stride.Engine.Network;
+using Stride.Shaders.Compiler;
+using Stride.Shaders.Compiler.Internals;
 
-namespace Xenko.EffectCompilerServer
+namespace Stride.EffectCompilerServer
 {
     /// <summary>
     /// Shader compiler host (over network)
@@ -23,7 +23,7 @@ namespace Xenko.EffectCompilerServer
     {
         private readonly Dictionary<string, SocketMessageLayer> gameStudioPerPackageName = new Dictionary<string, SocketMessageLayer>();
 
-        public EffectCompilerServer() : base($"/service/Xenko.EffectCompilerServer/{XenkoVersion.NuGetVersion}/Xenko.EffectCompilerServer.exe")
+        public EffectCompilerServer() : base($"/service/Stride.EffectCompilerServer/{StrideVersion.NuGetVersion}/Stride.EffectCompilerServer.exe")
         {
             // TODO: Asynchronously initialize Irony grammars to improve first compilation request performance?
         }

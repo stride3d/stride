@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xaml;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Core.Translation.Presentation.MarkupExtensions;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
+using Stride.Core.Translation.Presentation.MarkupExtensions;
 
-namespace Xenko.Core.Translation.Extractor
+namespace Stride.Core.Translation.Extractor
 {
     internal class XamlExtractor : ExtractorBase
     {

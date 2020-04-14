@@ -22,7 +22,7 @@
 
   <!--The Commands section is where we the commands, menus and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
-  <Commands package="guidXenko_VisualStudio_PackagePkg">
+  <Commands package="guidStride_VisualStudio_PackagePkg">
     <!-- Inside this section we have different sub-sections: one for the menus, another  
     for the menu groups, one for the buttons (the actual commands), one for the combos 
     and the last one for the bitmaps used. Each element is identified by a command id that  
@@ -31,52 +31,52 @@
     group; your package should define its own command set in order to avoid collisions  
     with command ids defined by other packages. -->
     <Menus>
-      <!--<Menu guid="guidXenko_VisualStudio_PackageCmdSet" id="XenkoTool" type="Toolbar" >
+      <!--<Menu guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTool" type="Toolbar" >
         <CommandFlag>DefaultDocked</CommandFlag>
         <Strings>
-          <ButtonText>Xenko Toolbar</ButtonText>
-          <CommandName>Xenko Toolbar</CommandName>
+          <ButtonText>Stride Toolbar</ButtonText>
+          <CommandName>Stride Toolbar</CommandName>
         </Strings>
       </Menu>-->
-      <Menu guid="guidXenko_VisualStudio_PackageCmdSet" id="XenkoTopMenu" priority="0x0800" type="Menu" >
+      <Menu guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenu" priority="0x0800" type="Menu" >
         <Parent guid="guidSHLMainMenu" id="IDG_VS_MM_TOOLSADDINS" />
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>Xenko</ButtonText>
-          <CommandName>Xenko</CommandName>
+          <ButtonText>Stride</ButtonText>
+          <CommandName>Stride</CommandName>
         </Strings>
       </Menu>
     </Menus>
 
     <Buttons>
-      <Button guid="guidXenko_VisualStudio_PackageCmdSet" id="cmdXenkoOpenWithGameStudio" priority="0x0100" type="Button">
-        <Parent guid="guidXenko_VisualStudio_PackageCmdSet" id="XenkoTopMenuGroupGameStudio" />
-        <Icon guid="guidImages" id="bmpXenko"/>
+      <Button guid="guidStride_VisualStudio_PackageCmdSet" id="cmdStrideOpenWithGameStudio" priority="0x0100" type="Button">
+        <Parent guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenuGroupGameStudio" />
+        <Icon guid="guidImages" id="bmpStride"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Open with Game Studio</ButtonText>
-          <CommandName>cmdXenkoOpenWithGameStudio</CommandName>
+          <CommandName>cmdStrideOpenWithGameStudio</CommandName>
         </Strings>
       </Button>
 
-      <Button guid="guidXenko_VisualStudio_PackageCmdSet" id="cmdXenkoCleanIntermediateAssetsSolutionCommand" priority="0x0200" type="Button">
-        <Parent guid="guidXenko_VisualStudio_PackageCmdSet" id="XenkoTopMenuGroupClean" />
+      <Button guid="guidStride_VisualStudio_PackageCmdSet" id="cmdStrideCleanIntermediateAssetsSolutionCommand" priority="0x0200" type="Button">
+        <Parent guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenuGroupClean" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>TextChanges</CommandFlag>
         <Strings>
           <ButtonText>Clean intermediate assets for Solution</ButtonText>
-          <CommandName>cmdXenkoCleanIntermediateAssetsSolutionCommand</CommandName>
+          <CommandName>cmdStrideCleanIntermediateAssetsSolutionCommand</CommandName>
         </Strings>
       </Button>
 
-      <Button guid="guidXenko_VisualStudio_PackageCmdSet" id="cmdXenkoCleanIntermediateAssetsProjectCommand" priority="0x0210" type="Button">
-        <Parent guid="guidXenko_VisualStudio_PackageCmdSet" id="XenkoTopMenuGroupClean" />
+      <Button guid="guidStride_VisualStudio_PackageCmdSet" id="cmdStrideCleanIntermediateAssetsProjectCommand" priority="0x0210" type="Button">
+        <Parent guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenuGroupClean" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>TextChanges</CommandFlag>
         <Strings>
           <ButtonText>Clean intermediate assets for ...</ButtonText>
-          <CommandName>cmdXenkoCleanIntermediateAssetsProjectCommand</CommandName>
+          <CommandName>cmdStrideCleanIntermediateAssetsProjectCommand</CommandName>
         </Strings>
       </Button>
     </Buttons>
@@ -87,12 +87,12 @@
          must be a menu. -->
     <Groups>
 
-      <Group guid="guidXenko_VisualStudio_PackageCmdSet" id="XenkoTopMenuGroupGameStudio" priority="0x0800">
-        <Parent guid="guidXenko_VisualStudio_PackageCmdSet" id="XenkoTopMenu" />
+      <Group guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenuGroupGameStudio" priority="0x0800">
+        <Parent guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenu" />
       </Group>
       
-      <Group guid="guidXenko_VisualStudio_PackageCmdSet" id="XenkoTopMenuGroupClean" priority="0x0810">
-        <Parent guid="guidXenko_VisualStudio_PackageCmdSet" id="XenkoTopMenu" />
+      <Group guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenuGroupClean" priority="0x0810">
+        <Parent guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenu" />
       </Group>
 
     </Groups>
@@ -105,7 +105,7 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used 
             inside a button definition. An important aspect of this declaration is that the element id 
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidImages" href="Resources\Images.png" usedList="bmpXenko"/>
+      <Bitmap guid="guidImages" href="Resources\Images.png" usedList="bmpStride"/>
       
     </Bitmaps>
  
@@ -113,29 +113,29 @@
 
   <VisibilityConstraints>
     <!-- Make our menu become autovisible when our cmdSet GUID becomes active -->
-    <VisibilityItem context="guidXenko_VisualStudio_PackageCmdSet" guid="guidXenko_VisualStudio_PackageCmdSet" id="XenkoTopMenu"/>
+    <VisibilityItem context="guidStride_VisualStudio_PackageCmdSet" guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenu"/>
   </VisibilityConstraints>
 
 
   <Symbols>
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidXenko_VisualStudio_PackagePkg" value="{b0b8feb1-7b83-43fc-9fc0-70065ddb80a1}" />
+    <GuidSymbol name="guidStride_VisualStudio_PackagePkg" value="{b0b8feb1-7b83-43fc-9fc0-70065ddb80a1}" />
     
     <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidXenko_VisualStudio_PackageCmdSet" value="{9428db93-bfea-4115-8d4a-40b047166e61}">
-      <IDSymbol name="XenkoTool" value="0x1000" />
-      <IDSymbol name="XenkoTopMenuGroupGameStudio" value="0x1021" />
-      <IDSymbol name="XenkoTopMenuGroupClean" value="0x1022" />
-      <IDSymbol name="XenkoTopMenu" value="0x1040" />
-      <IDSymbol name="cmdXenkoOpenWithGameStudio" value="0x101" />
-      <IDSymbol name="cmdXenkoCleanIntermediateAssetsSolutionCommand" value="0x103" />
-      <IDSymbol name="cmdXenkoCleanIntermediateAssetsProjectCommand" value="0x104" />
+    <GuidSymbol name="guidStride_VisualStudio_PackageCmdSet" value="{9428db93-bfea-4115-8d4a-40b047166e61}">
+      <IDSymbol name="StrideTool" value="0x1000" />
+      <IDSymbol name="StrideTopMenuGroupGameStudio" value="0x1021" />
+      <IDSymbol name="StrideTopMenuGroupClean" value="0x1022" />
+      <IDSymbol name="StrideTopMenu" value="0x1040" />
+      <IDSymbol name="cmdStrideOpenWithGameStudio" value="0x101" />
+      <IDSymbol name="cmdStrideCleanIntermediateAssetsSolutionCommand" value="0x103" />
+      <IDSymbol name="cmdStrideCleanIntermediateAssetsProjectCommand" value="0x104" />
     </GuidSymbol>
     
     
     
     <GuidSymbol name="guidImages" value="{a873d334-36bd-4976-928b-870a5cb89f14}" >
-      <IDSymbol name="bmpXenko" value="1" />
+      <IDSymbol name="bmpStride" value="1" />
     </GuidSymbol>
   </Symbols>
 

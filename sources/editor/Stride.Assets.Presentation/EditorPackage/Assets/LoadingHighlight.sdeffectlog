@@ -1,6 +1,6 @@
 ---
 !EffectCompileRequest
-EffectName: XenkoEditorForwardShadingEffect.Highlight
+EffectName: StrideEditorForwardShadingEffect.Highlight
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Compositions:
@@ -45,7 +45,7 @@ UsedParameters:
             ClassName: LightConstantWhite
 ---
 !EffectCompileRequest
-EffectName: XenkoEditorForwardShadingEffect.Highlight
+EffectName: StrideEditorForwardShadingEffect.Highlight
 UsedParameters:
     Material.PixelStageSurfaceShaders: !ShaderMixinSource
         Compositions:
@@ -100,7 +100,7 @@ UsedParameters:
                     ClassName: LightConstantWhite
 ---
 !EffectCompileRequest
-EffectName: XenkoEditorForwardShadingEffect.Highlight
+EffectName: StrideEditorForwardShadingEffect.Highlight
 UsedParameters:
     Material.HasSkinningPosition: true
     Material.HasSkinningNormal: true

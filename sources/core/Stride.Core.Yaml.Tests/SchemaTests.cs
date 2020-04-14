@@ -45,10 +45,10 @@
 
 using System;
 using Xunit;
-using Xenko.Core.Yaml.Events;
-using Xenko.Core.Yaml.Schemas;
+using Stride.Core.Yaml.Events;
+using Stride.Core.Yaml.Schemas;
 
-namespace Xenko.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests
 {
     public class SchemaTests
     {

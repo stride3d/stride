@@ -1,7 +1,7 @@
-﻿using Xenko.Core.Annotations;
-using Xenko.Engine;
+﻿using Stride.Core.Annotations;
+using Stride.Engine;
 
-namespace Xenko.Rendering.Compositing
+namespace Stride.Rendering.Compositing
 {
     /// <summary>
     /// A camera renderer that can use an external camera not in the scene.

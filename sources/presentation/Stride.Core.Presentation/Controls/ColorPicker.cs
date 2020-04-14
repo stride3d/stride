@@ -1,22 +1,22 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
-using Xenko.Core.Mathematics;
+using Stride.Core.Mathematics;
 
 using System.Windows.Media.Imaging;
 using System.Windows.Input;
-using Xenko.Core.Annotations;
-using Xenko.Core.Presentation.Extensions;
-using Xenko.Core.Presentation.Internal;
-using Color = Xenko.Core.Mathematics.Color;
+using Stride.Core.Annotations;
+using Stride.Core.Presentation.Extensions;
+using Stride.Core.Presentation.Internal;
+using Color = Stride.Core.Mathematics.Color;
 using Point = System.Windows.Point;
 using Rectangle = System.Windows.Shapes.Rectangle;
 
-namespace Xenko.Core.Presentation.Controls
+namespace Stride.Core.Presentation.Controls
 {
     /// <summary>
     /// Represents a color picker control.

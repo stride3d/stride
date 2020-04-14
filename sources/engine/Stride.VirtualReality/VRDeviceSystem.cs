@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Games;
-using Xenko.Graphics;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Games;
+using Stride.Graphics;
 
-namespace Xenko.VirtualReality
+namespace Stride.VirtualReality
 {
     public class VRDeviceSystem : GameSystemBase
     {
@@ -67,7 +67,7 @@ namespace Xenko.VirtualReality
                         }
                         case VRApi.Oculus:
                         {
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
                             Device = new OculusOvrHmd();
                                 
 #endif
@@ -75,14 +75,14 @@ namespace Xenko.VirtualReality
                         }
                         case VRApi.OpenVR:
                         {
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if STRIDE_GRAPHICS_API_DIRECT3D11
                             Device = new OpenVRHmd();
 #endif
                             break;
                         }
                         case VRApi.WindowsMixedReality:
                         {
-#if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
+#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
                             if (Windows.Graphics.Holographic.HolographicSpace.IsAvailable && GraphicsDevice.Presenter is WindowsMixedRealityGraphicsPresenter)
                             {
                                 Device = new WindowsMixedRealityHmd();
@@ -92,14 +92,14 @@ namespace Xenko.VirtualReality
                         }
                         //case VRApi.Fove:
                         //{
-                        //#if XENKO_GRAPHICS_API_DIRECT3D11
+                        //#if STRIDE_GRAPHICS_API_DIRECT3D11
                         //    Device = new FoveHmd();
                         //#endif
                         //break;
                         //}
                         //case VRApi.Google:
                         //{
-                        //#if XENKO_PLATFORM_IOS || XENKO_PLATFORM_ANDROID
+                        //#if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID
                         //    VRDevice = new GoogleVrHmd();
                         //#endif
                         //    break;

@@ -5,5 +5,5 @@ Name: "Camera: basic controller"
 Scope: Asset
 Description: Moves and rotates an entity using keyboard, mouse or touch input
 Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
+Icon: ..\..\.sdtpl\SourceCode.png
 DefaultOutputName: BasicCameraController

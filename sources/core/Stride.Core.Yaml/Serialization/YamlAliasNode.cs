@@ -46,7 +46,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// Represents an alias node in the YAML document.

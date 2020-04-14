@@ -1,6 +1,6 @@
 !ProceduralModelAsset
 Id: 914f3f2f-1b18-4a25-ada6-e694ff7a6ca6
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: !SphereProceduralModel
     Scale: {X: 1.0, Y: 1.0, Z: 1.0}

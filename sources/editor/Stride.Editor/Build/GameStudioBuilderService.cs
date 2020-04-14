@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Editor.Components.Status;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.BuildEngine;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Rendering;
-using Xenko.Shaders.Compiler;
+using Stride.Core.Assets.Editor.Components.Status;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.BuildEngine;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Rendering;
+using Stride.Shaders.Compiler;
 
-namespace Xenko.Editor.Build
+namespace Stride.Editor.Build
 {
     public class GameStudioBuilderService : AssetBuilderService
     {
@@ -37,7 +37,7 @@ namespace Xenko.Editor.Build
 
             SessionViewModel = sessionViewModel ?? throw new ArgumentNullException(nameof(sessionViewModel));
 
-            var shaderImporter = new XenkoShaderImporter();
+            var shaderImporter = new StrideShaderImporter();
             var shaderBuildSteps = shaderImporter.CreateSystemShaderBuildSteps(sessionViewModel);
             shaderBuildSteps.StepProcessed += ShaderBuildStepsStepProcessed;
             PushBuildUnit(new PrecompiledAssetBuildUnit(AssetBuildUnitIdentifier.Default, shaderBuildSteps, true));

@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_OPENGL 
+#if STRIDE_GRAPHICS_API_OPENGL 
 using System;
 using OpenTK.Graphics;
-#if XENKO_GRAPHICS_API_OPENGLES
+#if STRIDE_GRAPHICS_API_OPENGLES
 using OpenTK.Graphics.ES30;
 #else
 using OpenTK.Graphics.OpenGL;
 #endif
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     class BlendState
     {
@@ -64,7 +64,7 @@ namespace Xenko.Graphics
                     return BlendEquationMode.FuncSubtract;
                 case BlendFunction.Add:
                     return BlendEquationMode.FuncAdd;
-#if !XENKO_GRAPHICS_API_OPENGLES
+#if !STRIDE_GRAPHICS_API_OPENGLES
                 case BlendFunction.Max:
                     return BlendEquationMode.Max;
                 case BlendFunction.Min:

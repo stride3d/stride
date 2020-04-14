@@ -1,20 +1,20 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
 
 using System;
 using Android.Views;
-using Xenko.Games.Android;
+using Stride.Games.Android;
 using Keycode = Android.Views.Keycode;
 
-namespace Xenko.Input
+namespace Stride.Input
 {
     internal class KeyboardAndroid : KeyboardDeviceBase, IDisposable
     {
-        private readonly AndroidXenkoGameView gameView;
+        private readonly AndroidStrideGameView gameView;
 
-        public KeyboardAndroid(InputSourceAndroid source, AndroidXenkoGameView gameView)
+        public KeyboardAndroid(InputSourceAndroid source, AndroidStrideGameView gameView)
         {
             Source = source;
             this.gameView = gameView;
@@ -44,15 +44,15 @@ namespace Xenko.Input
 
             public bool OnKey(View v, Keycode keyCode, Android.Views.KeyEvent e)
             {
-                var xenkoKey = ConvertKeyFromAndroid(keyCode);
+                var strideKey = ConvertKeyFromAndroid(keyCode);
 
                 if (e.Action == KeyEventActions.Down)
                 {
-                    keyboard.HandleKeyDown(xenkoKey);
+                    keyboard.HandleKeyDown(strideKey);
                 }
                 else
                 {
-                    keyboard.HandleKeyUp(xenkoKey);
+                    keyboard.HandleKeyUp(strideKey);
                 }
 
                 return true;

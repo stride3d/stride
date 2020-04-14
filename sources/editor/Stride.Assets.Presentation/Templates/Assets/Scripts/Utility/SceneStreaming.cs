@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization;
-using Xenko.Engine;
-using Xenko.Physics;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
+using Stride.Engine;
+using Stride.Physics;
 
 namespace ##Namespace##
 {

@@ -21,7 +21,7 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// A naming convention where all members are transformed from`CamelCase` to `camel_case`.

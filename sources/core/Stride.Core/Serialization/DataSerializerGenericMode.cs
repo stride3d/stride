@@ -1,6 +1,6 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-namespace Xenko.Core.Serialization
+namespace Stride.Core.Serialization
 {
     /// <summary>
     /// Defines what generic parameters to pass to the serializer.
@@ -10,7 +10,7 @@ namespace Xenko.Core.Serialization
         // ***************************************************************
         // NOTE: This file is shared with the AssemblyProcessor.
         // If this file is modified, the AssemblyProcessor has to be
-        // recompiled separately. See build\Xenko-AssemblyProcessor.sln
+        // recompiled separately. See build\Stride-AssemblyProcessor.sln
         // ***************************************************************
 
         None = 0,

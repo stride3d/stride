@@ -1,8 +1,8 @@
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Engine.Processors;
-using Xenko.Input;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Engine.Processors;
+using Stride.Input;
 using System;
 using System.Threading.Tasks;
 

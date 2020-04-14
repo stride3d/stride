@@ -1,6 +1,6 @@
 !PregeneratedSpriteFont
 Id: 7ea96b46-d786-42c8-9541-0dba7cd63a44
-SerializedVersion: {Xenko: 1.7.0-alpha01}
+SerializedVersion: {Stride: 1.7.0-alpha01}
 Tags: []
 OriginalFont: 90b99454-a7b4-4b88-8d42-638acc73e34b:StaticFonts/CourierNew13
 FontDataFile: ../../../../../data/tests/PrecompileFonts/CourierNew10 (Precompiled).png

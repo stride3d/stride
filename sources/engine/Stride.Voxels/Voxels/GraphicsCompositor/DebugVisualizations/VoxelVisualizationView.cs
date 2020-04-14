@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Xenko.Core.Mathematics;
-using Xenko.Core;
-using Xenko.Rendering.Images;
-using Xenko.Core.Annotations;
-using Xenko.Shaders;
-using Xenko.Rendering.Shadows;
+using Stride.Core.Mathematics;
+using Stride.Core;
+using Stride.Rendering.Images;
+using Stride.Core.Annotations;
+using Stride.Shaders;
+using Stride.Rendering.Shadows;
 
-namespace Xenko.Rendering.Voxels.Debug
+namespace Stride.Rendering.Voxels.Debug
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     [Display("Standard")]

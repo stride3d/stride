@@ -1,6 +1,6 @@
 !Model
 Id: d9b9687e-e344-4c79-a546-2469e5749aca
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/Box3x3x3.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}

@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.ComponentModel;
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Graphics;
-using Xenko.Rendering.RenderTextures;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Graphics;
+using Stride.Rendering.RenderTextures;
 
-namespace Xenko.Assets.Textures
+namespace Stride.Assets.Textures
 {
     [DataContract("RenderTexture")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Texture))]
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
+    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.0.0.0")]
     public sealed partial class RenderTextureAsset : Asset
     {
         private const string CurrentVersion = "2.0.0.0";
@@ -20,7 +20,7 @@ namespace Xenko.Assets.Textures
         /// <summary>
         /// The default file extension used by the <see cref="RenderTextureAsset"/>.
         /// </summary>
-        public const string FileExtension = ".xkrendertex";
+        public const string FileExtension = ".sdrendertex";
 
         /// <summary>
         /// The width in pixel.

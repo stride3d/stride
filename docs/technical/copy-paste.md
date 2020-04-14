@@ -3,7 +3,7 @@
 ## Introduction
 
 ### Rationale
-Any good editing software has some kind of copy/paste system and Xenko is no exception. Copy/paste should be intuitive and work in a lot of cases: any situation that make sense for a user.
+Any good editing software has some kind of copy/paste system and Stride is no exception. Copy/paste should be intuitive and work in a lot of cases: any situation that make sense for a user.
 
 ### Goals
 From a usability point of view, the capabilities of the copy/paste system should be:
@@ -215,4 +215,4 @@ This abstract class is inherited by `PastePropertyCommand` and `ReplacePropertyC
 The `System.Windows.Clipboard` can sometimes throw `COMException` when the clipboard is not available (only one process can access the clipboard at a given time). This class is a tiny wrapper that silently ignores (catches) those exceptions.
 
 ## Documentation and references
-The only user documentation currently existing can be found in one blog post (https://xenko.com/blog/copy-paste/) and the release notes of the 1.9-beta version (http://doc.xenko.com/latest/en/ReleaseNotes/ReleaseNotes-1.9.html).
+The only user documentation currently existing can be found in one blog post (https://stride3d.net/blog/copy-paste/) and the release notes of the 1.9-beta version (http://doc.stride3d.net/latest/en/ReleaseNotes/ReleaseNotes-1.9.html).

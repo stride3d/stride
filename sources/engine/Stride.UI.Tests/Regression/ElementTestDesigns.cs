@@ -1,4 +1,4 @@
-namespace Xenko.UI.Tests.Regression
+namespace Stride.UI.Tests.Regression
 {
 
     public static class ElementTestDesigns

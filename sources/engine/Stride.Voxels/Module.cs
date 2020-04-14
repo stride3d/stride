@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Reflection;
-using Xenko.Core;
-using Xenko.Core.Reflection;
+using Stride.Core;
+using Stride.Core.Reflection;
 
-namespace Xenko.Voxels
+namespace Stride.Voxels
 {
     internal class Module
     {

@@ -19,9 +19,9 @@
 // THE SOFTWARE.
 
 using System;
-using Xenko.Core.Reflection;
+using Stride.Core.Reflection;
 
-namespace Xenko.Core.Yaml.Serialization.Serializers
+namespace Stride.Core.Yaml.Serialization.Serializers
 {
     /// <summary>
     /// Default implementation for <see cref="IObjectSerializerBackend"/>

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -8,20 +8,20 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.Reflection;
-using Xenko.Core.TypeConverters;
-using Xenko.Core.Presentation.Collections;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Core;
-using Xenko.Core.Presentation.Quantum.Presenters;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.Quantum;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.Reflection;
+using Stride.Core.TypeConverters;
+using Stride.Core.Presentation.Collections;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Core;
+using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Quantum;
 using Expression = System.Linq.Expressions.Expression;
 
-namespace Xenko.Core.Presentation.Quantum.ViewModels
+namespace Stride.Core.Presentation.Quantum.ViewModels
 {
     public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     {
@@ -259,7 +259,7 @@ namespace Xenko.Core.Presentation.Quantum.ViewModels
         /// <summary>
         /// Returns the child node with the matching name.
         /// </summary>
-        /// <param name="name">The name of the <see cref="Xenko.Core.Presentation.Quantum.ViewModels.NodeViewModel"/> to look for.</param>
+        /// <param name="name">The name of the <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel"/> to look for.</param>
         /// <returns>The corresponding child node, or <c>null</c> if no child with the given name exists.</returns>
         [CanBeNull]
         public NodeViewModel GetChild(string name)
@@ -599,7 +599,7 @@ namespace Xenko.Core.Presentation.Quantum.ViewModels
         }
 
         /// <summary>
-        /// Indicates whether the given name is reserved for the name of a property in an <see cref="Xenko.Core.Presentation.Quantum.ViewModels.NodeViewModel"/>. Any children node with a colliding name will
+        /// Indicates whether the given name is reserved for the name of a property in an <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel"/>. Any children node with a colliding name will
         /// be escaped with the <see cref="EscapeName"/> method.
         /// </summary>
         /// <param name="name">The name to check.</param>

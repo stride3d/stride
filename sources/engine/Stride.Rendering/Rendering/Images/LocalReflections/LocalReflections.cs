@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if DEBUG
@@ -6,7 +6,7 @@
 #define SSLR_DEBUG
 #endif
 
-#if XENKO_PLATFORM_ANDROID || XENKO_PLATFORM_IOS
+#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
 // Use different render targets formats on mobile
 #define SSLR_MOBILE
 #endif
@@ -14,14 +14,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Extensions;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Graphics;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Graphics;
 
-namespace Xenko.Rendering.Images
+namespace Stride.Rendering.Images
 {
     /// <summary>
     /// Compute screen space reflections as a post effect.

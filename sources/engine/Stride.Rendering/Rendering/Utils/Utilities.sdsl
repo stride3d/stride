@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 /// <summary>
 /// Various helper functions.
@@ -47,7 +47,7 @@ shader Utilities
 
     // flip the texture coordinate if on an opengl device.
     static float2 ConvertTexCoord(float2 texcoord) {
-#ifdef XENKO_GRAPHICS_API_OPENGL
+#ifdef STRIDE_GRAPHICS_API_OPENGL
         return float2(texcoord.x, 1.0f - texcoord.y);
 #else
         return texcoord;

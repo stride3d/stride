@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -6,20 +6,20 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Editor.Components.Status;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.Settings;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.MostRecentlyUsedFiles;
-using Xenko.Core.Presentation.Collections;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.Services;
-using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.Presentation.Windows;
-using Xenko.Core.Translation;
+using Stride.Core.Assets.Editor.Components.Status;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.MostRecentlyUsedFiles;
+using Stride.Core.Presentation.Collections;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.Windows;
+using Stride.Core.Translation;
 
-namespace Xenko.Core.Assets.Editor.ViewModel
+namespace Stride.Core.Assets.Editor.ViewModel
 {
     public abstract class EditorViewModel : ViewModelBase
     {
@@ -238,10 +238,10 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         public void RemoveRecentFile(UFile filePath)
         {
             //Get all versions of showing on recent files
-            var xenkoVersions = RecentFiles?.Select(x => x.Version).ToList();
-            if (xenkoVersions != null)
+            var strideVersions = RecentFiles?.Select(x => x.Version).ToList();
+            if (strideVersions != null)
             {
-                foreach (var item in xenkoVersions)
+                foreach (var item in strideVersions)
                 {
                     MRU.RemoveFile(filePath, item);
                 }
@@ -251,10 +251,10 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         private void ClearRecentFiles()
         {
             //Clear considering old projects that have been deleted or upgraded from older versions
-            var xenkoVersions = RecentFiles?.Select(x => x.Version).ToList();
-            if (xenkoVersions != null)
+            var strideVersions = RecentFiles?.Select(x => x.Version).ToList();
+            if (strideVersions != null)
             {
-                foreach (var item in xenkoVersions)
+                foreach (var item in strideVersions)
                 {
                     MRU.Clear(item);
                 }

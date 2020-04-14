@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Engine.Events;
-using Xenko.Input;
-using Xenko.Physics;
-using Xenko.Rendering.Sprites;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Engine.Events;
+using Stride.Input;
+using Stride.Physics;
+using Stride.Rendering.Sprites;
 
 namespace JumpyJet
 {

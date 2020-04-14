@@ -1,7 +1,7 @@
 ﻿<Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:xunit.runner.xenko"
-             x:Class="xunit.runner.xenko.App">
+             xmlns:local="clr-namespace:xunit.runner.stride"
+             x:Class="xunit.runner.stride.App">
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>

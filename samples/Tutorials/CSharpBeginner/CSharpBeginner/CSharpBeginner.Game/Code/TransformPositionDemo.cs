@@ -1,5 +1,5 @@
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
+using Stride.Core.Mathematics;
+using Stride.Engine;
 
 namespace CSharpBeginner.Code
 {

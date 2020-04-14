@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -9,15 +9,15 @@ using System.Runtime.CompilerServices;
 
 using Xunit;
 
-using Xenko.Core.Assets;
-using Xenko.Core.IO;
-using Xenko.Core.Mathematics;
-using Xenko.Assets.Textures.Packing;
-using Xenko.Engine;
-using Xenko.Graphics;
-using Xenko.TextureConverter;
+using Stride.Core.Assets;
+using Stride.Core.IO;
+using Stride.Core.Mathematics;
+using Stride.Assets.Textures.Packing;
+using Stride.Engine;
+using Stride.Graphics;
+using Stride.TextureConverter;
 
-namespace Xenko.Assets.Tests
+namespace Stride.Assets.Tests
 {
     public class TexturePackerTests
     {
@@ -915,7 +915,7 @@ namespace Xenko.Assets.Tests
                 if (texImage.Format == PixelFormat.B8G8R8A8_UNorm)
                     texTool.SwitchChannel(texImage);
 
-                return texTool.ConvertToXenkoImage(texImage);
+                return texTool.ConvertToStrideImage(texImage);
             }
         }
     }

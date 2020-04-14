@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Windows;
 using System.Windows.Input;
-using Xenko.Core.Annotations;
-using Xenko.Core.Presentation.Controls;
-using Xenko.Core.Presentation.Internal;
+using Stride.Core.Annotations;
+using Stride.Core.Presentation.Controls;
+using Stride.Core.Presentation.Internal;
 
-namespace Xenko.Core.Presentation.Behaviors
+namespace Stride.Core.Presentation.Behaviors
 {
     /// <summary>
     /// A behavior that can be attached to a <see cref="TextBoxBase"/> and will close the window it is contained in when <see cref="Key.Enter"/> is pressed.

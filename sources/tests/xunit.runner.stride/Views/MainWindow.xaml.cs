@@ -2,7 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace xunit.runner.xenko.Views
+namespace xunit.runner.stride.Views
 {
     public class MainWindow : Window
     {

@@ -3,40 +3,40 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Packages;
-using Xenko.Core.Presentation.Commands;
-using Xenko.Core.Presentation.ViewModel;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Packages;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.ViewModel;
 
-namespace Xenko.LauncherApp.ViewModels
+namespace Stride.LauncherApp.ViewModels
 {
-    internal sealed class XenkoStoreAlternateVersionViewModel : DispatcherViewModel
+    internal sealed class StrideStoreAlternateVersionViewModel : DispatcherViewModel
     {
-        private XenkoStoreVersionViewModel xenkoVersion;
+        private StrideStoreVersionViewModel strideVersion;
         internal NugetServerPackage ServerPackage;
         internal NugetLocalPackage LocalPackage;
 
-        public XenkoStoreAlternateVersionViewModel([NotNull] XenkoStoreVersionViewModel xenkoVersion)
-            : base(xenkoVersion.ServiceProvider)
+        public StrideStoreAlternateVersionViewModel([NotNull] StrideStoreVersionViewModel strideVersion)
+            : base(strideVersion.ServiceProvider)
         {
-            this.xenkoVersion = xenkoVersion;
+            this.strideVersion = strideVersion;
 
             SetAsActiveCommand = new AnonymousCommand(ServiceProvider, () =>
             {
-                xenkoVersion.UpdateLocalPackage(LocalPackage, null);
+                strideVersion.UpdateLocalPackage(LocalPackage, null);
                 if (LocalPackage == null)
                 {
                     // If it's a non installed version, offer same version for serverPackage so that it offers to install this specific version
-                    xenkoVersion.UpdateServerPackage(ServerPackage, null);
+                    strideVersion.UpdateServerPackage(ServerPackage, null);
                 }
                 else
                 {
                     // Otherwise, offer latest version for update
-                    xenkoVersion.UpdateServerPackage(xenkoVersion.LatestServerPackage, null);
+                    strideVersion.UpdateServerPackage(strideVersion.LatestServerPackage, null);
                 }
 
-                xenkoVersion.Launcher.ActiveVersion = xenkoVersion;
+                strideVersion.Launcher.ActiveVersion = strideVersion;
             });
         }
 

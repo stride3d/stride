@@ -6,6 +6,6 @@ Scope: Asset
 Description: A material asset with a diffuse map, specular map, and glossiness map for physically-based rendering
 Group: Material
 Order: -90
-Icon: ..\.xktpl\MaterialSpecular.png
+Icon: ..\.sdtpl\MaterialSpecular.png
 DefaultOutputName: Material
 FactoryTypeName: SpecularMaterialFactory

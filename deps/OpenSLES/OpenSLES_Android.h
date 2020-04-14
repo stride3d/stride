@@ -20,7 +20,7 @@
 #include "OpenSLES.h"
 #include "OpenSLES_AndroidConfiguration.h"
 #include "OpenSLES_AndroidMetadata.h"
-// Xenko: change from original file
+// Stride: change from original file
 //#include <jni.h>
 typedef void* jobject;
 

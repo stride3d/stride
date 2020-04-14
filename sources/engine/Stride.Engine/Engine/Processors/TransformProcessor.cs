@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using Xenko.Core.Collections;
-using Xenko.Core.Threading;
-using Xenko.Rendering;
+using Stride.Core.Collections;
+using Stride.Core.Threading;
+using Stride.Rendering;
 
-namespace Xenko.Engine.Processors
+namespace Stride.Engine.Processors
 {
     /// <summary>
     /// Handle <see cref="TransformComponent.Children"/> and updates <see cref="TransformComponent.WorldMatrix"/> of entities.

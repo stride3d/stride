@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // -----------------------------------------------------------------------------
@@ -33,7 +33,7 @@ using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace Xenko.Core.Mathematics
+namespace Stride.Core.Mathematics
 {
     /// <summary>
     /// Represents a 4x4 mathematical matrix.
@@ -44,17 +44,17 @@ namespace Xenko.Core.Mathematics
     public struct Matrix : IEquatable<Matrix>, IFormattable
     {
         /// <summary>
-        /// The size of the <see cref="Xenko.Core.Mathematics.Matrix"/> type, in bytes.
+        /// The size of the <see cref="Stride.Core.Mathematics.Matrix"/> type, in bytes.
         /// </summary>
         public static readonly int SizeInBytes = Utilities.SizeOf<Matrix>();
 
         /// <summary>
-        /// A <see cref="Xenko.Core.Mathematics.Matrix"/> with all of its components set to zero.
+        /// A <see cref="Stride.Core.Mathematics.Matrix"/> with all of its components set to zero.
         /// </summary>
         public static readonly Matrix Zero = new Matrix();
 
         /// <summary>
-        /// The identity <see cref="Xenko.Core.Mathematics.Matrix"/>.
+        /// The identity <see cref="Stride.Core.Mathematics.Matrix"/>.
         /// </summary>
         public static readonly Matrix Identity = new Matrix() { M11 = 1.0f, M22 = 1.0f, M33 = 1.0f, M44 = 1.0f };
 
@@ -139,7 +139,7 @@ namespace Xenko.Core.Mathematics
         public float M44;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Matrix"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Matrix"/> struct.
         /// </summary>
         /// <param name="value">The value that will be assigned to all components.</param>
         public Matrix(float value)
@@ -151,7 +151,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Matrix"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Matrix"/> struct.
         /// </summary>
         /// <param name="M11">The value to assign at row 1 column 1 of the matrix.</param>
         /// <param name="M12">The value to assign at row 1 column 2 of the matrix.</param>
@@ -181,7 +181,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Matrix"/> struct.
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Matrix"/> struct.
         /// </summary>
         /// <param name="values">The values to assign to the components of the matrix. This must be an array with sixteen elements.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
@@ -3352,11 +3352,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="Xenko.Core.Mathematics.Matrix"/> is equal to this instance.
+        /// Determines whether the specified <see cref="Stride.Core.Mathematics.Matrix"/> is equal to this instance.
         /// </summary>
-        /// <param name="other">The <see cref="Xenko.Core.Mathematics.Matrix"/> to compare with this instance.</param>
+        /// <param name="other">The <see cref="Stride.Core.Mathematics.Matrix"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="Xenko.Core.Mathematics.Matrix"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="Stride.Core.Mathematics.Matrix"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(Matrix other)
         {
@@ -3401,7 +3401,7 @@ namespace Xenko.Core.Mathematics
 
 #if SlimDX1xInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Matrix"/> to <see cref="SlimDX.Matrix"/>.
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Matrix"/> to <see cref="SlimDX.Matrix"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -3417,7 +3417,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="SlimDX.Matrix"/> to <see cref="Xenko.Core.Mathematics.Matrix"/>.
+        /// Performs an implicit conversion from <see cref="SlimDX.Matrix"/> to <see cref="Stride.Core.Mathematics.Matrix"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -3435,7 +3435,7 @@ namespace Xenko.Core.Mathematics
 
 #if WPFInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Matrix"/> to <see cref="System.Windows.Media.Media3D.Matrix3D"/>.
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Matrix"/> to <see cref="System.Windows.Media.Media3D.Matrix3D"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -3451,7 +3451,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Matrix3D"/> to <see cref="Xenko.Core.Mathematics.Matrix"/>.
+        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Matrix3D"/> to <see cref="Stride.Core.Mathematics.Matrix"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -3469,7 +3469,7 @@ namespace Xenko.Core.Mathematics
 
 #if XnaInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Matrix"/> to <see cref="Microsoft.Xna.Framework.Matrix"/>.
+        /// Performs an implicit conversion from <see cref="Stride.Core.Mathematics.Matrix"/> to <see cref="Microsoft.Xna.Framework.Matrix"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -3485,7 +3485,7 @@ namespace Xenko.Core.Mathematics
         }
 
                 /// <summary>
-        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Matrix"/> to <see cref="Xenko.Core.Mathematics.Matrix"/>.
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Matrix"/> to <see cref="Stride.Core.Mathematics.Matrix"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>

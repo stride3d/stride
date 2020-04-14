@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if XENKO_GRAPHICS_API_DIRECT3D12
+#if STRIDE_GRAPHICS_API_DIRECT3D12
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using SharpDX.Direct3D12;
-using Xenko.Core.Collections;
-using Xenko.Core.Threading;
+using Stride.Core.Collections;
+using Stride.Core.Threading;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     public partial class GraphicsDevice
     {

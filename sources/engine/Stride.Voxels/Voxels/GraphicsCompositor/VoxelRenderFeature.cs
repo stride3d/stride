@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Storage;
-using Xenko.Core.Threading;
-using Xenko.Graphics;
-using Xenko.Rendering.Shadows;
-using Xenko.Rendering.Voxels;
-using Xenko.Shaders;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Core.Storage;
+using Stride.Core.Threading;
+using Stride.Graphics;
+using Stride.Rendering.Shadows;
+using Stride.Rendering.Voxels;
+using Stride.Shaders;
 
-namespace Xenko.Rendering.Voxels
+namespace Stride.Rendering.Voxels
 {
     /// <summary>
     /// A render feature that computes and uploads info for voxelization

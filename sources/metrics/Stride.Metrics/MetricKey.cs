@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace Xenko.Metrics
+namespace Stride.Metrics
 {
     /// <summary>
     /// Key of a metric.

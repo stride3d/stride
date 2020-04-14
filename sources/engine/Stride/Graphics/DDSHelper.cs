@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
@@ -77,9 +77,9 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Xenko.Core;
+using Stride.Core;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     internal class DDSHelper
     {
@@ -989,7 +989,7 @@ namespace Xenko.Graphics
         {
             var flags = makeACopy ? DDSFlags.CopyMemory : DDSFlags.None;
 
-#if XENKO_PLATFORM_ANDROID
+#if STRIDE_PLATFORM_ANDROID
             // Directly load image as RGBA instead of BGRA, because OpenGL ES devices don't support it out of the box (extension).
             flags |= DDSFlags.ForceRgb;
 #endif

@@ -45,7 +45,7 @@
 
 using System;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// An <see cref="IObjectFactory"/> that can be chained with another object factory;

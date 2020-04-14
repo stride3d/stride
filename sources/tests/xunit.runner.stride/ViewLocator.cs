@@ -1,9 +1,9 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using xunit.runner.xenko.ViewModels;
+using xunit.runner.stride.ViewModels;
 
-namespace xunit.runner.xenko
+namespace xunit.runner.stride
 {
     public class ViewLocator : IDataTemplate
     {

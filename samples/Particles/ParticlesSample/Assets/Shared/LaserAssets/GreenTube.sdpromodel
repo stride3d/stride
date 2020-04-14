@@ -1,6 +1,6 @@
 !ProceduralModelAsset
 Id: 0628b61c-a92c-4836-bd45-988da11c6aac
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: !CylinderProceduralModel
     Radius: 0.3

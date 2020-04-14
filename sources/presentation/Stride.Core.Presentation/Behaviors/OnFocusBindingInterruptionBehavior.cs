@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -6,10 +6,10 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using Microsoft.Xaml.Behaviors;
-using Xenko.Core;
-using Xenko.Core.Presentation.Extensions;
+using Stride.Core;
+using Stride.Core.Presentation.Extensions;
 
-namespace Xenko.Core.Presentation.Behaviors
+namespace Stride.Core.Presentation.Behaviors
 {
     /// <summary>
     /// Represents a behavior capable of interrupting a <c>Binding</c> on a <c>UIElement</c> when it receives focus,

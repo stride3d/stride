@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -22,12 +22,12 @@
 // THE SOFTWARE.
 
 using System;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Graphics;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Serialization.Contents;
+using Stride.Graphics;
 
-namespace Xenko.Games
+namespace Stride.Games
 {
     /// <summary>
     /// Base class for a <see cref="GameSystemBase"/> component.

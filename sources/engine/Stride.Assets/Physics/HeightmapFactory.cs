@@ -1,8 +1,8 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Assets;
+using Stride.Core.Assets;
 
-namespace Xenko.Assets.Physics
+namespace Stride.Assets.Physics
 {
     public class HeightmapFactory : AssetFactory<HeightmapAsset>
     {

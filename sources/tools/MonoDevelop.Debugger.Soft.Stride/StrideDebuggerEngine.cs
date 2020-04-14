@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Net;
 using Mono.Debugging.Soft;
 using MonoDevelop.Core.Execution;
 using Mono.Debugging.Client;
 
-namespace MonoDevelop.Debugger.Soft.Xenko
+namespace MonoDevelop.Debugger.Soft.Stride
 {
-	public class XenkoDebuggerEngine : DebuggerEngineBackend
+	public class StrideDebuggerEngine : DebuggerEngineBackend
 	{
-		public XenkoDebuggerEngine ()
+		public StrideDebuggerEngine ()
 		{
 		}
 
@@ -19,7 +19,7 @@ namespace MonoDevelop.Debugger.Soft.Xenko
 	        if (processCmd == null)
 	            return false;
 
-            return processCmd.Command.StartsWith("XenkoDebug");
+            return processCmd.Command.StartsWith("StrideDebug");
 		}
 
         public override DebuggerStartInfo CreateDebuggerStartInfo(ExecutionCommand cmd)
@@ -37,7 +37,7 @@ namespace MonoDevelop.Debugger.Soft.Xenko
 
         public override DebuggerSession CreateSession()
         {
-			return new XenkoRemoteSoftDebuggerSession();
+			return new StrideRemoteSoftDebuggerSession();
 		}
 	}
 }

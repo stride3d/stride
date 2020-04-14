@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Particles.Initializers;
-using Xenko.Particles.Sorters;
-using Xenko.Particles.VertexLayouts;
-using Xenko.Particles.ShapeBuilders.Tools;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Particles.Initializers;
+using Stride.Particles.Sorters;
+using Stride.Particles.VertexLayouts;
+using Stride.Particles.ShapeBuilders.Tools;
 
-namespace Xenko.Particles.ShapeBuilders
+namespace Stride.Particles.ShapeBuilders
 {
     /// <summary>
     /// Shape builder which builds all particles as a trail, connecting adjacent particles in a ribbon defined by a fixed 3d axis

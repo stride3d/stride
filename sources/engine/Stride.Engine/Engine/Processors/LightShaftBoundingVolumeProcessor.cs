@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using Xenko.Core.Mathematics;
-using Xenko.Games;
-using Xenko.Rendering;
-using Xenko.Rendering.Images;
+using Stride.Core.Mathematics;
+using Stride.Games;
+using Stride.Rendering;
+using Stride.Rendering.Images;
 
-namespace Xenko.Engine.Processors
+namespace Stride.Engine.Processors
 {
     public class LightShaftBoundingVolumeProcessor : EntityProcessor<LightShaftBoundingVolumeComponent>
     {

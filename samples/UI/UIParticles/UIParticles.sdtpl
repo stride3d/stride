@@ -5,8 +5,8 @@ Scope: Session
 Description: Demonstrates how to render particles on top of UI elements
 FullDescription: This sample uses an orthographic camera on top on the regular scene to render particles. The second camera only renders entities assigned to Group01, to which we assign all UI particles. Coordinates can be easily controlled by a script.
 Group: Samples/UI
-Icon: ../.xktpl/NewUI.png
+Icon: ../.sdtpl/NewUI.png
 DefaultOutputName: UIParticles
 Screenshots:
-    - ../.xktpl/screenshot5_small.jpg
-    - ../.xktpl/screenshot6_small.jpg
+    - ../.sdtpl/screenshot5_small.jpg
+    - ../.sdtpl/screenshot6_small.jpg

@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Xunit;
-using Xenko.Core;
-using Xenko.Core.Presentation.Quantum.Presenters;
-using Xenko.Core.Presentation.Quantum.Tests.Helpers;
+using Stride.Core;
+using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Presentation.Quantum.Tests.Helpers;
 
-namespace Xenko.Core.Presentation.Quantum.Tests
+namespace Stride.Core.Presentation.Quantum.Tests
 {
     // TODO: this class should be rewritten to properly match the new design of dependent properties, which is using hard-link between nodes instead of path-based.
     public class TestDependentProperties

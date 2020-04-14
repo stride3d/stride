@@ -3,7 +3,7 @@
 EffectName: SpriteSignedDistanceFieldFontShader
 UsedParameters:
     EffectSourceCode.Enable: true
-    EffectSourceCode.Namespace: Xenko.Graphics
+    EffectSourceCode.Namespace: Stride.Graphics
     EffectSourceCode.ClassDeclaration: internal partial
     EffectSourceCode.FieldName: spriteSignedDistanceFieldFontBytecode
 ---
@@ -11,6 +11,6 @@ UsedParameters:
 EffectName: SignedDistanceFieldFontShader
 UsedParameters:
     EffectSourceCode.Enable: true
-    EffectSourceCode.Namespace: Xenko.Graphics
+    EffectSourceCode.Namespace: Stride.Graphics
     EffectSourceCode.ClassDeclaration: internal partial
     EffectSourceCode.FieldName: signedDistanceFieldFontBytecode

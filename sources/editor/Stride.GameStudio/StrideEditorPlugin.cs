@@ -1,27 +1,27 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Editor.Services;
-using Xenko.Core.Assets.Editor.Settings;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Packages;
-using Xenko.Editor;
-using Xenko.Editor.Build;
-using Xenko.Editor.Preview;
-using Xenko.Editor.Thumbnails;
-using Xenko.GameStudio.Debugging;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Packages;
+using Stride.Editor;
+using Stride.Editor.Build;
+using Stride.Editor.Preview;
+using Stride.Editor.Thumbnails;
+using Stride.GameStudio.Debugging;
 
-namespace Xenko.GameStudio
+namespace Stride.GameStudio
 {
-    public class XenkoEditorPlugin : XenkoAssetsPlugin
+    public class StrideEditorPlugin : StrideAssetsPlugin
     {
         protected override void Initialize(ILogger logger)
         {
@@ -29,7 +29,7 @@ namespace Xenko.GameStudio
 
         public override void InitializeSession(SessionViewModel session)
         {
-            var fallbackDirectory = UPath.Combine(EditorSettings.FallbackBuildCacheDirectory, new UDirectory(XenkoGameStudio.EditorName));
+            var fallbackDirectory = UPath.Combine(EditorSettings.FallbackBuildCacheDirectory, new UDirectory(StrideGameStudio.EditorName));
             var buildDirectory = fallbackDirectory;
             try
             {
@@ -37,7 +37,7 @@ namespace Xenko.GameStudio
                 if (package != null)
                 {
                     // In package, we override editor build directory to be per-project and be shared with game build directory
-                    buildDirectory = $"{package.PackagePath.GetFullDirectory().ToWindowsPath()}\\obj\\xenko\\assetbuild\\data";
+                    buildDirectory = $"{package.PackagePath.GetFullDirectory().ToWindowsPath()}\\obj\\stride\\assetbuild\\data";
                 }
 
                 // Attempt to create the directory to ensure it is valid.
@@ -51,9 +51,9 @@ namespace Xenko.GameStudio
 
             var pluginService = session.ServiceProvider.Get<IAssetsPluginService>();
             var previewFactories = new Dictionary<Type, AssetPreviewFactory>();
-            foreach (var xenkoPlugin in pluginService.Plugins.OfType<XenkoAssetsPlugin>())
+            foreach (var stridePlugin in pluginService.Plugins.OfType<StrideAssetsPlugin>())
             {
-                var pluginTypes = xenkoPlugin.GetType().Assembly.GetTypes();
+                var pluginTypes = stridePlugin.GetType().Assembly.GetTypes();
                 foreach (var type in pluginTypes)
                 {
                     var localType = type;
@@ -82,11 +82,11 @@ namespace Xenko.GameStudio
             var thumbnailService = new GameStudioThumbnailService(session, settingsProvider, builderService);
             session.ServiceProvider.RegisterService(thumbnailService);
 
-            var xenkoDebugService = new XenkoDebugService(session.ServiceProvider);
-            session.ServiceProvider.RegisterService(xenkoDebugService);
+            var strideDebugService = new StrideDebugService(session.ServiceProvider);
+            session.ServiceProvider.RegisterService(strideDebugService);
 
             GameStudioViewModel.GameStudio.Preview = new PreviewViewModel(session);
-            GameStudioViewModel.GameStudio.Debugging = new DebuggingViewModel(GameStudioViewModel.GameStudio, xenkoDebugService);
+            GameStudioViewModel.GameStudio.Debugging = new DebuggingViewModel(GameStudioViewModel.GameStudio, strideDebugService);
         }
     }
 }

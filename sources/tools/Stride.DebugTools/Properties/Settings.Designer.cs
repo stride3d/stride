@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Xenko.DebugTools.Properties
+namespace Stride.DebugTools.Properties
 {
 
 

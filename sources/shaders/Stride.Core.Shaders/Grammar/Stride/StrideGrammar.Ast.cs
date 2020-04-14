@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Irony.Parsing;
 
-using Xenko.Core.Shaders.Ast;
-using Xenko.Core.Shaders.Ast.Hlsl;
-using Xenko.Core.Shaders.Ast.Xenko;
-using Xenko.Core.Shaders.Utility;
+using Stride.Core.Shaders.Ast;
+using Stride.Core.Shaders.Ast.Hlsl;
+using Stride.Core.Shaders.Ast.Stride;
+using Stride.Core.Shaders.Utility;
 
-namespace Xenko.Core.Shaders.Grammar.Xenko
+namespace Stride.Core.Shaders.Grammar.Stride
 {
-    public partial class XenkoGrammar
+    public partial class StrideGrammar
     {
         private static void CreateStreamsType(ParsingContext context, ParseTreeNode parseNode)
         {
@@ -79,7 +79,7 @@ namespace Xenko.Core.Shaders.Grammar.Xenko
 
             if (node.ChildNodes.Count == 1)
             {
-                qualifier = XenkoStorageQualifier.Parse(node.ChildNodes[0].Token.Text);
+                qualifier = StrideStorageQualifier.Parse(node.ChildNodes[0].Token.Text);
                 qualifier.Span = SpanConverter.Convert(node.Span);
             }
 
@@ -134,7 +134,7 @@ namespace Xenko.Core.Shaders.Grammar.Xenko
 
         protected override void CreateConstantBufferTypeAst(ParsingContext context, ParseTreeNode node)
         {
-            node.AstNode = XenkoConstantBufferType.Parse(node.ChildNodes[0].Token.Text);
+            node.AstNode = StrideConstantBufferType.Parse(node.ChildNodes[0].Token.Text);
         }
 
         protected void CreateClassIdentifierSubGenericAst(ParsingContext context, ParseTreeNode node)

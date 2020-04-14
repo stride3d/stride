@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -7,19 +7,19 @@ using System.Text;
 
 using Xunit;
 
-using Xenko.Shaders.Parser.Mixins;
+using Stride.Shaders.Parser.Mixins;
 
-namespace Xenko.Shaders.Tests
+namespace Stride.Shaders.Tests
 {
     /// <summary>
-    /// Code used to regenerate all cs files from xksl/xkfx in the project
+    /// Code used to regenerate all cs files from sdsl/sdfx in the project
     /// </summary>
     public class TestCodeGen
     {
         //[Fact]
         public void Test()
         {
-            var filePath = @"D:\Code\Xenko\sources\engine\Xenko.Shaders.Tests\GameAssets\Mixins\A.xksl";
+            var filePath = @"D:\Code\Stride\sources\engine\Stride.Shaders.Tests\GameAssets\Mixins\A.sdsl";
             var source = File.ReadAllText(filePath);
             var content = ShaderMixinCodeGen.GenerateCsharp(source, filePath.Replace("C:", "D:"));
         }
@@ -33,13 +33,13 @@ namespace Xenko.Shaders.Tests
 
         private static void RegenerateDirectory(string directory)
         {
-            //foreach (var xksl in Directory.EnumerateFiles(directory, "*.xksl", SearchOption.AllDirectories))
+            //foreach (var sdsl in Directory.EnumerateFiles(directory, "*.sdsl", SearchOption.AllDirectories))
             //{
-            //    RebuildFile(xksl);
+            //    RebuildFile(sdsl);
             //}
-            foreach (var xkfx in Directory.EnumerateFiles(directory, "*.xkfx", SearchOption.AllDirectories))
+            foreach (var sdfx in Directory.EnumerateFiles(directory, "*.sdfx", SearchOption.AllDirectories))
             {
-                RebuildFile(xkfx);
+                RebuildFile(sdfx);
             }
         }
 

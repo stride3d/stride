@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Core.Assets.Editor.Settings;
-using Xenko.Core.Assets.Editor.ViewModel;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core.Extensions;
-using Xenko.Core.IO;
-using Xenko.Core.Presentation.ViewModel;
+using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Templates;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Presentation.ViewModel;
 
-namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
+namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 {
     public class NewProjectTemplateCollectionViewModel : ProjectTemplateCollectionViewModel
     {
@@ -40,7 +40,7 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 
             Location = session.SolutionPath.GetFullDirectory() ?? InternalSettings.TemplatesWindowDialogLastNewSessionTemplateDirectory.GetValue();
             if (string.IsNullOrWhiteSpace(Location))
-                Location = UPath.Combine<UDirectory>(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Xenko Projects");
+                Location = UPath.Combine<UDirectory>(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Stride Projects");
 
             SelectedGroup = rootGroup;
         }
@@ -48,8 +48,8 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
         private bool IsAssetsOnlyTemplate(TemplateDescription template)
         {
             // TODO We only have two such template for now, so check directly, maybe improve later
-            return template.FullPath.FullPath.EndsWith("ProjectLibrary.xktpl")
-                || template.FullPath.FullPath.EndsWith("ProjectExecutable.xktpl");
+            return template.FullPath.FullPath.EndsWith("ProjectLibrary.sdtpl")
+                || template.FullPath.FullPath.EndsWith("ProjectExecutable.sdtpl");
         }
 
         public SessionViewModel Session { get; }

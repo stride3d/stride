@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{75C5F896-0E36-4348-9E80-5E9EFE494D94}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>$(XenkoNativeOutputName)</RootNamespace>
+    <RootNamespace>$(StrideNativeOutputName)</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -70,10 +70,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <IntermediateOutputPath>$(XenkoNativeProjectObjFolder)\</IntermediateOutputPath>
+    <IntermediateOutputPath>$(StrideNativeProjectObjFolder)\</IntermediateOutputPath>
     <IntDir>$(IntermediateOutputPath)</IntDir>
-    <OutDir>$(XenkoNativeOutputDir)\</OutDir>
-    <TargetName>$(XenkoNativeOutputName)</TargetName>
+    <OutDir>$(StrideNativeOutputDir)\</OutDir>
+    <TargetName>$(StrideNativeOutputName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <LinkIncremental>true</LinkIncremental>
@@ -96,9 +96,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(XenkoDependenciesDir)\NativePath\Windows\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(StrideDependenciesDir)\NativePath\Windows\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>$(XenkoNativePathLibs) %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>$(StrideNativePathLibs) %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -116,9 +116,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(XenkoDependenciesDir)\NativePath\Windows\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(StrideDependenciesDir)\NativePath\Windows\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>$(XenkoNativePathLibs) %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>$(StrideNativePathLibs) %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -139,9 +139,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(XenkoDependenciesDir)\NativePath\Windows\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(StrideDependenciesDir)\NativePath\Windows\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>$(XenkoNativePathLibs) %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>$(StrideNativePathLibs) %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -162,9 +162,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(XenkoDependenciesDir)\NativePath\Windows\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(StrideDependenciesDir)\NativePath\Windows\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>$(XenkoNativePathLibs) %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>$(StrideNativePathLibs) %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -187,7 +187,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Object Include="$(XenkoNativeProjectObjFolder)\*.obj" />
+    <Object Include="$(StrideNativeProjectObjFolder)\*.obj" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

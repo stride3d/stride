@@ -1,9 +1,9 @@
-Xenko Launcher
+Stride Launcher
 ==============
 
-Source for Xenko launcher and installer.
+Source for Stride launcher and installer.
 
 # Build instructions
 
-Please check out sources in `<XenkoDir>\sources\launcher`.
-You can then use `msbuild Xenko.build /t:Build;PackageInstaller`.
+Please check out sources in `<StrideDir>\sources\launcher`.
+You can then use `msbuild Stride.build /t:Build;PackageInstaller`.

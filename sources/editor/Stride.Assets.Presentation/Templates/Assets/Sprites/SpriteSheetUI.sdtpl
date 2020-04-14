@@ -6,7 +6,7 @@ Scope: Asset
 Description: A sprite sheet built from a set of images, used to display UI components
 Group: Sprite
 Order: -90
-Icon: ..\.xktpl\SpriteUI.png
+Icon: ..\.sdtpl\SpriteUI.png
 DefaultOutputName: SpriteSheet
 FactoryTypeName: SpriteSheetUIFactory
 ImportSource: true

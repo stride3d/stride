@@ -1,6 +1,6 @@
 !Texture
 Id: 10eb4d2e-1538-4ae6-9924-bf7156c271ce
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../Resources/dot.png
 Type: !ColorTextureType

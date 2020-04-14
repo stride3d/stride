@@ -1,6 +1,6 @@
 !Animation
 Id: 141615e7-9144-488a-860d-0abd7a9ace44
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Animation/Punch.fbx
 ClipDuration:

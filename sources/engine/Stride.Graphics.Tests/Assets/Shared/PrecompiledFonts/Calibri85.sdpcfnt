@@ -1,6 +1,6 @@
 !PregeneratedSpriteFont
 Id: 0e2b48ac-a089-4ea6-b62b-f797c64f6904
-SerializedVersion: {Xenko: 1.7.0-alpha01}
+SerializedVersion: {Stride: 1.7.0-alpha01}
 Tags: []
 OriginalFont: 83cbacc4-ae04-4a9b-94ef-4ecd49557287:StaticFonts/Calibri85
 FontDataFile: ../../../../../data/tests/PrecompileFonts/Calibri64 (Precompiled).png

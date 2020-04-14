@@ -1,12 +1,12 @@
-﻿  <!-- Use this target file for executables when referencing Xenko inside the solution (using ProjectReference) to properly copy all the required dependencies and native libraries -->
+﻿  <!-- Use this target file for executables when referencing Stride inside the solution (using ProjectReference) to properly copy all the required dependencies and native libraries -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   
-  <Target Name="SetupXenkoRuntimeReferences" BeforeTargets="ResolveAssemblyReferences" Condition=" '$(XenkoIsExecutable)' == 'true' ">
+  <Target Name="SetupStrideRuntimeReferences" BeforeTargets="ResolveAssemblyReferences" Condition=" '$(StrideIsExecutable)' == 'true' ">
     <PropertyGroup>
       <!-- For executables, if not building runtime itself, add runtime paths and do so before everything else (so that $(OutDir) doesn't take precedence) -->
       <AssemblySearchPaths>
-        $(XenkoPackageXenkoPlatformBin)\$(XenkoGraphicsApi)\;
-        $(XenkoPackageXenkoPlatformBin)\;
+        $(StridePackageStridePlatformBin)\$(StrideGraphicsApi)\;
+        $(StridePackageStridePlatformBin)\;
         $(AssemblySearchPaths)
       </AssemblySearchPaths>
     </PropertyGroup>

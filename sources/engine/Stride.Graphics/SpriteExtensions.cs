@@ -1,10 +1,10 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 
-using Xenko.Core.Mathematics;
+using Stride.Core.Mathematics;
 
-namespace Xenko.Graphics
+namespace Stride.Graphics
 {
     /// <summary>
     /// A sprite represents a series frames in an atlas forming an animation. 
@@ -20,7 +20,7 @@ namespace Xenko.Graphics
         /// <param name="rotation">The rotation to apply on the sprite</param>
         /// <param name="depthLayer">The depth layer to which draw the sprite</param>
         /// <param name="spriteEffects">The sprite effect to apply on the sprite</param>
-        /// <remarks>This function must be called between the <see cref="SpriteBatch.Begin(Xenko.Graphics.SpriteSortMode,Xenko.Graphics.Effect)"/> 
+        /// <remarks>This function must be called between the <see cref="SpriteBatch.Begin(Stride.Graphics.SpriteSortMode,Stride.Graphics.Effect)"/> 
         /// and <see cref="SpriteBatch.End()"/> calls of the provided <paramref name="spriteBatch"/></remarks>
         /// <exception cref="ArgumentException">The provided frame index is not valid.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The provided spriteBatch is null</exception>
@@ -40,7 +40,7 @@ namespace Xenko.Graphics
         /// <param name="scales">The scale factors to apply on the sprite</param>
         /// <param name="depthLayer">The depth layer to which draw the sprite</param>
         /// <param name="spriteEffects">The sprite effect to apply on the sprite</param>
-        /// <remarks>This function must be called between the <see cref="SpriteBatch.Begin(Xenko.Graphics.SpriteSortMode,Xenko.Graphics.Effect)"/> 
+        /// <remarks>This function must be called between the <see cref="SpriteBatch.Begin(Stride.Graphics.SpriteSortMode,Stride.Graphics.Effect)"/> 
         /// and <see cref="SpriteBatch.End()"/> calls of the provided <paramref name="spriteBatch"/></remarks>
         /// <exception cref="ArgumentException">The provided frame index is not valid.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The provided spriteBatch is null</exception>
@@ -61,7 +61,7 @@ namespace Xenko.Graphics
         /// <param name="spriteBatch">The sprite batch used to draw the sprite.</param>
         /// <param name="worldMatrix">The world matrix of the sprite</param>
         /// <param name="color">The color to apply on the sprite</param>
-        /// <remarks>This function must be called between the <see cref="SpriteBatch.Begin(Xenko.Graphics.SpriteSortMode,Xenko.Graphics.Effect)"/> 
+        /// <remarks>This function must be called between the <see cref="SpriteBatch.Begin(Stride.Graphics.SpriteSortMode,Stride.Graphics.Effect)"/> 
         /// and <see cref="SpriteBatch.End()"/> calls of the provided <paramref name="spriteBatch"/></remarks>
         /// <exception cref="ArgumentException">The provided frame index is not valid.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The provided spriteBatch is null</exception>

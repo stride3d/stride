@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Web;
 
-namespace Xenko.Metrics.ServerApp.Models
+namespace Stride.Metrics.ServerApp.Models
 {
     /// <summary>
     /// This class is used to fill the database with some "random" data to simulate users interaction.
@@ -101,7 +101,7 @@ namespace Xenko.Metrics.ServerApp.Models
                     {
                         var metricEvent = new NewMetricMessage()
                         {
-                            ApplicationId = CommonApps.XenkoEditorAppId.Guid,
+                            ApplicationId = CommonApps.StrideEditorAppId.Guid,
                             InstallId = pseudoInstall.MetricInstall.InstallGuid,
                             SessionId = eventId,
                             EventId = eventId,
@@ -114,7 +114,7 @@ namespace Xenko.Metrics.ServerApp.Models
 
                         metricEvent = new NewMetricMessage()
                         {
-                            ApplicationId = CommonApps.XenkoEditorAppId.Guid,
+                            ApplicationId = CommonApps.StrideEditorAppId.Guid,
                             InstallId = pseudoInstall.MetricInstall.InstallGuid,
                             SessionId = eventId,
                             EventId = eventId,

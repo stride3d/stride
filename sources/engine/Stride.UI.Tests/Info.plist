@@ -5,7 +5,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>PDX UI</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.xenko.ui.tests</string>
+	<string>com.stride.ui.tests</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleVersion</key>

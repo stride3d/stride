@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 
 using Xunit;
-using Xenko.TextureConverter.Requests;
-using Xenko.TextureConverter.TexLibraries;
+using Stride.TextureConverter.Requests;
+using Stride.TextureConverter.TexLibraries;
 
-namespace Xenko.TextureConverter.Tests
+namespace Stride.TextureConverter.Tests
 {
     public class DxtTexLibTest : IDisposable
     {
@@ -72,7 +72,7 @@ namespace Xenko.TextureConverter.Tests
             Assert.True(library.CanHandleRequest(image, new NormalMapGenerationRequest(1)));
             Assert.True(library.CanHandleRequest(image, new LoadingRequest("TextureArray_WMipMaps_BC3.dds", false)));
             Assert.True(library.CanHandleRequest(image, new ExportRequest("TextureArray_WMipMaps_BC3.dds", 0)));
-            Assert.True(library.CanHandleRequest(image, new CompressingRequest(Xenko.Graphics.PixelFormat.BC3_UNorm)));
+            Assert.True(library.CanHandleRequest(image, new CompressingRequest(Stride.Graphics.PixelFormat.BC3_UNorm)));
             Assert.False(library.CanHandleRequest(image, new GammaCorrectionRequest(0)));
             image.Dispose();
         }
@@ -97,7 +97,7 @@ namespace Xenko.TextureConverter.Tests
         {
             TexImage image = TestTools.Load(library, file);
 
-            Assert.True(image.Format == Xenko.Graphics.PixelFormat.B8G8R8A8_UNorm);
+            Assert.True(image.Format == Stride.Graphics.PixelFormat.B8G8R8A8_UNorm);
 
             try
             {
@@ -114,13 +114,13 @@ namespace Xenko.TextureConverter.Tests
 
 
         [Theory(Skip = "Need check")]
-        [InlineData("TextureArray_WMipMaps_BGRA8888.dds", Xenko.Graphics.PixelFormat.BC3_UNorm)]
-        [InlineData("TextureCube_WMipMaps_BGRA8888.dds", Xenko.Graphics.PixelFormat.BC3_UNorm)]
-        [InlineData("Texture3D_WMipMaps_BGRA8888.dds", Xenko.Graphics.PixelFormat.BC3_UNorm)]
-        [InlineData("TextureArray_WMipMaps_BGRA8888.dds", Xenko.Graphics.PixelFormat.BC1_UNorm)]
-        [InlineData("TextureCube_WMipMaps_BGRA8888.dds", Xenko.Graphics.PixelFormat.BC1_UNorm)]
-        [InlineData("Texture3D_WMipMaps_BGRA8888.dds", Xenko.Graphics.PixelFormat.BC1_UNorm)]
-        public void CompressTest(string file, Xenko.Graphics.PixelFormat format)
+        [InlineData("TextureArray_WMipMaps_BGRA8888.dds", Stride.Graphics.PixelFormat.BC3_UNorm)]
+        [InlineData("TextureCube_WMipMaps_BGRA8888.dds", Stride.Graphics.PixelFormat.BC3_UNorm)]
+        [InlineData("Texture3D_WMipMaps_BGRA8888.dds", Stride.Graphics.PixelFormat.BC3_UNorm)]
+        [InlineData("TextureArray_WMipMaps_BGRA8888.dds", Stride.Graphics.PixelFormat.BC1_UNorm)]
+        [InlineData("TextureCube_WMipMaps_BGRA8888.dds", Stride.Graphics.PixelFormat.BC1_UNorm)]
+        [InlineData("Texture3D_WMipMaps_BGRA8888.dds", Stride.Graphics.PixelFormat.BC1_UNorm)]
+        public void CompressTest(string file, Stride.Graphics.PixelFormat format)
         {
             TexImage image = TestTools.Load(library, file);
 

@@ -1,24 +1,24 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Assets;
-using Xenko.Core.Mathematics;
-using Xenko.Physics;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Assets;
+using Stride.Core.Mathematics;
+using Stride.Physics;
 
-namespace Xenko.Assets.Physics
+namespace Stride.Assets.Physics
 {
     [DataContract("HeightmapAsset")]
     [CategoryOrder(10, "Image File", Expand = ExpandRule.Always)]
     [CategoryOrder(20, "Convert", Expand = ExpandRule.Always)]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Heightmap))]
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "3.0.0.0")]
+    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "3.0.0.0")]
     public partial class HeightmapAsset : AssetWithSource
     {
         private const string CurrentVersion = "3.0.0.0";
 
-        public const string FileExtension = ".xkhmap";
+        public const string FileExtension = ".sdhmap";
 
         /// <summary>
         /// Parameters to convert pixels to heights.

@@ -6,7 +6,7 @@
     <SharedGUID>9ac6d791-811e-4d6a-b08e-93f0093ef268</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Xenko.Core.MostRecentlyUsedFiles</Import_RootNamespace>
+    <Import_RootNamespace>Stride.Core.MostRecentlyUsedFiles</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)MostRecentlyUsedFile.cs" />

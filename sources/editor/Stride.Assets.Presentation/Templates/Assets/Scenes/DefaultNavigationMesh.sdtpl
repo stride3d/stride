@@ -6,6 +6,6 @@ Scope: Asset
 Description: A navigation mesh used by the navigation component for pathfinding
 Group: Scene
 Order: -30
-Icon: ..\.xktpl\ColliderPlane.png
+Icon: ..\.sdtpl\ColliderPlane.png
 DefaultOutputName: NavigationMesh
 FactoryTypeName: DefaultNavigationMeshFactory

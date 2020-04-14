@@ -1,6 +1,6 @@
 !Texture
 Id: b12c0820-311f-40db-a981-edf4fde58188
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/model/BG/sourceimages/BG_wall02.jpg
 Type: !ColorTextureType

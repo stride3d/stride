@@ -45,9 +45,9 @@
 
 using System.Collections;
 using Xunit;
-using Xenko.Core.Yaml.Events;
+using Stride.Core.Yaml.Events;
 
-namespace Xenko.Core.Yaml.Tests
+namespace Stride.Core.Yaml.Tests
 {
     public class ParserTests : ParserTestHelper
     {

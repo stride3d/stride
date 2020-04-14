@@ -1,6 +1,6 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-namespace Xenko.VirtualReality
+namespace Stride.VirtualReality
 {
     /// <summary>
     /// Identifies which style of tracking origin the application wants to use for the poses it is requesting

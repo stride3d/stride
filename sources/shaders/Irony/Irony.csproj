@@ -1,10 +1,10 @@
 ﻿<Project>
   <PropertyGroup>
-    <XenkoRuntime>true</XenkoRuntime>
-    <XenkoRuntimeNetStandard>true</XenkoRuntimeNetStandard>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideRuntimeNetStandard>true</StrideRuntimeNetStandard>
   </PropertyGroup>
 
-  <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
@@ -13,8 +13,8 @@
     <SignAssembly>false</SignAssembly>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <UseVSHostingProcess>false</UseVSHostingProcess>
-    <XenkoBuildTags>*</XenkoBuildTags>
-    <AssemblyName>Xenko.Irony</AssemblyName>
+    <StrideBuildTags>*</StrideBuildTags>
+    <AssemblyName>Stride.Irony</AssemblyName>
   </PropertyGroup>
   
   <ItemGroup>
@@ -77,7 +77,7 @@
     <None Include="Parsing\Data\Construction\_about_parser_construction.txt" />
   </ItemGroup>
   
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
 </Project>

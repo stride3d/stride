@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Assets.Compiler;
-using Xenko.Core.BuildEngine;
-using Xenko.Core;
-using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Contents;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Compiler;
+using Stride.Core.BuildEngine;
+using Stride.Core;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 
-namespace Xenko.Core.Assets.Tests.Compilers
+namespace Stride.Core.Assets.Tests.Compilers
 {
     public class TestCompilerVisitRuntimeType : CompilerTestBase
     {
@@ -102,14 +102,14 @@ namespace Xenko.Core.Assets.Tests.Compilers
         [AssetContentType(typeof(MyContentType))]
         public class MyAssetContentType : Asset
         {
-            public const string FileExtension = ".xkmact";
+            public const string FileExtension = ".sdmact";
             public int Var;
             public MyAssetContentType(int i) { Var = i; }
             public MyAssetContentType() { }
         }
 
         [DataContract]
-        [AssetDescription(".xkmytest")]
+        [AssetDescription(".sdmytest")]
         public class MyAsset1 : Asset
         {
             public MyContentType Before;

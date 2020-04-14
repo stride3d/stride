@@ -1,4 +1,4 @@
-namespace Xenko.Rendering.Voxels.Debug
+namespace Stride.Rendering.Voxels.Debug
 {
     shader VoxelVisualizationViewShader : MarchAttributes, ImageEffectShader
     {

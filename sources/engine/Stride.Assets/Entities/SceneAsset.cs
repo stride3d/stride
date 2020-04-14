@@ -1,15 +1,15 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
 using System.ComponentModel;
-using Xenko.Core.Assets;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
+using Stride.Core.Assets;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Engine;
 
-namespace Xenko.Assets.Entities
+namespace Stride.Assets.Entities
 {
     /// <summary>
     /// A scene asset.
@@ -17,13 +17,13 @@ namespace Xenko.Assets.Entities
     [DataContract("SceneAsset")]
     [AssetDescription(FileSceneExtension, AllowArchetype = false)]
     [AssetContentType(typeof(Scene))]
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.1.0.1")]
-    [AssetUpgrader(XenkoConfig.PackageName, "2.1.0.1", "3.1.0.1", typeof(CharacterComponentGravityVector3Upgrader))]
+    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.1.0.1")]
+    [AssetUpgrader(StrideConfig.PackageName, "2.1.0.1", "3.1.0.1", typeof(CharacterComponentGravityVector3Upgrader))]
     public partial class SceneAsset : EntityHierarchyAssetBase
     {
         private const string CurrentVersion = "3.1.0.1";
 
-        public const string FileSceneExtension = ".xkscene";
+        public const string FileSceneExtension = ".sdscene";
 
         /// <summary>
         /// A collection of identifier of all the children of this scene..

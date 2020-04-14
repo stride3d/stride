@@ -1,13 +1,13 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single class
 #pragma warning disable SA1649 // File name must match first type name
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Xenko.Core.Annotations;
+using Stride.Core.Annotations;
 
-namespace Xenko.Core.Serialization.Serializers
+namespace Stride.Core.Serialization.Serializers
 {
     /// <summary>
     /// Data serializer for List{T}.
@@ -130,8 +130,8 @@ namespace Xenko.Core.Serialization.Serializers
     /// </summary>
     /// <typeparam name="TKey">The type of the key in SortedList{TKey, TValue}.</typeparam>
     /// <typeparam name="TValue">The type of the value in SortedList{TKey, TValue}.</typeparam>
-    [DataSerializerGlobal(typeof(SortedListSerializer<,>), typeof(Xenko.Core.Collections.SortedList<,>), DataSerializerGenericMode.GenericArguments)]
-    public class SortedListSerializer<TKey, TValue> : DataSerializer<Xenko.Core.Collections.SortedList<TKey, TValue>>, IDataSerializerGenericInstantiation
+    [DataSerializerGlobal(typeof(SortedListSerializer<,>), typeof(Stride.Core.Collections.SortedList<,>), DataSerializerGenericMode.GenericArguments)]
+    public class SortedListSerializer<TKey, TValue> : DataSerializer<Stride.Core.Collections.SortedList<TKey, TValue>>, IDataSerializerGenericInstantiation
     {
         private DataSerializer<TKey> keySerializer;
         private DataSerializer<TValue> valueSerializer;
@@ -145,20 +145,20 @@ namespace Xenko.Core.Serialization.Serializers
         }
 
         /// <inheritdoc/>
-        public override void PreSerialize(ref Xenko.Core.Collections.SortedList<TKey, TValue> obj, ArchiveMode mode, SerializationStream stream)
+        public override void PreSerialize(ref Stride.Core.Collections.SortedList<TKey, TValue> obj, ArchiveMode mode, SerializationStream stream)
         {
             if (mode == ArchiveMode.Deserialize)
             {
                 // TODO: Peek the SortedList size
                 if (obj == null)
-                    obj = new Xenko.Core.Collections.SortedList<TKey, TValue>();
+                    obj = new Stride.Core.Collections.SortedList<TKey, TValue>();
                 else
                     obj.Clear();
             }
         }
 
         /// <inheritdoc/>
-        public override void Serialize(ref Xenko.Core.Collections.SortedList<TKey, TValue> obj, ArchiveMode mode, SerializationStream stream)
+        public override void Serialize(ref Stride.Core.Collections.SortedList<TKey, TValue> obj, ArchiveMode mode, SerializationStream stream)
         {
             if (mode == ArchiveMode.Deserialize)
             {

@@ -44,12 +44,12 @@
 // SOFTWARE.
 
 using System;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Reflection;
-using Xenko.Core.Yaml.Events;
-using Xenko.Core.Yaml.Schemas;
+using Stride.Core.Diagnostics;
+using Stride.Core.Reflection;
+using Stride.Core.Yaml.Events;
+using Stride.Core.Yaml.Schemas;
 
-namespace Xenko.Core.Yaml.Serialization
+namespace Stride.Core.Yaml.Serialization
 {
     /// <summary>
     /// A context used while deserializing.
