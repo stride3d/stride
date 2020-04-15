@@ -391,7 +391,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 // Initialize dynamic navigation mesh system with game settings
                 if (gameSettingsProviderService.CurrentGameSettings != null)
                 {
-                    var navigationSettings = gameSettingsProviderService.CurrentGameSettings.GetOrCreate<NavigationSettings>();
+                    var navigationSettings = gameSettingsProviderService.CurrentGameSettings.GetOrDefault<NavigationSettings>();
                     sceneEditorController.InvokeAsync(() => newDynamicNavigationMeshSystem.InitializeSettingsFromNavigationSettings(navigationSettings));
                 }
 
@@ -410,7 +410,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             // Send game settings changes to dynamic navigation mesh system
             if (dynamicNavigationMeshSystem != null && gameSettingsChangedEventArgs.GameSettings != null)
             {
-                var navigationSettings = gameSettingsChangedEventArgs.GameSettings.GetOrCreate<NavigationSettings>();
+                var navigationSettings = gameSettingsChangedEventArgs.GameSettings.GetOrDefault<NavigationSettings>();
                 sceneEditorController.InvokeAsync(() => dynamicNavigationMeshSystem.InitializeSettingsFromNavigationSettings(navigationSettings));
             }
         }

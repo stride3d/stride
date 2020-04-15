@@ -106,7 +106,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                 return;
 
             var asset = gameSettingsAsset.Asset as GameSettingsAsset;
-            var navigationSettings = asset.GetOrCreate<NavigationSettings>();
+            var navigationSettings = asset.GetOrDefault<NavigationSettings>();
 
             // Either use the initial visiblity state from the settings or from the previous visuals collection
             ILookup<Guid, bool> previousGroupActiveStates;

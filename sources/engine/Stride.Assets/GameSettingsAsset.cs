@@ -30,8 +30,7 @@ namespace Stride.Assets
     [AssetContentType(typeof(GameSettings))]
     [CategoryOrder(4050, "Splash screen")]
     [NonIdentifiableCollectionItems]
-    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "2.1.0.3")]
-    [AssetUpgrader(StrideConfig.PackageName, "2.1.0.3", "3.1.0.1", typeof(RenderingSplitUpgrader))]
+    [AssetFormatVersion(StrideConfig.PackageName, CurrentVersion, "3.1.0.1")]
     public partial class GameSettingsAsset : Asset
     {
         private const string CurrentVersion = "3.1.0.1";
@@ -124,6 +123,11 @@ namespace Stride.Assets
             return settings;
         }
 
+        public T GetOrDefault<T>() where T : Configuration, new()
+        {
+            return TryGet<T>() ?? ObjectFactoryRegistry.NewInstance<T>();
+        }
+
         public T GetOrCreate<T>(PlatformType platform) where T : Configuration, new()
         {
             ConfigPlatforms configPlatform;
@@ -157,22 +161,6 @@ namespace Stride.Assets
             }
 
             return GetOrCreate<T>();
-        }
-
-        // In 3.1, Stride.Engine was splitted into a sub-assembly Stride.Rendering
-        private class RenderingSplitUpgrader : AssetUpgraderBase
-        {
-            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
-            {
-                YamlNode assetNode = asset.Node;
-                foreach (var node in assetNode.AllNodes)
-                {
-                    if (node.Tag == "!Stride.Streaming.StreamingSettings,Stride.Engine")
-                    {
-                        node.Tag = node.Tag.Replace(",Stride.Engine", ",Stride.Rendering");
-                    }
-                }
-            }
         }
     }
 }

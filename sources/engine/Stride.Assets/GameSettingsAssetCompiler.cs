@@ -106,7 +106,7 @@ namespace Stride.Assets
 
                 //make sure we modify platform specific files to set the wanted orientation
                 if (package.Container is SolutionProject solutionProject)
-                    SetPlatformOrientation(solutionProject, Parameters.GetOrCreate<RenderingSettings>().DisplayOrientation);
+                    SetPlatformOrientation(solutionProject, Parameters.GetOrDefault<RenderingSettings>().DisplayOrientation);
 
                 var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 assetManager.Save(Url, result);

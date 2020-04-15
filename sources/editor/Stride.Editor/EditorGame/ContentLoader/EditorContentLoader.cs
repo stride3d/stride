@@ -87,7 +87,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
             settingsProvider.GameSettingsChanged += GameSettingsChanged;
             currentRenderingMode = settingsProvider.CurrentGameSettings.GetOrCreate<EditorSettings>().RenderingMode;
             currentColorSpace = settingsProvider.CurrentGameSettings.GetOrCreate<RenderingSettings>().ColorSpace;
-            currentNavigationGroupsHash = settingsProvider.CurrentGameSettings.GetOrCreate<NavigationSettings>().ComputeGroupsHash();
+            currentNavigationGroupsHash = settingsProvider.CurrentGameSettings.GetOrDefault<NavigationSettings>().ComputeGroupsHash();
         }
 
         public LoaderReferenceManager Manager { get; }
@@ -546,7 +546,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
             }
 
             // Update navigation meshes that are previewed inside the current scene when the game settings's group settings for navigation meshes change
-            var navigationGroupsHash = e.GameSettings.GetOrCreate<NavigationSettings>().ComputeGroupsHash();
+            var navigationGroupsHash = e.GameSettings.GetOrDefault<NavigationSettings>().ComputeGroupsHash();
             if (navigationGroupsHash != currentNavigationGroupsHash)
             {
                 currentNavigationGroupsHash = navigationGroupsHash;

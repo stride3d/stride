@@ -37,8 +37,6 @@ namespace Stride.Assets
 
             asset.GetOrCreate<AudioEngineSettings>();
             asset.GetOrCreate<EditorSettings>();
-            asset.GetOrCreate<NavigationSettings>();
-            asset.GetOrCreate<PhysicsSettings>();
             asset.GetOrCreate<RenderingSettings>();
             asset.GetOrCreate<StreamingSettings>();
             asset.GetOrCreate<TextureSettings>();
