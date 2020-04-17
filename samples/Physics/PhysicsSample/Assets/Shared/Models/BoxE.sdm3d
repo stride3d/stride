@@ -6,7 +6,7 @@ Source: ../../../Resources/Models/stride_box.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
     e60b5b1aec04dfad5b137e381df5f2e1:
-        Name: StrideLogo
+        Name: XenkoLogo
         MaterialInstance:
             Material: b8296961-379b-4550-8c75-9c20d78901e7:Materials/LogoD
     2c46d11775ad23c975ad23c975ad23c9:

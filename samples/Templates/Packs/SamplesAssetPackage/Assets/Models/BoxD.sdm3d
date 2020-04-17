@@ -6,7 +6,7 @@ Source: ../../Resources/Models/StrideCrate.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
     e60b5b1aec04dfad5b137e381df5f2e1:
-        Name: StrideLogo
+        Name: XenkoLogo
         MaterialInstance:
             Material: 3df254ab-66fd-4c95-aabe-605b35a51116:Materials/LogoD
     2c46d11775ad23c975ad23c975ad23c9:
