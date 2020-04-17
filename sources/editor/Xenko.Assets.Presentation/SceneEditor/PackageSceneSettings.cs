@@ -37,7 +37,7 @@ namespace Xenko.Assets.Presentation.SceneEditor
         public bool RotationSnapActive = false;
         public float RotationSnapValue = 22.5f;
         public bool ScaleSnapActive = false;
-        public float ScaleSnapValue = 1.1f;
+        public float ScaleSnapValue = 1.0f;
         public float SceneUnit = 1.0f;
 
         // Gizmos

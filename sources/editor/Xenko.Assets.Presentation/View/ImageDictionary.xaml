@@ -399,6 +399,26 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
+  <DrawingImage x:Key="{x:Static gameEditor:OriginMode.SelectionCenter}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="M11.741 11.741c-.748 2.462-3.038 4.259-5.741 4.259-3.309 0-6-2.691-6-6 0-2.703 1.797-4.993 4.259-5.741.748-2.462 3.038-4.259 5.741-4.259 3.309 0 6 2.691 6 6 0 2.703-1.797 4.993-4.259 5.741z" />
+        <GeometryDrawing Brush="#FF424242" Geometry="M 15 6 C 15 8.062 13.751 9.829 11.97 10.594 11.989 10.399 12 10.201 12 10 12 6.691 9.309 4 6 4 5.799 4 5.601 4.011 5.406 4.03 6.171 2.249 7.938 1 10 1 c 2.762 0 5 2.238 5 5 z m -4 4 C 11 12.762 8.762 15 6 15 3.238 15 1 12.762 1 10 1 7.238 3.238 5 6 5 c 2.762 0 5 2.238 5 5 z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="m 8.0000002 4.9999998 c -0.3760001 2.319 -0.6810001 2.624 -3.0000001 3 2.319 0.3760004 2.624 0.6810004 3.0000001 3.0000002 C 8.3760002 8.6810002 8.6810001 8.3760002 11 7.9999998 c -2.3189999 -0.376 -2.6239998 -0.681 -2.9999998 -3 z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="{x:Static gameEditor:OriginMode.LastSelected}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="M11.741 11.741c-.748 2.462-3.038 4.259-5.741 4.259-3.309 0-6-2.691-6-6 0-2.703 1.797-4.993 4.259-5.741.748-2.462 3.038-4.259 5.741-4.259 3.309 0 6 2.691 6 6 0 2.703-1.797 4.993-4.259 5.741z" />
+        <GeometryDrawing Brush="#FF424242" Geometry="M 15 6 C 15 8.062 13.751 9.829 11.97 10.594 11.989 10.399 12 10.201 12 10 12 6.691 9.309 4 6 4 5.799 4 5.601 4.011 5.406 4.03 6.171 2.249 7.938 1 10 1 c 2.762 0 5 2.238 5 5 z m -4 4 C 11 12.762 8.762 15 6 15 3.238 15 1 12.762 1 10 1 7.238 3.238 5 6 5 c 2.762 0 5 2.238 5 5 z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="m 6 6.9999996 c -0.376 2.319 -0.681 2.624 -3 3 C 5.319 10.376 5.624 10.681 6 13 6.376 10.681 6.681 10.376 8.9999997 9.9999996 6.681 9.6239996 6.376 9.3189996 6 6.9999996 Z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
   <DrawingImage x:Key="{x:Static data:ConfigPlatforms.Android}">
     <DrawingImage.Drawing>
       <DrawingGroup>

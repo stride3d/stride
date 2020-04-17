@@ -33,6 +33,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModel
 
         public TransformationSpace Space { get { return Service.TransformationSpace; } set { SetValue(Service.TransformationSpace != value, () => Service.TransformationSpace = value); } }
 
+        public OriginMode OriginMode { get { return Service.OriginMode; } set { SetValue(Service.OriginMode != value, () => Service.OriginMode = value); } }
+
         public IReadOnlyCollection<TransformationSpace> AvailableSpaces { get { return availableSpaces; } private set { SetValue(ref availableSpaces, value); } }
 
         public SnapInfoViewModel TranslationSnap { get; }
