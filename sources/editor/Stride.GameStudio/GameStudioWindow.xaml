@@ -648,9 +648,9 @@
                     </i:Interaction.Behaviors>
                   </TabControl>
                   <i:Interaction.Behaviors>
-                    <sd:OnEventCommandBehavior Command="{Binding Debugging.ResetOutputTitleCommand}" EventName="IsActiveChanged"/>
-                    <gs:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.BuildLog.Messages}"/>
-                    <gs:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.LiveScriptingLog.Messages}"/>
+                    <sd:OnEventCommandBehavior Command="{Binding Debugging.ResetOutputTitleCommand, Source={x:Static gs:GameStudioViewModel.GameStudio}}" EventName="IsActiveChanged"/>
+                    <gs:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.BuildLog.Messages, Source={x:Static gs:GameStudioViewModel.GameStudio}}"/>
+                    <gs:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.LiveScriptingLog.Messages, Source={x:Static gs:GameStudioViewModel.GameStudio}}"/>
                   </i:Interaction.Behaviors>
                 </xcad:LayoutAnchorable>
               </xcad:LayoutAnchorablePane>
