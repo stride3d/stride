@@ -3,7 +3,7 @@ Sponsors & Backers
 
 Stride is a MIT-licensed opensource project, supported by generous [sponsors and backers](https://github.com/stride3d/stride/blob/master/BACKERS.md).
 
-[Become a sponsor or backer for the project](https://www.patreon.com/stride).
+[Become a sponsor or backer for the project](https://www.patreon.com/stride3d).
 
 Thank you everybody for your generous contributions!
 

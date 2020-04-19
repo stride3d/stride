@@ -124,7 +124,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://www.patreon.com/stride.
+        ///   Looks up a localized string similar to https://www.patreon.com/stride3d.
         /// </summary>
         public static string Patreon {
             get {
@@ -133,7 +133,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://www.reddit.com/r/stride.
+        ///   Looks up a localized string similar to http://www.reddit.com/r/stride3d.
         /// </summary>
         public static string Reddit {
             get {
@@ -169,7 +169,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://twitter.com/stride3d.
+        ///   Looks up a localized string similar to https://twitter.com/stridedotnet.
         /// </summary>
         public static string Twitter {
             get {

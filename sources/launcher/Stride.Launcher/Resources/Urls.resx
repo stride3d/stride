@@ -141,10 +141,10 @@
     <value>https://github.com/stride3d/stride/issues/</value>
   </data>
   <data name="Patreon" xml:space="preserve">
-    <value>https://www.patreon.com/stride</value>
+    <value>https://www.patreon.com/stride3d</value>
   </data>
   <data name="Reddit" xml:space="preserve">
-    <value>http://www.reddit.com/r/stride</value>
+    <value>http://www.reddit.com/r/stride3d</value>
   </data>
   <data name="Roadmap" xml:space="preserve">
     <value>https://github.com/stride3d/stride/projects/3</value>
@@ -156,6 +156,6 @@
     <value>http://forums.stride3d.net/c/showcase</value>
   </data>
   <data name="Twitter" xml:space="preserve">
-    <value>https://twitter.com/stride3d</value>
+    <value>https://twitter.com/stridedotnet</value>
   </data>
 </root>
