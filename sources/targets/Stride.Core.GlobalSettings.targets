@@ -1,0 +1,141 @@
+<!-- Global settings used to configure the StridePlatform -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Import Project="$(MSBuildThisFileDirectory)Stride.PackageVersion.targets"/>
+  
+  <!-- Sdk settings -->
+  <PropertyGroup>
+    <!-- If we don't set it, default targets will add PlatformName in some cases -->
+    <BaseOutputPath>bin\</BaseOutputPath>
+    <OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <!--Import Local Pre Settings for the solution being loaded -->
+  <Import Project="$(SolutionDir)$(SolutionName).GlobalSettings.Local.targets" Condition="Exists('$(SolutionDir)$(SolutionName).GlobalSettings.Local.targets')" />
+  <Import Project="$(SolutionDir)Stride.Core.GlobalSettings.Local.targets" Condition="Exists('$(SolutionDir)Stride.Core.GlobalSettings.Local.targets')" />
+
+  <!-- Default values -->
+  <PropertyGroup>
+    <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">false</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--auto-notify-property --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+  </PropertyGroup>
+  
+  <!-- 
+    Global Settings per project
+  -->
+  <PropertyGroup>
+    <StrideCommonDependenciesDir Condition="'$(StrideCommonDependenciesDir)' == ''">$(MSBuildThisFileDirectory)..\..\deps\</StrideCommonDependenciesDir>
+    <StrideCommonDependenciesDir Condition="'$(StrideCommonDependenciesDir)' != '' and !HasTrailingSlash('$(StrideCommonDependenciesDir)')">$(StrideCommonDependenciesDir)\</StrideCommonDependenciesDir>
+    <ErrorReport>prompt</ErrorReport>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Windows' ">
+    <!-- Limited version used by tools but that doesn't require installation of .NET on most computers (4.5.1 is default of many OS, 4.5.2/4.6 isn't) -->
+    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP;NET45</StridePlatformDefines>
+    <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'UWP' ">
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_UWP;NET45;NETFX_CORE;WINDOWS_UAP</StridePlatformDefines>
+    <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-win10\</NUnitLiteBinDir>
+    <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Linux' ">
+    <StridePlatformDefines>STRIDE_PLATFORM_LINUX;STRIDE_PLATFORM_UNIX;NET45</StridePlatformDefines>
+    <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'macOS' ">
+    <StridePlatformDefines>STRIDE_PLATFORM_MACOS;STRIDE_PLATFORM_UNIX;NET45</StridePlatformDefines>
+    <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' ">
+    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID;NET45</StridePlatformDefines>
+    <AndroidStoreUncompressedFileExtensions />
+    <MandroidI18n />
+    <!-- Avoid Xamarin.Android.Common.targets(519,3): error MSB4044: The "FilterAssemblies" task was not given a value for the required parameter "DesignTimeBuild". -->
+    <DesignTimeBuild Condition="'$(DesignTimeBuild)' == ''">False</DesignTimeBuild>
+    <!-- Use AssemblyName rather than RootNamespace for Resource class otherwise it might clash between some assemblies (i.e. Stride and Stride.Engine) -->
+    <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' And '$(OutputType)' == 'Exe' ">
+    <AndroidApplication>true</AndroidApplication>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' And '$(Configuration)' == 'Debug' ">
+    <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
+    <AndroidLinkMode>None</AndroidLinkMode>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' And '$(Configuration)' == 'Release' ">
+    <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+  </PropertyGroup>
+  <!-- Workaround for https://github.com/xamarin/xamarin-android/issues/1235 -->
+  <Target Name="_FixupLibraryProjectsEmbeddedResource" AfterTargets="_AddLibraryProjectsEmbeddedResourceToProject">
+    <ItemGroup>
+	  <_LibraryProjectsEmbeddedResource Include="@(EmbeddedResource)" Condition="'%(Identity)' == '$(IntermediateOutputPath)__AndroidLibraryProjects__.zip'"/>
+	  <EmbeddedResource Remove="@(_LibraryProjectsEmbeddedResource)"/>
+      <EmbeddedResource Include="@(_LibraryProjectsEmbeddedResource)">
+        <LogicalName>__AndroidLibraryProjects__.zip</LogicalName>
+      </EmbeddedResource>
+    </ItemGroup>
+  </Target>
+
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
+    <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
+    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS;NET45</StridePlatformDefines>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition=" '$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'UWP' ">
+      <ItemGroup>
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Xml" />
+        <Reference Include="System.Xml.Linq" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <!-- Create empty project platform configuration so that MSBuild and Visual Studio Configuration Manager know about it -->
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Debug|iPhone' "/>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Release|iPhone' "/>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' "/>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' "/>
+
+  <!-- 
+    Settings StrideNETRuntime specific
+  -->
+  <PropertyGroup Condition=" '$(StrideNETRuntime)' == 'CoreCLR' ">
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>$(StridePlatformDefines);$(DefineConstants)</DefineConstants>
+    <DefineConstants Condition="'$(StrideNETRuntimeDefines)' != ''">$(DefineConstants);$(StrideNETRuntimeDefines)</DefineConstants>
+  </PropertyGroup>
+  
+  <!-- SourceLink -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp'" Version="1.0.0" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <!-- Copy the libcore.a and libfreetype.a libraries to the project root directory for future native link.
+       Note: this target is redefined in References.targets for user projects -->
+  <Target Name="CopyStrideNativeLibraries" Condition=" '$(StridePlatform)' == 'iOS' and '$(OutputType)' == 'Exe'">
+  </Target>
+
+  <!-- Used by Stride.build to detect if unit tests prefer to run in 32 or 64 bits (note: it's a copy of Stride.UnitTests.targets one because some unit tests import Stride.Core.PreSettings.targets rather than Stride.UnitTests.targets) -->
+  <Target Name="_StrideAfterGetTargetPathWithTargetPlatformMoniker" AfterTargets="GetTargetPathWithTargetPlatformMoniker">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Update="$(TargetPath)">
+        <PlatformTarget>$(PlatformTarget)</PlatformTarget>
+      </TargetPathWithTargetPlatformMoniker>
+    </ItemGroup>
+  </Target>
+</Project>

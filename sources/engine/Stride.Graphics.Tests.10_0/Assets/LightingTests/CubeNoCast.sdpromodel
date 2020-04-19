@@ -1,0 +1,12 @@
+!ProceduralModelAsset
+Id: 4a9278e7-43ac-4f5c-8e43-265766c6dae3
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: !CubeProceduralModel
+    Size: {X: 1.0, Y: 1.0, Z: 1.0}
+    Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+    UvScale: {X: 1.0, Y: 1.0}
+    LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+    MaterialInstance:
+        Material: 1a2fb7b4-996b-4865-b9a1-9cc698ff707b:LightingTests/MaterialNormalMap
+        IsShadowCaster: false

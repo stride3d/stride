@@ -1,0 +1,35 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader ComputeColorColor : ComputeColor
+{
+    compose ComputeColor color1;
+    compose ComputeColor color2;
+
+    override float4 Compute()
+    {
+        float4 backColor = color1.Compute();
+        float4 frontColor = color2.Compute();
+
+        // From http://msdn.microsoft.com/en-us/library/windows/desktop/hh706313(v=vs.85).aspx
+        //
+        //  b = background, f = foreground, c = color, a = alpha, r = result color obtained with the specific blend formula
+        //
+        //  Color:
+        //      if sat(fc) == 0 : color = val(bc), val(bc), val(bc)
+        //      if sat(fc) != 0 : color = rgb(hue(fc), sat(fc), val(bc))
+        //
+        //      alpha = fa * (1-ba) + ba
+
+        float3 color;
+        float frontSaturation = HSVUtils.GetSaturation(frontColor.rgb);
+        
+        if(frontSaturation == 0.0f) {
+			float valueResult = HSVUtils.GetValue(backColor.rgb);
+            color = float3(valueResult, valueResult, valueResult);
+        } else {
+            color = HSVUtils.ToRGB(float3(HSVUtils.GetHue(frontColor.rgb), frontSaturation, HSVUtils.GetValue(backColor.rgb)));
+		}
+		
+        return float4(color, BlendUtils.BasicAlphaBlend(backColor.a, frontColor.a));
+    }
+};

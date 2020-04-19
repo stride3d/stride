@@ -1,0 +1,24 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Defines the methods to get the normal in view space and inserts them in the pipeline.
+/// </summary>
+shader NormalBase : NormalUpdate, ShaderBase
+{
+    override stage void VSMain()
+    {
+        base.VSMain();
+
+        // Perform normal generation at the end in case vNormal is modified.
+        // TODO: Another mechanism (compute on first access?)
+        GenerateNormal_VS();
+    }
+	
+    override stage void PSMain()
+    {
+        // Perform normal generation at beginning so that it is accessible during PS.
+        // TODO: Another mechanism (compute on first access?)
+        GenerateNormal_PS();
+        base.PSMain();
+    }
+};

@@ -1,0 +1,10 @@
+﻿!TemplateAssetFactory
+Id: 9939446A-467B-4876-A5C4-1CEB85988CF2
+AssetTypeName: UILibraryAsset
+Name: UI library
+Scope: Asset
+Description: A library of controls you can customize and use in any other UI asset
+Group: UI
+Order: -10
+Icon: ..\.sdtpl\UI.png
+DefaultOutputName: UILibrary

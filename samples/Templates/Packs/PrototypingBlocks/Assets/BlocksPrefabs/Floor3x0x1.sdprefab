@@ -1,0 +1,38 @@
+!PrefabAsset
+Id: 5a92b94b-cd30-43c1-bcd5-303e6d400eeb
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 1067d427-d2bf-41dc-a6a9-edec00e56c37
+    Parts:
+        -   Entity:
+                Id: 1067d427-d2bf-41dc-a6a9-edec00e56c37
+                Name: Floor3x0x1
+                Components:
+                    60662553bdfa37429f6fafb13c6d383f: !TransformComponent
+                        Id: 53256660-fabd-4237-9f6f-afb13c6d383f
+                        Position: {X: 1.49999988, Y: 0.0, Z: 0.49999997}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    2589c63c3644494c91c358778fd622b0: !ModelComponent
+                        Id: 3cc68925-4436-4c49-91c3-58778fd622b0
+                        Model: b64f7b95-0e8e-40bb-9b75-21e092f6abc5:Models/Floor3x0x1
+                        Materials:
+                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    8f2d709e00a8674d8f31b62fda1f5a47: !StaticColliderComponent
+                        Id: 9e702d8f-a800-4d67-8f31-b62fda1f5a47
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            e19f717d1849dd4a9ae927b5bc1a7e17: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 3.0, Y: 0.05, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}

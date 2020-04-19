@@ -1,0 +1,219 @@
+<Project InitialTargets="_StrideCheckVisualCRuntime2015" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Check if Visual C++ Runtime 2015 is properly installed -->
+  <Target Name="_StrideCheckVisualCRuntime2015" Condition="'$(MSBuildRuntimeType)' == 'Full'">
+    <ItemGroup>
+      <_StrideVisualCRuntime2015 Include="Visual C++ Redistributable for Visual Studio 2015 x86">
+        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Version', null, RegistryView.Registry32))</Version>
+        <ExpectedVersion>14.0.23026</ExpectedVersion>
+        <DownloadUrl>http://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x86.exe</DownloadUrl>
+      </_StrideVisualCRuntime2015>
+      <_StrideVisualCRuntime2015 Include="Visual C++ Redistributable for Visual Studio 2015 x64">
+        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Version', null, RegistryView.Registry64))</Version>
+        <ExpectedVersion>14.0.23026</ExpectedVersion>
+        <DownloadUrl>http://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x64.exe</DownloadUrl>
+      </_StrideVisualCRuntime2015>
+
+      <_StrideVisualCRuntime2015NotInstalled Include="@(_StrideVisualCRuntime2015)" Condition="'%(_StrideVisualCRuntime2015.Version)' == '' Or $([System.Version]::Parse('%(Version)').CompareTo($([System.Version]::Parse('%(_StrideVisualCRuntime2015.ExpectedVersion)')))) &lt; 0" />
+    </ItemGroup>
+
+    <Error Condition="'@(_StrideVisualCRuntime2015NotInstalled)' != ''" Text="@(_StrideVisualCRuntime2015NotInstalled->'%(Identity) is not installed. Please download from %(DownloadUrl)', '%0a')"/>
+  </Target>
+  
+  <!-- 
+  *****************************************************************************************************************************
+  Platform Detection
+  *****************************************************************************************************************************
+  -->
+  <PropertyGroup>
+    <!-- Windows10 was renammed into UWP -->
+    <StridePlatform Condition="'$(StridePlatform)' == 'Windows10'">UWP</StridePlatform>
+    <!-- Default mappings -->
+    <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetPlatformIdentifier)' == 'UAP'">UWP</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'MonoAndroid'">Android</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'Xamarin.iOS'">iOS</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And $(RuntimeIdentifier.StartsWith('linux'))">Linux</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And $(RuntimeIdentifier.StartsWith('osx'))">macOS</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == ''">Windows</StridePlatform>
+  </PropertyGroup>
+
+  <!-- If not set, Android executable doesn't work properly because ResolveNuGetPackageAssets has no NuGetRuntimeIdentifier and use only the ref assemblies -->
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Android' And '$(AndroidApplication)' == 'true'">
+    <RuntimeIdentifier>win</RuntimeIdentifier>
+    <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
+  </PropertyGroup>
+
+  <!-- 
+  *****************************************************************************************************************************
+  Assembly Processor
+  *****************************************************************************************************************************
+  -->
+  <PropertyGroup>
+    <!--By default, turn on assembly processor-->
+    <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe</StrideAssemblyProcessorPath>
+    <StrideAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe</StrideAssemblyProcessorPath>
+  </PropertyGroup>
+  <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorPath)" Condition=" '$(StrideAssemblyProcessorPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
+  <Target Name="StrideRunAssemblyProcessor" DependsOnTargets="ResolveAssemblyReferences">
+    <WriteLinesToFile File="$(IntermediateOutputPath)StrideReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
+    <ItemGroup>
+      <!-- We want list of references coming from direct and explicit PackageReference. We are using metadata to combine ReferencePath and PackageReference items https://stackoverflow.com/a/18032552 -->
+      <StrideAddReference Include="@(ReferencePath)" Condition="'%(PackageReference.IsImplicitlyDefined)' != 'true'">
+        <NuGetPackageReference>%(PackageReference.Identity)</NuGetPackageReference>
+      </StrideAddReference>
+      <StrideAddReference Remove="@(StrideAddReference)" Condition="'%(StrideAddReference.NuGetPackageId)' != '%(StrideAddReference.NuGetPackageReference)' Or ('%(StrideAddReference.ExternallyResolved)' != 'true' And '%(StrideAddReference.BuildReference)' != 'true')"/>
+      <!-- Also include non-nuget references (Reference and ProjectReference) -->
+      <StrideAddReference Include="@(ReferencePath)" Condition="'%(ReferencePath.NuGetPackageId)' == ''"/>
+    </ItemGroup>
+    <PropertyGroup>
+      <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--auto-notify-property --parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
+      <!-- Physics, Particles and SpriteStudio assembly is actually hard coded/referenced here, remove once a better system is in place! -->
+      <!-- Please keep in sync with AssemblyRecompiler.cs -->
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) @(StrideAddReference->'--add-reference=%22%(Identity)%22',' ')</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)StrideReferences.cache"</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --platform=$(StridePlatform) --targetFramework=$(StrideNETFrameworkVersion) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>
+      <StrideAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(StrideAssemblyProcessorOptions) --signkeyfile="$(AssemblyOriginatorKeyFile)" --delete-on-error</StrideAssemblyProcessorOptions>
+    </PropertyGroup>
+    
+    <!-- Run assembly processor -->
+    <Message Condition=" '$(StrideAssemblyProcessorDev)' != 'true' " Importance="low" Text="&quot;$(StrideAssemblyProcessorPath)&quot; $(StrideAssemblyProcessorOptions)"/>
+    <AssemblyProcessorTask Condition=" '$(StrideAssemblyProcessorDev)' != 'true' " Arguments="$(StrideAssemblyProcessorOptions)"/>
+    <!-- Dev mode: don't use task to avoid locking the file -->
+    <Exec Condition=" '$(StrideAssemblyProcessorDev)' == 'true' " Command="&quot;$(StrideAssemblyProcessorPath)&quot; $(StrideAssemblyProcessorOptions)"/>
+  </Target>
+  <PropertyGroup Condition=" '$(StrideAssemblyProcessor)' == 'true'">
+    <PrepareForRunDependsOn>
+      StrideRunAssemblyProcessor;
+      $(PrepareForRunDependsOn)
+    </PrepareForRunDependsOn>
+  </PropertyGroup>
+
+  <!-- 
+  *****************************************************************************************************************************
+  NuGet tweaks
+  *****************************************************************************************************************************
+  -->
+  <!-- Workaround to copy .xml and .pdb files for new csproj targeting (https://github.com/dotnet/sdk/issues/1458#issuecomment-401497095) -->
+  <Target Name="_StrideResolveCopyLocalNuGetPackagePdbsAndXml"
+           Condition="$(CopyLocalLockFileAssemblies) == true"
+           AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths
+        Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).pdb')"
+        Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''
+                    and Exists('%(RootDir)%(Directory)%(Filename).pdb')" />
+      <ReferenceCopyLocalPaths
+        Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')"
+        Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''
+                    and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
+    </ItemGroup>
+  </Target>
+  
+  <!-- 
+  *****************************************************************************************************************************
+  Dependencies reading (from .ssdeps)
+  Important: Please keep in sync with Stride.Core.PostSettings.Dependencies.Targets
+  *****************************************************************************************************************************
+  -->
+  <!-- List dependency files from .ssdeps -->
+  <PropertyGroup>
+    <_StrideListDepsFilesDependsOn>ResolveAssemblyReferences</_StrideListDepsFilesDependsOn>
+    <_StrideListDepsFilesDependsOn Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS'">$(_StrideListDepsFilesDependsOn);ResolvePackageAssets</_StrideListDepsFilesDependsOn>
+  </PropertyGroup>
+  <Target Name="_StrideListDepsFiles" DependsOnTargets="$(_StrideListDepsFilesDependsOn)">
+    <ItemGroup>
+      <_StrideDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(RuntimeCopyLocalItems->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_StrideDepsFile Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <!-- Android -->
+      <_StrideDepsFile Include="@(_ReferencesFromNuGetPackages->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <None Include="@(_StrideDepsFile)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Note: this target Outputs are not real, used so that it gets expanded for each file
+             also, if _StrideDepsFile is empty the target is still called so check for it -->
+  <Target Name="_StrideBuildDependencies" DependsOnTargets="_StrideListDepsFiles" Outputs="%(_StrideDepsFile.Identity)">
+    <!-- Read dependencies from file -->
+    <ReadLinesFromFile File="%(_StrideDepsFile.Identity)" Condition="'%(_StrideDepsFile.Identity)' != ''">
+      <Output TaskParameter="Lines" ItemName="_StrideDependencyLocal"/>
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <_StrideSourceDir>%(_StrideDepsFile.RootDir)%(_StrideDepsFile.Directory)</_StrideSourceDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <_StrideDependencyLocal>
+        <!-- Note: Using regex match rather than regex split or string split to avoid MSBuild MissingMethodException -->
+        <Type>$([System.Text.RegularExpressions.Regex]::Match('%(Identity)', `(.*);(.*);(.*)`).get_Groups().get_Item(1).ToString())</Type>
+        <SourcePath>$([System.Text.RegularExpressions.Regex]::Match('%(Identity)', `(.*);(.*);(.*)`).get_Groups().get_Item(2).ToString())</SourcePath>
+        <Link>$([System.Text.RegularExpressions.Regex]::Match('%(Identity)', `(.*);(.*);(.*)`).get_Groups().get_Item(3).ToString())</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </_StrideDependencyLocal>
+      <_StrideDependencyContent Include="@(_StrideDependencyLocal->'$(_StrideSourceDir)%(SourcePath)')" Condition="'%(_StrideDependencyLocal.Type)' == 'Content'"/>
+      <_StrideDependencyNativeLib Include="@(_StrideDependencyLocal->'$(_StrideSourceDir)%(SourcePath)')" Condition="'%(_StrideDependencyLocal.Type)' == 'NativeLib'"/>
+    </ItemGroup>
+
+    <!-- Message -->
+    <Message Importance="Normal" Text="Detected dependency from %(_StrideDepsFile.FileName)" Condition="'%(_StrideDepsFile.Identity)' != ''"/>
+    <Message Importance="Normal" Text="  %(_StrideDependencyLocal.Type): %(_StrideDependencyLocal.Identity) => %(_StrideDependencyLocal.Link)"/>
+
+    <!-- Cleanup so that _StrideDependencyLocal is local -->
+    <ItemGroup>
+      <_StrideDependencyLocal Remove="@(_StrideDependencyLocal)"/>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_StrideCopyContent" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <Content Include="@(_StrideDependencyContent)"/>
+    </ItemGroup>
+  </Target>
+
+  <!-- Copy native libraries to output -->
+  <Target Name="_StrideSetupNativeLibrariesWindows" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="('$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'macOS' Or '$(StridePlatform)' == 'Linux') And '$(CopyLocalLockFileAssemblies)' != 'false'">
+    <ItemGroup>
+      <None Include="@(_StrideDependencyNativeLib)">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+  </Target>
+  <!-- When publishing, copy native libraries (only needed if CopyLocalLockFileAssemblies is set to false since _StrideSetupNativeLibrariesWindows won't run) -->
+  <Target Name="_StrideSetupNativeLibrariesDotNetPublish" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ComputeFilesToPublish" Condition="'$(UsingMicrosoftNETSdk)' == 'true' And '$(CopyLocalLockFileAssemblies)' == 'false'">
+    <ItemGroup>
+      <ResolvedFileToPublish Include="@(_StrideDependencyNativeLib)">
+        <RelativePath>%(_StrideDependencyNativeLib.Link)</RelativePath>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideSetupNativeLibrariesUWP" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(StridePlatform)' == 'UWP'">
+    <PropertyGroup>
+      <StrideCPU Condition="'$(Platform)' == 'x86'">x86</StrideCPU>
+      <StrideCPU Condition="'$(Platform)' == 'x64'">x64</StrideCPU>
+      <StrideCPU Condition="'$(Platform)' == 'ARM'">ARM</StrideCPU>
+    </PropertyGroup>
+    <ItemGroup>
+      <Content Include="@(_StrideDependencyNativeLib)" Condition="$([System.String]::Copy('%(_StrideDependencyNativeLib.Link)').StartsWith('$(StrideCPU)'))">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Link Condition="'$(StrideCPU)' != ''">$([System.String]::Copy('%(_StrideDependencyNativeLib.Link)').Replace('$(StrideCPU)\', ''))</Link>
+      </Content>
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideSetupNativeLibrariesAndroid" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(StridePlatform)' == 'Android'">
+    <ItemGroup>
+      <AndroidNativeLibrary Include="@(_StrideDependencyNativeLib)"/>
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideSetupNativeLibrariesiOS" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition=" '$(OutputType)' == 'Exe' And '$(StridePlatform)' == 'iOS'">
+    <ItemGroup>
+      <NativeReference Include="@(_StrideDependencyNativeLib)">
+        <Kind>Static</Kind>
+      </NativeReference>
+    </ItemGroup>
+    <PropertyGroup>
+      <MtouchExtraArgs>$(MtouchExtraArgs) --compiler=clang -cxx -gcc_flags '-lstdc++ $(MtouchExtraArgsLibs)'</MtouchExtraArgs>
+    </PropertyGroup>
+  </Target>
+</Project>

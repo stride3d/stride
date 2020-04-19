@@ -1,0 +1,18 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Flips the V coordinate of the texcoord.
+/// </summary>
+/// <remarks>
+/// TStream: generic Semantic - Texcoord semantic.
+/// </remarks>
+shader SwapUV<Semantic TStream> : ShaderBase, Texturing
+{
+    stream float2 Texcoord : TStream;
+
+    override void VSMain()
+    {
+        streams.Texcoord = float2(streams.Texcoord.x, 1.0f - streams.Texcoord.y);
+        base.VSMain();
+    }
+};

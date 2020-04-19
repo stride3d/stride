@@ -1,0 +1,31 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// Importance sampling for the GGX function.
+    /// </summary>
+    shader ImportanceSamplingGGX : Math
+    {    
+        float3 GetSample(float2 xi, float roughness, float3 N)
+        {
+            float a = roughness * roughness;
+            float phi = 2 * Math.PI * xi.x;
+            float CosTheta = sqrt( (1 - xi.y) / ( 1 + (a*a - 1) * xi.y ) );
+            float SinTheta = sqrt( 1 - CosTheta * CosTheta );
+
+            float3 H;
+            H.x = SinTheta * cos( phi );
+            H.y = SinTheta * sin( phi );
+            H.z = CosTheta;
+
+            float3 UpVector = abs(N.z) < 0.999 ? float3(0,0,1) : float3(1,0,0);
+            float3 TangentX = normalize( cross( UpVector, N ) );
+            float3 TangentY = cross( N, TangentX );
+
+            // Tangent to world space
+            return TangentX * H.x + TangentY * H.y + N * H.z;
+        }
+    };
+}

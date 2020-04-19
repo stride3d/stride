@@ -1,0 +1,25 @@
+!MaterialAsset
+Id: 4adb2d35-7a6f-401a-bc08-74aba11c2ad2
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Attributes:
+    Tessellation: !MaterialTessellationFlatFeature
+        TriangleSize: 17.4081936
+        AdjacentEdgeAverage: true
+    Displacement: !MaterialDisplacementMapFeature
+        DisplacementMap: !ComputeTextureScalar
+            Texture: a7a030b6-da74-4c64-9b6f-e15d9ee50434:CobbleDisplacementMap
+            FallbackValue:
+                Value: 1.0
+            Scale: {X: 1.0, Y: 1.0}
+            Offset: {X: 0.0, Y: 0.0}
+        Intensity: !ComputeFloat
+            Value: 5.0
+        Stage: Domain
+    Diffuse: !MaterialDiffuseMapFeature
+        DiffuseMap: !ComputeColor
+            Value: {R: 0.828085244, G: 0.3027375, B: 0.9315, A: 1.0}
+    DiffuseModel: !MaterialDiffuseLambertModelFeature {}
+    Overrides:
+        UVScale: {X: 1.0, Y: 1.0}
+Layers: {}

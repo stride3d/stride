@@ -1,8 +1,0 @@
-!Texture
-Id: 9cdb2d8a-325e-45d1-ab38-ea1812d7fde3
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../Resources/model/BG/sourceimages/BG_wall00.jpg
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-    PremultiplyAlpha: false

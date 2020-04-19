@@ -1,0 +1,23 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Lights
+{
+    /// <summary>
+    /// Defines a base function for calculating the color of a texture projected by a light onto a world space position.
+    /// Based on whether or not the light has texture projection enabled, this function will be overridden by one that computes the projection.
+    /// </summary>
+    shader TextureProjectionGroup
+    {
+        // Computes the color of the projected texture for a given world position and light index
+        float3 ComputeTextureProjection(float3 positionWS, int lightIndex)
+        {
+            return 1.0f;
+        }
+
+        // Computes a reflection of the texture projector
+        float3 ComputeSpecularTextureProjection(float3 positionWS, float3 reflectionWS, int lightIndex)
+        {
+            return 1.0f;
+        }
+    };
+}

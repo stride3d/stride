@@ -1,0 +1,36 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Lights
+{
+    /// <summary>
+    /// Defines a spot light
+    /// </summary>
+    shader LightSpot :
+        LightStream,    // Required for "streams.lightColor" and "streams.lightDirectionWS".
+        PositionStream4,    // Required for "streams.PositionWS".
+        SpotLightDataInternalShader,    // Required for "SpotLightDataInternal"
+        LightSpotAttenuationDefault    // Required for "ComputeAttenuation()"
+    {
+        struct SpotLightData
+        {
+            float3 PositionWS;
+            float3 DirectionWS;
+            float3 AngleOffsetAndInvSquareRadius;
+            [Color]
+            float3 Color;
+        };
+        
+        void ProcessLight(SpotLightDataInternal light)
+        {
+            float3 lightVectorNorm;
+            //float attenuation = ComputeAttenuation(light, streams.PositionWS.xyz, lightVectorNorm);
+            float attenuation = ComputeAttenuation(light.PositionWS,  // TODO: Revert to the above line as soon as the shader compiler is fixed.
+                                                   light.AngleOffsetAndInvSquareRadius,
+                                                   light.DirectionWS,
+                                                   streams.PositionWS.xyz, lightVectorNorm);
+
+            streams.lightColor = light.Color * attenuation;
+            streams.lightDirectionWS = lightVectorNorm;
+        }
+    };
+}

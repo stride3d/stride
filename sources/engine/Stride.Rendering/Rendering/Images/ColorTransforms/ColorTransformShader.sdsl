@@ -1,0 +1,16 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// A generic interface for processing/filtering a color.
+    /// </summary>
+    shader ColorTransformShader
+    {
+        float4 Compute(float4 color)
+        {
+            return color;
+        }
+    };
+}

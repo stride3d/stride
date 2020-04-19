@@ -1,0 +1,10 @@
+!ProceduralModelAsset
+Id: d49979c4-92be-430c-bb5a-294bdc6b1665
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: !SphereProceduralModel
+    Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+    UvScale: {X: 1.0, Y: 1.0}
+    LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+    MaterialInstance:
+        Material: 7b0ed85e-1a33-4c20-972b-bbb1bdc26f7f:Materials/Sphere Material

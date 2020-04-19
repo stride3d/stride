@@ -1,0 +1,10 @@
+!TemplateAsset
+Id: DAEFD8D6-9864-4C93-8262-74DD1D4A9051
+AssetTypeName: ScriptSourceFileAsset
+Name: Startup script
+Scope: Asset
+Description: A startup script with a Start method invoked when the script is loaded
+Group: Script
+Order: -98
+Icon: ..\.sdtpl\SourceCode.png
+DefaultOutputName: Script

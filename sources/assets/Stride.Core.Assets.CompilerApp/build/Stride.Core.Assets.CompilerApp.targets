@@ -1,0 +1,168 @@
+<Project InitialTargets="_StrideCheckVisualCRuntime2013" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Check if Visual C++ Runtime 2013 is properly installed -->
+  <!-- Should be moved to Stride.Assets as soon as transitive build dependencies are enabled by default in VS2019 (https://github.com/NuGet/Home/issues/6091#issuecomment-438073285) -->
+  <Target Name="_StrideCheckVisualCRuntime2013" Condition="'$(MSBuildRuntimeType)' == 'Full'">
+    <ItemGroup>
+      <_StrideVisualCRuntime2013 Include="Visual C++ Redistributable for Visual Studio 2013 x86">
+        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\12.0\RuntimeMinimum', 'Version', null, RegistryView.Registry32))</Version>
+        <ExpectedVersion>12.0.21005</ExpectedVersion>
+        <DownloadUrl>http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x86.exe</DownloadUrl>
+      </_StrideVisualCRuntime2013>
+      <_StrideVisualCRuntime2013 Include="Visual C++ Redistributable for Visual Studio 2013 x64">
+        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\12.0\RuntimeMinimum', 'Version', null, RegistryView.Registry64))</Version>
+        <ExpectedVersion>12.0.21005</ExpectedVersion>
+        <DownloadUrl>http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x64.exe</DownloadUrl>
+      </_StrideVisualCRuntime2013>
+
+      <_StrideVisualCRuntime2013NotInstalled Include="@(_StrideVisualCRuntime2013)" Condition="'%(_StrideVisualCRuntime2013.Version)' == '' Or $([System.Version]::Parse('%(Version)').CompareTo($([System.Version]::Parse('%(_StrideVisualCRuntime2013.ExpectedVersion)')))) &lt; 0" />
+    </ItemGroup>
+
+    <Error Condition="'@(_StrideVisualCRuntime2013NotInstalled)' != ''" Text="@(_StrideVisualCRuntime2013NotInstalled->'%(Identity) is not installed. Please download from %(DownloadUrl)', '%0a')"/>
+  </Target>
+  <!-- 
+  *****************************************************************************************************************************
+  Compile Asset 
+  *****************************************************************************************************************************
+  -->
+  <PropertyGroup>
+    <PrepareForRunDependsOn>
+      $(PrepareForRunDependsOn);
+      StrideCompileAsset
+    </PrepareForRunDependsOn>
+
+    <!--This variable can be overriden by a platform specific targets (in case the executable is located into an assembly dll )-->
+    <StrideIsExecutable Condition=" '$(OutputType)' == 'Exe'">true</StrideIsExecutable>
+    <StrideIsExecutable Condition=" '$(OutputType)' == 'WinExe'">true</StrideIsExecutable>
+    <StrideIsExecutable Condition=" '$(OutputType)' == 'AppContainerExe'">true</StrideIsExecutable>
+    <StrideIsExecutable Condition=" '$(AndroidApplication)' == 'true'">true</StrideIsExecutable>
+
+    <!--asset BuildPath for all platforms (same as package)-->
+    <StrideCompileAssetBuildPath Condition="'$(StrideCompileAssetBuildPath)' == ''">$(ProjectDir)$(BaseIntermediateOutputPath)stride\assetbuild\data</StrideCompileAssetBuildPath>
+
+    <!--asset OutputPath for Android.-->
+    <StrideCompileAssetOutputPath Condition="'$(StrideCompileAssetOutputPath)' == '' and '$(StridePlatform)' == 'Android'">$(ProjectDir)$(IntermediateOutputPath)assets\data</StrideCompileAssetOutputPath>
+
+    <!--asset OutputPath for other platforms. Note: this is overridden for UnitTests projects. -->
+    <StrideCompileAssetOutputPath Condition="'$(StrideCompileAssetOutputPath)' == ''">$(TargetDir)data</StrideCompileAssetOutputPath>
+
+    <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net472\Stride.Core.Assets.CompilerApp.exe')">$(MSBuildThisFileDirectory)..\lib\net472\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
+    <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net472\Stride.Core.Assets.CompilerApp.exe')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net472\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
+
+    <!--<StrideCompileAssetCommandProxy Condition="'$(DisableAssetCompilerExecServerProxy)' == 'true' Or '$(StrideDisableAssetCompilerExecServerProxy)' == 'true'">&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
+    <StrideCompileAssetCommandProxy Condition="'$(StrideCompileAssetCommandProxy)' == ''">&quot;$(StridePackageStrideSdkBin)\Stride.Core.Assets.CompilerClient.exe&quot;</StrideCompileAssetCommandProxy>-->
+    <StrideCompileAssetCommandProxy>&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
+  </PropertyGroup>
+
+  <!--Compile assets for all StridePackage items and only for an executable-->
+  <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true'">
+    <PropertyGroup>
+      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --property:RuntimeIdentifier=$(RuntimeIdentifier) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --log-pipe=&quot;$(StrideBuildEngineLogPipeUrl)&quot;</StrideCompileAssetCommandProxy>
+      <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
+      <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
+    </PropertyGroup>
+
+    <!-- Ensure the output directory exists -->
+    <MakeDir Directories="$(TargetDir)"/>
+
+    <!-- Compile assets -->
+    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" />
+    
+    <!-- Android specific: include build output in _AndroidAssetsDest so that APK is regenerated -->
+    <ItemGroup Condition="'$(StridePlatform)' == 'Android'">
+      <_AndroidAssetsDest Include="$(StrideCompileAssetOutputPath)\**\*.*" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Clean assets -->
+  <Target Name="StrideCleanAsset" Condition="'$(StrideIsExecutable)' == 'true'">
+    <RemoveDir Condition="Exists('$(StrideCompileAssetBuildPath)')" ContinueOnError="true"  Directories="$(StrideCompileAssetBuildPath)"/>
+    <RemoveDir Condition="Exists('$(StrideCompileAssetOutputPath)')" ContinueOnError="true"  Directories="$(StrideCompileAssetOutputPath)"/>
+  </Target>
+
+  <!-- UWP: Adjust Appx folders -->
+  <PropertyGroup Condition="'$(StrideIsExecutable)' == 'true' And '$(StridePlatform)' == 'UWP'">
+    <!-- Use OutputPath to define AppxPackage directory -->
+    <AppxPackageDir>$(OutputPath)\$(AppxPackageDirName)\</AppxPackageDir>
+    <AppxPackageTestDir>$(AppxPackageDir)Test\</AppxPackageTestDir>
+    <AppxPackageName>$(AssemblyName)</AppxPackageName>
+  </PropertyGroup>
+
+  <!-- UWP & iOS: Compile and Transform Assets into Content during PrepareResources phase -->
+  <PropertyGroup Condition="'$(StrideIsExecutable)' == 'true' And ('$(StridePlatform)' == 'UWP' Or '$(StridePlatform)' == 'Android')">
+    <PrepareResourcesDependsOn>
+      _StrideDeployAssetsAsContent;
+      $(PrepareResourcesDependsOn)
+    </PrepareResourcesDependsOn>
+  </PropertyGroup>
+  <Target Name="_StrideDeployAssetsAsContent" DependsOnTargets="StrideCompileAsset">
+    <ItemGroup>
+      <!-- Define the Assets to deploy -->
+      <AssetsToDeploy Include="$(StrideCompileAssetOutputPath)\**\*.*"/>
+
+      <Content Include="@(AssetsToDeploy)">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Link>data\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      </Content>
+    </ItemGroup>
+  </Target>
+  
+  <!-- Publish: always deploy files as content -->
+  <Target Name="_StrideDeployAssetsPublish" DependsOnTargets="StrideCompileAsset" AfterTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <!-- Define the Assets to deploy -->
+      <AssetsToPublish Include="$(StrideCompileAssetOutputPath)\**\*.*"/>
+
+      <!-- Define the Assets to deploy -->
+      <ResolvedFileToPublish Include="@(AssetsToPublish)">
+        <RelativePath>data\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+
+  <!-- Android -->
+  <Target Name="_StrideDeployAssetsAndroid" BeforeTargets="StrideCompileAsset" Condition="'$(StridePlatform)' == 'Android'">
+    <!-- Add .bundle to list of uncompressed extensions -->
+    <PropertyGroup>
+      <AndroidStoreUncompressedFileExtensions>$(AndroidStoreUncompressedFileExtensions);.bundle</AndroidStoreUncompressedFileExtensions>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Pack target -->
+  <!--<UsingTask TaskName="Stride.Core.Tasks.PackAssets" AssemblyFile="$(StrideCompileAssetCommand)" />-->
+  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles">
+    <!-- We use exec version rather than task version, otherwise file will be locked during rebuild -->
+    <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
+      <Output TaskParameter="GeneratedItems" ItemName="None"/>
+    </PackAssets>-->
+    <Exec Command="&quot;$(StrideCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)stride\pack&quot;" ConsoleToMsBuild="true">
+      <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
+    </Exec>
+    <ItemGroup>
+      <PackAssetsLine Update="@(PackAssetsLine)">
+        <SourcePath>$([System.String]::new('%(Identity)').Split('|')[0])</SourcePath>
+        <PackagePath>$([System.String]::new('%(Identity)').Split('|')[1])</PackagePath>
+      </PackAssetsLine>
+      <None Include="%(PackAssetsLine.SourcePath)">
+        <Pack>true</Pack>
+        <PackagePath>%(PackAssetsLine.PackagePath)</PackagePath>
+      </None>
+    </ItemGroup>
+  </Target>
+
+  <!-- 
+  *****************************************************************************************************************************
+  Default items for sdsl/sdfx (mark generated files as dependent)
+  *****************************************************************************************************************************
+  -->
+  <ItemGroup>
+    <Compile Update="**\*.sdsl.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.sdsl" Generator="StrideShaderKeyGenerator" />
+    <Compile Update="**\*.sdfx.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
+    <!-- Those are needed for as long as we support Xenko to Stride project ugprade -->
+    <Compile Update="**\*.xksl.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.xksl" Generator="StrideShaderKeyGenerator" />
+    <Compile Update="**\*.xkfx.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.xkfx" Generator="StrideEffectCodeGenerator" />
+  </ItemGroup>
+</Project>

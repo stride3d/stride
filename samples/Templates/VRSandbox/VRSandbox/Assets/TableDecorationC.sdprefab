@@ -1,0 +1,46 @@
+!PrefabAsset
+Id: eaad30b5-ca83-452b-bc80-9d7ab50a94ee
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 5e8e1fbe-6a65-41c7-8340-f34a8e7bce90
+    Parts:
+        -   Entity:
+                Id: 5e8e1fbe-6a65-41c7-8340-f34a8e7bce90
+                Name: TableDecorationC
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: b0df0cf8-feaa-477e-9679-c445a94ec187
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: fbd1a5ca-4191-4fd2-86a7-f0f3e8ec9241
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.1
+                        Friction: 0.5
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.7
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: f0391fcf-dc44-42f1-a100-3458353bb1d6
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}

@@ -1,0 +1,7 @@
+!Texture
+Id: 1522de25-e966-4402-8e85-700420176c38
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/Particles/Alphabet.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

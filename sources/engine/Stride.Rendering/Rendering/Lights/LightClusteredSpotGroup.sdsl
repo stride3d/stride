@@ -1,0 +1,54 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Lights
+{
+    /// <summary>
+    /// Defines a group of spot lights in clustered shading.
+    /// </summary>
+    shader LightClusteredSpotGroup :
+        DirectLightGroup,
+        LightClustered,
+        LightSpot,  // Required for "ProcessLight()".
+        SpotLightDataInternalShader    // Required for "SpotLightDataInternal"
+    {
+        rgroup PerView.Lighting
+        {
+            stage Buffer<float4> SpotLights;
+        }
+
+        override int GetMaxLightCount()
+        {
+            return streams.lightData.y >> 16;
+        }
+
+        override int GetLightCount()
+        {
+            return streams.lightData.y >> 16;
+        }
+
+        /// <summary>
+        /// Compute the light color/direction for the specified index within this group
+        /// </summary>
+        override void PrepareDirectLightCore(int lightIndexIgnored)
+        {
+            // What we had so far was just a loop index
+            // Note: we have lightIndex as a parameter but we ignore it since we want to preserve it between point and spot lights
+            int realLightIndex = LightIndices.Load(streams.lightIndex);
+            streams.lightIndex++;
+
+            // Build SpotLightData
+            SpotLightDataInternal spotLight;
+            float4 spotLight1 = SpotLights.Load(realLightIndex * 4);
+            float4 spotLight2 = SpotLights.Load(realLightIndex * 4 + 1);
+            float4 spotLight3 = SpotLights.Load(realLightIndex * 4 + 2);
+            float4 spotLight4 = SpotLights.Load(realLightIndex * 4 + 3);
+            spotLight.PositionWS = spotLight1.xyz;
+            spotLight.DirectionWS = spotLight2.xyz;
+            spotLight.AngleOffsetAndInvSquareRadius = spotLight3.xyz;
+            spotLight.Color = spotLight4.xyz;
+
+            // Perform lighting
+            ProcessLight(spotLight);
+        }
+    };
+}

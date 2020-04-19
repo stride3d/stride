@@ -1,8 +1,0 @@
-!SpriteFont
-Id: cb333065-ba29-41a4-b07c-eeb5d39b5cc6
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-FontSource: !FileFontProvider
-    Source: ../../Resources/Fonts/SourceHanSans-Light.otf
-FontType: !RuntimeRasterizedSpriteFontType
-    Size: 24.0

@@ -1,0 +1,22 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Graphics.Tests
+{
+    shader CustomShader : SpriteBase
+    {
+        // factor used by CustomEffect
+        stage float SwitchEffectLevel;
+
+        cbuffer PerPass
+        {
+            [Link("MyCustomShader.ColorFactor2")]
+            stage float4 ColorFactor2;
+        };
+
+        // Shading of the sprite with dual texturing
+        stage override float4 Shading()
+        {
+            return base.Shading() * ColorFactor2;
+        }
+    };
+}

@@ -1,0 +1,6 @@
+!Package
+Id: b73dab91-1732-4037-984e-79255482678f
+PluginReferences: []
+ExplicitFolders: []
+PackageReferences:
+    - cc1bcc78-50b2-4da6-8902-f7a3ae42898b:$StrideSdkDir/Stride.sdprj

@@ -1,0 +1,11 @@
+﻿!TemplateAssetFactory
+Id: 5A1EACDB-6FE1-4635-B7F4-D9205B41AB5C
+AssetTypeName: MaterialAsset
+Name: Diffuse material
+Scope: Asset
+Description: A simple material with a diffuse map
+Group: Material
+Order: -50
+Icon: ..\.sdtpl\MaterialDiffuse.png
+DefaultOutputName: Material
+FactoryTypeName: DiffuseMaterialFactory

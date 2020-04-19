@@ -1,0 +1,93 @@
+---
+!EffectCompileRequest
+EffectName: StrideEditorForwardShadingEffect
+UsedParameters:
+    Material.PixelStageSurfaceShaders: !ShaderMixinSource
+        Compositions:
+            layers: !ShaderArraySource
+                Values:
+                    - !ShaderMixinSource
+                        Compositions:
+                            computeColorSource: !ShaderMixinSource
+                                Compositions:
+                                    color1: !ShaderClassSource
+                                        ClassName: ComputeColorConstantColorLink
+                                        GenericArguments:
+                                            - ViewportGridGizmo.GridColorKey
+                                    color2: !ShaderClassSource
+                                        ClassName: ComputeColorTextureScaledOffsetDynamicSampler
+                                        GenericArguments:
+                                            - Texturing.Texture0
+                                            - TEXCOORD0
+                                            - Material.Sampler.i0
+                                            - rgba
+                                            - Material.TextureScale
+                                            - Material.TextureOffset
+                                Macros: []
+                                Mixins:
+                                    - !ShaderClassSource
+                                        ClassName: ComputeColorMultiply
+                        Macros: []
+                        Mixins:
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                GenericArguments:
+                                    - matEmissive
+                                    - rgba
+                    - !ShaderMixinSource
+                        Compositions:
+                            computeColorSource: !ShaderClassSource
+                                ClassName: ComputeColorConstantFloatLink
+                                GenericArguments:
+                                    - Material.EmissiveIntensity
+                        Macros: []
+                        Mixins:
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                GenericArguments:
+                                    - matEmissiveIntensity
+                                    - r
+                    - !ShaderMixinSource
+                        Compositions:
+                            computeColorSource: !ShaderClassSource
+                                ClassName: ComputeColorConstantFloatLink
+                                GenericArguments:
+                                    - Material.DiffuseSpecularAlphaBlendValue
+                        Macros: []
+                        Mixins:
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                GenericArguments:
+                                    - matDiffuseSpecularAlphaBlend
+                                    - r
+                    - !ShaderMixinSource
+                        Compositions:
+                            computeColorSource: !ShaderClassSource
+                                ClassName: ComputeColorConstantColorLink
+                                GenericArguments:
+                                    - Material.AlphaBlendColorValue
+                        Macros: []
+                        Mixins:
+                            - !ShaderClassSource
+                                ClassName: MaterialSurfaceSetStreamFromComputeColor
+                                GenericArguments:
+                                    - matAlphaBlendColor
+                                    - rgb
+                    - !ShaderClassSource
+                        ClassName: MaterialSurfaceEmissiveShading
+                        GenericArguments:
+                            - true
+                    - !ShaderClassSource
+                        ClassName: MaterialSurfaceDiffuseSpecularAlphaBlendColor
+        Macros: []
+        Mixins:
+            - !ShaderClassSource
+                ClassName: MaterialSurfaceArray
+    Material.PixelStageStreamInitializer: !ShaderMixinSource
+        Compositions: {}
+        Macros: []
+        Mixins:
+            - !ShaderClassSource
+                ClassName: MaterialStream
+            - !ShaderClassSource
+                ClassName: MaterialPixelShadingStream

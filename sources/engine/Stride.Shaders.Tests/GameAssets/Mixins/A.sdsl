@@ -1,0 +1,18 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader A : ShaderBase
+{
+    compose ComputeColor SubCompute1;
+    compose ComputeColor SubCompute2;
+    compose ComputeColor SubComputes[];
+
+    override stage void PSMain()
+    {
+        streams.ColorTarget = SubCompute1.Compute(float4(1,1,1,1)) + SubCompute2.Compute(float4(1,1,1,1));
+
+        foreach(var subCompute in SubComputes)
+        {
+            streams.ColorTarget = subCompute.Compute(streams.ColorTarget);
+        }
+    }
+};

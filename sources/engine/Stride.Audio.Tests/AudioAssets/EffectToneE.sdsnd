@@ -1,0 +1,7 @@
+!Sound
+Id: 77791b33-0037-4b28-b2fb-9a97eaeb04e8
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/audio/e.wav
+StreamFromDisk: false
+Spatialized: true

@@ -1,0 +1,7 @@
+!Texture
+Id: 0147158f-d3bb-45bc-bad3-90c3b5ed2080
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/Particles/uvGradient.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

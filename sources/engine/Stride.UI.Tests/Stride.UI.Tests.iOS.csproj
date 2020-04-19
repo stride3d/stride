@@ -1,0 +1,251 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E7B1B17F-D04B-4978-B504-A6BB3EE846C9}</ProjectGuid>
+    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Exe</OutputType>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <RootNamespace>Stride.UI.Tests</RootNamespace>
+    <AssemblyName>StrideUITests</AssemblyName>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StridePlatform>iOS</StridePlatform>
+    <StrideBuildProfile>iOS</StrideBuildProfile>
+    <StridePackageGuid>{b18707e8-1d26-49fc-9911-3834506d8149}</StridePackageGuid>
+    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)Stride.UI.Tests.sdpkg</StrideCurrentPackagePath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
+    <OutputPath>..\..\..\Bin\iOS-OpenGLES\</OutputPath>
+    <IntermediateOutputPath>obj\iOS\Debug\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <MtouchUseSGen>True</MtouchUseSGen>
+    <MtouchDebug>True</MtouchDebug>
+    <CodesignKey>iPhone Developer</CodesignKey>
+    <MtouchUseSGen>True</MtouchUseSGen>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
+    <OutputPath>..\..\..\Bin\iOS-OpenGLES\</OutputPath>
+    <IntermediateOutputPath>obj\iOS\Release\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <MtouchUseSGen>True</MtouchUseSGen>
+    <CodesignKey>iPhone Developer</CodesignKey>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|iPhone' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
+    <OutputPath>..\..\..\Bin\iOS-OpenGLES\</OutputPath>
+    <IntermediateOutputPath>obj\iOS\Testing\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <MtouchUseSGen>True</MtouchUseSGen>
+    <MtouchDebug>True</MtouchDebug>
+    <CodesignKey>iPhone Distribution</CodesignKey>
+    <BuildIpa>True</BuildIpa>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AppStore|iPhone' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
+    <OutputPath>..\..\..\Bin\iOS-OpenGLES\</OutputPath>
+    <IntermediateOutputPath>obj\iOS\AppStore\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <MtouchUseSGen>True</MtouchUseSGen>
+    <CodesignKey>iPhone Distribution</CodesignKey>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
+    <OutputPath>..\..\..\Bin\iOS-OpenGLES\</OutputPath>
+    <IntermediateOutputPath>obj\iOS\Debug\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchLink>None</MtouchLink>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <StrideGraphicsApi>OpenGLES</StrideGraphicsApi>
+    <OutputPath>..\..\..\Bin\iOS-OpenGLES\</OutputPath>
+    <IntermediateOutputPath>obj\iOS\Release\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchLink>None</MtouchLink>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Stride.Core.Tests.Application</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Xamarin.iOS" Label="Stride.DoNotSync" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Label="Stride.DoNotSync" Include="Info.plist" />
+    <Compile Label="Stride.DoNotSync" Include="Properties\AssemblyInfo.cs" />
+    <Compile Label="Stride.DoNotSync" Include="..\..\..\sources\shared\tests\nunitlite\NUnitLiteLauncher.iPhone.cs">
+      <Link>NUnitLiteLauncher.iPhone.cs</Link>
+    </Compile>
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Compile Include="XunitAttributes.cs" />
+    <Compile Include="Events\EventManagerTests.cs" />
+    <Compile Include="Events\MyTestRoutedEventArgs.cs" />
+    <Compile Include="Events\MyTestRoutedEventHandler.cs" />
+    <Compile Include="Events\RoutedEventArgsTest.cs" />
+    <Compile Include="Events\UIElementEventTests.cs" />
+    <Compile Include="Layering\ArrangeValidator.cs" />
+    <Compile Include="Layering\ButtonBaseTests.cs" />
+    <Compile Include="Layering\ButtonTests.cs" />
+    <Compile Include="Layering\CanvasTests.cs" />
+    <Compile Include="Layering\SliderTests.cs" />
+    <Compile Include="Layering\ContentControlTest.cs" />
+    <Compile Include="Layering\ContentPresenterTests.cs" />
+    <Compile Include="Layering\ControlTests.cs" />
+    <Compile Include="Layering\EditTextTests.cs" />
+    <Compile Include="Layering\GridBaseTests.cs" />
+    <Compile Include="Layering\GridTests.cs" />
+    <Compile Include="Layering\ImageButtonTests.cs" />
+    <Compile Include="Layering\ImageElementTests.cs" />
+    <Compile Include="Layering\MeasureArrangeValidator.cs" />
+    <Compile Include="Layering\MeasureReflector.cs" />
+    <Compile Include="Layering\MeasureValidator.cs" />
+    <Compile Include="Layering\ModalElementTests.cs" />
+    <Compile Include="Layering\PanelTests.cs" />
+    <Compile Include="Layering\ScrollBarTests.cs" />
+    <Compile Include="Layering\ScrollingTextTests.cs" />
+    <Compile Include="Layering\ScrollViewerTests.cs" />
+    <Compile Include="Layering\StackPanelTests.cs" />
+    <Compile Include="Layering\Utilities.cs" />
+    <Compile Include="Layering\TextBlockTests.cs" />
+    <Compile Include="Layering\ToggleButtonTests.cs" />
+    <Compile Include="Layering\UIElementLayeringTests.cs" />
+    <Compile Include="Layering\UniformGridTests.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="RandomExtension.cs" />
+    <Compile Include="Regression\BillboardModeTests.cs" />
+    <Compile Include="Regression\BorderImageTest.cs" />
+    <Compile Include="Regression\BorderTest.cs" />
+    <Compile Include="Regression\ButtonTest.cs" />
+    <Compile Include="Regression\CanvasGridTest.cs" />
+    <Compile Include="Regression\ChildrenMeasurementTest.cs" />
+    <Compile Include="Regression\ClickTests.cs" />
+    <Compile Include="Regression\ClippingTest.cs" />
+    <Compile Include="Regression\ComplexLayoutTest.cs" />
+    <Compile Include="Regression\ContentDecoratorTest.cs" />
+    <Compile Include="Regression\ElementTestDesigns.cs">
+      <DependentUpon>ElementTestDesigns.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Regression\DynamicFontTest.cs" />
+    <Compile Include="Regression\EditTextTest.cs" />
+    <Compile Include="Regression\ImageButtonTest.cs" />
+    <Compile Include="Regression\ImageRegionTest.cs" />
+    <Compile Include="Regression\ImageRotatedTest.cs" />
+    <Compile Include="Regression\ImageTest.cs" />
+    <Compile Include="Regression\InSceneUITest.cs" />
+    <Compile Include="Regression\LeaveEnterTest.cs" />
+    <Compile Include="Regression\ModalElementTest.cs" />
+    <Compile Include="Regression\MouseOverTest.cs" />
+    <Compile Include="Regression\ScrollingTextTest.cs" />
+    <Compile Include="Regression\ScrollViewerAnchorTest.cs" />
+    <Compile Include="Regression\ScrollViewerTest.cs" />
+    <Compile Include="Regression\SliderTest.cs" />
+    <Compile Include="Regression\StackPanelTest.cs" />
+    <Compile Include="Regression\TestUICamera.cs" />
+    <Compile Include="Regression\TextBlockTest.cs" />
+    <Compile Include="Regression\TextBlockWrappingTest.cs" />
+    <Compile Include="Regression\ToggleButtonTest.cs" />
+    <Compile Include="Regression\TransparencyTest.cs" />
+    <Compile Include="Regression\UniformGridTest.cs" />
+    <Compile Include="Regression\UITestGameBase.cs" />
+    <None Include="Assets\BorderButton.sdtex" />
+    <None Include="Assets\BorderButtonCentered.sdtex" />
+    <None Include="Assets\CourierNew12.sdfnt" />
+    <None Include="Assets\cube Model.sdm3d" />
+    <None Include="Assets\DebugSlider.sdsheet" />
+    <None Include="Assets\DumbWhite.sdtex" />
+    <None Include="Assets\GameSettings.sdgamesettings" />
+    <None Include="Assets\GraphicsCompositor.sdgfxcomp" />
+    <None Include="Assets\HanSans13.sdfnt" />
+    <None Include="Assets\ImageButtonNotPressed.sdtex" />
+    <None Include="Assets\ImageButtonPressed.sdtex" />
+    <None Include="Assets\lambert1.sdmat" />
+    <None Include="Assets\MainScene.sdscene" />
+    <None Include="Assets\MicrosoftSansSerif15.sdfnt" />
+    <None Include="Assets\RotatedImages.sdsheet" />
+    <None Include="Assets\rotatedUV.sdtex" />
+    <None Include="Assets\UIImages.sdsheet" />
+    <None Include="Assets\Untitled.sdtex" />
+    <None Include="Assets\uv.sdtex" />
+    <None Include="Assets\StrideBackground.sdtex" />
+    <None Include="Regression\ElementTestDesigns.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ElementTestDesigns.cs</LastGenOutput>
+    </None>
+    <None Include="Resources\EditTextActive.dds" />
+    <None Include="Resources\ButtonNotPressed.dds" />
+    <None Include="Resources\ButtonOverred.dds" />
+    <None Include="Resources\ButtonPressed.dds" />
+    <None Include="Resources\EditTextInactive.dds" />
+    <None Include="Resources\EditTextOverred.dds" />
+    <None Include="Stride.UI.Tests.sdpkg" />
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+    <None Include="Resources\ToggleChecked.dds" />
+    <None Include="Resources\ToggleIndetermate.dds" />
+    <None Include="Resources\ToggleUnchecked.dds" />
+    <None Include="Resources\UIDesigns.dds" />
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="Resources\Icon.png" Label="Stride.DoNotSync" />
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="Resources\Icon%402x.png" Label="Stride.DoNotSync" />
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="Resources\Icon-60%402x.png" Label="Stride.DoNotSync" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
+  <Import Project="$(StridePackageProps)" Condition="Exists('$(StridePackageProps)')" />
+  <Import Project="..\..\targets\Stride.UnitTests.targets" Condition="Exists('..\..\targets\Stride.UnitTests.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+    Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,9 @@
+!TemplateAsset
+Id: C8387DE6-BC49-4F0F-9DB1-37109621BC8F
+AssetTypeName: ScriptSourceFileAsset
+Name: Animation blend
+Scope: Asset
+Description: Blends two animations
+Group: Script
+Icon: ..\..\.sdtpl\SourceCode.png
+DefaultOutputName: AnimationBlend

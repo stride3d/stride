@@ -1,0 +1,11 @@
+!TemplateSample
+Id: d20d150b-d3cb-454e-8c11-620b4c9d393f
+Name: "Sample: physics"
+Scope: Session
+Description: Demonstrates physics constraints, raycasting, and character controllers
+FullDescription: This sample project demonstrates how to use constraints, raycasting, and character controllers.
+Group: Samples/Physics
+Icon: ../.sdtpl/NewPhysics.png
+DefaultOutputName: PhysicsSample
+Screenshots:
+    - .sdtpl/screenshot_small.png

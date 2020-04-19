@@ -1,0 +1,139 @@
+!SceneAsset
+Id: 286382bf-b1c4-41b4-b566-949b1ad1e443
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 6ec17338-026d-4ad3-9615-4975281cf3ba
+        - ref!! fb0a2c4b-0ae0-47c0-a222-089448e7890c
+        - ref!! d87ce433-90b0-4819-8f55-9d08330b581d
+        - ref!! ab6a210f-cea3-4f03-8b5d-af95e4a4fb44
+        - ref!! 47550ad3-4887-4173-95e0-d98048465edd
+    Parts:
+        -   Entity:
+                Id: 47550ad3-4887-4173-95e0-d98048465edd
+                Name: UI
+                Components:
+                    64f47e9601bd0a46bc760d28a790f231: !TransformComponent
+                        Id: 967ef464-bd01-460a-bc76-0d28a790f231
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e907fd00a1f2c14b84bb467e84daeb4a: !JumpyJet.UIScript,JumpyJet.Game
+                        Id: 00fd07e9-f2a1-4bc1-84bb-467e84daeb4a
+                        Font: f10885f3-72a0-469e-9ba2-6ca635fee4e7:Font
+                        UIImages: aeb7ff2c-5b77-449a-bc7e-8b7eae549a62:UIImages
+                    035f3412b5435041984c31cfec3c914f: !UIComponent
+                        Id: 12345f03-43b5-4150-984c-31cfec3c914f
+                        Page: null
+                        Resolution: {X: 640.0, Y: 1136.0, Z: 20.0}
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                        ResolutionStretch: FixedWidthFixedHeight
+        -   Entity:
+                Id: 6ec17338-026d-4ad3-9615-4975281cf3ba
+                Name: Camera
+                Components:
+                    a968da1afd5fae469f1cb0c4575cbaf2: !TransformComponent
+                        Id: 1ada68a9-5ffd-46ae-9f1c-b0c4575cbaf2
+                        Position: {X: 0.0, Y: 0.0, Z: 200.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    ca480f36bf45704b97ee4d9531d642f6: !CameraComponent
+                        Id: 360f48ca-45bf-4b70-97ee-4d9531d642f6
+                        Name: null
+                        Projection: Orthographic
+                        OrthographicSize: 11.36
+                        NearClipPlane: 1.0
+                        AspectRatio: 0.56338
+                        Slot: 3fdcf6a2-9504-426d-a9f6-d682e7cdac79
+        -   Entity:
+                Id: ab6a210f-cea3-4f03-8b5d-af95e4a4fb44
+                Name: BackgroundScript
+                Components:
+                    d66436e3b3229c5f3b7c7703694de34f: !TransformComponent
+                        Id: f73d084f-4645-462e-8995-242212abf16a
+                        Position: {X: 0.0, Y: -2.65, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    97d79bef76f7e9303b8b3a9c242d25c4: !JumpyJet.BackgroundScript,JumpyJet.Game
+                        Id: 8ccccdd2-bee9-405c-b83d-5eab7c0c8737
+                    9309af7540fb5cf46180170a29c80dfe: !StaticColliderComponent
+                        Id: dc286a02-511c-4e7a-8661-5becbdb137a6
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            e59aa263f7270e7261d0777c0c351dd4: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+        -   Entity:
+                Id: d87ce433-90b0-4819-8f55-9d08330b581d
+                Name: PipesScript
+                Components:
+                    cc7d598993599e47b8cdaee187fa3476: !TransformComponent
+                        Id: 89597dcc-5993-479e-b8cd-aee187fa3476
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a124a98b8ada02d77a29033b4c58dcc8: !JumpyJet.PipesScript,JumpyJet.Game
+                        Id: a3abb282-de05-4800-b279-e562372a4185
+                        PipePrefabUrl: ce7c2b81-110c-4150-bf9a-d902b03b3d41:Pipe Set
+        -   Entity:
+                Id: fb0a2c4b-0ae0-47c0-a222-089448e7890c
+                Name: Character
+                Components:
+                    6109477720e5afed64e7efbefd3c3b35: !TransformComponent
+                        Id: 8d61d1ab-b884-4994-af3d-bc3f22e1bcd8
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    849f7aeb57883b0ac89a2993066c1c68: !SpriteComponent
+                        Id: b8ff4f1a-cd39-45a4-b210-9e23d2a6e5ba
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: bca60112-0718-4c8f-a421-8bc6043270f9:Sprites
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                    c12c7c2ac4ddd27190d3af682b977127: !JumpyJet.CharacterScript,JumpyJet.Game
+                        Id: 2cd31f96-e7bf-4a49-ae59-5c7bd14933d9
+                    4aa384c6b79e6c244abb7f635051166c: !RigidbodyComponent
+                        Id: df0dc9c7-7f25-410b-8dc3-6051eccf956a
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            b028aa3fca4e553f9db57024a85a66cc: !CapsuleColliderShapeDesc
+                                Is2D: true
+                                Length: 0.2
+                                LocalOffset: {X: -0.05, Y: 0.1, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            54f7272bfa2bbad97d6ff4ee4c9c1e98: !CapsuleColliderShapeDesc
+                                Length: 0.55
+                                Radius: 0.17
+                                Orientation: UpZ
+                                LocalOffset: {X: 0.05, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: ecc5f60f-1003-420b-bd8e-9deac205313b:Character
+                BasePartId: d8ae89d5-554f-4f3f-a5d4-f963fb1d3ac6
+                InstanceId: 20c7e7a9-243f-466f-a767-d11786345c1d

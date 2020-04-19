@@ -1,0 +1,11 @@
+!TemplateAssetFactory
+Id: CF5E66FF-98AC-4F43-BC4A-A1700CD6EBF7
+AssetTypeName: RawAsset
+Name: Raw asset
+Scope: Asset
+Description: An asset containing binary or text data directly imported from a file
+Group: Miscellaneous
+Icon: ..\.sdtpl\DefaultAsset.png
+Order: 1000
+DefaultOutputName: RawAsset
+ImportSource: true

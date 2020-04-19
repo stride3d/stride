@@ -1,0 +1,580 @@
+﻿@{
+    ViewBag.Title = "Metrics";
+}
+
+<div class="row stride-metrics" ng-app="chart-metrics" ng-controller="MetricsCtrl">
+    <div class="col-xs-12"><hr></div>
+    <div class="col-xs-12 v-divider"><h1>Installations</h1></div>
+
+    <div class="col-md-6">
+        <h1>Total Installs</h1>
+        <canvas class="chart chart-line" data="installs_trend.values" labels="installs_trend.labels"></canvas>
+        <p>Total incremental count of Stride installations.</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Installs Per Month</h1>
+        <canvas class="chart chart-line" data="installs_per_month.values" labels="installs_per_month.labels" series="installs_per_month.series" colours="installs_per_month.colours"></canvas>
+        <p>Total number of installations per month.</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Installs Last 30 Days</h1>
+        <canvas class="chart chart-line" data="installs_last_days.values" labels="installs_last_days.labels" series="installs_last_days.series"></canvas>
+        <p>Total number of installations per day.</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Quits Per Month</h1>
+        <canvas class="chart chart-line" data="quitting_month.values" labels="quitting_month.labels" series="quitting_month.series" colours="quitting_month.colours"></canvas>
+        <p>Total number of installations that never opened the Game Studio per month.</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Retain percentage</h1>
+        <canvas class="chart chart-line" data="retain_percent.values" labels="retain_percent.labels" series="retain_percent.series"></canvas>
+        <p>Total percent of users not quitting Stride per month.</p>
+    </div>
+    
+    <div class="col-md-6">
+        <h1>Stride downloads per Month</h1>
+        <canvas class="chart chart-line" data="stride_downloads_month.values" labels="stride_downloads_month.labels" series="stride_downloads_month.series" colours="stride_downloads_month.colours"></canvas>
+        <p>Total number of completed downloads of Stride in a month.</p>
+    </div>
+    
+    <div class="col-md-6">
+        <h1>VS plug-in downloads per Month</h1>
+        <canvas class="chart chart-line" data="vsx_downloads_month.values" labels="vsx_downloads_month.labels" series="vsx_downloads_month.series" colours="vsx_downloads_month.colours"></canvas>
+        <p>Total number of completed downloads of the Stride VS plug-in in a month.</p>
+    </div>
+
+    <div class="col-xs-12"><hr>
+    </div>
+    <div class="col-xs-12 v-divider">
+        <h1>Users</h1>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Total Users Per Country</h1>
+        <canvas class="chart chart-bar" data="users_countries.values" labels="users_countries.labels"></canvas>
+        <p>Total users per country since forever, top 20.</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Users Per Country</h1>
+        <canvas class="chart chart-bar" data="users_countries2.values" labels="users_countries2.labels"></canvas>
+        <p>Total users per country since 30 days, top 20.</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Total Users Per Month</h1>
+        <canvas class="chart chart-line" data="active_users_per_month2.values" labels="active_users_per_month2.labels" series="active_users_per_month2.series" colours="active_users_per_month2.colours"></canvas>
+        <p>Total number of users that opened the Game Studio at least once in a month.</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Total Users Per Day</h1>
+        <canvas class="chart chart-line" data="active_users_per_day.values" labels="active_users_per_day.labels" series="active_users_per_day.series"></canvas>
+        <p>Total number of users that opened the Game Studio at least once in the plotted day in the last 30 days.</p>
+    </div>
+
+    <div class="col-xs-12"><hr>
+    </div>
+    <div class="col-xs-12 v-divider">
+        <h1>Activity</h1>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Active Users Per Month</h1>
+        <canvas class="chart chart-line" data="active_users_per_month.values" labels="active_users_per_month.labels" series="active_users_per_month.series" colours="active_users_per_month.colours"></canvas>
+        <p>Total number of users that opened the Game Studio more than 5 times in a month.</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Activity per day</h1>
+        <canvas class="chart chart-bar" data="active_users.values" labels="active_users.labels" series="active_users.series" legend="true"></canvas>
+        <p>Game Studio activity in a month divided by the number of days of the month, resulting in an average value per day.</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>High Usage Per Month</h1>
+        <canvas class="chart chart-line" data="active_users_per_month3.values" labels="active_users_per_month3.labels" series="active_users_per_month3.series" colours="active_users_per_month.colours"></canvas>
+        <p>Total number of users that opened the Game Studio at least once for 10 different days in a month.</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Team Activity</h1>
+        <canvas class="chart chart-bar" data="projects_users.values" labels="projects_users.labels" series="projects_users.series" legend="true"></canvas>
+        <p>The number of different projects that were open by multiple users</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Usage Per Version</h1>
+        <canvas class="chart chart-bar" data="usage_per_version.values" labels="usage_per_version.labels" l></canvas>
+        <p>Stride version usage per month in the last 30 days.</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Crashes Per Hour</h1>
+        <canvas class="chart chart-bar" data="crashes_per_version.values" labels="crashes_per_version.labels"></canvas>
+        <p>Average of crashes per hour partitioned by version.</p>
+    </div>
+
+    <div class="col-md-6">
+        <h1>Platforms Usage Last 30 Days</h1>
+        <canvas class="chart chart-bar" data="platforms_usage.values" labels="platforms_usage.labels"></canvas>
+        <p>Number of session/projects opened with the given platforms.</p>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        angular.module("chart-metrics", ["chart.js"]).controller("MetricsCtrl", function($scope, $http) {
+            function daysInMonth(month,year) {
+                return new Date(year, month, 0).getDate();
+            }
+
+            $http.get('/api/get-active-users').success(function (data) {
+                var labels = [];
+                var sessions = [];
+                var users = [];
+                var time = [];
+                var date = new Date();
+                var daysOfThisMonth = date.getDate();
+                var currentMonth = date.getMonth();
+                var currentYear = date.getYear();
+                data.forEach(function (value) {
+                    var d = new Date();
+                    d.setMonth(value.month - 1);
+                    var monthString = d.toLocaleString("en-US", { month: "short" });
+
+                    var divider;
+                    if (d.getMonth() !== currentMonth || d.getYear() !== currentYear) {
+                        divider = daysInMonth(d.getMonth(), d.getYear());                     
+                    } else {
+                        divider = daysOfThisMonth;
+                    }
+
+                    labels.push(monthString + " " + value.year);
+                    sessions.push(Math.floor(value.sessions/ divider));
+                    users.push(Math.floor(value.users / divider));
+                    time.push(Math.floor((value.time / 60 / 60) / divider));
+                });
+
+                $scope.active_users =
+                {
+                    series: ["Opened Sessions", "Active Users", "Active Hours"],
+                    labels: labels,
+                    values: [sessions, users, time]
+                };
+            });
+
+            $http.get('/api/get-projects-users').success(function (data) {
+                var labels = [];
+                var morethan1 = [];
+                var morethan3 = [];
+                var morethan5 = [];
+                data.forEach(function (value) {
+                    var d = new Date();
+                    d.setMonth(value.month - 1);
+                    var monthString = d.toLocaleString("en-US", { month: "short" });
+                    labels.push(monthString + " " + value.year);
+                    morethan1.push(value.moreThan1);
+                    morethan3.push(value.moreThan3);
+                    morethan5.push(value.moreThan5);
+                });
+
+                $scope.projects_users =
+                {
+                    series: ["2-3 People", "4-5 People", "More Than 5 People"],
+                    labels: labels,
+                    values: [morethan1, morethan3, morethan5]
+                };
+            });
+
+            $http.get('/api/get-installs-trend').success(function(data) {
+                var labels = [];
+                var values = [];
+                for (var i = 0; i < data.length; i++) {
+                    var date = new Date();
+                    var month = date.getMonth();
+                    var year = date.getYear();
+                    var dataYear = data[i].year - 1900;
+                    if (data[i].january > 0) if ((year === dataYear && month >= 0) || dataYear < year) labels.push("Jan " + data[i].year);
+                    if (data[i].february > 0) if ((year === dataYear && month >= 1) || dataYear < year) labels.push("Feb " + data[i].year);
+                    if (data[i].march > 0) if ((year === dataYear && month >= 2) || dataYear < year) labels.push("Mar " + data[i].year);
+                    if (data[i].april > 0) if ((year === dataYear && month >= 3) || dataYear < year) labels.push("Apr " + data[i].year);
+                    if (data[i].may > 0) if ((year === dataYear && month >= 4) || dataYear < year) labels.push("May " + data[i].year);
+                    if (data[i].june > 0) if ((year === dataYear && month >= 5) || dataYear < year) labels.push("Jun " + data[i].year);
+                    if (data[i].july > 0) if ((year === dataYear && month >= 6) || dataYear < year) labels.push("Jul " + data[i].year);
+                    if (data[i].august > 0) if ((year === dataYear && month >= 7) || dataYear < year) labels.push("Aug " + data[i].year);
+                    if (data[i].september > 0) if ((year === dataYear && month >= 8) || dataYear < year) labels.push("Sep " + data[i].year);
+                    if (data[i].october > 0) if ((year === dataYear && month >= 9) || dataYear < year) labels.push("Oct " + data[i].year);
+                    if (data[i].november > 0) if ((year === dataYear && month >= 10) || dataYear < year) labels.push("Nov " + data[i].year);
+                    if (data[i].december > 0) if ((year === dataYear && month >= 11) || dataYear < year) labels.push("Dec " + data[i].year);
+                    if (data[i].january > 0) values.push(data[i].january);
+                    if (data[i].february > 0) values.push(data[i].february);
+                    if (data[i].march > 0) values.push(data[i].march);
+                    if (data[i].april > 0) values.push(data[i].april);
+                    if (data[i].may > 0) values.push(data[i].may);
+                    if (data[i].june > 0) values.push(data[i].june);
+                    if (data[i].july > 0) values.push(data[i].july);
+                    if (data[i].august > 0) values.push(data[i].august);
+                    if (data[i].september > 0) values.push(data[i].september);
+                    if (data[i].october > 0) values.push(data[i].october);
+                    if (data[i].november > 0) values.push(data[i].november);
+                    if (data[i].december > 0) values.push(data[i].december);
+                }
+                $scope.installs_trend = {
+                    series: ["Installs Trend"],
+                    labels: labels,
+                    values: [values]
+                };
+            });
+
+            $http.get('/api/get-installs-per-month').success(function (data) {
+                var labels = [];
+                var values1 = [];
+                var values2 = [];
+                var date = new Date();
+                var thisYear = date.getYear() + 1900;
+                var thisMonth = date.getMonth();
+                var today = date.getDate();
+                for (var i = 0; i < data.length; i++) {
+                    var localDate = new Date(data[i].year, data[i].month - 1, 1);
+                    labels.push(localDate.toLocaleString("en-US", { month: "short" }) + " " + data[i].year);
+
+                    if (data[i].month - 1 !== thisMonth || thisYear !== data[i].year) values1.push(data[i].count);
+
+                    if (data[i].month - 1 === thisMonth && i > 0 && thisYear === data[i].year) {
+                        var prevData = data[i - 1].count;
+                        var daysToPredict = 31 - today;
+                        var prediction = daysToPredict > 0 ? prevData * daysToPredict / 31 : 0;
+                        values2.push(data[i].count + Math.floor(prediction));
+                    }
+                    else values2.push(data[i].count);
+                }
+                $scope.installs_per_month = {
+                    series: ["Installs Per Month", "Including Current Month Prediction"],
+                    colours: [{fillColor:["#00FFFF", "#FFFF00"]}],
+                    labels: labels,
+                    values: [values1, values2]
+                };
+            });
+
+            $http.get('/api/get-quitting-count').success(function (data) {
+                $http.get('/api/get-active-users-per-month/0').success(function (data1) {
+                    var labels = [];
+                    var values1 = [];
+                    var values2 = [];
+                    var values3 = [];
+                    var values4 = [];
+                    var percent = [];
+                    var date = new Date();
+                    var thisYear = date.getYear() + 1900;
+                    var thisMonth = date.getMonth();
+                    var today = date.getDate();
+                    for (var i = 0; i < data.length; i++) {
+                        var localDate = new Date(data[i].year, data[i].month - 1, 1);
+                        labels.push(localDate.toLocaleString("en-US", { month: "short" }) + " " + data[i].year);
+
+                        if (data[i].month - 1 !== thisMonth || thisYear !== data[i].year) {
+                            values1.push(data[i].count);
+                            values3.push(data1[i].count);
+                        }
+
+                        if (i === 0) {
+                            percent.push(0);
+                        } else {
+                            percent.push(parseInt(((1 - (data[i].count / data1[i - 1].count)) * 100)));
+                        }
+
+                        if (data[i].month - 1 === thisMonth && i > 0 && thisYear === data[i].year) {
+                            var prevData = data[i - 1].count;
+                            var prevData1 = data1[i - 1].count;
+                            var daysToPredict = 31 - today;
+                            var prediction = daysToPredict > 0 ? prevData * daysToPredict / 31 : 0;
+                            var prediction1 = daysToPredict > 0 ? prevData1 * daysToPredict / 31 : 0;
+                            values2.push(data[i].count + Math.floor(prediction));
+                            values4.push(data1[i].count + Math.floor(prediction1));
+                        } else {
+                            values2.push(data[i].count);
+                            values4.push(data1[i].count);
+                        }
+                    }
+                    $scope.quitting_month = {
+                        series: ["Quitting count", "Quitting Prediction", "Active Users Per Month", "Active Users Prediction"],
+                        colours: [{ fillColor: ["#00FF22", "#FFFF22", "#004422", "#FF4422"] }],
+                        labels: labels,
+                        values: [values1, values2, values3, values4]
+                    };
+                    $scope.retain_percent = {
+                        series: ["Retain factor"],
+                        labels: labels,
+                        values: [percent]
+                    };
+                });              
+            });
+
+            $http.get('/api/get-installs-last-days').success(function(data) {
+                var labels = [];
+                var values = [];
+                var today = new Date();
+                today.setHours(0, 0, 0, 0);
+                for (var i = 0; i < data.length; i++) {
+                    var localDate = new Date(data[i].date);
+                    localDate.setHours(0, 0, 0, 0);
+                    if (localDate.getTime() === today.getTime()) continue;
+                    labels.push(localDate.toLocaleString("en-US", { month: "short" }) + " " + localDate.getDate());
+                    values.push(data[i].count);
+                }
+                $scope.installs_last_days = {
+                    series: ["Installs Last 30 Days"],
+                    labels: labels,
+                    values: [values]
+                };
+            });
+
+            $http.get('/api/get-active-users-per-day/0').success(function (data) {
+                var labels = [];
+                var values = [];
+                var today = new Date();
+                today.setHours(0, 0, 0, 0);
+                for (var i = 0; i < data.length; i++) {
+                    var localDate = new Date(data[i].year, data[i].month - 1, data[i].day);
+                    localDate.setHours(0, 0, 0, 0);
+                    if (localDate.getTime() === today.getTime()) continue;
+                    labels.push(localDate.toLocaleString("en-US", { month: "short" }) + " " + localDate.getDate());
+                    values.push(data[i].count);
+                }
+                $scope.active_users_per_day = {
+                    series: ["Activity Last 30 Days"],
+                    labels: labels,
+                    values: [values]
+                };
+            });
+
+            $http.get('/api/get-active-users-per-month/5').success(function(data) {
+                var labels = [];
+                var values1 = [];
+                var values2 = [];
+                var date = new Date();
+                var thisYear = date.getYear() + 1900;
+                var thisMonth = date.getMonth();
+                var today = date.getDate();
+                for (var i = 0; i < data.length; i++) {
+                    var localDate = new Date(data[i].year, data[i].month - 1, 1);
+                    labels.push(localDate.toLocaleString("en-US", { month: "short" }) + " " + data[i].year);
+
+                    if (data[i].month - 1 !== thisMonth || thisYear !== data[i].year) values1.push(data[i].count);
+
+                    if (data[i].month - 1 === thisMonth && i > 0 && thisYear === data[i].year) {
+                        var prevData = data[i - 1].count;
+                        var daysToPredict = 31 - today;
+                        var prediction = daysToPredict > 0 ? prevData * daysToPredict / 31 : 0;
+                        values2.push(data[i].count + Math.floor(prediction));
+                    }
+                    else values2.push(data[i].count);
+                }
+                $scope.active_users_per_month = {
+                    series: ["Active Users Per Month", "Including Current Month Prediction"],
+                    colours: [{ fillColor: ["#00FFFF", "#FFFF00"] }],
+                    labels: labels,
+                    values: [values1, values2]
+                };
+            });
+
+            $http.get('/api/get-active-users-per-month/0').success(function (data) {
+                var labels = [];
+                var values1 = [];
+                var values2 = [];
+                var date = new Date();
+                var thisYear = date.getYear() + 1900;
+                var thisMonth = date.getMonth();
+                var today = date.getDate();
+                for (var i = 0; i < data.length; i++) {
+                    var localDate = new Date(data[i].year, data[i].month - 1, 1);
+                    labels.push(localDate.toLocaleString("en-US", { month: "short" }) + " " + data[i].year);
+
+                    if (data[i].month - 1 !== thisMonth || thisYear !== data[i].year) values1.push(data[i].count);
+
+                    if (data[i].month - 1 === thisMonth && i > 0 && thisYear === data[i].year) {
+                        var prevData = data[i - 1].count;
+                        var daysToPredict = 31 - today;
+                        var prediction = daysToPredict > 0 ? prevData * daysToPredict / 31 : 0;
+                        values2.push(data[i].count + Math.floor(prediction));
+                    }
+                    else values2.push(data[i].count);
+                }
+                $scope.active_users_per_month2 = {
+                    series: ["Total Users Per Month", "Including Current Month Prediction"],
+                    colours: [{ fillColor: ["#00FFFF", "#FFFF00"] }],
+                    labels: labels,
+                    values: [values1, values2]
+                };
+            });
+
+            $http.get('/api/get-stride-downloads').success(function (data) {
+                var labels = [];
+                var values1 = [];
+                var values2 = [];
+                var date = new Date();
+                var thisYear = date.getYear() + 1900;
+                var thisMonth = date.getMonth();
+                var today = date.getDate();
+                for (var i = 0; i < data.length; i++) {
+                    var localDate = new Date(data[i].year, data[i].month - 1, 1);
+                    labels.push(localDate.toLocaleString("en-US", { month: "short" }) + " " + data[i].year);
+
+                    if (data[i].month - 1 !== thisMonth || thisYear !== data[i].year) values1.push(data[i].count);
+
+                    if (data[i].month - 1 === thisMonth && i > 0 && thisYear === data[i].year) {
+                        var prevData = data[i - 1].count;
+                        var daysToPredict = 31 - today;
+                        var prediction = daysToPredict > 0 ? prevData * daysToPredict / 31 : 0;
+                        values2.push(data[i].count + Math.floor(prediction));
+                    }
+                    else values2.push(data[i].count);
+                }
+                $scope.stride_downloads_month = {
+                    series: ["Total Downloads Per Month", "Including Current Month Prediction"],
+                    colours: [{ fillColor: ["#00FFFF", "#FFFF00"] }],
+                    labels: labels,
+                    values: [values1, values2]
+                };
+            });
+
+            $http.get('/api/get-vsx-downloads').success(function (data) {
+                var labels = [];
+                var values1 = [];
+                var values2 = [];
+                var date = new Date();
+                var thisYear = date.getYear() + 1900;
+                var thisMonth = date.getMonth();
+                var today = date.getDate();
+                for (var i = 0; i < data.length; i++) {
+                    var localDate = new Date(data[i].year, data[i].month - 1, 1);
+                    labels.push(localDate.toLocaleString("en-US", { month: "short" }) + " " + data[i].year);
+
+                    if (data[i].month - 1 !== thisMonth || thisYear !== data[i].year) values1.push(data[i].count);
+
+                    if (data[i].month - 1 === thisMonth && i > 0 && thisYear === data[i].year) {
+                        var prevData = data[i - 1].count;
+                        var daysToPredict = 31 - today;
+                        var prediction = daysToPredict > 0 ? prevData * daysToPredict / 31 : 0;
+                        values2.push(data[i].count + Math.floor(prediction));
+                    }
+                    else values2.push(data[i].count);
+                }
+                $scope.vsx_downloads_month = {
+                    series: ["Total Downloads Per Month", "Including Current Month Prediction"],
+                    colours: [{ fillColor: ["#00FFFF", "#FFFF00"] }],
+                    labels: labels,
+                    values: [values1, values2]
+                };
+            });
+
+            $http.get('/api/get-high-usage').success(function (data) {
+                var labels = [];
+                var values1 = [];
+                var values2 = [];
+                var date = new Date();
+                var thisYear = date.getYear() + 1900;
+                var thisMonth = date.getMonth();
+                var today = date.getDate();
+                for (var i = 0; i < data.length; i++) {
+                    var localDate = new Date(data[i].year, data[i].month - 1, 1);
+                    labels.push(localDate.toLocaleString("en-US", { month: "short" }) + " " + data[i].year);
+
+                    if (data[i].month - 1 !== thisMonth || thisYear !== data[i].year) values1.push(data[i].count);
+
+                    if (data[i].month - 1 === thisMonth && i > 0 && thisYear === data[i].year) {
+                        var prevData = data[i - 1].count;
+                        var daysToPredict = 31 - today;
+                        var prediction = daysToPredict > 0 ? prevData * daysToPredict / 31 : 0;
+                        values2.push(data[i].count + Math.floor(prediction));
+                    }
+                    else values2.push(data[i].count);
+                }
+                $scope.active_users_per_month3 = {
+                    series: ["High Usage Per Month", "Including Current Month Prediction"],
+                    colours: [{ fillColor: ["#00FFFF", "#FFFF00"] }],
+                    labels: labels,
+                    values: [values1, values2]
+                };
+            });
+
+            $http.get('/api/get-usage-per-version').success(function(data) {
+                var labels = [];
+                var values = [];
+                for (var i = 0; i < data.length; i++) {
+                    labels.push(data[i].version);
+                    values.push(data[i].count);
+                }
+                $scope.usage_per_version = {
+                    series: ["Usage Per Version"],
+                    labels: labels,
+                    values: [values]
+                };
+            });
+
+            $http.get('/api/get-countries/0').success(function (data) {
+                var labels = [];
+                var values = [];
+                for (var i = 0; i < data.length; i++) {
+                    labels.push(data[i].value);
+                    values.push(data[i].count);
+                }
+                $scope.users_countries = {
+                    series: ["Countries"],
+                    labels: labels,
+                    values: [values]
+                };
+            });
+
+            $http.get('/api/get-countries/31').success(function (data) {
+                var labels = [];
+                var values = [];
+                for (var i = 0; i < data.length; i++) {
+                    labels.push(data[i].value);
+                    values.push(data[i].count);
+                }
+                $scope.users_countries2 = {
+                    series: ["Countries"],
+                    labels: labels,
+                    values: [values]
+                };
+            });
+
+            $http.get('/api/get-crashes-per-version').success(function (data) {
+                var labels = [];
+                var values = [];
+                for (var i = 0; i < data.length; i++) {
+                    labels.push(data[i].version);
+                    values.push(data[i].ratio);
+                }
+                $scope.crashes_per_version = {
+                    series: ["Crashes Per Hour"],
+                    labels: labels,
+                    values: [values]
+                };
+            });
+
+            $http.get('/api/get-platforms-usage').success(function (data) {
+                var labels = [];
+                var values = [];
+                for (var i = 0; i < data.length; i++) {
+                    labels.push(data[i].platform);
+                    values.push(data[i].count);
+                }
+                $scope.platforms_usage = {
+                    series: ["Platforms usage"],
+                    labels: labels,
+                    values: [values]
+                };
+            });
+
+        });
+    </script>
+}

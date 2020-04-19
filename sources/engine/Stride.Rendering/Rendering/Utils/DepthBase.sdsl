@@ -1,0 +1,39 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Defines a depth texture.
+/// Various helper functions to extract information from a depth buffer.
+/// </summary>
+shader DepthBase : Camera, Texturing
+{
+    // -------------------------------------
+    // Resources
+    // -------------------------------------
+    rgroup PerView.Depth
+    {
+        //[Link("RenderTarget.DepthStencilSource")]
+        stage Texture2D DepthStencil;
+    }
+
+    // Sample the depth from the texture
+    float GetZProjDepthFromUV(float2 uv) {
+        return DepthStencil.SampleLevel(PointSampler, uv, 0.0).x;
+    }
+
+    float GetZProjDepthFromScreenPosition(int2 screenPosition) {
+        return DepthStencil.Load(int3(screenPosition,0), 0).x;
+    }
+
+    float ComputeDepthFromZProj(float depth) {
+        // Retro project non linear 1/z depth to linear depth in view space
+        return ZProjection.y / (depth - ZProjection.x);
+    }
+
+    float ComputeDepthFromUV(float2 uv) {
+        return ComputeDepthFromZProj(GetZProjDepthFromUV(uv));
+    }
+
+    float ComputeDepthFromScreenPosition(int2 screenPosition) {
+        return ComputeDepthFromZProj(GetZProjDepthFromScreenPosition(screenPosition));
+    }
+};

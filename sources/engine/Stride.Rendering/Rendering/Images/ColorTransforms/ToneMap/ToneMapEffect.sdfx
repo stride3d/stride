@@ -1,0 +1,19 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// A Tonemap effect
+    /// </summary>
+    effect ToneMapEffect
+    {
+        using params ColorTransformKeys;
+        using params ToneMapKeys;
+
+        // Mixin 
+        mixin ToneMapShader<ToneMapKeys.AutoKey, ToneMapKeys.AutoExposure, ToneMapKeys.UseLocalLuminance>;
+        context.PushParameters(ToneMapKeys.Operator.Parameters);
+        mixin compose ToneMapOperator = ColorTransformKeys.Shader;
+        context.PopParameters();
+    };
+}

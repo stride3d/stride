@@ -1,0 +1,26 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader TestStream : ShaderBase
+{
+    stage stream float2 Position : POSITION;
+    stage stream float blend;
+
+    stage override void VSMain() 
+    {
+        streams.ShadingPosition = float4(streams.Position, 0.0f, 1.0f);
+    }
+
+    stage override void PSMain() 
+    {
+        var backup = streams;
+        Toto(backup);
+
+        streams.ColorTarget = float4(streams.Position, 0, 1);
+    }
+
+
+    void Toto(Streams backup)
+    {
+        streams.Position = lerp(streams.Position, backup.Position, backup.blend);
+    }
+};

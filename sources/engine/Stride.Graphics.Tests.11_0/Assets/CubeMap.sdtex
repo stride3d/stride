@@ -1,0 +1,9 @@
+!Texture
+Id: 6e52ca68-ba84-4521-a20c-b780ea2831da
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/GraceCathedral.dds
+IsCompressed: false
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+GenerateMipmaps: false

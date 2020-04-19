@@ -1,0 +1,46 @@
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Materials
+{
+    class MaterialHairShadowingFunctionScattering<LinkType TExtinctionStrength> : IMaterialHairShadowingFunction, ShadowStream
+    {
+        cbuffer PerMaterial
+        {
+            [Link("TExtinctionStrength")]
+            stage float ExtinctionStrength;
+        }
+
+        float3 Compute()
+        {
+            /*
+            // As an example, here is the SSSS code:
+            const float translucency = 0.5;
+            const float sssWidth = 0.1;
+
+            // Calculate the scale of the effect:
+            const float scale = 8.25 * (1.0 - translucency) / sssWidth;
+             
+            // Armed with the thickness, we can now calculate the color by means of the
+            // precalculated transmittance profile.
+            // (It can be precomputed into a texture, for maximum performance):
+            const float d = scale * thickness;
+                
+            const float dd = -d * d;
+            float3 profile = float3(0.233, 0.455, 0.649) * exp(dd / 0.0064) +
+                            float3(0.1,   0.336, 0.344) * exp(dd / 0.0484) +
+                            float3(0.118, 0.198, 0.0)   * exp(dd / 0.187)  +
+                            float3(0.113, 0.007, 0.007) * exp(dd / 0.567)  +
+                            float3(0.358, 0.004, 0.0)   * exp(dd / 1.99)   +
+                            float3(0.078, 0.0,   0.0)   * exp(dd / 7.41);  // TODO: How can we generate this profile for arbitrary materials?
+
+            // Using the profile, we finally approximate the transmitted lighting from
+            // the back of the object:
+            //return profile * saturate(0.3 + dot(lightDirectionWS, -meshNormalWS)) * attenuatedLightColor; 
+            finalLighting *= profile;
+            */
+
+            return exp(-streams.thicknessWS * ExtinctionStrength);
+        }
+    };
+}

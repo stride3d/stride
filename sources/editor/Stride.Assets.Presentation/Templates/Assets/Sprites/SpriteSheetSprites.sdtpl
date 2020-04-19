@@ -1,0 +1,12 @@
+﻿!TemplateAssetFactory
+Id: 3778061A-5621-46F0-9091-B7C7E725237D
+AssetTypeName: SpriteSheetAsset
+Name: "2D sprites"
+Scope: Asset
+Description: A sprite sheet built from a set of images, used to display 2D sprites
+Group: Sprite
+Order: -100
+Icon: ..\.sdtpl\Sprite.png
+DefaultOutputName: SpriteSheet
+FactoryTypeName: SpriteSheetSprite2DFactory
+ImportSource: true

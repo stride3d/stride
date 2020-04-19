@@ -1,7 +1,0 @@
-!Texture
-Id: d9b06a1f-70df-4c7a-a550-ebe4b6f2e370
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../../data/tests/basicDisplacement.png
-IsCompressed: false
-Type: !GrayscaleTextureType {}

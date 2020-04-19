@@ -1,0 +1,45 @@
+!SceneAsset
+Id: 49fe9241-18f3-478f-8f71-e87f87346da2
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 820d34a8-2971-4381-abfa-2965d94ec672
+        - ref!! a604bc4e-f7f3-42c1-b98f-eeea9e10b54c
+    Parts:
+        -   Entity:
+                Id: 820d34a8-2971-4381-abfa-2965d94ec672
+                Name: Splash
+                Components:
+                    bf33dc6bb7ffc24e9a05e50a0f025227: !TransformComponent
+                        Id: 6bdc33bf-ffb7-4ec2-9a05-e50a0f025227
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f6b6b1a8d48a8045bd940370455f3450: !UIComponent
+                        Id: a8b1b6f6-8ad4-4580-bd94-0370455f3450
+                        Page: 62c493c2-13ea-4fac-bbaf-578afafac104:SplashUI
+                        Resolution: {X: 640.0, Y: 1136.0, Z: 1000.0}
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                        ResolutionStretch: FixedWidthFixedHeight
+                    fd54344b6ac8b2ed232d62dc08820239: !GameMenu.SplashScript,GameMenu.Game
+                        Id: c7c92d4b-2c04-446f-b8c5-59e9d2b989cd
+                        NextSceneUrl: 9294c606-6173-4215-a8dc-0d5043d68333:MainScene
+        -   Entity:
+                Id: a604bc4e-f7f3-42c1-b98f-eeea9e10b54c
+                Name: Camera
+                Components:
+                    fc6116745c3c8bdd976518f7bbcadfb7: !TransformComponent
+                        Id: 619d595c-930b-46d1-9446-9934abc1c85e
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a565b59140a6c6c0b9e25c3375b97b1f: !CameraComponent
+                        Id: 4cc019a3-e4a0-4ef4-9a77-f0d6baa7be24
+                        Name: null
+                        Projection: Perspective
+                        Slot: 33a02921-a3f4-4baa-91b2-b557748dca5e

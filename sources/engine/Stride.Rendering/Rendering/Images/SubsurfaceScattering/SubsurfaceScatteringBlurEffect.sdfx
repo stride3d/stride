@@ -1,0 +1,17 @@
+﻿namespace Stride.Rendering.SubsurfaceScattering
+{
+    effect SubsurfaceScatteringBlurEffect
+    {
+        using params SubsurfaceScatteringKeys;   // TODO: What does this do?
+        
+        // Mixin:
+        mixin macro SSSS_FOLLOW_SURFACE = SubsurfaceScatteringKeys.FollowSurface;
+
+        mixin SubsurfaceScatteringBlurShader<SubsurfaceScatteringKeys.BlurHorizontally,
+                                             SubsurfaceScatteringKeys.KernelSizeJittering,
+                                             SubsurfaceScatteringKeys.OrthographicProjection,
+                                             SubsurfaceScatteringKeys.MaxMaterialCount,
+                                             SubsurfaceScatteringKeys.KernelLength,
+                                             SubsurfaceScatteringKeys.RenderMode>;
+    };
+}

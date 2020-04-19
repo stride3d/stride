@@ -1,0 +1,88 @@
+!PrefabAsset
+Id: 6064f3e4-a929-424b-abea-688419f05265
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! a254238f-5eec-45c1-80b8-379dbae2f435
+    Parts:
+        -   Entity:
+                Id: a254238f-5eec-45c1-80b8-379dbae2f435
+                Name: LootGoldCoin
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 03ed47b1-7f80-4e5d-ac9e-7ea8a0b7cc3a
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            40bc0789c794df458f3da83107baa90c: ref!! 8907bc40-94c7-45df-8f3d-a83107baa90c
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: bab6914f-9ee7-4ff2-a718-1a3895c0d4aa
+                        CanCollideWith: DefaultFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.05
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 1.2
+                        LinearDamping: 0.0
+                        AngularDamping: 0.05
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            50df1a989383bd4392648833025fabb1: !CylinderColliderShapeDesc
+                                Height: 0.04
+                                Radius: 0.25
+                                Orientation: UpZ
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+        -   Entity:
+                Id: cc62754d-0945-45f8-9d81-b73910989393
+                Name: CoinGold
+                Components:
+                    40bc0789c794df458f3da83107baa90c: !TransformComponent
+                        Id: 8907bc40-94c7-45df-8f3d-a83107baa90c
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Scale: {X: 10.0, Y: 10.0, Z: 10.0}
+                        Children: {}
+                    76eeb34856ae80488daf19410ab51cf5: !ModelComponent
+                        Id: 48b3ee76-ae56-4880-8daf-19410ab51cf5
+                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:Models/CoinGold
+                        Materials: {}
+                    5d7c980f639f67459b68a76d9fcdd82c: !TopDownRPG.Gameplay.Trigger,TopDownRPG.Game
+                        Id: 0f987c5d-9f63-4567-9b68-a76d9fcdd82c
+                        TriggerCondition: StartOnly
+                    ad21c26f9cdcbb47a25089fd9e0b23d5: !RigidbodyComponent
+                        Id: 6fc221ad-dc9c-47bb-a250-89fd9e0b23d5
+                        CollisionGroup: SensorTrigger
+                        CanCollideWith: CharacterFilter
+                        CanSleep: false
+                        Restitution: 1.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            2a043ba46694b04291c512704232acd7: !SphereColliderShapeDesc
+                                Is2D: false
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                    01ab324bade8aa4c9118f516e330ca39: !TopDownRPG.Gameplay.LootCoinScript,TopDownRPG.Game
+                        Id: 4b32ab01-e8ad-4caa-9118-f516e330ca39
+                        CoinGetEffect: 48c406d2-677a-4a3b-90a0-4c0094894935:VFXPrefabs/vfx-GetCoin
+                        Trigger: ref!! 0f987c5d-9f63-4567-9b68-a76d9fcdd82c
+                        SoundEffect: 8f8f4038-b521-4a36-b606-7d33e68f9ddb:Audio/coin_get

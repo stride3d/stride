@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RenameVSWindowTitle>
+  <SettingsSet
+    __SolutionName="Stride"
+    __ClosestParentDepth="1"
+    __FarthestParentDepth="1"
+    __AppendedString="*"
+    PatternIfRunningMode="[parent:2]\[solutionName] (Running) - [ideName]"
+    PatternIfBreakMode="[parent:2]\[solutionName] (Debugging) - [ideName]"
+    PatternIfDesignMode="[parent:2]\[solutionName] - [ideName]" />
+  <!--See following sample SettingsSet (remove -Example from the tag name to use as is). All overrides are specified as attributes.-->
+  <SettingsSet-Example
+    SolutionName="Stride"
+    ClosestParentDepth="1"
+    FarthestParentDepth="1"
+    AppendedString="*"
+    PatternIfRunningMode="[solutionName] (Running) - [ideName]"
+    PatternIfBreakMode="[solutionName] (Debugging) - [ideName]"
+    PatternIfDesignMode="[solutionName] - [ideName]" />
+</RenameVSWindowTitle>

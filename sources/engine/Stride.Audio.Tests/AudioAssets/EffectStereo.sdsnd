@@ -1,0 +1,7 @@
+!Sound
+Id: 8d338636-2ff9-4114-8a05-a59cca7f0ae4
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/audio/90-bboc1-stero.wav
+StreamFromDisk: false
+Spatialized: true

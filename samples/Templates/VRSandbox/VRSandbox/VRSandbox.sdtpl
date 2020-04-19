@@ -1,0 +1,11 @@
+!TemplateSample
+Id: 91366B3A-915A-46B7-88C8-0439B0F3E5F5
+Name: "Template: virtual reality"
+Scope: Session
+Description: A virtual reality game template
+Group: Templates
+FullDescription: This sample demonstrates a simple VR game. The player can interact with objects using the triggers on either hand, and teleport with A or the thumb button on the right-hand controller.
+Icon: ../../.sdtpl/Icon2VR.png
+DefaultOutputName: VRSandbox
+Screenshots:
+    - .sdtpl/screenshot_small.jpg

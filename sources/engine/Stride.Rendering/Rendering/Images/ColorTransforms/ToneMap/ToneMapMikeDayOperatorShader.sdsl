@@ -1,0 +1,30 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// The tonemap operator from Mike Day, Insomniac Games.
+    /// </summary>
+    /// <remarks>
+    /// https://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2012/09/an-efficient-and-user-friendly-tone-mapping-operator.pdf
+    /// </remarks>
+    internal shader ToneMapMikeDayOperatorShader : ToneMapOperatorShader
+    {
+        float4 ToeCoeffs;
+        float4 ShoulderCoeffs;
+        float  MiddleCrossOver;
+
+        float Remap(float x)
+        {
+	        float4 coeffs = (x < MiddleCrossOver) ? ToeCoeffs : ShoulderCoeffs;
+	        float2 fraction = coeffs.xy * x + coeffs.zw;
+	        return fraction.x / fraction.y; 
+        }
+
+        override float4 Compute(float4 color)
+        {
+	        return float4(Remap(color.r), Remap(color.g), Remap(color.b), color.a);
+        }
+    };
+}

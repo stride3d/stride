@@ -1,0 +1,38 @@
+!PrefabAsset
+Id: 7ff74fb7-a003-402c-a6dc-3b64845f0051
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! c8e41657-60ac-476e-9ef9-d54f413e31a2
+    Parts:
+        -   Entity:
+                Id: c8e41657-60ac-476e-9ef9-d54f413e31a2
+                Name: Wall0x1x2
+                Components:
+                    28dde9b7de50404da1714927c7316a8a: !TransformComponent
+                        Id: b7e9dd28-50de-4d40-a171-4927c7316a8a
+                        Position: {X: 0.0, Y: 0.5, Z: 1.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    26957a0a8261b845b71c5ac294d1fd69: !ModelComponent
+                        Id: 0a7a9526-6182-45b8-b71c-5ac294d1fd69
+                        Model: a6a24fab-caf5-4344-8bc0-e29860ea3dbd:Models/Wall0x1x2
+                        Materials:
+                            ec9522ed2e91694abd8663b5b8ada228~0: af6015d0-0e5d-4189-b6e0-96810ff58e48:Materials/GridMTWall
+                    2035050297cb7942b2b1f5e2f2ca07b5: !StaticColliderComponent
+                        Id: 02053520-cb97-4279-b2b1-f5e2f2ca07b5
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            e067ab5c6239c9479111bac33509f19a: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 1.0, Z: 2.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}

@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Stride.VisualStudio.Package": {
+      "commandName": "Executable",
+      "executablePath": "$(DevEnvDir)\\devenv.exe",
+      "commandLineArgs": "/RootSuffix Stride"
+    }
+  }
+}

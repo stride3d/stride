@@ -1,0 +1,20 @@
+!SpriteStudioSheetAsset
+Id: 7595b1d1-3f94-4cc5-bbfc-ec51687b96d6
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/character_template_2head.ssae
+NodeNames:
+    61b37d77943cc22e9b178872db891046: root
+    2798fc89b461480bc10330d32074e60e: body
+    9ca9b3c5f89c7fb06d5e4ac8beac39c3: head
+    a448152eb6470afb078d1783aa96e77b: hair
+    e2ee8cd74930caca7d6bb602790d4564: leg_l
+    950fbbfbd798e5ba92122e3013ed60d1: leg_r
+    68c8e2d53287edb9283a7c8c739069f0: arm_l
+    cb97303982c48662ec155eb5666e38be: object3
+    add84675f4b4754db35d23762d2e1287: arm_r
+    5dc54ec795a2b308c2a489fa1f3f3ddd: object1
+    b79dc03717ffbf7a105ac6176b681e6c: object2
+    798dd630bc7ed937f6d2be2f649409cb: shadow
+~SourceHashes:
+    a59e4d5c62f426c99788681021a8d6bb~../../Resources/character_template_2head.ssae: 7bbed142c2c2aca394cccf062b9891b2

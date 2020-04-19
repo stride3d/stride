@@ -1,0 +1,14 @@
+!Model
+Id: fdd84cdb-1e11-4cb8-a5eb-8bba7f2fe729
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../../data/tests/cube/cube.fbx
+Skeleton: e1b4aa1c-e0ab-409b-bbe4-a5fa0c1afc8d:Cube/cube Model Skeleton
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    73d819090a48d0469b66ab35aa592900:
+        Name: lambert1
+        MaterialInstance:
+            Material: ed1bbd82-0078-4d58-9544-ff7e47697d77:Cube/lambert1
+~SourceHashes:
+    739d171386dff45c7cf6852f777af106~../../../../data/tests/cube/cube.fbx: 2471e6b1be7106f3e68cf790e9306164

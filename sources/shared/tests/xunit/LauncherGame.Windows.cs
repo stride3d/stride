@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace xunit.runner.xenko
+namespace xunit.runner.stride
 {
     class Program
     {
-        public static void Main(string[] args) => XenkoXunitRunner.Main(args, interactiveMode => GameTestBase.ForceInteractiveMode = interactiveMode);
+        public static void Main(string[] args) => StrideXunitRunner.Main(args, interactiveMode => GameTestBase.ForceInteractiveMode = interactiveMode);
     }
 }

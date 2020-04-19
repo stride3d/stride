@@ -1,0 +1,12 @@
+﻿!TemplateAssetFactory
+Id: 62124263-A299-42CF-A724-F962AE8773E8
+AssetTypeName: SoundAsset
+Name: Spatialized sound
+Scope: Asset
+Description: A mono spatialized sound imported from a source file, played from memory for use with sound emitters
+Group: Media
+Order: 0
+Icon: ..\.sdtpl\SoundEffect.png
+DefaultOutputName: SpatializedSound
+ImportSource: true
+FactoryTypeName: SpatializedSoundFactory

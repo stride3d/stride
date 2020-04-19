@@ -1,0 +1,36 @@
+﻿<Project>
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <PropertyGroup>
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+    <OutputType>Library</OutputType>
+    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <StrideBuildTags>WindowsTools</StrideBuildTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\ConsoleProgram.cs">
+      <Link>Frontend\Console\ConsoleProgram.cs</Link>
+    </Compile>
+    <Compile Remove="Frontend\TexArray.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <StrideNativeLib Include="$(StrideDependenciesDir)FreeImage\Release\**\*.dll">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </StrideNativeLib>
+    <StrideNativeLib Include="$(StrideDependenciesDir)TextureWrappers\Release\**\*.dll">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </StrideNativeLib>
+    <StrideNativeLib Include="$(StrideDependenciesDir)PVRTT\**\*.dll">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </StrideNativeLib>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
+  </ItemGroup>
+  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+</Project>

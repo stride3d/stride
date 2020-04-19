@@ -1,0 +1,15 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+shader EffectCompiling : ShadingBase
+{
+    // method computing color
+    stage override float4 Shading()
+    {
+        float factor = sin(Global.Time * 6.0f) * 0.25f + 0.25f;
+        float4 reloadColor = float4(0.66f, 1.0f, 0.25f, 1.0f);
+
+        // High frequency glow to let user know effect is reloading
+        return lerp(base.Shading(), reloadColor, factor);
+    }
+};

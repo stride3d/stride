@@ -1,9 +1,0 @@
-!SpriteFont
-Id: aed70788-54ce-4a84-bed9-c7f29bd71177
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-FontSource: !SystemFontProvider
-    FontName: Calibri
-    Style: Regular
-FontType: !RuntimeRasterizedSpriteFontType
-    Size: 85.0

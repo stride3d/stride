@@ -1,0 +1,20 @@
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// </summary>
+    class GBufferOutputSubsurfaceScatteringMaterialIndex : ComputeColor
+    {
+        cbuffer PerDraw
+        {
+            // TODO: How to initialize this to 0 at all times for every material?
+            stage uint MaterialIndex;   // This is only defined here so it can be overwritten by SubsurfaceScatteringRenderFeature in order to index the material inside the post process.
+        }
+
+		override float4 Compute()
+		{
+			return MaterialIndex;
+		}
+    };
+}

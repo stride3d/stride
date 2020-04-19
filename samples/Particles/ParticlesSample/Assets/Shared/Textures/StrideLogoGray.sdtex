@@ -1,0 +1,8 @@
+!Texture
+Id: 53d52841-b695-4d71-af85-4f665f0705bc
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../Resources/StrideLogoGray.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+IsStreamable: false

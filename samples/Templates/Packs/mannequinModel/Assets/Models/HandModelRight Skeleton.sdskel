@@ -1,0 +1,30 @@
+!Skeleton
+Id: 81c9644d-cf07-4cfe-a3dd-5836202ba647
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/Models/HandModelRight.fbx
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Nodes:
+    2b83a4a0d5dde6216f7c2fe8b32bbfe2: {Name: RootNode, Depth: 0}
+    b6649da7373cf6c8300a3efb9415ba14: {Name: HandModelRight, Depth: 1}
+    ecbced107fe349735afe2ba25afe2ba2: {Name: root, Depth: 2}
+    8d9b8149b4866be84041e3f7083f6d37: {Name: CATRigRArm, Depth: 3}
+    51f75421fba90cfb2836050347ba79fe: {Name: CATRigRArmPalm, Depth: 4}
+    6b6f62590b9978d90702320eb384b262: {Name: CATRigRArmDigit11, Depth: 5}
+    cfb678bff8535e9eb7e2c5c64c0745e7: {Name: CATRigRArmDigit12, Depth: 6}
+    50c404861292c27f3b75c31fbce5257d: {Name: CATRigRArmDigit13, Depth: 7}
+    de261753e6652051086e47ffae061135: {Name: CATRigRArmDigit21, Depth: 5}
+    8577b161ffe8c9af8272e3f43299eedf: {Name: CATRigRArmDigit22, Depth: 6}
+    d3b0d1869c2b7331163fe8d5b664d330: {Name: CATRigRArmDigit23, Depth: 7}
+    3cc1db383be7ba16d44f64a2ff3f8613: {Name: CATRigRArmDigit31, Depth: 5}
+    031c37b0e191fa9f570e16e6b2a854c2: {Name: CATRigRArmDigit32, Depth: 6}
+    21859576aae214500b2d14f644589f7a: {Name: CATRigRArmDigit33, Depth: 7}
+    b088806106de7df874b1ce9f1bcad674: {Name: CATRigRArmDigit41, Depth: 5}
+    cf4597045e95dba2ebcf16ee9d3d0f5d: {Name: CATRigRArmDigit42, Depth: 6}
+    5e8ba57dcfe2a7eb346af77086fd4807: {Name: CATRigRArmDigit43, Depth: 7}
+    0b3a7ca3874c61ba22c1cb00f7724e03: {Name: CATRigRArmDigit51, Depth: 5}
+    478eda19566c7df8752fd23d95937d9f: {Name: CATRigRArmDigit52, Depth: 6}
+    931686e7b41a5a9c074b34869f16bdca: {Name: CATRigRArmDigit53, Depth: 7}
+    56389656f58c3143ce999fcca215ed8d: {Name: handRight, Depth: 2}
+~SourceHashes:
+    64896394e9c8a1cbb7e056bc854fbd80~../../Resources/Models/HandModelRight.fbx: a3d72d9e3c4237ebc9cade426869f4f6

@@ -1,8 +1,0 @@
-﻿<!-- Build file pre-included by all Xenko projects -->
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <XenkoCommonPreSettingsName>Xenko</XenkoCommonPreSettingsName>
-    <XenkoPlatforms Condition="'$(XenkoPlatforms)' == ''">Windows;iOS</XenkoPlatforms>
-  </PropertyGroup>
-</Project>
-

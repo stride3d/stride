@@ -1,8 +1,0 @@
-!Texture
-Id: ec62e549-e107-49b6-957e-47d8913502bd
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/knight/sourceimages/c100_weapon_nm.jpg
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-    PremultiplyAlpha: false

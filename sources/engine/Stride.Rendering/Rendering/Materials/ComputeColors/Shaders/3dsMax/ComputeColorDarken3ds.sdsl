@@ -1,0 +1,24 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader ComputeColorDarken3ds : ComputeColor
+{
+    compose ComputeColor color1;
+    compose ComputeColor color2;
+
+    override float4 Compute()
+    {
+        float4 backColor = color1.Compute();
+        float4 frontColor = color2.Compute();
+
+        // From http://msdn.microsoft.com/en-us/library/windows/desktop/hh706313(v=vs.85).aspx
+        //
+        //  b = background, f = foreground, c = color, a = alpha, r = result color obtained with the specific blend formula
+        //
+        //  Darken:
+        //      color = min((1 - fa) * ba * bc + (fa * fc), (1 - ba) * fa * fc + (ba * bc))
+        //      alpha = fa * (1-ba) + ba
+
+        return float4(min(lerp(backColor.a * backColor.rgb, frontColor.rgb, frontColor.a), lerp(frontColor.a * frontColor.rgb, backColor.rgb, backColor.a)),
+                      BlendUtils.BasicAlphaBlend(backColor.a, frontColor.a));
+    }
+};

@@ -1,0 +1,19 @@
+!Animation
+Id: 332697a8-4758-43bf-ad87-a9de0f5c5789
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/knight/scenes/Idle.fbx
+ClipDuration:
+    Enabled: false
+    StartAnimationTime: 0:00:00:00.0000000
+    EndAnimationTime: 0:00:00:02.6330000
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+RepeatMode: LoopInfinite
+Type: !StandardAnimationAssetType {}
+Skeleton: eed299b6-ee92-4a0c-9dc9-ec478f235c9c:mannequinModel Skeleton
+RootMotion: false
+PreviewModel: 10df5408-fbd1-4177-b0c2-e0190d6311a3:mannequinModel
+AnimationTimeMinimum: 0:00:00:00.0000000
+AnimationTimeMaximum: 0:00:00:02.6330000
+~SourceHashes:
+    8e8c1004e5c13167722a1f8bdd0010ea~../../../data/tests/knight/scenes/Idle.fbx: 425da9e0d3fa578a8427ead97d6200b6

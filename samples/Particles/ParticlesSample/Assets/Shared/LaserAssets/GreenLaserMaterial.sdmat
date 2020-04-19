@@ -1,0 +1,39 @@
+!MaterialAsset
+Id: 41702246-6d6e-4add-b943-dc04d1802581
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Attributes:
+    Emissive: !MaterialEmissiveMapFeature
+        EmissiveMap: !ComputeBinaryColor
+            Operator: Multiply
+            LeftChild: !ComputeShaderClassColor
+                MixinReference: ComputeColorTextureScroll
+                Generics:
+                    2c0bb69bbe2aff4caee9c7d589a34adb~UvSpeed: !ComputeColorParameterFloat
+                        Value: 1.0
+                    4aad9128b16fa74dbd140e49132dc1c2~colorIntensity: !ComputeColorParameterFloat
+                        Value: 1.0
+                CompositionNodes: {}
+            RightChild: !ComputeBinaryColor
+                Operator: Multiply
+                LeftChild: !ComputeTextureColor
+                    Texture: 2ac3c157-7d5a-4fcd-990d-3e3f4785354b:Textures/TiledPattern01
+                    FallbackValue:
+                        Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                    Scale: {X: 1.0, Y: 1.0}
+                    Offset: {X: 0.0, Y: 0.0}
+                    Swizzle: null
+                RightChild: !ComputeFloat4
+                    Value: {X: 1.0, Y: 10.0, Z: 3.0, W: 1.0}
+        Intensity: !ComputeFloat
+            Value: 1.0
+        UseAlpha: true
+    Transparency: !MaterialTransparencyAdditiveFeature
+        Alpha: !ComputeFloat
+            Value: 0.5
+        Tint: !ComputeColor
+            Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+    Overrides:
+        UVScale: {X: 1.0, Y: 1.0}
+    CullMode: None
+Layers: {}

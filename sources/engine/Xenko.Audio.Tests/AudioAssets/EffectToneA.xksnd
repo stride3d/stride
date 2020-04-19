@@ -1,7 +1,0 @@
-!Sound
-Id: b93284cf-ebfc-4f64-ab6a-11be7c13e4b9
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/audio/a.wav
-StreamFromDisk: false
-Spatialized: true

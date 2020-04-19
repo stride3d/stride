@@ -1,9 +1,0 @@
-!Texture
-Id: b6b96d6e-8e36-48b3-a556-aba84de6be37
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../Resources/smoke8x8.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-    PremultiplyAlpha: false
-IsStreamable: false

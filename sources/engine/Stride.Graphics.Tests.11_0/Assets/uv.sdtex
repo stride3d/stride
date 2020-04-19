@@ -1,0 +1,8 @@
+!Texture
+Id: a60c5fe7-6934-455f-bf6a-bd7abe1453d1
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/uv.dds
+IsCompressed: false
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

@@ -1,0 +1,8 @@
+!Texture
+Id: cce9f877-e829-48e1-9dda-a0c9bcee8b20
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/BorderButtonCentered.dds
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+    Alpha: Explicit

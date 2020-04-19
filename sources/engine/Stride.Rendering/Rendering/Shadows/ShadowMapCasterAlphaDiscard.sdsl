@@ -1,0 +1,17 @@
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Shadows
+{
+    /// <summary>
+    /// Shadow map caster with pixel shader performing alpha discard test.
+    /// </summary>
+    shader ShadowMapCasterAlphaDiscard : Transformation, ShaderBase, PositionStream, MaterialPixelStream
+    {
+        override stage void PSMain()
+        {
+            base.PSMain();
+
+            clip(streams.ColorTarget.a - streams.matAlphaDiscard);
+        }
+    };
+}

@@ -1,0 +1,14 @@
+!Model
+Id: bf9b6939-78ab-44b1-aee5-ea23202deb4a
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/Stand/standBowl.fbx
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    e274a7dc94edc1896586423665864236:
+        Name: blinn1
+        MaterialInstance:
+            Material: 219e0c43-1fe7-42ce-9aa8-65aaa0023eb5:Materials/PolishedStone
+Skeleton: null
+~SourceHashes:
+    efa29fde2832fb2f2497a862210e3d38~../../Resources/Stand/standBowl.fbx: 3a9256a73afacbf5bc0852d6ae92a196

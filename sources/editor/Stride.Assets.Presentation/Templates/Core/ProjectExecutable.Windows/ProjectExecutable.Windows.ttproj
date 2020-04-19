@@ -1,0 +1,5 @@
+﻿!ProjectTemplate
+Files:
+  - {Source: $ProjectName$.csproj.t4, Target: $ProjectName$.csproj, IsTemplate: true}
+  - {Source: $PackageGameNameShort$App.cs.t4, Target: $PackageGameNameShort$App.cs, IsTemplate: true}
+  - {Source: Resources\GameIcon.ico, Target: Resources\Icon.ico}

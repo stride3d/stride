@@ -1,0 +1,24 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Blend a stream using RNM
+    /// </summary>
+    shader MaterialStreamNormalBlend : IMaterialStreamBlend
+    {
+        override void Compute(Streams fromStream)
+        {
+            // Linear interpolation (TODO: We could let the normal blending be configurable)
+            var middleNormal = NormalUtil.BlendRNM(fromStream.matNormal, streams.matNormal);
+
+            // This is not correct, but try to have a good 0.5 and linear interpol from this
+            // ideally, we should have RNM support a blending based of matBlend
+            streams.matNormal =  streams.matBlend < 0.5 ? 
+                  lerp(fromStream.matNormal, middleNormal, streams.matBlend / 0.5)
+                : lerp(middleNormal, streams.matNormal, (streams.matBlend - 0.5) * 2);
+
+            //streams.matNormal = normalize(lerp(fromStream.matNormal, streams.matNormal, streams.matBlend));
+        }
+    };
+}

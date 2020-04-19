@@ -1,0 +1,27 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+TemplateFolders:
+    - Path: !dir ../../../samples
+      Group: Samples
+      Exclude: "**/Testing/**;**/Cache/**;**/.git/**;**/_ReSharper.*/**;**/Bin/**;**/obj/**;**/*.sln;**/*.suo;**/.vs/**;**/*.GhostDoc.xml;readme.md;.gitignore;**/*.psess;**/*.vspx;**/*.userprefs"
+      Files:
+        - !file ../../../samples/Audio/SimpleAudio/SimpleAudio.sdtpl
+        - !file ../../../samples/Games/JumpyJet/JumpyJet.sdtpl
+        - !file ../../../samples/Games/SpaceEscape/SpaceEscape.sdtpl
+        - !file ../../../samples/Graphics/AnimatedModel/AnimatedModel.sdtpl
+        - !file ../../../samples/Graphics/CustomEffect/CustomEffect.sdtpl
+        - !file ../../../samples/Graphics/MaterialShader/MaterialShader.sdtpl
+        - !file ../../../samples/Graphics/SpriteFonts/SpriteFonts.sdtpl
+        - !file ../../../samples/Graphics/SpriteStudioDemo/SpriteStudioDemo.sdtpl
+        - !file ../../../samples/Input/TouchInputs/TouchInputs.sdtpl
+        - !file ../../../samples/Input/GravitySensor/GravitySensor.sdtpl
+        - !file ../../../samples/Particles/ParticlesSample/ParticlesSample.sdtpl
+        - !file ../../../samples/Physics/PhysicsSample/PhysicsSample.sdtpl
+        - !file ../../../samples/UI/GameMenu/GameMenu.sdtpl
+        - !file ../../../samples/UI/UIParticles/UIParticles.sdtpl
+        - !file ../../../samples/UI/UIElementLink/UIElementLink.sdtpl
+        - !file ../../../samples/Templates/FirstPersonShooter/FirstPersonShooter/FirstPersonShooter.sdtpl
+        - !file ../../../samples/Templates/ThirdPersonPlatformer/ThirdPersonPlatformer/ThirdPersonPlatformer.sdtpl
+        - !file ../../../samples/Templates/TopDownRPG/TopDownRPG/TopDownRPG.sdtpl
+        - !file ../../../samples/Templates/VRSandbox/VRSandbox/VRSandbox.sdtpl
+        - !file ../../../samples/Tutorials/CSharpBeginner/CSharpBeginner/CSharpBeginner.sdtpl

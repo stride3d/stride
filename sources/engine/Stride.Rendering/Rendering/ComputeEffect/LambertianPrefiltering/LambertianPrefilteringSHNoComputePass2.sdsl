@@ -1,0 +1,23 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// The second pass of a shader performing Lambertian pre-filtering using Spherical Harmonics
+    /// </summary>
+    shader LambertianPrefilteringSHNoComputePass2 : ImageEffectShader, Texturing
+    {   
+        stage override float4 Shading()
+        {
+            float4 result = 0;
+
+            result += Texture0.Sample(PointSampler, streams.TexCoord, int2(-1, 0));
+            result += Texture0.Sample(PointSampler, streams.TexCoord, int2(0, 0));
+            result += Texture0.Sample(PointSampler, streams.TexCoord, int2(0, -1));
+            result += Texture0.Sample(PointSampler, streams.TexCoord, int2(-1, -1));
+
+            return result;
+        }
+    };
+}

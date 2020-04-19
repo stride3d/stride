@@ -1,0 +1,26 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering
+{
+
+shader ParticleComputeColorShader : ParticleBase
+{
+    // -------------------------------------
+    // streams
+    // -------------------------------------
+    compose ComputeColor  baseColor;
+
+    // Shading of the sprite
+    stage override float4 Shading()
+    {
+        // -----------------------------------------------
+        // Base particle color
+        // -----------------------------------------------        
+        float4 finalColor = base.Shading() * baseColor.Compute();
+
+        return finalColor;
+    }
+};
+
+}

@@ -1,0 +1,8 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+TemplateFolders:
+    - Path: !dir Templates/Assets
+      Group: Assets
+      Files:
+        - !file Templates/Assets/SpriteStudio/DefaultSpriteStudioAnimation.sdtpl
+        - !file Templates/Assets/SpriteStudio/DefaultSpriteStudioModel.sdtpl

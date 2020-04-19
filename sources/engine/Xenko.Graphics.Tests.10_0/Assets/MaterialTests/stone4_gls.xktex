@@ -1,7 +1,0 @@
-!Texture
-Id: 270acfc0-1bf9-43ca-8ae1-f8f10a16e009
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../Resources/stone4_gls.jpeg
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

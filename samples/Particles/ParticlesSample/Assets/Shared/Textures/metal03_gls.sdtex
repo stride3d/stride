@@ -1,0 +1,7 @@
+!Texture
+Id: a8861278-2fec-4b4a-9e8c-59985e8fa934
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../Resources/Stand/metal03_gls.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

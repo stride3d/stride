@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: 9C61CD13-50ED-4ECC-9BA7-05B21D9F79DD
+AssetTypeName: ColliderShapeAsset
+Name: Cone
+Scope: Asset
+Description: A cone-shaped collider
+Group: Physics
+Icon: ..\.sdtpl\ColliderCone.png
+DefaultOutputName: ColliderCone
+FactoryTypeName: ColliderShapeConeFactory

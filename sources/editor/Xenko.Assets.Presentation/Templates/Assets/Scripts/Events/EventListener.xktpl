@@ -1,9 +1,0 @@
-!TemplateAsset
-Id: F0993284-591B-48E8-83F9-EC243EE4DE9E
-AssetTypeName: ScriptSourceFileAsset
-Name: Event listener
-Scope: Asset
-Description: Listens for an event, then catches it and runs game logic
-Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
-DefaultOutputName: EventListener

@@ -1,0 +1,7 @@
+!Sound
+Id: d9ce7b4e-ac45-4e2f-a2df-aaf3d17a8de8
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/audio/ae.wav
+StreamFromDisk: false
+Spatialized: true

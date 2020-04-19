@@ -1,8 +1,0 @@
-!Texture
-Id: 7e5ae8dc-6417-40b8-a3d6-4f019fd7cc28
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/AtriumNight.dds
-IsCompressed: false
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

@@ -1,6 +1,6 @@
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Input;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Input;
 
 namespace CSharpBeginner.Code
 {

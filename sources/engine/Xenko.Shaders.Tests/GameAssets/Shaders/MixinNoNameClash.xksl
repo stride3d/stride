@@ -1,9 +1,0 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
-// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-shader MixinNoNameClash : BasicMixin, BasicMixin2
-{
-    void test()
-    {
-        float i = BasicMixin.myFloat + BasicMixin2.myFloat;
-    }
-};

@@ -1,0 +1,11 @@
+﻿!TemplateAssetFactory
+Id: 1C938745-1B71-4CA4-BE17-0DF51295A7E6
+AssetTypeName: SpriteFontAsset
+Name: "Runtime rasterized"
+Scope: Asset
+Description: A runtime rasterized sprite font asset in which the font file is embedded in the application
+Group: Font
+Order: -80
+Icon: ..\.sdtpl\SpriteFont.png
+DefaultOutputName: SpriteFont
+FactoryTypeName: RuntimeRasterizedSpriteFontFactory

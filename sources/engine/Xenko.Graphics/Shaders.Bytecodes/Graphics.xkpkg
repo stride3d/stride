@@ -1,9 +1,0 @@
-!Package
-Id: 889FEA71-A58F-4415-98C6-92DE24737BE4
-SerializedVersion: {Assets: 3.1.0.0}
-Meta:
-    Name: Xenko.Graphics
-    Version: 1.0.0
-AssetFolders:
-    - Path: ../Shaders
-    - Path: .

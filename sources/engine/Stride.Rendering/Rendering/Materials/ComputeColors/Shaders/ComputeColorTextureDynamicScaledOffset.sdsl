@@ -1,0 +1,24 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Samples a texture with default sampler wit a scale and an offset.
+/// </summary>
+/// <remarks>
+/// TTexture: generic Texture2D - the texture to sample.
+/// TStream: generic Semantic - the texcoord index semantic used to sample the texture.
+/// </remarks>
+shader ComputeColorTextureDynamicScaledOffset<Texture2D TTexture, Semantic TStream> : ComputeColor
+{
+    stage stream float2 TexCoord : TStream;
+
+    // -------------------------------------
+    // uniforms
+    // -------------------------------------
+    stage float2 Offset = float2(0,0);
+    stage float2 Scale = float2(1,1);
+
+    override float4 Compute()
+    {
+        return TTexture.Sample(Texturing.Sampler, streams.TexCoord * Scale + Offset);
+    }
+};

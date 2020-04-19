@@ -1,0 +1,23 @@
+!SpriteSheet
+Id: 5e05374a-25da-4001-8912-1a4b14323d97
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: UI
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+Packing:
+    AllowRotations: false
+Sprites:
+    8479449bbe902e4ab266b9b8cbae431b:
+        Source: ../../Resources/buttons.png
+        Name: rope_big
+        TextureRegion: {X: 7, Y: 425, Width: 480, Height: 16}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    8db620399275345caa3577bd0d446b5b:
+        Source: ../../Resources/buttons.png
+        Name: rope_small
+        TextureRegion: {X: 7, Y: 456, Width: 477, Height: 10}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}

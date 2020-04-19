@@ -7,18 +7,18 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThirdPersonPlatformer.Game", "ThirdPersonPlatformer\ThirdPersonPlatformer.Game\ThirdPersonPlatformer.Game.csproj", "{6807D261-4AF2-405C-8EBF-D8A0B08C7801}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mannequinModel", "mannequinModel", "{EC64FD24-824F-4DA4-B077-3661CF988027}"
-	ProjectSection(XenkoPackage) = preProject
-		../Packs/mannequinModel/mannequinModel/mannequinModel.xkpkg = ../Packs/mannequinModel/mannequinModel/mannequinModel.xkpkg
+	ProjectSection(StridePackage) = preProject
+		../Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg = ../Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PrototypingBlocks", "PrototypingBlocks", "{C9B4F26A-E7BA-4201-A6E0-0C0EEDFE9DE2}"
-	ProjectSection(XenkoPackage) = preProject
-		../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.xkpkg = ../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.xkpkg
+	ProjectSection(StridePackage) = preProject
+		../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.sdpkg = ../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.sdpkg
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdPersonPlatformer", "ThirdPersonPlatformer", "{AFAE975A-E8BC-4B00-82B3-7D9C67DD6A41}"
-	ProjectSection(XenkoPackage) = preProject
-		ThirdPersonPlatformer/ThirdPersonPlatformer.xkpkg = ThirdPersonPlatformer/ThirdPersonPlatformer.xkpkg
+	ProjectSection(StridePackage) = preProject
+		ThirdPersonPlatformer/ThirdPersonPlatformer.sdpkg = ThirdPersonPlatformer/ThirdPersonPlatformer.sdpkg
 	EndProjectSection
 EndProject
 Global

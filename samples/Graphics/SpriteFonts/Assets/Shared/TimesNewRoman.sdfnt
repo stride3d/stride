@@ -1,0 +1,9 @@
+!SpriteFont
+Id: 022190f7-e5e1-4709-97c2-c02470ebb312
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+FontSource: !SystemFontProvider
+    FontName: Times New Roman
+    Style: Regular
+FontType: !RuntimeRasterizedSpriteFontType
+    Size: 16.0

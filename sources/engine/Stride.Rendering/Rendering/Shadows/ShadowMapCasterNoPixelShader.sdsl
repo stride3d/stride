@@ -1,0 +1,15 @@
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Shadows
+{
+    /// <summary>
+    /// Shadow map caster without pixel shader color outputs (only depth).
+    /// </summary>
+    shader ShadowMapCasterNoPixelShader : Transformation, ShaderBase, PositionStream
+    {
+        override stage void PSMain()
+        {
+            // no code = null pixel shader, as we are outputing depth only
+        }
+    };
+}

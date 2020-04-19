@@ -1,0 +1,24 @@
+!SceneAsset
+Id: 8da52091-f3ce-45a3-8f1b-01fbf1a19f42
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 95d80bd6-50e5-4984-92ae-7b8eeec651a6
+    Parts:
+        -   Entity:
+                Id: 95d80bd6-50e5-4984-92ae-7b8eeec651a6
+                Name: FontUI
+                Components:
+                    74641c1352dd2a4c930558229434efcc: !TransformComponent
+                        Id: 131c6474-dd52-4c2a-9305-58229434efcc
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b798a3385d286340a9507d21a21321cf: !TouchInputs.TouchInputsScript,TouchInputs.Game
+                        Id: 38a398b7-285d-4063-a950-7d21a21321cf
+                        Font: 25d9be11-4750-4d09-b58f-0628bf0c74e1:Font
+                        RoundTexture: f21cc317-81d3-41f1-b524-d12766abf594:round

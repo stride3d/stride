@@ -1,0 +1,76 @@
+!SceneAsset
+Id: 877bd450-9cd3-48ce-b612-97e7545a5e1f
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 359ed8d5-5381-47fc-9448-6c3c724eb457
+        - ref!! 1066a3c5-dc72-4ca6-b58d-066dd7a658d0
+        - ref!! 3eeb85ab-5668-4772-b4b5-ff0a50dd70f5
+        - ref!! d62e02cb-f3fc-43ae-b6aa-07eccae98182
+    Parts:
+        -   Entity:
+                Id: 1066a3c5-dc72-4ca6-b58d-066dd7a658d0
+                Name: Plane
+                Components:
+                    2a78d8eb951de547a1b95bedb572d459: !TransformComponent
+                        Id: ebd8782a-1d95-47e5-a1b9-5bedb572d459
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    66c89c2d4ae7264f95096afa3168164b: !ModelComponent
+                        Id: 2d9cc866-e74a-4f26-9509-6afa3168164b
+                        Model: fc976b30-8fd5-4b7c-bb45-c1acc1e3f508:PlaneModel
+                        Materials: {}
+        -   Entity:
+                Id: 359ed8d5-5381-47fc-9448-6c3c724eb457
+                Name: Camera
+                Components:
+                    865675decc2b35498a08aa9df0682cec: !TransformComponent
+                        Id: de755686-2bcc-4935-8a08-aa9df0682cec
+                        Position: {X: 1.0, Y: 0.5, Z: 1.0}
+                        Rotation: {X: -0.16043, Y: 0.376869619, Z: 0.06645229, W: 0.9098437}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    12900d5f2ca5414fb199b7d537e8e864: !CameraComponent
+                        Id: 5f0d9012-a52c-4f41-b199-b7d537e8e864
+                        Name: null
+                        Projection: Perspective
+                        FarClipPlane: 100.0
+                        Slot: d7498257-2125-4118-afef-0aaf351c0471
+        -   Entity:
+                Id: 3eeb85ab-5668-4772-b4b5-ff0a50dd70f5
+                Name: Directional light
+                Components:
+                    82be9853676be3428778fc3ef78ad295: !TransformComponent
+                        Id: 5398be82-6b67-42e3-8778-fc3ef78ad295
+                        Position: {X: -0.3915618, Y: 0.712286949, Z: 0.487137645}
+                        Rotation: {X: 0.0451833233, Y: 0.911823, Z: 0.276618749, W: -0.3000324}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    4faeb0b6118f064f84b26bfa82460c93: !LightComponent
+                        Id: b6b0ae4f-8f11-4f06-84b2-6bfa82460c93
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Shadow:
+                                Size: Large
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                BiasParameters: {}
+        -   Entity:
+                Id: d62e02cb-f3fc-43ae-b6aa-07eccae98182
+                Name: Background
+                Components:
+                    5796c922403d474e9169ce8b9c507f89: !TransformComponent
+                        Id: 22c99657-3d40-4e47-9169-ce8b9c507f89
+                        Position: {X: 0.588626, Y: 0.161487773, Z: -1.1080513}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    6e22b633642ca0459f179d5b5257d74e: !BackgroundComponent
+                        Id: 33b6226e-2c64-45a0-9f17-9d5b5257d74e
+                        Texture: f48790de-bd5a-4f83-a71b-a6a559dcb698:StrideBackground

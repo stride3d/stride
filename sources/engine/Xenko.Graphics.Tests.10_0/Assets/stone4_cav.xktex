@@ -1,8 +1,0 @@
-!Texture
-Id: a3a0e6a1-2498-4a7e-a674-1c0bf1166035
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../Resources/stone4_cav.jpeg
-IsCompressed: false
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

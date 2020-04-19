@@ -1,0 +1,266 @@
+!SpriteSheet
+Id: 02de8aa1-8ec5-46aa-b596-598f223bdb06
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: Sprite2D
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+ColorKeyEnabled: true
+Alpha: Mask
+Packing: {}
+Sprites:
+    95a2caf0557f5249a160eb4a3178ec61:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere1
+        TextureRegion: {X: 0, Y: 0, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    fb1930b10d71ba4cb8cd3af7bed56dca:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere2
+        TextureRegion: {X: 154, Y: 0, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    89d74b0244c753459f1cc2213db2777b:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere3
+        TextureRegion: {X: 308, Y: 0, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    4cbefa0f17f05348b6e20f9c39039cb1:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere4
+        TextureRegion: {X: 462, Y: 0, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    e380f020d1d0c54697b753ceb5eeb460:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere5
+        TextureRegion: {X: 616, Y: 0, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    2d414b38aea7d943a3ca2908276d99b0:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere6
+        TextureRegion: {X: 770, Y: 0, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    dff3e8b6e2e5504682ebd8148d91ec89:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere7
+        TextureRegion: {X: 0, Y: 154, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    b782fc1e4959af44ab1b08945287bec3:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere8
+        TextureRegion: {X: 154, Y: 154, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    f972e91ab13acc4f85626c907dc12d8d:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere9
+        TextureRegion: {X: 308, Y: 154, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    52f8713bfcf89442ba452293271f539e:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere10
+        TextureRegion: {X: 462, Y: 154, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    79259ba9f0fc6449988f4a559933ef8d:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere11
+        TextureRegion: {X: 616, Y: 154, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    08de53dbbff65446ba9f27ef04654d9f:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere12
+        TextureRegion: {X: 770, Y: 154, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    e1e09c985b92334ab26b7f9bcfd30eeb:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere13
+        TextureRegion: {X: 0, Y: 308, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    8d4c67ad2f8da849a7ea4a035f0d9407:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere14
+        TextureRegion: {X: 154, Y: 308, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    b38b7ca9a4fa92408610b3395790071a:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere15
+        TextureRegion: {X: 308, Y: 308, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    2a8fc5096e299b4fb662dbac59d01bbe:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere16
+        TextureRegion: {X: 462, Y: 308, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    3e5aa83ad5ed7f4f85e1e77ab695ae42:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere17
+        TextureRegion: {X: 616, Y: 308, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    2e156312fa327749861842cd825b3e6b:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere18
+        TextureRegion: {X: 770, Y: 308, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    ff69e72b6f15594ca6bc14d8ca763012:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere19
+        TextureRegion: {X: 0, Y: 462, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    a16157f5a0961043be910f914f863b61:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere20
+        TextureRegion: {X: 154, Y: 462, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    e9c6ada64101cc489ee75e41548c1259:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere21
+        TextureRegion: {X: 308, Y: 462, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    62b1f53de904484c957f549401d89741:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere22
+        TextureRegion: {X: 462, Y: 462, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    03cbe58833132d498fc7ddcb0bb57e0d:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere23
+        TextureRegion: {X: 616, Y: 462, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    d58e8e38041511458b90d44437d8ac27:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere24
+        TextureRegion: {X: 770, Y: 462, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    4e910ba17a902544bcfcb481caecbed1:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere25
+        TextureRegion: {X: 0, Y: 616, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    f1077bc71d9c194eadaaf36a5148ee8e:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere26
+        TextureRegion: {X: 154, Y: 616, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    8128d8267eac6f4a8fb5c3bd8741cf8b:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere27
+        TextureRegion: {X: 308, Y: 616, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    d3839cdae5d1d146b7e1fa7c1935d6a6:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere28
+        TextureRegion: {X: 462, Y: 616, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    a85308f61e44ef45b8449ff0ca16f745:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere29
+        TextureRegion: {X: 616, Y: 616, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    00cbfb408f67ab4b8f070eb99a5fd5eb:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere30
+        TextureRegion: {X: 770, Y: 616, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    f394a9185eb83e41b2442bb0d7d454e4:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere31
+        TextureRegion: {X: 0, Y: 770, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    1259223efb8d46489978963285ae0ccb:
+        Source: ../../../data/tests/Sphere2.bmp
+        Name: sphere32
+        TextureRegion: {X: 154, Y: 770, Width: 150, Height: 150}
+        PixelsPerUnit: 1.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}

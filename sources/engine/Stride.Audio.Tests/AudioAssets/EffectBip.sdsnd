@@ -1,0 +1,7 @@
+!Sound
+Id: 231da8ca-3e3f-4fdf-abe1-e9abc2d54272
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/audio/90-bboc1.wav
+StreamFromDisk: false
+Spatialized: true

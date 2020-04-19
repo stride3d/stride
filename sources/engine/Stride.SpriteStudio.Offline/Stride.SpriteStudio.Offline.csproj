@@ -1,0 +1,30 @@
+<Project>
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <PropertyGroup>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
+    <StridePackAssets>true</StridePackAssets>
+    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
+    <ProjectReference Include="..\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Templates\Assets\SpriteStudio\DefaultSpriteStudioAnimation.sdtpl" />
+    <None Include="Templates\Assets\SpriteStudio\DefaultSpriteStudioModel.sdtpl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Templates\Assets\.sdtpl\SpriteStudioAnimation.png" />
+    <None Include="Templates\Assets\.sdtpl\SpriteStudioModel.png" />
+  </ItemGroup>
+  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+</Project>

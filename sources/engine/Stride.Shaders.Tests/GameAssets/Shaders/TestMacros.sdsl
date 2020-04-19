@@ -1,0 +1,15 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader TestMacros : PositionVertexTransform, ShadingBase
+{
+    compose MacroTest macros0;
+    compose MacroTest macros1;
+    compose MacroTest macros2;
+
+    stage override void PSMain()
+    {
+        base.PSMain();
+        float4 color = macros0.u * streams.ColorTarget + macros1.u * macros2.u;
+        streams.ColorTarget = color;
+    }
+};

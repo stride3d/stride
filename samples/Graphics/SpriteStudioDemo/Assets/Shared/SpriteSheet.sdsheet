@@ -1,0 +1,190 @@
+!SpriteSheet
+Id: fba79776-e90e-42eb-ac60-a137b2e7378d
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: Sprite2D
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+Packing: {}
+Sprites:
+    2fa56169d2a0d64cb9fce09a55208876:
+        Source: ../../Resources/SpriteEntity.png
+        Name: bullet
+        TextureRegion: {X: 0, Y: 362, Width: 40, Height: 6}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    02652f2ffd48ab4daac5bd649738bd7d:
+        Source: ../../Resources/SpriteEntity.png
+        Name: idle0
+        TextureRegion: {X: 721, Y: 4, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    983d48d17b1cef4095671e696db7b94d:
+        Source: ../../Resources/SpriteEntity.png
+        Name: idle1
+        TextureRegion: {X: 618, Y: 136, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    0ad2c95ff7d3d74ba6bbeb308b02bd01:
+        Source: ../../Resources/SpriteEntity.png
+        Name: idle2
+        TextureRegion: {X: 618, Y: 4, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    2519395c05e83a409d0e4927f026510b:
+        Source: ../../Resources/SpriteEntity.png
+        Name: idle3
+        TextureRegion: {X: 515, Y: 136, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    055e5689747d9243a912fb9ce4d16901:
+        Source: ../../Resources/SpriteEntity.png
+        Name: idle4
+        TextureRegion: {X: 515, Y: 4, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    20cdb2fa26626b40bfdbc7b7f8556b22:
+        Source: ../../Resources/SpriteEntity.png
+        Name: active0
+        TextureRegion: {X: 924, Y: 182, Width: 80, Height: 80}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    bc554091c0234245be5b76750da43a18:
+        Source: ../../Resources/SpriteEntity.png
+        Name: active1
+        TextureRegion: {X: 875, Y: 98, Width: 80, Height: 80}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    bb370ec5d1d2d048bc3c074ab035dbaa:
+        Source: ../../Resources/SpriteEntity.png
+        Name: shoot0
+        TextureRegion: {X: 206, Y: 4, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    f5a549c1517b204981a9b4c744fefaea:
+        Source: ../../Resources/SpriteEntity.png
+        Name: shoot1
+        TextureRegion: {X: 103, Y: 136, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    8b133457db7c4040884c5d905631692f:
+        Source: ../../Resources/SpriteEntity.png
+        Name: shoot2
+        TextureRegion: {X: 103, Y: 4, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    cf81bea622fc5041a32d3c3b47745468:
+        Source: ../../Resources/SpriteEntity.png
+        Name: shoot3
+        TextureRegion: {X: 0, Y: 136, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    72b48eb217755e40bbe00653cd3c488f:
+        Source: ../../Resources/SpriteEntity.png
+        Name: shoot4
+        TextureRegion: {X: 0, Y: 4, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    17855b8ffa5fcf4b846dd8263af67b1b:
+        Source: ../../Resources/SpriteEntity.png
+        Name: run0
+        TextureRegion: {X: 412, Y: 136, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    70c496c94b88164b817841fe0a85675a:
+        Source: ../../Resources/SpriteEntity.png
+        Name: run1
+        TextureRegion: {X: 412, Y: 4, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    7b659a26a875254d816e05aa0952dd0c:
+        Source: ../../Resources/SpriteEntity.png
+        Name: run2
+        TextureRegion: {X: 309, Y: 136, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    6f56336e33bd4745b93b5eed6a803438:
+        Source: ../../Resources/SpriteEntity.png
+        Name: run3
+        TextureRegion: {X: 309, Y: 4, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    d92d986a33e17949b2d3dc7bbbc4d3d6:
+        Source: ../../Resources/SpriteEntity.png
+        Name: run4
+        TextureRegion: {X: 206, Y: 136, Width: 99, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    7a4898168672f947afc595b7c85e91c0:
+        Source: ../../Resources/SpriteEntity.png
+        Name: blowup0
+        TextureRegion: {X: 770, Y: 230, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    f56516c0dd6dd74393fcbe51cc42373b:
+        Source: ../../Resources/SpriteEntity.png
+        Name: blowup1
+        TextureRegion: {X: 824, Y: 4, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    2b8388e6078c4b488948b9a6b8311955:
+        Source: ../../Resources/SpriteEntity.png
+        Name: blowup2
+        TextureRegion: {X: 721, Y: 136, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    6ea7e4a478e1de428acd596708445a5c:
+        Source: ../../Resources/SpriteEntity.png
+        Name: blowup3
+        TextureRegion: {X: 616, Y: 268, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    6cae354d433d10448e08bbf84e504406:
+        Source: ../../Resources/SpriteEntity.png
+        Name: blowup4
+        TextureRegion: {X: 462, Y: 268, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    1849aeb4dc14e94aab0d27e92f8d2b6c:
+        Source: ../../Resources/SpriteEntity.png
+        Name: blowup5
+        TextureRegion: {X: 308, Y: 268, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    a1fc945896c9f145971a9c7a598468c4:
+        Source: ../../Resources/SpriteEntity.png
+        Name: blowup6
+        TextureRegion: {X: 154, Y: 268, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    99d75bb373e7694e806794a627f1f722:
+        Source: ../../Resources/SpriteEntity.png
+        Name: blowup7
+        TextureRegion: {X: 0, Y: 268, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}

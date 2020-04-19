@@ -1,0 +1,11 @@
+!TemplateSample
+Id: 35C3FB4D-2A6E-40EB-825E-D4E5670FEE78
+Name: "Sample: particles"
+Scope: Session
+Description: Demonstrates different parts of the particle engine
+FullDescription: This sample contains scenes for simple particle systems, animated particles, lasers, ribbons, child particle systems, custom materials for particles, and custom particle updaters and modules.
+Group: Samples/Particles
+Icon: ../.sdtpl/NewParticles.png
+DefaultOutputName: ParticlesSample
+Screenshots:
+    - .sdtpl/screenshot_small.jpg

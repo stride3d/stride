@@ -1,0 +1,12 @@
+!SpriteFont
+Id: 2382194a-83fb-45fb-96e6-27fae1056e99
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+FontSource: !FileFontProvider
+    Source: ../../../../../data/tests/Risaltyp_024.ttf
+FontType: !OfflineRasterizedSpriteFontType
+    CharacterSet: null
+    CharacterRegions:
+        e8d781fbd7e8dc4da01e8f7ad260e74e:
+            Start: ' '
+            End: "\x7F"

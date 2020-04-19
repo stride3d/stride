@@ -1,0 +1,27 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Computes normals in view space.
+/// </summary>
+shader NormalFromMesh : NormalBase, Transformation
+{
+    override stage void GenerateNormal_VS()
+    {
+        // Perform normal generation at the end in case meshNormal is modified
+        streams.meshNormalWS = mul(streams.meshNormal, (float3x3)WorldInverseTranspose);    // TODO: PERFORMANCE: Normalization required?
+        streams.normalWS = streams.meshNormalWS;
+    }
+
+    override stage void GenerateNormal_PS()
+    {
+        // Normalize just once the normal coming from the vertex shader
+        if (dot(streams.normalWS, streams.normalWS) > 0)
+            streams.normalWS = normalize(streams.normalWS);
+        streams.meshNormalWS = streams.normalWS;
+    }
+    
+    stage override void UpdateNormalFromTangentSpace(float3 normalInTangentSpace)
+    {
+        // Override the default behavior, as we are not changing the NormalVS calculated at vertex stage when normal mapping is not used
+    }
+};

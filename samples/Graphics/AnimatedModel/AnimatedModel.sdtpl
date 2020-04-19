@@ -1,0 +1,13 @@
+!TemplateSample
+Id: 99371864-55BD-4C78-B25C-42471F977540
+Name: "Sample: animation"
+Scope: Session
+Description: Demonstrates how to animate a model
+FullDescription: | 
+   This sample demonstrates how to create a model, assign animations to it, and play different animations based on user input. It also features two cameras, demonstrating how to render the scene to an offscreen texture.
+Group: Samples/Graphics
+Icon: .sdtpl/Icon.png
+DefaultOutputName: AnimatedModel
+Screenshots:
+    - .sdtpl/screenshot1_small.jpg
+    - .sdtpl/screenshot2_small.jpg

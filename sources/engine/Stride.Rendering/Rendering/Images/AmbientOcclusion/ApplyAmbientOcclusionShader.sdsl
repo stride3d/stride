@@ -1,0 +1,30 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using Stride.Rendering.Materials.ComputeColors;
+
+namespace Stride.Rendering.Images
+{
+    shader ApplyAmbientOcclusionShader : ImageEffectShader
+    {
+        stage override float4 Shading()
+        {
+            //*****************************
+            float4 color     = Texture0.SampleLevel(Sampler, streams.TexCoord, 0);
+            float  occlusion = Texture1.SampleLevel(Sampler, streams.TexCoord, 0).x;
+
+            // TODO Enable debug output as a mixin
+            // color.rgba = occlusion;
+
+            color.rgba *= occlusion;
+
+            return color;
+        }
+    };
+}

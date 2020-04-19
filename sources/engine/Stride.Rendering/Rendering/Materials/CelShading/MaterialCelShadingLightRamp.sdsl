@@ -1,0 +1,20 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Materials
+{
+    class MaterialCelShadingLightRamp
+	 :  IMaterialCelShadingLightFunction, Texturing
+    {
+        rgroup PerMaterial
+        {
+			stage Texture2D CelShaderRamp;
+        }
+
+        override float3 Compute(float lightIn)
+        {
+            float2 texCoord = float2(clamp(lightIn, 0, 1), 0.5);
+			return CelShaderRamp.SampleLevel(LinearSampler, texCoord, 0).rgb;
+        }
+    };
+}

@@ -1,0 +1,8 @@
+!Texture
+Id: 7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../Resources/ClearCoatMetalFlakesNM.dds
+IsCompressed: false
+GenerateMipmaps: true
+Type: !NormalMapTextureType {}

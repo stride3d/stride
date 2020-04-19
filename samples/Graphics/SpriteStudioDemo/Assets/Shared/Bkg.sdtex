@@ -1,0 +1,9 @@
+!Texture
+Id: 4b0f48d8-839e-4c71-8ca5-fc72e88cb68a
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/Bkg.png
+IsCompressed: false
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+IsStreamable: false

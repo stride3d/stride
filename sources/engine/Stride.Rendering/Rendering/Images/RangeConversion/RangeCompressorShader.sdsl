@@ -1,0 +1,31 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    shader RangeCompressorShader : ImageEffectShader
+    {
+        stage override float4 Shading()
+        {
+            float3 color = Texture0.Sample(PointSampler, streams.TexCoord).rgb;
+
+            // compute luma from HDR value:
+            float3 ntsc = float3(0.2126, 0.7152, 0.0722);
+            float relativeLuminance = dot(ntsc, color);
+            float perceptiveLuma = sqrt(relativeLuminance);
+
+            // tone to "non-lossy" LDR:
+            float targetRange = 1.0;
+            float maxComponent = max(max(color.r, color.g), color.b);
+            // http://graphicrants.blogspot.jp/2013/12/tone-mapping.html
+            float3 brianKarisToned = color / (1 + maxComponent / targetRange);
+
+            float3 mapped = brianKarisToned;
+            // and we don't apply gamma. because of big outlining artefact around [0-1] range objects in front of high [10-80] range emissive objects.
+
+            // write output for FXAA:
+            return float4(mapped, perceptiveLuma);
+        }
+    };
+}
+

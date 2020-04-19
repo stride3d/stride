@@ -1,0 +1,30 @@
+!SpriteSheet
+Id: 2bb544ec-3316-404c-a73f-ec9302f7aa1c
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: Sprite2D
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+Alpha: Explicit
+Packing: {}
+Sprites:
+    3033062866e9e544a3ff8d58456b2431:
+        Source: ../../Resources/ui_texture/space_escape_ui.png
+        Name: button
+        TextureRegion: {X: 598, Y: 344, Width: 217, Height: 87}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 125.0, Y: 0.0, Z: 50.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    f277497fe56e134ea56e790d27ff32ba:
+        Source: ../../Resources/ui_texture/space_escape_ui.png
+        Name: sd_logo
+        TextureRegion: {X: 17, Y: 37, Width: 531, Height: 228}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    2e9d679b7e55ee4e8e91270e02bee7cf:
+        Source: ../../Resources/ui_texture/space_escape_ui.png
+        Name: distance_bg
+        TextureRegion: {X: 0, Y: 287, Width: 541, Height: 183}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}

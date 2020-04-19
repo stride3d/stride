@@ -1,0 +1,27 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Graphics.Tests
+{
+    partial effect CustomSubEffect
+    {
+        using params CustomShaderKeys;
+
+		if (CustomShaderKeys.SwitchEffectLevel < 10)
+		{
+			mixin CustomShader;
+		}
+		else
+		{
+			mixin CustomShader2;
+		}
+    };
+
+    /// <summary>
+    /// A gaussian blur effect
+    /// </summary>
+    effect CustomEffect
+    {
+        mixin CustomShader;
+        mixin child CustomSubEffect;
+    };
+}

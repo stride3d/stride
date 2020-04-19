@@ -1,0 +1,1220 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
+"PO-Revision-Date: 2019-09-03 01:25+0000\n"
+"Last-Translator: 陈宇航 <xiaocunzhangh@outlook.com>\n"
+"Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
+"stride/coreassetseditor/zh_HANS-CN/>\n"
+"Language: zh_HANS-CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 3.9-dev\n"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Properties/PropertiesViewModel.cs:144
+msgctxt "Properties"
+msgid "Loading properties..."
+msgstr "正在加载属性..."
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Properties/SessionObjectPropertiesViewModel.cs:131
+msgctxt "Properties"
+msgid "There was a problem loading properties of the selection."
+msgstr "加载选定(实体)属性的时候出现了一个问题。"
+
+#. Log message displayed when an operation has been canceled
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:34
+msgctxt "Log"
+msgid "Operation cancelled."
+msgstr "操作被取消。"
+
+#. Message displayed when an exception occurs while generating a template
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:41
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:60
+msgctxt "Log"
+msgid "An exception occurred while generating the template."
+msgstr "生成模板时发生异常。"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml.cs:28
+msgctxt "Title"
+msgid "Project selection - {0}"
+msgstr "选择项目 - {0}"
+
+#: ../editor/Stride.Core.Assets.Editor/Services/VisualStudioService.cs:92
+msgctxt "Message"
+msgid "An error occurred while starting Visual Studio."
+msgstr "启动 视觉工作室 时发生错误。"
+
+#: ../editor/Stride.Core.Assets.Editor/Services/VisualStudioService.cs:101
+msgctxt "Message"
+msgid "The session currently open is not a Visual Studio session."
+msgstr "当前打开的会话不是 视觉工作室 会话。"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:21
+msgctxt "Settings"
+msgid "Always delete {0} without asking"
+msgstr "始终在不询问的情况下删除{0}"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:22
+msgctxt "Settings"
+msgid "Always save new scripts without asking"
+msgstr "总是保存新脚本而需不询问"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:25
+msgctxt "Settings"
+msgid "Environment"
+msgstr "环境"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:26
+msgctxt "Settings"
+msgid "External tools"
+msgstr "外部工具"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:27
+msgctxt "Settings"
+msgid "Interface"
+msgstr "接口"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:28
+msgctxt "Settings"
+msgid "Tools"
+msgstr "工具"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:34
+msgctxt "Settings"
+msgid "Default text editor"
+msgstr "默认的文本编辑器"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:38
+msgctxt "Settings"
+msgid "Shader editor"
+msgstr "Shader 编辑器"
+
+#. IDE: Integrated development environment (http://en.wikipedia.org/wiki/Integrated_development_environment)
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:48
+msgctxt "Settings"
+msgid "Default IDE"
+msgstr "默认的 IDE"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:52
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:53
+msgctxt "Settings"
+msgid "Ask before deleting assets"
+msgstr "在删除资产前先询问"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:57
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:58
+msgctxt "Settings"
+msgid "Ask before reloading assemblies"
+msgstr "在重新加载程序集前先询问"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:62
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:63
+msgctxt "Settings"
+msgid "Automatically reload assemblies"
+msgstr "自动重新加载程序集"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:67
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:68
+msgctxt "Settings"
+msgid "Ask before saving new scripts"
+msgstr "在保存新脚本前先询问"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:72
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:73
+msgctxt "Settings"
+msgid "Crash report e-mail"
+msgstr "Crash 报告 e-mail"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:77
+msgctxt "Settings"
+msgid "Language"
+msgstr "语言"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:81
+msgctxt "Settings"
+msgid "Reset"
+msgstr "重置"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:82
+msgctxt "Settings"
+msgid "Reset Game Studio layout"
+msgstr "重置 Game Studio 布局"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:88
+msgctxt "Settings"
+msgid "Use effect compiler server for mobile platforms"
+msgstr "为移动平台使用 Effect 编译服务器"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:92
+msgctxt "Settings"
+msgid "Automatically reload last session at startup"
+msgstr "在启动时自动重新加载最后一个会话"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:117
+msgctxt "Message"
+msgid "Some changes will be applied after you restart Game Studio."
+msgstr "重启 Game Studio 后应用更改。"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:128
+msgctxt "Properties"
+msgid "Select a settings category."
+msgstr "选择设置类别。"
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:138
+msgctxt "Properties"
+msgid "There was a problem loading the Settings page."
+msgstr "加载设置页面时出现了一个问题。"
+
+#: ../editor/Stride.Core.Assets.Editor/View/Behaviors/DragDrop/DragDropBehavior.cs:25
+msgctxt "Message"
+msgid "Can't drop here"
+msgstr "不能放置在这里"
+
+#: ../editor/Stride.Core.Assets.Editor/View/ValueConverters/ContentReferenceToUrl.cs:25
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:299
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:372
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:572
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:626
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:693
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:717
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:750
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:764
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:947
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:973
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:999
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1014
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1079
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1305
+msgid "(Different values)"
+msgstr "(不同的值)"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:490
+msgctxt "Message"
+msgid ""
+"Unable to use the selected template because it is not an asset template."
+msgstr "无法使用选定的模板，因为它不是资产模板。"
+
+#. Error message when the template generator of the selected template is unreachable
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:556
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/PackageViewModel.cs:450
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:281
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1137
+msgctxt "Message"
+msgid ""
+"Unable to retrieve template generator for the selected template. Aborting."
+msgstr "无法检索所选模板的模板生成器。正在终止。"
+
+#. Title of the AddAssetWindow
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:562
+msgctxt "Title"
+msgid "Add asset…"
+msgstr "添加资产…"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:690
+msgctxt "Message"
+msgid ""
+"Game Studio can't create assets in multiple locations. In the solution "
+"explorer, select a single directory or package to create the asset in."
+msgstr "Game Studio 无法在多个位置创建资产。请在解决方案资源管理器中，选择单个目录或包来创建资产。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:695
+msgctxt "Message"
+msgid ""
+"Game Studio can't create an asset here. In the solution explorer, select a "
+"directory or package to create the asset in."
+msgstr "Game Studio 无法在这里创建资产。请在解决方案资源管理器中，选择单个目录或包来创建资产。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:702
+msgctxt "Message"
+msgid ""
+"Game Studio can't create an asset here because the selected directory or "
+"package can't be edited. In the solution explorer, select a directory or package "
+"to create the asset in."
+msgstr "Game Studio 无法在这里创建资产，因为所选的目录或包无法编辑。请在解决方案资源管理器中，选择单个目录或包来创建资产。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:775
+msgctxt "Message"
+msgid "Read-only folders can't be cut."
+msgstr "只读文件夹不能被剪切。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:790
+msgctxt "Message"
+msgid "The asset {0} can't be deleted. {1}{2}"
+msgstr "无法删除资产 {0}。{1}{2}"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:820
+msgctxt "Message"
+msgid "{0} can't be deleted. {1}{2}"
+msgstr "无法删除 {0}。{1}{2}"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:867
+msgctxt "Message"
+msgid ""
+"Unable to cut or copy a selection that contains a folder and one of its "
+"subfolders."
+msgstr "无法剪切或复制包含文件夹及其子文件夹的选定项。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:943
+msgctxt "Message"
+msgid "Select a valid asset folder to paste the selection to."
+msgstr "请选择一个有效的资产文件夹以粘贴选定项。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:951
+msgctxt "Message"
+msgid "This package or directory can't be modified."
+msgstr "无法修改此包或目录。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1414
+msgctxt "Message"
+msgid ""
+"This location is invalid. Please select a package folder in the Solution "
+"explorer."
+msgstr "此位置无效。请在解决方案资源管理器中选择一个包文件夹。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1420
+msgctxt "Message"
+msgid "Drop files"
+msgstr "放置文件"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1488
+msgctxt "Message"
+msgid "These files aren't supported."
+msgstr "不支持这些文件。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetViewModel.cs:593
+msgctxt "Message"
+msgid ""
+"Unable to rename asset to '{0}' because an asset with the same name exists in "
+"the same directory"
+msgstr "无法将资产重命名为 '{0}'，因为同目录下有同名的资产"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/AssetViewModel.cs:598
+msgctxt "Message"
+msgid "Unable to rename asset with an empty name"
+msgstr "无法用空名称重命名资产"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:107
+msgctxt "Message"
+msgid "This package that contains this folder can't be edited."
+msgstr "无法编辑包含此文件夹的包。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:144
+msgctxt "Message"
+msgid "Unable to rename folder. {0}"
+msgstr "无法重命名文件夹。{0}"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:169
+msgctxt "Message"
+msgid "A folder with the same name already exists in the parent folder."
+msgstr "父级文件夹中已经有一个同名文件夹。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:191
+msgctxt "Message"
+msgid "Path is a device name"
+msgstr "路径即设备名称"
+
+#. Message displayed when the previous attempt to load the startup project failed. {0} is a file name
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/EditorViewModel.cs:137
+msgctxt "Button"
+msgid "Try again"
+msgstr "再试一次"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/EditorViewModel.cs:138
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:693
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:732
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1000
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1500
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1588
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1619
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1673
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:83
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:31
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:35
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:53
+#: ../editor/Stride.Core.Assets.Editor/View/PackagePickerWindow.xaml:21
+#: ../editor/Stride.Core.Assets.Editor/View/SettingsWindow.xaml:31
+#: ../editor/Stride.Core.Assets.Editor/View/WorkProgressWindow.xaml:32
+msgctxt "Button"
+msgid "Cancel"
+msgstr "取消"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/EditorViewModel.cs:140
+msgctxt "Message"
+msgid ""
+"The last attempt to load the project **{0}** failed. \r\n"
+"\r\n"
+"Do you want to try to load it again?"
+msgstr ""
+"最后一次尝试加载项目 **{0}** 失败。\n"
+"\n"
+"您想再试一次吗？"
+
+#. Message displayed when the solution file to open does not exist. {0} is a file path
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/EditorViewModel.cs:172
+msgctxt "Message"
+msgid "The file '{0}' does not exist."
+msgstr "文件 '{0}' 不存在。"
+
+#. Message displayed when trying to open an unsaved file with the text editor
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/EditorViewModel.cs:202
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:709
+msgctxt "Message"
+msgid "You need to save the file before you can open it."
+msgstr "您需要先保存文件，然后才能打开它。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/EditorViewModel.cs:215
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/EditorViewModel.cs:233
+msgctxt "Message"
+msgid "An error occurred while opening the file."
+msgstr "在打开文件时发生错误。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/PackageViewModel.cs:642
+msgctxt "Message"
+msgid "This package couldn't be renamed. {0}"
+msgstr "无法重命名此包。{0}"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/PackageViewModel.cs:673
+msgctxt "Message"
+msgid "A package with the same name already exists in the session."
+msgstr "会话中存在同名的包。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:102
+msgctxt "Message"
+msgid "The name is too long."
+msgstr "名字太长了。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:108
+msgctxt "Message"
+msgid "The name contains invalid characters."
+msgstr "名称包含无效字符。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:114
+msgctxt "Message"
+msgid "The name is empty."
+msgstr "名称为空。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:44
+msgid "External packages"
+msgstr "外部包"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:45
+msgid "Local packages"
+msgstr "本地包"
+
+#. {0} is a file name
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:565
+msgid "Solution '{0}'"
+msgstr "解决方案 '{0}'"
+
+#. Title for the progress window of the session creation
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:254
+msgctxt "Title"
+msgid "Creating session..."
+msgstr "正在创建会话..."
+
+#. Title for the progress window of the session loading
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:366
+msgctxt "Title"
+msgid "Opening session..."
+msgstr "正在打开会话..."
+
+#. Log message displayed when an exception occurs while opening a session.
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:399
+msgctxt "Log"
+msgid "There was a problem opening the solution."
+msgstr "在打开解决方案时发生了一个问题。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:446
+msgctxt "Message"
+msgid "The following dependencies in the **{0}** package need to be upgraded:"
+msgstr "需要升级 **{0}** 包中的以下依赖项:"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:451
+msgctxt "Message"
+msgid ""
+"- Dependency to **{0}** must be upgraded from version **{1}** to **{2}**"
+msgstr "- **{0}** 依赖项必须从版本 **{1}** 升级到 **{2}**"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:455
+msgctxt "Message"
+msgid ""
+"Upgrading assets might break them. We recommend you make a manual backup of "
+"your project before you upgrade."
+msgstr "升级资产可能会破坏它们。我们建议您在升级之前先手动备份该项目。"
+
+#. Displayed in a button (must be short)
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:459
+msgctxt "Button"
+msgid "Upgrade"
+msgstr "升级"
+
+#. Displayed in a button (must be short)
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:460
+msgctxt "Button"
+msgid "Skip"
+msgstr "跳过"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:462
+msgctxt "Message"
+msgid "Do this for every package in the solution"
+msgstr "对解决方案中的每个包都这样做吗"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:692
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:731
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:998
+msgctxt "Button"
+msgid "Save"
+msgstr "保存"
+
+#. Message displayed when trying to open a modified asset with the text editor
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:695
+msgctxt "Message"
+msgid ""
+"This asset has unsaved changes. To open it, you need to save the session "
+"first. Do you want to save now?"
+msgstr "该资产尚有未保存的更改。要打开它的话，首先需要保存会话。您想现在就保存吗?"
+
+#. Message displayed when an exception occurs while trying to open a file with the text editor
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:717
+msgctxt "Message"
+msgid ""
+"There was a problem starting the text editor. Make sure the path to the text "
+"editor in Settings is correct."
+msgstr "启动文本编辑器时出现问题。请确保在(Game Studio)设置中，文本编辑器的路径是正确的。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:734
+msgctxt "Message"
+msgid ""
+"This asset has unsaved changes. To open it, you need to save it first. Do you "
+"want to save the session now?"
+msgstr "该资产尚有未保存的更改。要打开它的话，首先需要保存它。您现在要保存会话吗?"
+
+#. Error displayed when trying to open the source file of an asset that has no source file
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:753
+msgctxt "Message"
+msgid "This asset doesn't have a source file to open."
+msgstr "该资产没有要打开的源文件。"
+
+#. Message displayed when trying to explore an unsaved asset
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:818
+msgctxt "Message"
+msgid "You need to save the asset before you can explore it."
+msgstr "您需要先保存资产，然后才能浏览它。"
+
+#. Message displayed when an exception occurs while trying to explore an asset
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:829
+msgctxt "Message"
+msgid "There was a problem starting the file explorer."
+msgstr "启动文件资源管理器时出现问题。"
+
+#. Title for the progress window of the session saving
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:853
+msgctxt "Title"
+msgid "Saving session..."
+msgstr "正在保存会话..."
+
+#. Log message displayed when an exception occurs while saving a session.
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:876
+msgctxt "Log"
+msgid "There was a problem saving the solution. {0}"
+msgstr "保存解决方案时出现问题。{0}"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:999
+msgctxt "Button"
+msgid "Don't save"
+msgstr "不保存"
+
+#. Message displayed when closing an unsaved project
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1002
+msgctxt "Message"
+msgid "The project has unsaved changes. Do you want to save it?"
+msgstr "该项目尚有未保存的更改。您想要保存吗?"
+
+#. Message displayed when a session managed to save some files while some others have failed.
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1015
+msgctxt "Message"
+msgid "Some assets couldn't be saved. Check the assets and try again."
+msgstr "有些资产无法保存。请检查资产并重试。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1118
+msgctxt "Title"
+msgid "Creating project..."
+msgstr "正在创建项目..."
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1171
+msgctxt "Title"
+msgid "Importing project..."
+msgstr "正在导入项目..."
+
+#. Log message displayed when an exception occurs while importing a package.
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1191
+msgctxt "Log"
+msgid "There was a problem importing the package."
+msgstr "导入该包时出现问题。"
+
+#. Message displayed when the selection contains zero or multiple packages but a single one is required
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1243
+msgctxt "Message"
+msgid "Please select a single package."
+msgstr "请选择一个包。"
+
+#. Message displayed when the user try to add dependencies to a package but no acceptable package is available
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1285
+msgctxt "Message"
+msgid ""
+"There are no packages that can be added as dependencies to this package."
+msgstr "没有包可以作为依赖项被添加到此包。"
+
+#. Message displayed when a single location is selected but invalid for directory creation
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1344
+msgctxt "Message"
+msgid "Folders can only be created in the Assets hierarchy of a package."
+msgstr "只能在包级资产层次中创建文件夹。"
+
+#. Message displayed when some of the multiple selected locations are invalid for directory creation
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1345
+msgctxt "Message"
+msgid ""
+"Game Studio can't create a folder in some of the locations you selected. "
+"Folders can only be created in the Assets hierarchy of a package."
+msgstr "Game Studio 无法在选定的位置创建文件夹。只能在包级资产层次中创建文件夹。"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1499
+msgctxt "Settings"
+msgid "Always delete without asking"
+msgstr "总是删除而不需询问"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1500
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1587
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1618
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1672
+msgctxt "Button"
+msgid "Delete"
+msgstr "删除"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1522
+msgctxt "Message"
+msgid "Stride can't delete the {0} asset. {1}{2}"
+msgstr "Stride 无法删除 {0} 资产。{1}{2}"
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1532
+msgctxt "Message"
+msgid "Stride can't delete the {0} folder. {1}{2}"
+msgstr "Stride 无法删除 {0} 文件夹。{1}{2}"
+
+#. Message displayed when the user tries to delete a system package
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1578
+msgctxt "Message"
+msgid "Stride can't delete the system package."
+msgstr "Stride 无法删除系统包。"
+
+#. Message displayed when the user is about to delete a package from the session
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1590
+msgctxt "Message"
+msgid ""
+"Are you sure you want to delete this package? The package files will remain "
+"on the disk."
+msgstr "您确定要删除这个包吗?包文件将保留在磁盘上。"
+
+#. Message displayed when the user is about to delete a dependency from the package
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1621
+msgctxt "Message"
+msgid "Are you sure you want to delete this dependency?"
+msgstr "您确定要删除此依赖项吗?"
+
+#. Message displayed when the user tries to delete the root asset directory of a package
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1662
+msgctxt "Message"
+msgid "Asset root folders can't be deleted."
+msgstr "无法删除资产的根文件夹。"
+
+#. Message displayed when the user is about to delete a project from the package
+#: ../editor/Stride.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1675
+msgctxt "Message"
+msgid "Are you sure you want to delete these projects?"
+msgstr "您确定要删除这些项目吗?"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/AddAssets/View/ItemTemplatesWindow.xaml:11
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/AddItemWindow.xaml:10
+msgid "Add asset..."
+msgstr "添加资产..."
+
+#: ../editor/Stride.Core.Assets.Editor/Components/AddAssets/View/ItemTemplatesWindow.xaml:33
+msgid "out of {0} file(s)"
+msgstr "从 {0} 文件中取出"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:14
+msgid "Fix references ({0})"
+msgstr "修复引用({0})"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:36
+msgid ""
+"The asset {0} is referenced by other assets. Choose how to handle these "
+"references."
+msgstr "资产 {0} 被其他资产引用。请选择如何处理这些引用。"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:38
+msgctxt "Button"
+msgid "Replace all the references with a reference to a different asset:"
+msgstr "将所有引用替换为对不同资产的引用:"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:41
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:60
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:14
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1162
+msgid "Select an asset"
+msgstr "选择资产"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:43
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:55
+msgctxt "ToolTip"
+msgid "Select asset"
+msgstr "选择资产"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:49
+msgctxt "Button"
+msgid "Replace references individually:"
+msgstr "单独替换引用:"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:57
+msgctxt "Button"
+msgid "Clear this reference"
+msgstr "清空该引用"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:65
+msgid "Referencer"
+msgstr "引用者"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:66
+msgid "Reference path"
+msgstr "引用路径"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:67
+msgid "Replacement asset"
+msgstr "重置资产"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:80
+msgctxt "Button"
+msgid "Done"
+msgstr "完成"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:81
+msgctxt "Button"
+msgid "Clear references"
+msgstr "清空引用"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:81
+msgctxt "ToolTip"
+msgid "Clear the references of the current asset"
+msgstr "清空当前资产的引用"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:82
+msgctxt "Button"
+msgid "Clear all references"
+msgstr "清空所有引用"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:82
+msgctxt "ToolTip"
+msgid "Clear references for all assets being deleted"
+msgstr "清空要删除的所有资产的引用"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:83
+msgctxt "ToolTip"
+msgid "Cancel operation"
+msgstr "取消操作"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/AddItemUserControl.xaml:21
+msgid "Search"
+msgstr "搜索"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/AddItemUserControl.xaml:38
+msgctxt "ToolTip"
+msgid "Import directly from files"
+msgstr "直接从文件导入"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:11
+msgid "New package"
+msgstr "新建包"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:25
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:29
+msgctxt "Button"
+msgid "Select"
+msgstr "选择"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:26
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:30
+msgctxt "ToolTip"
+msgid "Use the selected template"
+msgstr "使用选定的模板"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:31
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:35
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:53
+#: ../editor/Stride.Core.Assets.Editor/View/PackagePickerWindow.xaml:21
+msgctxt "ToolTip"
+msgid "Cancel (Esc)"
+msgstr "取消 (Esc)"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:57
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:64
+msgid "Name:"
+msgstr "名称:"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:63
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:70
+msgid "Location:"
+msgstr "位置:"
+
+#. This button opens a file dialog
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:65
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:72
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:959
+msgctxt "ToolTip"
+msgid "Browse directory"
+msgstr "浏览目录"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:24
+msgctxt "Button"
+msgid "Browse for existing project"
+msgstr "浏览现有项目"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:25
+msgctxt "Button"
+msgid "Reload last session automatically at startup"
+msgstr "在启动时自动重新加载最后一个会话"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:82
+msgid "Solution name:"
+msgstr "解决方案名称:"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:83
+msgid "(Auto-generate solution name)"
+msgstr "(自动生成解决方案名称)"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:89
+msgid "Solution location:"
+msgstr "解决方案的位置:"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:94
+msgid "(Same location)"
+msgstr "(同一位置)"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:31
+msgctxt "Menu"
+msgid "Show in Explorer"
+msgstr "在资源管理器中显示"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:32
+msgctxt "Menu"
+msgid "Remove From List"
+msgstr "从列表中删除"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:25
+msgctxt "Menu"
+msgid "Asset"
+msgstr "资产"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:26
+msgctxt "Menu"
+msgid "Delete"
+msgstr "删除"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:28
+msgctxt "Menu"
+msgid "Rename"
+msgstr "重命名"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:30
+msgctxt "Menu"
+msgid "Explore"
+msgstr "Explore"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:31
+msgctxt "Menu"
+msgid "OpenWithTextEditor"
+msgstr "使用文本编辑器打开"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:33
+msgctxt "Menu"
+msgid "OpenAssetFile"
+msgstr "打开资产文件"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:35
+msgctxt "Menu"
+msgid "OpenSourceFile"
+msgstr "打开源文件"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:37
+msgctxt "Menu"
+msgid "ShowInExplorer"
+msgstr "在资源管理器中显示"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:48
+#: ../editor/Stride.Core.Assets.Editor/View/PackagePickerWindow.xaml:15
+msgctxt "Button"
+msgid "OK"
+msgstr "确定"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetPickerWindow.xaml:48
+msgctxt "ToolTip"
+msgid "Select these assets"
+msgstr "选择这些资产"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:91
+msgid "Name: {0}"
+msgstr "名称: {0}"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:92
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:99
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:119
+msgid "Type: {0}"
+msgstr "类型: {0}"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:98
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:118
+msgid "URL: {0}"
+msgstr "URL: {0}"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:100
+msgid "Tags: {0}"
+msgstr "Tags: {0}"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:103
+msgid "Included in build as root"
+msgstr "在构建中包含，并作为根"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:107
+msgid "Included in build as dependency"
+msgstr "在构建中包含，并作为依赖项"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:111
+msgid "Excluded from build"
+msgstr "从构建中排除"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:204
+msgid "Name"
+msgstr "名称"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:205
+msgid "Type"
+msgstr "类型"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:206
+msgid "URL"
+msgstr "URL"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:207
+msgid "Included"
+msgstr "包含"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:265
+msgctxt "ToolTip"
+msgid "Add an asset to this location"
+msgstr "添加资产到该位置"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:269
+msgid "Add asset"
+msgstr "添加资产"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:290
+msgctxt "ToolTip"
+msgid "Update assets whose source files have changed"
+msgstr "更新那些源文件已更改的资产"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:317
+msgctxt "ToolTip"
+msgid "Import last effects compiled remotely"
+msgstr "导入远程编译的最后的 effects"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:343
+msgctxt "ToolTip"
+msgid "Open asset in dedicated editor"
+msgstr "在专用编辑器中打开资产"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:352
+msgctxt "ToolTip"
+msgid "Asset view options"
+msgstr "资产视图选项"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:357
+msgctxt "Menu"
+msgid "Display"
+msgstr "显示"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:358
+msgctxt "Menu"
+msgid "Assets in selected folder only"
+msgstr "仅有在选定文件夹中的资产"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:361
+msgctxt "Menu"
+msgid "Assets and folders in selected folder"
+msgstr "在选定文件夹中的资产和文件夹"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:364
+msgctxt "Menu"
+msgid "Assets in selected folder and subfolders"
+msgstr "在选定文件夹和子文件夹中的资产"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:369
+msgctxt "Menu"
+msgid "Name"
+msgstr "名称"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:372
+msgctxt "Menu"
+msgid "Date modified"
+msgstr "修改日期"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:375
+msgctxt "Menu"
+msgid "Type"
+msgstr "类型"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:378
+msgctxt "Menu"
+msgid "Unsaved changes"
+msgstr "未保存的更改"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:387
+msgctxt "ToolTip"
+msgid "Zoom in"
+msgstr "放大"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:392
+msgctxt "ToolTip"
+msgid "Zoom out"
+msgstr "缩小"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:397
+msgctxt "Menu"
+msgid "Grid"
+msgstr "网格"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:405
+msgctxt "Menu"
+msgid "Tiles"
+msgstr "Tiles"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:418
+msgid "Add a filter..."
+msgstr "添加过滤器…"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:422
+msgid "Filter assets by name, type or tag"
+msgstr "按名称、类型或 tag 过滤资产"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:448
+msgctxt "ToolTip"
+msgid "Clear filters"
+msgstr "清空过滤器"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:490
+msgid ""
+"No asset to display in this folder or no folder selected. Check your active "
+"filters."
+msgstr "此文件夹中没有要显示的资产或没有要选择的文件夹。请检查您的过滤器。"
+
+#: ../editor/Stride.Core.Assets.Editor/View/AssetViewUserControl.xaml:493
+msgid "You can also drop files here to import assets."
+msgstr "您还可以在这里拖放文件以导入资产。"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:29
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:123
+msgctxt "ToolTip"
+msgid "Add..."
+msgstr "添加..."
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:54
+msgctxt "ToolTip"
+msgid "Replace..."
+msgstr "替换..."
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:132
+msgctxt "ToolTip"
+msgid "Delete"
+msgstr "删除"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:407
+msgid "List"
+msgstr "列表"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:408
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:472
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:530
+msgid "{0} item"
+msgid_plural "{0} items"
+msgstr[0] "{0} 项"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:450
+msgid "Add to {0}"
+msgstr "添加到 {0}"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:467
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:493
+msgctxt "ToolTip"
+msgid "Add a new entry to the dictionary"
+msgstr "向字典中添加一个新条目"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:471
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:529
+msgid "Dictionary"
+msgstr "字典"
+
+#. Keep the colon (:)
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:504
+msgid "Key name:"
+msgstr "Key 名称:"
+
+#. Default name for a new key in a dictionary
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:506
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:522
+msgid "New key"
+msgstr "新建 key"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:555
+msgctxt "ToolTIp"
+msgid "Character"
+msgstr "字符"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:562
+msgctxt "ToolTip"
+msgid "Unicode value"
+msgstr "Unicode 值"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:938
+msgctxt "ToolTip"
+msgid "Angle in degrees"
+msgstr "角度(按度数)"
+
+#. This button opens a file dialog
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:985
+msgctxt "ToolTip"
+msgid "Browse file"
+msgstr "浏览文件"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1027
+msgctxt "Button"
+msgid "Change values..."
+msgstr "变化值…"
+
+#. As for "Select all items"
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1036
+msgctxt "Button"
+msgid "All"
+msgstr "全部"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1036
+msgctxt "ToolTip"
+msgid "Select all values"
+msgstr "选择所有值"
+
+#. As for "Clear selection"
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1038
+msgctxt "Button"
+msgid "None"
+msgstr "清空选择"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1038
+msgctxt "ToolTip"
+msgid "Clear selection"
+msgstr "清空选择"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1040
+msgctxt "Button"
+msgid "Invert"
+msgstr "倒置"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1040
+msgctxt "ToolTip"
+msgid "Invert selection"
+msgstr "反选"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1157
+msgid "Select the referenced asset"
+msgstr "选择引用的资产"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1167
+msgid "Clear this reference"
+msgstr "清空该引用"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1177
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1220
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1243
+msgctxt "ToolTip"
+msgid "Select an asset"
+msgstr "选择资产"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1181
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1248
+msgctxt "ToolTip"
+msgid "Clear the reference"
+msgstr "清空引用"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1185
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1209
+msgctxt "ToolTip"
+msgid "Select the referenced asset"
+msgstr "选择引用的资产"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1261
+msgctxt "ToolTip"
+msgid "Create an instance of this structure"
+msgstr "创建此结构的实例"
+
+#. It is ok to keep "null" in english
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1266
+msgctxt "ToolTip"
+msgid "Clear value (set to null)"
+msgstr "清空该值(设为 null)"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1273
+msgid "(null)"
+msgstr "(null)"
+
+#: ../editor/Stride.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1318
+msgid "Unable to load the object of type {0} from assembly {1}"
+msgstr "无法从程序集 {1} 加载类型为 {0} 的对象"
+
+#: ../editor/Stride.Core.Assets.Editor/View/NotificationWindow.xaml:6
+msgid "Notification"
+msgstr "通知"
+
+#: ../editor/Stride.Core.Assets.Editor/View/PackagePickerWindow.xaml:10
+msgid "Select a package"
+msgstr "选择一个包"
+
+#: ../editor/Stride.Core.Assets.Editor/View/PackagePickerWindow.xaml:15
+msgctxt "ToolTip"
+msgid "Select this package"
+msgstr "选择这个包"
+
+#: ../editor/Stride.Core.Assets.Editor/View/SettingsWindow.xaml:15
+msgid "Settings"
+msgstr "设置"
+
+#: ../editor/Stride.Core.Assets.Editor/View/SettingsWindow.xaml:26
+msgctxt "Button"
+msgid "Save and close"
+msgstr "保存并关闭"
+
+#: ../editor/Stride.Core.Assets.Editor/View/WorkProgressWindow.xaml:19
+msgid "Operation completed."
+msgstr "操作完成。"
+
+#: ../editor/Stride.Core.Assets.Editor/View/WorkProgressWindow.xaml:20
+msgid "Operation failed."
+msgstr "操作失败。"
+
+#. Log message displayed when an operation has been canceled
+#: ../editor/Stride.Core.Assets.Editor/View/WorkProgressWindow.xaml:21
+msgid "Operation cancelled."
+msgstr "操作取消。"
+
+#: ../editor/Stride.Core.Assets.Editor/View/WorkProgressWindow.xaml:27
+msgctxt "Button"
+msgid "Close"
+msgstr "关闭"

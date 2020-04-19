@@ -1,0 +1,11 @@
+﻿!TemplateAssetFactory
+Id: 954B59D0-E3B6-45FD-8757-0671C7835679
+AssetTypeName: MaterialAsset
+Name: "PBR material: thin glass"
+Scope: Asset
+Description: A thin glass material for physically-based rendering
+Group: Material
+Order: -80
+Icon: ..\.sdtpl\MaterialGlass.png
+DefaultOutputName: Glass
+FactoryTypeName: GlassMaterialFactory

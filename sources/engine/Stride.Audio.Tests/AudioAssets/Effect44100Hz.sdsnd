@@ -1,0 +1,7 @@
+!Sound
+Id: 1f788b16-a3f2-495e-ae1e-3ec93c57c0d9
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/audio/parley44100Hz.wav
+StreamFromDisk: false
+Spatialized: true

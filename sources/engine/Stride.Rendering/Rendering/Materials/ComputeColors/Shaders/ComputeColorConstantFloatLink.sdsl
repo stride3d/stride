@@ -1,0 +1,21 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Returns the color from a float behind the key passed as generic.
+/// </summary>
+/// <remarks>
+/// LinkName: generic LinkType - the name of the key used to set the float value.
+/// </remarks>
+shader ComputeColorConstantFloatLink<LinkType LinkName> : ComputeColor
+{
+    cbuffer PerMaterial
+    {
+        [Link("LinkName")]
+        stage float constantFloat;
+    }
+    
+    override float4 Compute()
+    {
+        return float4(constantFloat, constantFloat, constantFloat, constantFloat);
+    }
+};

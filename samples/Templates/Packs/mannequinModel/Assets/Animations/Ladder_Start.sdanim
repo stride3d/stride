@@ -1,0 +1,19 @@
+!Animation
+Id: 0c42ea8b-f074-4c80-b6c9-ab21e793f13c
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/Animation/Ladder_Start.fbx
+ClipDuration:
+    Enabled: false
+    StartAnimationTime: 0:00:00:00.0000000
+    EndAnimationTime: 0:00:30:00.0000000
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+RepeatMode: LoopInfinite
+Type: !StandardAnimationAssetType {}
+Skeleton: a0d324bd-326a-4fd8-88a9-fc5e4dcc62e5:Models/mannequinModel Skeleton
+RootMotion: false
+PreviewModel: f68ea240-695a-4de5-9884-60d77544fcd6:Models/mannequinModel
+AnimationTimeMinimum: 0:00:00:00.0000000
+~SourceHashes:
+    8d8349e55219ea33b70ece290fcd1f9f~../../Resources/Animation/Ladder_Start.fbx: 90c8c1db465d3402707a9d229ca4a206
+AnimationTimeMaximum: 0:00:00:00.8670000

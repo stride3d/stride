@@ -1,0 +1,8 @@
+!Texture
+Id: 2f76bcba-ae9f-4954-b98d-f94c2102ff86
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../Resources/ClearCoatOrangePeelNM.dds
+IsCompressed: false
+GenerateMipmaps: true
+Type: !NormalMapTextureType {}

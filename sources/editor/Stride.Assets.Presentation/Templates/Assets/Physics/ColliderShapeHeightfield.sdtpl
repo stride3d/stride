@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: 1D3C9128-C94B-413B-9ABB-80ADDD372F61
+AssetTypeName: ColliderShapeAsset
+Name: Heightfield
+Scope: Asset
+Description: A heightfield collider
+Group: Physics
+Icon: ..\.sdtpl\ColliderPlane.png
+DefaultOutputName: ColliderHeightfield
+FactoryTypeName: ColliderShapeHeightfieldFactory

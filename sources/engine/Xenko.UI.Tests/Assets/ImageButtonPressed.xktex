@@ -1,8 +1,0 @@
-!Texture
-Id: 0f6f5a81-cd3c-4935-9dcb-127adfd7c35c
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/ImageButtonPressed.dds
-IsCompressed: false
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

@@ -1,7 +1,0 @@
-!Texture
-Id: 0851d017-5e86-4954-a5db-1bcf98687ac2
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/SmallDdsMaskBC1.dds
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

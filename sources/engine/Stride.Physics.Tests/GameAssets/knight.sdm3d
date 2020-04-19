@@ -1,0 +1,22 @@
+!Model
+Id: b95b844e-7fad-423c-aeaf-2578203584ce
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/knight/scenes/knight.fbx
+Skeleton: 75bd17ea-ca0f-4281-bf94-12ce8d08b2fe:knight Skeleton
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    2f27539450bd8129beae0561879e6a60:
+        Name: c100_chr_ch00_Knight_KINGHT_iron
+        MaterialInstance:
+            Material: 94be11b8-b27e-43e6-b6f0-b08c07eea535:c100_chr_ch00_Knight_KINGHT_iron
+    8134fc77c601b9dd84c897beb37701d5:
+        Name: c100_chr_ch00_Knight_KINGHT
+        MaterialInstance:
+            Material: 0529a037-4021-47cc-b903-ec5a7111bf44:c100_chr_ch00_Knight_KINGHT
+    00f2ab97154c6c8dbe6fd21598e97bfa:
+        Name: c100_chr_ch00_Knight_SWORD1
+        MaterialInstance:
+            Material: 5e5b92a7-284d-4305-aec9-cc5574de6604:c100_chr_ch00_Knight_SWORD1
+~SourceHashes:
+    503c61700d19f1261d6dc5a080c55c20~../../../data/tests/knight/scenes/knight.fbx: af4ac6da9a62b02bd84f4a8147dd38a7

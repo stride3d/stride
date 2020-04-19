@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: F16AB154-86A6-4020-B410-88FBD87D3CA5
+AssetTypeName: SkyboxAsset
+Name: Skybox
+Scope: Asset
+Description: A skybox with a cubemap texture to render the sky and light the scene
+Group: Miscellaneous
+Order: -100
+Icon: ..\.sdtpl\Skybox.png
+DefaultOutputName: Skybox

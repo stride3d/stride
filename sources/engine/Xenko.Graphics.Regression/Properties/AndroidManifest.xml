@@ -1,6 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto" package="Xenko.Graphics.RegressionTests">
-	<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="27" />
-	<application android:label="Graphics Regression Tests"></application>
-	<uses-permission android:name="android.permission.INTERNET" />
-</manifest>

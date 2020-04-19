@@ -1,0 +1,49 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Tessellates without displacing.
+/// </summary>
+/// <remarks>
+/// InputControlPointCount: Macro - number of input control points.
+/// </remarks>
+
+#ifndef InputControlPointCount
+#define InputControlPointCount 3
+#endif
+
+shader TessellationFlat : TessellationBase
+{
+    stage override float ComputeClipping(InputPatch<Input, InputControlPointCount> input, const OutputPatch<Input2, 3> output, inout Constants constants)
+    {
+        return ComputeClippingGroup3(input[0].PositionWS, input[1].PositionWS, input[2].PositionWS);
+    }
+
+    float ComputeClippingGroup3(float4 f3Position1, float4 f3Position2, float4 f3Position3)
+    {
+        float4 clipPos1 = this.ComputeShadingPosition(float4(f3Position1.xyz, 1.0f));
+        float4 clipPos2 = this.ComputeShadingPosition(float4(f3Position2.xyz, 1.0f));
+        float4 clipPos3 = this.ComputeShadingPosition(float4(f3Position3.xyz, 1.0f));
+
+        float3 clipPos1P = sign(clipPos1.xyz + clipPos1.www);
+        float3 clipPos1M = sign(clipPos1.xyz - clipPos1.www);
+        float3 clipPos2P = sign(clipPos2.xyz + clipPos2.www);
+        float3 clipPos2M = sign(clipPos2.xyz - clipPos2.www);
+        float3 clipPos3P = sign(clipPos3.xyz + clipPos3.www);
+        float3 clipPos3M = sign(clipPos3.xyz - clipPos3.www);
+        
+        float3 planeTests = abs(clipPos1P + clipPos1M + clipPos2P + clipPos2M + clipPos3P + clipPos3M);
+        
+        return all(planeTests != 6.0f) ? 0.0 : 1.0;
+    }
+
+    stage override void InterpolateBarycentric(const OutputPatch<Input, 3> input, in Constants constants, float3 f3BarycentricCoords)
+    {
+        //streams = input[0] * fU + input[1] * fV + input[2] * fW;
+
+        float fU = f3BarycentricCoords.x;
+        float fV = f3BarycentricCoords.y;
+        float fW = f3BarycentricCoords.z;
+
+        streams = input[0] * fU + input[1] * fV + input[2] * fW;
+    }
+};

@@ -35,7 +35,7 @@ Debug_static
 Release_static
 CodeAnalyst
 UpgradeLog*
-xenko_doc_output
+stride_doc_output
 doc/doxygen/html
 Tools/bin
 Temp/
@@ -45,14 +45,14 @@ ipch/
 obj/
 .vs/
 Cache/
-/doc/xenko_doc_output/
-/build/Xenko.version
-/build/Xenko.*VC.db
+/doc/stride_doc_output/
+/build/Stride.version
+/build/Stride.*VC.db
 /tools
 /externals/
 /sources/common/externals/
-/sources/tools/Xenko.ShaderKeyGenerator/build/
-/sources/tools/Xenko.ProjectGenerator/build/
+/sources/tools/Stride.ShaderKeyGenerator/build/
+/sources/tools/Stride.ProjectGenerator/build/
 /sources/tools/SLConverter/BuildRelease/Package/SLConverter-*.pdf
 /sources/tools/SLConverter/BuildRelease/Package/bin/x64/SLConverter.exe
 /sources/tools/SLConverter/BuildRelease/Package/bin/x86/SLConverter.exe
@@ -65,31 +65,31 @@ Cache/
 /tools/
 **/Properties/launchSettings.json
 launch-android.bat
-sources/tests/framework/Xenko.Framework.Audio.Tests/Resources/Resource.Designer.cs
+sources/tests/framework/Stride.Framework.Audio.Tests/Resources/Resource.Designer.cs
 Win32
 Win32Debug
 launch-ios.bat
-sources/engine/Xenko.Graphics.Tests/log/
+sources/engine/Stride.Graphics.Tests/log/
 *.androidcache
-sources/engine/Xenko.Graphics/log/
-sources/engine/Xenko.Graphics/Shaders/log/
-sources/engine/Xenko.Input.Tests/app_data/
-sources/engine/Xenko.UI.Tests/log/
-sources/engine/Xenko.UI.Tests/app_data/
-sources/engine/Xenko.Graphics.Tests/app_data/
-sources/tests/framework/Xenko.Framework.Audio.Tests/app_data/
+sources/engine/Stride.Graphics/log/
+sources/engine/Stride.Graphics/Shaders/log/
+sources/engine/Stride.Input.Tests/app_data/
+sources/engine/Stride.UI.Tests/log/
+sources/engine/Stride.UI.Tests/app_data/
+sources/engine/Stride.Graphics.Tests/app_data/
+sources/tests/framework/Stride.Framework.Audio.Tests/app_data/
 libfreetype.a
 libcore.a
 libbulletc.a
 libNativePath.a
-libxenkonative_arm64.a
-libxenkonative_armv7.a
-libxenkonative_armv7s.a
-libxenkonative_i386.a
-libxenkonative_x86_64.a
+libstridenative_arm64.a
+libstridenative_armv7.a
+libstridenative_armv7s.a
+libstridenative_i386.a
+libstridenative_x86_64.a
 *.CachedGlyphs
 *.CachedImage
-sources/engine/Xenko.Graphics/Shaders.Bytecodes/log/
+sources/engine/Stride.Graphics/Shaders.Bytecodes/log/
 log
 x64Debug
 x64Release
@@ -104,7 +104,7 @@ samplesGenerated
 .DS_Store
 
 ## Build generated
-sources/tools/Xenko iOS Relay/build/
+sources/tools/Stride iOS Relay/build/
 DerivedData
 
 ## Various settings

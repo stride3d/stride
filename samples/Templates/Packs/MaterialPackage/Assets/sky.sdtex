@@ -1,0 +1,7 @@
+!Texture
+Id: 0454adf4-63d8-4f0d-9305-91f8ec79194f
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../Resources/sky.dds
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

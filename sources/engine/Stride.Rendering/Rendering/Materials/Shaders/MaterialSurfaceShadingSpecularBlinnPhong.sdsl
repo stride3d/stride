@@ -1,0 +1,21 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Performs a Lambert shading
+    /// </summary>
+    shader MaterialSurfaceShadingSpecularBlinnPhong : IMaterialSurfaceShading, NormalStream
+    {
+        override float3 ComputeDirectLightContribution()
+        {
+            float k = BRDFBlinnPhong.Compute(streams.lightDirectionWS, streams.normalWS, streams.viewWS, streams.matSpecularPower);
+
+            var specularColor = streams.matSpecular * (streams.matCavity * streams.matCavitySpecular);
+
+            // TODO: integrate AO/Cavity...etc.
+            // TODO: Check if we need to divide by PI
+            return specularColor * (k * streams.lightSpecularColorNdotL * streams.matDiffuseSpecularAlphaBlend.y);
+        }
+    };
+}

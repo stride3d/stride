@@ -1,0 +1,78 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// A shader performing Lambertian pre-filtering.
+    /// </summary>
+    internal shader SphericalHarmonicsBase<int TOrder> : Math
+    {    
+        static const int CoefficientsCount = TOrder * TOrder;
+
+        // Pi constants
+        static const float PI4  =  4 * PI;
+        static const float PI16 = 16 * PI;
+        static const float PI64 = 64 * PI;        
+        static const float SQRT_PI  = 1.77245385090551602729;
+
+        // The values of the SH bases function after last evaluation
+        stream float SHBaseValues[CoefficientsCount];
+
+        void EvaluateSHBases(float3 direction)
+        {
+            var x = direction.x;
+            var y = direction.y;
+            var z = direction.z;
+
+            var x2 = x*x;
+            var y2 = y*y;
+            var z2 = z*z;
+            
+            streams.SHBaseValues[0] =  1.0/(2.0*SQRT_PI);
+
+if(TOrder>1)
+{
+            streams.SHBaseValues[1] = -sqrt(3.0/PI4)*y;
+            streams.SHBaseValues[2] =  sqrt(3.0/PI4)*z;
+            streams.SHBaseValues[3] = -sqrt(3.0/PI4)*x;
+                
+if(TOrder>2)
+{
+            streams.SHBaseValues[4] =  sqrt(15.0/PI4)*y*x;
+            streams.SHBaseValues[5] = -sqrt(15.0/PI4)*y*z;
+            streams.SHBaseValues[6] =  sqrt(5.0/PI16)*(3.0*z2-1.0);
+            streams.SHBaseValues[7] = -sqrt(15.0/PI4)*x*z;
+            streams.SHBaseValues[8] =  sqrt(15.0/PI16)*(x2-y2);
+                    
+if(TOrder>3)
+{                 
+            var z3 = pow(z, 3.0);
+
+            var x4 = pow(x, 4.0);
+            var y4 = pow(y, 4.0);
+            var z4 = pow(z, 4.0);
+
+            streams.SHBaseValues[ 9] = -sqrt( 70.0/PI64)*y*(3*x2-y2);
+            streams.SHBaseValues[10] =  sqrt(105.0/ PI4)*y*x*z;
+            streams.SHBaseValues[11] = -sqrt( 21.0/PI16)*y*(-1.0+5.0*z2);
+            streams.SHBaseValues[12] =  sqrt(  7.0/PI16)*(5.0*z3-3.0*z);
+            streams.SHBaseValues[13] = -sqrt( 42.0/PI64)*x*(-1.0+5.0*z2);
+            streams.SHBaseValues[14] =  sqrt(105.0/PI16)*(x2-y2)*z;
+            streams.SHBaseValues[15] = -sqrt( 70.0/PI64)*x*(x2-3.0*y2);
+                        
+if(TOrder>4)
+{
+            streams.SHBaseValues[16] =  3.0*sqrt(35.0/PI16)*x*y*(x2-y2);
+            streams.SHBaseValues[17] = -3.0*sqrt(70.0/PI64)*y*z*(3.0*x2-y2);
+            streams.SHBaseValues[18] =  3.0*sqrt( 5.0/PI16)*y*x*(-1.0+7.0*z2);
+            streams.SHBaseValues[19] = -3.0*sqrt(10.0/PI64)*y*z*(-3.0+7.0*z2);
+            streams.SHBaseValues[20] =  (105.0*z4-90.0*z2+9.0)/(16.0*SQRT_PI);
+            streams.SHBaseValues[21] = -3.0*sqrt(10.0/PI64)*x*z*(-3.0+7.0*z2);
+            streams.SHBaseValues[22] =  3.0*sqrt( 5.0/PI64)*(x2-y2)*(-1.0+7.0*z2);
+            streams.SHBaseValues[23] = -3.0*sqrt(70.0/PI64)*x*z*(x2-3.0*y2);
+            streams.SHBaseValues[24] =  3.0*sqrt(35.0/(4.0*PI64))*(x4-6.0*y2*x2+y4);
+}}}}
+        }
+    };
+}

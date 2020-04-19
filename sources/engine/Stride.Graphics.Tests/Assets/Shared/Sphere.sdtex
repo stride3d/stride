@@ -1,0 +1,10 @@
+!Texture
+Id: eedb5de8-e19f-4218-8389-99c4178b86c1
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../../data/tests/sphere.png
+IsCompressed: false
+Type: !ColorTextureType
+    ColorKeyEnabled: true
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+    Alpha: Mask

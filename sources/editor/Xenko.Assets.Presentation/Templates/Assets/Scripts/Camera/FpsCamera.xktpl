@@ -1,9 +1,0 @@
-!TemplateAsset
-Id: 9dfe82f7-cd60-410d-87d6-86c6a5921341
-AssetTypeName: ScriptSourceFileAsset
-Name: "Camera: FPS"
-Scope: Asset
-Description: A basic first-person shooter camera script
-Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
-DefaultOutputName: FpsCamera

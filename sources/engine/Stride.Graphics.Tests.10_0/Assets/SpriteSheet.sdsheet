@@ -1,0 +1,15 @@
+!SpriteSheet
+Id: f0bb4e18-b761-4e65-b1d5-f59b52cfef0f
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: Sprite2D
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+Packing: {}
+Sprites:
+    644bb2071f56c74f96a32ad0a3fe6224:
+        Source: ../../../data/tests/small_uv.png
+        Name: Frame 0
+        TextureRegion: {X: 64, Y: 64, Width: 128, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}

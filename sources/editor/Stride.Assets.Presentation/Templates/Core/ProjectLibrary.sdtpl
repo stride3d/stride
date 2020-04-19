@@ -1,0 +1,8 @@
+!Template
+Id: e12246ff-41a1-49d4-90e4-e72a4eb4a3e9
+Name: Code library
+Scope: Session
+Description: Create a new library that can target multiple platforms and add it to the solution
+Group: General
+Icon: .sdtpl\NewCode.png
+DefaultOutputName: MyLibrary

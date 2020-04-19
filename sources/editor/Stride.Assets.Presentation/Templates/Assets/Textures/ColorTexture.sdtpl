@@ -1,0 +1,12 @@
+!TemplateAssetFactory
+Id: BB8BC7E6-D1D9-4B8D-BD2C-A0FA07ED290D
+AssetTypeName: TextureAsset
+Name: Color
+Scope: Asset
+Description: A color texture asset imported from a source file. Can be in sRGB or linear space. Assumes three (RGB) or four (RGBA) channels
+Group: Texture
+Order: 20
+Icon: ..\.sdtpl\TextureColor.png
+DefaultOutputName: ColorTexture
+FactoryTypeName: ColorTextureFactory
+ImportSource: true

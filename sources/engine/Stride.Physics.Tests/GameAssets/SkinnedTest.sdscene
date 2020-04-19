@@ -1,0 +1,146 @@
+!SceneAsset
+Id: b98408a0-2b2d-4783-a8c2-11b0fe5bbdcd
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! b63607c5-4c6e-4fd4-9e4a-ba60d660589c
+        - ref!! 1422aa32-b7b5-482b-bdc4-921be3b92738
+        - ref!! c5fe55a9-6670-41dd-9999-804dfa2a0cdc
+        - ref!! ed33149f-25e5-4256-b9cf-9752b8c3465b
+        - ref!! 5ccf1ba5-e352-4860-9cd7-95c96f679992
+    Parts:
+        -   Entity:
+                Id: 1422aa32-b7b5-482b-bdc4-921be3b92738
+                Name: Ambient light
+                Components:
+                    1df913e8f990d54790fe696e3e1eaf4d: !TransformComponent
+                        Id: e813f91d-90f9-47d5-90fe-696e3e1eaf4d
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    224f444e2b08fd47827e25c1e203e1ba: !LightComponent
+                        Id: 4e444f22-082b-47fd-827e-25c1e203e1ba
+                        Type: !LightAmbient
+                            Color: !ColorRgbProvider
+                                Value: {R: 0.3815, G: 0.3815, B: 0.3815}
+        -   Entity:
+                Id: 5ccf1ba5-e352-4860-9cd7-95c96f679992
+                Name: Ground
+                Components:
+                    cfb897557b523e4b84f4162a96c57ad1: !TransformComponent
+                        Id: 5597b8cf-527b-4b3e-84f4-162a96c57ad1
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    53dd7588ac3fe74b8f3a69a0b3860500: !StaticColliderComponent
+                        Id: 8875dd53-3fac-4be7-8f3a-69a0b3860500
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            373fb5ca708bc24d907f1579d1c3c142: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+        -   Entity:
+                Id: b63607c5-4c6e-4fd4-9e4a-ba60d660589c
+                Name: Camera
+                Components:
+                    4e66f6c8863ed94792664a5c14235407: !TransformComponent
+                        Id: c8f6664e-3e86-47d9-9266-4a5c14235407
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    1e9897f20ee69f43a9843267ed6e3803: !CameraComponent
+                        Id: f297981e-e60e-439f-a984-3267ed6e3803
+                        Name: null
+                        Projection: Perspective
+                        Slot: bdd308f1-d60d-4a59-b0e5-c63d138382bd
+        -   Entity:
+                Id: c5fe55a9-6670-41dd-9999-804dfa2a0cdc
+                Name: Directional light
+                Components:
+                    a2b8406d19700f42a4cae43d3f7cc1b5: !TransformComponent
+                        Id: 6d40b8a2-7019-420f-a4ca-e43d3f7cc1b5
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: -0.09089163, Y: 0.0, Z: 0.0, W: 0.9958608}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    2f8bc3f08acd4f4eba20183546fcb920: !LightComponent
+                        Id: f0c38b2f-cd8a-4e4f-ba20-183546fcb920
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Shadow:
+                                Size: Large
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters: {}
+        -   Entity:
+                Id: ed33149f-25e5-4256-b9cf-9752b8c3465b
+                Name: Model
+                Components:
+                    3a2d68accbe2bb488e9f14cca5fbbf02: !TransformComponent
+                        Id: ac682d3a-e2cb-48bb-8e9f-14cca5fbbf02
+                        Position: {X: 0.0, Y: 0.0, Z: -6.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    929a2e2e0e847a40bc82a6661472704d: !ModelComponent
+                        Id: 2e2e9a92-840e-407a-bc82-a6661472704d
+                        Model: b95b844e-7fad-423c-aeaf-2578203584ce:knight
+                        Materials: {}
+                    f177877611bdb142bf82538387d33498: !RigidbodyComponent
+                        Id: 768777f1-bd11-42b1-bf82-538387d33498
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: RightHand
+                        ColliderShapes:
+                            95914a0d3f7e5b4c97ddfeee90305bfc: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                    987cb27051cee442ae81e3cb4325e3c2: !RigidbodyComponent
+                        Id: 70b27c98-ce51-42e4-ae81-e3cb4325e3c2
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 3.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: LeftHand
+                        ColliderShapes:
+                            a4f048894bee16488331b2a467d511e7: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                    6e79f26c8cfd4e4b88223999070ff28f: !AnimationComponent
+                        Id: 6cf2796e-fd8c-4b4e-8822-3999070ff28f
+                        Animations:
+                            6200638830d06d48839ab9e3337572a8~Run: 44641587-07eb-470f-be5c-002137592b54:he03_run

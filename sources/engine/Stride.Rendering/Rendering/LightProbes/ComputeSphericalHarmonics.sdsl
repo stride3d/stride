@@ -1,0 +1,24 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.LightProbes
+{
+    /// <summary>
+    /// Base shader to sample an environment
+    /// </summary>
+    shader ComputeSphericalHarmonics<int TOrder> : SphericalHarmonicsUtils<TOrder>, ComputeColor, NormalStream
+    {
+        cbuffer PerMaterial
+        {
+            [Color]
+            stage float3 SphericalColors[TOrder * TOrder];
+        }
+
+        override float4 Compute()
+        {
+            var direction = float3(streams.normalWS.xy, -streams.normalWS.z);
+
+            return EvaluateSphericalHarmonics(SphericalColors, direction);
+        }
+    };
+}

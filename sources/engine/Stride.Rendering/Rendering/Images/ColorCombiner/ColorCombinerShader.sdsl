@@ -1,0 +1,43 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// A shader combiner
+    /// </summary>
+    internal shader ColorCombinerShader<int count> : ImageEffectShader
+    {
+        float Factors[10];
+
+        [Color]
+        float3 ModulateRGB[10];
+
+        stage override float4 Shading()
+        {
+	        float3 color = 0;
+            if (count > 0)
+                color += Texture0.Sample(Sampler, streams.TexCoord).rgb * Factors[0] * ModulateRGB[0];
+            if (count > 1)
+                color += Texture1.Sample(Sampler, streams.TexCoord).rgb * Factors[1] * ModulateRGB[1];
+            if (count > 2)
+                color += Texture2.Sample(Sampler, streams.TexCoord).rgb * Factors[2] * ModulateRGB[2];
+            if (count > 3)
+                color += Texture3.Sample(Sampler, streams.TexCoord).rgb * Factors[3] * ModulateRGB[3];
+            if (count > 4)
+                color += Texture4.Sample(Sampler, streams.TexCoord).rgb * Factors[4] * ModulateRGB[4];
+            if (count > 5)
+                color += Texture5.Sample(Sampler, streams.TexCoord).rgb * Factors[5] * ModulateRGB[5];
+            if (count > 6)
+                color += Texture6.Sample(Sampler, streams.TexCoord).rgb * Factors[6] * ModulateRGB[6];
+            if (count > 7)
+                color += Texture7.Sample(Sampler, streams.TexCoord).rgb * Factors[7] * ModulateRGB[7];
+            if (count > 8)
+                color += Texture8.Sample(Sampler, streams.TexCoord).rgb * Factors[8] * ModulateRGB[8];
+            if (count > 9)
+                color += Texture9.Sample(Sampler, streams.TexCoord).rgb * Factors[9] * ModulateRGB[9];
+	
+	        return float4(color, 1.0);
+        }
+    };
+}

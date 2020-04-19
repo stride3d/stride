@@ -1,0 +1,12 @@
+namespace Stride.Rendering.Voxels
+{
+    shader ClearBuffer : ComputeShaderBase
+    {
+        stage RWBuffer<uint> buffer;
+        int offset;
+        override void Compute()
+        {
+            buffer[streams.DispatchThreadId.x + offset] = 0;
+        }
+    };
+}

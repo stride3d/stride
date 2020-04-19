@@ -1,0 +1,32 @@
+---
+!EffectCompileRequest
+EffectName: StrideEditorForwardShadingEffect
+UsedParameters:
+    Lighting.DirectLightGroups: null
+    Lighting.EnvironmentLights:
+        - !ShaderClassSource
+            ClassName: LightConstantWhite
+    Material.HasNormalMap: false
+    Material.HasSkinningPosition: false
+    Material.PixelStageSurfaceShaders: null
+    Material.TessellationShader: null
+    Material.VertexStageSurfaceShaders: null
+    StrideEffectBase.ExtensionPostVertexStageShader: null
+    SceneEditorParameters.IsEffectCompiling: true
+    SceneEditorParameters.IsEffectError: false
+---
+!EffectCompileRequest
+EffectName: StrideEditorForwardShadingEffect.Picking
+UsedParameters:
+    Lighting.DirectLightGroups: null
+    Lighting.EnvironmentLights:
+        - !ShaderClassSource
+            ClassName: LightConstantWhite
+    Material.HasNormalMap: false
+    Material.HasSkinningPosition: false
+    Material.PixelStageSurfaceShaders: null
+    Material.TessellationShader: null
+    Material.VertexStageSurfaceShaders: null
+    StrideEffectBase.ExtensionPostVertexStageShader: null
+    SceneEditorParameters.IsEffectCompiling: true
+    SceneEditorParameters.IsEffectError: false

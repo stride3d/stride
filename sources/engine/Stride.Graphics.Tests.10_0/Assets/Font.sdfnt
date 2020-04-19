@@ -1,0 +1,14 @@
+!SpriteFont
+Id: 31b41ef3-aa04-45ef-959f-aea441eae179
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+FontSource: !SystemFontProvider
+    FontName: Calibri
+    Style: Regular
+FontType: !OfflineRasterizedSpriteFontType
+    Size: 32.0
+    CharacterSet: null
+    CharacterRegions:
+        45b3afd744f0313376b40057af6edf4d:
+            Start: ' '
+            End: "\x7F"

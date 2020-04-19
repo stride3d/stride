@@ -1,0 +1,7 @@
+REGEDIT4
+[HKEY_CLASSES_ROOT\.bundle]
+@="bundlefile"
+[HKEY_CLASSES_ROOT\bundlefile]
+@="Stride Bundle file Extension"
+[HKEY_CLASSES_ROOT\bundlefile\shell\View\command]
+@="RegSrv32.EXE %1"

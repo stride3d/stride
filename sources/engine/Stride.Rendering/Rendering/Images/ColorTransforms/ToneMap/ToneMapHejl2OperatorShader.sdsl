@@ -1,0 +1,28 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// The tonemap operator by Jim Hejl version 2 that does not include the gamma correction and has a whitepoint parameter.
+    /// </summary>
+    /// <remarks>
+    /// https://twitter.com/jimhejl/status/633777619998130176
+    /// </remarks>
+    internal shader ToneMapHejl2OperatorShader : ToneMapOperatorShader
+    {
+        float WhitePoint = 5.0f;
+
+        override float4 Compute(float4 color)
+        {
+			// Workaround for Huawei Mate 9 Pro (Mali) GLSL bug
+            float w = (1.425 * WhitePoint) + 0.05f;
+            w = ((WhitePoint * w + 0.004f) / ((WhitePoint * (w + 0.55f) + 0.0491f))) - 0.0821f;
+
+            float4 vh = float4(color.rgb, WhitePoint);
+            float4 va  = (1.425 * vh) + 0.05f; // eval filmic curve
+            float4 vf = ((vh * va + 0.004f) / ((vh * (va + 0.55f) + 0.0491f))) - 0.0821f;
+            return float4(vf.rgb / w, 1.0); // white point correction
+        }
+    };
+}

@@ -1,0 +1,70 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// A shader performing Lambertian pre-filtering.
+    /// </summary>
+    internal shader SphericalHarmonicsUtils<int TOrder> : Math
+    {    
+        static const int CoefficientsCount = TOrder * TOrder;
+
+        float4 EvaluateSphericalHarmonics(float3 sphericalColors[TOrder * TOrder], float3 direction)
+        {
+            var x = direction.x;
+            var y = direction.y;
+            var z = direction.z;
+
+            var x2 = x*x;
+            var y2 = y*y;
+            var z2 = z*z;
+
+            float3 color = sphericalColors[0];
+
+if(TOrder>1)
+{
+            color += sphericalColors[1]*y;
+            color += sphericalColors[2]*z;
+            color += sphericalColors[3]*x;
+                
+if(TOrder>2)
+{
+            color += sphericalColors[4]*y*x;
+            color += sphericalColors[5]*y*z;
+            color += sphericalColors[6]*(3.0*z2-1.0);
+            color += sphericalColors[7]*x*z;
+            color += sphericalColors[8]*(x2-y2);
+                    
+if(TOrder>3)
+{                 
+            var z3 = z2 * z;
+
+            var x4 = x2 * x2;
+            var y4 = y2 * y2;
+            var z4 = z2 * z2;
+
+            color += sphericalColors[9]*y*(3*x2-y2);
+            color += sphericalColors[10]*y*x*z;
+            color += sphericalColors[11]*y*(-1.0+5.0*z2);
+            color += sphericalColors[12]*(5.0*z3-3.0*z);
+            color += sphericalColors[13]*x*(-1.0+5.0*z2);
+            color += sphericalColors[14]*(x2-y2)*z;
+            color += sphericalColors[15]*x*(x2-3.0*y2);
+                        
+if(TOrder>4)
+{
+            color += sphericalColors[16]*x*y*(x2-y2);
+            color += sphericalColors[17]*y*z*(3.0*x2-y2);
+            color += sphericalColors[18]*y*x*(-1.0+7.0*z2);
+            color += sphericalColors[19]*y*z*(-3.0+7.0*z2);
+            color += sphericalColors[20]*(105.0*z4-90.0*z2+9.0);
+            color += sphericalColors[21]*x*z*(-3.0+7.0*z2);
+            color += sphericalColors[22]*(x2-y2)*(-1.0+7.0*z2);
+            color += sphericalColors[23]*x*z*(x2-3.0*y2);
+            color += sphericalColors[24]*(x4-6.0*y2*x2+y4);
+}}}}
+            return float4(color, 1);
+        }
+    };
+}

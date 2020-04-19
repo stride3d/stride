@@ -1,0 +1,38 @@
+<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideRuntimeWindowsDotNet>true</StrideRuntimeWindowsDotNet>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <PropertyGroup>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
+    <StridePlatformDependent>true</StridePlatformDependent>
+    <StrideProjectPlatformDependentWindows>true</StrideProjectPlatformDependentWindows>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
+  </PropertyGroup>
+  <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
+  <Choose>
+    <When Condition="$(StrideUI.Contains('WINFORMS')) OR $(StrideUI.Contains('WPF'))">
+      <ItemGroup>
+        <Reference Include="System.Windows.Forms" />
+      </ItemGroup>
+    </When>
+  </Choose>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\Stride.Graphics\OpenGL\OpenGLUtils.cs" Link="OpenGLUtils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Graphics\Stride.Graphics.csproj" />
+  </ItemGroup>
+  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+</Project>

@@ -1,0 +1,102 @@
+﻿<Project>
+  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <EnableDefaultItems>false</EnableDefaultItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
+    <ProjectReference Include="..\Stride.Assets.Models\Stride.Assets.Models.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\GuidGenerator.cs">
+      <Link>GuidGenerator.cs</Link>
+    </Compile>
+    <Compile Include="XunitAttributes.cs" />
+    <Compile Include="TestMaterialGenerator.cs" />
+    <Compile Include="AssetImportTests.cs" />
+    <Compile Include="TestDependencyResolver.cs" />
+    <Compile Include="TestPrefabAsset.cs" />
+    <Compile Include="TestSceneUpgrader.cs" />
+    <Compile Include="TestVisualScriptCompiler.cs" />
+    <Compile Include="TexturePackerTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\data\tests\factory\factory.fbx">
+      <Link>app_data\Stride.Assets.Tests\factory.fbx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\data\tests\knight\scenes\knight.fbx">
+      <Link>app_data\Stride.Assets.Tests\knight.fbx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\data\tests\factory\TX-Factory_Ground.dds">
+      <Link>app_data\Stride.Assets.Tests\TX-Factory_Ground.dds</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="materials\testConstantValueKey.sdmat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="materials\testEffect.sdmat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="materials\testMaterial.sdmat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="materials\testReduction.sdmat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="materials\testTextureGeneric.sdmat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="readme.md" />
+    <None Include="scenes\goblin.fbx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Projects\**\*.*">
+      <Link>Projects\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="..\..\data\tests\TexturePacking\*.*">
+      <Link>TexturePacking\InputImages\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\data\tests\TexturePacking\TestGoldImages\*.*">
+      <Link>TexturePacking\GoldImages\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app_data\Stride.Assets.Tests\Logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="GameAssets\**\*.*">
+      <Link>GameAssets\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="sourceimages\checker.png" />
+    <Content Include="sourceimages\dices.png" />
+    <Content Include="sourceimages\earth.png" />
+    <Content Include="sourceimages\starMask.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Stride.Assets.Tests\GameAssets\Cube\" />
+    <Folder Include="Stride.Assets.Tests\GameAssets\factory2\" />
+    <Folder Include="Stride.Assets.Tests\GameAssets\factory\" />
+    <Folder Include="Stride.Assets.Tests\Projects\CircularDeps\" />
+    <Folder Include="Stride.Assets.Tests\Projects\ComplexDeps\entity\texture\" />
+    <Folder Include="Stride.Assets.Tests\Projects\ComplexDeps\material\" />
+    <Folder Include="Stride.Assets.Tests\Projects\ComplexDeps\model\animation\" />
+    <Folder Include="Stride.Assets.Tests\Projects\EntityDeps\subfolder\" />
+    <Folder Include="Stride.Assets.Tests\Projects\MaterialDeps\subfolder\" />
+    <Folder Include="Stride.Assets.Tests\Projects\TextureDeps\" />
+  </ItemGroup>
+  <Import Project="..\..\targets\Stride.UnitTests.targets" />
+</Project>

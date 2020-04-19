@@ -1,0 +1,29 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Skyboxes
+{
+    /// <summary>
+    /// Sample a cubemap using the MaterialPixelShadingStream roughness parameter.
+    /// </summary>
+    shader RoughnessCubeMapEnvironmentColor : IComputeEnvironmentColor, Texturing, MaterialPixelShadingStream
+    {
+        cbuffer PerView.Lighting
+        {
+            float MipCount;
+        }
+
+        rgroup PerView.Lighting
+        {
+            TextureCube CubeMap;
+        }
+
+        override float4 Compute(float3 direction)
+        {
+            var alpha = streams.alphaRoughness;
+            var mipLevel = sqrt(alpha) * MipCount;
+
+            return CubeMap.SampleLevel(LinearSampler, direction, mipLevel);
+        }
+    };
+}

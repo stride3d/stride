@@ -1,0 +1,12 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader ComputeColorScaler<float TScaleValue> : ComputeColor
+{
+    override float4 Compute()
+    {
+        float4 baseColor = base.Compute();
+        // TODO Check where to put gamma correction? => float tempScaleValue = pow(TScaleValue, 2.2)
+        // USe faster 2.0 instead of 2.2 
+        return float4(baseColor.xyz * TScaleValue * TScaleValue, baseColor.w);
+    }
+};

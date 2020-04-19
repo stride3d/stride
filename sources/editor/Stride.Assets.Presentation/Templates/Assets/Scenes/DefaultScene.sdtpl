@@ -1,0 +1,10 @@
+﻿!TemplateAssetFactory
+Id: 60EBB1BC-2FE1-474B-B970-5395B98C56A8
+AssetTypeName: SceneAsset
+Name: Scene
+Scope: Asset
+Description: A subset of the world that can be loaded into the game at any time
+Group: Scene
+Order: -100
+Icon: ..\.sdtpl\Scene.png
+DefaultOutputName: Scene

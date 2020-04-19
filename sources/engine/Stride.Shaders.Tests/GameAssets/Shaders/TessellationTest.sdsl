@@ -1,0 +1,22 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader TessellationTest
+{
+    patchstream float tessFactor[3] : SV_TessFactor;
+    patchstream float insideTessFactor : SV_InsideTessFactor;
+
+    float test(Constants constants)
+    {
+        return constants.tessFactor[0] + constants.insideTessFactor;
+    }
+
+    float test2(InputPatch<Input, 3> input, OutputPatch<Input2, 3> output, inout Constants constants)
+    {
+        return 0.0f;
+    }
+
+    float test3(InputPatch<Input, 3> input, OutputPatch<Input2, 3> output, inout Constants constants)
+    {
+        return test2(input, output, constants);
+    }
+};

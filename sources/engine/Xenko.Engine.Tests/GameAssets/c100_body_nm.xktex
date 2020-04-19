@@ -1,6 +1,0 @@
-!Texture
-Id: ffd38816-770b-4047-a376-6e5ec614f379
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/knight/sourceimages/c100_body_nm.jpg
-Type: !NormalMapTextureType {}

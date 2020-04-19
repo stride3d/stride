@@ -1,0 +1,11 @@
+!Skeleton
+Id: e1b4aa1c-e0ab-409b-bbe4-a5fa0c1afc8d
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../../data/tests/cube/cube.fbx
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Nodes:
+    5678c026bc552e4ea97ac723f04e9079: {Name: RootNode, Depth: 0}
+    f40315a6957e884985e3e56d7822afc4: {Name: pCube1, Depth: 1}
+~SourceHashes:
+    e41568d1ad3988e65ab91f0ee67e7669~../../../../data/tests/cube/cube.fbx: 2471e6b1be7106f3e68cf790e9306164

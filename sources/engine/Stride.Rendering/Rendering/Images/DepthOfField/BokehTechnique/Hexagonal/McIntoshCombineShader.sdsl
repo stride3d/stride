@@ -1,0 +1,22 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// Outputs the minium of 2 textures. (Final pass of the McIntosh bokeh effect.)
+    /// Expects as input: 
+    ///  - Texture0: a color buffer with diagonal blur
+    ///  - Texture1: a color buffer with diagonal blur
+    /// </summary>
+    shader McIntoshCombineShader : ImageEffectShader
+    {
+
+        stage override float4 Shading()
+        {
+            float4 minimum =  min( Texture0.Sample(Sampler, streams.TexCoord),
+                                   Texture1.Sample(Sampler, streams.TexCoord) );
+            return minimum;
+        }
+    };
+}

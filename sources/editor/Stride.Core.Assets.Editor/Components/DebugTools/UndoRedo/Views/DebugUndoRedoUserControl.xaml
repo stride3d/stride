@@ -1,0 +1,74 @@
+<UserControl x:Class="Stride.Core.Assets.Editor.Components.DebugTools.UndoRedo.Views.DebugUndoRedoUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:undoRedo="clr-namespace:Stride.Core.Assets.Editor.Components.DebugTools.UndoRedo"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance undoRedo:DebugUndoRedoViewModel}">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="../../../../View/CommonResources.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+
+      <HierarchicalDataTemplate DataType="{x:Type undoRedo:OperationViewModel}" ItemsSource="{Binding Children}">
+        <TextBlock Margin="0,0,10,0">
+          <Run Text="{Binding Name, Mode=OneWay}"/> (<Run Text="{Binding Type, Mode=OneWay}"/>)
+        </TextBlock>
+      </HierarchicalDataTemplate>
+
+      <!--<HierarchicalDataTemplate DataType="{x:Type as:CollectionChangedActionItem}">
+        <TextBlock Margin="0,0,10,0">
+          <Run Text="{Binding Name}"/> (CollectionChanged: <Run Text="{Binding ActionToUndo, Mode=OneWay}"/> <Run Text="{Binding ItemCount, Mode=OneWay}"/> items)
+        </TextBlock>
+      </HierarchicalDataTemplate>
+
+      <HierarchicalDataTemplate DataType="{x:Type actionStack:ContentValueChangedActionItem}">
+        <TextBlock Margin="0,0,10,0">
+          <Run Text="{Binding Name}"/> (ContentChanged: <Run Text="{Binding ChangeType, Mode=OneWay}"/>)
+        </TextBlock>
+      </HierarchicalDataTemplate>
+
+      <HierarchicalDataTemplate DataType="{x:Type as:ActionItem}">
+        <TextBlock Margin="0,0,10,0" Text="{Binding Name}"/>
+      </HierarchicalDataTemplate>-->
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <DockPanel>
+    <ToolBarTray DockPanel.Dock="Top">
+      <ToolBar>
+        <Button Content="Clear discarded items" Command="{Binding ClearDiscardedItemsCommand}"/>
+      </ToolBar>
+    </ToolBarTray>
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="5"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Height="20" Text="Current action items"/>
+        <sd:TreeView ItemsSource="{Binding Transactions}">
+          <sd:TreeView.ItemContainerStyle>
+            <Style TargetType="sd:TreeViewItem" BasedOn="{StaticResource {x:Type sd:TreeViewItem}}">
+              <Setter Property="IsExpanded" Value="True"/>
+            </Style>
+          </sd:TreeView.ItemContainerStyle>
+        </sd:TreeView>
+      </DockPanel>
+      <GridSplitter Grid.Column="1" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Width="5"/>
+      <!--<DockPanel Grid.Column="2">
+        <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Height="20" Text="Discarded action items"/>
+        <sd:TreeView ItemsSource="{Binding DiscardedActionItems}">
+          <sd:TreeView.ItemContainerStyle>
+            <Style TargetType="sd:TreeViewItem" BasedOn="{StaticResource {x:Type sd:TreeViewItem}}">
+              <Setter Property="IsExpanded" Value="True"/>
+            </Style>
+          </sd:TreeView.ItemContainerStyle>
+        </sd:TreeView>
+      </DockPanel>-->
+    </Grid>
+  </DockPanel>
+</UserControl>

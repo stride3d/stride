@@ -1,9 +1,0 @@
-﻿!TemplateAsset
-Id: b65fab97-5c94-45a9-ba63-d26ff4c15550
-AssetTypeName: ScriptSourceFileAsset
-Name: Scene streamer
-Scope: Asset
-Description: Loads or unloads a scene when a collider enters or exits a trigger
-Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
-DefaultOutputName: SceneStreaming

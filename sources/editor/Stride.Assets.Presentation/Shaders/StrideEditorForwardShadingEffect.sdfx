@@ -1,0 +1,54 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using Stride.Rendering.Data;
+using Stride.Shaders.Compiler;
+
+namespace StrideEffects
+{
+    effect StrideEditorForwardShadingEffect
+    {
+        using params SceneEditorParameters;
+
+        // TODO: This file is similar to StrideEditorWireframeShadingEffect. We should try to look if we can merge them into a single one.
+
+        // Early failover in case there was an effect compilation error
+        // We later could do a two level error detection:
+        // - first time at the end of effect (that is ran with nearly empty CompilerParameters)
+        // - if this one fails too, use this early failover which should have only very few basic shaders
+        if (SceneEditorParameters.IsEffectError)
+        {
+            mixin ShaderBase;
+            mixin ShadingBase;
+            mixin TransformationBase;
+            mixin TransformationWAndVP;
+            mixin CompilationErrorShader;
+            discard;
+        }
+
+        // Include the standard forward shading effect
+        mixin StrideForwardShadingEffect;
+
+        mixin child Picking;
+        mixin child Wireframe;
+        mixin child Highlight;
+
+        // Add an effect compiling if it is not ready
+        if (SceneEditorParameters.IsEffectCompiling)
+        {
+            mixin EffectCompiling;
+        }
+    };
+
+    effect Wireframe
+    {
+        using params MaterialFrontBackBlendShaderKeys;
+
+        mixin MaterialFrontBackBlendShader<MaterialFrontBackBlendShaderKeys.UseNormalBackFace>;
+    }
+
+    effect Highlight
+    {
+        mixin HighlightShader;
+    }
+}

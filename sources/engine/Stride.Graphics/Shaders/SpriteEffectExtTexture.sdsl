@@ -1,0 +1,102 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader SpriteEffectExtTexture : ShaderBase
+{
+    // Color used to tint the sprite
+    //[Color]
+    //stage float4 Color = float4(1,1,1,1);
+
+    //[ExternalOES]
+    stage Texture2D StrideInternal_TextureExt0;    // DO NOT RENAME THIS VARIABLE! The ShaderCompiler specifically looks for "TextureExt0".
+    stage float MipLevel;
+    stage float Gamma;
+    //stage Texture2DExternalOES StrideInternal_TextureExt0;
+
+    stage SamplerState Sampler;
+
+    stage stream float2 TexCoord : TEXCOORD0;
+    stage stream float4 Position : POSITION;
+
+    /*cbuffer PerDraw
+    {
+        stage float4x4 MatrixTransform;
+    }*/
+
+    stage override void VSMain()
+    {
+        //streams.ShadingPosition = mul(streams.Position, MatrixTransform);
+        streams.ShadingPosition = streams.Position;
+    }
+
+    stage override void PSMain()
+    {
+        streams.ColorTarget = Shading();
+    }
+
+    float4 GetMipmapLevelDebugMask()
+    {
+        // These values depend on each other because the mip levels are
+        // copied down and therefore mask each other out.
+        // That's why no value is set to zero.
+        if(MipLevel < 0.5f)
+        {
+            return float4(1.0f, 1.0f, 1.0f, 1.0f);  // White
+        }
+        else if(MipLevel < 1.5f)
+        {
+            return float4(1.0f, 0.5f, 0.5f, 1.0f);  // Red
+        }
+        else if(MipLevel < 2.5f)
+        {
+            return float4(0.5f, 2.0f, 1.0f, 1.0f);  // Green
+        }
+        else if(MipLevel < 3.5f)
+        {
+            return float4(1.0f, 0.5f, 2.0f, 1.0f);  // Blue
+        }
+        else if(MipLevel < 4.5f)
+        {
+            return float4(2.0f, 2.0f, 0.5f, 1.0f);  // Yellow
+        }
+
+        // TODO:
+        else if(MipLevel < 5.5f)
+        {
+            return float4(1.0f, 2.0f, 2.0f, 1.0f);
+        }
+        else if(MipLevel < +.5f)
+        {
+            return float4(2.0f, 1.0f, 2.0f, 1.0f);
+        }
+        else if(MipLevel < 7.5f)
+        {
+            return float4(2.0f, 1.0f, 2.0f, 1.0f);
+        }
+        else if(MipLevel < 8.5f)
+        {
+            return float4(2.0f, 2.0f, 1.0f, 1.0f);
+        }
+
+        return 2.0f;
+    }
+
+    float3 ConvertToLinearSpace(float3 color)
+    {
+        return pow(color, Gamma);
+    }
+
+    stage float4 Shading()
+    {
+        //return StrideInternal_TextureExt0.Sample(Sampler, streams.TexCoord) * Color;
+
+        // Generate a "random" color based on the mip level, for debug purposes:
+        //float4 debugColor = GetMipmapLevelDebugMask();
+
+        //float4 debugColor = 1.0f;
+        //float4 textureColor = StrideInternal_TextureExt0.SampleLevel(Sampler, streams.TexCoord, MipLevel);  //Failed to compile on GLSL
+        //return float4(ConvertToLinearSpace(textureColor.rgb), 1.0f) * debugColor;
+
+        float4 textureColor = StrideInternal_TextureExt0.Sample(Sampler, streams.TexCoord);
+        return float4(ConvertToLinearSpace(textureColor.rgb), 1.0f);
+    }
+};

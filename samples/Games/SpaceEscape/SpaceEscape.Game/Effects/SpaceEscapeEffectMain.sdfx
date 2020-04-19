@@ -1,0 +1,28 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace SpaceEscape.Effects
+{
+    params GameParameters
+    {
+        bool EnableFog = true;
+        bool EnableBend = true;
+        bool EnableOnflyTextureUVChange = false;
+    }
+
+    effect SpaceEscapeEffectMain
+    {
+        using params GameParameters;
+        
+        mixin StrideForwardShadingEffect;
+
+        if(GameParameters.EnableOnflyTextureUVChange)
+            mixin TransformationTextureUV;
+
+        if(GameParameters.EnableBend)
+            mixin TransformationBendWorld;
+
+        if(GameParameters.EnableFog)
+            mixin FogEffect;
+    };
+}

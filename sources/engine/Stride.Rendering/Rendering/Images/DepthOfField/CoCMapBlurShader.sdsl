@@ -1,0 +1,70 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// Blurs a CoC map but keeps sharp border around CoC == 0. 
+    /// It prevents out-of-focus silhouette outline appearing in front of another out-of-focus object, 
+    /// due to abrupt changes in the CoC transitions.
+    /// </summary>
+    ///
+    /// <typeparam name="TBlurCount">Number of weights. (And number of taps along one direction from the center.)</typeparam>
+
+    shader CoCMapBlurShader<int TBlurCount> : ImageEffectShader
+    {
+        // Direction to apply the blur. (normalized vector)
+        float2 Direction;
+
+        // The radius of the blur to apply around the considered fragment
+        float Radius;
+
+        // Weights of each tap
+        float2 OffsetsWeights[TBlurCount];
+
+        stage override float4 Shading()
+        {
+            float2 direction = Direction * Texture0TexelSize;
+
+            // Add center
+            float2 centerCoCDepth = Texture0.Sample(LinearSampler, streams.TexCoord).xy;
+            //float centerDepth = centerCoCDepth.y;
+            float value = centerCoCDepth.x * OffsetsWeights[0].y;
+
+            float totalWeight = OffsetsWeights[0].y;
+
+            // Mirrored samples
+            [unroll]
+            for(int i = 1; i < TBlurCount; i++)
+            {
+
+                [unroll]
+                for (int j = -1.0; j <= 1.0; j += 2) // Backward(-1) and forward(+1) along the direction
+                {
+                    float2 tapCoCDepth = Texture0.Sample(LinearSampler, streams.TexCoord + j * direction * OffsetsWeights[i].x).xy;
+                    
+                    float contribution = 1.0;
+                    
+                    if ( tapCoCDepth.y <= centerCoCDepth.y ) {
+                        // Pixel in the back should not accept a sample in front with CoC null.
+                        contribution *= sign(tapCoCDepth.x);
+                    } 
+                    else 
+                    {
+                        // Pixel with CoC null should not accept any sample, except if the sample is in front.
+                        // if (sign(centerCoCDepth.x) == 0) contribution = 0.0;
+                        contribution = centerCoCDepth.x;
+                    }
+
+                    contribution = saturate(contribution);
+                    float tapWeight = OffsetsWeights[i].y * contribution;
+                    value += tapCoCDepth.x * tapWeight;
+                    totalWeight += tapWeight;
+                }                     
+                
+            }
+
+            return float4(value / totalWeight, centerCoCDepth.y, 0.0, 1.0);
+        }
+    };
+}

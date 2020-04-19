@@ -1,0 +1,7 @@
+!Texture
+Id: 21643e9d-c06e-4213-987a-cc915277fb5c
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/Particles/GradientVertical.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

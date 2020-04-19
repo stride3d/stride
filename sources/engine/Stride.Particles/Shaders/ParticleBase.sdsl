@@ -1,0 +1,132 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+#ifndef UsesSoftEdge
+# define UsesSoftEdge 0
+#endif
+
+shader ParticleBase : DepthBase, ShaderBase, Texturing, ParticleUtilities
+{
+    // -------------------------------------
+    // streams
+    // -------------------------------------
+
+    // Shading position of the vertices/pixels
+    stage stream float4 Position : POSITION;
+
+#if STRIDE_GRAPHICS_PROFILE >= GRAPHICS_PROFILE_LEVEL_10_0
+    // No extra streams are required
+#else
+    stage stream float4 ScreenPosition : SCREEN_POSITION;
+#endif
+
+    // Linear depth of the position in view space in world units, used for soft edges
+    stage stream float ZDepth : Z_DEPTH_VALUE;
+
+    // -------------------------------------
+    // conditional streams - may or may not be present depending on existing particle fields
+    // -------------------------------------
+    //stage stream float4 Color : COLOR;
+    nointerpolation stage stream float Lifetime : BATCH_LIFETIME;
+    nointerpolation stage stream float RandomSeed : BATCH_RANDOMSEED; // Ideally should be uint. Note! The sdsl doesn't support nointerpolation, so cast the float as int before using it
+
+    cbuffer PerMaterial
+    {
+        stage float4 ColorScale;
+
+        // When the value is 0 there is no occlusion (100% emissive), when it is 1 there is 100% occlusion (still limited by alpha)
+        stage float AlphaAdditive;
+
+        // Z offset is how much the depth should be adjusted when rendering
+        stage float ZOffset;
+
+        // 0 if disabled, equal to 1/Distance otherwise
+        stage float SoftEdgeInverseDistance;
+    }
+            
+    // -------------------------------------
+    // VertexShader
+    // -------------------------------------
+
+    // Override Vertex shader main method from the ShaderBase shader
+    stage override void VSMain()
+    {
+        float4 worldPos = streams.Position;
+
+        float4 viewPos = mul(worldPos, ViewMatrix);
+
+        streams.ShadingPosition = mul(viewPos, ProjectionMatrix);
+
+#if STRIDE_GRAPHICS_PROFILE >= GRAPHICS_PROFILE_LEVEL_10_0
+        // No extra code is required
+#else
+        // TODO Check if we can optimize the code here. Possible that the .x/.w and .y/.w operations can't be optimized because of inproper interpolation.
+        streams.ScreenPosition = streams.ShadingPosition;
+#endif
+
+        // Z Offset
+        viewPos.w = 1;
+        viewPos.z += ZOffset;
+
+        streams.ZDepth = viewPos.z;
+
+        float4 viewProjPos = mul(viewPos, ProjectionMatrix);
+
+        streams.ShadingPosition.z = (viewProjPos.z / viewProjPos.w) * streams.ShadingPosition.w;
+    }
+
+    // -------------------------------------
+    // PixelShader
+    // -------------------------------------
+
+    // Override Pixel shader main method from the ShaderBase shader
+    stage override void PSMain()
+    {
+        float4 colorTarget = Shading();
+
+        if (UsesSoftEdge > 0)
+        {
+            float screenWidth  = ViewFrustum.x;
+            float screenHeight = ViewFrustum.y;
+
+#if STRIDE_GRAPHICS_PROFILE >= GRAPHICS_PROFILE_LEVEL_10_0
+            var screenCoords = streams.ShadingPosition.xy;
+            screenCoords.x /= screenWidth;
+            screenCoords.y /= screenHeight;
+#else
+            var screenCoords = (streams.ScreenPosition.xy / streams.ScreenPosition.ww) * float2(0.5, 0.5) + float2(0.5, 0.5);
+            screenCoords.y = 1 - screenCoords.y;
+#endif
+
+            // Account for Viewport offset and scaling
+            screenCoords.xy = Viewport.xy + screenCoords.xy * Viewport.zw;
+
+            // Convert to linear depth for proper edge smoothing
+            float linearZOwn = -streams.ZDepth;
+            float linearZOpaque = GetLinearDepth(DepthStencil.Sample(Texturing.PointSampler, screenCoords).r);
+
+            //  Get the positive difference
+            var depthDistance = linearZOpaque - linearZOwn;
+
+            // TODO Maybe set upper and lower bounds for more interesting effects
+
+            // smoothstep(...) looks more natural than saturate(...):
+            var softEdge = smoothstep(0, 1, depthDistance * SoftEdgeInverseDistance); 
+            colorTarget.rgba *= softEdge;
+        }
+        else
+        {
+            // Do nothing. The depth testing is enabled
+        }
+
+        colorTarget.a *= AlphaAdditive;
+
+        streams.ColorTarget = colorTarget;
+    }
+    
+    stage float4 Shading()
+    {
+        return ColorScale;
+    }
+
+};

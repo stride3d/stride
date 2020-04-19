@@ -1,0 +1,49 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Lights
+{
+    /// <summary>
+    /// Defines a skybox environment light
+    /// </summary>
+    shader LightSkyboxShader : EnvironmentLight, MaterialPixelShadingStream, NormalStream, Transformation
+    {
+        cbuffer PerView.Lighting
+        {
+            float4x4 SkyMatrix;
+            float Intensity;
+        }
+
+        compose IComputeEnvironmentColor lightDiffuseColor;
+
+        compose IComputeEnvironmentColor lightSpecularColor;
+
+        override void PrepareEnvironmentLight()
+        {
+            base.PrepareEnvironmentLight();
+
+            var ambientAccessibility = streams.matAmbientOcclusion;
+
+            // -----------------------------------------
+            // Diffuse lighting
+            // -----------------------------------------
+            // TODO: This could be optimized by having a flag to allow rotation only if necessary
+            // Rotate the skybox
+            var sampleDirection = mul(streams.normalWS, (float3x3)SkyMatrix);
+            sampleDirection = float3(sampleDirection.xy, -sampleDirection.z);
+
+            streams.envLightDiffuseColor = lightDiffuseColor.Compute(sampleDirection).rgb * Intensity * ambientAccessibility * streams.matDiffuseSpecularAlphaBlend.x;
+
+            // -----------------------------------------
+            // Specular lighting
+            // -----------------------------------------
+            // TODO: This could be optimized by having a flag to allow rotation only if necessary
+            // Rotate the skybox
+            // TODO: Sample into "Importance Sampling" direction instead of the "reflect" direction
+            sampleDirection = reflect( -streams.viewWS, streams.normalWS );
+            sampleDirection = mul(sampleDirection, (float3x3)SkyMatrix);
+            sampleDirection = float3(sampleDirection.xy, -sampleDirection.z);
+
+            streams.envLightSpecularColor = lightSpecularColor.Compute(sampleDirection).rgb * Intensity * ambientAccessibility * streams.matDiffuseSpecularAlphaBlend.y;
+        }
+    };
+}

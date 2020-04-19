@@ -1,0 +1,25 @@
+!SpriteStudioSheetAsset
+Id: ed4d6771-9481-4867-b85a-9d04280baba5
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/character_template_3head.ssae
+NodeNames:
+    9cfc8f7311529f075ac879239a7a1909: root
+    ce71ef561c6fac07a92afe30d345da23: hip
+    c94fe159ade7159dd20dcffa5fddb7ff: body
+    c5a7bbf4b6b62d9a48464a167b54815e: head
+    42057ded38a5805f50409764b2f5bd6a: hair
+    14ca00734f260a3765dba16d0e4a3999: upperarm_r
+    9aa90f48751369f3158d577201c7d76a: arm_r
+    5b00f1467296d565fefe685602bf0179: object1
+    94af6036275a80d3db3c4863a341a9f0: object2
+    93e72434ae779da51358aed1d060ab89: upperarm_l
+    af3bf07e315e3994f3fe488af230cda8: arm_l
+    86dce06c61daa2d26060d5c25e1b3323: object3
+    eb18739f763a53f4810eef48e45686f8: tight_l
+    3556e34bf00c36b83e501f53637ed3c5: leg_l
+    4d8e2d8be95c637e4735e372c89cd037: tight_r
+    4c0f03f769ed319983f85778cbd9cb5e: leg_r
+    e21299c47159fb22aae327f92daaef45: shadow
+~SourceHashes:
+    41b3a5dcd237a7233e958c62663176fd~../../Resources/character_template_3head.ssae: 59c2c164cb9719b29d02cf9a8254b204

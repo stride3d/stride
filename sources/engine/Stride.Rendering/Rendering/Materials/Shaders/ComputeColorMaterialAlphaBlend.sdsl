@@ -1,0 +1,15 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+shader ComputeColorMaterialAlphaBlend : ComputeColor, MaterialPixelStream
+{
+    compose ComputeColor color;
+
+    override float4 Compute()
+    {
+        var alpha = 2.0 * color.Compute().x;
+        float specularFactor = min(1, alpha);
+        float diffuseFactor = max(0, alpha - 1.0);
+        return float4(diffuseFactor, specularFactor, 0, 0);
+    }
+};

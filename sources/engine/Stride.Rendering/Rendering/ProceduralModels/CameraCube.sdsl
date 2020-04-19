@@ -1,0 +1,33 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Renders the geometry in the correct view for a cube map.
+/// </summary>
+shader CameraCube : PositionStream4, ShaderBase
+{
+    float3 CameraWorldPosition;
+
+    float4x4 CameraViewProjectionMatrices[6];
+
+    stream uint RTAIndex : SV_RenderTargetArrayIndex;
+
+    // flip render
+    [maxvertexcount(18)]
+    stage void GSMain(triangle Input input[3], inout TriangleStream<Output> triangleStream)
+    {
+        for (int i = 0; i < 6; ++i)
+        {
+            streams.RTAIndex = i;
+            
+            // TODO: verify that for OpenGL. This is likely to be wrong. Perhaps we don't have to change face winding.
+            for (int j = 0; j < 3; ++j)
+            {
+                streams = input[j];
+                streams.ShadingPosition = mul(streams.PositionWS, CameraViewProjectionMatrices[i]);
+                triangleStream.Append(streams);
+            }
+            
+            triangleStream.RestartStrip();
+        }
+    }
+};

@@ -1,0 +1,9 @@
+!SpriteFont
+Id: c90f3988-0544-4cbe-993f-13af7d9c23c6
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+FontSource: !SystemFontProvider
+    FontName: Courier New
+    Style: Bold
+FontType: !RuntimeRasterizedSpriteFontType
+    Size: 10.66666

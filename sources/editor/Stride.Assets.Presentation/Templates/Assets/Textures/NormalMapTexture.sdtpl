@@ -1,0 +1,12 @@
+!TemplateAssetFactory
+Id: E8435CF3-711C-4FD2-A5BE-6CCD0CF515A4
+AssetTypeName: TextureAsset
+Name: Normal map
+Scope: Asset
+Description: A normal map texture asset imported from a source file. Assumes linear space and two (RG) or three (RGB) channels
+Group: Texture
+Order: 20
+Icon: ..\.sdtpl\TextureNormal.png
+DefaultOutputName: NormalMap
+FactoryTypeName: NormalMapTextureFactory
+ImportSource: true

@@ -1,0 +1,70 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader StreamTest
+{
+    stream float2 PositionIn : Position;
+    stream float4 PositionOut;
+    stream float4 Color;
+    patchstream float3 patchstreamParam;
+    
+    void test()
+    {
+        streams.PositionOut = 2.0f*streams.PositionOut;
+    }
+
+    void VSMain()
+    {
+        streams.PositionOut = float4(streams.PositionIn, 0.0f, 1.0f);
+        test();
+        test();
+        float4 a = streams.PositionOut;
+    }
+
+    void PSMain()
+    {
+        streams.Color = streams.PositionOut;
+        //streams.Color = float4(0,0,0,0);
+    }
+
+    void GSMain(point Input input[1], inout PointStream<Output> outStream)
+    {
+        streams = input[0];
+
+        streams.PositionOut = 0.5f * streams.PositionOut;
+
+        outStream.Append(streams);
+        
+        for (int i = 0; i < 2; ++i)
+        {
+            outStream.Append(streams);
+        }
+
+        outStream.RestartStrip();
+    }
+
+    void HSMain(InputPatch<Input, 3> input, out Output output)
+    {
+        streams = input[0];
+        //streams.PositionOut = 0.5f * streams.PositionOut;
+        output.PositionOut = 0.5f * input[0].PositionOut;
+
+        output = streams;
+
+        // TODO: using this syntax should be possible too
+        // TODO: add corresponding StreamUsage
+        //output.PositionOut = 0.5f * input[0].PositionOut;
+    }
+
+    void HSConstantMain(InputPatch<Input, 3> input, const OutputPatch<Input2, 3> output, out Constants constants)
+    {
+        constants.patchstreamParam = 1.0f;
+    }
+
+    void DSMain(const OutputPatch<Input, 3> input, out Output output, in Constants constants, float3 f3BarycentricCoords : SV_DomainLocation)
+    {
+        streams = input[0];
+        //streams.PositionOut = 0.5f * streams.PositionOut * constants.patchstreamParam.x;
+        streams = 0.5f * streams;// * constants.patchstreamParam.x;
+        output = streams;
+    }
+};

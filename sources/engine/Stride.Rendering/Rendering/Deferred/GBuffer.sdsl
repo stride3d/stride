@@ -1,0 +1,17 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Deferred
+{
+    /// <summary>
+    /// An array of light groups
+    /// </summary>
+    shader GBuffer : ShaderBase, MaterialPixelStream
+    {
+        stage override void PSMain()
+        {
+            base.PSMain();
+
+            streams.ColorTarget = float4(streams.normalWS, 1.0f);
+        }
+    };
+}

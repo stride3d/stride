@@ -1,8 +1,0 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
-// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-shader GeometryShaderTest : TestStructure
-{
-    void testGS0(point Input input[1], TriangleStream<myStruct> param){}
-    void testGS1(LineStream<myStruct> param){}
-    void testGS2(PointStream<myStruct> param){}
-};

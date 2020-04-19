@@ -1,0 +1,8 @@
+!Texture
+Id: 388c59e4-a742-44c1-9940-30cbe60a62ea
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../../data/tests/Cube/Untitled.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+    Alpha: Interpolated

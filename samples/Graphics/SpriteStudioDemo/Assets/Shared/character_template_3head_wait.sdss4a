@@ -1,0 +1,6 @@
+!SpriteStudioAnimationAsset
+Id: ee0096d9-18f6-410a-ab68-d88a7c7ce9fc
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/character_template_3head.ssae
+AnimationName: wait

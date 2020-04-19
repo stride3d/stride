@@ -1,0 +1,13 @@
+!TemplateSample
+Id: 1C9E733A-16BB-48C3-A4DE-722B61EED994
+Name: "Sample game: JumpyJet"
+Scope: Session
+Description: A simple 2D action game
+FullDescription: |
+   A simple 2D game in which you guide a ship around obstacles with screen taps. The sample demonstrates how to load assets, use the script system, activate simple gesture recognition, create a simple custom rendering pipeline, and use the SpriteBatch class and sprites.
+Group: Samples/Games
+Icon: .sdtpl/icon.png
+DefaultOutputName: JumpyJet
+Screenshots:
+    - .sdtpl/screenshot0_small.png
+    - .sdtpl/screenshot1_small.png

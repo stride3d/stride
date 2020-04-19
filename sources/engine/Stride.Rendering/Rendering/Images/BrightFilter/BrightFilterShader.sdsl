@@ -1,0 +1,40 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// A bright filter shader
+    /// </summary>
+    internal shader BrightFilterShader : ImageEffectShader
+    {
+        [Color]
+        stage float3 ColorModulator;
+
+        stage float BrightPassSteepness = 2.0f;
+        stage float ThresholdOffset = 0.2f;
+
+        stage override float4 Shading()
+        {
+            float3 color = Texture0.Sample(PointSampler, streams.TexCoord).rgb;
+
+            // Calculate relative luminance
+            float luminance = LuminanceUtils.Luma(color);
+
+            // method 1
+            // Apply threshold
+            // float middle = luminance - ThresholdOffset;
+            // float range = 0.5f;
+            // float value = smoothstep(0, 1, saturate(middle * range));
+            // color *= value;
+
+            // method 2
+            // color *= luminance < ThresholdOffset ? 0.0f : 1.0f;
+
+            // method 3
+            color *= smoothstep(0, 1, saturate(sqrt(luminance) / (BrightPassSteepness + 1) - ThresholdOffset));
+
+            return float4(color * ColorModulator, 1.0);
+        }
+    };
+}

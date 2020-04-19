@@ -1,0 +1,6 @@
+!Texture
+Id: 51fbde95-7b8f-4c64-97c0-3cda64700e67
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../Resources/Textures/iron_blend/paint/iron_paint_nml.png
+Type: !NormalMapTextureType {}

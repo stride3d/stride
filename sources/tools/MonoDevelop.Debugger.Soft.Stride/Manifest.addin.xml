@@ -1,0 +1,53 @@
+<Addin  id             = "MonoDevelop.Debugger.Soft.Stride"
+        name           = "Mono Soft Debugger Support for Stride"
+        author         = "Stride"
+        url            = "https://stride3d.net"
+        copyright      = "MIT X11"
+        description    = "Mono Soft Debugger Support for Stride"
+        category       = "Debugging"
+        version        = "1.0">
+  
+    <Dependencies>
+		<Addin id="MonoDevelop.Ide" version="3.0"/>
+		<Addin id="MonoDevelop.Core" version="3.0"/>
+		<Addin id="MonoDevelop.Debugger" version="3.0"/>
+		<Addin id="MonoDevelop.Debugger.Soft" version="3.0"/>
+	</Dependencies>   
+	
+	<Extension path="/MonoDevelop/Debugging/DebuggerEngines">
+		<DebuggerEngine
+			id="MonoDevelop.Debugger.Soft.Stride"
+			name="Stride Debugger"
+			features="Breakpoints, Pause, Stepping, DebugFile, ConditionalBreakpoints, Tracepoints, Catchpoints"
+			type="MonoDevelop.Debugger.Soft.Stride.StrideDebuggerEngine" />
+	</Extension>
+
+  <Extension path = "/MonoDevelop/Ide/Commands">
+    <Category _name = "Debug" id = "Debug">
+      <Command id = "MonoDevelop.Debugger.Soft.Stride.Commands.StartDebugClient"
+          defaultHandler = "MonoDevelop.Debugger.Soft.Stride.StartDebugClient"
+          _label = "Debug Stride Client"
+          _description = "Debug Stride Client"
+          shortcut = "F3"
+          icon="md-step-over-debug"/>
+      <Command id = "MonoDevelop.Debugger.Soft.Stride.Commands.StartDebugServer"
+          defaultHandler = "MonoDevelop.Debugger.Soft.Stride.StartDebugServer"
+          _label = "Debug Stride Server"
+          _description = "Debug Stride Server"
+          shortcut = "F4"
+          icon="md-step-over-debug"/>
+    </Category>
+  </Extension>
+
+  <Extension path = "/MonoDevelop/Ide/MainMenu/Run">
+    <CommandItem id = "MonoDevelop.Debugger.Soft.Stride.Commands.StartDebugClient" />
+    <CommandItem id = "MonoDevelop.Debugger.Soft.Stride.Commands.StartDebugServer" />
+  </Extension>
+  
+  <Extension path = "/MonoDevelop/Ide/Toolbar">
+    <ItemSet id = "Stride" _label = "Stride">
+      <CommandItem id = "MonoDevelop.Debugger.Soft.Stride.Commands.StartDebugClient" />
+      <CommandItem id = "MonoDevelop.Debugger.Soft.Stride.Commands.StartDebugServer" />
+    </ItemSet>
+  </Extension>
+</Addin>

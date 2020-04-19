@@ -1,0 +1,26 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// Hammersley sampling on a Plane, Sphere, etc... 
+    /// </summary>
+    shader Hammersley : Math
+    {    
+        float2 GetSamplePlane(int k, int samplesCount)
+        {
+            var u = 0.0;
+            var p = 0.5;
+            for (int kk=k; kk; p*=0.5, kk>>=1)
+            {
+                if (kk & 1) // kk mod 2 == 1
+                    u += p;
+            }
+
+            var v = (k + 0.5) / samplesCount;
+
+            return float2(u,v);
+        }
+    };
+}

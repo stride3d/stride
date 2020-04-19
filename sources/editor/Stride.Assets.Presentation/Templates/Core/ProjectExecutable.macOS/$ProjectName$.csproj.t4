@@ -1,0 +1,24 @@
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
+    <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace><#= Properties.Namespace #></RootNamespace>
+
+    <OutputPath>..\Bin\macOS\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>" />
+    <!-- Needed for custom runtime.json -->
+    <PackageReference Include="Stride" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+  </ItemGroup>
+
+</Project>

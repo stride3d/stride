@@ -1,7 +1,0 @@
-!Texture
-Id: bb339658-877a-49dc-80f8-f5f9fbb51dda
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/SmallDdsInterpolated.dds
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

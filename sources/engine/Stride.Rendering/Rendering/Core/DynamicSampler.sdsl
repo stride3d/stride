@@ -1,0 +1,16 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Defines a Texture2D.
+/// </summary>
+/// <remarks>
+/// TEXTURE_KEY: generic LinkType - the name of the ParameterKey that will link to this texture.
+/// </remarks>
+shader DynamicSampler<LinkType TSampler, MemberName LocalResourceGroup>
+{
+    rgroup LocalResourceGroup
+    {
+        [Link("TSampler")]
+        stage SamplerState Sampler;
+    }
+};

@@ -1,0 +1,24 @@
+﻿<Project>
+  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <StrideCompileAssets>true</StrideCompileAssets>
+    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <AssemblyName>Stride.Assets.Tests2</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
+    <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="XunitAttributes.cs" />
+    <Compile Include="AutoAlphaTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="readme.md" />
+  </ItemGroup>
+  <Import Project="..\..\targets\Stride.UnitTests.targets" />
+</Project>

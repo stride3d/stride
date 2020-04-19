@@ -1,0 +1,8 @@
+!Texture
+Id: 9340a3e9-14b4-4367-8c24-a7a3f9f04610
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/knight/sourceimages/c100_weapon_sp.jpg
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+    PremultiplyAlpha: false

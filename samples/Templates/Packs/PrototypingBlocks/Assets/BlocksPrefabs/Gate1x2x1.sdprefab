@@ -1,0 +1,48 @@
+!PrefabAsset
+Id: db12c212-61b8-4647-836d-a76e0adf1cb9
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! f0bb0b32-100e-4c8e-87a2-1c58bc6085d0
+    Parts:
+        -   Entity:
+                Id: f0bb0b32-100e-4c8e-87a2-1c58bc6085d0
+                Name: Gate1x2x1
+                Components:
+                    b26400b92086774ea0d1243b9d099112: !TransformComponent
+                        Id: b90064b2-8620-4e77-a0d1-243b9d099112
+                        Position: {X: 0.5, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    9dc5dbf6d3c6c147a377ea11fd11b1b2: !ModelComponent
+                        Id: f6dbc59d-c6d3-47c1-a377-ea11fd11b1b2
+                        Model: 01019ffb-11d0-42cb-a5c1-ce55f20e5042:Models/Gate1x2x1
+                        Materials:
+                            ecd1b81c86e9114d86fcdf436455648f~0: c1d40f25-8760-420b-8e26-ef8a2b999678:Materials/GridMTArc
+                    c0e71cc466335b44b7cda9387da726a1: !StaticColliderComponent
+                        Id: c41ce7c0-3366-445b-b7cd-a9387da726a1
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            6789a1372377624a80df8c1d66d47bd0: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: 0.45, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            f063361a0c7e204b9c14f31922bd5703: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 2.0, Z: 1.0}
+                                LocalOffset: {X: -0.45, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            708151cc1c65c646a1074de23e62c6d9: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 0.2, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.9, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}

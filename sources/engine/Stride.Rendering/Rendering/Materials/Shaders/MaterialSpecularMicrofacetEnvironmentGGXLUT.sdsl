@@ -1,0 +1,27 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Interface for a microfacet Fresnel function
+    /// </summary>
+    shader MaterialSpecularMicrofacetEnvironmentGGXLUT : IMaterialSpecularMicrofacetEnvironmentFunction, Texturing
+    {
+        rgroup PerMaterial
+        {
+            stage Texture2D EnvironmentLightingDFG_LUT;
+        }
+
+        override float3 Compute(float3 specularColor, float alphaR, float nDotV)
+        {
+            float glossiness = 1.0f - sqrt(alphaR);
+#if STRIDE_GRAPHICS_PROFILE >= GRAPHICS_PROFILE_LEVEL_10_0 || STRIDE_GRAPHICS_API_OPENGL
+            // SampleLevel doesn't work on D3D feature level 9
+            float4 environmentLightingDFG = EnvironmentLightingDFG_LUT.SampleLevel(LinearSampler, float2(glossiness, nDotV), 0);
+#else
+            float4 environmentLightingDFG = EnvironmentLightingDFG_LUT.Sample(LinearSampler, float2(glossiness, nDotV));
+#endif
+            return specularColor * environmentLightingDFG.r + environmentLightingDFG.g;
+        }
+    };
+}

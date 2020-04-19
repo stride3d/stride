@@ -1,0 +1,9 @@
+!SpriteFont
+Id: e69c3c0c-baca-4e05-9c03-a3f95cdeb5ed
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+FontSource: !SystemFontProvider
+    FontName: Arial
+    Style: Regular
+FontType: !RuntimeRasterizedSpriteFontType
+    Size: 21.33333

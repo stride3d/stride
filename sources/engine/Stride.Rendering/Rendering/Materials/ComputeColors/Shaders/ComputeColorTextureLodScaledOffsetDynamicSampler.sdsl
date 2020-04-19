@@ -1,0 +1,36 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Samples a texture with a custom sampler and fix texture coordinates offset and scale.
+/// </summary>
+/// <remarks>
+/// TTexture: generic Texture2D - the texture to sample.
+/// TStream: generic Semantic - the texcoord index semantic used to sample the texture.
+/// TScale: generic LinkType - the float2 key for scaling factor of the texture coordinates.
+/// TOffset: generic LinkType - the float2 key for texture coordinates offset.
+/// TSampler: generic SamplerState - the custom sampler.
+/// </remarks>
+shader ComputeColorTextureLodScaledOffsetDynamicSampler<LinkType TTextureName, 
+                                             Semantic TStream, 
+                                             LinkType TSampler, 
+                                             MemberName TRgba, 
+                                             LinkType TScale, 
+                                             LinkType TOffset,
+											 float TLod> : ComputeColor, 
+                                                               DynamicTexture<TTextureName, PerMaterial>, 
+                                                               DynamicSampler<TSampler, PerMaterial>, 
+                                                               DynamicTextureStream<TStream>
+{
+    cbuffer PerMaterial
+    {
+        [Link("TScale")]
+        stage float2 scale;
+
+        [Link("TOffset")]
+        stage float2 offset;
+    }
+    
+    override float4 Compute() {
+        return Texture.SampleLevel(Sampler, streams.TexCoord * scale + offset, TLod).TRgba;
+    }
+};

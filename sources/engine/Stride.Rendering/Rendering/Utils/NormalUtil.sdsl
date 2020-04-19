@@ -1,0 +1,48 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Various methods for manipulating normals
+/// </summary>
+shader NormalUtil
+{
+    // Blending Normal methods: http://blog.selfshadow.com/publications/blending-in-detail/
+
+    float3 BlendLinear(float3 n1, float3 n2)
+    {
+        return normalize(n1 + n2);
+    }
+
+    float3 BlendPartialDerivative(float3 n1, float3 n2)
+    {
+        return normalize(float3(n1.xy*n2.z + n2.xy*n1.z, n1.z*n2.z));
+    }
+
+    float3 BlendPartialDerivative(float3 n1, float3 n2, float blend)
+    {
+        float2 pd = lerp(n1.xy/(n1.z + 0.00001), n2.xy/(n2.z + 0.00001), blend);
+        return normalize(float3(pd, 1));
+    }
+
+    float3 BlendWhiteout(float3 n1, float3 n2)
+    {
+        return float3(n1.xy + n2.xy, n1.z*n2.z);
+    }
+
+    float3 BlendUDN(float3 n1, float3 n2)
+    {
+        return normalize(float3(n1.xy + n2.xy, n1.z));
+    }
+
+    float3 BlendRNM(float3 n1, float3 n2)
+    {
+        // TEMP try to keep length
+        var length_n1n2 = length(n1+n2);
+        n1 = normalize(n1);
+        n2 = normalize(n2);
+
+        float3 t = n1 + float3(0, 0,  1);
+        float3 u = float3(-n2.x, -n2.y, n2.z);
+        float3 r = t*dot(t, u) - u*t.z;
+        return normalize(r) * length_n1n2;
+    }
+};

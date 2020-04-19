@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: 5A3CD5E3-4318-46AF-A41C-8146D2D21F80
+AssetTypeName: ColliderShapeAsset
+Name: Convex hull
+Scope: Asset
+Description: A convex hull-shaped collider, computed from a 3D model
+Group: Physics
+Icon: ..\.sdtpl\ColliderHull.png
+DefaultOutputName: ColliderHull
+FactoryTypeName: ColliderShapeConvexHullFactory

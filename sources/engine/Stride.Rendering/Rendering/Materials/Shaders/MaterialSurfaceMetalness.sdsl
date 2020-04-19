@@ -1,0 +1,24 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Converts Metalness to specular color
+    /// </summary>
+    shader MaterialSurfaceMetalness : IMaterialSurfacePixel
+    {
+        compose ComputeColor metalnessMap;
+
+        override void Compute()
+        {
+            // Metallic workflow
+            // http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf
+            float metalness = metalnessMap.Compute().r;
+            // Use a low 0.02 reflectance value for non-metal
+            streams.matSpecular = lerp(0.02, streams.matDiffuse.rgb, metalness);
+
+            // Adjust diffuse
+            streams.matDiffuse.rgb = lerp(streams.matDiffuse.rgb, 0, metalness);
+        }
+    };
+}

@@ -1,0 +1,15 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader BaseTestChild : BaseTestInter
+{
+    override void test1()
+    {
+        base.test1();
+    }
+    
+    override void test2()
+    {
+        this.test1();
+        base.test2();
+    }
+};

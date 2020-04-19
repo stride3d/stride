@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Stride.Rendering.SceneRendererBase" Collapsed="true">
+    <Position X="4.75" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAIAAAAEAAAAAAAAAIAgAAAABAAAAAAIAAAAAAAAA=</HashCode>
+      <FileName>Rendering\SceneRendererBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.ClearRenderFrameRenderer">
+    <Position X="6.5" Y="5.75" Width="2.25" />
+    <Members>
+      <Method Name="ClearRenderFrameRenderer" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAgAAAAgEAAAAA=</HashCode>
+      <FileName>Rendering\ClearRenderFrameRenderer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Engine.SceneChildRenderer">
+    <Position X="11.5" Y="5.75" Width="1.75" />
+    <Members>
+      <Field Name="childSceneProcessor" Hidden="true" />
+      <Field Name="currentSceneInstance" Hidden="true" />
+      <Method Name="Destroy" Hidden="true" />
+      <Method Name="SceneChildRenderer" Hidden="true" />
+    </Members>
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>gAAAAQAAAAAAAAAAAAAAAAAAAEBAAAABIAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\SceneChildRenderer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.SceneEffectRenderer">
+    <Position X="9.25" Y="5.75" Width="1.75" />
+    <Members>
+      <Method Name="Destroy" Hidden="true" />
+      <Method Name="SceneEffectRenderer" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAgAAAAAAAAAAAAAEABAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\SceneEffectRenderer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.SceneRendererViewportBase" Collapsed="true">
+    <Position X="2.25" Y="5.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAEAAAAAAAAAoAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\SceneRendererViewportBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.SceneCameraRenderer">
+    <Position X="0.5" Y="7.25" Width="1.75" />
+    <Members>
+      <Field Name="Current" Hidden="true" />
+      <Method Name="SceneCameraRenderer" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>gAACAAIAAIAAAAAAgACAAAAAAAAAACAAAAEAAAAAAAA=</HashCode>
+      <FileName>Rendering\SceneCameraRenderer.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Mode" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Stride.Rendering.SceneDelegateRenderer">
+    <Position X="4.25" Y="7.25" Width="2" />
+    <Members>
+      <Field Name="drawAction" Hidden="true" />
+      <Method Name="SceneDelegateRenderer" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\SceneDelegateRenderer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.Composers.SceneGraphicsCompositorLayers">
+    <Position X="0.75" Y="1.75" Width="2.5" />
+    <Members>
+      <Method Name="SceneGraphicsCompositorLayers" Hidden="true" />
+      <Method Name="Unload" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>gAAAAACAAAAAAACAAAAAAAAAAEAAAAAEAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Composers\SceneGraphicsCompositorLayers.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Layers" />
+    </ShowAsCollectionAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Composers.SceneGraphicsLayer">
+    <Position X="4" Y="1.75" Width="1.75" />
+    <Members>
+      <Method Name="Add" Hidden="true" />
+      <Field Name="CurrentInput" Hidden="true" />
+      <Method Name="IEnumerable.GetEnumerator" Hidden="true" />
+      <Property Name="IsMaster" Hidden="true" />
+      <Field Name="Master" Hidden="true" />
+      <Field Name="output" Hidden="true" />
+      <Method Name="SceneGraphicsLayer" Hidden="true" />
+      <Method Name="Unload" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>gAIAAACAAAAAAACAAAAIAAQACAAAAAAEKACAAAAAAAA=</HashCode>
+      <FileName>Rendering\Composers\SceneGraphicsLayer.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Renderers" />
+    </ShowAsCollectionAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.CameraRendererMode" Collapsed="true">
+    <Position X="2.75" Y="9.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>gEBAAAAAAAAAEgAAAgAAIhIAAABAACAAAACAAAAAAAQ=</HashCode>
+      <FileName>Rendering\CameraRendererMode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.CameraRendererModeForward">
+    <Position X="0.75" Y="10.75" Width="2.75" />
+    <Members>
+      <Method Name="CameraRendererModeForward" Hidden="true" />
+      <Field Name="ForwardEffect" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>Rendering\CameraRendererModeForward.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.CameraRendererModeWireframe">
+    <Position X="4.25" Y="10.75" Width="2.5" />
+    <Members>
+      <Method Name="CameraRendererModeWireframe" Hidden="true" />
+      <Field Name="modelComponentAndPickingRenderer" Hidden="true" />
+      <Field Name="WireframeEffect" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>gQAAAAAAAAAgMAAAAAAAABIAAAICAAQAAAABAEABAAg=</HashCode>
+      <FileName>Rendering\CameraRendererModeWireframe.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="Stride.Rendering.ISceneRenderer" Collapsed="true">
+    <Position X="7" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\ISceneRenderer.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.ISceneRendererViewport" Collapsed="true">
+    <Position X="9" Y="2.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAEAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\ISceneRendererViewport.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Composers.ISceneGraphicsCompositor" Collapsed="true">
+    <Position X="0.75" Y="0.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Composers\ISceneGraphicsCompositor.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

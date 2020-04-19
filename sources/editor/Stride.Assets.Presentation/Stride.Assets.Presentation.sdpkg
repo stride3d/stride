@@ -1,0 +1,83 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+TemplateFolders:
+    - Path: !dir Templates/Core
+      Group: Core
+      Exclude: "**/*.cs;**/*.xaml"
+      Files:
+        - !file Templates/Core/ProjectExecutable.sdtpl
+        - !file Templates/Core/ProjectLibrary.sdtpl
+        - !file Templates/Core/UpdatePlatforms.sdtpl
+    - Path: !dir ../../data/StridePackage/Templates/Core
+      Group: Core
+      Exclude: "**/*.psd;**/*.md"
+    - Path: !dir Templates/Assets
+      Group: Assets
+      Files:
+        - !file Templates/Assets/Animations/DefaultAnimation.sdtpl
+        - !file Templates/Assets/Animations/DefaultSkeleton.sdtpl
+        - !file Templates/Assets/Fonts/OfflineRasterizedSpriteFont.sdtpl
+        - !file Templates/Assets/Fonts/RuntimeRasterizedSpriteFont.sdtpl
+        - !file Templates/Assets/Fonts/SignedDistanceFieldSpriteFont.sdtpl
+        - !file Templates/Assets/Materials/DefaultMaterial.sdtpl
+        - !file Templates/Assets/Materials/DiffuseMaterial.sdtpl
+        - !file Templates/Assets/Materials/PBRMetalnessMaterial.sdtpl
+        - !file Templates/Assets/Materials/PBRSpecularMaterial.sdtpl
+        - !file Templates/Assets/Materials/PBRClearCoatMaterial.sdtpl
+        - !file Templates/Assets/Materials/PBRGlassMaterial.sdtpl
+        - !file Templates/Assets/Media/DefaultSound.sdtpl
+        - !file Templates/Assets/Media/DefaultVideo.sdtpl
+        - !file Templates/Assets/Media/SpatializedSound.sdtpl
+        - !file Templates/Assets/Media/MusicSound.sdtpl
+        - !file Templates/Assets/Misc/DefaultGameSettings.sdtpl
+        - !file Templates/Assets/Misc/DefaultGraphicsCompositorLevel10.sdtpl
+        - !file Templates/Assets/Misc/DefaultGraphicsCompositorLevel9.sdtpl
+        - !file Templates/Assets/Misc/DefaultGraphicsCompositorVoxels.sdtpl
+        - !file Templates/Assets/Misc/DefaultRawAsset.sdtpl
+        - !file Templates/Assets/Misc/DefaultSkybox.sdtpl
+        - !file Templates/Assets/Models/DefaultModel.sdtpl
+        - !file Templates/Assets/Models/PrefabModel.sdtpl
+        - !file Templates/Assets/Models/ProceduralCapsule.sdtpl
+        - !file Templates/Assets/Models/ProceduralCone.sdtpl
+        - !file Templates/Assets/Models/ProceduralCube.sdtpl
+        - !file Templates/Assets/Models/ProceduralCylinder.sdtpl
+        - !file Templates/Assets/Models/ProceduralGeoSphere.sdtpl
+        - !file Templates/Assets/Models/ProceduralPlane.sdtpl
+        - !file Templates/Assets/Models/ProceduralSphere.sdtpl
+        - !file Templates/Assets/Models/ProceduralTeapot.sdtpl
+        - !file Templates/Assets/Models/ProceduralTorus.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeBox.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeCapsule.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeConvexHull.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeCylinder.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapePlane.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeSphere.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeCone.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeHeightfield.sdtpl
+        - !file Templates/Assets/Physics/Heightmap.sdtpl
+        - !file Templates/Assets/Scenes/DefaultPrefab.sdtpl
+        - !file Templates/Assets/Scenes/DefaultNavigationMesh.sdtpl
+        - !file Templates/Assets/Scenes/DefaultScene.sdtpl
+        - !file Templates/Assets/Scripts/Animation/AnimationBlend.sdtpl
+        - !file Templates/Assets/Scripts/Animation/AnimationStart.sdtpl
+        - !file Templates/Assets/Scripts/Camera/BasicCameraController.sdtpl
+        - !file Templates/Assets/Scripts/Camera/SideScrollingCamera.sdtpl
+        - !file Templates/Assets/Scripts/Camera/FpsCamera.sdtpl
+        - !file Templates/Assets/Scripts/Physics/PlayerController.sdtpl
+        - !file Templates/Assets/Scripts/DefaultAsyncScript.sdtpl
+        - !file Templates/Assets/Scripts/DefaultSyncScript.sdtpl
+        - !file Templates/Assets/Scripts/DefaultStartupScript.sdtpl
+        - !file Templates/Assets/Scripts/Events/EventBroadcaster.sdtpl
+        - !file Templates/Assets/Scripts/Events/EventListener.sdtpl
+        - !file Templates/Assets/Scripts/Physics/DebugShapesRender.sdtpl
+        - !file Templates/Assets/Scripts/Prefabs/PrefabInstance.sdtpl
+        - !file Templates/Assets/Scripts/Utility/GameProfiler.sdtpl
+        - !file Templates/Assets/Scripts/Utility/SceneStreaming.sdtpl
+        - !file Templates/Assets/Sprites/SpriteSheetSprites.sdtpl
+        - !file Templates/Assets/Sprites/SpriteSheetUI.sdtpl
+        - !file Templates/Assets/Textures/ColorTexture.sdtpl
+        - !file Templates/Assets/Textures/NormalMapTexture.sdtpl
+        - !file Templates/Assets/Textures/GrayscaleTexture.sdtpl
+        - !file Templates/Assets/Textures/DefaultRenderTexture.sdtpl
+        - !file Templates/Assets/UI/Library.sdtpl
+        - !file Templates/Assets/UI/Page.sdtpl

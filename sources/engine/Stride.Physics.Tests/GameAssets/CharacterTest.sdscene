@@ -1,0 +1,158 @@
+!SceneAsset
+Id: c2b9bd24-3e83-4fff-b963-79f9ff5430ac
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 1dca85fc-8e93-4d68-9e82-4440251e3bf9
+        - ref!! de1fcd6c-d440-474c-adda-b004e2f06c20
+        - ref!! b44b9503-5fec-4dff-8928-51b5d00451e3
+        - ref!! 3f0980df-17d0-4826-bb0d-91d31e918e5a
+        - ref!! 8d84eb37-962e-48ce-ba89-893683430a07
+        - ref!! 323319d0-dcba-4464-a0c0-5858d65845c2
+        - ref!! a4088c0f-ef54-402a-ae01-6d972f3f425e
+    Parts:
+        -   Entity:
+                Id: 1dca85fc-8e93-4d68-9e82-4440251e3bf9
+                Name: Camera
+                Components:
+                    e7262402b4c6f24b8be17b1e598cf547: !TransformComponent
+                        Id: 022426e7-c6b4-4bf2-8be1-7b1e598cf547
+                        Position: {X: -1.0, Y: 1.2, Z: 2.7}
+                        Rotation: {X: -0.08583164, Y: -0.1729874, Z: -0.0151344351, W: 0.981060266}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b7f2ce3847891c428962842432719def: !CameraComponent
+                        Id: 38cef2b7-8947-421c-8962-842432719def
+                        Name: null
+                        Projection: Perspective
+                        Slot: bdd308f1-d60d-4a59-b0e5-c63d138382bd
+        -   Entity:
+                Id: 323319d0-dcba-4464-a0c0-5858d65845c2
+                Name: Ground
+                Components:
+                    333c289de2854b47beb4b0417719b449: !TransformComponent
+                        Id: 9d283c33-85e2-474b-beb4-b0417719b449
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5d8c4c17968bfe4b860bc3428448d774: !StaticColliderComponent
+                        Id: 174c8c5d-8b96-4bfe-860b-c3428448d774
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            1af627cfa33d44418886ba73a93f27e4: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+        -   Entity:
+                Id: 3f0980df-17d0-4826-bb0d-91d31e918e5a
+                Name: Ambient light
+                Components:
+                    d2851f9fbfaffe48a7d742e2c692a2f8: !TransformComponent
+                        Id: 9f1f85d2-afbf-48fe-a7d7-42e2c692a2f8
+                        Position: {X: -2.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c12f9f3872c38f438dbcc54bbe69f4c3: !LightComponent
+                        Id: 389f2fc1-c372-438f-8dbc-c54bbe69f4c3
+                        Type: !LightAmbient
+                            Color: !ColorRgbProvider
+                                Value: {R: 0.768627465, G: 0.843137264, B: 1.0}
+                        Intensity: 0.05
+        -   Entity:
+                Id: 8d84eb37-962e-48ce-ba89-893683430a07
+                Name: Character
+                Components:
+                    b67423c0cb02c8449d5b2359793cbe34: !TransformComponent
+                        Id: c02374b6-02cb-44c8-9d5b-2359793cbe34
+                        Position: {X: 0.0, Y: 1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    1c47d57cf43be547935684f25405bc01: !CharacterComponent
+                        Id: 7cd5471c-3bf4-47e5-9356-84f25405bc01
+                        CollisionGroup: CharacterFilter
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        FallSpeed: 10.0
+                        MaxSlope: {Radians: 0.7853982}
+                        JumpSpeed: 5.0
+                        Gravity: -10.0
+                        ColliderShapes:
+                            155e50d69bb1ce4aaa47c6a99b1f5f4e: !CapsuleColliderShapeDesc
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+        -   Entity:
+                Id: a4088c0f-ef54-402a-ae01-6d972f3f425e
+                Name: Collider
+                Components:
+                    69c7c4f5535bf04b8617a96892c3feb1: !TransformComponent
+                        Id: f5c4c769-5b53-4bf0-8617-a96892c3feb1
+                        Position: {X: 6.0, Y: 0.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    2a3a9727c14d214f8a0e205e4fbcd7a3: !StaticColliderComponent
+                        Id: 27973a2a-4dc1-4f21-8a0e-205e4fbcd7a3
+                        CanCollideWith: CharacterFilter
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            e5a81e884d85a643907d3ee2fbff946d: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+        -   Entity:
+                Id: b44b9503-5fec-4dff-8928-51b5d00451e3
+                Name: Skybox
+                Components:
+                    e03173a77a791f42b956b03ea884c274: !TransformComponent
+                        Id: a77331e0-797a-421f-b956-b03ea884c274
+                        Position: {X: 0.0, Y: 2.0, Z: -2.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Entity:
+                Id: de1fcd6c-d440-474c-adda-b004e2f06c20
+                Name: Directional light
+                Components:
+                    5173fc7b5ec6a040a86cf8774a79bef9: !TransformComponent
+                        Id: 7bfc7351-c65e-40a0-a86c-f8774a79bef9
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: -0.5540323, Y: 0.212012157, Z: 0.1484525, W: 0.7912401}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    56dd5c68213a60439578691f42894598: !LightComponent
+                        Id: 685cdd56-3a21-4360-9578-691f42894598
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter5x5
+                                Size: XLarge
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters: {}
+                        Intensity: 0.8

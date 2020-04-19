@@ -1,0 +1,39 @@
+<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideRuntimeNetStandard>true</StrideRuntimeNetStandard>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+    <!-- 
+    <StridePlatformDependent>true</StridePlatformDependent>
+    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
+    <StrideProjectPlatformDependentWindows>true</StrideProjectPlatformDependentWindows>
+    <StrideBuildTags>*</StrideBuildTags>
+ -->
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="'$(StrideEffectCompiler)' == 'true'">
+      <ItemGroup Condition="'$(StrideEffectCompiler)' == 'true'">
+        <ProjectReference Include="..\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj">
+                  <Private>False</Private>
+        </ProjectReference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

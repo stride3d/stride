@@ -1,0 +1,47 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// The second pass of a shader performing Lambertian pre-filtering using Spherical Harmonics
+    /// </summary>
+    shader LambertianPrefilteringSHPass2<int TSize, int THarmonicsOrder> : SphericalHarmonicsBase<THarmonicsOrder>, ComputeShaderBase, Texturing, Math
+    {    
+        // the input buffer containing SH coefficients summed up along rows.
+        Buffer<float4> InputBuffer;
+
+        // the output buffer containing the final SH coefficients.
+        RWBuffer<float4> OutputBuffer;
+
+        // Shared memory for reducing SH-Basis coefficients
+        groupshared float4 PartialSHCoeffs[TSize];
+
+        // Reduce (sums) the SH coefficients along the columns
+        override void Compute()
+        {
+            int coeffId = streams.GroupId.z;
+            int threadId = streams.GroupThreadId.x;
+            int groupId = streams.GroupId.x + streams.ThreadGroupCount.x * streams.GroupId.y;
+
+	        // Store in shared memory
+	        PartialSHCoeffs[threadId] = InputBuffer[coeffId + CoefficientsCount * (threadId + TSize * groupId)];
+	        GroupMemoryBarrierWithGroupSync();
+            
+	        // Sum the coefficients
+            for(int s = TSize / 2; s > 0; s >>= 1) 
+            {
+		        if(threadId < s)
+			        PartialSHCoeffs[threadId] += PartialSHCoeffs[threadId + s];
+
+		        GroupMemoryBarrierWithGroupSync();
+	        }
+
+	        // Have the first thread write out to the output buffer
+	        if (IsFirstThreadOfGroup())
+	        {
+		        OutputBuffer[coeffId + CoefficientsCount * groupId] = PartialSHCoeffs[0];
+	        }
+        }
+    };
+}

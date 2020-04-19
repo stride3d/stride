@@ -1,0 +1,9 @@
+!TemplateAsset
+Id: 182719A2-FA85-4839-8145-CD1D88A6AB50
+AssetTypeName: ScriptSourceFileAsset
+Name: Animation start
+Scope: Asset
+Description: Loads an animation sequence in an animation component and plays it
+Group: Script
+Icon: ..\..\.sdtpl\SourceCode.png
+DefaultOutputName: AnimationStart

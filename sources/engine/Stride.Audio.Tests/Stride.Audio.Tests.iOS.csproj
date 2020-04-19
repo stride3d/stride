@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <!--Import Local Pre Settings for the solution being loaded -->
+  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}</ProjectGuid>
+    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Exe</OutputType>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <RootNamespace>Stride.Audio.Tests</RootNamespace>
+    <AssemblyName>StrideAudioTests</AssemblyName>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StridePlatform>iOS</StridePlatform>
+    <StrideBuildProfile>iOS</StrideBuildProfile>
+    <StridePackageGuid>{637e7e88-bc09-4ddd-95eb-00114fd32e5e}</StridePackageGuid>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''">OpenGLES</StrideGraphicsApi>
+    <StrideOutputFolder>Tests\$(StrideGraphicsApi)\$(AssemblyName)</StrideOutputFolder>
+    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)Stride.Audio.Tests.sdpkg</StrideCurrentPackagePath>
+    <OutputPath>..\..\..\Bin\$(StridePlatformFullName)\$(StrideOutputFolder)</OutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(StridePlatformFullName)-$(StrideGraphicsApi)\$(Configuration)</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhone' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <MtouchUseSGen>True</MtouchUseSGen>
+    <MtouchDebug>True</MtouchDebug>
+    <CodesignKey>iPhone Developer</CodesignKey>
+    <MtouchUseSGen>True</MtouchUseSGen>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <MtouchUseSGen>True</MtouchUseSGen>
+    <CodesignKey>iPhone Developer</CodesignKey>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|iPhone' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <MtouchUseSGen>True</MtouchUseSGen>
+    <MtouchDebug>True</MtouchDebug>
+    <CodesignKey>iPhone Distribution</CodesignKey>
+    <BuildIpa>True</BuildIpa>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AppStore|iPhone' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <MtouchUseSGen>True</MtouchUseSGen>
+    <CodesignKey>iPhone Distribution</CodesignKey>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchLink>None</MtouchLink>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <MtouchLink>None</MtouchLink>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Stride.Core.Tests.Application</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Xamarin.iOS" Label="Stride.DoNotSync" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Label="Stride.DoNotSync" Include="Info.plist" />
+    <Compile Label="Stride.DoNotSync" Include="Properties\AssemblyInfo.cs" />
+    <Compile Label="Stride.DoNotSync" Include="..\..\..\sources\shared\tests\nunitlite\NUnitLiteLauncher.iPhone.cs">
+      <Link>NUnitLiteLauncher.iPhone.cs</Link>
+    </Compile>
+    <ProjectReference Include="..\..\..\sources\engine\Stride.Engine\Stride.Engine.csproj">
+      <Project>{C121A566-555E-42B9-9B0A-1696529A9088}</Project>
+      <Name>Stride.Engine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj">
+      <Project>{D002FEB1-00A6-4AB1-A83F-1F253465E64D}</Project>
+      <Name>Stride.Graphics.Regression</Name>
+    </ProjectReference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Compile Include="XunitAttributes.cs" />
+    <Compile Include="AudioTestGame.cs" />
+    <Compile Include="BasicTest.cs" />
+    <Compile Include="Engine\GameClassForTests.cs" />
+    <Compile Include="Engine\LaunchProgram.cs" />
+    <Compile Include="Engine\TestAssetLoading.cs" />
+    <Compile Include="Engine\TestAudioEmitterComponent.cs" />
+    <Compile Include="Engine\TestAudioEmitterProcessor.cs" />
+    <Compile Include="Engine\TestAudioListenerProcessor.cs" />
+    <Compile Include="Engine\TestAudioSystem.cs" />
+    <Compile Include="Engine\TestController.cs" />
+    <Compile Include="Engine\TestGame.cs" />
+    <Compile Include="Engine\TestUtilities.cs" />
+    <Compile Include="LaunchProgram.cs" />
+    <Compile Include="PauseResumeTests.cs" />
+    <Compile Include="SoundGenerator.cs" />
+    <Compile Include="TestAudioEmitter.cs" />
+    <Compile Include="TestAudioEngine.cs" />
+    <Compile Include="TestAudioListener.cs" />
+    <Compile Include="TestDynamicSoundEffectInstance.cs" />
+    <Compile Include="TestInvalidationAudioContext.cs" />
+    <Compile Include="TestSoundEffect.cs" />
+    <Compile Include="TestSoundEffectInstance.cs" />
+    <Compile Include="TestSoundMusic.cs" />
+    <None Include="AudioAssets\a.sdsnd" />
+    <None Include="AudioAssets\ae.sdsnd" />
+    <None Include="AudioAssets\a_Music.sdsnd" />
+    <None Include="AudioAssets\wave1HeaderCorrupted_Music.sdsnd" />
+    <None Include="AudioAssets\wave1_4Channels_Music.sdsnd" />
+    <None Include="AudioAssets\fiveptone_Music.sdsnd" />
+    <None Include="AudioAssets\stereo_Music.sdsnd" />
+    <None Include="AudioAssets\wave1_Music.sdsnd" />
+    <None Include="AudioAssets\wave1MP3.sdsnd" />
+    <None Include="AudioAssets\bizet.sdsnd" />
+    <None Include="AudioAssets\sayuriWAV.sdsnd" />
+    <None Include="AudioAssets\stereoOGG.sdsnd" />
+    <None Include="AudioAssets\InvalidAudioFile.sdsnd" />
+    <None Include="AudioAssets\fiveptone.sdsnd" />
+    <None Include="AudioAssets\sayuri.sdsnd" />
+    <None Include="AudioAssets\sayuriPart.sdsnd" />
+    <None Include="AudioAssets\stereo.sdsnd" />
+    <None Include="AudioAssets\wave1.sdsnd" />
+    <None Include="AudioAssets\wave1HeaderCorrupted.sdsnd" />
+    <None Include="AudioAssets\wave1_24bits.sdsnd" />
+    <None Include="AudioAssets\wave1_4Channels.sdsnd" />
+    <None Include="AudioAssets\wave2.sdsnd" />
+    <None Include="Stride.Audio.Tests.sdpkg" />
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="Resources\Icon%402x.png" Label="Stride.DoNotSync" />
+    <BundleResource Include="Resources\Icon-60%402x.png" Label="Stride.DoNotSync" />
+    <BundleResource Include="Resources\Icon.png" Label="Stride.DoNotSync" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
+  <Import Project="$(StridePackageProps)" Condition="Exists('$(StridePackageProps)')" />
+  <Import Project="..\..\targets\Stride.UnitTests.targets" Condition="Exists('..\..\targets\Stride.UnitTests.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+    Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

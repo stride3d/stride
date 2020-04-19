@@ -1,0 +1,47 @@
+<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+namespace Stride.UI.Tests.Regression
+{
+
+    public static class ElementTestDesigns
+    {
+		public static byte[] EditTextActive = <#= ConvertFileToByteArray(@"..\Resources\EditTextActive.dds") #>;
+		public static byte[] EditTextInactive = <#= ConvertFileToByteArray(@"..\Resources\EditTextInactive.dds") #>;
+		public static byte[] EditTextOverred = <#= ConvertFileToByteArray(@"..\Resources\EditTextOverred.dds") #>;
+		public static byte[] ButtonNotPressed = <#= ConvertFileToByteArray(@"..\Resources\ButtonNotPressed.dds") #>;
+		public static byte[] ButtonPressed = <#= ConvertFileToByteArray(@"..\Resources\ButtonPressed.dds") #>;
+		public static byte[] ButtonOverred = <#= ConvertFileToByteArray(@"..\Resources\ButtonOverred.dds") #>;
+		public static byte[] ToggleButtonChecked = <#= ConvertFileToByteArray(@"..\Resources\ToggleChecked.dds") #>;
+		public static byte[] ToggleButtonUnchecked = <#= ConvertFileToByteArray(@"..\Resources\ToggleUnchecked.dds") #>;
+		public static byte[] ToggleButtonIndeterminate = <#= ConvertFileToByteArray(@"..\Resources\ToggleIndetermate.dds") #>;
+    }
+
+	public static class DefaultDesigns
+    {
+		public static byte[] Designs = <#= ConvertFileToByteArray(@"..\Resources\UIDesigns.dds") #>;
+    }
+}
+
+<#+
+// Convert file to new byte[] array.
+// TODO: Move this in T4 utility include file if needed somewhere else later.
+string ConvertFileToByteArray(string file)
+{
+    // Resolve path relative to T4
+    file = Host.ResolvePath(file);
+
+	var result = new StringBuilder();
+	result.Append("new byte[] { ");
+	foreach (var b in File.ReadAllBytes(file))
+	{
+		result.AppendFormat("0x{0:X}, ", b);
+	}
+	result.Append("}");
+	return result.ToString();
+}
+#>

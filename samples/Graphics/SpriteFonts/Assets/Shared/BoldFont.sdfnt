@@ -1,0 +1,9 @@
+!SpriteFont
+Id: 4f741cf1-f3b2-4eda-837b-e29f8597c47d
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+FontSource: !SystemFontProvider
+    FontName: Arial
+    Style: Bold
+FontType: !RuntimeRasterizedSpriteFontType
+    Size: 22.0

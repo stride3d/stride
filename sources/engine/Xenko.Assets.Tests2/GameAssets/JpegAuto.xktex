@@ -1,7 +1,0 @@
-!Texture
-Id: d94d9299-3bc8-4531-952f-703e6b80d38d
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/SmallJpeg.jpg
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

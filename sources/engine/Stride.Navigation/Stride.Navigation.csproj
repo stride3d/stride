@@ -1,0 +1,48 @@
+﻿<Project>
+
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideNativeOutputName>libstridenavigation</StrideNativeOutputName>
+  </PropertyGroup>
+
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--serialization</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Stride.Navigation.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Stride.Native.Libs.targets">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Navigation.cpp" />
+    <None Include="Navigation.hpp" />
+    <None Include="NavigationBuilder.cpp" />
+    <None Include="NavigationBuilder.hpp" />
+    <None Include="NavigationMesh.cpp" />
+    <None Include="NavigationMesh.hpp" />
+  </ItemGroup>
+
+  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+
+</Project>

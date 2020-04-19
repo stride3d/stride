@@ -1,0 +1,33 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Material normal map
+    /// </summary>
+    shader MaterialSurfaceNormalMap<bool TIsNormalXY1, bool TScaleAndBias> : IMaterialSurfacePixel
+    {
+        compose ComputeColor normalMap;
+
+        override void Compute()
+        {
+            var normal = normalMap.Compute();
+
+            // For unsigned textures we need to convert (0, 1) to (-1, 1) range
+            if (TScaleAndBias)
+            {
+                normal = (2.0f * normal) - 1.0f;
+            }
+
+            // If Z is calculated from XY do it here
+            if (TIsNormalXY1)
+            {
+                normal.z = sqrt(max(0, 1.0f - (normal.x * normal.x + normal.y * normal.y)));
+            }
+
+            // Note! Don't normalize the streams.matNormal here, it's being normalize when streams.normalWS is calculated
+            streams.matNormal = normal.xyz;
+        }
+    };
+}

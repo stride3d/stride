@@ -1,0 +1,7 @@
+!SpriteStudioAnimationAsset
+Id: 071d843d-2efa-4b49-83ef-f6ee79e8dbb5
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/character_template_2head.ssae
+RepeatMode: PlayOnce
+AnimationName: dead

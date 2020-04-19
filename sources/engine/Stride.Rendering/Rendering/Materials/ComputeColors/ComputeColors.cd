@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeValueBase&lt;T&gt;" Collapsed="true">
+    <Position X="0.5" Y="5.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAgAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeValueBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeBinaryBase&lt;T&gt;" Collapsed="true">
+    <Position X="6.25" Y="4.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAAAAAFAAAAIAAAAAAAQAAAACAAgCAAIAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeBinaryBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeBinaryColor" Collapsed="true">
+    <Position X="8" Y="5.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAQAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeBinaryColor.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeBinaryScalar" Collapsed="true">
+    <Position X="8" Y="7" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeBinaryScalar.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeColor" Collapsed="true">
+    <Position X="2" Y="7" Width="2" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAEAAAAAIAEIAAAAAAABAAAAAAAAAIAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeColor.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeFloat" Collapsed="true">
+    <Position X="2" Y="9.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeFloat.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeFloat4" Collapsed="true">
+    <Position X="2" Y="8.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAEAAQAAAAEIAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeFloat4.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeKeyedBase" Collapsed="true">
+    <Position X="2.5" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQABAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeKeyedBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeNode" Collapsed="true">
+    <Position X="6.75" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeNode.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeShaderClassBase&lt;T&gt;" Collapsed="true">
+    <Position X="9.75" Y="4.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAGAAAAAAAEACAAAAAAAAAAQAAAAAAEAAAAgAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeShaderClassBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeShaderClassColor" Collapsed="true">
+    <Position X="12" Y="5.75" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeShaderClassColor.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeShaderClassScalar" Collapsed="true">
+    <Position X="12" Y="7" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeShaderClassScalar.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeTextureBase" Collapsed="true">
+    <Position X="4.25" Y="5.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAUAAAQAIAEAAIgAAAAAAACAAAQAAIAIAIAgAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeTextureBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeTextureColor" Collapsed="true">
+    <Position X="5.5" Y="7" Width="2" />
+    <TypeIdentifier>
+      <HashCode>IAAIAAAQAgAQAAAAIAAAAAAAAAAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeTextureColor.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeTextureScalar" Collapsed="true">
+    <Position X="5.5" Y="8.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAwAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeTextureScalar.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeVertexStreamBase" Collapsed="true">
+    <Position X="14.25" Y="4.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAEAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeVertexStreamBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeVertexStreamScalar" Collapsed="true">
+    <Position X="16" Y="5.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeVertexStreamScalar.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.ComputeColors.ComputeStreamScalar" Collapsed="true">
+    <Position X="16" Y="7" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\ComputeStreamScalar.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="Stride.Rendering.Materials.IComputeScalar" Collapsed="true">
+    <Position X="0.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IComputeScalar.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IComputeNode" Collapsed="true">
+    <Position X="2.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IComputeNode.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IComputeColor" Collapsed="true">
+    <Position X="2.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IComputeColor.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.ComputeColors.IComputeVertexStream" Collapsed="true">
+    <Position X="5" Y="1.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\ComputeColors\IComputeVertexStream.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

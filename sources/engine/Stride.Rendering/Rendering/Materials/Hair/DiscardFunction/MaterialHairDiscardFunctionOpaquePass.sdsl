@@ -1,0 +1,25 @@
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Renders only the opaque parts for the opaque hair pass.
+    /// </summary>
+    class MaterialHairDiscardFunctionOpaquePass<LinkType THairAlphaThreshold> : IMaterialHairDiscardFunction, MaterialPixelStream
+    {
+        cbuffer PerMaterial
+        {
+            [Link("THairAlphaThreshold")]
+            stage float HairAlphaThreshold;    // Any alpha value above this value is considered opaque.
+        }
+
+        void Discard(void)
+        {
+            if(streams.matDiffuse.a < HairAlphaThreshold)
+            {
+                discard;
+            }
+        }
+    };
+}

@@ -1,7 +1,0 @@
-!Texture
-Id: d0f64242-f9c3-4062-ad79-966b6699b6e5
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../Resources/layer_mask.png
-IsCompressed: false
-Type: !GrayscaleTextureType {}

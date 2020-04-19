@@ -1,0 +1,24 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// The tonemap operator by Jim Hejl and Richard Burgess-Dawson.
+    /// </summary>
+    /// <remarks>
+    /// http://filmicgames.com/archives/75
+    /// </remarks>
+    internal shader ToneMapHejlDawsonOperatorShader : ToneMapOperatorShader
+    {
+        override float4 Compute(float4 color)
+        {
+           color = max(0,color-0.004);
+           color = (color*(6.2*color+.5))/(color*(6.2*color+1.7)+0.06);
+           // TODO: Reverts the gamma correction which was automatically applied by the formula
+           // TODO: Refit the curve without gamma correction
+           float3 linearColor = pow(color.rgb, 2.2);
+           return float4(linearColor, 1.0);
+        }
+    };
+}

@@ -1,9 +1,0 @@
-!TemplateAsset
-Id: a44d092d-aad3-4ced-8c35-502894571486
-AssetTypeName: ScriptSourceFileAsset
-Name: Debug physics shapes
-Scope: Asset
-Description: Shows and hides physics debug shapes at runtime with a keyboard shortcut
-Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
-DefaultOutputName: DebugPhysicsShapes

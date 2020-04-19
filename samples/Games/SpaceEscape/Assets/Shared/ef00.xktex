@@ -1,9 +1,0 @@
-!Texture
-Id: 267eed8a-792b-4a8d-b496-d1c8261c50bb
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../Resources/model/character/Sourceimages/ef00.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-    Alpha: Interpolated
-IsStreamable: false

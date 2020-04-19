@@ -1,7 +1,0 @@
-!Texture
-Id: bfa21909-0aa7-4f47-9d73-b075d7ac0b39
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: !file ../../Resources/UI/btn_hover.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

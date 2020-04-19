@@ -1,0 +1,14 @@
+!TemplateSample
+Id: 7ac2c705-6240-4ddc-af63-fc438d10f4de
+Name: "Sample: game menu UI"
+Scope: Session
+Description: Demonstrates how to create UIs
+FullDescription: |
+    A game sample with a splash screen, welcome screen, main screen, and ship selection screen, each with different layouts and UI elements. The sample demonstrates how to arrange UI elements and make them responsive in different resolutions.
+Group: Samples/UI
+Icon: ../.sdtpl/NewUI.png
+DefaultOutputName: GameMenu
+Screenshots:
+    - ../.sdtpl/screenshot1_small.jpg
+    - ../.sdtpl/screenshot4_small.jpg
+    - ../.sdtpl/screenshot3_small.jpg

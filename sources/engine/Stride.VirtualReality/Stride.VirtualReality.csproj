@@ -1,0 +1,79 @@
+﻿<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+    <StrideNativeOutputName>libstridevr</StrideNativeOutputName>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <PropertyGroup>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
+  </PropertyGroup>
+  <Choose>
+    <When Condition=" '$(StridePlatform)' == 'Android'">
+      <ItemGroup>
+        <Reference Include="Mono.Android" />
+        <Reference Include="GoogleVRJava">
+          <HintPath>..\..\..\deps\GoogleVR\lib\Android\GoogleVRJava.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(StridePlatform)' == 'iOS'">
+      <ItemGroup>
+        <Reference Include="Xamarin.iOS" />
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition=" '$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12' ">
+      <ItemGroup>
+        <StrideNativeLib Include="..\..\..\deps\OpenVR\$(StridePlatform)\**\openvr_api.*">
+          <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+          <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </StrideNativeLib>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Games\Stride.Games.csproj" />
+    <ProjectReference Include="..\Stride.Graphics\Stride.Graphics.csproj" />
+    <ProjectReference Include="..\Stride.Input\Stride.Input.csproj">
+      <Project>{84deb606-77ed-49cd-9aed-d2b13c1f5a1e}</Project>
+      <Name>Stride.Input</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.VirtualReality.dll.config" />
+    <None Include="Stride.Native.Libs.targets">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="GoogleVR\GoogleVR.cpp" />
+    <None Include="OculusOVR\OculusOVR.cpp" />
+    <None Include="Fove\Fove.cpp" />
+  </ItemGroup>
+  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludeExtraAssemblies">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)GoogleVRJava.dll" Condition=" '$(StridePlatform)' == 'Android' " />
+    </ItemGroup>
+  </Target>
+</Project>

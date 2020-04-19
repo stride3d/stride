@@ -1,0 +1,125 @@
+<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  
+  <PropertyGroup>
+    <Description>Core assembly for all Stride assemblies.</Description>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <StrideNativeOutputName>libcore</StrideNativeOutputName>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>*</StrideBuildTags>
+    <RestorePackages>true</RestorePackages>
+    <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
+  </PropertyGroup>
+  
+  <Choose>
+    <When Condition=" '$(StridePlatform)' == 'Android' ">
+      <ItemGroup>
+        <Reference Include="Mono.Android" />
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition=" '$(StridePlatform)' == 'iOS' ">
+      <ItemGroup>
+        <Reference Include="Xamarin.iOS" />
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition=" '$(StrideNETRuntime)' == 'CoreCLR' ">
+      <ItemGroup>
+        <None Include="..\..\data\Linux\runtimeconfig.json">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Include="..\..\data\Linux\CoreCLRSetup.sh">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+      </ItemGroup>
+    </When>
+  </Choose>
+  
+  <ItemGroup>
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.2.3" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
+    <None Include="build\**\*.props" PackagePath="build\" Pack="true" />
+    <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
+    <None Include="build\**\*.props" PackagePath="buildTransitive\" Pack="true" />
+    <None Include="..\..\..\deps\AssemblyProcessor\*.*" PackagePath="tools\AssemblyProcessor\" Pack="true" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="Diagnostics\ILogger.Extensions.cs">
+      <DependentUpon>ILogger.Extensions.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Update="Diagnostics\Logger.Extensions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Logger.Extensions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Serialization\MemberSerializerGenerated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MemberSerializerGenerated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Serialization\Serializers\TupleSerializer.cs">
+      <DependentUpon>TupleSerializer.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Update="FrameworkResources.Designer.cs">
+      <DependentUpon>FrameworkResources.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Diagnostics\ILogger.Extensions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ILogger.Extensions.cs</LastGenOutput>
+    </None>
+    <None Update="Diagnostics\Logger.Extensions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Logger.Extensions.cs</LastGenOutput>
+    </None>
+    <None Include="Serialization\MemberSerializerClass.ttinclude" />
+    <None Include="Serialization\MemberSerializerCore.ttinclude" />
+    <None Update="Serialization\MemberSerializerGenerated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>MemberSerializerGenerated.cs</LastGenOutput>
+    </None>
+    <None Include="Serialization\Serializers\TupleSerializer.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>TupleSerializer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.Core.dll.config" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  
+  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+</Project>

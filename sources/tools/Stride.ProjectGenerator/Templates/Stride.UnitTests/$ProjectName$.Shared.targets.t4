@@ -1,0 +1,104 @@
+﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\core\Stride.Core\Stride.Core.csproj">
+      <Project>{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}</Project>
+      <Name>Stride.Core</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\core\Stride.Core.IO\Stride.Core.IO.csproj">
+      <Project>{1DE01410-22C9-489B-9796-1ADDAB1F64E5}</Project>
+      <Name>Stride.Core.IO</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj">
+      <Project>{1320F627-EE43-4115-8E89-19D1753E51F2}</Project>
+      <Name>Stride.Core.MicroThreading</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\core\Stride.Core\Stride.Core.csproj">
+      <Project>{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}</Project>
+      <Name>Stride.Core</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj">
+      <Project>{5210FB81-B807-49BB-AF0D-31FB6A83A572}</Project>
+      <Name>Stride.Core.Serialization</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj">
+      <Project>{1677B922-CCF0-44DE-B57E-1CDD3D2B8E8A}</Project>
+      <Name>Stride.Core.Mathematics</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\engine\Stride.Input\Stride.Input.csproj">
+      <Project>{84DEB606-77ED-49CD-9AED-D2B13C1F5A1E}</Project>
+      <Name>Stride.Input</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\engine\Stride.Shaders\Stride.Shaders.csproj">
+      <Project>{273BDD15-7392-4078-91F0-AF23594A3D7B}</Project>
+      <Name>Stride.Shaders</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\engine\Stride\Stride.csproj">
+      <Project>{72390339-b2a1-4f61-a800-31ed0975b515}</Project>
+      <Name>Stride</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\engine\Stride.Engine\Stride.Engine.csproj">
+      <Project>{C121A566-555E-42B9-9B0A-1696529A9088}</Project>
+      <Name>Stride.Engine</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\engine\Stride.Graphics\Stride.Graphics.csproj">
+      <Project>{FB06C76A-6BB7-40BE-9AFA-FEC13B045FB5}</Project>
+      <Name>Stride.Graphics</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\engine\Stride.Games\Stride.Games.csproj">
+      <Project>{42780CBD-3FE7-48E3-BD5B-59945EA20137}</Project>
+      <Name>Stride.Games</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\engine\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj">
+      <Project>{D002FEB1-00A6-4AB1-A83F-1F253465E64D}</Project>
+      <Name>Stride.Graphics.Regression</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\engine\Stride.Physics\Stride.Physics.csproj">
+      <Project>{dd592516-b341-40fe-9100-1b0fa784a060}</Project>
+      <Name>Stride.Physics</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\engine\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj">
+      <Project>{9BC63BEC-F305-451D-BB31-262938EA964D}</Project>
+      <Name>Stride.SpriteStudio.Runtime</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="'$(StridePlatform)' == 'Windows'">
+      <ItemGroup>
+        <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\engine\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj">
+          <Project>{E8B3553F-A79F-4E50-B75B-ACEE771C320C}</Project>
+          <Name>Stride.Shaders.Compiler</Name>
+          <Private>False</Private>
+        </ProjectReference>
+        <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\engine\Stride.Shaders.Parser\Stride.Shaders.Parser.csproj">
+          <Project>{14A47447-2A24-4ECD-B24D-6571499DCD4C}</Project>
+          <Name>Stride.Shaders.Parser</Name>
+          <Private>False</Private>
+        </ProjectReference>
+        <ProjectReference Include="<#= Properties.StrideSdkRelativeDir #>\sources\shaders\Stride.Core.Shaders\Stride.Core.Shaders.csproj">
+          <Project>{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}</Project>
+          <Name>Stride.Core.Shaders</Name>
+          <Private>False</Private>
+          </ProjectReference>
+      </ItemGroup>
+    </When>
+  </Choose>
+</Project>

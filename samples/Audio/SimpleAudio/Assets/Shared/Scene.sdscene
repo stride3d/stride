@@ -1,0 +1,58 @@
+!SceneAsset
+Id: 5f4a3789-b182-4b32-9088-acbf9e13edb5
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 970d3c33-9819-4206-a101-d81f9259477f
+        - ref!! dececd10-b6ea-46fa-8129-c8683f4a6974
+        - ref!! ea66315a-6e99-498e-b3b7-b20eff3d7a04
+    Parts:
+        -   Entity:
+                Id: 970d3c33-9819-4206-a101-d81f9259477f
+                Name: MainCamera
+                Components:
+                    ae90c2e75104724b8560bbfe351950b9: !TransformComponent
+                        Id: e7c290ae-0451-4b72-8560-bbfe351950b9
+                        Position: {X: 0.0, Y: 0.0, Z: 7.72791433}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    4e14f6bd9893aa4b9a8607bd2e81c981: !CameraComponent
+                        Id: bdf6144e-9398-4baa-9a86-07bd2e81c981
+                        Name: null
+                        Projection: Orthographic
+                        FarClipPlane: 10.0
+                        Slot: 57e08c0b-503c-44d7-9d9b-8ba93e72fea6
+        -   Entity:
+                Id: dececd10-b6ea-46fa-8129-c8683f4a6974
+                Name: SoundScript
+                Components:
+                    d8424fc9f444234180ea20a80f5473cb: !TransformComponent
+                        Id: c94f42d8-44f4-4123-80ea-20a80f5473cb
+                        Position: {X: 0.0, Y: 0.0, Z: 4.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    8f63a6482fa4594db3cf9c5d37cbb31e: !SimpleAudio.SoundScript,SimpleAudio.Game
+                        Id: 48a6638f-a42f-4d59-b3cf-9c5d37cbb31e
+                        SoundMusic: 8005b476-6375-4984-ae01-4ed70428924e:AmbientMusic
+                        SoundEffect: 5c8a7de1-f572-41c6-a564-f300f42d7245:SoundEffect
+                        Page: 507637ea-07f7-46e1-96df-f39e5a4cc8b2:Page
+        -   Entity:
+                Id: ea66315a-6e99-498e-b3b7-b20eff3d7a04
+                Name: UIText
+                Components:
+                    a27206de1b6d9e4aa0fef236140f092a: !TransformComponent
+                        Id: de0672a2-6d1b-4a9e-a0fe-f236140f092a
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b98d88d85df5734b9b6b3ec597f8f469: !UIComponent
+                        Id: d8888db9-f55d-4b73-9b6b-3ec597f8f469
+                        Page: 507637ea-07f7-46e1-96df-f39e5a4cc8b2:Page
+                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}

@@ -1,0 +1,91 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// A tonemap shader
+    /// </summary>
+    internal shader ToneMapShader<bool TAutoKeyValue, bool TAutoExposure, bool TUseLocalLuminance> : ColorTransformShader, Texturing
+    {
+        // Luminance texture
+        Texture2D LuminanceTexture;
+
+        // Exposure
+        float KeyValue = 0.18f;
+        float LuminanceLocalFactor = 0.0f;
+        float LuminanceAverageGlobal;
+
+        // Color/Gamma correction
+        float Contrast = 0.0f;
+        float Brightness = 0.0f;
+        float Exposure = 1.0f;
+
+        // ToneMap Operator
+        [Link("ToneMap.Operator")]
+        compose ToneMapOperatorShader ToneMapOperator;
+
+        override float4 Compute(float4 inputColor)
+        {
+            // Get the input color to tonemap
+	        float3 color = inputColor.rgb;
+
+            // Code based on Matt Pettineo: https://mynameismjp.wordpress.com/2010/04/30/a-closer-look-at-tone-mapping/
+            // Use local luminance slightly differently to allow mix between local and global
+
+	        // Gets the local luminance
+            float avgLuminance = LuminanceAverageGlobal;
+            if (TUseLocalLuminance)
+            {
+	            float luminanceAverageLocal = LuminanceTexture.Sample(Texturing.LinearSampler, streams.TexCoord).r;
+
+                // Calculate average geometric mean for luminance using local and global average luminances
+	            avgLuminance = lerp(avgLuminance, luminanceAverageLocal, LuminanceLocalFactor);
+            }
+	        avgLuminance = exp2(avgLuminance);
+	        avgLuminance = max(avgLuminance, 0.0001f);
+
+	        // Apply brightness and contrast
+	        float globalAverageLum = exp2(LuminanceAverageGlobal);
+	        color = max(color + globalAverageLum.xxx * Brightness, 0.0001);
+	        color = max(lerp(globalAverageLum.xxx, color, Contrast + 1.0f), 0.0001);
+
+            // Apply ToneMapping
+	        color = ToneMap(color, avgLuminance);
+
+	        return float4(color, inputColor.a);
+        }
+
+        float CalculateExposure(float avgLuminance)
+        {   
+            float exposure;
+            if (TAutoExposure)
+            {	        
+                float keyValue;
+                if (TAutoKeyValue)
+                {
+                    keyValue = 1.03f - (2.0f / (2 + log10(avgLuminance + 1)));
+                }
+                else
+                {
+                    keyValue = KeyValue;
+                }
+	            float linearExposure = (keyValue / avgLuminance);
+	            exposure = max(linearExposure, 0.0001f);
+            }
+            else
+            {
+                exposure = Exposure;
+            }
+	        return exposure;
+        }
+
+        float3 ToneMap(float3 color, float avgLuminance)
+        {
+	        float exposure = CalculateExposure(avgLuminance);
+	        color *= exposure;
+	        color = ToneMapOperator.Compute(float4(color,1)).rgb;
+	        return color;
+        }
+    };
+}

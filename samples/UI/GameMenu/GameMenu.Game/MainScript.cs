@@ -1,15 +1,15 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Graphics;
-using Xenko.Rendering.Sprites;
-using Xenko.UI;
-using Xenko.UI.Controls;
-using Xenko.UI.Panels;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Graphics;
+using Stride.Rendering.Sprites;
+using Stride.UI;
+using Stride.UI.Controls;
+using Stride.UI.Panels;
 
 namespace GameMenu
 {
@@ -363,7 +363,7 @@ namespace GameMenu
 
             // FIXME: UI asset should support multiline text
             var welcomeText = welcomePopup.FindVisualChildOfType<TextBlock>("welcomeText");
-            welcomeText.Text = "Welcome to xenko UI sample.\nPlease name your character";
+            welcomeText.Text = "Welcome to stride UI sample.\nPlease name your character";
             
             var cancelButton = welcomePopup.FindVisualChildOfType<Button>("cancelButton");
             cancelButton.Click += delegate

@@ -1,0 +1,50 @@
+<UserControl x:Class="Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views.ObjectBrowserUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             mc:Ignorable="d" x:Name="ObjectBrowser"
+             d:DesignHeight="300" d:DesignWidth="300">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="../../../View/CommonResources.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="5"/>
+      <ColumnDefinition Width="3*"/>
+      <ColumnDefinition Width="5"/>
+      <ColumnDefinition Width="220"/>
+    </Grid.ColumnDefinitions>
+
+    <sd:TreeView Grid.Column="0" SelectionMode="Single"
+                   ItemsSource="{Binding HierarchyItemsSource, ElementName=ObjectBrowser, Mode=TwoWay}"
+                   SelectedItem="{Binding SelectedHierarchyItem, ElementName=ObjectBrowser, Mode=TwoWay}"
+                   ItemTemplate="{Binding HierarchyItemTemplate, ElementName=ObjectBrowser, Mode=TwoWay}"
+                   ItemContainerStyle="{Binding HierarchyItemContainerStyle, ElementName=ObjectBrowser, Mode=TwoWay}"/>
+
+    <GridSplitter Grid.Column="1" ResizeBehavior="PreviousAndNext" VerticalAlignment="Stretch" Width="5"/>
+
+    <ListBox Grid.Column="2"
+             ItemsSource="{Binding ObjectItemsSource, ElementName=ObjectBrowser, Mode=TwoWay}"
+             SelectedItem="{Binding SelectedObjectItem, ElementName=ObjectBrowser, Mode=TwoWay}"
+             ItemTemplateSelector="{Binding ObjectItemTemplateSelector, ElementName=ObjectBrowser, Mode=TwoWay }"
+             ItemContainerStyle="{Binding ObjectItemContainerStyle, ElementName=ObjectBrowser, Mode=TwoWay}"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+
+    <GridSplitter Grid.Column="3" ResizeBehavior="PreviousAndNext" VerticalAlignment="Stretch" Width="5"/>
+
+    <DockPanel Grid.Column="4" Background="{DynamicResource ControlBackgroundBrush}">
+      <ScrollViewer x:Name="DescriptionScrollViewer" VerticalScrollBarVisibility="Auto">
+        <ContentPresenter Content="{Binding SelectedObjectItem, ElementName=ObjectBrowser, Mode=TwoWay, NotifyOnTargetUpdated=True}" TargetUpdated="SelectedObjectUpdated"
+                          ContentTemplate="{Binding ObjectDescriptionTemplate, ElementName=ObjectBrowser, Mode=TwoWay}"
+                          ContentTemplateSelector="{Binding ObjectDescriptionTemplateSelector, ElementName=ObjectBrowser, Mode=TwoWay}"/>
+      </ScrollViewer>
+    </DockPanel>
+  </Grid>
+</UserControl>

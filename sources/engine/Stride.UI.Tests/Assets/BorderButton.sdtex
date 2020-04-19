@@ -1,0 +1,9 @@
+!Texture
+Id: 6d354d02-2593-4297-b5e0-30208f9ff0f4
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/BorderButton.dds
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+    Alpha: Explicit
+GenerateMipmaps: false

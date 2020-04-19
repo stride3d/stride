@@ -1,0 +1,26 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// A log luminance shader (by default using luma/Perceptive luminance Y'601)
+    /// </summary>
+    shader LuminanceLogShader : ImageEffectShader
+    {
+        float GetLuminance(float3 color)
+        {
+            return LuminanceUtils.Luma(color);
+        }
+
+        stage override float4 Shading()
+        {
+            float3 color = Texture0.Sample(PointSampler, streams.TexCoord).rgb;
+
+            // TODO: Make the Luma configurable from the LuminanceLogEffect
+            // Make sure that we don't go beyond max half float (65504), so we cap values here
+            var lum = max(0.001, GetLuminance(color));
+            return float4(log2(lum), 1.0, 1.0, 1.0);
+        }
+    };
+}

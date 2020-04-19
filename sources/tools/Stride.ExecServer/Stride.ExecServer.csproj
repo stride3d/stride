@@ -1,0 +1,33 @@
+﻿<Project>
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <PropertyGroup>
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="EnvDTE" Version="8.0.1" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\core\Stride.Core\Native\NativeLibraryInternal.cs">
+      <Link>NativeLibraryInternal.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <Import Project="..\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems" Label="Shared" />
+  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+</Project>

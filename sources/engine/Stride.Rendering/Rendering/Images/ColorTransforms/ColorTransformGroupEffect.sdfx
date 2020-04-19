@@ -1,0 +1,28 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// A Color transform group effect
+    /// </summary>
+    effect ColorTransformCompose
+    {
+        using params ColorTransformKeys;
+
+        mixin ColorTransformKeys.Shader, ColorTransformKeys.GenericArguments;
+    };
+
+    effect ColorTransformGroupEffect
+    {
+        using params ColorTransformGroupKeys;
+
+        // Mixin 
+        mixin ColorTransformGroupShader;
+        foreach (var colorTransform in ColorTransformGroupKeys.Transforms)
+        {
+            context.PushParameters(colorTransform.Parameters);
+            mixin compose Transforms += ColorTransformCompose;
+            context.PopParameters();
+        }
+    };
+}

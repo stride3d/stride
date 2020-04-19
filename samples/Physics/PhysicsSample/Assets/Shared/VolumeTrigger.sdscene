@@ -1,0 +1,796 @@
+!SceneAsset
+Id: a5a4f13e-6366-43de-b071-a87c1dfff115
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! f230b77a-bd6f-40d2-9e98-dbba399c378e
+        - ref!! ca764465-b676-4a09-986e-c6a74f37bd6d
+        - ref!! 01993ebe-1d2f-4441-8f32-2b1da82a64e1
+        - ref!! 34123ad7-7f97-4c0a-b592-d844e0400f5e
+        - ref!! 4946b032-53e8-4029-b72c-4396af3b286d
+        - ref!! cfe82ef3-b615-435c-a9b6-15793dca565d
+        - ref!! 8de69e45-ea72-4bf7-a80c-e747c6099e9f
+        - ref!! b7b7ddf2-8c9d-46cb-9f1f-62c521b46128
+        - ref!! 2d66856f-0a8c-40f5-a087-4a466ff1902a
+        - ref!! 679434a1-4b8e-4dce-aaaa-207e709135b1
+        - ref!! 40160bfc-cad8-4c09-806e-fc63188ab688
+    Parts:
+        -   Entity:
+                Id: 01993ebe-1d2f-4441-8f32-2b1da82a64e1
+                Name: Background
+                Components:
+                    95b74887f1e898478d9a599c4ebe9931: !TransformComponent
+                        Id: 8748b795-e8f1-4798-8d9a-599c4ebe9931
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a8446366ab67a941acea5fc2f72b71b9: !BackgroundComponent
+                        Id: 666344a8-67ab-41a9-acea-5fc2f72b71b9
+                        Texture: d46cb653-bbdb-4b7b-9449-37beb6774cfd:Materials/StrideBackground
+                        Is2D: true
+        -   Entity:
+                Id: 23416913-f5f1-4f4f-a2e5-d011424ce905
+                Name: KinematicCrate (7)
+                Components:
+                    0e50d61d5ff7df49804d089195106266: !TransformComponent
+                        Id: 1dd6500e-f75f-49df-804d-089195106266
+                        Position: {X: 0.0, Y: 2.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            41f03e2e802fb24d95a774c7f12119bd: ref!! 2e3ef041-2f80-4db2-95a7-74c7f12119bd
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: bf3d076e-5eb6-4072-aeab-fab508f82166
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: 237c3a12-fb0a-4386-b6c1-c0dad25b378a
+                Name: KinematicCrate (6)
+                Components:
+                    9dfdd39fb06f1f4a9824b9038edcc631: !TransformComponent
+                        Id: 9fd3fd9d-6fb0-4a1f-9824-b9038edcc631
+                        Position: {X: 2.0, Y: 1.25, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            41f03e2e802fb24d95a774c7f12119bd: ref!! bcf8d384-4569-441b-ab80-9a0b9c92cd5d
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: 4ef8e448-3dd6-4213-b207-f35a39e330fb
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: 23e1d796-b1f5-4cb4-8de5-d1a703205f92
+                Name: crate
+                Components:
+                    41f03e2e802fb24d95a774c7f12119bd: !TransformComponent
+                        Id: 27ec0c28-732e-431e-8cd9-7314dc7ff3ea
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b8c6c588b5610144adb1357b024c4015: !RigidbodyComponent
+                        Id: 88c5c6b8-61b5-4401-adb1-357b024c4015
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7d102f94372bb148b1442fd78041aa91: !ColliderShapeAssetDesc
+                                Shape: cfd030c9-44df-401e-a192-32278a642f8b:ColliderShapes/crate_cs
+                    f8939861c2b39c4494f061673c9dfdcd: !ModelComponent
+                        Id: 619893f8-b3c2-449c-94f0-61673c9dfdcd
+                        Model: e51b50db-d4e0-45c1-bf2e-47440aab2217:Models/BoxE
+                        Materials: {}
+                    1265a4274509e643b3a143f3c17ccd84: !PhysicsSample.AutoResetRigidbody,PhysicsSample.Game
+                        Id: 27a46512-0945-43e6-b3a1-43f3c17ccd84
+                        TriggerEntity*: ref!! cfe82ef3-b615-435c-a9b6-15793dca565d
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: 769a01e5-b682-4acf-a8db-57dc660118a1
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: 2d66856f-0a8c-40f5-a087-4a466ff1902a
+                Name: WallLeft
+                Components:
+                    a20b9f94ad93e742bb1c89b6e1d6aee7: !TransformComponent
+                        Id: 949f0ba2-93ad-42e7-bb1c-89b6e1d6aee7
+                        Position: {X: -15.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: -0.707106769, W: 0.707106769}
+                        Scale: {X: 0.3, Y: 0.4, Z: 0.4}
+                        Children: {}
+                    98dd040862ed394997c363d697c8f29f: !StaticColliderComponent
+                        Id: 0804dd98-ed62-4939-97c3-63d697c8f29f
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            92d70e42157bc34c85a91efcafd60da4: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+        -   Entity:
+                Id: 34123ad7-7f97-4c0a-b592-d844e0400f5e
+                Name: Camera
+                Components:
+                    7054e4529ee2be49b283ea1a2dd1d5de: !TransformComponent
+                        Id: 52e45470-e29e-49be-b283-ea1a2dd1d5de
+                        Position: {X: -2.91726849E-07, Y: 11.342555, Z: 15.2250319}
+                        Rotation: {X: -0.143991053, Y: 9.130449E-09, Z: 1.08727676E-08, W: 0.989579}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    998883b5ff933e4eb9ad2bc49a8669d6: !CameraComponent
+                        Id: b5838899-93ff-4e3e-b9ad-2bc49a8669d6
+                        Name: null
+                        Projection: Orthographic
+                        OrthographicSize: 21.0
+                        Slot: 95fe37f1-35a8-41ff-9358-192ff159e956
+        -   Entity:
+                Id: 40160bfc-cad8-4c09-806e-fc63188ab688
+                Name: NextScene
+                Components:
+                    b08716d2886eea47bd6673503baa3602: !TransformComponent
+                        Id: d21687b0-6e88-47ea-bd66-73503baa3602
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    1a2c5e711da4f54884bf65dce16add40: !UIComponent
+                        Id: 715e2c1a-a41d-48f5-84bf-65dce16add40
+                        Page: null
+                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                    e34fce62b2790d45a9767e429e9079c7: !PhysicsSample.NextSceneScript,PhysicsSample.Game
+                        Id: 62ce4fe3-79b2-450d-a976-7e429e9079c7
+                        NextScene: 86fed268-baa8-4929-9eba-4d14cf3a0e68:Raycasting
+                        PreviousScene: 45f5d521-b83c-4608-937d-64f93812fba7:Constraints
+                        Font: 62eec53a-f82a-460a-91c3-bf3c6ece95c2:Font
+        -   Entity:
+                Id: 416a74a2-d5f7-4476-a822-50c85dc7321e
+                Name: crate
+                Components:
+                    41f03e2e802fb24d95a774c7f12119bd: !TransformComponent
+                        Id: 894d5183-d171-4d03-982e-01f633a885c2
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b8c6c588b5610144adb1357b024c4015: !RigidbodyComponent
+                        Id: 93336ed9-cf93-4e74-8da9-63df61f816db
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7d102f94372bb148b1442fd78041aa91: !ColliderShapeAssetDesc
+                                Shape: cfd030c9-44df-401e-a192-32278a642f8b:ColliderShapes/crate_cs
+                    f8939861c2b39c4494f061673c9dfdcd: !ModelComponent
+                        Id: c359792b-982b-4ddb-a503-3fcb591313dd
+                        Model: e51b50db-d4e0-45c1-bf2e-47440aab2217:Models/BoxE
+                        Materials: {}
+                    1265a4274509e643b3a143f3c17ccd84: !PhysicsSample.AutoResetRigidbody,PhysicsSample.Game
+                        Id: d4b3e59f-154f-4762-8964-c27a35deae02
+                        TriggerEntity*: ref!! cfe82ef3-b615-435c-a9b6-15793dca565d
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: 50ff9733-2722-4321-844f-de2f0edae01b
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: 4946b032-53e8-4029-b72c-4396af3b286d
+                Name: Player
+                Components:
+                    84ea3fff9dc5db4aa54c7ee9187a86ae: !TransformComponent
+                        Id: ff3fea84-c59d-4adb-a54c-7ee9187a86ae
+                        Position: {X: -6.003331, Y: 1.463115, Z: -6.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.7841593, Y: 1.7841593, Z: 1.7841593}
+                        Children: {}
+                    9c14b4293958a4459ee82d2581c5555b: !PhysicsSample.Player,PhysicsSample.Game
+                        Id: 29b4149c-5839-45a4-9ee8-2d2581c5555b
+                    24379eefea6ff24d819afee92ff7aa9d: !CharacterComponent
+                        Id: ef9e3724-6fea-4df2-819a-fee92ff7aa9d
+                        CollisionGroup: CharacterFilter
+                        CanCollideWith: DefaultFilter, SensorTrigger
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        FallSpeed: 10.0
+                        MaxSlope: {Radians: 0.0}
+                        JumpSpeed: 5.0
+                        Gravity: {X: 0.0, Y: -10.0, Z: 0.0}
+                        ColliderShapes:
+                            32d0847e029e52469c2a0c9376757e15: !CapsuleColliderShapeDesc
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    d408915c8d62ba4abc3009fb941ef880: !ModelComponent
+                        Id: 5c9108d4-628d-4aba-bc30-09fb941ef880
+                        Model: 9fab8da2-f2c8-4586-9435-20d8fad479e2:Player
+                        Materials: {}
+        -   Entity:
+                Id: 506132c5-335d-4bdf-87ea-6048269cdfbe
+                Name: KinematicCrate (5)
+                Components:
+                    4a42acbae0ee7b4eae72d1e330525ef2: !TransformComponent
+                        Id: baac424a-eee0-4e7b-ae72-d1e330525ef2
+                        Position: {X: -1.0, Y: 1.25, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            41f03e2e802fb24d95a774c7f12119bd: ref!! 5624d54a-a9a0-4f5d-a241-d79152218392
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: 31484307-1472-485b-aec3-396a7826efcc
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: 5902c9d2-d95c-40e4-bee8-8b2964a3a986
+                Name: crate
+                Components:
+                    41f03e2e802fb24d95a774c7f12119bd: !TransformComponent
+                        Id: cf7b78d8-ec27-4e4a-82aa-5554014d12c7
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b8c6c588b5610144adb1357b024c4015: !RigidbodyComponent
+                        Id: 31538b07-a8e0-4ebf-9fb7-97e2135cdd30
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7d102f94372bb148b1442fd78041aa91: !ColliderShapeAssetDesc
+                                Shape: cfd030c9-44df-401e-a192-32278a642f8b:ColliderShapes/crate_cs
+                    f8939861c2b39c4494f061673c9dfdcd: !ModelComponent
+                        Id: 67737096-09b6-4269-a9fe-af34f6b6cffe
+                        Model: e51b50db-d4e0-45c1-bf2e-47440aab2217:Models/BoxE
+                        Materials: {}
+                    1265a4274509e643b3a143f3c17ccd84: !PhysicsSample.AutoResetRigidbody,PhysicsSample.Game
+                        Id: e96dbd0e-3cb0-4ff0-a7b3-1f8682b83f00
+                        TriggerEntity*: ref!! cfe82ef3-b615-435c-a9b6-15793dca565d
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: 20f0b8d6-078b-4730-888a-952995ea18bd
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: 679434a1-4b8e-4dce-aaaa-207e709135b1
+                Name: WallRight
+                Components:
+                    a20b9f94ad93e742bb1c89b6e1d6aee7: !TransformComponent
+                        Id: 6983c527-dfdb-4195-906a-a2b8d139e742
+                        Position: {X: 15.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                        Scale: {X: 0.3, Y: 0.4, Z: 0.4}
+                        Children: {}
+                    98dd040862ed394997c363d697c8f29f: !StaticColliderComponent
+                        Id: 8bbd58aa-719b-4862-94bf-8edd54caa9a5
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            92d70e42157bc34c85a91efcafd60da4: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+        -   Entity:
+                Id: 893635df-e997-407b-8404-64937b058ea8
+                Name: KinematicCrate (9)
+                Components:
+                    2df1c596ae98e442809fd007957f9ab5: !TransformComponent
+                        Id: 96c5f12d-98ae-42e4-809f-d007957f9ab5
+                        Position: {X: 1.5, Y: 2.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            41f03e2e802fb24d95a774c7f12119bd: ref!! d6aee1ec-d195-42c0-95ef-9988c0495b2e
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: 18051666-bb22-4986-b371-72d21899b411
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: 8de69e45-ea72-4bf7-a80c-e747c6099e9f
+                Name: BallPrefab
+                Components:
+                    15be078b7143484c97824cd03de22c0e: !TransformComponent
+                        Id: 8b07be15-4371-4c48-9782-4cd03de22c0e
+                        Position: {X: 0.0, Y: 5.91308975, Z: -11.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            2eb50109e03102489fb2a602898cc11d: ref!! 0901b52e-31e0-4802-9fb2-a602898cc11d
+        -   Entity:
+                Id: 9e7d905e-a425-441e-93af-82f619fb12c5
+                Name: crate
+                Components:
+                    41f03e2e802fb24d95a774c7f12119bd: !TransformComponent
+                        Id: 5624d54a-a9a0-4f5d-a241-d79152218392
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b8c6c588b5610144adb1357b024c4015: !RigidbodyComponent
+                        Id: f15c0263-e0ef-4b40-b4a1-d78af5ada570
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7d102f94372bb148b1442fd78041aa91: !ColliderShapeAssetDesc
+                                Shape: cfd030c9-44df-401e-a192-32278a642f8b:ColliderShapes/crate_cs
+                    f8939861c2b39c4494f061673c9dfdcd: !ModelComponent
+                        Id: ee0d6490-adb2-4133-9d5e-bb2c1e45121c
+                        Model: e51b50db-d4e0-45c1-bf2e-47440aab2217:Models/BoxE
+                        Materials: {}
+                    1265a4274509e643b3a143f3c17ccd84: !PhysicsSample.AutoResetRigidbody,PhysicsSample.Game
+                        Id: 75e33397-8bf0-4214-8f3b-8f7c462fdde9
+                        TriggerEntity*: ref!! cfe82ef3-b615-435c-a9b6-15793dca565d
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: 7a37fbd2-3272-4fc1-bf78-c5225a874603
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: a895e017-7954-4d48-8600-5c413bed9053
+                Name: crate
+                Components:
+                    41f03e2e802fb24d95a774c7f12119bd: !TransformComponent
+                        Id: 8a12c1a0-baac-407b-a43c-5bba1cfc5596
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b8c6c588b5610144adb1357b024c4015: !RigidbodyComponent
+                        Id: b2da8550-7dd6-419c-973e-e1bcc1f88f26
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7d102f94372bb148b1442fd78041aa91: !ColliderShapeAssetDesc
+                                Shape: cfd030c9-44df-401e-a192-32278a642f8b:ColliderShapes/crate_cs
+                    f8939861c2b39c4494f061673c9dfdcd: !ModelComponent
+                        Id: f8ee20aa-b21d-4d19-87a9-e89b2858527d
+                        Model: e51b50db-d4e0-45c1-bf2e-47440aab2217:Models/BoxE
+                        Materials: {}
+                    1265a4274509e643b3a143f3c17ccd84: !PhysicsSample.AutoResetRigidbody,PhysicsSample.Game
+                        Id: 78a884b0-37d2-420d-b530-0063d6ae73f5
+                        TriggerEntity*: ref!! cfe82ef3-b615-435c-a9b6-15793dca565d
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: 809e9207-27e0-431b-9dbc-071e76f17c73
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: aa579303-96f3-491e-ae55-a40206120635
+                Name: KinematicCrate
+                Components:
+                    88a78d8c7af5b64694e92317cbb9b947: !TransformComponent
+                        Id: 8c8da788-f57a-46b6-94e9-2317cbb9b947
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            41f03e2e802fb24d95a774c7f12119bd: ref!! 894d5183-d171-4d03-982e-01f633a885c2
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: 56669c47-e2b6-45e3-91f4-a8b6acd5d039
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: adfb78fb-a8bd-4c71-b22b-31600e38603d
+                Name: KinematicCrate (8)
+                Components:
+                    f9acb6a8f1055f4392345c90277f3cd5: !TransformComponent
+                        Id: a8b6acf9-05f1-435f-9234-5c90277f3cd5
+                        Position: {X: -1.5, Y: 2.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            41f03e2e802fb24d95a774c7f12119bd: ref!! 8a12c1a0-baac-407b-a43c-5bba1cfc5596
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: bc5f26af-6469-4cf0-a790-bd6a14871134
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: b7b7ddf2-8c9d-46cb-9f1f-62c521b46128
+                Name: Colliders
+                Components:
+                    b31f2073cfd0e94aa2a2478530498a23: !TransformComponent
+                        Id: 73201fb3-d0cf-4ae9-a2a2-478530498a23
+                        Position: {X: 0.0, Y: 0.5, Z: -11.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            88a78d8c7af5b64694e92317cbb9b947: ref!! 8c8da788-f57a-46b6-94e9-2317cbb9b947
+                            3671b85a1eb9e54cab2b653313168ed6: ref!! 5ab87136-b91e-4ce5-ab2b-653313168ed6
+                            d605355dbf52ad4c8e2fc8fab224ecb2: ref!! 5d3505d6-52bf-4cad-8e2f-c8fab224ecb2
+                            570f7061ab7eb84883cf892aded3f8fb: ref!! 61700f57-7eab-48b8-83cf-892aded3f8fb
+                            4a42acbae0ee7b4eae72d1e330525ef2: ref!! baac424a-eee0-4e7b-ae72-d1e330525ef2
+                            9dfdd39fb06f1f4a9824b9038edcc631: ref!! 9fd3fd9d-6fb0-4a1f-9824-b9038edcc631
+                            0e50d61d5ff7df49804d089195106266: ref!! 1dd6500e-f75f-49df-804d-089195106266
+                            f9acb6a8f1055f4392345c90277f3cd5: ref!! a8b6acf9-05f1-435f-9234-5c90277f3cd5
+                            2df1c596ae98e442809fd007957f9ab5: ref!! 96c5f12d-98ae-42e4-809f-d007957f9ab5
+        -   Entity:
+                Id: c434f6c8-85c7-4891-b95f-c32a2f03fc4a
+                Name: KinematicCrate (3)
+                Components:
+                    d605355dbf52ad4c8e2fc8fab224ecb2: !TransformComponent
+                        Id: 5d3505d6-52bf-4cad-8e2f-c8fab224ecb2
+                        Position: {X: 1.5, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            41f03e2e802fb24d95a774c7f12119bd: ref!! cf7b78d8-ec27-4e4a-82aa-5554014d12c7
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: c3724f85-5c97-40f5-9705-4df71886b546
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: c6485208-a49a-4142-918c-e49b1da1c1a6
+                Name: Ball
+                Components:
+                    2eb50109e03102489fb2a602898cc11d: !TransformComponent
+                        Id: 0901b52e-31e0-4802-9fb2-a602898cc11d
+                        Position*: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.3953296, W: 0.918539345}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a4c85bb65e797946ac125062f07f8507: !PhysicsSample.AutoResetRigidbody,PhysicsSample.Game
+                        Id: b65bc8a4-795e-4679-ac12-5062f07f8507
+                        TriggerEntity*: ref!! cfe82ef3-b615-435c-a9b6-15793dca565d
+                    00e095c410fef143bbac85640eafd46e: !RigidbodyComponent
+                        Id: c495e000-fe10-43f1-bbac-85640eafd46e
+                        CanCollideWith: DefaultFilter, CharacterFilter
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            4fe40eebb1def0459086bc680ce3386c: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                    99a4b625c60911438f882cfb1100888d: !ModelComponent
+                        Id: 25b6a499-09c6-4311-8f88-2cfb1100888d
+                        Model: ad7e799e-d4fa-4bc2-8e00-49bf70e31434:Models/Ball
+                        Materials: {}
+            Base:
+                BasePartAsset: 2603278e-1a16-4d57-a24c-563472a5b86b:BallPrefab
+                BasePartId: c016fcd8-5ab1-4212-9784-954709ca481d
+                InstanceId: ff0c3bc4-9a07-4225-8151-cf80a3aade90
+        -   Entity:
+                Id: ca764465-b676-4a09-986e-c6a74f37bd6d
+                Name: Ambient light
+                Components:
+                    45314a65e05e354baa06d2aeab55c3f1: !TransformComponent
+                        Id: 654a3145-5ee0-4b35-aa06-d2aeab55c3f1
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    ad47cc08c5bbc44ea33c92da78bfc156: !LightComponent
+                        Id: 08cc47ad-bbc5-4ec4-a33c-92da78bfc156
+                        Type: !LightAmbient
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                        Intensity: 0.7
+        -   Entity:
+                Id: cbf8caec-e8f8-4f59-8ac7-70fe242e7e4e
+                Name: KinematicCrate (4)
+                Components:
+                    570f7061ab7eb84883cf892aded3f8fb: !TransformComponent
+                        Id: 61700f57-7eab-48b8-83cf-892aded3f8fb
+                        Position: {X: 0.5, Y: 1.25, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            41f03e2e802fb24d95a774c7f12119bd: ref!! 2a077ad1-82f8-4be7-802b-0cee117557c9
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: a3b24894-59b3-47d9-88eb-783d547ae444
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: cda9f3e4-5ea7-42c3-b749-c71420973c85
+                Name: crate
+                Components:
+                    41f03e2e802fb24d95a774c7f12119bd: !TransformComponent
+                        Id: bcf8d384-4569-441b-ab80-9a0b9c92cd5d
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b8c6c588b5610144adb1357b024c4015: !RigidbodyComponent
+                        Id: 9d35a335-68ae-4f40-ad43-6168933ef813
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7d102f94372bb148b1442fd78041aa91: !ColliderShapeAssetDesc
+                                Shape: cfd030c9-44df-401e-a192-32278a642f8b:ColliderShapes/crate_cs
+                    f8939861c2b39c4494f061673c9dfdcd: !ModelComponent
+                        Id: 3c730cd9-bd7f-467e-8e70-2bd627b9dc00
+                        Model: e51b50db-d4e0-45c1-bf2e-47440aab2217:Models/BoxE
+                        Materials: {}
+                    1265a4274509e643b3a143f3c17ccd84: !PhysicsSample.AutoResetRigidbody,PhysicsSample.Game
+                        Id: c4b8a366-d8b5-4541-aa01-c5102e86c8da
+                        TriggerEntity*: ref!! cfe82ef3-b615-435c-a9b6-15793dca565d
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: b16f0192-ec59-457c-990e-daabd7ee1ee5
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: cfe82ef3-b615-435c-a9b6-15793dca565d
+                Name: Trigger
+                Components:
+                    ff905d71a464ac4fbd8ff40d5354d11b: !TransformComponent
+                        Id: 715d90ff-64a4-4fac-bd8f-f40d5354d11b
+                        Position: {X: 7.5, Y: 1.0, Z: -6.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 15.0, Y: 2.0, Z: 4.0}
+                        Children: {}
+                    5d6de4ce7b5060409f85b53ba7134ac7: !PhysicsSample.Trigger,PhysicsSample.Game
+                        Id: cee46d5d-507b-4060-9f85-b53ba7134ac7
+                    7f34238497e6e6468a4f8df5679744e9: !StaticColliderComponent
+                        Id: 8423347f-e697-46e6-8a4f-8df5679744e9
+                        CanCollideWith: CharacterFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        ColliderShapes:
+                            a52f6e60d5ff6c458591787370feb4e5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    2ea22a2eb54afd41ac11b9dbcd9be00f: !ModelComponent
+                        Id: 2e2aa22e-4ab5-41fd-ac11-b9dbcd9be00f
+                        Model: bd2fa89a-6eb0-41d8-a979-b2d0e53de6b6:Models/ProceduralModel
+                        Materials:
+                            9ce0cdb239a6ac4992e9428e0988691e~0: cf9193b2-993a-4329-b6de-983ae136628a:Materials/TriggerMat
+        -   Entity:
+                Id: dbc36769-8ddf-4bbe-9fdb-1ee586963d23
+                Name: crate
+                Components:
+                    41f03e2e802fb24d95a774c7f12119bd: !TransformComponent
+                        Id: 2e3ef041-2f80-4db2-95a7-74c7f12119bd
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b8c6c588b5610144adb1357b024c4015: !RigidbodyComponent
+                        Id: 27aa568d-fd34-4711-82e3-4aa2a95ee63e
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7d102f94372bb148b1442fd78041aa91: !ColliderShapeAssetDesc
+                                Shape: cfd030c9-44df-401e-a192-32278a642f8b:ColliderShapes/crate_cs
+                    f8939861c2b39c4494f061673c9dfdcd: !ModelComponent
+                        Id: 991c1f68-c1e6-4fe9-b3b0-b7769531513c
+                        Model: e51b50db-d4e0-45c1-bf2e-47440aab2217:Models/BoxE
+                        Materials: {}
+                    1265a4274509e643b3a143f3c17ccd84: !PhysicsSample.AutoResetRigidbody,PhysicsSample.Game
+                        Id: 142c27b5-02dd-418b-a50c-0f166f853663
+                        TriggerEntity*: ref!! cfe82ef3-b615-435c-a9b6-15793dca565d
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: c559ed70-639a-4df5-b6c8-182f13c95a57
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: e314077a-b44f-43c3-8abd-8989459e2d96
+                Name: crate
+                Components:
+                    41f03e2e802fb24d95a774c7f12119bd: !TransformComponent
+                        Id: 2a077ad1-82f8-4be7-802b-0cee117557c9
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b8c6c588b5610144adb1357b024c4015: !RigidbodyComponent
+                        Id: 21ed55ac-d912-4c62-96bc-6c9e83a85ce4
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7d102f94372bb148b1442fd78041aa91: !ColliderShapeAssetDesc
+                                Shape: cfd030c9-44df-401e-a192-32278a642f8b:ColliderShapes/crate_cs
+                    f8939861c2b39c4494f061673c9dfdcd: !ModelComponent
+                        Id: 4bb9512a-d9a2-42b4-9c7b-d4c75ec34fe5
+                        Model: e51b50db-d4e0-45c1-bf2e-47440aab2217:Models/BoxE
+                        Materials: {}
+                    1265a4274509e643b3a143f3c17ccd84: !PhysicsSample.AutoResetRigidbody,PhysicsSample.Game
+                        Id: 6f1102bb-b6d2-4a4e-aead-8477c3ff247c
+                        TriggerEntity*: ref!! cfe82ef3-b615-435c-a9b6-15793dca565d
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: 2c240e0b-bfb6-4bc0-8100-d1bbf919ed93
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: e4f55f46-c077-42c5-911e-bde90510fc88
+                Name: crate
+                Components:
+                    41f03e2e802fb24d95a774c7f12119bd: !TransformComponent
+                        Id: d6aee1ec-d195-42c0-95ef-9988c0495b2e
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b8c6c588b5610144adb1357b024c4015: !RigidbodyComponent
+                        Id: 72d7d166-640c-4699-9da9-cbaf55c20c47
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7d102f94372bb148b1442fd78041aa91: !ColliderShapeAssetDesc
+                                Shape: cfd030c9-44df-401e-a192-32278a642f8b:ColliderShapes/crate_cs
+                    f8939861c2b39c4494f061673c9dfdcd: !ModelComponent
+                        Id: 6b934a09-793a-45b3-b060-91427abf3021
+                        Model: e51b50db-d4e0-45c1-bf2e-47440aab2217:Models/BoxE
+                        Materials: {}
+                    1265a4274509e643b3a143f3c17ccd84: !PhysicsSample.AutoResetRigidbody,PhysicsSample.Game
+                        Id: 22508d91-adba-4948-8392-1b0b4540fe93
+                        TriggerEntity*: ref!! cfe82ef3-b615-435c-a9b6-15793dca565d
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: e0469824-7ddd-422e-b3d4-ae12e49a206e
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: f0e830e9-c81a-4505-ae00-0a00a7d84518
+                Name: KinematicCrate (2)
+                Components:
+                    3671b85a1eb9e54cab2b653313168ed6: !TransformComponent
+                        Id: 5ab87136-b91e-4ce5-ab2b-653313168ed6
+                        Position: {X: -1.5, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            41f03e2e802fb24d95a774c7f12119bd: ref!! 27ec0c28-732e-431e-8cd9-7314dc7ff3ea
+            Base:
+                BasePartAsset: e13cbc01-7701-438b-b6d4-c97e66098dd8:Colliders
+                BasePartId: 9bee9b07-1441-4f50-b6df-99932f3b0395
+                InstanceId: 48e70e41-5363-4872-a639-f67ae43321a4
+        -   Entity:
+                Id: f230b77a-bd6f-40d2-9e98-dbba399c378e
+                Name: Ground
+                Components:
+                    a20b9f94ad93e742bb1c89b6e1d6aee7: !TransformComponent
+                        Id: 620b5fe2-7ad9-4286-b5ba-e538bf780801
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.3, Y: 0.4, Z: 0.4}
+                        Children: {}
+                    98dd040862ed394997c363d697c8f29f: !StaticColliderComponent
+                        Id: 75f76ce0-13fa-4cf0-96a7-31c16e64f578
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            92d70e42157bc34c85a91efcafd60da4: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+                    7e137400e2eda7499b8235359ec18a1a: !ModelComponent
+                        Id: 0074137e-ede2-49a7-9b82-35359ec18a1a
+                        Model: 6993a85b-a9ab-4c74-89d3-5643c2d48cba:Models/Ground
+                        Materials: {}

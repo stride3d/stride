@@ -1,0 +1,28 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Skyboxes
+{
+    /// <summary>
+    /// Base shader to sample an environment
+    /// </summary>
+    shader SphericalHarmonicsEnvironmentColor<int TOrder> : SphericalHarmonicsUtils<TOrder>, IComputeEnvironmentColor
+    {
+        cbuffer PerView.Lighting
+        {
+            [Color]
+            float3 SphericalColors[TOrder * TOrder];
+        }
+
+        override float4 Compute(float3 direction)
+        {
+            // Workaround for type mismatch during SPIR-V validation
+            //float3 test[TOrder * TOrder];
+            //for (int i = 0; i < TOrder * TOrder; i++)
+            //    test[i] = SphericalColors[i];
+            //return EvaluateSphericalHarmonics(test, direction);
+
+            return EvaluateSphericalHarmonics(SphericalColors, direction);
+        }
+    };
+}

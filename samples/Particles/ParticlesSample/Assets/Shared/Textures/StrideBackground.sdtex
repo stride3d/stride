@@ -1,0 +1,10 @@
+!Texture
+Id: 05c67510-1363-46fd-b0ff-79eca123c1c1
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../Resources/StrideBackground.jpg
+IsCompressed: false
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+GenerateMipmaps: false
+IsStreamable: false

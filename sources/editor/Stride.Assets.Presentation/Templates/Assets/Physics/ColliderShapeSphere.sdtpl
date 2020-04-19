@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: C7515F10-B82A-4BF4-B773-19151F0FDC4B
+AssetTypeName: ColliderShapeAsset
+Name: Sphere
+Scope: Asset
+Description: A spherical collider
+Group: Physics
+Icon: ..\.sdtpl\ColliderSphere.png
+DefaultOutputName: ColliderSphere
+FactoryTypeName: ColliderShapeSphereFactory

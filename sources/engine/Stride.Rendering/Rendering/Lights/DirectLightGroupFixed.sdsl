@@ -1,0 +1,18 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Lights
+{
+    /// <summary>
+    /// Overrides the default behaviour of DirectLightGroup to only return a fixed number of lights
+    /// </summary>
+    shader DirectLightGroupFixed<int TLightCount> : DirectLightGroup
+    {
+        /// <summary>
+        /// Gets the number of lights of this group
+        /// </summary>
+        override int GetLightCount()
+        {
+            return TLightCount;
+        }
+    };
+}

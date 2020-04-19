@@ -1,8 +1,0 @@
-!Texture
-Id: e4d44771-d2f6-46ce-8001-81f9e71b4a7a
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../Resources/explosion8x8.dds
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-IsStreamable: false

@@ -1,0 +1,62 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// LightStreak shader. This extends colors along a direction, while applying an attenuation 
+    /// factor along the way. 
+    /// </summary>
+    internal shader LightStreakShader<int TapCount, int AnamorphicCount> : ImageEffectShader
+    {
+        // Offset of the taps and their own weights
+        stage float2 TapOffsetsWeights[TapCount];
+
+        // Direction of the tap line
+        stage float2 Direction;
+
+        // Light aberration coefficients along the streak
+        stage float3 ColorAberrationCoefficients;
+
+        // Count of anamorphic sub-streaks with offsets and strength (including the main streak)
+        stage float3 AnamorphicOffsetsWeight[AnamorphicCount];
+
+        stage override float4 Shading()
+        {
+            // Direction in texel size
+            float2 direction = Direction * Texture0TexelSize;
+            float3 color = float3(0.0, 0.0, 0.0);
+
+            [unroll]
+            for (int anamorphic = 0; anamorphic < AnamorphicCount; anamorphic++) { // All the anamorphic
+
+                float2 textOffset = AnamorphicOffsetsWeight[anamorphic].xy * Texture0TexelSize;
+
+                [unroll]
+                for(int i = 0; i < TapCount; i++)
+                {
+                    float2 tapUV = streams.TexCoord + direction * TapOffsetsWeights[i].x + textOffset;
+                
+                    float3 tapColor = Texture0.Sample(LinearSampler, tapUV).rgb;
+
+                    // TODO switch to vignetting-like lerp for nicer effect,
+                    // or directly clamp to border instead
+                    if (tapUV.x < 0 || tapUV.x > 1 || tapUV.y < 0 || tapUV.y > 1) {
+                        tapColor = float3(0.0, 0.0, 0.0);
+                    }
+
+                    // Some trick to apply chromatic aberration 
+                    if      (i == 0) tapColor.r *= ColorAberrationCoefficients.r;
+                    else if (i == 1) tapColor.g *= ColorAberrationCoefficients.g;
+                    else if (i == 2) tapColor.b *= ColorAberrationCoefficients.b;
+
+                    tapColor *= AnamorphicOffsetsWeight[anamorphic].z;
+
+                    color += tapColor * TapOffsetsWeights[i].y;
+                }
+            }
+
+            return float4(color, 1);
+        }
+    };
+}

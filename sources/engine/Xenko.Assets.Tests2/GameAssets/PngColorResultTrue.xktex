@@ -1,8 +1,0 @@
-!Texture
-Id: 2ac8e854-0983-487a-b491-9a66b155ff03
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/SmallPngInterpolated.png
-Type: !ColorTextureType
-    ColorKeyEnabled: true
-    ColorKeyColor: {R: 115, G: 68, B: 26, A: 86}

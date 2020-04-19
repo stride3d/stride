@@ -1,0 +1,7 @@
+!Texture
+Id: a7a030b6-da74-4c64-9b6f-e15d9ee50434
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/cobbleDisplacementMap.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

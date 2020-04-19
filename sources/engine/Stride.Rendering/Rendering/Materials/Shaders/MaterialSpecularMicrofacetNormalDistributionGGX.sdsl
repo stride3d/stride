@@ -1,0 +1,15 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Interface for a microfacet Normal Distribution function
+    /// </summary>
+    shader MaterialSpecularMicrofacetNormalDistributionGGX : IMaterialSpecularMicrofacetNormalDistributionFunction
+    {
+        override float Compute()
+        {
+            return NormalDistributionGGX(streams.alphaRoughness, streams.NdotH);
+        }
+    };
+}

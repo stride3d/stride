@@ -1,0 +1,912 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2019-02-25 11:53:42+0900\n"
+"PO-Revision-Date: 2019-01-13 03:05+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:48
+msgctxt "Title"
+msgid "Output"
+msgstr "ビルドログ"
+
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:189
+msgctxt "Message"
+msgid ""
+"Some game code files have been modified. Do you want to reload the "
+"assemblies?"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:191
+msgctxt "Button"
+msgid "Reload"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:191
+msgctxt "Button"
+msgid "Don't reload"
+msgstr ""
+
+#. Displayed when user tries to run a project that is not on a supported platform (for execution).
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:317
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:460
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:467
+msgctxt "Message"
+msgid "Platform {0} isn't supported for execution."
+msgstr "{0}のプラットフォームはサポートされていません"
+
+#. Displayed when user tries to run Android project without an Android device attached.
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:422
+msgctxt "Message"
+msgid "No Android device found for execution."
+msgstr "デバイスが見つかりません"
+
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:475
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:639
+msgctxt "Message"
+msgid "Unable to load and compile project {0}"
+msgstr ""
+
+#. Log message displayed when the executable can't be found after building the project. {0}: the expected executable path
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:492
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:539
+msgctxt "Message"
+msgid "Unable to reach to output executable: {0}"
+msgstr "実行ファイルが見つかりません:{0}"
+
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:509
+msgctxt "Message"
+msgid "Couldn't find Android package name for {0}."
+msgstr "{0}が見つかりません。"
+
+#. Displayed when Android tools "adb" can't be found
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:519
+msgctxt "Message"
+msgid ""
+"Android tool \"\"adb\"\" couldn't found (no running process, in registry or "
+"on the PATH). Please add it to your PATH."
+msgstr ""
+
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:526
+msgctxt "Message"
+msgid "Can't run Android app with adb: {0}"
+msgstr "adbで実行できません:{0}"
+
+#. Displayed when starting a game on a platform requiring credentials but none were provided.
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:551
+msgctxt "Message"
+msgid "No credentials provided. To allow deployment, add your credentials."
+msgstr ""
+
+#. Message displayed when launching fails for some reason.
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:560
+msgctxt "Message"
+msgid "Unable to launch project {0}"
+msgstr ""
+
+#. Message displayed to inform user a deployment was succesful.
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:568
+msgctxt "Message"
+msgid "Deployment of {0} successful."
+msgstr ""
+
+#. Log message displayed when an exception occurs while building the project. {0}: The exception message
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:574
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:648
+msgctxt "Message"
+msgid "An exception occurred while compiling the project: {0}"
+msgstr "ビルド中に例外が発生しました:{0}"
+
+#. Message displayed when the user tries to build without having selected a current project
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:584
+msgctxt "Message"
+msgid ""
+"To process the build, set an executable project as the current project in "
+"the session explorer."
+msgstr ""
+"ビルドをするためにセッションエクスプローラー内で現在のプロジェクトに設定する"
+"必要があります"
+
+#. Message displayed when the user cancels the saving of the current session when trying to build
+#: ../editor/Stride.GameStudio/DebuggingViewModel.cs:592
+msgctxt "Message"
+msgid "To build, save the project first."
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioViewModel.cs:91
+msgctxt "Message"
+msgid "The file {0} does not exist."
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml.cs:78
+msgctxt "Message"
+msgid ""
+"To reset the layout, Game Studio needs to close and re-open all asset and "
+"document editors. You won't lose unsaved changes."
+msgstr ""
+
+#. Generic error message when we are unable to launch a game on a remote host.
+#: ../editor/Stride.GameStudio/RemoteFacilities.cs:128
+msgctxt "Message"
+msgid "Unable to launch {0} on host {1}"
+msgstr ""
+
+#. Message displayed when the user tries to build without having selected a current project
+#: ../editor/Stride.GameStudio/Debugging/StrideDebugService.cs:41
+msgctxt "Message"
+msgid ""
+"An executable project must be set as current project in the session explorer "
+"in order to process build."
+msgstr ""
+"ビルドをするためにセッションエクスプローラー内で現在のプロジェクトに設定する"
+"必要があります"
+
+#: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:14
+msgctxt "Settings"
+msgid "Remote"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:22
+msgctxt "Settings"
+msgid "Default session to load"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:26
+msgctxt "Settings"
+msgid "Host"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:30
+msgctxt "Settings"
+msgid "Port"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:34
+msgctxt "Settings"
+msgid "Username"
+msgstr "ユーザー名"
+
+#: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:38
+msgctxt "Settings"
+msgid "Password"
+msgstr ""
+
+#. Location where to deploy.
+#: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:42
+msgctxt "Settings"
+msgid "Location"
+msgstr ""
+
+#. Ask if we should prompt user with the crendential dialogs if necessary.
+#: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:46
+msgctxt "Settings"
+msgid "Ask for credentials when deploying game"
+msgstr ""
+
+#. Name of X display where to launch game.
+#: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:50
+msgctxt "Settings"
+msgid "X Display"
+msgstr ""
+
+#. Ask if we want to execute remotely using CoreCLR.
+#: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:54
+msgctxt "Settings"
+msgid "Use CoreCLR"
+msgstr ""
+
+#. Confirmation message when everything is correct while testing credentials.
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:74
+msgctxt "Credentials"
+msgid "Your credentials are correct."
+msgstr ""
+
+#. Display error message when host does not respond.
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:77
+msgctxt "Credentials"
+msgid "Couldn't reach the specified host."
+msgstr ""
+
+#. Display error message when credentials data is invalid.
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:80
+msgctxt "Credentials"
+msgid "Invalid credentials."
+msgstr ""
+
+#. Display error message when location does not exist.
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:83
+msgctxt "Credentials"
+msgid "The location you specified doesn't exist."
+msgstr ""
+
+#. Whenever something not expected happens while checking for credentials.
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:86
+msgctxt "Credentials"
+msgid "An unknown error occurred."
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:63
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:245
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:515
+msgctxt "Menu"
+msgid "Asset"
+msgstr "アセット"
+
+#. Open the asset editor
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:64
+msgctxt "Menu"
+msgid "Edit asset..."
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:65
+msgctxt "Menu"
+msgid "Don't include in build as root asset"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:65
+msgctxt "Menu"
+msgid "Include in build as root asset"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:90
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:195
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:509
+msgctxt "Menu"
+msgid "Cut"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:91
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:196
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:510
+msgctxt "Menu"
+msgid "Copy"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:92
+msgctxt "Menu"
+msgid "Copy with dependencies"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:93
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:197
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:511
+msgctxt "Menu"
+msgid "Paste"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:94
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:198
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:242
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:512
+msgctxt "Menu"
+msgid "Delete"
+msgstr "削除"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:96
+msgctxt "Menu"
+msgid "Copy asset URL"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:97
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:243
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:513
+msgctxt "Menu"
+msgid "Rename"
+msgstr "名前変更"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:99
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:210
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:478
+msgctxt "Menu"
+msgid "Create folder"
+msgstr "ディレクトリの作成"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:100
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:246
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:516
+msgctxt "Menu"
+msgid "Add asset..."
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:101
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:247
+msgctxt "Menu"
+msgid "Update selected assets from their source"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:102
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:248
+msgctxt "Menu"
+msgid "Update all assets with modified source"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:104
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:249
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:518
+msgctxt "Menu"
+msgid "Explore"
+msgstr "エクスプローラー"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:105
+msgctxt "Menu"
+msgid "Open with text editor"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:106
+msgctxt "Menu"
+msgid "Open asset file"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:107
+msgctxt "Menu"
+msgid "Open source file"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:108
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:250
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:519
+msgctxt "Menu"
+msgid "Show in Explorer"
+msgstr "エクスプローラー"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:145
+msgctxt "Menu"
+msgid "File"
+msgstr "ファイル"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:146
+msgctxt "Menu"
+msgid "New"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:147
+msgctxt "Menu"
+msgid "Open"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:148
+msgctxt "Menu"
+msgid "Open recent"
+msgstr "最近使ったファイル"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:178
+msgctxt "Menu"
+msgid "Clear list"
+msgstr "リストのクリア"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:180
+msgctxt "Menu"
+msgid "Save"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:182
+msgctxt "Menu"
+msgid "Reload project"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:184
+msgctxt "Menu"
+msgid "Quit"
+msgstr "終了"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:191
+msgctxt "Menu"
+msgid "Edit"
+msgstr "編集"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:192
+msgctxt "Menu"
+msgid "Undo"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:193
+msgctxt "Menu"
+msgid "Redo"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:200
+msgctxt "Menu"
+msgid "Settings"
+msgstr "設定"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:203
+msgctxt "Menu"
+msgid "Project"
+msgstr "プロジェクト"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:204
+msgctxt "Menu"
+msgid "Build project"
+msgstr "ビルド"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:205
+msgctxt "Menu"
+msgid "Start project"
+msgstr "プロジェクトの開始"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:207
+msgctxt "Menu"
+msgid "Start live-scripting"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:208
+msgctxt "Menu"
+msgid "Cancel build"
+msgstr "ビルドの中止"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:209
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:477
+msgctxt "Menu"
+msgid "Folder"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:212
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:480
+msgctxt "Menu"
+msgid "Package"
+msgstr "パッケージ"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:213
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:481
+msgctxt "Menu"
+msgid "Update package"
+msgstr "プロジェクトに新規追加"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:231
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:499
+msgctxt "Menu"
+msgid "Add dependency..."
+msgstr "依存関係の追加..."
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:232
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:500
+msgctxt "Menu"
+msgid "Set as current project"
+msgstr "現在のプロジェクトに設定"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:233
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:501
+msgctxt "Menu"
+msgid "Package properties"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:235
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:503
+msgctxt "Menu"
+msgid "Solution"
+msgstr "ソリューション"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:236
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:504
+msgctxt "Menu"
+msgid "New project..."
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:237
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:505
+msgctxt "Menu"
+msgid "Add existing project..."
+msgstr "既存のプロジェクトの追加..."
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:238
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:506
+msgctxt "Menu"
+msgid "Open in IDE"
+msgstr "IDEで開く"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:239
+msgctxt "Menu"
+msgid "Reload game assemblies"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:241
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:508
+msgctxt "Menu"
+msgid "Actions"
+msgstr "アクション"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:253
+msgctxt "Menu"
+msgid "View"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:254
+msgctxt "Menu"
+msgid "Solution explorer"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:255
+msgctxt "Menu"
+msgid "Asset view"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:256
+msgctxt "Menu"
+msgid "References"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:258
+msgctxt "Menu"
+msgid "Asset preview"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:261
+msgctxt "Menu"
+msgid "Property grid"
+msgstr "プロパティグリッド"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:262
+msgctxt "Menu"
+msgid "Edit history"
+msgstr "アクション履歴"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:265
+msgctxt "Menu"
+msgid "Asset errors"
+msgstr "アセットログ"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:266
+msgctxt "Menu"
+msgid "Output"
+msgstr "ビルドログ"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:270
+msgctxt "Menu"
+msgid "Help"
+msgstr "ヘルプ"
+
+#. Link to the documentation
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:271
+msgctxt "Menu"
+msgid "Online documentation"
+msgstr ""
+
+#. Link to the answer hub
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:273
+msgctxt "Menu"
+msgid "Questions and answers"
+msgstr ""
+
+#. Link to GitHub issues
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:274
+msgctxt "Menu"
+msgid "Report an issue..."
+msgstr ""
+
+#. Link to the forums
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:275
+msgctxt "Menu"
+msgid "Community forums"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:277
+msgctxt "Menu"
+msgid "Show debug window"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:279
+msgctxt "Menu"
+msgid "About..."
+msgstr "Strideについて..."
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:305
+msgctxt "ToolTip"
+msgid "Create a project"
+msgstr "プロジェクトの開始"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:309
+msgctxt "ToolTip"
+msgid "Open an existing project"
+msgstr "既存のプロジェクトを開く"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:313
+msgctxt "ToolTip"
+msgid "Open recent"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:339
+msgctxt "ToolTip"
+msgid "Save the project and all its documents"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:344
+msgctxt "ToolTip"
+msgid "Reload current project (ask to save)"
+msgstr "現在のプロジェクトのビルドとゲームの開始"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:349
+msgctxt "ToolTip"
+msgid "Undo last action"
+msgstr "最後のアクションを元に戻す"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:353
+msgctxt "ToolTip"
+msgid "Redo last cancelled action"
+msgstr "最後に中止したアクションをやり直す"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:359
+msgctxt "ToolTip"
+msgid "Open in IDE"
+msgstr "プロジェクトの新規作成"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:363
+msgctxt "ToolTip"
+msgid "Open with..."
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:374
+msgctxt "ToolTip"
+msgid "Reload game assemblies and update scripts"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:395
+msgctxt "ToolTip"
+msgid "Build the project"
+msgstr "ビルド"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:399
+msgctxt "ToolTip"
+msgid "Build the project and start the game"
+msgstr "現在のプロジェクトのビルドとゲームの開始"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:405
+msgctxt "ToolTip"
+msgid "Start project in live-scripting mode"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:410
+msgctxt "ToolTip"
+msgid "Cancel the current build"
+msgstr "ビルドの中止"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:426
+msgctxt "View"
+msgid "Solution explorer"
+msgstr "ソリューション"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:433
+msgctxt "ToolTip"
+msgid "Create a project..."
+msgstr "プロジェクトに新規追加"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:437
+msgctxt "ToolTip"
+msgid "Create a folder"
+msgstr "ディレクトリの作成"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:442
+msgctxt "ToolTip"
+msgid "Display the properties of the selected package in the property grid"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:446
+msgctxt "ToolTip"
+msgid "Rename the selected folder or package"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:450
+msgctxt "ToolTip"
+msgid "Delete the selected items"
+msgstr "ソリューション内の選択されたアイテムを削除"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:455
+msgctxt "ToolTip"
+msgid "Expand all asset folders"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:459
+msgctxt "ToolTip"
+msgid "Expand all"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:463
+msgctxt "ToolTip"
+msgid "Collapse all"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:468
+msgctxt "ToolTip"
+msgid "Show in Explorer"
+msgstr "エクスプローラー"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:560
+msgctxt "View"
+msgid "Asset view"
+msgstr "アセットビュー"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:581
+msgctxt "View"
+msgid "References"
+msgstr "参照"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:598
+msgid "References"
+msgstr "参照"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:599
+msgid "Referenced by"
+msgstr "参照"
+
+#. {0}: The number of errors
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:610
+msgctxt "View"
+msgid "Asset error ({0})"
+msgid_plural "Asset errors ({0})"
+msgstr[0] ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:624
+msgid "Build"
+msgstr "ビルド"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:638
+msgid "Live-scripting"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:662
+msgctxt "View"
+msgid "Property grid"
+msgstr "プロパティグリッド"
+
+#. Translation must not be longer that the english words
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:677
+msgid "Add new tag"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:687
+msgctxt "ToolTip"
+msgid "Previous selection"
+msgstr "以前の選択"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:690
+msgctxt "ToolTip"
+msgid "Next selection"
+msgstr "次の選択"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:708
+msgctxt "ToolTip"
+msgid "Add tag to all"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:725
+msgid "Open this asset in editor"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:727
+msgid "Show this asset in editor"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:734
+msgctxt "ToolTip"
+msgid "Display only overridden properties"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:737
+msgid "Search properties"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:765
+msgctxt "Menu"
+msgid "Reset to base value"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:879
+msgctxt "View"
+msgid "Asset preview"
+msgstr "アセットプレビュー"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:887
+msgctxt "View"
+msgid "Edit history"
+msgstr "アクション履歴"
+
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:939
+msgctxt "StatusBar"
+msgid "{0} item"
+msgid_plural "{0} items"
+msgstr[0] "{0} 項目"
+
+#. Keep parenthesis - {0} is a number
+#: ../editor/Stride.GameStudio/GameStudioWindow.xaml:940
+msgctxt "StatusBar"
+msgid "({0} selected)"
+msgid_plural "({0} selected)"
+msgstr[0] "({0}を選択)"
+
+#: ../editor/Stride.GameStudio/View/AboutPage.xaml:10
+msgctxt "About"
+msgid "About Stride"
+msgstr "Strideについて"
+
+#: ../editor/Stride.GameStudio/View/AboutPage.xaml:45
+msgctxt "About"
+msgid "Stride version"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/AboutPage.xaml:50
+msgctxt "About"
+msgid "MIT License"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/AboutPage.xaml:56
+msgctxt "About"
+msgid "Stride uses open-source software"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/AboutPage.xaml:58
+msgctxt "About"
+msgid "See the list"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/AboutPage.xaml:64
+msgctxt "About"
+msgid "Privacy policy"
+msgstr "個人情報保護方針"
+
+#: ../editor/Stride.GameStudio/View/AboutPage.xaml:73
+msgctxt "About"
+msgid "Close"
+msgstr "閉じる"
+
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:9
+msgctxt "Credentials"
+msgid "Credentials"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:13
+msgctxt "Credentials"
+msgid ""
+"Provide information about the host to connect to. Your password is encrypted "
+"on this machine."
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:15
+msgctxt "Credentials"
+msgid "Host"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:18
+msgctxt "Credentials"
+msgid "Port"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:21
+msgctxt "Credentials"
+msgid "Username"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:24
+msgctxt "Credentials"
+msgid "Password"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:27
+msgctxt "Credentials"
+msgid "Location"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:34
+msgctxt "Credentials"
+msgid "Don't ask again"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:35
+msgctxt "Credentials"
+msgid "Test settings"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:40
+msgctxt "Button"
+msgid "Save"
+msgstr ""
+
+#: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:45
+msgctxt "Button"
+msgid "Cancel"
+msgstr ""

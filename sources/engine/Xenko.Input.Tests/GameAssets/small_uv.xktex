@@ -1,7 +1,0 @@
-!Texture
-Id: a9177559-c511-4f71-9e1e-dc54c5a79b0f
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/small_uv.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

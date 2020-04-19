@@ -1,0 +1,46 @@
+<sd:ModalWindow x:Class="Stride.Assets.Presentation.View.DebuggerPickerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:view="clr-namespace:Stride.Assets.Presentation.View"
+        mc:Ignorable="d" ShowInTaskbar="False"
+        Style="{DynamicResource WindowChromeStyle}"
+        Title="{sd:Localize Live scripting debugger}" Height="500" Width="400" d:DataContext="{d:DesignInstance view:DebuggerPickerWindow}">
+  <sd:ModalWindow.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Stride.Assets.Presentation;component/View/ImageDictionary.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </sd:ModalWindow.Resources>
+  <DockPanel>
+    <UniformGrid Rows="1" DockPanel.Dock="Bottom" Margin="20" HorizontalAlignment="Right">
+      <Button Margin="10,0,0,0" Padding="20,4" Content="OK" ToolTip="{sd:Localize Select these assets, Context=ToolTip}" IsEnabled="{Binding SelectionValid}">
+        <i:Interaction.Behaviors>
+          <sd:ButtonCloseWindowBehavior DialogResult="OK"/>
+        </i:Interaction.Behaviors>
+      </Button>
+      <Button Margin="10,0,0,0" Padding="20,4" Content="Cancel" IsCancel="True" ToolTip="{sd:Localize Cancel (Esc), Context=ToolTip}">
+        <i:Interaction.Behaviors>
+          <sd:ButtonCloseWindowBehavior DialogResult="Cancel"/>
+        </i:Interaction.Behaviors>
+      </Button>
+    </UniformGrid>
+
+    <TextBlock Margin="15,25" TextWrapping="Wrap" DockPanel.Dock="Top" Text="Possible debuggers:"/>
+
+    <UniformGrid Rows="1">
+      <ListBox Margin="15" SelectionMode="Single" Background="{DynamicResource ControlBackgroundBrush}" ItemsSource="{Binding Debuggers}"
+               DockPanel.Dock="Right" SelectedItem="{Binding SelectedDebugger}">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock Text="{Binding Name}"/>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </UniformGrid>
+  </DockPanel>
+</sd:ModalWindow>

@@ -1,0 +1,30 @@
+<Project>
+  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
+  <PropertyGroup>
+    <TargetFrameworks>net461</TargetFrameworks>
+    <AssemblyName>Stride.Graphics.Tests.11_0</AssemblyName>
+    <RootNamespace>Stride.Graphics.Tests</RootNamespace>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCompileAssets>true</StrideCompileAssets>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>xunit.runner.stride.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="TestCubemapDeferred.cs" />
+    <Compile Remove="TestCubemapDisplay.cs" />
+    <Compile Remove="TestCubemapRendering.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <Import Project="..\..\targets\Stride.UnitTests.targets" />
+</Project>

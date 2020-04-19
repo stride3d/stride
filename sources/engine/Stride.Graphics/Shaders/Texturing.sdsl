@@ -1,0 +1,124 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader Texturing
+{
+    // Default texture slots - might be automatically used by the material
+    stage Texture2D Texture0;
+    stage float2 Texture0TexelSize;
+    stage Texture2D Texture1;
+    stage float2 Texture1TexelSize;
+    stage Texture2D Texture2;
+    stage float2 Texture2TexelSize;
+    stage Texture2D Texture3;
+    stage float2 Texture3TexelSize;
+    stage Texture2D Texture4;
+    stage float2 Texture4TexelSize;
+    stage Texture2D Texture5;
+    stage float2 Texture5TexelSize;
+    stage Texture2D Texture6;
+    stage float2 Texture6TexelSize;
+    stage Texture2D Texture7;
+    stage float2 Texture7TexelSize;
+    stage Texture2D Texture8;
+    stage float2 Texture8TexelSize;
+    stage Texture2D Texture9;
+    stage float2 Texture9TexelSize;
+
+    // Default texture cube slots
+    stage TextureCube TextureCube0;
+    stage TextureCube TextureCube1;
+    stage TextureCube TextureCube2;
+    stage TextureCube TextureCube3;
+
+    // Default texture 3D slots
+    stage Texture3D Texture3D0;
+    stage Texture3D Texture3D1;
+    stage Texture3D Texture3D2;
+    stage Texture3D Texture3D3;
+
+    // Default sampler
+    stage SamplerState Sampler;
+
+    stage SamplerState PointSampler
+    {
+        Filter = MIN_MAG_MIP_POINT;
+    };
+
+    stage SamplerState LinearSampler
+    {
+        Filter = MIN_MAG_MIP_LINEAR;
+    };
+
+    stage SamplerState LinearBorderSampler
+    {
+        Filter = MIN_MAG_MIP_LINEAR;
+        AddressU = Border;
+        AddressV = Border;
+    };
+
+    stage SamplerComparisonState LinearClampCompareLessEqualSampler
+    {
+        Filter = COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+        AddressU = Clamp;
+        AddressV = Clamp;
+        ComparisonFunc = LessEqual;
+
+    };
+
+    stage SamplerState AnisotropicSampler
+    {
+        Filter = ANISOTROPIC;
+    };
+
+    stage SamplerState AnisotropicRepeatSampler
+    {
+        Filter = ANISOTROPIC;
+        AddressU = Wrap;
+        AddressV = Wrap;
+        MaxAnisotropy = 16;
+    };
+
+    stage SamplerState PointRepeatSampler
+    {
+        Filter = MIN_MAG_MIP_POINT;
+        AddressU = Wrap;
+        AddressV = Wrap;
+    };
+
+    stage SamplerState LinearRepeatSampler
+    {
+        Filter = MIN_MAG_MIP_LINEAR;
+        AddressU = Wrap;
+        AddressV = Wrap;
+    };
+
+    stage SamplerState RepeatSampler
+    {
+        AddressU = Wrap;
+        AddressV = Wrap;
+    };
+
+    // Default custom samplers - might be automatically used by the materials
+    stage SamplerState Sampler0;
+    stage SamplerState Sampler1;
+    stage SamplerState Sampler2;
+    stage SamplerState Sampler3;
+    stage SamplerState Sampler4;
+    stage SamplerState Sampler5;
+    stage SamplerState Sampler6;
+    stage SamplerState Sampler7;
+    stage SamplerState Sampler8;
+    stage SamplerState Sampler9;
+
+    // Texcoord attribute inputs
+    stage stream float2 TexCoord : TEXCOORD0;
+    stage stream float2 TexCoord1 : TEXCOORD1;
+    stage stream float2 TexCoord2 : TEXCOORD2;
+    stage stream float2 TexCoord3 : TEXCOORD3;
+    stage stream float2 TexCoord4 : TEXCOORD4;
+    stage stream float2 TexCoord5 : TEXCOORD5;
+    stage stream float2 TexCoord6 : TEXCOORD6;
+    stage stream float2 TexCoord7 : TEXCOORD7;
+    stage stream float2 TexCoord8 : TEXCOORD8;
+    stage stream float2 TexCoord9 : TEXCOORD9;
+};

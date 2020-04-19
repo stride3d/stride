@@ -1,0 +1,11 @@
+﻿!TemplateAssetFactory
+Id: 0018E28E-B77C-4A85-B9AC-2CD25252E34F
+AssetTypeName: SpriteFontAsset
+Name: "Offline rasterized"
+Scope: Asset
+Description: An offline rasterized sprite font asset in which available characters are rasterized at compile time
+Group: Font
+Order: -100
+Icon: ..\.sdtpl\SpriteFont.png
+DefaultOutputName: SpriteFont
+FactoryTypeName: OfflineRasterizedSpriteFontFactory

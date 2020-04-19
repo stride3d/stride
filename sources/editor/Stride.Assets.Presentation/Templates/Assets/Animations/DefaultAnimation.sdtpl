@@ -1,0 +1,11 @@
+﻿!TemplateAssetFactory
+Id: 24E65D4C-0207-4B62-B8F2-BAB33F44B4FA
+AssetTypeName: AnimationAsset
+Name: Animation
+Scope: Asset
+Description: An animation imported from a source file
+Group: Animation
+Order: -100
+Icon: ..\.sdtpl\Animation.png
+DefaultOutputName: Animation
+ImportSource: true

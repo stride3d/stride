@@ -1,0 +1,1968 @@
+!SceneAsset
+Id: 11913d23-3ce0-4773-88a4-227aa4d933e7
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! c4423e55-11a6-4194-9ed4-2ddbb0eb3934
+        - ref!! b96e9aa1-705b-4779-a6e0-8e56c056af7e
+        - ref!! 32bd8142-112a-4bec-975a-12ea66364621
+        - ref!! 0ce4a4d4-7909-48aa-b68e-49a3e2a153e3
+        - ref!! c0a4222a-ae01-420f-8bb5-1e82ad1cfcf3
+        - ref!! 70a0de4d-90a5-44ef-9c95-8026f69ac68b
+        - ref!! 3f24ecfd-201b-411b-b568-3c0958f2ac33
+        - ref!! cc1e0f55-98be-4a00-af18-b8686aa1d4a9
+        - ref!! f7f8d848-d627-4d14-a51a-eb92cec29b4f
+        - ref!! 71e4f1ac-aead-48d6-a9cb-515242389d25
+        - ref!! ab0e7d34-ab98-45cd-a439-6fa806fa3591
+        - ref!! bb7b85c2-d8dc-411b-8838-5099301c65bc
+        - ref!! fab8184d-3cd0-4806-9067-25daaf4757c5
+        - ref!! 2d75e8d3-68be-4a02-81a6-0b8f0a055a70
+        - ref!! 7a15f054-d098-41e5-8a13-6973cef6e2bf
+        - ref!! 2a4473b4-f454-4f4d-80e6-d9f3ca9a8f54
+        - ref!! c014f5b9-1dac-479c-bb8f-b612aa7e479f
+        - ref!! 9b1f5d3e-af6f-4735-a376-deda1b202ed3
+        - ref!! d0138b28-c425-495e-823a-6b949042872b
+        - ref!! 145805bb-4cda-4b95-8cf2-f7b6a7ec0c78
+        - ref!! 45776097-102c-4c40-a8bc-00ec94c40a5b
+        - ref!! efc0a1ba-fb3a-426c-adb3-f874e9f81594
+        - ref!! 0376d8f6-bf7a-47e8-8d5e-57595ac6e3b0
+        - ref!! 2574ca39-bdb3-4843-bc33-23437a44620d
+        - ref!! 9c48eef9-23b6-4155-99d6-ffef2239c557
+        - ref!! 7b5a0f7c-3c4f-44db-adf2-2ef92b54694e
+        - ref!! 8c23c514-ec73-454e-8933-31ea7ed51a1f
+        - ref!! 1d6a5d06-99ce-47d3-87bc-90f8f84e6f71
+        - ref!! f30fd99a-65c8-4b83-91c2-2b2ccbcfe9e3
+        - ref!! 6c716970-225c-4418-87e6-21a9a173523b
+        - ref!! 9114fa9a-8b94-4491-b43b-4d40e5cfb3f7
+        - ref!! 406bc862-9436-4559-ab37-a22ae82e5c22
+        - ref!! 18fb4791-b15a-47fe-b4a4-943e79270e38
+        - ref!! ad99506b-51cf-4d0a-b46b-d2f1c4985433
+        - ref!! dea24e7c-1d20-413f-a690-4e43b4c641e9
+        - ref!! e06f02bc-fdd7-48fd-ad9a-a10e31269e89
+        - ref!! 2eca405b-4786-4e00-8488-6bf128ad9337
+        - ref!! a4d62f88-3a51-447b-a29a-0c41f2601bfe
+        - ref!! ab60ebf1-b8dc-4c15-8b09-7438d18de7f6
+        - ref!! 141375b8-a80e-45b0-b512-9d16e511466a
+        - ref!! b5f5faaf-c45e-4254-bf29-801838276368
+        - ref!! 1b4f1cd7-35bf-4dc7-b2e2-267356ec5f60
+        - ref!! 105f84eb-46e7-41e9-9c06-e2fdba9e94e6
+        - ref!! c438b98e-26b4-460b-b53c-c1c94795ce98
+    Parts:
+        -   Folder: Objects
+            Entity:
+                Id: 0376d8f6-bf7a-47e8-8d5e-57595ac6e3b0
+                Name: TableDecorationC
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: e8ba00b4-f563-436f-aa56-5eac51076b79
+                        Position*: {X: 0.822237968, Y: 0.860635757, Z: 0.128676787}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: c69bdba5-dc91-470a-bdba-fa570af03021
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.1
+                        Friction: 0.5
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.7
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 92db225f-0e69-4345-8223-597072ba1da3
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: eaad30b5-ca83-452b-bc80-9d7ab50a94ee:TableDecorationC
+                BasePartId: 5e8e1fbe-6a65-41c7-8340-f34a8e7bce90
+                InstanceId: 4e0ca3f8-7662-43b5-8509-90ff41602f28
+        -   Entity:
+                Id: 0ce4a4d4-7909-48aa-b68e-49a3e2a153e3
+                Name: PlayerCharacter
+                Components:
+                    9479d6aa0ede2f42a44c5a1e6a6131dd: !TransformComponent
+                        Id: aad67994-de0e-422f-a44c-5a1e6a6131dd
+                        Position: {X: 0.0, Y: 1.2168225, Z: 0.6060585}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            98c67e4660c57d47a5f1e59aead8ed57: ref!! 467ec698-c560-477d-a5f1-e59aead8ed57
+                            2e45864c10a9624a8d5b288194fc0afc: ref!! 4c86452e-a910-4a62-8d5b-288194fc0afc
+                    58f58e5ac174414ea6a386f7f1bc96eb: !VRSandbox.Player.PlayerInput,VRSandbox.Game
+                        Id: 5a8ef558-74c1-4e41-a6a3-86f7f1bc96eb
+                        ControllerIndex: 0
+                        DeadZone: 0.25
+                        Camera: ref!! 2088ba78-bf4f-48e3-be7d-3f1bea581810
+        -   Folder: Room
+            Entity:
+                Id: 105f84eb-46e7-41e9-9c06-e2fdba9e94e6
+                Name: WallMenu
+                Components:
+                    946e243faf239cc4a3fbab48f287b8e5: !TransformComponent
+                        Id: c2745c07-2836-4413-904b-79b5bc35174e
+                        Position: {X: -4.9, Y: 2.5, Z: 0.0}
+                        Rotation: {X: 0.49999997, Y: 0.49999997, Z: -0.49999997, W: 0.49999997}
+                        Scale: {X: 6.0, Y: 2.5, Z: 2.0}
+                        Children:
+                            71ff7f8efcbe9de866177c02b95aad6d: ref!! de2786b5-6c9b-4dfd-93c5-0ea1119a700e
+                    389983c733c2a0a98203cab90aab377e: !ModelComponent
+                        Id: c2c64e94-9e9e-464c-a73f-1f2c5fe13b43
+                        Model: f2edea4f-0967-47b9-b763-24dd2fa81359:Models/plateA
+                        Materials: {}
+        -   Entity:
+                Id: 141375b8-a80e-45b0-b512-9d16e511466a
+                Name: UI
+                Components:
+                    cf70c07b1b435f64ace9c45074652e09: !TransformComponent
+                        Id: 7eb042ea-9eff-4d59-9621-78147cb8a822
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    61f0d88d1ad93f102edda9ec4be581b4: !UIComponent
+                        Id: fba523f2-9ca7-4f14-862e-2aaa23869f00
+                        Page: f58604f8-e151-454d-bd79-1afd0deaf08e:Page
+                        Resolution: {X: 512.0, Y: 512.0, Z: 1000.0}
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+        -   Folder: Objects
+            Entity:
+                Id: 145805bb-4cda-4b95-8cf2-f7b6a7ec0c78
+                Name: TableDecorationC
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 4d46a3d6-35b0-486d-8ec3-fa9edcb612ee
+                        Position*: {X: 0.530286849, Y: 0.854682565, Z: 0.401363969}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: 3448e046-1dc9-45b7-a491-f43a5b17acc0
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.1
+                        Friction: 0.5
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.7
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 25799faa-ab1e-427d-9ef6-1a3b727859b0
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: eaad30b5-ca83-452b-bc80-9d7ab50a94ee:TableDecorationC
+                BasePartId: 5e8e1fbe-6a65-41c7-8340-f34a8e7bce90
+                InstanceId: 2bf8b66f-716b-40e4-b4f1-7802bb9f2a18
+        -   Folder: Room
+            Entity:
+                Id: 18fb4791-b15a-47fe-b4a4-943e79270e38
+                Name: Floor
+                Components:
+                    453b9e58a22f2646ab2524bbf72c769a: !TransformComponent
+                        Id: 589e3b45-2fa2-4626-ab25-24bbf72c769a
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    21fefbaeea9fba47a1f74eac382e6f16: !ModelComponent
+                        Id: aefbfe21-9fea-47ba-a1f7-4eac382e6f16
+                        Model: 9af585fe-8e66-4902-8a3b-0ebc9edd30f8:Ground
+                        Materials: {}
+                    ee829db5db7552448fcf79182f995337: !StaticColliderComponent
+                        Id: b59d82ee-75db-4452-8fcf-79182f995337
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            8385ef48cc89cb4587a4f9b5a71ab829: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+        -   Folder: Room
+            Entity:
+                Id: 1b4f1cd7-35bf-4dc7-b2e2-267356ec5f60
+                Name: WallMenu
+                Components:
+                    946e243faf239cc4a3fbab48f287b8e5: !TransformComponent
+                        Id: e75af8ed-cb35-4a45-a8ba-7191d44e469e
+                        Position: {X: 0.0, Y: 2.5, Z: -4.9}
+                        Rotation: {X: 0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Scale: {X: 2.0, Y: 2.0, Z: 2.0}
+                        Children:
+                            71ff7f8efcbe9de866177c02b95aad6d: ref!! 1c70fd39-6213-4a99-8748-4f76afb59539
+                    389983c733c2a0a98203cab90aab377e: !ModelComponent
+                        Id: bf8f3650-0bd1-4c89-9d94-bb9ac2dd8ae9
+                        Model: f2edea4f-0967-47b9-b763-24dd2fa81359:Models/plateA
+                        Materials: {}
+        -   Folder: Objects
+            Entity:
+                Id: 1d6a5d06-99ce-47d3-87bc-90f8f84e6f71
+                Name: TableDecorationC
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 15baeb14-4d80-432b-aa0d-3cafdb65bc7b
+                        Position*: {X: 0.6685951, Y: 0.9652658, Z: 0.06226743}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: 65ca129d-a03b-4618-9bd0-c577758ec338
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.1
+                        Friction: 0.5
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.7
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 924399bc-5000-41e5-8378-1b26674f6464
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: eaad30b5-ca83-452b-bc80-9d7ab50a94ee:TableDecorationC
+                BasePartId: 5e8e1fbe-6a65-41c7-8340-f34a8e7bce90
+                InstanceId: c061e89d-e0d5-43a3-b682-2684afa1094a
+        -   Folder: Objects
+            Entity:
+                Id: 2574ca39-bdb3-4843-bc33-23437a44620d
+                Name: TableDecorationC
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: cced75d8-1ce8-487d-9996-8bc76cdeda89
+                        Position*: {X: 0.71762526, Y: 0.860635757, Z: 0.06762159}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: e38a47a1-7026-4ae3-b7f9-2641dc5f6e23
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.1
+                        Friction: 0.5
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.7
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 94141e63-2589-454a-8552-2d3a0108528c
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: eaad30b5-ca83-452b-bc80-9d7ab50a94ee:TableDecorationC
+                BasePartId: 5e8e1fbe-6a65-41c7-8340-f34a8e7bce90
+                InstanceId: 9d7d57cf-6338-417f-b9a0-8b8047bbdda8
+        -   Entity:
+                Id: 290dd249-5cda-4a3e-8d66-4e273bb29938
+                Name: UI2Texture
+                Components:
+                    49190e5b24f30d73dd84ca3d896491fa: !TransformComponent
+                        Id: 2d3a2c22-f873-4f8e-bf0d-c733077250d3
+                        Position: {X: 0.0, Y: 0.06, Z: 0.0}
+                        Rotation: {X: -0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Scale: {X: 0.3, Y: 0.72, Z: 0.9}
+                        Children: {}
+                    3f4128d41336e61e2c6424a7723268ca: !SpriteComponent
+                        Id: 2f6b0d98-fabd-4d58-a2a4-7ff071174fb4
+                        SpriteProvider: !SpriteFromTexture
+                            Texture: 9272c67d-f517-41f7-b74f-c9bb4f8ea5b8:Teleport
+                            PixelsPerUnit: 512.0
+                            Center: {X: 0.0, Y: 0.0}
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+        -   Folder: Objects
+            Entity:
+                Id: 2a4473b4-f454-4f4d-80e6-d9f3ca9a8f54
+                Name: TableDecorationB
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: c81c889f-e22d-46a6-8204-6494a7fea5a7
+                        Position*: {X: -0.483806282, Y: 0.8399476, Z: 0.06544141}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 2.0, Y: 2.0, Z: 2.0}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: 480f356f-c11c-4a2d-b655-4958fc4fda13
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.3
+                        Friction: 0.2
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.5
+                        LinearDamping: 0.1
+                        AngularDamping: 0.02
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.005
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: b642e7d7-87b5-4e23-bfef-94c04b5ec104
+                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:Models/CoinGold
+                        Materials: {}
+            Base:
+                BasePartAsset: ef7aa5d5-7490-4b4d-a2ff-e754522689a9:TableDecorationB
+                BasePartId: b1895088-3f0a-4d6d-8927-97d46d61b86f
+                InstanceId: c4fd1700-0f1d-4090-931e-0869c8b646af
+        -   Folder: Objects
+            Entity:
+                Id: 2d75e8d3-68be-4a02-81a6-0b8f0a055a70
+                Name: TableDecorationA
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 03ed47b1-7f80-4e5d-ac9e-7ea8a0b7cc3a
+                        Position*: {X: -0.3, Y: 0.8, Z: 0.125280589}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: bab6914f-9ee7-4ff2-a718-1a3895c0d4aa
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.2
+                        Friction: 0.5
+                        RollingFriction: 0.002
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.6
+                        LinearDamping: 0.0
+                        AngularDamping: 0.01
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.7, Z: 0.0}
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.2
+                                LocalOffset: {X: 0.0, Y: 0.1, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: b014770b-ba49-4704-9665-5d21423c7879
+                        Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:Models/MaterialModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 608d82d1-51a6-48d3-b698-acc303fb1dba:TableDecorationA
+                BasePartId: a254238f-5eec-45c1-80b8-379dbae2f435
+                InstanceId: ac4c0510-2c1e-4346-8f78-e408c71395a5
+        -   Folder: Room
+            Entity:
+                Id: 2eca405b-4786-4e00-8488-6bf128ad9337
+                Name: Fence
+                Components:
+                    f735b06782c0841e9ece398b94edae4c: !TransformComponent
+                        Id: 3b1627c9-8798-4234-818c-4fa2b900ad07
+                        Position: {X: 0.0, Y: 0.0, Z: 5.0}
+                        Rotation: {X: 0.707106769, Y: -6.181724E-08, Z: -6.181724E-08, W: -0.707106769}
+                        Scale: {X: 5.67, Y: 1.0, Z: 2.5}
+                        Children: {}
+                    e76c617f2cdbccf72682056151413778: !ModelComponent
+                        Id: 4ce6efb3-dea6-4608-8f2b-5b231377a896
+                        Model: 89a24148-b30e-4429-a72a-ab0f6492a5b7:Models/plateC
+                        Materials: {}
+                    6d66f124ff3da9ae4d9be218ef8a004f: !StaticColliderComponent
+                        Id: e2cbf653-dbc5-4bc8-a263-ab61f05e262f
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            257c2cb71a4d950ecdb1ea600c728cd5: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+        -   Entity:
+                Id: 32bd8142-112a-4bec-975a-12ea66364621
+                Name: Table
+                Components:
+                    1f9093a1f6781c4183a21bedd91e4f20: !TransformComponent
+                        Id: a193901f-78f6-411c-83a2-1bedd91e4f20
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e3afa0cae209e94b9318be3983822157: !ModelComponent
+                        Id: caa0afe3-09e2-4be9-9318-be3983822157
+                        Model: 2d72fb15-0e56-456e-bd30-a543a67baaf7:Models/TableC
+                        Materials: {}
+                    909fbfaf01c330499e1d6ac4413eae90: !StaticColliderComponent
+                        Id: afbf9f90-c301-4930-9e1d-6ac4413eae90
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            cf104ebd50d9ba4e8bc7694ef8c5436b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 2.0, Y: 0.1, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.745, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            5a7e8c1b9c87ee4ab194fa37890af935: !CylinderColliderShapeDesc
+                                Height: 0.745
+                                Radius: 0.03
+                                LocalOffset: {X: 0.96, Y: 0.372, Z: 0.46}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            0d74c78ae10e264cb27db9befa50c912: !CylinderColliderShapeDesc
+                                Height: 0.745
+                                Radius: 0.03
+                                LocalOffset: {X: 0.96, Y: 0.372, Z: -0.46}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            baba3e3e7263cb4ab7b76e4f3915aa68: !CylinderColliderShapeDesc
+                                Height: 0.745
+                                Radius: 0.03
+                                LocalOffset: {X: -0.96, Y: 0.372, Z: 0.46}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            aae866984518fc4d87700b898c94b98e: !CylinderColliderShapeDesc
+                                Height: 0.745
+                                Radius: 0.03
+                                LocalOffset: {X: -0.96, Y: 0.372, Z: -0.46}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+        -   Folder: null
+            Entity:
+                Id: 3f24ecfd-201b-411b-b568-3c0958f2ac33
+                Name: Lamp
+                Components:
+                    ca4ed49887d87fb261be2579c9a648ef: !TransformComponent
+                        Id: 76afd149-cb08-4551-80e9-d744996ac34c
+                        Position: {X: -2.75, Y: 3.0, Z: -2.75}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    ec6e4a984b51b36567abc645a7ee1f5e: !LightComponent
+                        Id: c7e26e18-e300-499f-8b3e-dd928660cc2b
+                        Type: !LightPoint
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Radius: 10.0
+                            Shadow:
+                                Size: Small
+                                BiasParameters: {}
+                        Intensity: 5.0
+                    022b56f7b3282d5b1b8859258ec06f96: !ModelComponent
+                        Id: 53b5c0c8-a748-4761-9783-7e67a448fa07
+                        Model: fd3d6c5b-67a4-4128-8e51-c4878bfe54f7:Lamp model
+                        IsShadowCaster: false
+                        Materials: {}
+        -   Folder: Objects
+            Entity:
+                Id: 406bc862-9436-4559-ab37-a22ae82e5c22
+                Name: TableDecorationB
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 88c1570d-8264-417e-8677-799c3cc546d1
+                        Position*: {X: 0.338241339, Y: 0.8059834, Z: 0.375967443}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 2.0, Y: 2.0, Z: 2.0}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: c733499a-6b3e-4d69-aed7-2f19bd5df082
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.3
+                        Friction: 0.2
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.5
+                        LinearDamping: 0.1
+                        AngularDamping: 0.02
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.005
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: a8c620ba-65a4-4f65-9d7e-273e7581e32d
+                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:Models/CoinGold
+                        Materials: {}
+            Base:
+                BasePartAsset: ef7aa5d5-7490-4b4d-a2ff-e754522689a9:TableDecorationB
+                BasePartId: b1895088-3f0a-4d6d-8927-97d46d61b86f
+                InstanceId: 37ccac9c-3fa7-4912-b8c1-4277de0bc122
+        -   Entity:
+                Id: 4435f841-1f2d-4571-a107-2b2d4980d48f
+                Name: UI2Texture
+                Components:
+                    49190e5b24f30d73dd84ca3d896491fa: !TransformComponent
+                        Id: 1c70fd39-6213-4a99-8748-4f76afb59539
+                        Position: {X: 0.0, Y: 0.06, Z: 0.0}
+                        Rotation: {X: -0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Scale: {X: 0.9, Y: 0.9, Z: 0.9}
+                        Children: {}
+                    3f4128d41336e61e2c6424a7723268ca: !SpriteComponent
+                        Id: 15a7c986-2826-4828-8aea-c98fccdd1708
+                        SpriteProvider: !SpriteFromTexture
+                            Texture: f9768e6e-2d83-470e-925e-8a1db9342c5d:UIRenderTexture
+                            PixelsPerUnit: 512.0
+                            Center: {X: 0.0, Y: 0.0}
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+        -   Folder: Objects
+            Entity:
+                Id: 45776097-102c-4c40-a8bc-00ec94c40a5b
+                Name: TableDecorationC
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: af5fc763-14b1-451c-a8ea-51249b00d36a
+                        Position*: {X: -0.148456812, Y: 0.868440568, Z: -0.162665173}
+                        Rotation*: {X: 0.0, Y: -0.456104457, Z: 0.0, W: 0.889926255}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: 1e7c0e54-c13f-42e5-b7ba-436007c8b301
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.1
+                        Friction: 0.5
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.7
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 1ac3aefe-ab43-4599-8a76-62d69caf7008
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: eaad30b5-ca83-452b-bc80-9d7ab50a94ee:TableDecorationC
+                BasePartId: 5e8e1fbe-6a65-41c7-8340-f34a8e7bce90
+                InstanceId: be0ce3d7-e953-47ea-9e11-785a7318f5f2
+        -   Entity:
+                Id: 46cc9a24-9515-40c7-8f9c-34f548e1d965
+                Name: Pointer
+                Components:
+                    dfff3f5ad13c229766408633e951c17c: !TransformComponent
+                        Id: 9005fb90-097a-4587-b5ae-2011cdaffbf2
+                        Position: {X: 0.0, Y: 0.0, Z: -5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Folder: Objects
+            Entity:
+                Id: 6c716970-225c-4418-87e6-21a9a173523b
+                Name: TableDecorationB
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: b3ee895f-2e5b-4dc4-b695-f325c4317d7e
+                        Position*: {X: -0.186192349, Y: 0.8059834, Z: 0.4286338}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 2.0, Y: 2.0, Z: 2.0}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: f033e645-7ded-45d6-b9dc-f28792a221b2
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.3
+                        Friction: 0.2
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.5
+                        LinearDamping: 0.1
+                        AngularDamping: 0.02
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.005
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: ee96e231-be7e-4692-bf33-bee00d126d88
+                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:Models/CoinGold
+                        Materials: {}
+            Base:
+                BasePartAsset: ef7aa5d5-7490-4b4d-a2ff-e754522689a9:TableDecorationB
+                BasePartId: b1895088-3f0a-4d6d-8927-97d46d61b86f
+                InstanceId: e6783d4c-7939-4901-8763-d1055c76799e
+        -   Entity:
+                Id: 70a0de4d-90a5-44ef-9c95-8026f69ac68b
+                Name: Lamp
+                Components:
+                    ca4ed49887d87fb261be2579c9a648ef: !TransformComponent
+                        Id: cdf2d3bf-58a3-46fa-a46a-493c52f30ff2
+                        Position: {X: 2.75, Y: 3.0, Z: -2.75}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    ec6e4a984b51b36567abc645a7ee1f5e: !LightComponent
+                        Id: e2f3b229-bf9f-46e8-898a-a229b1490707
+                        Type: !LightPoint
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Radius: 10.0
+                            Shadow:
+                                Size: Small
+                                BiasParameters: {}
+                        Intensity: 5.0
+                    f4f1e01370771e69202fda990bf75cfb: !ModelComponent
+                        Id: 14b8a007-da70-4c57-8c9a-0a335061cdf2
+                        Model: fd3d6c5b-67a4-4128-8e51-c4878bfe54f7:Lamp model
+                        IsShadowCaster: false
+                        Materials: {}
+        -   Folder: Objects
+            Entity:
+                Id: 71e4f1ac-aead-48d6-a9cb-515242389d25
+                Name: TableDecorationA
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: a2623feb-c8d1-4479-9e64-b5fe7d0d48ed
+                        Position*: {X: -0.568, Y: 0.8, Z: 0.2439946}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: a090a9c0-3cea-4945-b2f4-fe28b105d1c3
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.2
+                        Friction: 0.5
+                        RollingFriction: 0.002
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.6
+                        LinearDamping: 0.0
+                        AngularDamping: 0.01
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.7, Z: 0.0}
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.2
+                                LocalOffset: {X: 0.0, Y: 0.1, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 8a0f710b-7007-4a05-867f-93b0715df65d
+                        Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:Models/MaterialModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 608d82d1-51a6-48d3-b698-acc303fb1dba:TableDecorationA
+                BasePartId: a254238f-5eec-45c1-80b8-379dbae2f435
+                InstanceId: a8111d4a-66a3-4613-9205-01048bbb657a
+        -   Folder: Objects
+            Entity:
+                Id: 7a15f054-d098-41e5-8a13-6973cef6e2bf
+                Name: TableDecorationB
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 3e6eac33-d698-4bfb-bb69-d4203d417fe6
+                        Position*: {X: -0.479510516, Y: 0.828350365, Z: 0.0613096654}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 2.0, Y: 2.0, Z: 2.0}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: e8111d8e-aec0-40d7-9e7f-9cdb54fbaea5
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.3
+                        Friction: 0.2
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.5
+                        LinearDamping: 0.1
+                        AngularDamping: 0.02
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.005
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 2e648f10-0973-45b0-a591-cecfb624ff54
+                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:Models/CoinGold
+                        Materials: {}
+            Base:
+                BasePartAsset: ef7aa5d5-7490-4b4d-a2ff-e754522689a9:TableDecorationB
+                BasePartId: b1895088-3f0a-4d6d-8927-97d46d61b86f
+                InstanceId: 5be9520d-0e02-4010-98e3-b96cbbc0add9
+        -   Folder: Objects
+            Entity:
+                Id: 7b5a0f7c-3c4f-44db-adf2-2ef92b54694e
+                Name: TableDecorationC
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 0090ba2e-94f6-4943-8cf7-8ee4efeadfaf
+                        Position*: {X: 0.6083935, Y: 0.860635757, Z: 0.06841403}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: 56fc7a98-52ee-4f42-8969-104cbde75a0b
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.1
+                        Friction: 0.5
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.7
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 94c4d94a-dc72-4d7c-8dbc-311e5ea85191
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: eaad30b5-ca83-452b-bc80-9d7ab50a94ee:TableDecorationC
+                BasePartId: 5e8e1fbe-6a65-41c7-8340-f34a8e7bce90
+                InstanceId: 48ff5196-d7e3-4588-8f73-d9e4541ac470
+        -   Folder: Objects
+            Entity:
+                Id: 8c23c514-ec73-454e-8933-31ea7ed51a1f
+                Name: TableDecorationC
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 3f8391cd-e0b0-4998-af30-a1888369ec51
+                        Position*: {X: 0.8072982, Y: 0.9652658, Z: 0.08240347}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: 035ab627-7fb3-471e-8435-a8cbe771c724
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.1
+                        Friction: 0.5
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.7
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 780e28de-94a8-4c8e-9861-46f14f9b45e5
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: eaad30b5-ca83-452b-bc80-9d7ab50a94ee:TableDecorationC
+                BasePartId: 5e8e1fbe-6a65-41c7-8340-f34a8e7bce90
+                InstanceId: 4c864406-410b-48d5-a7e5-d29e4e5fee3a
+        -   Entity:
+                Id: 8d66f165-c8ce-480b-90d9-883de8023b6d
+                Name: Teleport arc
+                Components:
+                    044f2fb607702a3a2ddc37874fa71f83: !TransformComponent
+                        Id: e5e9fb5e-9012-4145-82e2-f2c06eb93736
+                        Position: {X: 0.0, Y: 0.0281806011, Z: -0.0114648789}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            1238ba891c72b8f79d1bd4a49c42bd01: ref!! 9005fb90-097a-4587-b5ae-2011cdaffbf2
+                    1e1d92d491f803590c652f693760d0ec: !ParticleSystemComponent
+                        Id: f3ab7339-758c-4b12-9ff5-b1ab4403452f
+                        Enabled: false
+                        Control:
+                            ResetSeconds: 5.0
+                            Control: Play
+                        Color: {R: 0.0125000477, G: 1.0, B: 0.0, A: 1.0}
+                        Speed: 1.0
+                        ParticleSystem:
+                            Settings: {}
+                            BoundingShape: null
+                            Emitters:
+                                b00a97adb90dcc35b6d04b077561802a:
+                                    MaxParticlesOverride: 50
+                                    ParticleLifetime: {X: 0.01, Y: 0.01}
+                                    SortingPolicy: ByOrder
+                                    ShapeBuilder: !ShapeBuilderRibbon
+                                        SmoothingPolicy: Fast
+                                        Segments: 3
+                                        TextureCoordinatePolicy: AsIs
+                                        TexCoordsFactor: 0.0
+                                        UVRotate:
+                                            FlipX: false
+                                            FlipY: false
+                                            UVClockwise: Degree0
+                                    Material: !ParticleMaterialComputeColor
+                                        ComputeColor: !ComputeTextureColor
+                                            FallbackValue:
+                                                Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                                            Scale: {X: 1.0, Y: 1.0}
+                                            Offset: {X: 0.0, Y: 0.0}
+                                            Swizzle: null
+                                        UVBuilder: null
+                                        ForceTexCoords: false
+                                    Spawners:
+                                        1d412a5c802225984bc5fb917b6dceb1: !SpawnerPerFrame
+                                            LoopCondition: Looping
+                                            Delay: {X: 0.0, Y: 0.0}
+                                            Duration: {X: 1.0, Y: 1.0}
+                                            SpawnCount: 50.0
+                                            Framerate: 60.0
+                                    Initializers:
+                                        57e03470097e08bbc69c9188121ccb4d: !InitialSpawnOrder
+                                            InheritPosition: true
+                                            Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                                            InheritRotation: true
+                                            Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                            InheritScale: true
+                                            Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
+                                            DisplayParticlePosition: false
+                                            DisplayParticleRotation: false
+                                            DisplayParticleScale: false
+                                            DisplayParticleScaleUniform: false
+                                        097e6ade9c064b13b35b8954f8591bc8: !InitialSizeSeed
+                                            InheritPosition: true
+                                            Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                                            InheritRotation: true
+                                            Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                            InheritScale: true
+                                            Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
+                                            SeedOffset: 0
+                                            DisplayParticlePosition: false
+                                            DisplayParticleRotation: false
+                                            DisplayParticleScale: false
+                                            DisplayParticleScaleUniform: true
+                                            RandomSize: {X: 0.01, Y: 0.01}
+                                        9892c8f663458b214fc625aceb063ae1: !InitialPositionArc
+                                            InheritPosition: true
+                                            Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                                            InheritRotation: false
+                                            Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                            InheritScale: true
+                                            Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
+                                            DisplayParticleRotation: true
+                                            DisplayParticlePosition: false
+                                            Target: ref!! 54b917fe-c2d5-43ef-892a-218f693c9cd7
+                                            DisplayParticleScaleUniform: false
+                                            DisplayParticleScale: false
+                                            FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
+                                            ArcHeight: 1.5
+                                            Sequential: true
+                                            FixedLength: 50
+                                            PositionMin: {X: 0.0, Y: 0.0, Z: 0.0}
+                                            PositionMax: {X: 0.0, Y: 0.0, Z: 0.0}
+                                            SeedOffset: 0
+                                        7233a7b7f6177f994d5fce9f7ceb0fa2: !InitialDirectionSeed
+                                            InheritPosition: true
+                                            Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                                            InheritRotation: true
+                                            Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                            InheritScale: true
+                                            Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
+                                            SeedOffset: 0
+                                            DisplayParticlePosition: false
+                                            DisplayParticleRotation: true
+                                            DisplayParticleScale: false
+                                            DisplayParticleScaleUniform: true
+                                            DirectionMin: {X: 1.0, Y: 0.0, Z: 0.0}
+                                            DirectionMax: {X: 1.0, Y: 0.0, Z: 0.0}
+                                    Updaters: {}
+                    69d5626be3c4c96d000fa99d86f0c399: !Player.TeleportController,VRSandbox.Game
+                        Id: 1ac508d8-5402-448e-b03f-8d55cbdd6cfb
+                        Player: ref!! c0a4222a-ae01-420f-8bb5-1e82ad1cfcf3
+                        Pointer: ref!! 46cc9a24-9515-40c7-8f9c-34f548e1d965
+                        Target: ref!! ab60ebf1-b8dc-4c15-8b09-7438d18de7f6
+                        Arc: ref!! f3ab7339-758c-4b12-9ff5-b1ab4403452f
+                        Constraints: {X: -4.5, Y: -4.5, Width: 9.0, Height: 9.0}
+        -   Folder: Objects
+            Entity:
+                Id: 9114fa9a-8b94-4491-b43b-4d40e5cfb3f7
+                Name: TableDecorationB
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 12c27bd6-34ef-4b6c-84da-fe731d7fd8b0
+                        Position*: {X: 0.0544910543, Y: 0.8059834, Z: 0.3674718}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 2.0, Y: 2.0, Z: 2.0}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: a9ce4433-e3bc-42b7-9eff-379d2797ddd0
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.3
+                        Friction: 0.2
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.5
+                        LinearDamping: 0.1
+                        AngularDamping: 0.02
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.005
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: efd8d2f4-4c4c-4c35-a048-5c183c069619
+                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:Models/CoinGold
+                        Materials: {}
+            Base:
+                BasePartAsset: ef7aa5d5-7490-4b4d-a2ff-e754522689a9:TableDecorationB
+                BasePartId: b1895088-3f0a-4d6d-8927-97d46d61b86f
+                InstanceId: 5383e350-dcab-4488-b51f-5e2ddda578ba
+        -   Folder: Objects
+            Entity:
+                Id: 9b1f5d3e-af6f-4735-a376-deda1b202ed3
+                Name: TableDecorationB
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 1497df48-0c4c-4efd-b093-1a3150b65454
+                        Position*: {X: -0.480655074, Y: 0.81483537, Z: 0.06493614}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 2.0, Y: 2.0, Z: 2.0}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: c28f6577-bec7-4131-bf5a-e376944ee28d
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.3
+                        Friction: 0.2
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.5
+                        LinearDamping: 0.1
+                        AngularDamping: 0.02
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.005
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 38c2226b-f0fe-4391-9340-1fa0faa82a5d
+                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:Models/CoinGold
+                        Materials: {}
+            Base:
+                BasePartAsset: ef7aa5d5-7490-4b4d-a2ff-e754522689a9:TableDecorationB
+                BasePartId: b1895088-3f0a-4d6d-8927-97d46d61b86f
+                InstanceId: b58eb072-14a6-4f99-a8c2-f66f5113e0cd
+        -   Entity:
+                Id: 9bc95926-aebc-419c-88b8-c69f982d353c
+                Name: Entity
+                Components:
+                    066f84b2482a2515972e87bc75225896: !TransformComponent
+                        Id: 25d56e2d-a75f-4f25-a357-3248321cc584
+                        Position: {X: -1.54600146E-15, Y: 0.0, Z: 0.1}
+                        Rotation: {X: -0.353553474, Y: 0.6123724, Z: -0.6123724, W: 0.353553236}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    3aec4496990b7865c5e24ca3b3d3e09b: !ModelComponent
+                        Id: 310448e3-f8d3-4a99-8005-93e010bdb67a
+                        Model: c2f8cb33-c6dc-4c89-86bf-8369da9e0e0f:Models/HandModelLeft
+                        Materials: {}
+                    a2bba0d677eeb364a50c62aec6f70ce4: !AnimationComponent
+                        Id: 14b72987-3294-4293-96a5-c23408a38677
+                        Animations:
+                            bcf7e5a041247fa30e195038fee344ce~Grab: 50665a42-a9d7-46ef-ae7b-1d59d0dabe06:Animations/Grab_L
+                    2353863f5ffa0172f5f0f4fb1a249660: !RigidbodyComponent
+                        Id: 4f886fb3-9847-4d2c-aa99-47bb991a8314
+                        CollisionGroup: CharacterFilter
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 3.445
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            94c033572b27dce3473c2a4f87be89d3: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 0.1, Z: 0.03}
+                                LocalOffset: {X: 0.0, Y: 0.05, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            792680a4b4aa1ac0429543c950c2ddf4: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 0.08, Z: 0.03}
+                                LocalOffset: {X: 0.0, Y: 0.14, Z: 0.01}
+                                LocalRotation: {X: 0.258819044, Y: 0.0, Z: 0.0, W: 0.9659258}
+        -   Folder: Objects
+            Entity:
+                Id: 9c48eef9-23b6-4155-99d6-ffef2239c557
+                Name: TableDecorationC
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 87ccb660-457a-4a5b-9f91-7ff75413d9d5
+                        Position*: {X: 0.821809769, Y: 0.860635757, Z: 0.0228151456}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: f4e87551-c477-46b5-a54a-f6bf34055479
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.1
+                        Friction: 0.5
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.7
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 5e37d3d1-12e4-4619-ab4a-bd64fb37aefe
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: eaad30b5-ca83-452b-bc80-9d7ab50a94ee:TableDecorationC
+                BasePartId: 5e8e1fbe-6a65-41c7-8340-f34a8e7bce90
+                InstanceId: 59b3e10b-a4f2-48be-8eaf-3da3709e1de4
+        -   Entity:
+                Id: 9e201786-5094-46c0-980c-78d96a017626
+                Name: UI2Texture
+                Components:
+                    49190e5b24f30d73dd84ca3d896491fa: !TransformComponent
+                        Id: 25dffa90-af2e-45ef-82ad-2971cf67296e
+                        Position: {X: 0.0, Y: 0.06, Z: 0.0}
+                        Rotation: {X: -0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Scale: {X: 0.9, Y: 0.9, Z: 0.9}
+                        Children: {}
+                    3f4128d41336e61e2c6424a7723268ca: !SpriteComponent
+                        Id: 45d3f687-ff44-4155-aaa3-a9baf0099485
+                        SpriteProvider: !SpriteFromTexture
+                            Texture: f9768e6e-2d83-470e-925e-8a1db9342c5d:UIRenderTexture
+                            PixelsPerUnit: 512.0
+                            Center: {X: 0.0, Y: 0.0}
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+        -   Entity:
+                Id: a4d62f88-3a51-447b-a29a-0c41f2601bfe
+                Name: standCurved
+                Components:
+                    39e1ca886163209f37f650cf8e055621: !TransformComponent
+                        Id: bfd031cb-01d3-4424-8429-84dad2ded275
+                        Position: {X: 3.5, Y: 0.0, Z: -3.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    dfd26debf55383ea21a341ba286ccef8: !ModelComponent
+                        Id: 362a18cd-29a5-455a-b114-b5108a68f485
+                        Model: 5c759e03-f13d-4962-b8f2-4ff82e154629:Models/standCurved
+                        Materials: {}
+                    9fd5f1c7d72139a583a596cd8c092608: !StaticColliderComponent
+                        Id: 4d405784-5371-4788-a666-f0551c5452f5
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            7efaf14bf413ac9896886a4bbd592906: !ColliderShapeAssetDesc
+                                Shape: 7d081988-3699-4ccc-8bc2-c31b37b172d4:ColliderHull
+        -   Folder: Objects
+            Entity:
+                Id: ab0e7d34-ab98-45cd-a439-6fa806fa3591
+                Name: TableDecorationA
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: dc8048b4-2b88-4f9d-8e3a-13e5fbbefa2f
+                        Position*: {X: 0.784871161, Y: 0.8, Z: 0.387828857}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: 4ab9ca05-6c99-46a3-bd54-dbc995f3feb2
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.2
+                        Friction: 0.5
+                        RollingFriction: 0.002
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.6
+                        LinearDamping: 0.0
+                        AngularDamping: 0.01
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.7, Z: 0.0}
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.2
+                                LocalOffset: {X: 0.0, Y: 0.1, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: b6e1b38d-e758-4b2d-80ec-52382e29327b
+                        Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:Models/MaterialModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 608d82d1-51a6-48d3-b698-acc303fb1dba:TableDecorationA
+                BasePartId: a254238f-5eec-45c1-80b8-379dbae2f435
+                InstanceId: 0a1a5657-3db3-4736-beb5-7e6e81b544e6
+        -   Entity:
+                Id: ab60ebf1-b8dc-4c15-8b09-7438d18de7f6
+                Name: Teleport target
+                Components:
+                    f0c8949bbcdae93773ef6b897efc90bc: !TransformComponent
+                        Id: 54b917fe-c2d5-43ef-892a-218f693c9cd7
+                        Position: {X: 0.0, Y: 0.1, Z: 0.606}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f705b042fe742acc8c9457e1576277e0: !ModelComponent
+                        Id: 82e06f33-3d08-49bf-ae42-1acbfacfd9e3
+                        Enabled: false
+                        Model: 6e183d09-6745-45d1-980e-dcae98b9b671:Torus
+                        Materials: {}
+        -   Folder: Room
+            Entity:
+                Id: ad99506b-51cf-4d0a-b46b-d2f1c4985433
+                Name: Left wall
+                Components:
+                    453b9e58a22f2646ab2524bbf72c769a: !TransformComponent
+                        Id: 001c7fb4-4eb1-4d03-911b-032b37a50c3c
+                        Position: {X: -5.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: -0.707106769, W: 0.707106769}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    21fefbaeea9fba47a1f74eac382e6f16: !ModelComponent
+                        Id: 220b7725-ae06-4dd2-bbef-04e91ebe395d
+                        Model: 9af585fe-8e66-4902-8a3b-0ebc9edd30f8:Ground
+                        Materials: {}
+                    ee829db5db7552448fcf79182f995337: !StaticColliderComponent
+                        Id: cf07cc2d-1a46-4039-965d-6f88c89b6bbf
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            8385ef48cc89cb4587a4f9b5a71ab829: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+        -   Folder: Objects
+            Entity:
+                Id: b5f5faaf-c45e-4254-bf29-801838276368
+                Name: PortableMenu
+                Components:
+                    946e243faf239cc4a3fbab48f287b8e5: !TransformComponent
+                        Id: a68bd422-5a76-4c1d-8057-0425c4fb2bf9
+                        Position: {X: -0.689536, Y: 0.8446101, Z: -0.101164192}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.25, Y: 0.25, Z: 0.25}
+                        Children:
+                            71ff7f8efcbe9de866177c02b95aad6d: ref!! 25dffa90-af2e-45ef-82ad-2971cf67296e
+                    389983c733c2a0a98203cab90aab377e: !ModelComponent
+                        Id: 332c4f11-9a86-43eb-b9c2-4d39e8fb7e3a
+                        Model: f2edea4f-0967-47b9-b763-24dd2fa81359:Models/plateA
+                        Materials: {}
+                    63bc2d5b0b0fccb8dceb2aa582f42c00: !RigidbodyComponent
+                        Id: 5fabc53c-29e8-45b7-b333-5bb2c87f0f6d
+                        CollisionGroup: CustomFilter1
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            44a56d5a5150b7428dae8c69cb453ddd: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 0.08, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.02, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+        -   Entity:
+                Id: b96e9aa1-705b-4779-a6e0-8e56c056af7e
+                Name: Skybox
+                Components:
+                    313d9a026cafb546a26af3e2b73b72f9: !TransformComponent
+                        Id: 029a3d31-af6c-46b5-a26a-f3e2b73b72f9
+                        Position: {X: 0.0, Y: 20.0, Z: -2.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    00000000000000000000000000000000: !BackgroundComponent
+                        Id: 7e7fd412-49d2-4f00-8ca1-c1ec66f0f0b6
+                        Texture: 4665d5a3-268f-41af-8f4a-8614949f1257:Skybox Texture
+                        Intensity: 3.0
+        -   Folder: Objects
+            Entity:
+                Id: bb7b85c2-d8dc-411b-8838-5099301c65bc
+                Name: TableDecorationA
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 4ab98266-b235-495c-b07b-c6adacda1f16
+                        Position*: {X: -0.785, Y: 0.8, Z: 0.387828857}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: a4bbe7d7-15ce-4a4c-b6fe-db9727445caf
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.2
+                        Friction: 0.5
+                        RollingFriction: 0.002
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.6
+                        LinearDamping: 0.0
+                        AngularDamping: 0.01
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.7, Z: 0.0}
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.2
+                                LocalOffset: {X: 0.0, Y: 0.1, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 3a805c3d-7bea-4c5d-9a58-6db3d6629612
+                        Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:Models/MaterialModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 608d82d1-51a6-48d3-b698-acc303fb1dba:TableDecorationA
+                BasePartId: a254238f-5eec-45c1-80b8-379dbae2f435
+                InstanceId: 81eb086e-7f7d-47c0-b6e1-d7712f9e819b
+        -   Entity:
+                Id: bbfc5c3f-efeb-473b-823c-ffff0977cfc4
+                Name: LeftHand
+                Components:
+                    98c67e4660c57d47a5f1e59aead8ed57: !TransformComponent
+                        Id: 467ec698-c560-477d-a5f1-e59aead8ed57
+                        Position: {X: -0.2, Y: -0.3, Z: -0.35}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            548641ae170ef0f66641061e49fd9a2a: ref!! 25d56e2d-a75f-4f25-a357-3248321cc584
+                    9de196174d1a9f4aafab0b1dfdbb823d: !VRSandbox.Player.HandController,VRSandbox.Game
+                        Id: 1796e19d-1a4d-4a9f-afab-0b1dfdbb823d
+                        Head: ref!! c0a4222a-ae01-420f-8bb5-1e82ad1cfcf3
+                        MaxMoveSpeed: 1.0
+                        Hand: Left
+                    278895dba1e0e14f8d5edaa319e6a355: !RigidbodyComponent
+                        Id: db958827-e0a1-4fe1-8d5e-daa319e6a355
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            667fe67841c1f84d9d879b99972fd80e: !SphereColliderShapeDesc
+                                Is2D: false
+                                Radius: 0.02
+                                LocalOffset: {X: 0.05, Y: 0.0, Z: -0.08}
+        -   Folder: Objects
+            Entity:
+                Id: c014f5b9-1dac-479c-bb8f-b612aa7e479f
+                Name: TableDecorationB
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 20b3823e-b1a8-480e-8714-525967589751
+                        Position*: {X: -0.403491735, Y: 0.81483537, Z: 0.358487427}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 2.0, Y: 2.0, Z: 2.0}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: 86cbd1d1-20d4-4277-9e78-aef6ce930622
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.3
+                        Friction: 0.2
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.5
+                        LinearDamping: 0.1
+                        AngularDamping: 0.02
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.005
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 03cb65c7-6638-4673-a382-690e764f12da
+                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:Models/CoinGold
+                        Materials: {}
+            Base:
+                BasePartAsset: ef7aa5d5-7490-4b4d-a2ff-e754522689a9:TableDecorationB
+                BasePartId: b1895088-3f0a-4d6d-8927-97d46d61b86f
+                InstanceId: 8a8d91c6-88bd-4ab0-9540-de907f449859
+        -   Entity:
+                Id: c0a4222a-ae01-420f-8bb5-1e82ad1cfcf3
+                Name: Camera
+                Components:
+                    2af1ddfb0827624cbff09bdf62d43298: !TransformComponent
+                        Id: fbddf12a-2708-4c62-bff0-9bdf62d43298
+                        Position: {X: 5.699039E-09, Y: 1.6, Z: 0.6060585}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    78ba88204fbfe348be7d3f1bea581810: !CameraComponent
+                        Id: 2088ba78-bf4f-48e3-be7d-3f1bea581810
+                        Name: null
+                        Projection: Perspective
+                        Slot: f70c25f8-3ab5-4afd-a6da-3f48277293b7
+        -   Entity:
+                Id: c24ceacc-75d8-4668-ace4-ad5999dd4c96
+                Name: Entity
+                Components:
+                    f742f68263c3a3d188575793fe8b7e81: !TransformComponent
+                        Id: 34a38895-019c-45ba-95ce-ad6591dbb570
+                        Position: {X: 0.0, Y: 0.0, Z: 0.1}
+                        Rotation: {X: -0.353553236, Y: -0.6123724, Z: 0.6123724, W: 0.353553474}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    67ff6f947b9e388019bdd2af859939a3: !ModelComponent
+                        Id: 5009b9f5-b09c-497c-adef-202b2fe31b28
+                        Model: 15618002-dbfc-46ba-8be9-edacd2146a9d:Models/HandModelRight
+                        Materials: {}
+                    f56dbda1461cd6861d6a84267ff44ccb: !AnimationComponent
+                        Id: f6375732-4218-490f-917f-1b78776d12fa
+                        Animations:
+                            b2c017c5bedab7cb305bd775da58d480~Grab: ca81cac9-4c73-4489-a045-1a792b1ad2cd:Animations/Grab_R
+                    614334a9c99f238912f32f1158767067: !RigidbodyComponent
+                        Id: 24915d35-6a7e-4a99-917c-39cad079177e
+                        CollisionGroup: CharacterFilter
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 3.445
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            60f676c039b4fe70f5e8a81529b2e908: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 0.1, Z: 0.03}
+                                LocalOffset: {X: 0.0, Y: 0.05, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            3fe3a5cf4af37dc2d29929a61c2c445a: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 0.08, Z: 0.03}
+                                LocalOffset: {X: 0.0, Y: 0.14, Z: 0.01}
+                                LocalRotation: {X: 0.258819044, Y: 0.0, Z: 0.0, W: 0.9659258}
+        -   Folder: Room
+            Entity:
+                Id: c438b98e-26b4-460b-b53c-c1c94795ce98
+                Name: WallMenu
+                Components:
+                    946e243faf239cc4a3fbab48f287b8e5: !TransformComponent
+                        Id: ba314280-6845-4eaa-9178-e82bd7147b21
+                        Position: {X: 4.9, Y: 2.5, Z: 0.0}
+                        Rotation: {X: 0.4998273, Y: -0.5001726, Z: 0.4998273, W: 0.5001726}
+                        Scale: {X: 6.0, Y: 2.5, Z: 2.0}
+                        Children:
+                            71ff7f8efcbe9de866177c02b95aad6d: ref!! 2d3a2c22-f873-4f8e-bf0d-c733077250d3
+                    389983c733c2a0a98203cab90aab377e: !ModelComponent
+                        Id: 2531cf46-4eae-4d29-ac49-479c197f430a
+                        Model: f2edea4f-0967-47b9-b763-24dd2fa81359:Models/plateA
+                        Materials: {}
+        -   Entity:
+                Id: c4423e55-11a6-4194-9ed4-2ddbb0eb3934
+                Name: Directional light
+                Components:
+                    3cc7a287f3e46d449ef24e0a98f68f7e: !TransformComponent
+                        Id: 87a2c73c-e4f3-446d-9ef2-4e0a98f68f7e
+                        Position: {X: 0.0, Y: 5.0, Z: 0.0}
+                        Rotation: {X: -0.83499527, Y: 0.2547446, Z: 0.0457438156, W: 0.485587955}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    4daf73dc1f7cb844aae9ccf2921cd1f6: !LightComponent
+                        Id: dc73af4d-7c1f-44b8-aae9-ccf2921cd1f6
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter5x5
+                                Size: XLarge
+                                DepthRange:
+                                    IsAutomatic: false
+                                    ManualMaxDistance: 20.0
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters:
+                                    DepthBias: 0.001
+                        Intensity: 1.5
+        -   Folder: Objects
+            Entity:
+                Id: cc1e0f55-98be-4a00-af18-b8686aa1d4a9
+                Name: TableDecorationA
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 2ae891a8-672e-43c0-8fef-6d73ca489a1b
+                        Position*: {X: 0.0, Y: 0.8, Z: 0.18918173}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: 3b43da86-208d-44ce-a2d3-0a0dd0149456
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.2
+                        Friction: 0.5
+                        RollingFriction: 0.002
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.6
+                        LinearDamping: 0.0
+                        AngularDamping: 0.01
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.7, Z: 0.0}
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.2
+                                LocalOffset: {X: 0.0, Y: 0.1, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 5cdcd441-6b13-4dbc-8390-5c300a3847bc
+                        Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:Models/MaterialModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 608d82d1-51a6-48d3-b698-acc303fb1dba:TableDecorationA
+                BasePartId: a254238f-5eec-45c1-80b8-379dbae2f435
+                InstanceId: e73e9d8f-ae70-4d6e-839d-fe08deed91b6
+        -   Folder: Objects
+            Entity:
+                Id: d0138b28-c425-495e-823a-6b949042872b
+                Name: TableDecorationB
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: baf7b36b-2226-421a-8a15-478bf985c87a
+                        Position*: {X: -0.48143816, Y: 0.8527486, Z: 0.06861983}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 2.0, Y: 2.0, Z: 2.0}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: a97a00d8-47d9-42d7-aab8-9335ef4808ec
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.3
+                        Friction: 0.2
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.5
+                        LinearDamping: 0.1
+                        AngularDamping: 0.02
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.005
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 6e0c7f37-214f-45ba-a076-fbbe61c50d37
+                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:Models/CoinGold
+                        Materials: {}
+            Base:
+                BasePartAsset: ef7aa5d5-7490-4b4d-a2ff-e754522689a9:TableDecorationB
+                BasePartId: b1895088-3f0a-4d6d-8927-97d46d61b86f
+                InstanceId: 160163fe-d462-4bff-9541-febe88ba68db
+        -   Entity:
+                Id: d07b69ab-bbaa-4500-8592-1cb7dc041c96
+                Name: RightHand
+                Components:
+                    2e45864c10a9624a8d5b288194fc0afc: !TransformComponent
+                        Id: 4c86452e-a910-4a62-8d5b-288194fc0afc
+                        Position: {X: 0.2, Y: -0.3, Z: -0.35}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            a933ef21b221dc4049a3ff38657d1a7a: ref!! 34a38895-019c-45ba-95ce-ad6591dbb570
+                            3e4f69d6ffdf021ff35c0ef3f7f95fbc: ref!! e5e9fb5e-9012-4145-82e2-f2c06eb93736
+                    e0bf39cf089a694b8c7d653b465bab62: !VRSandbox.Player.HandController,VRSandbox.Game
+                        Id: cf39bfe0-9a08-4b69-8c7d-653b465bab62
+                        Head: ref!! c0a4222a-ae01-420f-8bb5-1e82ad1cfcf3
+                        MaxMoveSpeed: 1.0
+                        Hand: Right
+                    e34c5dff8b32094894e366b1f1596e31: !RigidbodyComponent
+                        Id: ff5d4ce3-328b-4809-94e3-66b1f1596e31
+                        CollisionGroup: CharacterFilter
+                        CanCollideWith: CustomFilter1
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            210c95318f936d4299948bf2cd438643: !SphereColliderShapeDesc
+                                Is2D: false
+                                Radius: 0.02
+                                LocalOffset: {X: -0.05, Y: 0.0, Z: -0.08}
+        -   Entity:
+                Id: d7063855-8ab9-46ac-9e79-ae2bdd6b53ad
+                Name: UI2Texture
+                Components:
+                    49190e5b24f30d73dd84ca3d896491fa: !TransformComponent
+                        Id: de2786b5-6c9b-4dfd-93c5-0ea1119a700e
+                        Position: {X: 0.0, Y: 0.06, Z: 0.0}
+                        Rotation: {X: -0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Scale: {X: 0.3, Y: 0.72, Z: 0.9}
+                        Children: {}
+                    3f4128d41336e61e2c6424a7723268ca: !SpriteComponent
+                        Id: 2bc94194-d195-4886-bb2f-0cd23d595a21
+                        SpriteProvider: !SpriteFromTexture
+                            Texture: 9272c67d-f517-41f7-b74f-c9bb4f8ea5b8:Teleport
+                            PixelsPerUnit: 512.0
+                            Center: {X: 0.0, Y: 0.0}
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+        -   Folder: Room
+            Entity:
+                Id: dea24e7c-1d20-413f-a690-4e43b4c641e9
+                Name: Front wall
+                Components:
+                    453b9e58a22f2646ab2524bbf72c769a: !TransformComponent
+                        Id: fb2fb520-fc3d-4908-9f87-9b02934f4d33
+                        Position: {X: 0.0, Y: 0.0, Z: -5.0}
+                        Rotation: {X: 0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    21fefbaeea9fba47a1f74eac382e6f16: !ModelComponent
+                        Id: 875a1307-7faf-4cb9-a05d-571896c22637
+                        Model: 9af585fe-8e66-4902-8a3b-0ebc9edd30f8:Ground
+                        Materials: {}
+                    ee829db5db7552448fcf79182f995337: !StaticColliderComponent
+                        Id: bf9bd866-40dc-4c11-ace3-a687b75f66cb
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            8385ef48cc89cb4587a4f9b5a71ab829: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+        -   Folder: Room
+            Entity:
+                Id: e06f02bc-fdd7-48fd-ad9a-a10e31269e89
+                Name: Right wall
+                Components:
+                    453b9e58a22f2646ab2524bbf72c769a: !TransformComponent
+                        Id: 0825e162-8407-4669-9833-d5933b0dfe44
+                        Position: {X: 5.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    21fefbaeea9fba47a1f74eac382e6f16: !ModelComponent
+                        Id: 70ad78fb-6dc8-4c39-883c-606535628153
+                        Model: 9af585fe-8e66-4902-8a3b-0ebc9edd30f8:Ground
+                        Materials: {}
+                    ee829db5db7552448fcf79182f995337: !StaticColliderComponent
+                        Id: a0792578-3589-420d-b8fa-684a938dc839
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            8385ef48cc89cb4587a4f9b5a71ab829: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+        -   Folder: Objects
+            Entity:
+                Id: efc0a1ba-fb3a-426c-adb3-f874e9f81594
+                Name: TableDecorationC
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 82f991ed-7d30-4329-8085-0a8f406bb9df
+                        Position*: {X: 0.02666539, Y: 0.868440568, Z: 0.00362667441}
+                        Rotation*: {X: 0.0, Y: -0.456104457, Z: 0.0, W: 0.889926255}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: d9e5b816-09e6-43c3-b570-5ea14b650c49
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.1
+                        Friction: 0.5
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.7
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 5c328ae3-0921-48a4-bf7c-06044a923d03
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: eaad30b5-ca83-452b-bc80-9d7ab50a94ee:TableDecorationC
+                BasePartId: 5e8e1fbe-6a65-41c7-8340-f34a8e7bce90
+                InstanceId: da1dad10-f84c-4525-a9da-e35f3ae018be
+        -   Folder: Objects
+            Entity:
+                Id: f30fd99a-65c8-4b83-91c2-2b2ccbcfe9e3
+                Name: TableDecorationC
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: f3efc9a1-2cff-43c0-812f-fe90fb4b8072
+                        Position*: {X: 0.747653663, Y: 1.07223392, Z: 0.05591926}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: 69bf0848-8df9-4fba-860e-df6553c8ae9a
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.1
+                        Friction: 0.5
+                        RollingFriction: 0.001
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.7
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 617b0133-055d-4460-85e9-7cdbb557e4ee
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: eaad30b5-ca83-452b-bc80-9d7ab50a94ee:TableDecorationC
+                BasePartId: 5e8e1fbe-6a65-41c7-8340-f34a8e7bce90
+                InstanceId: 496e3941-7ce1-4feb-973f-1a9f5cc95475
+        -   Folder: Objects
+            Entity:
+                Id: f7f8d848-d627-4d14-a51a-eb92cec29b4f
+                Name: TableDecorationA
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 661fc965-f2d0-44f7-ab85-f2921f894c7d
+                        Position*: {X: 0.5679056, Y: 0.8, Z: 0.2439946}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: 14910be5-57e3-4b73-8128-3f9ba39f2f63
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.2
+                        Friction: 0.5
+                        RollingFriction: 0.002
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.6
+                        LinearDamping: 0.0
+                        AngularDamping: 0.01
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.7, Z: 0.0}
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.2
+                                LocalOffset: {X: 0.0, Y: 0.1, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: e1acec95-2f1d-4cd6-9c37-afd6ccaeb27f
+                        Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:Models/MaterialModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 608d82d1-51a6-48d3-b698-acc303fb1dba:TableDecorationA
+                BasePartId: a254238f-5eec-45c1-80b8-379dbae2f435
+                InstanceId: b82518fe-02bd-474f-8a3e-42eb07805c21
+        -   Folder: Objects
+            Entity:
+                Id: fab8184d-3cd0-4806-9067-25daaf4757c5
+                Name: TableDecorationA
+                Components:
+                    b147ed03807f5d4eac9e7ea8a0b7cc3a: !TransformComponent
+                        Id: 80e7619c-d81e-40bd-bb48-15cdb1ad0d0d
+                        Position*: {X: 0.3, Y: 0.8, Z: 0.125280589}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 0.1, Z: 0.1}
+                        Children: {}
+                    4f91b6bae79ef24fa7181a3895c0d4aa: !RigidbodyComponent
+                        Id: 6e298aa9-5d32-4ba1-8842-5f2573d5d066
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter, SensorTrigger, CharacterFilter, CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.2
+                        Friction: 0.5
+                        RollingFriction: 0.002
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 0.6
+                        LinearDamping: 0.0
+                        AngularDamping: 0.01
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 10.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            6a971c7fbce47641a176330eba95a4f5: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.7, Z: 0.0}
+                            7842e82d8765324aa694629e18bfaf07: !CylinderColliderShapeDesc
+                                Height: 0.2
+                                LocalOffset: {X: 0.0, Y: 0.1, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    0b7714b049ba044796655d21423c7879: !ModelComponent
+                        Id: 10f05698-cd47-4074-9b47-e95d0ae9148b
+                        Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:Models/MaterialModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 608d82d1-51a6-48d3-b698-acc303fb1dba:TableDecorationA
+                BasePartId: a254238f-5eec-45c1-80b8-379dbae2f435
+                InstanceId: 6c154365-c69f-4392-89ee-931558da0444

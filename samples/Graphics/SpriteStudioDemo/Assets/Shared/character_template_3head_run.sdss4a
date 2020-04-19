@@ -1,0 +1,6 @@
+!SpriteStudioAnimationAsset
+Id: 0450fe8b-c834-4ab2-856b-19704944755c
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/character_template_3head.ssae
+AnimationName: run

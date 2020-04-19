@@ -1,0 +1,7 @@
+!Texture
+Id: 7962709a-db22-416d-9057-183bdffb5c41
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../Resources/layer_mask_2.png
+IsCompressed: false
+Type: !GrayscaleTextureType {}

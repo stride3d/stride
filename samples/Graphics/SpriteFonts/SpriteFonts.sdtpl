@@ -1,0 +1,12 @@
+!TemplateSample
+Id: 1EEB50EC-1AA7-4D1F-9DDD-E5E12404B001
+Name: "Sample: sprite fonts"
+Scope: Session
+Description: Demonstrates how to use sprite fonts
+FullDescription: This sample demonstrates properties of dynamic and static sprite fonts, and how to draw, rotate, scale, and align text using the SpriteBatch class.
+Group: Samples/Graphics
+Icon: .sdtpl/Icon.png
+DefaultOutputName: SpriteFonts
+Screenshots:
+    - .sdtpl/screenshot1_small.jpg
+    - .sdtpl/screenshot2_small.jpg

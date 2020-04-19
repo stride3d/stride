@@ -1,0 +1,14 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader SpriteEffect : SpriteBase
+{
+    // Color used to tint the sprite
+    [Color]
+    stage float4 Color = float4(1,1,1,1);
+
+    // Shading of the sprite
+    stage override float4 Shading()
+    {
+        return base.Shading() * Color;
+    }
+};

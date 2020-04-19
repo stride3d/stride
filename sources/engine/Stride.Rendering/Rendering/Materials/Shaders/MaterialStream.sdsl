@@ -1,0 +1,22 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    shader MaterialStream : IStreamInitializer
+    {
+        /// <summary>
+        /// The blending applied between the current and previous material attributes
+        /// </summary>
+        stage stream float matBlend;
+    
+        override void ResetStream()
+        {
+            base.ResetStream();
+
+            // Reset all values for material stream to avoid pulling from a different stage (VS...etc.)
+            // TODO: It might be interesting to support pulling from VS, but this should be done from the IMaterialSurface and dedicated ComputerColors
+            streams.matBlend = 0.0f;
+        }
+    };
+}
+

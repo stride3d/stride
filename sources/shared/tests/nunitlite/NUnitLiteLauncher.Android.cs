@@ -34,16 +34,16 @@ using Android.OS;
 using Java.IO;
 using NUnit.Framework.Api;
 using NUnit.Framework.Internal;
-using Xenko.Core;
-using Xenko.Core.Diagnostics;
-using Xenko.Engine.Network;
-using Xenko.Graphics.Regression;
+using Stride.Core;
+using Stride.Core.Diagnostics;
+using Stride.Engine.Network;
+using Stride.Graphics.Regression;
 
 using Console = System.Console;
 using File = System.IO.File;
 using StringWriter = System.IO.StringWriter;
-using TextUI = Xenko.Graphics.Regression.TextUI;
-using Xenko;
+using TextUI = Stride.Graphics.Regression.TextUI;
+using Stride;
 using static System.Int32;
 
 namespace NUnitLite.Tests
@@ -106,14 +106,14 @@ namespace NUnitLite.Tests
             if (PlatformAndroid.Context == null)
                 PlatformAndroid.Context = this;
 
-            var xenkoVersion = Intent.GetStringExtra(TestRunner.XenkoVersion);
-            if (xenkoVersion == null)
+            var strideVersion = Intent.GetStringExtra(TestRunner.StrideVersion);
+            if (strideVersion == null)
             {
                 // Connect to image server in the background
                 Task.Run(() => ConnectToImageServer());
 
                 // No explicit intent, switch to UI activity
-                StartActivity(typeof(XenkoTestSuiteActivity));
+                StartActivity(typeof(StrideTestSuiteActivity));
                 return;
             }
 
@@ -126,7 +126,7 @@ namespace NUnitLite.Tests
             // Connect during startup, so that first test timing is not affected by initial connection
             try
             {
-                var imageServerSocket = RouterClient.RequestServer($"/redirect/{ImageTester.XenkoImageServerHost}/{ImageTester.XenkoImageServerPort}").Result;
+                var imageServerSocket = RouterClient.RequestServer($"/redirect/{ImageTester.StrideImageServerHost}/{ImageTester.StrideImageServerPort}").Result;
                 ImageTester.Connect(imageServerSocket);
             }
             catch (Exception e)
@@ -149,14 +149,14 @@ namespace NUnitLite.Tests
                 }
             };
 
-            var xenkoVersion = Intent.GetStringExtra(TestRunner.XenkoVersion);
-            var buildNumber = Parse(Intent.GetStringExtra(TestRunner.XenkoBuildNumber) ?? "-1");
-            var branchName = Intent.GetStringExtra(TestRunner.XenkoBranchName) ?? "";
+            var strideVersion = Intent.GetStringExtra(TestRunner.StrideVersion);
+            var buildNumber = Parse(Intent.GetStringExtra(TestRunner.StrideBuildNumber) ?? "-1");
+            var branchName = Intent.GetStringExtra(TestRunner.StrideBranchName) ?? "";
 
             // Remove extra (if activity is recreated)
-            Intent.RemoveExtra(TestRunner.XenkoVersion);
-            Intent.RemoveExtra(TestRunner.XenkoBuildNumber);
-            Intent.RemoveExtra(TestRunner.XenkoBranchName);
+            Intent.RemoveExtra(TestRunner.StrideVersion);
+            Intent.RemoveExtra(TestRunner.StrideBuildNumber);
+            Intent.RemoveExtra(TestRunner.StrideBranchName);
 
             Logger.Info(@"*******************************************************************************************************************************");
             Logger.Info(@"date: " + DateTime.Now);
@@ -165,7 +165,7 @@ namespace NUnitLite.Tests
             // Connect to server right away to let it know we're alive
             //var client = Connect(serverAddresses, serverPort);
 
-            var url = "/task/Xenko.TestRunner.exe";
+            var url = "/task/Stride.TestRunner.exe";
 
             socketContext = RouterClient.RequestServer(url).Result;
             socketBinaryWriter = new BinaryWriter(socketContext.WriteStream);
@@ -269,7 +269,7 @@ namespace NUnitLite.Tests
     }
 
     [Activity]
-    public class XenkoTestSuiteActivity : RunnerActivity
+    public class StrideTestSuiteActivity : RunnerActivity
     {
         protected override void OnCreate(Bundle bundle)
         {

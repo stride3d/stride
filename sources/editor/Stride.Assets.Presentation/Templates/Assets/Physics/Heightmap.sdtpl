@@ -1,0 +1,12 @@
+!TemplateAssetFactory
+Id: 127EC64F-6E15-4964-98F4-DB735B39AE09
+AssetTypeName: HeightmapAsset
+Name: Heightmap
+Scope: Asset
+Description: A heightmap for heightfield
+Group: Physics
+Order: 100
+Icon: ..\.sdtpl\TextureGray.png
+DefaultOutputName: Heightmap
+FactoryTypeName: HeightmapFactory
+ImportSource: true

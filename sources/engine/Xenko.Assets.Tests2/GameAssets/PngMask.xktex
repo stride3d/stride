@@ -1,7 +1,0 @@
-!Texture
-Id: 231c5969-26ee-4a8c-9d29-6146ee723740
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/SmallPngMask.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

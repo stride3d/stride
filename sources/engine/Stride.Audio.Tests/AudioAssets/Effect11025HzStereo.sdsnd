@@ -1,0 +1,7 @@
+!Sound
+Id: 655e3113-9f85-4989-85e3-03c9755f743c
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/audio/parley11025HzStereo.wav
+StreamFromDisk: false
+Spatialized: true

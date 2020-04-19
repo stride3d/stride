@@ -1,0 +1,14 @@
+!Model
+Id: af061758-ec83-438a-a265-837af8b24dca
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/Models/StrideCoin.fbx
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    580b7cbe828207e8828207e8828207e8:
+        Name: Coin
+        MaterialInstance:
+            Material: 3a68d952-b795-4ef1-b3b3-7df9f7275e8a:Materials/coinC
+Skeleton: null
+~SourceHashes:
+    2df10065a97a2c15dbc93d64aece731d~../../Resources/Models/StrideCoin.fbx: f00d518ee22cd1edef712f91c53faceb

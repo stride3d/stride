@@ -1,7 +1,0 @@
-!Texture
-Id: 9272c67d-f517-41f7-b74f-c9bb4f8ea5b8
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../Resources/Teleport.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

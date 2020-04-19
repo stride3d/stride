@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: 1FA35DDF-9818-49B9-95E3-0A684151E359
+AssetTypeName: ColliderShapeAsset
+Name: Infinite plane
+Scope: Asset
+Description: A collider covering an infinite plane
+Group: Physics
+Icon: ..\.sdtpl\ColliderPlane.png
+DefaultOutputName: ColliderPlane
+FactoryTypeName: ColliderShapePlaneFactory

@@ -1,0 +1,12 @@
+!TemplateAssetFactory
+Id: FE4CC415-19A4-4F6D-9FF1-1DB00D94BD05
+AssetTypeName: SoundAsset
+Name: Sound effect
+Scope: Asset
+Description: A non-spatialized sound imported from a source file and played from memory
+Group: Media
+Order: -50
+Icon: ..\.sdtpl\SoundEffect.png
+DefaultOutputName: SoundEffect
+ImportSource: true
+FactoryTypeName: DefaultSoundFactory

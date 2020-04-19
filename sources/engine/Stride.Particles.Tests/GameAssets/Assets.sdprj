@@ -1,0 +1,28 @@
+!Package
+Id: d28d6e16-6099-4183-b996-38df0af00582
+BuildConfiguration:
+    BuildDirectory: ../obj/app_data
+    Profiles:
+        Windows: !StrideProjectBuildProfile
+            Platform: Windows
+            GraphicsPlatform: Direct3D
+            GraphicsProfile: Level_11_0
+            OutputDirectory: ../../../../Bin/Windows-AnyCPU-Direct3D/data/Stride.Input.Tests
+        Windows_OGL: !StrideProjectBuildProfile
+            Platform: Windows
+            GraphicsPlatform: OpenGLCore
+            GraphicsProfile: Level_9_1
+            OutputDirectory: ../../../../Bin/Windows-AnyCPU-OpenGL/data/Stride.Input.Tests
+        Android: !StrideProjectBuildProfile
+            Platform: Android
+            GraphicsPlatform: OpenGLES20
+            GraphicsProfile: Level_9_1
+            OutputDirectory: ../obj/Android-AnyCPU-OpenGLES/assets/data
+        iOS: !StrideProjectBuildProfile
+            Platform: iOS
+            GraphicsPlatform: OpenGLES20
+            GraphicsProfile: Level_9_1
+            OutputDirectory: ../../../../Bin/iOS-AnyCPU-OpenGLES/data/Stride.Input.Tests
+ExplicitFolders: []
+PluginReferences: []
+PackageReferences: []

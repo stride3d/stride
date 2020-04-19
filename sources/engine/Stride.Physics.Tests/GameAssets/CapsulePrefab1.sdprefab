@@ -1,0 +1,36 @@
+!PrefabAsset
+Id: e15a0385-0cfe-41c1-831f-cc2a05d9f7c1
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 11a69b4c-a99a-402f-a223-c623513a5af6
+    Parts:
+        -   Entity:
+                Id: 11a69b4c-a99a-402f-a223-c623513a5af6
+                Name: Capsule
+                Components:
+                    02ef0dd53949964b93ee99ccab919e88: !TransformComponent
+                        Id: d50def02-4939-4b96-93ee-99ccab919e88
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    85bbf0c23caa67498e490f5d3e99dba3: !ModelComponent
+                        Id: c2f0bb85-aa3c-4967-8e49-0f5d3e99dba3
+                        Model: 6c1cece6-119c-4831-b6f2-c796618d3b07:Capsule
+                        Materials: {}
+                    64a5af8a6d2b92439db9717711e1884a: !StaticColliderComponent
+                        Id: 8aafa564-2b6d-4392-9db9-717711e1884a
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            de2b7765e905a94e8e57ee242477abfa: !CapsuleColliderShapeDesc
+                                Radius: 0.35
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}

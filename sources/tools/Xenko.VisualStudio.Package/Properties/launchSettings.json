@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "Xenko.VisualStudio.Package": {
-      "commandName": "Executable",
-      "executablePath": "$(DevEnvDir)\\devenv.exe",
-      "commandLineArgs": "/RootSuffix Xenko"
-    }
-  }
-}

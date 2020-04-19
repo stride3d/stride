@@ -1,0 +1,13 @@
+﻿!Template
+Id: 81d2adea-37b1-4711-834c-0d73a05c206c
+Name: New game
+Scope: Session
+Description: Create a game for the platforms you select
+FullDescription: |
+   Create a platform-agnostic game library with one executable per platform. The template comes with skybox, ground, sphere, light, camera, and preconfigured rendering pipeline.
+Group: General
+Order: -100
+Icon: .sdtpl/NewGameIcon.png
+DefaultOutputName: MyGame
+Screenshots:
+    - .sdtpl/NewGameScreenshot.jpg

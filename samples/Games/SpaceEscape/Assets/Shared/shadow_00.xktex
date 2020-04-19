@@ -1,9 +1,0 @@
-!Texture
-Id: a05dc255-f378-4167-b474-1562b18dfc90
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../Resources/model/character/Sourceimages/shadow_00.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-    Alpha: Interpolated
-IsStreamable: false

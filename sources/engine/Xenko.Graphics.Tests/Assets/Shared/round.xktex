@@ -1,8 +1,0 @@
-!Texture
-Id: 8b1bd7d0-3dfa-4b62-89c7-2d9751f4f086
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../../data/tests/round.bmp
-IsCompressed: false
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

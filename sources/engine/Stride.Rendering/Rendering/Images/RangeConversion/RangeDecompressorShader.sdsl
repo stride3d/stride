@@ -1,0 +1,24 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    shader RangeDecompressorShader : ImageEffectShader
+    {
+        stage override float4 Shading()
+        {
+            float3 color = Texture0.Sample(PointSampler, streams.TexCoord).rgb;
+			
+			float3 linearColor = color;
+
+			// reverse karis tone map:
+			float targetRange = 1.0;
+			float maxComponent = max(max(linearColor.r, linearColor.g), linearColor.b);
+			float3 reverseKaris = linearColor / (1 - maxComponent / targetRange);
+			
+			// write output for the rest of the post effects:
+			return float4(reverseKaris, 1.0);
+        }
+    };
+}
+

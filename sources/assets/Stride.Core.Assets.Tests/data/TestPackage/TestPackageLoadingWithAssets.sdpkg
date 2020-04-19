@@ -1,0 +1,10 @@
+﻿!Package
+Id: 4102BF96-796D-4800-9983-9C227FAB7BBD
+SerializedVersion: 1
+ExplicitFolders: []
+Profiles:
+    - Name: Shared
+      AssetFolders:
+        - Path: .
+LocalDependencies:
+    - 281321F0-7664-4523-B1DC-3CFC26F80F77:SubPackage/SubPackage.sdpkg

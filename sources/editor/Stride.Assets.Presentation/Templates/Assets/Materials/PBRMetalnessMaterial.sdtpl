@@ -1,0 +1,11 @@
+﻿!TemplateAssetFactory
+Id: 2AA4CF8D-D9D1-47A6-BFB5-84491AFD858D
+AssetTypeName: MaterialAsset
+Name: "PBR material: metalness"
+Scope: Asset
+Description: A material asset with a diffuse map, metalness map, and glossiness map for physically-based rendering
+Group: Material
+Order: -100
+Icon: ..\.sdtpl\MaterialMetalness.png
+DefaultOutputName: Material
+FactoryTypeName: MetalnessMaterialFactory

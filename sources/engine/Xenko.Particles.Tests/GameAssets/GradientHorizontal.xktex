@@ -1,7 +1,0 @@
-!Texture
-Id: 5db82541-de6d-491f-a0fc-46627c50eebd
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/Particles/GradientHorizontal.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

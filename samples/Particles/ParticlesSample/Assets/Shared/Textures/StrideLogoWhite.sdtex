@@ -1,0 +1,9 @@
+!Texture
+Id: ad3bc951-0f20-464d-a236-fb9c3727f4e7
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../Resources/StrideLogoWhite.png
+IsCompressed: false
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+IsStreamable: false

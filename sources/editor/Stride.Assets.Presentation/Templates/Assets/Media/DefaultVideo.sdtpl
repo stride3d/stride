@@ -1,0 +1,11 @@
+!TemplateAssetFactory
+Id: B660A65C-3B61-4AE3-9DC4-E34E62E524C9
+AssetTypeName: VideoAsset
+Name: Video
+Scope: Asset
+Description: A video imported from a source file and played from memory
+Group: Media
+Order: -100
+Icon: ..\.sdtpl\Video.png
+DefaultOutputName: Video
+ImportSource: true

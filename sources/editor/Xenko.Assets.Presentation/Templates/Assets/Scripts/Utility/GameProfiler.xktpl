@@ -1,9 +1,0 @@
-!TemplateAsset
-Id: 4863b2d2-acaf-49a9-8306-2cc90dead139
-AssetTypeName: ScriptSourceFileAsset
-Name: Game profiler
-Scope: Asset
-Description: In-game runtime profiler
-Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
-DefaultOutputName: GameProfiler

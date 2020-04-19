@@ -1,0 +1,196 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Stride.Core.Assets.Editor.ViewModel.AssetEditorViewModel" Collapsed="true">
+    <Position X="6" Y="2" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels.GameEditorViewModel" Collapsed="true">
+    <Position X="3.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAAAQAEAAAAAAAAAABAAAAEAAAAgIAAEAI=</HashCode>
+      <FileName>AssetEditors\GameEditor\ViewModels\GameEditorViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorViewModel" Collapsed="true">
+    <Position X="9.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAEgAAAJQAQAAAgAgAQAIgABAAAAAgAAgAAAACAA=</HashCode>
+      <FileName>AssetEditors\ScriptEditor\ScriptEditorViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels.SpriteSheetEditorViewModel" Collapsed="true">
+    <Position X="11.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>JYAAFABlAAUEESAGCiIkDBgDgCJBQEHJH6gmhBWDAAA=</HashCode>
+      <FileName>AssetEditors\SpriteEditor\ViewModels\SpriteSheetEditorViewModel.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels.AssetCompositeEditorViewModel" Collapsed="true">
+    <Position X="3.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AssetEditors\AssetCompositeGameEditor\ViewModels\AssetCompositeEditorViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels.AssetCompositeHierarchyEditorViewModel&lt;TAssetPartDesign, TAssetPart, TItemViewModel&gt;" Collapsed="true">
+    <Position X="3.75" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ggQARJAIAEwQAAGARCAAAAAASgFBAwAEgAIhAQIAGgA=</HashCode>
+      <FileName>AssetEditors\AssetCompositeGameEditor\ViewModels\AssetCompositeHierarchyEditorViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels.EntityHierarchyEditorViewModel" Collapsed="true">
+    <Position X="1.5" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gCUmwhBJCQIAZIAkgCAODAViCDFUoRgABEAhgQxAUBg=</HashCode>
+      <FileName>AssetEditors\EntityHierarchyEditor\ViewModels\EntityHierarchyEditorViewModel.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels.UIEditorBaseViewModel" Collapsed="true">
+    <Position X="6" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gECWQhBIgwcTcIhlEDgynABgDhXAgQKQAKkhwQIYNAA=</HashCode>
+      <FileName>AssetEditors\UIEditor\ViewModels\UIEditorBaseViewModel.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.UILibraryEditor.ViewModels.UILibraryEditorViewModel" Collapsed="true">
+    <Position X="5" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAgAEAAAAAAAAAQAAABAAUAAAAAAAAAAEBA=</HashCode>
+      <FileName>AssetEditors\UILibraryEditor\ViewModels\UILibraryEditorViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.UIPageEditor.ViewModels.UIPageEditorViewModel" Collapsed="true">
+    <Position X="7.25" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAAAAAAAAAAAAAAAAAAAAAUAAAAAAAAABEAA=</HashCode>
+      <FileName>AssetEditors\UIPageEditor\ViewModels\UIPageEditorViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels.PrefabEditorViewModel" Collapsed="true">
+    <Position X="0.5" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAAAAAAAAAAAAAAUAAAAAAAAAAAAA=</HashCode>
+      <FileName>AssetEditors\PrefabEditor\ViewModels\PrefabEditorViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels.SceneEditorViewModel" Collapsed="true">
+    <Position X="2.75" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAgIAAAAAAAAAAAgUAAQAQAAAACEAA=</HashCode>
+      <FileName>AssetEditors\SceneEditor\ViewModels\SceneEditorViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels.EntityHierarchyItemViewModel" Collapsed="true">
+    <Position X="23" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AMBIAACAQIgAABEAQAgAPAgMABBgCAAIAAAAIABgQAA=</HashCode>
+      <FileName>AssetEditors\EntityHierarchyEditor\ViewModels\EntityHierarchyItemViewModel.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels.AssetCompositeItemViewModel&lt;TAssetViewModel, TItemViewModel&gt;" Collapsed="true">
+    <Position X="23" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AssetEditors\AssetCompositeGameEditor\ViewModels\AssetCompositeItemViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels.AssetCompositeItemViewModel&lt;TAssetViewModel, TParentViewModel, TChildViewModel&gt;" Collapsed="true">
+    <Position X="19.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAABAAEAAAAQAAAAEQAAAgABACABEAAAgAAAAAAA=</HashCode>
+      <FileName>AssetEditors\AssetCompositeGameEditor\ViewModels\AssetCompositeItemViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels.UIHierarchyItemViewModel" Collapsed="true">
+    <Position X="16.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAABAAAAAAAAAQAAAAAAAAABEEAgAAAAAAAAAAAA=</HashCode>
+      <FileName>AssetEditors\UIEditor\ViewModels\UIHierarchyItemViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels.UIElementViewModel" Collapsed="true">
+    <Position X="15" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gChCAAIAQDkwBAFVADAALAQZJAFBcAAFAAIMIAAAIAg=</HashCode>
+      <FileName>AssetEditors\UIEditor\ViewModels\UIElementViewModel.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels.UIRootViewModel" Collapsed="true">
+    <Position X="18.5" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAiAAAAAEAAAAAACAAAAAAAAAIFAFAAAAAAEAAAIAAA=</HashCode>
+      <FileName>AssetEditors\UIEditor\ViewModels\UIRootViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels.EntityFolderViewModel" Collapsed="true">
+    <Position X="20.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgYAACAAAQAAAIAAAAAAAQAAAEEAAAAAAAAAAAgAAQ=</HashCode>
+      <FileName>AssetEditors\EntityHierarchyEditor\ViewModels\EntityFolderViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels.EntityHierarchyElementViewModel" Collapsed="true">
+    <Position X="24" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AGAKAACAADAIAAAAAAAAAAAQAAAAAAADAAAIAAAAAAg=</HashCode>
+      <FileName>AssetEditors\EntityHierarchyEditor\ViewModels\EntityHierarchyElementViewModel.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels.EntityHierarchyRootViewModel" Collapsed="true">
+    <Position X="23" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAIAAAAACAgAAQIAAFEAAACAAAUAAAgAAA=</HashCode>
+      <FileName>AssetEditors\EntityHierarchyEditor\ViewModels\EntityHierarchyRootViewModel.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels.EntityViewModel" Collapsed="true">
+    <Position X="25.25" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAgCARAQUQAIEIJIAAAAABQBICHBICACgAANAEAgAIA=</HashCode>
+      <FileName>AssetEditors\EntityHierarchyEditor\ViewModels\EntityViewModel.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels.SceneRootViewModel" Collapsed="true">
+    <Position X="23" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AssetEditors\SceneEditor\ViewModels\SceneRootViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels.ContentControlViewModel" Collapsed="true">
+    <Position X="14" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAEAAAAQAAAAQAAAAAAAAABAAAAAAAQAAAAAAIA=</HashCode>
+      <FileName>AssetEditors\UIEditor\ViewModels\ContentControlViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels.PanelViewModel" Collapsed="true">
+    <Position X="16.25" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAAAAQBAAAAAAQBgAAECBQiAAAAAIABAAAAIA=</HashCode>
+      <FileName>AssetEditors\UIEditor\ViewModels\PanelViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Core.Presentation.ViewModel.DispatcherViewModel" Collapsed="true">
+    <Position X="12.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels.AssetCompositeItemViewModel" Collapsed="true">
+    <Position X="19.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAEABCABAAQAQAAAFAAABAAAAEBAAAAAA=</HashCode>
+      <FileName>AssetEditors\AssetCompositeGameEditor\ViewModels\AssetCompositeItemViewModel.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

@@ -1,0 +1,35 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+// Base stream for a shader
+shader ShaderBaseStream
+{
+    // Default SV_POSITION output for VS/GS shaders
+    stage stream float4 ShadingPosition : SV_Position;
+
+#if STRIDE_GRAPHICS_API_DIRECT3D && STRIDE_GRAPHICS_PROFILE < GRAPHICS_PROFILE_LEVEL_10_0
+    // Positive if this face is a front face, negative otherwise
+    stage stream float IsFrontFace : VFACE;
+#else
+    // True if this face is a front face
+    stage stream bool IsFrontFace : SV_IsFrontFace;
+#endif
+
+    // Default COLOR outputs for PS shader
+    stage stream float4 ColorTarget : SV_Target0;
+    stage stream float4 ColorTarget1 : SV_Target1;
+    stage stream float4 ColorTarget2 : SV_Target2;
+    stage stream float4 ColorTarget3 : SV_Target3;
+    stage stream float4 ColorTarget4 : SV_Target4;
+    stage stream float4 ColorTarget5 : SV_Target5;
+    stage stream float4 ColorTarget6 : SV_Target6;
+    stage stream float4 ColorTarget7 : SV_Target7;
+
+    // Default DEPTH output for PS shader
+    stage stream float Depth : SV_Depth;
+    stage stream float DepthGreater : SV_DepthGreater; // Special output after PS
+    stage stream float DepthLessEqual : SV_DepthLessEqual; // Special output after PS
+
+    // Default InstanceId for VS/GS shaders
+    stage stream uint InstanceID : SV_InstanceID;
+};

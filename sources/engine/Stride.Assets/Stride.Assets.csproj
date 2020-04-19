@@ -1,0 +1,131 @@
+<Project>
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition="('$(StridePlatform)' == 'Windows') and ('$(StrideNETRuntime)' != 'CoreCLR')">
+    <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
+    <!--PackageReference Include="Esent.Interop" Version="1.9.4" /-->
+    <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.4.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.4.0" />
+    <Reference Include="Renci.SshNet">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\deps\SSH.NET\Renci.SshNet.dll</HintPath>
+    </Reference>
+    <PackageReference Include="System.AppContext" Version="4.3.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.6.0" />
+    <PackageReference Include="System.Console" Version="4.3.1" />
+    <PackageReference Include="System.Diagnostics.FileVersionInfo" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.StackTrace" Version="4.3.0" />
+    <PackageReference Include="System.IO" Version="4.3.0" />
+    <PackageReference Include="System.IO.Compression" Version="4.3.0" />
+    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
+    <PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Reflection" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="1.7.0" />
+    <PackageReference Include="System.Runtime" Version="4.3.1" />
+    <PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
+    <PackageReference Include="System.Security.Cryptography.Encoding" Version="4.3.0" />
+    <PackageReference Include="System.Security.Cryptography.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.3.2" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.6.0" />
+    <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="System.Xml.ReaderWriter" Version="4.3.1" />
+    <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XPath" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XPath.XDocument" Version="4.3.0" />
+    <Reference Include="VHACDSharp">
+      <HintPath>..\..\..\deps\VHACD\VHACDSharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.Core.ProjectTemplating\Stride.Core.ProjectTemplating.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.TextureConverter\Stride.TextureConverter.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Navigation\Stride.Navigation.csproj" />
+    <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
+    <ProjectReference Include="..\Stride.Video\Stride.Video.csproj" />
+    <ProjectReference Include="..\Stride\Stride.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel10.sdgfxcomp" />
+    <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel9.sdgfxcomp" />
+    <None Include="AssetPackage\Assets\Shared\StrideClearCoatMetalFlakesNM.sdtex" />
+    <None Include="AssetPackage\Assets\Shared\StrideClearCoatOrangePeelNM.sdtex" />
+    <None Include="AssetPackage\Assets\Shared\StrideDebugSpriteFont.sdtex" />
+    <None Include="AssetPackage\Assets\Shared\StrideDefaultFont.sdfnt" />
+    <None Include="AssetPackage\Assets\Shared\StrideDefaultSplashScreen.sdtex" />
+    <None Include="AssetPackage\Assets\Shared\StrideEnvironmentLightingDFGLUT16.sdtex" />
+    <None Include="AssetPackage\Assets\Shared\StrideEnvironmentLightingDFGLUT8.sdtex" />
+    <None Include="AssetPackage\Assets\Shared\StrideUIDesigns.sdsheet" />
+    <None Include="AssetPackage\Assets\Shared\StrideUILibrary.sduilib" />
+    <None Include="AssetPackage\Workfiles\UIDesigns.pdn" />
+    <None Include="AssetPackage\StrideAssetPackage.sdpkg" />
+    <None Include="UI\Resources\UIDesigns.dds" />
+    <None Include="UI\Resources\UIDesigns.pdn" />
+    <None Include="UI\StrideUIDesigns.sdsheet" />
+    <None Include="UI\StrideUILibrary.sduilib" />
+  </ItemGroup>
+  <!--ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="1.1.0" />
+    <Analyzer Include="Microsoft.CodeAnalysis.Analyzers" />
+    <Analyzer Include="Microsoft.CodeAnalysis.CSharp.Analyzers" />
+  </ItemGroup-->
+  <ItemGroup>
+    <StrideNativeLib Include="..\..\..\deps\VHACD\**\VHACD.dll">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </StrideNativeLib>
+    <Content Include="..\..\..\deps\FFmpeg\ffmpeg.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\deps\msdfgen\msdfgen.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="AssetPackage\Resources\ClearCoatMetalFlakesNM.dds" />
+    <None Include="AssetPackage\Resources\ClearCoatOrangePeelNM.dds" />
+    <None Include="AssetPackage\Resources\EnvironmentLightingDFGLUT16.dds" />
+    <None Include="AssetPackage\Resources\EnvironmentLightingDFGLUT8.dds" />
+    <None Include="AssetPackage\Resources\UIDesigns.dds" />
+    <None Include="AssetPackage\Resources\StrideDebugSpriteFont.png" />
+    <None Include="AssetPackage\Resources\StrideDefaultSplashScreen.png" />
+  </ItemGroup>
+  <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
+  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludeExtraAssemblies">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)VHACDSharp.dll" />
+    </ItemGroup>
+  </Target>
+</Project>

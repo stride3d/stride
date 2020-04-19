@@ -1,0 +1,25 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader ComputeColorOverMaya : ComputeColor
+{
+    compose ComputeColor color1;
+    compose ComputeColor color2;
+
+    override float4 Compute()
+    {
+        float4 backColor = color1.Compute();
+        float4 frontColor = color2.Compute();
+
+        // From Maya API (LayeredTexture node)
+        //
+        // b = background, f = foreground, c = color, a = alpha
+        //
+        //  Over:
+        //      color = bc + ((fc - bc) * fa) = (1 - fa) * bc + fa * fc
+        //      alpha = ba + fa - (ba * fa)
+        //
+    
+        return float4(lerp(backColor.rgb, frontColor.rgb, frontColor.a),
+                      BlendUtils.BasicAlphaBlend(backColor.a, frontColor.a));
+    }
+};

@@ -1,0 +1,59 @@
+<Project>
+
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideRuntimeNetStandardNoRuntimeIdentifiers>true</StrideRuntimeNetStandardNoRuntimeIdentifiers>
+  </PropertyGroup>
+
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+
+  <PropertyGroup>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StridePlatformDependent>true</StridePlatformDependent>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
+  </PropertyGroup>
+
+  <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
+
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <None Include="runtime.json" Pack="true" PackagePath="/">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>runtime.tt</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
+    <!-- SharpDX is needed for WIC -->
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" Condition="'$(StridePlatform)' == 'UWP'" />
+    <PackageReference Include="System.Drawing.Common" Version="4.6.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="runtime.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>runtime.json</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+
+</Project>

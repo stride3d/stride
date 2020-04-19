@@ -1,0 +1,9 @@
+<!-- Build file pre-included by all Stride projects -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!-- Define the location where to build assemblies. -->
+    <StrideBuildDirectory>$(StridePlatformFullName)</StrideBuildDirectory>
+    <StrideOutputCommonDir>$(MSBuildThisFileDirectory)..\Bin\$(StrideBuildDirectory)\</StrideOutputCommonDir>
+    <StrideOutputCommonDir>$([System.IO.Path]::GetFullPath('$(StrideOutputCommonDir)'))</StrideOutputCommonDir>
+  </PropertyGroup>
+</Project>

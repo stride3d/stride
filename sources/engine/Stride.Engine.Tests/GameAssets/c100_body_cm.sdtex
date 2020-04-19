@@ -1,0 +1,8 @@
+!Texture
+Id: 3b9e7d5b-28b5-4091-852a-fe8732ca5787
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/knight/sourceimages/c100_body_cm.jpg
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+    PremultiplyAlpha: false

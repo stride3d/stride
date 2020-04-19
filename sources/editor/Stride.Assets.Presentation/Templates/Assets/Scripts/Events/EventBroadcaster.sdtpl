@@ -1,0 +1,9 @@
+!TemplateAsset
+Id: 9E7FB8BF-B580-4559-93E6-529E9D2BF4B0
+AssetTypeName: ScriptSourceFileAsset
+Name: Event broadcaster
+Scope: Asset
+Description: Broadcasts an event when a key is pressed, or at regular intervals
+Group: Script
+Icon: ..\..\.sdtpl\SourceCode.png
+DefaultOutputName: EventBroadcaster

@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.UI;
-using Xenko.UI.Controls;
-using Xenko.UI.Events;
-using Xenko.UI.Panels;
+using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.UI;
+using Stride.UI.Controls;
+using Stride.UI.Events;
+using Stride.UI.Panels;
 
 namespace CSharpBeginner.Code
 {

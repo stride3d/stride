@@ -1,0 +1,19 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Lights
+{
+    /// <summary>
+    /// Defines a structure that is used only within the spotlight shaders.
+    /// </summary>
+    shader SpotLightDataInternalShader  // Named "SpotLightDataInternalShader" instead of "SpotLightDataInternal" because otherwise the name clashes with the name of the "SpotLightDataInternal" structure.
+    {
+        struct SpotLightDataInternal
+        {
+            float3 PositionWS;
+            float3 DirectionWS;
+            float3 AngleOffsetAndInvSquareRadius;
+            [Color]
+            float3 Color;
+        };
+    };
+}

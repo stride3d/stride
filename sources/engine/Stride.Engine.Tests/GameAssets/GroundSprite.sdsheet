@@ -1,0 +1,25 @@
+!SpriteSheet
+Id: f959170b-df62-40ff-869a-fd72304a8464
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: Sprite2D
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+Packing: {}
+Sprites:
+    b20b789a09e4c74086f793ba64eeffa1:
+        Source: ../../../data/tests/SpriteBackground.png
+        Name: New frame
+        TextureRegion: {X: 0, Y: 0, Width: 512, Height: 512}
+        PixelsPerUnit: 512.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    42d483c3830ddf418d03172774cd0beb:
+        Source: ../../../data/tests/spriteForeground.png
+        Name: null
+        TextureRegion: {X: 0, Y: 0, Width: 256, Height: 256}
+        PixelsPerUnit: 256.0
+        Center: {X: 256.0, Y: 0.0}
+        CenterFromMiddle: false
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}

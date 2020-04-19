@@ -1,0 +1,9 @@
+!Texture
+Id: 8e6cf15a-38fa-4631-91fa-ecd21e12d7f0
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../../data/tests/small_uv.png
+IsCompressed: false
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+    PremultiplyAlpha: false

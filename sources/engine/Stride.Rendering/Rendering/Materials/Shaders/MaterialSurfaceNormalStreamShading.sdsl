@@ -1,0 +1,15 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    // Temporary code for testing IMaterialSurface
+    shader MaterialSurfaceNormalStreamShading : ShadingBase, NormalStream
+    {
+        stage override float4 Shading()
+        {
+            // Run surface shading but don't take the result
+            base.Shading();
+            return float4(streams.normalWS * 0.5f + 0.5f, 1.0f);
+        }
+    };
+}

@@ -1,0 +1,26 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader ComputeColorLightenMaya : ComputeColor
+{
+    compose ComputeColor color1;
+    compose ComputeColor color2;
+
+    override float4 Compute()
+    {
+        float4 backColor = color1.Compute();
+        float4 frontColor = color2.Compute();
+
+        // From Maya API (LayeredTexture node)
+        //
+        // b = background, f = foreground, c = color, a = alpha
+        //
+        //  Lighten:
+        //      color = max(fc, bc) * fa + bc * (1 - fa)
+        //      alpha = ba
+
+        float3 maxColor = max(frontColor.rgb, backColor.rgb);
+
+        return float4(lerp(backColor.rgb, maxColor, frontColor.a),
+                      backColor.a);
+    }
+};

@@ -1,0 +1,11 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+shader ComputeColorWave<float Frequency, float Amplitude, float Speed> : ComputeColor, Texturing
+{
+    override float4 Compute()
+    {
+        float phase = length(streams.TexCoord - 0.5);
+        return sin((phase + Global.Time * Speed) * 2 * 3.14 * Frequency) * Amplitude;
+    }
+};

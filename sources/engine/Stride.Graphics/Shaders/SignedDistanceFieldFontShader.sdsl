@@ -1,0 +1,39 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader SignedDistanceFieldFontShader : ShaderBase, SignedDistanceFieldFont
+{
+    // -------------------------------------
+    // streams
+    // -------------------------------------
+    stage stream float4 Position : POSITION;
+    stage stream float4 Color : COLOR;
+    stage stream float Swizzle : BATCH_SWIZZLE;
+            
+    // -------------------------------------
+    // VertexShader
+    // -------------------------------------
+    stage override void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+        
+    // -------------------------------------
+    // PixelShader
+    // -------------------------------------
+    stage override void PSMain()
+    {
+        streams.ColorTarget = Shading();
+    }
+
+    stage float4 Shading()
+    {
+        // This should be a 3-channel signed distance field texture
+        float4 signedMultiDistance = Texture0.Sample(Sampler, streams.TexCoord);
+
+        // These values can go into streams later
+        float4 borderColor = float4(0, 0, 0, 1);
+        float borderThickness = 0.f;
+
+        return FontColor(signedMultiDistance, streams.Color, borderColor, borderThickness);
+    }
+};

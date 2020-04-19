@@ -1,0 +1,23 @@
+﻿<Project>
+  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>WindowsTools</StrideBuildTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.Core.BuildEngine.Common\Stride.Core.BuildEngine.Common.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\..\targets\Stride.UnitTests.targets" />
+</Project>

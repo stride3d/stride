@@ -1,0 +1,260 @@
+!SpriteSheet
+Id: dba38b73-6f43-40ba-a4da-8e711695c7e8
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: UI
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+Packing: {}
+Sprites:
+    85c4dcdb06161a469a49eefc3b04b0e0:
+        Source: ../../Resources/background.jpg
+        Name: background_uiimage
+        TextureRegion: {X: 0, Y: 0, Width: 640, Height: 1136}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    59d293c4efe50742ad9573760eae8e54:
+        Source: ../../Resources/ui_tex.png
+        Name: gold_icon
+        TextureRegion: {X: 623, Y: 768, Width: 55, Height: 62}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    c9703a6143a9494b8dc1de5b741c6920:
+        Source: ../../Resources/ui_tex.png
+        Name: green_ship
+        TextureRegion: {X: 1083, Y: 97, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    083e9d28eec0b64593b90ed05f4ff850:
+        Source: ../../Resources/ui_tex.png
+        Name: life_bar
+        TextureRegion: {X: 441, Y: 984, Width: 421, Height: 25}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    c726d9ab38571b46848c64765ee23586:
+        Source: ../../Resources/ui_tex.png
+        Name: lock_icon
+        TextureRegion: {X: 1154, Y: 656, Width: 460, Height: 131}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 50.0, Y: 0.0, Z: 140.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    be5f872d470375458606ee26d07faed3:
+        Source: ../../Resources/ui_tex.png
+        Name: money_icon
+        TextureRegion: {X: 868, Y: 976, Width: 53, Height: 47}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    6b355fd1a9b0e84b87809fe01c077b41:
+        Source: ../../Resources/ui_tex.png
+        Name: popup_window
+        TextureRegion: {X: 1, Y: 1, Width: 616, Height: 836}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 250.0, Y: 167.0, Z: 185.0, W: 167.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    4561d4f07442bd48ad61902c54925874:
+        Source: ../../Resources/ui_tex.png
+        Name: power
+        TextureRegion: {X: 1792, Y: 114, Width: 229, Height: 107}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    fd32ae0683eddb4c9ff859692289c7c2:
+        Source: ../../Resources/ui_tex.png
+        Name: red_ship
+        TextureRegion: {X: 1083, Y: 1, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    8458647b5aa8bd45af96655b7c31cbd8:
+        Source: ../../Resources/ui_tex.png
+        Name: scroll_background
+        TextureRegion: {X: 623, Y: 1, Width: 454, Height: 477}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    b79d194bddf4474b9920feac44fc788f:
+        Source: ../../Resources/ui_tex.png
+        Name: small_display_element
+        TextureRegion: {X: 1154, Y: 553, Width: 94, Height: 97}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 20.0, Y: 20.0, Z: 20.0, W: 20.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    ee3e3b151f1fdd4298110b79c86baf8a:
+        Source: ../../Resources/ui_tex.png
+        Name: small_display_element_pressed
+        TextureRegion: {X: 1620, Y: 599, Width: 94, Height: 97}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 20.0, Y: 20.0, Z: 20.0, W: 20.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    59b65d1bc8c17642b3e921c4729b56a6:
+        Source: ../../Resources/ui_tex.png
+        Name: speed
+        TextureRegion: {X: 1792, Y: 1, Width: 229, Height: 107}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    2220e0bb8e9c8c418dbcd857300ff6d4:
+        Source: ../../Resources/ui_tex.png
+        Name: star0
+        TextureRegion: {X: 1245, Y: 793, Width: 229, Height: 107}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    9f31dcdaa6a042458b76ba63f772059c:
+        Source: ../../Resources/ui_tex.png
+        Name: star1
+        TextureRegion: {X: 1751, Y: 566, Width: 229, Height: 107}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    409883de401c0d4e91828c7e3f0fd54b:
+        Source: ../../Resources/ui_tex.png
+        Name: star2
+        TextureRegion: {X: 1762, Y: 453, Width: 229, Height: 107}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    a90faf0fa68cf64990a27ea3ba972e27:
+        Source: ../../Resources/ui_tex.png
+        Name: star3
+        TextureRegion: {X: 1762, Y: 340, Width: 229, Height: 107}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    c252db504121a746ad911a4cfc6a8c2f:
+        Source: ../../Resources/ui_tex.png
+        Name: tex_edit_activated_background
+        TextureRegion: {X: 1293, Y: 190, Width: 463, Height: 130}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    589e834279aa40458c59ac1dca8d2b0b:
+        Source: ../../Resources/ui_tex.png
+        Name: tex_edit_inactivated_background
+        TextureRegion: {X: 1293, Y: 326, Width: 463, Height: 130}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 70.0, Y: 13.0, Z: 70.0, W: 13.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    bccdad049b711d4eb7f68146efd1746e:
+        Source: ../../Resources/ui_tex.png
+        Name: touch_start_frame
+        TextureRegion: {X: 1245, Y: 906, Width: 448, Height: 93}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    21c2a94a5ba7834f8b6bd4be53e8072c:
+        Source: ../../Resources/ui_tex.png
+        Name: ui_text_bg
+        TextureRegion: {X: 1154, Y: 426, Width: 125, Height: 121}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    6402a1927673e04fae51c45b5da3ad32:
+        Source: ../../Resources/ui_tex.png
+        Name: weapon_select_frame
+        TextureRegion: {X: 1285, Y: 462, Width: 460, Height: 131}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 60.0, Y: 0.0, Z: 50.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    a6a37a09c2c39749a61f70d82e8a62eb:
+        Source: ../../Resources/ui_tex.png
+        Name: yellow_ship
+        TextureRegion: {X: 1636, Y: 774, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    7bf15f3373bf2c418d09f226c936c37e:
+        Source: ../../Resources/ui_tex.png
+        Name: blue_ship
+        TextureRegion: {X: 1480, Y: 793, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    d1fd38ad2f52ea4294619450ea3c38c6:
+        Source: ../../Resources/ui_tex.png
+        Name: bstar0
+        TextureRegion: {X: 221, Y: 984, Width: 104, Height: 33}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    b787e1240c9261439d231ff7f9e2ceac:
+        Source: ../../Resources/ui_tex.png
+        Name: bstar1
+        TextureRegion: {X: 111, Y: 984, Width: 104, Height: 33}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    247e7013983cca4eb8600b5d1f4dee1a:
+        Source: ../../Resources/ui_tex.png
+        Name: bstar2
+        TextureRegion: {X: 331, Y: 984, Width: 104, Height: 33}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    951c072462e875499e7564b741db0a70:
+        Source: ../../Resources/ui_tex.png
+        Name: bstar3
+        TextureRegion: {X: 1, Y: 984, Width: 104, Height: 33}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    99a07bfc1f6ab34bb5e6363d58a4c207:
+        Source: ../../Resources/ui_tex.png
+        Name: button0
+        TextureRegion: {X: 1792, Y: 774, Width: 219, Height: 89}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 110.0, Y: 0.0, Z: 88.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    34e78f105c837542a6f066d90d6e55c9:
+        Source: ../../Resources/ui_tex.png
+        Name: button1
+        TextureRegion: {X: 1720, Y: 679, Width: 312, Height: 89}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 94.0, Y: 0.0, Z: 62.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    9ed5bb1418e5e94285a3cb748e593623:
+        Source: ../../Resources/ui_tex.png
+        Name: character
+        TextureRegion: {X: 904, Y: 484, Width: 244, Height: 270}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    25b1f18def23914bba988ac337a9cdb7:
+        Source: ../../Resources/ui_tex.png
+        Name: character_frame
+        TextureRegion: {X: 1, Y: 843, Width: 640, Height: 135}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 128.0, Y: 0.0, Z: 85.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    68dde6217877974c96fb3278a4f8e108:
+        Source: ../../Resources/ui_tex.png
+        Name: control
+        TextureRegion: {X: 1762, Y: 227, Width: 229, Height: 107}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    6dd93d8ff3799d4db9273771304d17e6:
+        Source: ../../Resources/ui_tex.png
+        Name: cyan_ship
+        TextureRegion: {X: 1744, Y: 887, Width: 150, Height: 90}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    db44f23f740a014894d851ffe8d20a65:
+        Source: ../../Resources/ui_tex.png
+        Name: description_frame
+        TextureRegion: {X: 1245, Y: 1, Width: 541, Height: 183}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 55.0, Z: 0.0, W: 55.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    9d005295f2df934a935d0522dd736ffa:
+        Source: ../../Resources/ui_tex.png
+        Name: display_element
+        TextureRegion: {X: 1083, Y: 227, Width: 204, Height: 193}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 48.0, Y: 21.0, Z: 106.0, W: 25.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}

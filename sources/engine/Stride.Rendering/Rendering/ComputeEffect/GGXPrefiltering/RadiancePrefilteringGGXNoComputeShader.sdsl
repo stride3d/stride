@@ -1,0 +1,61 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// Shader performing radiance GGX pre-filtering
+    /// </summary>
+    shader RadiancePrefilteringGGXNoComputeShader<int TNbOfSamples> : Math, ImageEffectShader
+    {            
+        // the input texture containing the radiance
+        int RadianceMapSize;
+
+        TextureCube RadianceMap;
+        
+        // The number of mipmap available
+        stage float MipmapCount;
+
+        // The roughness of the GGX distribution
+        stage float Roughness;
+
+        // The current face
+        stage int Face;
+
+        // compute the pre-filtered environment map for input (group) direction
+        override stage float4 Shading()
+        {
+            // Calculate the direction of the texel in the cubemap
+            float3 R = normalize(CubemapUtils.ConvertTexcoordsNoFlip(streams.TexCoord, Face));
+
+            float4 prefilteredSample = 0;
+
+            for (int sampleIndex = 0; sampleIndex < TNbOfSamples; sampleIndex++)
+            {
+                // Perform one sampling, calculate pre-filtered color and weight contribution
+                var xi = Hammersley.GetSamplePlane(sampleIndex, TNbOfSamples);
+                var H = ImportanceSamplingGGX.GetSample(xi, Roughness, R);
+
+                float3 L = 2 * dot(R, H) * H - R;
+                float NoL = saturate(dot(R, L));
+                float pdf = BRDFMicrofacet.NormalDistributionGGX(Roughness*Roughness, NoL) / 4;
+                float omegaS = 1.0 / (TNbOfSamples * pdf);
+                float omegaP = 4.0 * Math.PI / (6.0 * RadianceMapSize * RadianceMapSize) ;
+                float mipLevel = clamp(0.5 * log2(omegaS / omegaP) , 0, MipmapCount);
+            
+                float3 prefilteredColor = 0;
+                float weight = 0;
+                if (NoL > 0)
+                {
+                    weight = NoL;
+                    prefilteredColor = RadianceMap.SampleLevel(Texturing.LinearSampler, L, mipLevel).rgb * weight;
+                }
+
+                // Stock the result in group-shared memory
+                prefilteredSample += float4(prefilteredColor, weight);
+		    }
+
+            return prefilteredSample / prefilteredSample.w;
+        }
+    };
+}

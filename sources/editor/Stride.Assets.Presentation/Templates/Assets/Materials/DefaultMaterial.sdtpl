@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: dfaac7de-ef67-49c7-ac95-f5ee6bffe633
+AssetTypeName: MaterialAsset
+Name: Material
+Scope: Asset
+Description: An empty material
+Group: Material
+Order: -10
+Icon: ..\.sdtpl\MaterialEmpty.png
+DefaultOutputName: Material

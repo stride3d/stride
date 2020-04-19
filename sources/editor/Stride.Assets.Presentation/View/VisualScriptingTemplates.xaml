@@ -1,0 +1,30 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+                    xmlns:converters="clr-namespace:Stride.Assets.Presentation.AssetEditors.VisualScriptEditor.Converters"
+                    xmlns:templateProviders="clr-namespace:Stride.Assets.Presentation.TemplateProviders">
+
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/DefaultPropertyTemplateProviders.xaml"/>
+  </ResourceDictionary.MergedDictionaries>
+
+  <templateProviders:ScriptVariableReferenceTemplateProvider x:Key="ScriptVariableReferenceTemplateProvider" OverrideRule="Most" sd:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate>
+      <sd:FilteringComboBox DisplayMemberPath="Name" SortMemberPath="Name" Text="{Binding NodeValue}" SelectedValuePath="Name" Sort="{x:Null}" OpenDropDownOnFocus="True" ItemsSource="{sd:MultiBinding {Binding Root.OwnerBlock.Method.Editor.SemanticModel}, {Binding Root.OwnerBlock.Method}, Converter={converters:AvailableVariableReferenceValueConverter}}">
+        <i:Interaction.Behaviors>
+          <sd:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
+        </i:Interaction.Behaviors>
+        <sd:FilteringComboBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock>
+              <Run Text="{Binding Kind, Mode=OneWay}"/>
+              <Run Text="{Binding Name, Mode=OneWay}" FontWeight="Bold"/>
+              <Run Text="{Binding Type, Mode=OneWay, Converter={sd:FormatString}, ConverterParameter=({0})}" Foreground="Gray"/>
+            </TextBlock>
+          </DataTemplate>
+        </sd:FilteringComboBox.ItemTemplate>
+      </sd:FilteringComboBox>
+    </DataTemplate>
+  </templateProviders:ScriptVariableReferenceTemplateProvider>
+</ResourceDictionary>

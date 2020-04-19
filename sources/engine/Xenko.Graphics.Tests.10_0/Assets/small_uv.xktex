@@ -1,9 +1,0 @@
-!Texture
-Id: 251fa408-98a7-4afb-9dee-bbe6f2eeb145
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/small_uv.png
-IsCompressed: false
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-    PremultiplyAlpha: false

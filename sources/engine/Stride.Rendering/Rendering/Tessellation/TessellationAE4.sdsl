@@ -1,0 +1,50 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+/// <summary>
+/// Performs Adjacent Edge tessellation on float4 stream.
+/// </summary>
+shader TessellationAE4<MemberName TStream> : TessellationBase, MaterialDomainStream
+{
+    stream float4 DomEdgeValue4[2];
+    stream float4 DomVertValue4;
+
+    stage override void TessellateHull(InputPatch<Input, 12> input, uint uCPID, uint NextCPID)
+    {
+        base.TessellateHull(input, uCPID, NextCPID);
+
+        const uint DominantEdge = uCPID * 2 + 3;
+        const uint DominantVertex = uCPID + 9;
+
+        streams.DomEdgeValue4[0] = input[DominantEdge].TStream;
+        streams.DomEdgeValue4[1] = input[DominantEdge+1].TStream;
+        streams.DomVertValue4    = input[DominantVertex].TStream;
+    }
+
+    stage override void InterpolateBarycentric(const OutputPatch<Input, 3> input, in Constants constants, float3 f3BarycentricCoords)
+    {
+        base.InterpolateBarycentric(input, constants, f3BarycentricCoords);
+
+        float fU = f3BarycentricCoords.x;
+        float fV = f3BarycentricCoords.y;
+        float fW = f3BarycentricCoords.z;
+
+        float 
+            uCorner =  (fU == 1 ? 1:0),
+            vCorner =  (fV == 1 ? 1:0),
+            wCorner =  (fW == 1 ? 1:0),
+            uEdge =  (fU == 0 && fV * fW ? 1:0),
+            vEdge =  (fV == 0 && fU * fW ? 1:0),
+            wEdge =  (fW == 0 && fU * fV ? 1:0),
+            interior = (fU * fV * fW) ? 1 : 0;
+
+        streams.TStream = 
+              uCorner * input[0].DomVertValue4
+            + vCorner * input[1].DomVertValue4
+            + wCorner * input[2].DomVertValue4
+            + uEdge * lerp(input[1].DomEdgeValue4[1], input[1].DomEdgeValue4[0], fV)
+            + vEdge * lerp(input[2].DomEdgeValue4[1], input[2].DomEdgeValue4[0], fW)
+            + wEdge * lerp(input[0].DomEdgeValue4[1], input[0].DomEdgeValue4[0], fU)
+            + interior * streams.TStream;
+    }
+};

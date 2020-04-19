@@ -1,0 +1,117 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Various math functions.
+/// </summary>
+shader Math
+{
+    // -------------------------------------
+    // constant value
+    // -------------------------------------
+    static const float PI = 3.14159265358979323846;
+
+    // -------------------------------------
+    // methods
+    // -------------------------------------
+    // Tests intersection between a ray and a plane
+    static bool RayIntersectsPlane(float3 rayPosition,
+                                float3 rayDirection,
+                                float3 planeNormal,
+                                float  planeDirection, out float3 position)
+    {
+        float distance = (planeDirection - dot(planeNormal, rayPosition)) / dot(rayDirection, planeNormal);
+        position = rayPosition + rayDirection * distance;
+        return distance >= 0;
+    }
+
+    // Tests intersection between a ray and a sphere
+    static bool RayIntersectsSphere(float3 rayPosition, float3 rayDirection, float3 spherePosition, float sphereRadius, out float distance)
+    {
+        //Source: Real-Time Collision Detection by Christer Ericson
+        //Reference: Page 177
+
+        float3 m =  rayPosition - spherePosition;
+
+        float b = dot(m, rayDirection);
+        float c = dot(m, m) - (sphereRadius * sphereRadius);
+
+        if (c > 0 && b > 0)
+        {
+            distance = 0;
+            return false;
+        }
+
+        float discriminant = b * b - c;
+
+        if (discriminant < 0)
+        {
+            distance = 0;
+            return false;
+        }
+
+        distance = -b - sqrt(discriminant);
+
+        if (distance < 0)
+            distance = 0;
+
+        return true;
+    }
+
+    // Computes the luminance of a color
+    float Luminance(float3 color) {
+        return dot(color, float3(0.2126, 0.7152, 0.0722));
+    }
+
+    // -------------------------------------
+    // Hermine interpolation
+    // -------------------------------------
+    float Hermine(float x) {
+        return x * x * (3.0 - 2.0 * x);
+    }
+    float2 Hermine(float2 x) {
+        return x * x * (3.0 - 2.0 * x);
+    }
+    float3 Hermine(float3 x) {
+        return x * x * (3.0 - 2.0 * x);
+    }
+    float4 Hermine(float4 x) {
+        return x * x * (3.0 - 2.0 * x);
+    }
+
+    // -------------------------------------
+    // Quintic interpolation
+    // -------------------------------------
+    float Quintic1(float x) {
+        return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
+    }
+    float2 Quintic(float2 x) {
+        return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
+    }
+    float3 Quintic(float3 x) {
+        return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
+    }
+    float4 Quintic(float4 x) {
+        return x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
+    }
+
+    // Return a random number in the range [0,1] from Game Programming book (Chapter 5.4)
+    float FastRandom(uint n)
+    {
+        n = (n << 13) ^ n;
+        return float( (n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) / 2147483648.0; 
+    }
+
+    // Return a random number in the range [0,1] from Game Programming book (Chapter 5.4)
+    float FastRandom(float2 x)
+    {
+        return FastRandom(uint(x.x * 37 + x.y * 6007));
+    }
+
+    // Transforms "vec" by "mat" and does a W-divide.
+    float4 Project(float4 vec, float4x4 mat)
+    {
+        float4 vecProjected = mul(vec, mat);
+        vecProjected.xyz /= vecProjected.w;
+        return vecProjected;
+    }
+};

@@ -1,0 +1,7 @@
+!Sound
+Id: 7d13c33f-574d-4afe-909e-45f083eef901
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/audio/90-bboc1_HeaderCorrupted.wav
+StreamFromDisk: false
+Spatialized: true

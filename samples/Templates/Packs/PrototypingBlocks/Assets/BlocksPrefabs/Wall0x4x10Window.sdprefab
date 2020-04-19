@@ -1,0 +1,63 @@
+!PrefabAsset
+Id: 8a4dc53f-7101-40a8-a9b6-074bab6d7d94
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 2afada92-6bdd-43d2-9806-ce0629937081
+    Parts:
+        -   Entity:
+                Id: 2afada92-6bdd-43d2-9806-ce0629937081
+                Name: Wall0x4x10Window
+                Components:
+                    c444819e77a60441a6144bd7bd8a4a23: !TransformComponent
+                        Id: 9e8144c4-a677-4104-a614-4bd7bd8a4a23
+                        Position: {X: 7.15255737E-07, Y: 2.0, Z: 5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    929137effba4784bb4b45ab26c3db478: !ModelComponent
+                        Id: ef379192-a4fb-4b78-b4b4-5ab26c3db478
+                        Model: 6160d544-c3ef-4486-974b-bc12362f6a4d:Models/Wall0x4x10Window
+                        Materials:
+                            90d9553b3c94da408c6e74641aca864b~0: af6015d0-0e5d-4189-b6e0-96810ff58e48:Materials/GridMTWall
+                    666529545735244ba050097255e092f8: !StaticColliderComponent
+                        Id: 54296566-3557-4b24-a050-097255e092f8
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            309e0b5643c5a94caa799a5ea1480617: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 0.5, Z: 7.0}
+                                LocalOffset: {X: 0.0, Y: 1.75, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            e09ec493d05e0446b75358f0e1c0fbdd: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 1.5, Z: 7.0}
+                                LocalOffset: {X: 0.0, Y: -1.25, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            9550f04dcee1d24fa8a30e41eea71a94: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 4.0, Z: 1.85}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: -4.075}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            6787f22b71553b488990706075dcef58: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 4.0, Z: 1.5}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 4.25}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            1da8adce3f0ce9449a9ed0e48cd32f20: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 1.0, Z: 6.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 1.1}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            ac51beb60323424898b48309bfb932d5: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 1.0, Z: 5.0}
+                                LocalOffset: {X: 0.0, Y: 1.0, Z: -1.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}

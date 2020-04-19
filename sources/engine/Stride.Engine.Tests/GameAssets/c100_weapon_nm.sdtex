@@ -1,0 +1,6 @@
+!Texture
+Id: a8a31df9-250d-4b60-bfe3-f35042efc094
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/knight/sourceimages/c100_weapon_nm.jpg
+Type: !NormalMapTextureType {}

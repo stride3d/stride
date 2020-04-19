@@ -1,0 +1,32 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering
+{
+    partial effect ParticleCustomEffect
+    {
+        // Use the ParticleBaseKeys for constant attributes, defined in the game engine
+        using params ParticleBaseKeys;
+
+        // Use the ParticleCustomShaderKeys for constant attributes, defined in this project
+        using params ParticleCustomShaderKeys;
+
+        // Inherit from the ParticleBaseEffect.sdfx, defined in the game engine
+        mixin ParticleBaseEffect;
+
+        // Use the ParticleCustomShader.sdsl, defined in this project
+        mixin ParticleCustomShader;
+
+        // If the user-defined effect for the baseColor is not null use it
+        if (ParticleCustomShaderKeys.BaseColor != null)
+        {
+            mixin compose baseColor = ParticleCustomShaderKeys.BaseColor;
+        }
+
+        // If the user-defined effect for the baseIntensity (alpha) is not null use it
+        if (ParticleCustomShaderKeys.BaseIntensity != null)
+        {
+            mixin compose baseIntensity = ParticleCustomShaderKeys.BaseIntensity;
+        }
+   };
+}

@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: B7E1A81D-DF04-430B-872B-8C477F32A87B
+AssetTypeName: ColliderShapeAsset
+Name: Box
+Scope: Asset
+Description: A box-shaped collider
+Group: Physics
+Icon: ..\.sdtpl\ColliderCube.png
+DefaultOutputName: ColliderBox
+FactoryTypeName: ColliderShapeBoxFactory

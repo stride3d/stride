@@ -1,0 +1,55 @@
+﻿<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <PropertyGroup>
+    <StridePlatformFilter>Windows;Android;iOS;Linux;macOS;UWP</StridePlatformFilter>
+    <DefineConstants>$(DefineConstants);XAMCORE_2_0</DefineConstants>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StridePlatformDependent>true</StridePlatformDependent>
+    <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
+    <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true'">false</StrideCompilerTargetsEnable>
+    <StrideBuildTags>*</StrideBuildTags>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageReference Include="Xunit.SkippableFact" Version="1.3.6" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Scripts\RunAndroidTest.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\RunAndroidUnitTest.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\RunUniqueAndroidTest.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\RunUniqueWindowsTest.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Web\jquery-2.1.0.min.js" />
+    <None Include="Web\tableBuilder.js" />
+    <None Include="Web\Vizualizer.html" />
+  </ItemGroup>
+
+  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+
+</Project>

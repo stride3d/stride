@@ -1,7 +1,0 @@
-!SpriteFont
-Id: 05718a05-c688-4340-853a-e22ee854d9cf
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-FontSource: !FileFontProvider
-    Source: ../../../../../data/tests/Risaltyp_024.ttf
-FontType: !RuntimeRasterizedSpriteFontType {}

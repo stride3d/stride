@@ -1,0 +1,56 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#ifndef ThreadCountX
+# define ThreadCountX 10
+#endif
+#ifndef ThreadCountY
+# define ThreadCountY 5
+#endif
+#ifndef ThreadCountZ
+# define ThreadCountZ 2
+#endif
+
+shader TestComputeShader
+{
+    stage stream uint3 GroupId : SV_GroupID;
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+    stage stream uint3 GroupThreadId : SV_GroupThreadID;
+    stage stream uint  GroupIndex : SV_GroupIndex;
+
+    stage stream uint3 ThreadGroupCount;
+    stage stream uint  ThreadCountPerGroup;
+    stage stream uint  ThreadGroupIndex;
+
+    cbuffer PerDispatch {
+        //[Link("Stride.Effects.ComputeShaderPluginKeys.ThreadGroupCount")]
+        stage uint3 ThreadGroupCountGlobal;
+    };
+
+    cbuffer ParticleCountBuffer {
+        uint ParticleCount;
+        uint ParticleStartIndex;
+    };
+
+    stage RWStructuredBuffer<uint2> ParticleSortBuffer;
+    [Link("ParticleSortBuffer")]
+    stage StructuredBuffer<uint2> ParticleSortBufferRO;
+
+    [numthreads(ThreadCountX, ThreadCountY, ThreadCountZ)]
+    void CSMain()
+    {
+        streams.ThreadCountPerGroup = ThreadCountX * ThreadCountY * ThreadCountZ;
+        streams.ThreadGroupCount = ThreadGroupCountGlobal;
+        streams.ThreadGroupIndex = (streams.GroupId.z * streams.ThreadGroupCount.y + streams.GroupId.y) * streams.ThreadGroupCount.x  + streams.GroupId.x;
+        Compute();
+    }
+
+    void Compute() 
+    {
+        ParticleSortBuffer[0] = uint2(0,1);
+        uint numStructs;
+        uint stride;
+        ParticleSortBufferRO.GetDimensions(numStructs, stride);
+        ParticleSortBuffer.IncrementCounter();
+        ParticleSortBuffer.DecrementCounter();
+    }
+};

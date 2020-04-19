@@ -1,0 +1,22 @@
+﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+<# 
+  var currentPlatform = (Stride.Core.PlatformType)Properties.CurrentPlatform;
+  var orientation = "landscape";
+  switch ((Stride.Graphics.DisplayOrientation)Properties.Orientation)
+  {
+    case Stride.Graphics.DisplayOrientation.LandscapeRight:
+    orientation = "landscape";
+    break;
+    case Stride.Graphics.DisplayOrientation.LandscapeLeft:
+    orientation = "landscapeFlipped";
+    break;
+    case Stride.Graphics.DisplayOrientation.Portrait:
+    orientation = "portrait";
+    break;
+  }
+#>
+<# if (orientation != null) { #>
+            <uap:InitialRotationPreference>
+              <uap:Rotation Preference="<#= orientation #>" />
+            </uap:InitialRotationPreference>
+<# } #>

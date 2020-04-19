@@ -1,0 +1,8 @@
+!Template
+Id: 446B52D3-A6A8-4274-A357-736ADEA87321
+Name: Update platforms
+Scope: Package
+Description: Adds support for a platform on a game (only valid on game packages with executables)
+Group: General
+Icon: .sdtpl\UpdatePlatforms.png
+DefaultOutputName: MyLibrary

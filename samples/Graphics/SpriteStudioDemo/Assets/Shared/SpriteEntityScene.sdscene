@@ -1,0 +1,241 @@
+!SceneAsset
+Id: d23da80d-8ef3-4400-9f16-190a9c6bd3b3
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 0b04edaf-f330-4ae1-9d93-517d967fbe95
+        - ref!! 76d096d5-6b97-4d29-bb4c-0d3a35317d5d
+        - ref!! d295a972-b9cf-48e5-a4ff-767eb25cddef
+        - ref!! d4867e32-71f8-4d81-a742-2d99ef6e5060
+        - ref!! 590ac468-5d53-43d9-81a6-2d43c1c06bc5
+        - ref!! cf253c4b-ccf0-4a8a-85e6-0019307e4cac
+        - ref!! 2a05c636-e91f-42e6-93ed-69415d19fe2f
+        - ref!! 629bf924-6828-46d6-a813-63d56a0f95b9
+    Parts:
+        -   Entity:
+                Id: 0b04edaf-f330-4ae1-9d93-517d967fbe95
+                Name: Camera
+                Components:
+                    80487dc03b738646b54d816aef3d3357: !TransformComponent
+                        Id: c07d4880-733b-4686-b54d-816aef3d3357
+                        Position: {X: 0.0, Y: 2.0, Z: 2.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a740e29b03a3c14c9aa10eb9365669ec: !CameraComponent
+                        Id: 9be240a7-a303-4cc1-9aa1-0eb9365669ec
+                        Name: null
+                        Projection: Orthographic
+                        NearClipPlane: 1.0
+                        Slot: 20be0aae-ab04-4f48-a08a-7e8ae0718d7d
+        -   Entity:
+                Id: 2a05c636-e91f-42e6-93ed-69415d19fe2f
+                Name: Background
+                Components:
+                    cd3af56dd50a014fbc45dd38893fa828: !TransformComponent
+                        Id: 6df53acd-0ad5-4f01-bc45-dd38893fa828
+                        Position: {X: 1.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e8ffae4e25d2274389df6813f39119d2: !BackgroundComponent
+                        Id: 4eaeffe8-d225-4327-89df-6813f39119d2
+                        Texture: 4b0f48d8-839e-4c71-8ca5-fc72e88cb68a:Bkg
+                        Is2D: true
+        -   Entity:
+                Id: 590ac468-5d53-43d9-81a6-2d43c1c06bc5
+                Name: Enemy02
+                Components:
+                    bb9cf45219cc2946b0939b766a5cd10b: !TransformComponent
+                        Id: 52f49cbb-cc19-4629-b093-9b766a5cd10b
+                        Position: {X: 8.0, Y: 8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    62e5d761e2b1074fb6cff5ef728d282a: !AnimationComponent
+                        Id: 61d7e562-b1e2-4f07-b6cf-f5ef728d282a
+                        Animations:
+                            2ca4d1acc4788c4ba964649692ef2cf0~Dead: 071d843d-2efa-4b49-83ef-f6ee79e8dbb5:character_template_2head_dead
+                            8cd235e092f39e4e82a177c45c6ba4a2~Wait: 23bad94a-8864-48ca-88e7-cc3c7121f156:character_template_2head_wait
+                    50e67a9acfce0f4cbd0d9c840e9dffe2: !SpriteStudioDemo.EnemyScript,SpriteStudioDemo.Game
+                        Id: 9a7ae650-cecf-4c0f-bd0d-9c840e9dffe2
+                    ac6c500d6ce33045a0d946e43e55d505: !SpriteStudioDemo.EnemyCollisionScript,SpriteStudioDemo.Game
+                        Id: 0d506cac-e36c-4530-a0d9-46e43e55d505
+                    6f4d298435a0f94bbe38dcd7035a5810: !RigidbodyComponent
+                        Id: 84294d6f-a035-4bf9-be38-dcd7035a5810
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            a584e32e2a48814d9aacc83de353e0c2: !ColliderShapeAssetDesc
+                                Shape: 77a32831-fdf3-41b4-9443-751500fcbc10:enemy_collider
+                    abb783eb470e534a93b4543cb811b527: !SpriteStudioComponent
+                        Id: eb83b7ab-0e47-4a53-93b4-543cb811b527
+                        Sheet: 7595b1d1-3f94-4cc5-bbfc-ec51687b96d6:character_template_2head
+        -   Entity:
+                Id: 629bf924-6828-46d6-a813-63d56a0f95b9
+                Name: Ground
+                Components:
+                    18e43432306f7647b7f2af6f9e73d225: !TransformComponent
+                        Id: 3234e418-6f30-4776-b7f2-af6f9e73d225
+                        Position: {X: -1.25711727, Y: -1.0, Z: 7.02876854}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    df68134a0a99634dab493a444fd68fab: !StaticColliderComponent
+                        Id: 4a1368df-990a-4d63-ab49-3a444fd68fab
+                        CanCollideWith: CustomFilter1
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            5f77f33e89e43749badb27f5ad3ef379: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+        -   Entity:
+                Id: 76d096d5-6b97-4d29-bb4c-0d3a35317d5d
+                Name: Player
+                Components:
+                    7143f704d65ad041be8a984db178ce5e: !TransformComponent
+                        Id: 04f74371-5ad6-41d0-be8a-984db178ce5e
+                        Position: {X: -6.616724, Y: -1.06623185, Z: 0.0}
+                        Rotation: {X: 0.0, Y: -1.0, Z: 0.0, W: -4.371139E-08}
+                        Scale: {X: 0.450682253, Y: 0.450682253, Z: 0.450682253}
+                        Children: {}
+                    144305e514d2c7409a08890d5ba014f9: !AnimationComponent
+                        Id: e5054314-d214-40c7-9a08-890d5ba014f9
+                        Animations:
+                            73b8fd8ff94aec488c5768963f127d50~Attack: 230575a8-df6b-4de2-ae9f-93bfcb02d538:character_template_3head_attack3
+                            56df8487c4948b4fba41d3d2374d46fa~Run: 0450fe8b-c834-4ab2-856b-19704944755c:character_template_3head_run
+                            d2f66ca42271884cbe513d3fbeeb5bad~Stance: ee0096d9-18f6-410a-ab68-d88a7c7ce9fc:character_template_3head_wait
+                    a8a68c014dc3934b99013c685336a2f0: !SpriteStudioDemo.PlayerScript,SpriteStudioDemo.Game
+                        Id: 018ca6a8-c34d-4b93-9901-3c685336a2f0
+                        BulletSheet: fba79776-e90e-42eb-ac60-a137b2e7378d:SpriteSheet
+                        BulletColliderShape: 7946c040-eeda-424d-a2f5-3ede14470c1a:Bullet_CS
+                    4a0ec4a7394f2347bd72990ea2aadc40: !SpriteStudioComponent
+                        Id: a7c40e4a-4f39-4723-bd72-990ea2aadc40
+                        Sheet: ed4d6771-9481-4867-b85a-9d04280baba5:character_template_3head
+        -   Entity:
+                Id: cf253c4b-ccf0-4a8a-85e6-0019307e4cac
+                Name: GUI
+                Components:
+                    95a213dbf7f1bf4ba0b0c17fa73967b3: !TransformComponent
+                        Id: db13a295-f1f7-4bbf-a0b0-c17fa73967b3
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    583a1dc2c443224b99a1d932a8b9c338: !SpriteStudioDemo.GuiScript,SpriteStudioDemo.Game
+                        Id: c21d3a58-43c4-4b22-99a1-d932a8b9c338
+                        Font: 58cd9ec1-ff48-4b50-aa88-43e0351fcb95:Font
+                    6e27d2c0390df9439df8cee475719561: !UIComponent
+                        Id: c0d2276e-0d39-43f9-9df8-cee475719561
+                        Page: null
+                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+                        Size: {X: 1.0, Y: 1.0, Z: 1.0}
+        -   Entity:
+                Id: d295a972-b9cf-48e5-a4ff-767eb25cddef
+                Name: Enemy00
+                Components:
+                    1881ccf7d35d254c9dc3288826278f52: !TransformComponent
+                        Id: f7cc8118-5dd3-4c25-9dc3-288826278f52
+                        Position: {X: -8.0, Y: 8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    48fd8bac1899f240b3c6124cc93870df: !AnimationComponent
+                        Id: ac8bfd48-9918-40f2-b3c6-124cc93870df
+                        Animations:
+                            d9cfe3f9b9b7674dabb4492da802d4bc~Dead: 071d843d-2efa-4b49-83ef-f6ee79e8dbb5:character_template_2head_dead
+                            87d9dd28e1a63e4d8ac3a60b765c7fcd~Wait: 23bad94a-8864-48ca-88e7-cc3c7121f156:character_template_2head_wait
+                    cfe4659f916b3140b923bcaf2c20a868: !SpriteStudioDemo.EnemyScript,SpriteStudioDemo.Game
+                        Id: 9f65e4cf-6b91-4031-b923-bcaf2c20a868
+                    ad59c92189c7b444948b1d4021f6aa50: !SpriteStudioDemo.EnemyCollisionScript,SpriteStudioDemo.Game
+                        Id: 21c959ad-c789-44b4-948b-1d4021f6aa50
+                    2c2a6cad7f6b8348911924943a9348e5: !RigidbodyComponent
+                        Id: ad6c2a2c-6b7f-4883-9119-24943a9348e5
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            de5d859b12567644894c1e13eddd2fd6: !ColliderShapeAssetDesc
+                                Shape: 77a32831-fdf3-41b4-9443-751500fcbc10:enemy_collider
+                    6f72b3ffcaf30641b754902470aa29bb: !SpriteStudioComponent
+                        Id: ffb3726f-f3ca-4106-b754-902470aa29bb
+                        Sheet: 7595b1d1-3f94-4cc5-bbfc-ec51687b96d6:character_template_2head
+        -   Entity:
+                Id: d4867e32-71f8-4d81-a742-2d99ef6e5060
+                Name: Enemy01
+                Components:
+                    787bb64028752d4bba67632d439aaad6: !TransformComponent
+                        Id: 40b67b78-7528-4b2d-ba67-632d439aaad6
+                        Position: {X: 0.0, Y: 8.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    b421914ae47f1c4a80dcc5bd05c02c7b: !AnimationComponent
+                        Id: 4a9121b4-7fe4-4a1c-80dc-c5bd05c02c7b
+                        Animations:
+                            53568e288f3d26468bb9f8e1f4696165~Dead: 071d843d-2efa-4b49-83ef-f6ee79e8dbb5:character_template_2head_dead
+                            675dbb201052684d82bc629f72be8e13~Wait: 23bad94a-8864-48ca-88e7-cc3c7121f156:character_template_2head_wait
+                    829d96a06f47aa4a82f27eff15b86395: !SpriteStudioDemo.EnemyScript,SpriteStudioDemo.Game
+                        Id: a0969d82-476f-4aaa-82f2-7eff15b86395
+                    d53f7b7022c6c5449141511dd24417e1: !SpriteStudioDemo.EnemyCollisionScript,SpriteStudioDemo.Game
+                        Id: 707b3fd5-c622-44c5-9141-511dd24417e1
+                    cee09b201693d246860597e95c780d44: !RigidbodyComponent
+                        Id: 209be0ce-9316-46d2-8605-97e95c780d44
+                        CollisionGroup: CustomFilter1
+                        CanCollideWith: DefaultFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            f55cacb4edd2914388df83e8a79e0c84: !ColliderShapeAssetDesc
+                                Shape: 77a32831-fdf3-41b4-9443-751500fcbc10:enemy_collider
+                    d5e61a6c0c981b4dbbd6a21986cd4b61: !SpriteStudioComponent
+                        Id: 6c1ae6d5-980c-4d1b-bbd6-a21986cd4b61
+                        Sheet: 7595b1d1-3f94-4cc5-bbfc-ec51687b96d6:character_template_2head

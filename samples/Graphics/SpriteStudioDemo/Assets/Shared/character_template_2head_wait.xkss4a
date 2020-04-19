@@ -1,6 +1,0 @@
-!SpriteStudioAnimationAsset
-Id: 23bad94a-8864-48ca-88e7-cc3c7121f156
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../Resources/character_template_2head.ssae
-AnimationName: wait

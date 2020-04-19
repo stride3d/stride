@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Build file used to build Stride and package it from the command line.
+Example of use: 
+"C:\Program Files (x86)\MSBuild\14.0\Bin\MSBuild" Stride.build /t:Package
+-->
+<Project ToolsVersion="15.0" DefaultTarget="Help" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <StrideRoot>$(MSBuildThisFileDirectory)..\</StrideRoot>
+    <StrideSolution>$(StrideRoot)build\Stride</StrideSolution>
+    <StrideSolutionLauncher>$(StrideRoot)build\Stride.Launcher</StrideSolutionLauncher>
+    <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
+    <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)</BuildProperties>
+    <StrideSign Condition="'$(StrideSign)' == ''">true</StrideSign>
+    <BuildProperties Condition="'$(StrideSign)' != ''">$(BuildProperties);StrideSign=$(StrideSign)</BuildProperties>
+    <BuildProperties Condition="'$(StrideOfficialBuild)' != ''">$(BuildProperties);StrideOfficialBuild=$(StrideOfficialBuild)</BuildProperties>
+    <NuGetPath>$(MSBuildThisFileDirectory).nuget\NuGet.exe</NuGetPath>
+    <XunitRunnerConsoleVersion>2.4.1</XunitRunnerConsoleVersion>
+    <StrideStoreUrl Condition="'$(StrideStoreUrl)' == ''">https://api.nuget.org/v3/index.json</StrideStoreUrl>
+    <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 15.5.1\bin\x86\advinst.exe')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 15.5.1\bin\x86\advinst.exe</AdvancedInstallerPath>
+    <StrideBuildPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == ''">true</StrideBuildPrerequisitesInstaller>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Stride.GitVersioning.GenerateVersionFile" AssemblyFile="$(StrideRoot)deps\Stride.GitVersioning\bin\Debug\net472\Stride.GitVersioning.dll" />
+  
+  <Target Name="Help">
+    <Message Importance="high" Text="TODO"/>
+  </Target>
+  
+  <!--
+  VSIX Stride plugin
+  Don't forget to build for VS2013 by using MSBuild 12.0, 
+  or if you're using a newer version of MSBuild, pass the flag /p:VisualStudioVersion=12.0 when calling MSBuild in the command line.
+  -->
+  <Target Name="VSIXPlugin" DependsOnTargets="Restore">
+    <ItemGroup>
+      <FilesToDeleteVSIX Include="$(StrideRoot)bin\vsix\*.nupkg"/>
+    </ItemGroup>
+
+    <Delete Files="@(FilesToDeleteVSIX)"/>
+
+    <MSBuild Targets="91-VisualStudio\Stride_VisualStudio_Package;91-VisualStudio\Stride_VisualStudio_PackageInstall" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
+    <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec" -BasePath "$(StrideRoot)sources\tools\Stride.VisualStudio.Package" -OutputDirectory "$(StrideRoot)bin\vsix"' />
+  </Target>
+  
+  <!--
+  Package Installer: install-prerequisites.exe
+  -->
+  <Target Name="PrerequisitesInstaller">
+    <Delete Files="$(StrideRoot)Bin\Prerequisites\install-prerequisites.exe"/>
+    <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(StrideRoot)sources\prerequisites\prerequisites.aip"'/>
+  </Target>
+
+  <!--
+  Perform a full build: Build, Package
+  -->
+  <Target Name="FullBuild">
+    <CallTarget Targets="Build"/>
+    <CallTarget Targets="Package"/>
+    <CallTarget Targets="VSIXPlugin"/>
+  </Target>
+  
+  <!--
+  Publish Stride nupkg from this folder to the store
+  -->
+  <Target Name="Publish">
+    <Error Condition="'$(StrideStoreApiKey)' == ''" Text="Missing env variable StrideStoreApiKey"/>
+    <!-- Waiting 30min in case NuGet.Gallery/Server takes time to process -->
+    <ItemGroup>
+      <NuGetPackage Include="..\bin\packages\*.nupkg"/>
+      <!-- Remove GameStudio (pushed in a second stage) -->
+      <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Stride.GameStudio'))"/>
+      <!-- Remove Samples.Templates (pushed only when requested since versionned separately -->
+      <NuGetPackage Remove="@(NuGetPackage)" Condition="'$(StridePublishSkipSamplesTemplates)' == 'true' And $([System.String]::Copy('%(Filename)').Contains('Stride.Samples.Templates'))"/>
+    </ItemGroup>
+    <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols'/>
+    <!-- Push GameStudio so that dependencies are already uploaded -->
+    <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.GameStudio*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols'/>
+  </Target>
+
+  <!--
+  Publish VSIX nupkg from this folder to the store
+  -->
+  <Target Name="PublishVSIX">
+    <Error Condition="'$(StrideStoreApiKey)' == ''" Text="Missing env variable StrideStoreApiKey"/>
+    <Exec Command='"$(NuGetPath)" push ..\bin\vsix\*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -NoSymbols'/>
+  </Target>
+  
+  <!--
+  Build Stride: Windows, Android, iOS, Windows 10 (UWP)
+  -->
+  <Target Name="Clean">
+    <Exec Command="RMDIR /Q /S $(StrideRoot)\Bin"/>
+  </Target>
+  
+  <!-- Package -->
+  <Target Name="PreparePackageBuild">
+    <PropertyGroup>
+      <BuildProperties>$(BuildProperties);StridePublicApi=true;StridePackageBuild=true</BuildProperties>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <FilesToDeletePackages Include="$(StrideRoot)bin\packages\*.nupkg"/>
+    </ItemGroup>
+
+    <Delete Files="@(FilesToDeletePackages)"/>
+
+    <!-- Make sure Stride.GitVersioning is built to run the task to update package version.
+         It might be better to move it to a prebuilt assembly if that becomes a problem.
+    -->
+    <MSBuild Targets="Restore" Projects="$(StrideRoot)deps\Stride.GitVersioning\Stride.GitVersioning.csproj"/>
+    <MSBuild Targets="Build" Projects="$(StrideRoot)deps\Stride.GitVersioning\Stride.GitVersioning.csproj"/>
+    
+    <!-- Create SharedAssemblyInfo.NuGet.cs with Git information (different between official build and internal builds) -->
+    <GenerateVersionFile Condition="'$(StrideOfficialBuild)' == 'true'" RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" NuGetVersionSuffixOverride="" SpecialVersionGitCommit="true">
+      <Output TaskParameter="NuGetVersion" PropertyName="StridePackageVersion"/>
+    </GenerateVersionFile>
+    <GenerateVersionFile Condition="'$(StrideOfficialBuild)' != 'true'" RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersionGitHeight="true" SpecialVersionGitCommit="true">
+      <Output TaskParameter="NuGetVersion" PropertyName="StridePackageVersion"/>
+    </GenerateVersionFile>
+
+    <Message Text="Done preparing build for version $(StridePackageVersion)"/>
+    <TeamCitySetBuildNumber BuildNumber="$(StridePackageVersion)" Condition="'$(TEAMCITY_BUILD_PROPERTIES_FILE)' != '' " />
+  </Target>
+  <PropertyGroup>
+    <_StridePackageTargetPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == 'true'">PrerequisitesInstaller</_StridePackageTargetPrerequisitesInstaller>
+  </PropertyGroup>
+  <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;VSIXPlugin"/>
+  
+  <Target Name="Restore">
+    <PropertyGroup>
+      <RestoreExec><![CDATA[
+        set StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)
+        set StrideGraphicsApi=$(StrideGraphicsApi)
+        set StridePlatforms=$(StridePlatforms)
+        "$(NuGetPath)" restore "$(StrideSolution).sln"
+      ]]></RestoreExec>
+    </PropertyGroup>
+    <Exec Command="$(RestoreExec)" />
+  </Target>
+
+  <Target Name="Build">
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
+  </Target>
+
+  <Target Name="BuildRuntime">
+    <PropertyGroup>
+      <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties)"/>
+  </Target>
+  
+  <Target Name="BuildWindows">
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+  </Target>
+
+  <Target Name="BuildWindowsDirect3D11">
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+  </Target>
+  
+  <Target Name="BuildWindowsDirect3D12">
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApi=Direct3D12"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApi=Direct3D12;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+  </Target>
+
+  <Target Name="BuildWindowsOpenGL">
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApi=OpenGL"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApi=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+  </Target>
+
+  <Target Name="BuildWindowsOpenGLES">
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApi=OpenGLES"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApi=OpenGLES;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+  </Target>
+
+  <Target Name="BuildAndroid">
+    <Exec Command='"$(NuGetPath)" restore "$(StrideSolution).Android.sln"' />
+    <MSBuild Targets="Build" Projects="$(StrideSolution).Android.sln" Properties="$(BuildProperties);StridePlatforms=Android;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+  </Target>
+
+  <Target Name="BuildiOS">
+    <Exec Command='"$(NuGetPath)" restore "$(StrideSolution).iOS.sln"' />
+    <MSBuild Targets="Build" Projects="$(StrideSolution).iOS.sln" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+  </Target>
+  
+  <Target Name="BuildWindowsStore">
+    <!-- Only a warning since build servers might still call this target for old branches -->
+    <Warning Text="Windows Store doesn't exist anymore"/>
+  </Target>
+
+  <Target Name="BuildWindows10" DependsOnTargets="BuildUWP" />
+
+  <Target Name="BuildUWP">
+    <PropertyGroup>
+      <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
+      <StridePlatforms>UWP</StridePlatforms>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+  </Target>
+  
+  <Target Name="BuildWindowsPhone">
+    <!-- Only a warning since build servers might still call this target for old branches -->
+    <Warning Text="Windows Phone doesn't exist anymore"/>
+  </Target>
+  
+  <Target Name="BuildWindowsVulkan">
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApi=Vulkan"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApi=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+  </Target>
+  
+  <Target Name="BuildLinux">
+    <PropertyGroup>
+      <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
+      <StridePlatforms>Linux</StridePlatforms>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+  </Target> 
+
+  <Target Name="BuildLinuxVulkan">
+    <PropertyGroup>
+      <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
+      <StridePlatforms>Linux</StridePlatforms>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApi=Vulkan"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApi=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+  </Target> 
+  
+  <Target Name="BuildmacOS">
+    <Exec Command='"$(NuGetPath)" restore "$(StrideSolution).macOS.sln"' />
+    <MSBuild Targets="Build" Projects="$(StrideSolution).macOS.sln" Properties="$(BuildProperties);Platform=macOS"/>
+  </Target> 
+
+  <Target Name="DownloadXunitRunnerConsole">
+    <MakeDir Directories="$(MSBuildThisFileDirectory)packages"/>
+    <PropertyGroup>
+      <XunitRunnerConsolePathDefault>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net461\xunit.console.exe</XunitRunnerConsolePathDefault>
+      <XunitRunnerConsolePathX86>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net461\xunit.console.x86.exe</XunitRunnerConsolePathX86>
+    </PropertyGroup>
+    <Exec Command='"$(NuGetPath)" install xunit.runner.console -Version $(XunitRunnerConsoleVersion)' Condition="!Exists('$(XunitRunnerConsolePathDefault)')" WorkingDirectory="$(MSBuildThisFileDirectory)packages" />
+    <Error Text="Could not find xunit.runner at expected location [$(XunitRunnerConsolePathDefault)]" Condition="!Exists('$(XunitRunnerConsolePathDefault)')"/>
+  </Target>
+  
+  <Target Name="RunTestsWindows" DependsOnTargets="DownloadXunitRunnerConsole">
+    <!-- By default, enable all known categories -->
+    <PropertyGroup>
+      <StrideTestCategories Condition="'$(StrideTestCategories)' == ''">Simple;Game;VSPackage</StrideTestCategories>
+      <!-- We enclose everything with ;, so that we could do full word matches more easily with string.Contains() -->
+      <StrideTestCategories>;$(StrideTestCategories);</StrideTestCategories>
+      <StrideTestExtraTargets></StrideTestExtraTargets>
+      <StrideTestExtraTargets Condition="$(StrideTestCategories.Contains(';GameAndroid;'))">$(StrideTestExtraTargets);SignAndroidPackage</StrideTestExtraTargets>
+    </PropertyGroup>
+    
+    <!-- Simple standalone unit tests -->
+    <ItemGroup Condition="$(StrideTestCategories.Contains(';Simple;'))">
+      <UnitTest Include="11-CoreRuntime.Tests\Stride.Core.Tests"/>
+      <UnitTest Include="21-StrideRuntime.Tests\Stride.Shaders.Tests.Windows"/>
+      <UnitTest Include="31-CoreDesign.Tests\Stride.Core.BuildEngine.Tests"/>
+      <UnitTest Include="31-CoreDesign.Tests\Stride.Core.Design.Tests"/>
+      <UnitTest Include="31-CoreDesign.Tests\Stride.Core.Yaml.Tests"/>
+      <UnitTest Include="41-Assets.Tests\Stride.Core.Assets.Quantum.Tests"/>
+      <UnitTest Include="41-Assets.Tests\Stride.Core.Assets.Tests"/>
+      <UnitTest Include="51-Presentation.Tests\Stride.Core.Presentation.Quantum.Tests"/>
+      <UnitTest Include="51-Presentation.Tests\Stride.Core.Presentation.Tests"/>
+      <UnitTest Include="51-Presentation.Tests\Stride.Core.Quantum.Tests"/>
+      <UnitTest Include="61-Editor.Tests\Stride.Core.Assets.Editor.Tests"/>
+      <UnitTest Include="61-Editor.Tests\Stride.GameStudio.Tests"/>
+      <UnitTest Include="71-StrideAssets.Tests\Stride.Assets.Tests2"/>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Engine.Tests.Windows"/>
+      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.10_0.Windows"/>
+      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.Windows"/>
+      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Navigation.Tests.Windows"/>
+      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Input.Tests.Windows"/>
+      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Particles.Tests.Windows"/>
+      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Physics.Tests.Windows"/>
+      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.UI.Tests.Windows"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.Engine.Tests.Android"/>
+      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.10_0.Android"/>
+      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.Android"/>
+      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.Input.Tests.Android"/>
+      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.Particles.Tests.Android"/>
+      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.Physics.Tests.Android"/>
+      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.UI.Tests.Android"/>
+    </ItemGroup>
+    
+    <!-- Direct3D11 unit tests -->
+    <ItemGroup Condition="$(StrideTestCategories.Contains(';Game;'))">
+      <UnitTest Include="@(UnitTestGame)"/>
+      <!-- Other graphics platforms don't support compute shaders and tessellation yet -->
+      <UnitTest Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.11_0.Windows"/>
+      <UnitTest Include="21-StrideRuntime.Tests\Stride.Audio.Tests.Windows"/>
+      <UnitTest Include="71-StrideAssets.Tests\Stride.Assets.Tests"/>
+    </ItemGroup>
+
+    <!-- Unit tests for Visual Studio -->
+    <ItemGroup Condition="$(StrideTestCategories.Contains(';VSPackage;'))">
+      <UnitTest Include="91-VisualStudio\Stride.VisualStudio.Package.Tests"/>
+    </ItemGroup>
+
+    <!-- Direct3D12 unit tests -->
+    <ItemGroup Condition="$(StrideTestCategories.Contains(';GameDirect3D12;'))">
+      <UnitTestPrerequisites Include="@(UnitTestGame)"/>
+      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).Direct3D12.sln</Solution></UnitTest>
+    </ItemGroup>
+
+    <!-- OpenGL unit tests -->
+    <ItemGroup Condition="$(StrideTestCategories.Contains(';GameOpenGL;'))">
+      <UnitTestPrerequisites Include="@(UnitTestGame)"/>
+      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).OpenGL.sln</Solution></UnitTest>
+    </ItemGroup>
+
+    <!-- OpenGLES unit tests -->
+    <ItemGroup Condition="$(StrideTestCategories.Contains(';GameOpenGLES;'))">
+      <UnitTestPrerequisites Include="@(UnitTestGame)"/>
+      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).OpenGLES.sln</Solution></UnitTest>
+    </ItemGroup>
+    
+    <!-- Vulkan unit tests -->
+    <ItemGroup Condition="$(StrideTestCategories.Contains(';GameVulkan;'))">
+      <UnitTestPrerequisites Include="@(UnitTestGame)"/>
+      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).Vulkan.sln</Solution></UnitTest>
+    </ItemGroup>
+    
+    <!-- Android unit tests -->
+    <ItemGroup Condition="$(StrideTestCategories.Contains(';GameAndroid;'))">
+      <UnitTestPrerequisites Include="@(UnitTestGame)"/>
+      <UnitTest Include="@(UnitTestGameAndroid)"><Solution>$(StrideSolution).Android.sln</Solution></UnitTest> 
+    </ItemGroup>
+    
+    <!-- Samples unit tests -->
+    <ItemGroup Condition="$(StrideTestCategories.Contains(';Samples;'))">
+      <UnitTest Include="72-StrideSamples\Stride.Samples.Tests"/>
+    </ItemGroup>
+    
+    <!-- Compute TargetName and default Solution -->    
+    <ItemGroup>
+      <UnitTestPrerequisites>
+        <!-- Replace . into _ (needed for .sln targets) -->
+        <TargetName>$([System.String]::Copy('%(Identity)').Replace('.','_'))</TargetName>
+        <!-- Default solution -->
+        <Solution Condition="'%(UnitTestPrerequisites.Solution)' == ''">$(StrideSolution).sln</Solution>
+      </UnitTestPrerequisites>
+      <UnitTest>
+        <!-- Replace . into _ (needed for .sln targets) -->
+        <TargetName>$([System.String]::Copy('%(Identity)').Replace('.','_'))</TargetName>
+        <!-- Default solution -->
+        <Solution Condition="'%(UnitTest.Solution)' == ''">$(StrideSolution).sln</Solution>
+      </UnitTest>
+    </ItemGroup>
+    
+    <!-- Restore NuGet packages -->
+    <Message Importance="High" Text="Restoring NuGet packages"/>
+    <Exec Condition="'%(UnitTestPrerequisites.Solution)' != ''" Command='"$(NuGetPath)" restore "%(UnitTestPrerequisites.Solution)"' />
+    <Exec Condition="'%(UnitTest.Solution)' != ''" Command='"$(NuGetPath)" restore "%(UnitTest.Solution)"' />
+    
+    <!-- First, build prerequisites -->
+    <Message Importance="High" Text="Building unit test prerequisites from solution %(Solution): @(UnitTestPrerequisites->'%(TargetName)')"/>
+    <MSBuild Targets="@(UnitTestPrerequisites->'%(TargetName)')" Projects="%(Solution)" Properties="$(BuildProperties);Platform=Mixed Platforms;DeployExtension=true"/>
+
+    <!-- Build unit tests -->
+    <Message Importance="High" Text="Building unit test from solution %(Solution): @(UnitTest->'%(TargetName)')"/>
+    <MSBuild Targets="@(UnitTest->'%(TargetName)');$(StrideTestExtraTargets)" Projects="%(Solution)" Properties="$(BuildProperties);DeployExtension=true">
+      <Output TaskParameter="TargetOutputs" ItemName="AssembliesToTest" />
+    </MSBuild>
+
+    <!-- Run unit tests -->
+    <MakeDir Directories="$(MSBuildThisFileDirectory)TestResults"/>
+    <ItemGroup>
+      <AssembliesToTestDefault Include="@(AssembliesToTest)" Condition="'%(AssembliesToTest.PlatformTarget)' != 'x86'"/>
+      <AssembliesToTestX86 Include="@(AssembliesToTest)" Condition="'%(AssembliesToTest.PlatformTarget)' == 'x86'"/>
+    </ItemGroup>
+    <Exec Condition="'@(AssembliesToTestDefault)' != ''" Command="&quot;$(XunitRunnerConsolePathDefault)&quot; @(AssembliesToTestDefault->'%(Identity)', ' ')"/>
+    <Exec Condition="'@(AssembliesToTestX86)' != ''" Command="&quot;$(XunitRunnerConsolePathX86)&quot; @(AssembliesToTestX86->'%(Identity)', ' ')"/>
+  </Target>
+  
+  <ItemGroup>
+    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Engine.Tests\Stride.Engine.Tests.$(PlatformToBuild).csproj"/>
+    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Audio.Tests\Stride.Audio.Tests.$(PlatformToBuild).csproj"/>
+    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.$(PlatformToBuild).csproj"/>
+    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.$(PlatformToBuild).csproj"/>
+    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Input.Tests\Stride.Input.Tests.$(PlatformToBuild).csproj"/>
+    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Particles.Tests\Stride.Particles.Tests.$(PlatformToBuild).csproj"/>
+    <MobileUnitTestProject Include="$(StrideRoot)sources\engine\Stride.Physics.Tests\Stride.Physics.Tests.$(PlatformToBuild).csproj"/>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Engine.Tests\Stride.Engine.Tests-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Physics.Tests\Stride.Physics.Tests-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Audio.Tests\Stride.Audio.Tests-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests_10_0-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Graphics.Tests\Stride.Graphics.Tests-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Input.Tests\Stride.Input.Tests-Signed.apk"/>
+    <MobileUnitTestApk Include="$(StrideRoot)\Bin\Android\Tests\OpenGLES\Stride.Particles.Tests\Stride.Particles.Tests-Signed.apk"/>
+  </ItemGroup>
+  
+  <Target Name="RunTestsMobile" DependsOnTargets="DownloadXunitRunnerConsole" Outputs="%(MobileUnitTestProject.Identity)">
+    <PropertyGroup>
+      <StrideRoot>$(MSBuildThisFileDirectory)..\</StrideRoot>
+      <StridePlatform></StridePlatform>
+      <StridePlatform Condition="'$(PlatformToBuild)' == 'iOS'">Platform=iPhone</StridePlatform>
+      <StridePlatform Condition="'$(PlatformToBuild)' == 'Android'">Platform=Android</StridePlatform>
+      <StrideBuildOptions></StrideBuildOptions>
+      <StrideBuildOptions Condition="'$(PlatformToBuild)' == 'iOS'">ServerAddress=pc13095;ServerUser=virgile;BuildIpa=true;MtouchUseLlvm=true</StrideBuildOptions>
+      <StrideBuildTargets>Rebuild</StrideBuildTargets>
+      <StrideBuildTargets Condition="'$(PlatformToBuild)' == 'Android'">SignAndroidPackage</StrideBuildTargets>
+      <StrideBuildConfig>Release</StrideBuildConfig>
+      <StrideBuildConfig Condition="'$(PlatformToBuild)' == 'Windows'">Debug</StrideBuildConfig>
+    </PropertyGroup>
+  
+    <MSBuild Projects ="%(MobileUnitTestProject.Identity)" Targets="SignAndroidPackage"
+             Properties="SolutionName=Stride.Android; SolutionDir=$(MSBuildThisFileDirectory);$(StridePlatform);Configuration=$(StrideBuildConfig);$(StrideBuildOptions)">
+    </MSBuild>
+    <Exec IgnoreExitCode="True" Command='taskkill /F /FI "Imagename eq Stride.Core.Assets.CompilerApp*"' />
+    
+    <Exec Condition="'$(PlatformToBuild)' == 'Android'" Command="$(StrideRoot)sources\tools\Stride.TestRunner\bin\Release\net472\Stride.TestRunner.exe %(MobileUnitTestApk.Identity)">
+      <Output TaskParameter="ExitCode" ItemName="exitCode" />
+    </Exec>
+  </Target>
+  
+  <!--
+  Package Launcher
+  -->
+  <Target Name="PackageLauncher" DependsOnTargets="LauncherPrerequisitesInstaller">
+    <ItemGroup>
+      <FilesToDeleteLauncher Include="$(StrideRoot)bin\launcher\*.nupkg"/>
+    </ItemGroup>
+
+    <!-- Note: we avoid building again if BuildWindows was already ran just before -->
+    <Delete Files="@(FilesToDeleteLauncher)"/>
+    
+    <!-- Generate the nuget package for the launcher application -->
+    <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\launcher\Stride.LauncherApp\Stride.LauncherApp.nuspec" -BasePath "$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release" -OutputDirectory "$(StrideRoot)bin\launcher"' />
+  </Target>
+  
+  <!--
+  Package Installer: StrideSetup.exe
+  -->
+  <Target Name="PackageInstallerSimple" DependsOnTargets="PackageLauncher">
+    <Delete Files="$(StrideRoot)bin\launcher\StrideSetup.exe"/>
+    <!-- Run advanced installer -->
+    <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(StrideRoot)sources\launcher\Setup\setup.aip"'/>
+    <Copy SourceFiles="$(StrideRoot)sources\launcher\Setup\setup-SetupFiles\StrideSetup.exe" DestinationFolder="$(StrideRoot)bin\launcher"/>
+  </Target>
+  <Target Name="PackageInstallerCustom" DependsOnTargets="PackageLauncher">
+    <Error Condition="'$(CustomInstaller)' == '' Or '$(CustomInstallerStoreUrl)' == ''" Text="When CustomInstaller is set, CustomInstallerStoreUrl also needs to be defined"/>
+    <PropertyGroup>
+      <CustomInstallerNoSpace>$(CustomInstaller.Replace(' ', ''))</CustomInstallerNoSpace>
+    </PropertyGroup>
+  
+    <Delete Files="StrideSetup$(CustomInstallerNoSpace).exe"/>
+    <!-- Make sure it is deleted otherwise Advanced Installer complains (in case previous run didn't complete -->
+    <Delete Files="$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip"/>
+    <!-- Duplicate setup.aip with different IDs -->
+    <Exec Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\launcher\Setup\setup.aip" /DuplicateProject "$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip"'/>
+    <!-- Edit a few parameters -->
+    <Exec Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip" /SetProperty BuildExeName="StrideSetup$(CustomInstallerNoSpace)"'/>
+    <Exec Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip" /SetProperty ProductName="Stride $(CustomInstaller)"'/>
+    <Exec Command='"$(AdvancedInstallerPath)" /edit "$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip" /SetProperty AI_PRODUCTNAME_ARP="Stride $(CustomInstaller)"'/>
+
+    <!-- Backup store.config -->
+    <Copy SourceFiles="$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release\store.config" DestinationFiles="$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release\store.config.backup"/>
+    
+    <!-- Update store.config with additional parameters -->
+    <Exec Command='"$(NuGetPath)" sources Add -Name "Stride $(CustomInstaller)" -Source "$(CustomInstallerStoreUrl)" -ConfigFile "$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release\store.config"'/>
+    
+    <!-- Run advanced installer -->
+    <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip"'/>
+    <Copy SourceFiles="$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace)-SetupFiles\StrideSetup$(CustomInstallerNoSpace).exe" DestinationFolder="$(MSBuildThisFileDirectory)"/>
+    <Delete Files="$(StrideRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip"/>
+    
+    <!-- Restore store.config -->
+    <Copy SourceFiles="$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release\store.config.backup" DestinationFiles="$(StrideRoot)Stride.LauncherApp\bin\Release\store.config"/>
+    <Delete Files="$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release\store.config.backup"/>	
+  </Target>
+  <PropertyGroup>
+    <!-- Choose proper target to execute -->
+    <PackageInstallerTarget Condition="'$(CustomInstaller)' == ''">PackageInstallerSimple</PackageInstallerTarget>
+    <PackageInstallerTarget Condition="'$(CustomInstaller)' != ''">PackageInstallerCustom</PackageInstallerTarget>
+  </PropertyGroup>
+  <Target Name="PackageInstaller" DependsOnTargets="$(PackageInstallerTarget)"/>
+  
+  <!--
+  Package Installer: launcher-prerequisites.exe
+  -->
+  <Target Name="LauncherPrerequisitesInstaller">
+    <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(StrideRoot)sources\launcher\Prerequisites\launcher-prerequisites.aip"'/>
+  </Target>
+
+  <!--
+  Perform a full build: Build, Package and PackageInstaller
+  -->
+  <Target Name="FullBuildLauncher">
+    <CallTarget Targets="BuildLauncher"/>
+    <CallTarget Targets="PackageInstaller"/>
+  </Target>
+  
+  <!--
+  Publish Launcher nupkg from this folder to the store
+  -->
+  <Target Name="PublishLauncher">
+    <Error Condition="'$(StrideStoreApiKey)' == ''" Text="Missing env variable StrideStoreApiKey"/>
+    <Exec Command='"$(NuGetPath)" push ..\bin\launcher\*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -NoSymbols'/>
+  </Target>
+  
+  <Target Name="BuildLauncher">
+    <Exec Command='"$(NuGetPath)" restore "$(StrideSolutionLauncher).sln"' />
+    <MSBuild Targets="Build" Projects="$(StrideSolutionLauncher).sln" Properties="$(BuildProperties);Platform=Any CPU"/>
+  </Target>
+
+</Project>

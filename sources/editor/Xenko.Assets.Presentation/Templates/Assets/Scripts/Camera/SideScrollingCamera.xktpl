@@ -1,9 +1,0 @@
-!TemplateAsset
-Id: cdb2d5d8-85e2-4512-9651-e391cf457076
-AssetTypeName: ScriptSourceFileAsset
-Name: "Camera: side-scrolling"
-Scope: Asset
-Description: A basic side-scrolling camera script
-Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
-DefaultOutputName: SideScrollingCamera

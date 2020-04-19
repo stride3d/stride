@@ -1,0 +1,99 @@
+<UserControl x:Class="Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views.TemplateBrowserUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:views="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
+             xmlns:providers="clr-namespace:Stride.Core.Assets.Editor.View.TemplateProviders"
+             xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:TemplateDescriptionCollectionViewModel}"
+             d:DesignHeight="300" d:DesignWidth="300">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="../../../View/CommonResources.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+
+      <providers:DataTypeTemplateSelector x:Key="dataTypeTemplateSelector" >
+        <providers:DataTypeTemplateSelector.TemplateDefinitions>
+          <providers:TemplateDefinition DataType="viewModels:ExistingProjectViewModel">
+            <providers:TemplateDefinition.DataTemplate>
+              <DataTemplate>
+                <DockPanel Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={sd:SumNum}, ConverterParameter={sd:Double -10}}" Margin="0,0,-5,0"  Height="56">
+                  <Image Source="{Binding Icon}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
+                  <DockPanel Margin="18,0">
+                    <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
+                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
+                  </DockPanel>
+                  <DockPanel.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="{sd:Localize Show in Explorer, Context=Menu}" Command="{Binding ExploreCommand}" />
+                      <MenuItem Header="{sd:Localize Remove From List, Context=Menu}" Command="{Binding RemoveCommand}" />
+                    </ContextMenu>
+                  </DockPanel.ContextMenu>
+                </DockPanel>
+              </DataTemplate>
+            </providers:TemplateDefinition.DataTemplate>
+          </providers:TemplateDefinition>
+          <providers:TemplateDefinition DataType="viewModels:ITemplateDescriptionViewModel">
+            <providers:TemplateDefinition.DataTemplate>
+              <DataTemplate>
+                <DockPanel Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={sd:SumNum}, ConverterParameter={sd:Double -10}}" Margin="0,0,-5,0"  Height="56">
+                  <Image Source="{Binding Icon}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
+                  <DockPanel Margin="18,0">
+                    <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
+                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
+                  </DockPanel>
+                </DockPanel>
+              </DataTemplate>
+            </providers:TemplateDefinition.DataTemplate>
+          </providers:TemplateDefinition>
+        </providers:DataTypeTemplateSelector.TemplateDefinitions>
+      </providers:DataTypeTemplateSelector>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <views:ObjectBrowserUserControl HierarchyItemsSource="{Binding RootGroups}"
+                                  SelectedHierarchyItem="{Binding SelectedGroup, Mode=TwoWay}"
+                                  ObjectItemsSource="{Binding Templates}"
+                                  SelectedObjectItem="{Binding SelectedTemplate}"
+                                  ObjectItemTemplateSelector="{StaticResource dataTypeTemplateSelector}">
+    <views:ObjectBrowserUserControl.HierarchyItemContainerStyle>
+      <Style TargetType="sd:TreeViewItem" BasedOn="{StaticResource {x:Type sd:TreeViewItem}}">
+        <Setter Property="IsExpanded" Value="True"/>
+      </Style>
+    </views:ObjectBrowserUserControl.HierarchyItemContainerStyle>
+    <views:ObjectBrowserUserControl.HierarchyItemTemplate>
+      <HierarchicalDataTemplate ItemsSource="{Binding SubGroups}" DataType="viewModels:TemplateDescriptionGroupViewModel">
+        <TextBlock Text="{Binding Name}"/>
+      </HierarchicalDataTemplate>
+    </views:ObjectBrowserUserControl.HierarchyItemTemplate>
+    <views:ObjectBrowserUserControl.ObjectItemContainerStyle>
+      <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+        <Setter Property="sd:Interaction.Behaviors">
+          <Setter.Value>
+            <sd:BehaviorCollection>
+              <sd:DoubleClickCloseWindowBehavior DialogResult="OK"/>
+            </sd:BehaviorCollection>
+          </Setter.Value>
+        </Setter>
+      </Style>
+    </views:ObjectBrowserUserControl.ObjectItemContainerStyle>
+    <views:ObjectBrowserUserControl.ObjectDescriptionTemplate>
+      <DataTemplate DataType="viewModels:ITemplateDescriptionViewModel">
+        <StackPanel DockPanel.Dock="Top">
+          <TextBlock FontWeight="Bold" Text="{Binding Name}" Margin="10"/>
+          <TextBlock Text="{Binding FullDescription}" Margin="10,20" TextWrapping="Wrap"/>
+
+          <ItemsControl ItemsSource="{Binding Screenshots}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Image Margin="2,12" Source="{Binding}" MaxWidth="192" StretchDirection="DownOnly" SnapsToDevicePixels="true"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </DataTemplate>
+    </views:ObjectBrowserUserControl.ObjectDescriptionTemplate>
+  </views:ObjectBrowserUserControl>
+</UserControl>

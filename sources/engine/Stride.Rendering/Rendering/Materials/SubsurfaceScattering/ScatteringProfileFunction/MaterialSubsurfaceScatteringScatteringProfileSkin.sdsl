@@ -1,0 +1,19 @@
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Materials
+{
+    class MaterialSubsurfaceScatteringScatteringProfileSkin : IMaterialSubsurfaceScatteringScatteringProfile
+    {
+        float3 Compute(float dd)
+        {
+            // Hardcoded skin profile from https://github.com/iryoku/separable-sss
+            return float3(0.233, 0.455, 0.649) * exp(dd / 0.0064) +
+                   float3(0.1,   0.336, 0.344) * exp(dd / 0.0484) +
+                   float3(0.118, 0.198, 0.0)   * exp(dd / 0.187)  +
+                   float3(0.113, 0.007, 0.007) * exp(dd / 0.567)  +
+                   float3(0.358, 0.004, 0.0)   * exp(dd / 1.99)   +
+                   float3(0.078, 0.0,   0.0)   * exp(dd / 7.41);
+        }
+    };
+}

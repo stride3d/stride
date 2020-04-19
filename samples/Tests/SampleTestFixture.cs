@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Xenko.Assets.Presentation;
-using Xenko.Assets.Presentation.Templates;
-using Xenko.Assets.Templates;
-using Xenko.Core.Assets;
-using Xenko.Core.Assets.Templates;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
+using Stride.Assets.Presentation;
+using Stride.Assets.Presentation.Templates;
+using Stride.Assets.Templates;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Templates;
+using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 
-namespace Xenko.Samples.Tests
+namespace Stride.Samples.Tests
 {
     public class SampleTestFixture : IDisposable
     {
@@ -32,7 +32,7 @@ namespace Xenko.Samples.Tests
         {
             var project = session.Projects.OfType<SolutionProject>().First(x => x.Platform == Core.PlatformType.Windows);
 
-            var buildResult = VSProjectHelper.CompileProjectAssemblyAsync(null, project.FullPath, logger, extraProperties: new Dictionary<string, string> { { "XenkoAutoTesting", "true" } }).BuildTask.Result;
+            var buildResult = VSProjectHelper.CompileProjectAssemblyAsync(null, project.FullPath, logger, extraProperties: new Dictionary<string, string> { { "StrideAutoTesting", "true" } }).BuildTask.Result;
             if (logger.HasErrors)
             {
                 throw new InvalidOperationException($"Error compiling sample {sampleName}:\r\n{logger.ToText()}");
@@ -76,10 +76,10 @@ namespace Xenko.Samples.Tests
             }
 
             // Load templates
-            XenkoDefaultAssetsPlugin.LoadDefaultTemplates();
-            var xenkoTemplates = TemplateManager.FindTemplates(session);
+            StrideDefaultAssetsPlugin.LoadDefaultTemplates();
+            var strideTemplates = TemplateManager.FindTemplates(session);
 
-            parameters.Description = xenkoTemplates.First(x => x.Id == templateGuid);
+            parameters.Description = strideTemplates.First(x => x.Id == templateGuid);
             parameters.Name = sampleName;
             parameters.Namespace = sampleName;
             parameters.OutputDirectory = outputPath;
@@ -91,7 +91,7 @@ namespace Xenko.Samples.Tests
             if (!generator.Run(parameters))
                 logger.Error("Run returned false for the TemplateSampleGenerator");
 
-            var updaterTemplate = xenkoTemplates.First(x => x.FullPath.ToString().EndsWith("UpdatePlatforms.xktpl"));
+            var updaterTemplate = strideTemplates.First(x => x.FullPath.ToString().EndsWith("UpdatePlatforms.sdtpl"));
             parameters.Description = updaterTemplate;
 
             if (logger.HasErrors)

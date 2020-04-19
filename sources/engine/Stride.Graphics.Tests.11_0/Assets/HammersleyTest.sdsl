@@ -1,0 +1,20 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+shader HammersleyTest : ComputeShaderBase
+{
+    stage int SamplesCount;
+
+    RWTexture2D<float4> OutputTexture;
+
+    // Shading of the sprite
+    override void Compute()
+    {
+        var xy = Hammersley.GetSamplePlane(streams.ThreadGroupIndex, SamplesCount);
+        
+        uint width, height;
+        OutputTexture.GetDimensions(width, height);
+
+        OutputTexture[xy * float2(width, height)] = float4(1, 0, 0, 1);
+    }
+};

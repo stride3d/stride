@@ -1,0 +1,12 @@
+!ProceduralModelAsset
+Id: 476b6aa7-94ee-468a-84df-93877dbdb88e
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: !CylinderProceduralModel
+    Height: 10.0
+    Radius: 0.2
+    Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+    UvScale: {X: 1.0, Y: 1.0}
+    LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+    MaterialInstance:
+        Material: 45505943-81cf-4e21-81ff-5a6bf85bb062:Materials/Metal Material

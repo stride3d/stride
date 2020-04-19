@@ -1,0 +1,16 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    shader MaterialSurfaceShadingBlend : MaterialSurfaceArray, MaterialPixelShadingStream
+    {
+        override void Compute()
+        {
+            var backupShadingColor = streams.shadingColor;
+			var blending = streams.matBlend;
+            streams.shadingColor = 0;
+            base.Compute();
+            streams.shadingColor = lerp(backupShadingColor, streams.shadingColor, blending);
+        }
+    };
+}

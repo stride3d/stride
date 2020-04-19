@@ -1,0 +1,78 @@
+!SpriteSheet
+Id: b1f45b05-5d31-4085-9999-f23c9eea5acc
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: UI
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+Packing: {}
+Sprites:
+    43451b18e9fc904ebfe0b8d073112975:
+        Source: ../Resources/Bullets.png
+        Name: 0
+        TextureRegion: {X: 0, Y: 0, Width: 51, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    9c0a515a55662ea9c686c7ef49ab460a:
+        Source: ../Resources/Bullets.png
+        Name: 1
+        TextureRegion: {X: 51, Y: 0, Width: 51, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    04b9453b155731b4bfadf6d34b419fe3:
+        Source: ../Resources/Bullets.png
+        Name: 2
+        TextureRegion: {X: 102, Y: 0, Width: 51, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    814ee5b946f9057f86ee3034beb49482:
+        Source: ../Resources/Bullets.png
+        Name: 3
+        TextureRegion: {X: 153, Y: 0, Width: 51, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    08db8dcb72dad0fe66f55868985ea74c:
+        Source: ../Resources/Bullets.png
+        Name: 4
+        TextureRegion: {X: 204, Y: 0, Width: 51, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    ade7f1356332359fe87ee2338fdd2930:
+        Source: ../Resources/Bullets.png
+        Name: 5
+        TextureRegion: {X: 0, Y: 128, Width: 51, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    022035e3ca0b15b68df1ebc9f246267b:
+        Source: ../Resources/Bullets.png
+        Name: 6
+        TextureRegion: {X: 51, Y: 128, Width: 51, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    c10bce05ebfeb3706646cf379375c642:
+        Source: ../Resources/Bullets.png
+        Name: 7
+        TextureRegion: {X: 102, Y: 128, Width: 51, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    3a146de76850e82507adaa0c8a3798bb:
+        Source: ../Resources/Bullets.png
+        Name: 8
+        TextureRegion: {X: 153, Y: 128, Width: 51, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    5a82c0c050572405231f384a773d8fab:
+        Source: ../Resources/Bullets.png
+        Name: 9
+        TextureRegion: {X: 204, Y: 128, Width: 51, Height: 128}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}

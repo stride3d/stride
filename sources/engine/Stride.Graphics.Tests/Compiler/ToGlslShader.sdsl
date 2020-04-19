@@ -1,0 +1,30 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader ToGlslShader : ShaderBase, Texturing
+{
+    stage stream float2 Position : POSITION;
+
+    float4 BaseColor = float4(2,1,5,9);
+    float4x4 myMatrix;
+
+    //Texture2D myTextures[3];
+
+    cbuffer PerArray
+    {
+        float TestArray[4];
+    };
+
+    stage override void VSMain() 
+    {
+        streams.ShadingPosition = float4(streams.Position, 0.0f, 2.0f) * TestArray[2] * myMatrix._12;
+    }
+
+    stage override void PSMain() 
+    {
+        /*float4 color = 0;
+        for (int i = 0; i < 3; ++i)
+            color += myTextures[i].Sample(PointRepeatSampler, streams.Position);
+        */
+        streams.ColorTarget = float4(1, 0, 0, 1) + BaseColor*TestArray[0]*TestArray[1] + Texture0.Sample(PointRepeatSampler, streams.Position);
+    }
+};

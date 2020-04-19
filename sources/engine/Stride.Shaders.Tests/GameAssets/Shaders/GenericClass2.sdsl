@@ -1,0 +1,23 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader GenericClass2
+<
+  Texture2D Texture,
+  Semantic TEXCOORD_INDEX,
+  float4 scale
+> : ShaderBase, Texturing
+{
+    stage stream float2 texcoord0 : TEXCOORD_INDEX;
+    Texture2D TextureAll = Texturing.Texture3;
+
+    stage override void VSMain()
+    {
+        streams.ShadingPosition = float4(1,1,1,1) * Texture.SampleLevel(Sampler, streams.texcoord0, 0);
+    }
+
+    stage override void PSMain()
+    {
+        streams.ColorTarget = scale * float4(1,1,1,1) * streams.ShadingPosition * Texturing.Texture1.Sample(Sampler, streams.texcoord0);
+        streams.ColorTarget = streams.ColorTarget * GenericClass<Texture, Texturing.Sampler0, TEXCOORD_INDEX>.genericCompute();
+    }
+};

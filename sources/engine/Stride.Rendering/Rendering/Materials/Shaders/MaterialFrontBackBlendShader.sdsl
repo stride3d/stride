@@ -1,0 +1,33 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+shader MaterialFrontBackBlendShader<bool TUseNormalBackface> : ShadingBase, Transformation, PositionStream, NormalStream
+{
+    cbuffer PerDraw
+    {
+        [Color]
+        stage float3 ColorFront;
+    
+        stage float ColorBlend;
+
+        [Color]
+        stage float3 ColorBack;
+    
+        stage float AlphaBlend;
+    }
+
+    // method computing color
+    stage override float4 Shading()
+    {
+        float3 color = ColorFront;
+        if (TUseNormalBackface)
+        {
+            float3 viewWS = normalize(Eye.xyz - streams.PositionWS.xyz);
+            // Allow smooth transition from front face to backface
+            float ndotV = saturate((dot(streams.normalWS, viewWS) + 0.25) / 0.25);
+            color = lerp(ColorBack, ColorFront, ndotV);
+        }
+
+        return float4(color * ColorBlend, AlphaBlend);
+    }
+};

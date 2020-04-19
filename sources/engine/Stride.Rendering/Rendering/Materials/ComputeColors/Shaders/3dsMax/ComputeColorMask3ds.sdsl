@@ -1,0 +1,23 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+//shader ComputeColorDifference3ds : ComputeColor
+shader ComputeColorMask3ds : ComputeColor
+{
+    compose ComputeColor color1;
+    compose ComputeColor maskColor;
+
+    override float4 Compute()
+    {
+        float4 backColor = color1.Compute();
+        float4 mask = maskColor.Compute();
+
+        //  t = texture, m = mask, c = color, a = alpha
+        //
+        //  Mask:
+        //      color = tc
+        //      alpha = ta * avg(mc)
+
+        return float4(backColor.rgb,
+                      backColor.a * (mask.r + mask.g + mask.b) / 3.0f);
+    }
+};

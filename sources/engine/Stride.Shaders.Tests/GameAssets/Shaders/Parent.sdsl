@@ -1,0 +1,14 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader Parent
+{
+    float baseValue = 2.0f;
+    Texture2D parentTexture;
+
+    float AddBaseValue(float inValue)
+    {
+        float a0 = 0.0f,
+              a1 = 1.0f;
+        return inValue + baseValue + a0 + a1;
+    }
+};

@@ -1,0 +1,15 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader ExternCloneTest
+{
+    compose DeepExtern ext0;
+    compose DeepExtern ext1;
+
+    void Test()
+    {
+        float fext0 = ext0.myExtern.externMember;
+        float fext1 = ext1.myExtern.externMember;
+        ext0.myExtern.externFunc();
+        ext1.myExtern.externFunc();
+    }
+};

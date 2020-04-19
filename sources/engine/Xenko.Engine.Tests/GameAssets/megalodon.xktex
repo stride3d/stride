@@ -1,8 +1,0 @@
-!Texture
-Id: 731de5a2-8804-4875-886f-51f5cc5cf439
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/megalodon/megalodon.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-    PremultiplyAlpha: false

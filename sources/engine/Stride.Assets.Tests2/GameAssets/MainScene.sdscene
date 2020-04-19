@@ -1,0 +1,21 @@
+!SceneAsset
+Id: fb543f7c-e6a7-4bbc-9a75-47ae5db41968
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! e5efbd73-0061-4be4-901f-f27c9ba8e7bf
+    Parts:
+        -   Folder: null
+            Entity:
+                Id: e5efbd73-0061-4be4-901f-f27c9ba8e7bf
+                Name: Entity
+                Components:
+                    f50892b841399141be39e16e90aa6f06: !TransformComponent
+                        Id: b89208f5-3941-4191-be39-e16e90aa6f06
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}

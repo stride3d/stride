@@ -1,0 +1,54 @@
+﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+  <PropertyGroup>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)<#= Properties.Package.Meta.Name #>.sdpkg</StrideCurrentPackagePath>
+    <OutputPath><#= Properties.StrideSdkRelativeDir #>\Bin\$(StridePlatformFullName)\$(StrideOutputFolder)\</OutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(StridePlatformFullName)-$(StrideGraphicsApi)\$(Configuration)</IntermediateOutputPath>
+  </PropertyGroup>
+<#
+var currentPlatform = (Stride.Core.PlatformType)System.Enum.Parse(typeof(Stride.Core.PlatformType), Properties.CurrentPlatform);
+foreach(var platform in Properties.Platforms) 
+{ 
+    // Skip the platform if it is not current
+    if (currentPlatform != Stride.Core.PlatformType.Shared && currentPlatform != platform.Type)
+    {
+        continue;
+    }
+    
+    foreach(var platformPart in platform.GetParts()) 
+    {
+        // If this is an alias, just skip it as it is only used in the solution
+        if (platformPart.Alias != null)
+        {
+            continue;
+        }
+        var platformName = platformPart.SafeSolutionName;
+        // Remap from "Any CPU" to AnyCPU, another weirdness of VS
+        if (platformName == "Any CPU")
+        {
+            platformName = "AnyCPU";
+        }
+        foreach(var config in platformPart.Configurations) 
+        {
+#>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == '<#= config.Name #>|<#= platformName #>' ">
+<#  if (config.IsDebug) { #>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;<#= string.Join(";", platform.DefineConstants) #></DefineConstants>
+<#  } else { #>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;<#= string.Join(";", platform.DefineConstants) #></DefineConstants>
+<#  } #>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+<#  foreach(var configLine in platform.GetConfigurationProperties(platformPart, config.Name)) { #>
+    <#= configLine #>
+<#  } #>
+  </PropertyGroup>
+<#
+        }
+    }
+}
+#>

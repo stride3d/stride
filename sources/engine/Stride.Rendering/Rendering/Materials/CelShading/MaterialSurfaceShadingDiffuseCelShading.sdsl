@@ -1,0 +1,57 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Performs a Cel shading
+    /// </summary>
+    class MaterialSurfaceShadingDiffuseCelShading<bool TIsEnergyConservative, float FakeNDotL> : IMaterialSurfaceShading, Math, MaterialPixelShadingStream, LightStream, ShadowGroup
+    {
+        compose IMaterialCelShadingLightFunction celLightFunction;
+
+        override float3 ComputeDirectLightContribution()
+        {
+            float oldLightColorNdotL = streams.lightColorNdotL;
+            float3 celLight = float3(1, 1, 1);
+
+            if (FakeNDotL > 0)
+            {
+                // Fake - this gradient depends on light intensity as well
+                //streams.lightColorNdotL = celLightFunction.Compute(streams.lightColorNdotL).rgb;
+				celLight = celLightFunction.Compute(streams.lightColorNdotL * FakeNDotL);
+            }
+            else
+            {
+				// Correct
+				celLight = celLightFunction.Compute(streams.NdotL);          
+            }
+
+			streams.lightColorNdotL = streams.lightColor * streams.shadowColor * streams.lightDirectAmbientOcclusion;      
+
+            var diffuseColor = streams.matDiffuseVisible;
+            if (TIsEnergyConservative)
+            {
+                // Approximation see: http://research.tri-ace.com/Data/course_note_practical_implementation_at_triace.pdf
+                diffuseColor *= (1 - streams.matSpecularVisible);
+            }
+
+            float3 result =  diffuseColor / PI * streams.lightColorNdotL * streams.matDiffuseSpecularAlphaBlend.x;
+
+            streams.lightColorNdotL = oldLightColorNdotL;
+            return result * celLight;
+        }
+
+        override float3 ComputeEnvironmentLightContribution()
+        {
+            // TODO: Check how to factorize this with DirectLight
+            var diffuseColor = streams.matDiffuseVisible;
+            if (TIsEnergyConservative)
+            {
+                diffuseColor *= (1 - streams.matSpecularVisible);
+            }
+
+            float3 celLight = celLightFunction.Compute(streams.envLightDiffuseColor);
+            return diffuseColor * celLight;
+        }
+    };
+}

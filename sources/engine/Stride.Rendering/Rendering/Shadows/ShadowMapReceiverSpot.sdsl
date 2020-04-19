@@ -1,0 +1,50 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Shadows
+{
+    /// <summary>
+    /// Selects the shadow map and computes the shadow factor.
+    /// </summary>
+    /// <remarks>
+    /// TCascadeCount: Number of cascades.
+    /// TCascadeDebug: Flag to enable debug mode (1 color per cascade).
+    /// </remarks>
+    internal shader ShadowMapReceiverSpot<int TLightCount, bool TCascadeDebug> :
+        ShadowMapReceiverBase<PerDraw.Lighting, 1, TLightCount>,
+        Transformation  // Required for "WorldInverseTranspose".
+    {
+        override float3 ComputeShadow(float3 position, int lightIndex)
+        {
+            // Offset the shadow position
+            float3 shadowPosition = position.xyz;
+            shadowPosition += GetShadowPositionOffset(OffsetScales[lightIndex], streams.NdotL, streams.normalWS);
+
+            float3 shadow = ComputeShadowFromCascade(shadowPosition, 0, lightIndex);
+
+            float tempThickness = 0.0;
+            
+            // Note: transmittance is currently disabled for spot lights
+            //const bool ComputeTransmittance = true; // TODO: This should be a mixin parameter or something!
+            //if(ComputeTransmittance)
+            //{
+            //    tempThickness = ComputeThicknessFromCascade(streams.PositionWS.xyz,
+            //                                                streams.meshNormalWS,
+            //                                                0,
+            //                                                lightIndex,
+            //                                                false);
+            //}
+
+            streams.thicknessWS = tempThickness;
+
+            // Output the shadow color
+            if (TCascadeDebug)
+            {
+                return float3(0, 1, 0) * shadow;
+            }
+            else
+            {
+                return shadow;
+            }
+        }
+    };
+}

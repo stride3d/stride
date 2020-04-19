@@ -1,0 +1,23 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Material displacement map
+    /// </summary>
+    shader MaterialSurfaceVertexDisplacement<bool TScaleAndBias> : IMaterialSurfaceVertex
+    {
+        override void Compute()
+        {
+            var displacement = streams.matDisplacement;
+            if (TScaleAndBias)
+            {
+                displacement = displacement * 2 - 1;
+            }
+
+            displacement *= streams.matDisplacementIntensity;
+            
+            streams.Position = float4(streams.Position.xyz + displacement * streams.meshNormal, streams.Position.w);
+        }
+    };
+}

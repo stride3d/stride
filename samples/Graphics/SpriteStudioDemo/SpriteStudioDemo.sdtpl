@@ -1,0 +1,11 @@
+!TemplateSample
+Id: 6BE30E8D-9346-4130-87BE-12BF9CC362DE
+Name: "Sample: SpriteStudio"
+Scope: Session
+Description: Demonstrates how to use SpriteStudio integration
+FullDescription: This sample demonstrates how to use SpriteStudio assets and animations in a simple 2D game.
+Group: Samples/Graphics
+Icon: .sdtpl/Icon.png
+DefaultOutputName: SpriteStudioDemo
+Screenshots:
+    - .sdtpl/screenshot1_small.jpg

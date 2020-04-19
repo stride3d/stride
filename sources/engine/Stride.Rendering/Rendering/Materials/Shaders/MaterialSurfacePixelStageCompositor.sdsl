@@ -1,0 +1,28 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    // Temporary code for testing IMaterialSurface
+    shader MaterialSurfacePixelStageCompositor : ShadingBase, Transformation, PositionStream, MaterialPixelShadingStream, DirectLightGroupArray, EnvironmentLightArray
+    {
+        compose IMaterialSurface materialPixelStage;
+        compose IStreamInitializer streamInitializerPixelStage;
+
+        stage override float4 Shading()
+        {
+            // Prepare global streams (temp)
+            streams.viewWS = normalize(Eye.xyz - streams.PositionWS.xyz);
+            streams.shadingColor = 0;
+
+            // Reset material streams
+            streamInitializerPixelStage.ResetStream();
+
+            // Compute the shading of the surface
+            // TODO: separate between material attributes blending and material lighting/shadow shading
+            materialPixelStage.Compute();
+
+            // Return the actual shading color
+            return float4(streams.shadingColor, streams.shadingColorAlpha);
+        }
+    };
+}

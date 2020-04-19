@@ -1,0 +1,11 @@
+﻿!TemplateAssetFactory
+Id: 7DA3597C-7AC4-450E-B60B-21DDB6296208
+AssetTypeName: SkeletonAsset
+Name: Skeleton
+Scope: Asset
+Description: A skeleton imported from a source file
+Group: Animation
+Order: -90
+Icon: ..\.sdtpl\Skeleton.png
+DefaultOutputName: Skeleton
+ImportSource: true

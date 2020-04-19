@@ -1,0 +1,14 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    We need both StrideNativePathLibs and StrideNativePathLibs2 as in Windows platforms it's a simple string while on other platforms they need to be iterated and processed
+  -->
+  <PropertyGroup>
+    <StrideNativePathLibs Condition="'$(StridePlatform)' == 'Windows'">LibOVR.lib</StrideNativePathLibs>
+  </PropertyGroup>
+
+  <!--
+  <ItemGroup>
+    <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'iOS'" Include="$(StrideDependenciesDir)\GoogleVR\lib\iOS\libgvr.a;" />
+  </ItemGroup>
+  -->
+</Project>

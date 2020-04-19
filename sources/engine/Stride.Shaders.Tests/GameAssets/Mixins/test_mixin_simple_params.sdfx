@@ -1,0 +1,38 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Test7
+{
+    params TestParameters
+    {
+        bool   param1;
+        int    param2 = 1;
+        string param3 = "ok";
+    };
+
+    effect DefaultSimpleParams
+    {
+        using params TestParameters;
+
+        mixin A;
+        mixin B;
+        
+        // Include a simple test of a boolean
+        if (TestParameters.param1)
+        {
+            // Conditional mixin
+            mixin C;
+            
+            // Simple test of macro
+            mixin macro TestParameters.param2;
+            
+            // Simple test of composition
+            mixin compose x = X;
+        }
+        else
+        {
+            mixin D;
+            mixin macro Test = TestParameters.param3;
+            mixin compose y = Y;
+        }
+    };
+}

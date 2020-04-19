@@ -1,0 +1,18 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// Constantlty outputs the depth of a given point in the image. 
+    /// </summary>
+    shader PointDepth: ImageEffectShader
+    {
+        float2 Coordinate;
+
+        stage override float4 Shading()
+        {
+            return Texture0.Sample(Sampler, Coordinate).y;
+        }
+    };
+}

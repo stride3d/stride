@@ -1,8 +1,0 @@
-!Texture
-Id: 199436a6-0b5e-4ca0-88ee-27e75d4d70e4
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/SmallJpeg.jpg
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-    Alpha: Interpolated

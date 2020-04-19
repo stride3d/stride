@@ -1,0 +1,11 @@
+﻿!TemplateAssetFactory
+Id: F96977C5-F9C3-4CE9-BD40-CD92115B27A8
+AssetTypeName: SpriteFontAsset
+Name: "Scalable offline rasterized"
+Scope: Asset
+Description: A sprite font rasterized at compile time using signed distance field, scalable at runtime
+Group: Font
+Order: -90
+Icon: ..\.sdtpl\SpriteFont.png
+DefaultOutputName: SpriteFont
+FactoryTypeName: SignedDistanceFieldSpriteFontFactory

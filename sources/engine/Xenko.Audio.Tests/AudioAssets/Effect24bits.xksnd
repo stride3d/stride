@@ -1,7 +1,0 @@
-!Sound
-Id: 3e1a9c10-c9b1-4a7b-8b6b-6795b2a29e18
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/audio/90-bboc1_24bits.wav
-StreamFromDisk: false
-Spatialized: true

@@ -1,8 +1,0 @@
-!Texture
-Id: 853bedb3-91b9-4392-8b4d-eb07be1ce115
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/SmallJpeg.jpg
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-    Alpha: Mask

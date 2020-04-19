@@ -1,0 +1,130 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2019-02-25 13:25:04+0900\n"
+"PO-Revision-Date: 2019-09-17 09:24+0000\n"
+"Last-Translator: Andrea Aruta <andrea.aruta41@gmail.com>\n"
+"Language-Team: Italian <https://hosted.weblate.org/projects/stride/"
+"corepresentation/it/>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.9-dev\n"
+
+#: ../presentation/Stride.Core.Presentation/Windows/DialogHelper.cs:20
+msgid "Don't ask again"
+msgstr "Non chiedere nuovamente"
+
+#: ../presentation/Stride.Core.Presentation/Windows/MessageBox.cs:70
+msgctxt "KeyGesture"
+msgid "N"
+msgstr "N"
+
+#: ../presentation/Stride.Core.Presentation/Windows/MessageBox.cs:99
+msgctxt "KeyGesture"
+msgid "Y"
+msgstr "S"
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:399
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:623
+msgctxt "RGBA"
+msgid "R:"
+msgstr "R:"
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:400
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:623
+msgctxt "ToolTip"
+msgid "Red"
+msgstr "Rosso"
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:414
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:632
+msgctxt "RGBA"
+msgid "G:"
+msgstr "V:"
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:415
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:632
+msgctxt "ToolTip"
+msgid "Green"
+msgstr "Verde"
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:429
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:641
+msgctxt "RGBA"
+msgid "B:"
+msgstr "B:"
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:430
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:641
+msgctxt "ToolTip"
+msgid "Blue"
+msgstr "Blu"
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:444
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:650
+msgctxt "RGBA"
+msgid "A:"
+msgstr "A:"
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:445
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:650
+msgctxt "ToolTip"
+msgid "Alpha"
+msgstr "Alpha"
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:464
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:663
+msgctxt "HSB"
+msgid "H:"
+msgstr "H:"
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:465
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:663
+msgctxt "ToolTip"
+msgid "Hue"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:479
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:672
+msgctxt "HSB"
+msgid "S:"
+msgstr "S:"
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:480
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:672
+msgctxt "ToolTip"
+msgid "Saturation"
+msgstr "Saturazione"
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:494
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:681
+msgctxt "HSB"
+msgid "B:"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation/Themes/generic.xaml:495
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:681
+msgctxt "ToolTip"
+msgid "Value"
+msgstr "Valore"
+
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:3916
+msgctxt "ToolTip"
+msgid "Toggle editing mode"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4172
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4242
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4321
+msgctxt "ToolTip"
+msgid "Advanced options"
+msgstr "Opzioni avanzate"
+
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4181
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4250
+#: ../presentation/Stride.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4330
+msgid "All components:"
+msgstr "Tutti i componenti:"

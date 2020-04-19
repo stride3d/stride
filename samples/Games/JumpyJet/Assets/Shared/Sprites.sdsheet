@@ -1,0 +1,30 @@
+!SpriteSheet
+Id: bca60112-0718-4c8f-a421-8bc6043270f9
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: Sprite2D
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+Alpha: Explicit
+Packing: {}
+Sprites:
+    e83b83c1664bc44f9768faaa9d673c07:
+        Source: ../../Resources/tex1.png
+        Name: normal
+        TextureRegion: {X: 1924, Y: 746, Width: 100, Height: 83}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    965f8a82f0546541afb45b2a1e37262c:
+        Source: ../../Resources/tex1.png
+        Name: jump
+        TextureRegion: {X: 1924, Y: 659, Width: 100, Height: 83}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    1c6f350306f5974bb704c031d92835bf:
+        Source: ../../Resources/tex1.png
+        Name: pipe
+        TextureRegion: {X: 1924, Y: 0, Width: 117, Height: 655}
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}

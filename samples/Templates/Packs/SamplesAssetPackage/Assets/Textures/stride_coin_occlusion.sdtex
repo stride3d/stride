@@ -1,0 +1,7 @@
+!Texture
+Id: e9c1d5ea-07cf-4705-9b57-a70266467bb7
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/Textures/stride_coin_occlusion.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

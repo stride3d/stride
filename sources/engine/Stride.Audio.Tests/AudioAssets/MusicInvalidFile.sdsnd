@@ -1,0 +1,7 @@
+!Sound
+Id: 668dadcc-e655-47cf-bf17-a4289e221d5e
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/audio/InvalidAudioFile.txt
+StreamFromDisk: true
+Spatialized: false

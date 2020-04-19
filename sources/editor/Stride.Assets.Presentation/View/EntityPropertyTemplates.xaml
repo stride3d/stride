@@ -1,0 +1,250 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:tp="clr-namespace:Stride.Assets.Presentation.TemplateProviders"
+                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+                    xmlns:view="clr-namespace:Stride.Core.Presentation.Quantum.View;assembly=Stride.Core.Presentation.Quantum"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib"
+                    xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.View.Behaviors;assembly=Stride.Core.Assets.Editor"
+                    xmlns:valueConverters="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters;assembly=Stride.Core.Assets.Editor"
+                    xmlns:composers="clr-namespace:Stride.Rendering.Compositing;assembly=Stride.Engine"
+                    xmlns:pvc="clr-namespace:Stride.Assets.Presentation.ValueConverters"
+                    xmlns:engine="clr-namespace:Stride.Engine;assembly=Stride.Engine"
+                    xmlns:data="clr-namespace:Stride.Data;assembly=Stride"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:assetCommands="clr-namespace:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;assembly=Stride.Core.Assets.Editor"
+                    xmlns:qvm="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
+                    xmlns:localView="clr-namespace:Stride.Assets.Presentation.View">
+
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/DefaultPropertyTemplateProviders.xaml"/>
+    <ResourceDictionary Source="/Stride.Assets.Presentation;component/View/ImageDictionary.xaml"/>
+  </ResourceDictionary.MergedDictionaries>
+
+  <view:TypeMatchTemplateProvider x:Key="EntityComponentTemplateProvider" Type="engine:EntityComponent"
+                                  Template="{StaticResource HeaderReadOnlyProperty}" OverrideRule="Most"
+                                  sd:PropertyViewHelper.TemplateCategory="PropertyHeader"/>
+
+  <sd:ListItemTemplateProvider x:Key="ConfigurationTemplateProvider" Type="data:Configuration"
+                                 Template="{StaticResource HeaderReadOnlyProperty}" OverrideRule="Most"
+                                 sd:PropertyViewHelper.TemplateCategory="PropertyHeader"/>
+
+  <tp:EntityComponentReferenceTemplateProvider x:Key="EntityComponentReferenceHeaderTemplateProvider" OverrideRule="All"
+                                                                sd:PropertyViewHelper.TemplateCategory="PropertyHeader" Template="{StaticResource DefaultPropertyHeaderTemplate}">
+    <tp:EntityComponentReferenceTemplateProvider.OverriddenProviderNames>
+      <system:String>EntityComponent</system:String>
+    </tp:EntityComponentReferenceTemplateProvider.OverriddenProviderNames>
+  </tp:EntityComponentReferenceTemplateProvider>
+
+  <tp:EntityReferenceTemplateProvider x:Key="EntityReferenceTemplateProvider" OverrideRule="Some"
+                                      sd:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate>
+      <DockPanel>
+        <UniformGrid Rows="1" DockPanel.Dock="Right">
+          <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding PickupEntity}"
+                  CommandParameter="{sd:MultiBinding {Binding OwnerAsset}, {Binding Source={x:Null}}, Converter={sd:MultiBindingToTuple}}"
+                  ToolTip="{sd:Localize Select an asset, Context=ToolTip}"
+                  Visibility="{Binding HasCommand_PickupEntity, Converter={sd:VisibleOrCollapsed}}">
+            <Image Source="{StaticResource ImagePickup}" Width="16" Height="16" Margin="-1"/>
+          </Button>
+          <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding CreateNewInstance}"
+                  CommandParameter="{x:Static assetCommands:AbstractNodeValue.Null}"
+                  ToolTip="{sd:Localize Clear the reference, Context=ToolTip}"
+                  Visibility="{Binding HasCommand_PickupEntity, Converter={sd:VisibleOrCollapsed}}">
+            <Image Source="{StaticResource ImageClear}" Width="16" Height="16" Margin="-1"/>
+          </Button>
+          <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding FetchEntity}"
+                  CommandParameter="{Binding OwnerAsset}"
+                  ToolTip="{sd:Localize Select the referenced asset, Context=ToolTip}"
+                  Visibility="{Binding HasCommand_FetchEntity, Converter={sd:VisibleOrCollapsed}}">
+            <Image Source="{StaticResource ImageFetchAsset}" Width="16" Height="16" Margin="-1"/>
+          </Button>
+        </UniformGrid>
+        <sd:TextBox x:Name="TextBox" SelectAllOnFocus="True" IsReadOnly="True" Margin="5"
+                      Text="{Binding NodeValue.Name, Mode=OneWay}"
+                      WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
+          <i:Interaction.Behaviors>
+            <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
+          </i:Interaction.Behaviors>
+        </sd:TextBox>
+      </DockPanel>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
+          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sd:Localize (Different values)}"/>
+        </DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+  </tp:EntityReferenceTemplateProvider>
+
+  <tp:EntityComponentReferenceTemplateProvider x:Key="EntityComponentReferenceTemplateProvider" OverrideRule="Some"
+                                               sd:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate>
+      <DockPanel>
+        <UniformGrid Rows="1" DockPanel.Dock="Right">
+          <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding PickupComponent}"
+                  CommandParameter="{sd:MultiBinding {Binding OwnerAsset}, {Binding Type}, Converter={sd:MultiBindingToTuple}}"
+                  ToolTip="{sd:Localize Select an asset, Context=ToolTip}"
+                  Visibility="{Binding HasCommand_PickupComponent, Converter={sd:VisibleOrCollapsed}}">
+            <Image Source="{StaticResource ImagePickup}" Width="16" Height="16" Margin="-1"/>
+          </Button>
+          <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding CreateNewInstance}"
+                  CommandParameter="{x:Static assetCommands:AbstractNodeValue.Null}"
+                  ToolTip="{sd:Localize Clear the reference, Context=ToolTip}"
+                  Visibility="{Binding HasCommand_PickupComponent, Converter={sd:VisibleOrCollapsed}}">
+            <Image Source="{StaticResource ImageClear}" Width="16" Height="16" Margin="-1"/>
+          </Button>
+          <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding FetchEntity}"
+                  CommandParameter="{Binding OwnerAsset}"
+                  ToolTip="{sd:Localize Select the referenced asset, Context=ToolTip}"
+                  Visibility="{Binding HasCommand_FetchEntity, Converter={sd:VisibleOrCollapsed}}">
+            <Image Source="{StaticResource ImageFetchAsset}" Width="16" Height="16" Margin="-1"/>
+          </Button>
+        </UniformGrid>
+        <sd:TextBox x:Name="TextBox" SelectAllOnFocus="True" IsReadOnly="True" Margin="5"
+                      Text="{Binding NodeValue.Entity.Name, Mode=OneWay}"
+                      WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
+          <i:Interaction.Behaviors>
+            <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
+          </i:Interaction.Behaviors>
+        </sd:TextBox>
+      </DockPanel>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
+          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sd:Localize (Different values)}"/>
+        </DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+  </tp:EntityComponentReferenceTemplateProvider>
+
+  <tp:EntityComponentCollectionTemplateProvider x:Key="EntityComponentDictionaryHeaderTemplateProvider" OverrideRule="All"
+                                               sd:PropertyViewHelper.TemplateCategory="PropertyHeader">
+    <DataTemplate>
+      <Border sd:PropertyViewHelper.Increment="0" sd:PropertyViewHelper.IsExpanded="True"
+          Visibility="{Binding IsVisible, Converter={sd:VisibleOrCollapsed}}">
+        <Border x:Name="PART_Name" Background="{Binding Background}" MinHeight="26" Margin="4,4,1,8" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ToolTip="{Binding Documentation}">
+          <localView:AddEntityComponentUserControl 
+            AvailableComponentTypes="{Binding EntityComponentAvailableTypes}"
+            AvailableComponentTypeGroups="{Binding EntityComponentAvailableTypeGroups}"
+            AddNewItemCommand="{Binding AddNewItem}"
+            AddNewScriptComponentCommand="{Binding AddNewScriptComponent}"/>
+        </Border>
+      </Border>
+    </DataTemplate>
+  </tp:EntityComponentCollectionTemplateProvider>
+
+  <tp:EntityComponentCollectionTemplateProvider x:Key="EntityComponentDictionaryFooterTemplateProvider" OverrideRule="All" sd:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate />
+  </tp:EntityComponentCollectionTemplateProvider>
+
+  <Style x:Key="SceneCameraSlotComboBox" BasedOn="{StaticResource AbstractTypeSelectionComboBox}" TargetType="ComboBox">
+    <Setter Property="IsEditable" Value="True"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="Visibility" Value="Visible"/>
+  </Style>
+
+  <view:TypeMatchTemplateProvider x:Key="SceneCameraSlotIndexTemplateProvider" sd:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                  OverrideRule="Some" Type="composers:SceneCameraSlotId">
+    <DataTemplate>
+      <DockPanel>
+        <ComboBox x:Name="SlotComboBox" DockPanel.Dock="Right" ItemsSource="{Binding AbstractNodeMatchingEntries}"
+                    Style="{StaticResource SceneCameraSlotComboBox}">
+          <i:Interaction.Behaviors>
+            <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding UpdateCameraSlotIndex}"
+                                                             CommandParameter="{Binding SelectedItem.Value, ElementName=SlotComboBox}"/>
+          </i:Interaction.Behaviors>
+        </ComboBox>
+        <!-- The third parameter of the multi-binding is just used to refresh the value when it changes, not in the conversion -->
+        <TextBlock Text="{sd:MultiBinding {Binding NodeValue}, {Binding AbstractNodeMatchingEntries}, Converter={pvc:NodeToCameraSlotIndex}}"
+                    Margin="5,0" IsHitTestVisible="False" VerticalAlignment="Center"/>
+      </DockPanel>
+    </DataTemplate>
+  </view:TypeMatchTemplateProvider>
+
+  <tp:ModelComponentMaterialTemplateProvider x:Key="ModelComponentMaterialPropertyTemplateProvider" DynamicThumbnail="True" sd:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                             OverrideRule="Most">
+    <DataTemplate>
+      <DockPanel>
+        <Border BorderThickness="1" BorderBrush="Black" Background="Transparent" DockPanel.Dock="Right"
+                Cursor="Hand" Margin="0,1" ContextMenu="{StaticResource ReferenceContextMenu}">
+          <Grid>
+            <Border Width="64" Height="64" Background="Transparent" ToolTip="{sd:Localize Select the referenced asset, Context=ToolTip}"
+                Visibility="{Binding Visibility, ElementName=ThumbnailImage}">
+              <Image x:Name="ThumbnailImage" DataContext="{Binding NodeValue, Converter={sd:ContentReferenceToAsset}}" Width="64" Height="64"
+                     Source="{Binding ThumbnailData.Presenter, Mode=OneWay}"/>
+              <i:Interaction.Behaviors>
+                <sd:OnEventCommandBehavior EventName="MouseLeftButtonDown" Command="{Binding FetchAsset}"/>
+              </i:Interaction.Behaviors>
+            </Border>
+            <!-- TODO: border order was reversed because thumbnail background is not transparent anymore -->
+            <Border Width="64" Height="64" Background="{StaticResource EmphasisYellowBrush}" Opacity="0.5"
+                Visibility="{Binding IsHighlighted, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}"/>
+            <ProgressBar DataContext="{Binding NodeValue, Converter={sd:ContentReferenceToAsset}}" Width="16" Height="4" IsIndeterminate="True"
+                         Visibility="{Binding ThumbnailData, Mode=OneWay, FallbackValue={sd:Collapsed},
+                                                          Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}, {sd:VisibleOrHidden}}}"/>
+            <Border Width="64" Height="64" Background="Transparent" ToolTip="{sd:Localize Select an asset, Context=ToolTip}"
+                    Visibility="{Binding Visibility,ElementName=PickupImage}">
+              <Image x:Name="PickupImage" Source="{StaticResource ImagePickup}" Width="16" Height="16"
+                     DataContext="{Binding NodeValue, Converter={sd:ContentReferenceToAsset}}"
+                     Visibility="{Binding Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}, {sd:VisibleOrHidden}}, Mode=OneWay}"/>
+              <i:Interaction.Behaviors>
+                <sd:OnEventCommandBehavior EventName="MouseLeftButtonDown" Command="{Binding PickupAsset}" CommandParameter="{Binding Type}"/>
+              </i:Interaction.Behaviors>
+            </Border>
+          </Grid>
+          <i:Interaction.Behaviors>
+            <behaviors:ReferenceHostDragDropBehavior DisplayDropAdorner="InternalOnly"/>
+          </i:Interaction.Behaviors>
+        </Border>
+        <DockPanel>
+          <sd:TextBox DockPanel.Dock="Top" SelectAllOnFocus="True" Text="{Binding NodeValue, Converter={sd:ContentReferenceToUrl}}"
+                        Margin="2,0,5,5" ContextMenu="{StaticResource ReferenceContextMenu}">
+            <i:Interaction.Behaviors>
+              <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
+            </i:Interaction.Behaviors>
+          </sd:TextBox>
+          <UniformGrid Rows="1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6,0">
+            <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding HighlightMaterial}" CommandParameter="{Binding Editor}"
+                    ToolTip="{sd:Localize Highlight this material in the scene editor, Context=ToolTip}" Visibility="{Binding HasCommand_HighlightMaterial, Converter={sd:VisibleOrCollapsed}}">
+              <Image Source="{StaticResource ImageHighlightMaterial}" Width="16" Height="16" Margin="-1"/>
+            </Button>
+            <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding PickupAsset}" CommandParameter="{Binding Type}"
+                    ToolTip="{sd:Localize Select an asset, Context=ToolTip}" Visibility="{Binding HasCommand_PickupAsset, Converter={sd:VisibleOrCollapsed}}">
+              <Image Source="{StaticResource ImagePickup}" Width="16" Height="16" Margin="-1"/>
+            </Button>
+            <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding CreateNewInstance}"
+                    CommandParameter="{x:Static assetCommands:AbstractNodeValue.Null}"
+                    ToolTip="{sd:Localize Clear the reference, Context=ToolTip}" Visibility="{Binding HasCommand_CreateNewInstance, Converter={sd:VisibleOrCollapsed}}">
+              <Image Source="{StaticResource ImageClear}" Width="16" Height="16" Margin="-1"/>
+            </Button>
+          </UniformGrid>
+        </DockPanel>
+      </DockPanel>
+    </DataTemplate>
+  </tp:ModelComponentMaterialTemplateProvider>
+
+  <!-- Providers for number with a range editors -->
+  <tp:ModelNodeNameTemplateProvider x:Key="ModelNodeNameTemplateProvider" sd:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="All">
+    <DataTemplate>
+      <sd:FilteringComboBox Text="{Binding NodeValue}" DisplayMemberPath="Name" Sort="{x:Null}" ItemsSource="{Binding Parent.AvailableNodes}"
+                              OpenDropDownOnFocus="True" SortMemberPath="Name">
+        <sd:FilteringComboBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock Text="{Binding Name}"
+                       Margin="{Binding Depth, Converter={sd:NumericToThickness}, ConverterParameter={sd:Thickness 4,0,0,0}, Mode=OneWay}"/>
+          </DataTemplate>
+        </sd:FilteringComboBox.ItemTemplate>
+      </sd:FilteringComboBox>
+    </DataTemplate>
+  </tp:ModelNodeNameTemplateProvider>
+
+  <tp:GameSettingsFiltersTemplateProvider x:Key="GameSettingsFiltersTemplateProvider" sd:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="All">
+    <DataTemplate>
+      <DockPanel>
+        <Button Style="{StaticResource ImageButtonStyle}" DockPanel.Dock="Right" Command="{Binding ClearSelection}">
+          <Image Source="{StaticResource ImageClear}" Width="16" Height="16" Margin="-1"/>
+        </Button>
+        <ComboBox ItemsSource="{Binding Root.PlatformFilters.NodeValue}" x:Name="FilterComboBox" SelectedIndex="{Binding NodeValue}"/>
+      </DockPanel>
+    </DataTemplate>
+  </tp:GameSettingsFiltersTemplateProvider>
+</ResourceDictionary>
+

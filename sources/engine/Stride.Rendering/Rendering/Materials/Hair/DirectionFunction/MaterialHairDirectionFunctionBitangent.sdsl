@@ -1,0 +1,18 @@
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Materials
+{
+    class MaterialHairDirectionFunctionBitangent : IMaterialHairDirectionFunction
+    {
+        float3 Compute(float3 normalOS, float4 tangentOS, float3x3 worldInverseTranspose)
+        {
+            normalOS = normalize(normalOS);   // TODO: PERFORMANCE: Normalization required?
+
+            tangentOS.xyz = normalize(tangentOS.xyz);   // TODO: PERFORMANCE: Normalization required?
+            const float3 bitangentOS = normalize(tangentOS.w * cross(normalOS, tangentOS.xyz)); // TODO: PERFORMANCE: Normalization required?
+            const float3 bitangentWS = normalize(mul(bitangentOS, worldInverseTranspose));   // TODO: PERFORMANCE: Normalization required?
+            return bitangentWS;
+        }
+    };
+}

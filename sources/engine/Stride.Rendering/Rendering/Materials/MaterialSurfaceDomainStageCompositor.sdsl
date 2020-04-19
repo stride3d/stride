@@ -1,0 +1,22 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    // Temporary code for testing IMaterialSurface
+    shader MaterialSurfaceDomainStageCompositor : TessellationBase
+    {
+        compose IMaterialSurface materialDomainStage;
+        compose IStreamInitializer streamInitializerDomainStage;
+
+        stage override void TessellateDomain()
+        {
+            base.TessellateDomain();
+
+            // Reset material streams 
+            streamInitializerDomainStage.ResetStream();
+
+            // Compute the shading of the surface
+            materialDomainStage.Compute();
+        }
+    };
+}

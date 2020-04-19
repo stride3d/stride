@@ -1,0 +1,34 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Lights
+{
+    shader LightClustered : ScreenPositionBase, ShaderBaseStream, Camera
+    {
+        stage stream uint2 lightData;
+        stage stream int lightIndex;
+
+        rgroup PerView.Lighting
+        {
+            stage Texture3D<uint2> LightClusters;
+            stage Buffer<uint> LightIndices;
+        }
+
+        cbuffer PerView.Lighting
+        {
+            stage float ClusterDepthScale;
+            stage float ClusterDepthBias;
+            stage float2 ClusterStride;
+        }
+
+        void PrepareLightData()
+        {
+            float projectedDepth = streams.ShadingPosition.z;
+            float depth = ZProjection.y / (projectedDepth - ZProjection.x);
+
+            float2 texCoord = float2(streams.ScreenPosition.x + 1, 1 - streams.ScreenPosition.y) * 0.5;
+            int slice = int(max(log2(depth * ClusterDepthScale + ClusterDepthBias), 0));
+            streams.lightData = LightClusters.Load(int4(texCoord * ClusterStride, slice, 0));
+            streams.lightIndex = streams.lightData.x;
+        }
+    };
+}

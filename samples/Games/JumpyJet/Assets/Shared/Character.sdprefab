@@ -1,0 +1,53 @@
+!PrefabAsset
+Id: ecc5f60f-1003-420b-bd8e-9deac205313b
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! d8ae89d5-554f-4f3f-a5d4-f963fb1d3ac6
+    Parts:
+        -   Entity:
+                Id: d8ae89d5-554f-4f3f-a5d4-f963fb1d3ac6
+                Name: Character
+                Components:
+                    6109477720e5afed64e7efbefd3c3b35: !TransformComponent
+                        Id: 3d75abdc-52e4-42b4-a4cd-f90629ce5a5c
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    849f7aeb57883b0ac89a2993066c1c68: !SpriteComponent
+                        Id: 6cd1632e-8210-4d1b-839e-de8f5dd6003b
+                        SpriteProvider: !SpriteFromSheet
+                            Sheet: bca60112-0718-4c8f-a421-8bc6043270f9:Sprites
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                    c12c7c2ac4ddd27190d3af682b977127: !JumpyJet.CharacterScript,JumpyJet.Game
+                        Id: 8774a33d-26b1-4728-933d-8b2b01c55e45
+                    4aa384c6b79e6c244abb7f635051166c: !RigidbodyComponent
+                        Id: ae5dcafa-bc70-4e87-b99e-a80a4570b587
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            b028aa3fca4e553f9db57024a85a66cc: !CapsuleColliderShapeDesc
+                                Is2D: true
+                                Length: 0.2
+                                LocalOffset: {X: -0.05, Y: 0.1, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            54f7272bfa2bbad97d6ff4ee4c9c1e98: !CapsuleColliderShapeDesc
+                                Length: 0.55
+                                Radius: 0.17
+                                Orientation: UpZ
+                                LocalOffset: {X: 0.05, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}

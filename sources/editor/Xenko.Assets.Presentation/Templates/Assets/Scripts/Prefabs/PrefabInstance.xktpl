@@ -1,9 +1,0 @@
-!TemplateAsset
-Id: C51563DD-94F1-46D8-95AA-FA1CAADB1F63
-AssetTypeName: ScriptSourceFileAsset
-Name: Prefab instance
-Scope: Asset
-Description: Procedurally spawns a timed instance from a source prefab when a trigger key is pressed
-Group: Script
-Icon: ..\..\.xktpl\SourceCode.png
-DefaultOutputName: PrefabInstance

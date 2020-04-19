@@ -1,0 +1,40 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Lights
+{
+    /// <summary>
+    /// Defines a function for attenuating a spot light.
+    /// Overrides the default implementation and replaces it
+    /// with a rectangular attenuation (hard cut off at spotlight 
+    /// frustum edges) for use with textured spotlights.
+    /// </summary>
+    shader LightSpotAttenuationRectangular :
+        LightSpotAttenuationDefault // Defines the function "ComputeAttenuation()" that we are overriding here.
+    {
+        //override float ComputeAttenuation(SpotLightDataInternal light, float3 position, inout float3 lightVectorNorm)
+        override float ComputeAttenuation(float3 PositionWS,    // TODO: Revert to the above line as soon as the shader compiler is fixed.
+                                          float3 AngleOffsetAndInvSquareRadius,
+                                          float3 DirectionWS,
+                                          float3 position,
+                                          inout float3 lightVectorNorm)   // This overload is a temporary fix for a compiler error rendering us unable to override "ComputeAttenution()".
+        {
+            // TODO: There's duplicate code here. See "LightSpotAttenuationDefault".
+
+            //float3 lightVector = light.PositionWS - position;
+            float3 lightVector = PositionWS - position; // TODO: Revert to the above line as soon as the shader compiler is fixed.
+            float lightVectorLength = length(lightVector);
+            lightVectorNorm = lightVector / lightVectorLength;
+
+            //float3 lightAngleOffsetAndInvSquareRadius = light.AngleOffsetAndInvSquareRadius;
+            float3 lightAngleOffsetAndInvSquareRadius = AngleOffsetAndInvSquareRadius;  // TODO: Revert to the above line as soon as the shader compiler is fixed.
+            float2 lightAngleAndOffset = lightAngleOffsetAndInvSquareRadius.xy;
+            float lightInvSquareRadius = lightAngleOffsetAndInvSquareRadius.z;
+
+            // TODO: Add support for disk based Directional light
+            //float3 lightDirection = -light.DirectionWS;
+            float3 lightDirection = -DirectionWS;   // TODO: Revert to the above line as soon as the shader compiler is fixed.
+
+            return GetDistanceAttenuation(lightVectorLength, lightInvSquareRadius);
+        }
+    };
+}

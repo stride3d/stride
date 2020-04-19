@@ -1,18 +1,18 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Text.RegularExpressions;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.Particles.Sorters;
-using Xenko.Particles.VertexLayouts;
-using Xenko.Rendering;
-using Xenko.Rendering.Materials;
-using Xenko.Rendering.Materials.ComputeColors;
-using Xenko.Shaders;
-using Xenko.Particles.Materials;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Particles.Sorters;
+using Stride.Particles.VertexLayouts;
+using Stride.Rendering;
+using Stride.Rendering.Materials;
+using Stride.Rendering.Materials.ComputeColors;
+using Stride.Shaders;
+using Stride.Particles.Materials;
 
 namespace ParticlesSample.Materials
 {

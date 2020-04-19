@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideNativeOutputName>libstride</StrideNativeOutputName>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <PropertyGroup>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
+    <StrideBuildTags>*</StrideBuildTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.Native.dll.config" />
+    <None Include="Stride.Native.Libs.targets">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="StrideNative.h" />
+    <None Include="LinuxAllocator.cpp" />
+	<None Include="FastTextRenderer\FastTextRenderer.c" />
+    <None Include="Sprite\SpriteBatchNative.c" />
+    <None Include="DirectInput\XInputChecker.cpp" />
+    <None Include="Lightprobes\predicates.c" />
+  </ItemGroup>
+  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+</Project>

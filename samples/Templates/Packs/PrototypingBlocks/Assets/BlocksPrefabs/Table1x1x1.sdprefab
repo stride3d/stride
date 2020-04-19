@@ -1,0 +1,69 @@
+!PrefabAsset
+Id: 4cc0c9b8-9f5c-4302-96a5-30d85ad9180e
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! cf7c3aec-f184-4a84-9dd5-11bd8fd8ac2c
+    Parts:
+        -   Entity:
+                Id: cf7c3aec-f184-4a84-9dd5-11bd8fd8ac2c
+                Name: Table1x1x1
+                Components:
+                    d034df218f970f4fa828a0756b037ec6: !TransformComponent
+                        Id: 21df34d0-978f-4f0f-a828-a0756b037ec6
+                        Position: {X: 0.5, Y: 0.5, Z: 0.5000005}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    ffabb6d704943549990d166941f486fb: !ModelComponent
+                        Id: d7b6abff-9404-4935-990d-166941f486fb
+                        Model: ed73e3e6-dbc9-400e-981d-6c378466fcd9:Models/Table1x1x1
+                        Materials:
+                            ecd1b81c86e9114d86fcdf436455648f~0: c1d40f25-8760-420b-8e26-ef8a2b999678:Materials/GridMTArc
+                    d5323b00a362314f8b4b66ccb85a7088: !StaticColliderComponent
+                        Id: 003b32d5-62a3-4f31-8b4b-66ccb85a7088
+                        CollisionGroup: StaticFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            0b96f2ec03831f4bae00db0d42c184be: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 1.0, Z: 0.1}
+                                LocalOffset: {X: 0.45, Y: 0.0, Z: 0.45}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            ea52c3a413ad9844b193d37c8a0197bc: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 1.0, Z: 0.1}
+                                LocalOffset: {X: -0.45, Y: 0.0, Z: -0.45}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            ae70207540d84243952e73ffbd7a7f2c: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 1.0, Z: 0.1}
+                                LocalOffset: {X: -0.45, Y: 0.0, Z: 0.45}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            7fcc189bb25c1d46b034ced46ba43056: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 1.0, Z: 0.1}
+                                LocalOffset: {X: 0.45, Y: 0.0, Z: -0.45}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    a814d625789f9140adc2573792b2cbff: !StaticColliderComponent
+                        Id: 25d614a8-9f78-4091-adc2-573792b2cbff
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            b15ccd53f6376742a9d8288270906bea: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 0.05, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.475, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}

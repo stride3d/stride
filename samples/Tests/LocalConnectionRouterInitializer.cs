@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -6,24 +6,24 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using Xenko.Core;
-using Xenko.Engine.Network;
+using Stride.Core;
+using Stride.Engine.Network;
 
-namespace Xenko.Samples.Tests
+namespace Stride.Samples.Tests
 {
-    //This is how we inject the assembly to run automatically at game start, paired with Xenko.targets and the msbuild property XenkoAutoTesting
+    //This is how we inject the assembly to run automatically at game start, paired with Stride.targets and the msbuild property StrideAutoTesting
     internal class LocalConnectionRouterInitializer
     {
         [ModuleInitializer]
         public static void Initialize()
         {
             // Locate connection router
-            var connectionRouterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Xenko.ConnectionRouter.exe");
+            var connectionRouterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Stride.ConnectionRouter.exe");
             if (!File.Exists(connectionRouterPath))
                 throw new InvalidOperationException("Connection router not found");
 
             // Kill any existing connection router
-            foreach (var process in Process.GetProcessesByName("Xenko.ConnectionRouter"))
+            foreach (var process in Process.GetProcessesByName("Stride.ConnectionRouter"))
             {
                 try
                 {

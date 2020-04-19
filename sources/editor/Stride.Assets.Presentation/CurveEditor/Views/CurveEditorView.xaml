@@ -1,0 +1,206 @@
+﻿<UserControl x:Class="Stride.Assets.Presentation.CurveEditor.Views.CurveEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:behaviors="clr-namespace:Stride.Assets.Presentation.View.Behaviors"
+             xmlns:behaviors1="clr-namespace:Stride.Assets.Presentation.CurveEditor.Views.Behaviors"
+             xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
+             xmlns:viewModels="clr-namespace:Stride.Assets.Presentation.CurveEditor.ViewModels"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance viewModels:CurveEditorViewModel}">
+  <FrameworkElement.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml"/>
+        <ResourceDictionary Source="../../View/ImageDictionary.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </FrameworkElement.Resources>
+
+  <i:Interaction.Behaviors>
+    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Save" Command="{Binding Session.SaveSessionCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Undo" Command="{Binding Session.ActionHistory.UndoCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Redo" Command="{Binding Session.ActionHistory.RedoCommand, FallbackValue={x:Static sd:DisabledCommand.Instance}, Mode=OneWay}"/>
+  </i:Interaction.Behaviors>
+
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*" />
+      <ColumnDefinition Width="5" />
+      <ColumnDefinition Width="3*" />
+    </Grid.ColumnDefinitions>
+    <!--  Left Panel  -->
+    <DockPanel Grid.Column="0">
+      <DockPanel Margin="8" DockPanel.Dock="Top">
+        <WrapPanel DockPanel.Dock="Right">
+          <Button Margin="2" Content="{sd:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}"
+                  Command="{Binding RemoveSelectedCurveCommand}" IsEnabled="{Binding SelectedCurve, Converter={sd:ObjectToBool}}"
+                  ToolTip="{sd:Localize Remove the selected curve, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+        </WrapPanel>
+        <TextBlock Text="{sd:Localize Curves:}" VerticalAlignment="Center" />
+      </DockPanel>
+      <sd:TreeView ItemsSource="{Binding Curves}" SelectedItem="{Binding SelectedCurve, Mode=TwoWay}" SelectionMode="Single">
+        <i:Interaction.Behaviors>
+          <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding RemoveSelectedCurveCommand}" />
+        </i:Interaction.Behaviors>
+        <ItemsControl.ItemContainerStyle>
+          <Style TargetType="{x:Type sd:TreeViewItem}" BasedOn="{StaticResource {x:Type sd:TreeViewItem}}" d:DataContext="{d:DesignInstance viewModels:CurveViewModelBase}">
+            <Setter Property="IsExpanded" Value="True" />
+            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+          </Style>
+        </ItemsControl.ItemContainerStyle>
+        <ItemsControl.ItemTemplate>
+          <HierarchicalDataTemplate DataType="{x:Type viewModels:CurveViewModelBase}" ItemsSource="{Binding Children}">
+            <TextBlock Text="{Binding DisplayName}" />
+          </HierarchicalDataTemplate>
+        </ItemsControl.ItemTemplate>
+      </sd:TreeView>
+    </DockPanel>
+    <!--  Splitter  -->
+    <GridSplitter Grid.Column="1" ResizeBehavior="PreviousAndNext" Background="#FF1D1D1D" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+    <DockPanel Grid.Column="2">
+      <UIElement.InputBindings>
+        <KeyBinding Command="{Binding FocusCommand}" Key="{sd:Key {x:Static strings:KeyGestures.GestureFocus}}"/>
+      </UIElement.InputBindings>
+      <!--  Toolbar  -->
+      <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
+        <!-- View Toolbar -->
+        <ToolBar Visibility="{Binding SelectedCurve, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
+          <ToggleButton x:Name="TrackerToggleButton" IsThreeState="False" IsChecked="True"
+                        ToolTip="{sd:Localize Show or hide the tracker, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+            <Path Width="16" Height="16" Stretch="UniformToFill" Fill="{Binding LineStroke, ElementName=Tracker}"
+                  Data="F1 M 56,36L 56,40L 40,40L 40,56L 36,56L 36,40L 20,40L 20,36L 36,36L 36,20L 40,20L 40,36L 56,36 Z M 8,37L 8,39L 3.01401,39L 3,38L 3.01401,37L 8,37 Z M 13,37L 13,39L 10,39L 10,37L 13,37 Z M 18,37L 18,39L 15,39L 15,37L 18,37 Z M 39,8.00005L 37,8.00005L 37,3.01403L 38,3.00002L 39,3.01403L 39,8.00005 Z M 39,18.0001L 37,18.0001L 37,15.0001L 39,15.0001L 39,18.0001 Z M 37,10.0001L 39,10.0001L 39,13.0001L 37,13.0001L 37,10.0001 Z M 68,39L 68,37L 72.986,37L 73,38L 72.986,39L 68,39 Z M 63,39L 63,37L 66,37L 66,39L 63,39 Z M 57.9999,39L 57.9999,37L 61,37L 61,39L 57.9999,39 Z M 37,68L 39,68L 39,72.986L 38,73L 37,72.986L 37,68 Z M 37,63L 39,63L 39,66L 37,66L 37,63 Z M 37,58L 39,58L 39,61L 37,61L 37,58 Z " />
+          </ToggleButton>
+          <Button Content="{sd:Image {StaticResource ImageFitCurve}, 16, 16, NearestNeighbor}"
+                  Command="{Binding ResetViewCommand}" CommandParameter="{sd:Int 0}"
+                  ToolTip="{sd:Localize Fit view to curve, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+          <Button Content="{sd:Image {StaticResource ImageFitCurveHeight}, 16, 16, NearestNeighbor}"
+                  Command="{Binding ResetViewCommand}" CommandParameter="{sd:Int 1}"
+                  ToolTip="{sd:Localize Fit view to curve height, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+          <Button Content="{sd:Image {StaticResource ImageFitCurveWidth}, 16, 16, NearestNeighbor}"
+                  Command="{Binding ResetViewCommand}" CommandParameter="{sd:Int -1}"
+                  ToolTip="{sd:Localize Fit view to curve width, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+        </ToolBar>
+        <!--  Points Toolbar  -->
+        <ToolBar>
+          <Button Content="{sd:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}"
+                  Command="{Binding DeleteSelectedPointsCommand}" IsEnabled="{Binding SelectedControlPoints.Count, Converter={sd:Chained {sd:IsEqualToParam}, {sd:InvertBool}, Parameter1={sd:Int 0}}}"
+                  Visibility="{Binding SelectedCurve, Converter={sd:Chained {sd:MatchType}, {sd:VisibleOrCollapsed}, Parameter1={x:Type viewModels:IEditableCurveViewModel}}}"
+                  ToolTip="{sd:Localize Delete selected points, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+          <!--<Separator />-->
+          <!-- TODO other point related tools: e.g. tangent, alignment... -->
+        </ToolBar>
+        <!-- Keyframe Toolbar -->
+        <ToolBar Visibility="{Binding SelectedCurve, Converter={sd:Chained {sd:MatchType}, {sd:VisibleOrCollapsed}, Parameter1={x:Type viewModels:IEditableCurveViewModel}}}">
+          <!-- Navigation -->
+          <Button Content="{sd:Image {StaticResource ImageFirstPoint}, 16, 16, NearestNeighbor}"
+                  Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:MinInt}"
+                  ToolTip="{sd:Localize First key, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
+          <Button Content="{sd:Image {StaticResource ImagePreviousPoint}, 16, 16, NearestNeighbor}"
+                  Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:Int -1}" 
+                  ToolTip="{sd:Localize Previous key, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
+          <Button Content="{sd:Image {StaticResource ImageNextPoint}, 16, 16, NearestNeighbor}"
+                  Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:Int 1}"
+                  ToolTip="{sd:Localize Next key, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
+          <Button Content="{sd:Image {StaticResource ImageLastPoint}, 16, 16, NearestNeighbor}"
+                  Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:MaxInt}"
+                  ToolTip="{sd:Localize Last key, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
+          <!-- Edition -->
+          <ContentControl Content="{Binding SingleSelectedControlPoint}"
+                          IsEnabled="{Binding HasContent, RelativeSource={RelativeSource Self}}">
+            <ContentControl.ContentTemplate>
+              <DataTemplate DataType="{x:Type viewModels:ControlPointViewModelBase}">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="{sd:Localize Key}" VerticalAlignment="Center" Margin="4 0 0 0" />
+                  <sd:NumericTextBox Value="{Binding ActualKey, Mode=TwoWay}" Width="80" Margin="4 0 0 0"
+                                       LargeChange="0.01" SmallChange="0.001" DecimalPlaces="6" />
+                  <TextBlock Text="{sd:Localize Value}" VerticalAlignment="Center" Margin="4 0 0 0" />
+                  <sd:NumericTextBox Value="{Binding ActualValue, Mode=TwoWay}" Width="80" Margin="4 0 0 0"
+                                       LargeChange="10" SmallChange="1" DecimalPlaces="6" />
+                </StackPanel>
+              </DataTemplate>
+            </ContentControl.ContentTemplate>
+          </ContentControl>
+        </ToolBar>
+        <!-- Other Toolbars -->
+        <ToolBar Visibility="{Binding SelectedCurve, Converter={sd:Chained {sd:MatchType}, {sd:VisibleOrCollapsed}, Parameter1={x:Type viewModels:RotationCurveViewModel}}}">
+          <ComboBox ItemsSource="{Binding Source={x:Type viewModels:RotationDisplayMode}, Converter={sd:EnumValues}, Mode=OneTime}" SelectedItem="{Binding SelectedCurve.DisplayMode}" />
+        </ToolBar>
+      </ToolBarTray>
+      <!--  Curves Area  -->
+      <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <Grid x:Name="RootContainer" Background="Transparent" Margin="20">
+          <!--  Rendering  -->
+          <sd:CanvasView x:Name="CanvasView" Model="{Binding}">
+            <i:Interaction.Behaviors>
+              <!-- adding point -->
+              <sd:OnMouseEventBehavior EventType="MouseLeftButtonDown" Modifiers="Alt"
+                                         Command="{Binding AddPointCommand}" />
+              <!-- deleting point(s) -->
+              <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete"
+                                           Command="{Binding DeleteSelectedPointsCommand}" />
+              <!-- clicking anywhere -->
+              <sd:OnMouseEventBehavior EventType="PreviewMouseLeftButtonDown"
+                                         Command="{Binding PreviewClickCommand}" />
+              <!-- selecting a range of point -->
+              <sd:SelectionRectangleBehavior Canvas="{Binding ElementName=SelectionCanvas}" Command="{Binding SelectCommand}"
+                                               IsEnabled="{sd:MultiBinding {Binding IsControlPointHovered, Converter={sd:InvertBool}},
+                                                                             {Binding SelectedCurve, Converter={sd:ObjectToBool}},
+                                                                             Converter={sd:AndMultiConverter}}" />
+              <!-- moving point(s) -->
+              <behaviors:ThumbLikeBehavior Reference="{Binding ElementName=CanvasView}" IsEnabled="{Binding IsControlPointHovered}"
+                                           Direction="Center" Target="{Binding SelectedCurve}"/>
+              <!-- uniform paning -->
+              <behaviors1:AxisPaneBehavior DrawingView="{Binding ElementName=CanvasView}" XAxis="{Binding SelectedCurve.XAxis}" YAxis="{Binding SelectedCurve.YAxis}" MouseButton="Middle" />
+              <!-- non-uniform paning -->
+              <behaviors1:AxisPaneBehavior DrawingView="{Binding ElementName=CanvasView}" XAxis="{Binding SelectedCurve.XAxis}" YAxis="{Binding SelectedCurve.YAxis}" MouseButton="Middle" XModifiers="Ctrl" YModifiers="Shift" />
+              <!-- uniform zooming -->
+              <behaviors1:AxisZoomBehavior DrawingView="{Binding ElementName=CanvasView}" XAxis="{Binding SelectedCurve.XAxis}" YAxis="{Binding SelectedCurve.YAxis}" />
+              <!-- non-uniform zooming -->
+              <behaviors1:AxisZoomBehavior DrawingView="{Binding ElementName=CanvasView}" XAxis="{Binding SelectedCurve.XAxis}" YAxis="{Binding SelectedCurve.YAxis}" XModifiers="Ctrl" YModifiers="Shift" />
+            </i:Interaction.Behaviors>
+            <FrameworkElement.ContextMenu>
+              <ContextMenu x:Name="CurveContextMenu">
+                <MenuItem Header="{sd:Localize Curve, Context=Menu}" Style="{StaticResource MenuGroupWithItemsStyle}"
+                          Visibility="{Binding SelectedCurve, Converter={sd:Chained {sd:MatchType}, {sd:VisibleOrCollapsed}, Parameter1={x:Type viewModels:IEditableCurveViewModel}}}">
+                  <MenuItem Header="{sd:Localize Add point, Context=Menu}" InputGestureText="{x:Static strings:KeyGestures.GestureAddPoint}" Icon="{sd:Image {StaticResource ImageAdd}, 16, 16, NearestNeighbor}"
+                            Command="{Binding AddPointCommand}" CommandParameter="{Binding LastRightClickPosition, Source={sd:XamlRoot}}" />
+                  <Separator />
+                  <MenuItem Header="{sd:Localize Delete selected points, Context=Menu}" InputGestureText="Delete"  Icon="{sd:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}"
+                            Command="{Binding DeleteSelectedPointsCommand}" IsEnabled="{Binding SelectedControlPoints.Count, Converter={sd:Chained {sd:IsEqualToParam}, {sd:InvertBool}, Parameter1={sd:Int 0}}}"/>
+                  <MenuItem Header="{sd:Localize Clear whole curve, Context=Menu}" Icon="{sd:Image {StaticResource ImageClear}, 16, 16, NearestNeighbor}"
+                            Command="{Binding ClearCurveCommand}" />
+                </MenuItem>
+                <MenuItem Header="{sd:Localize View, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" />
+                <MenuItem Header="{sd:Localize Fit to curve, Context=Menu}" Icon="{sd:Image {StaticResource ImageFitCurve}, 16, 16, NearestNeighbor}"
+                          Command="{Binding ResetViewCommand}" CommandParameter="{sd:Int 0}"/>
+                <MenuItem Header="{sd:Localize Fit to curve height, Context=Menu}" Icon="{sd:Image {StaticResource ImageFitCurveHeight}, 16, 16, NearestNeighbor}"
+                          Command="{Binding ResetViewCommand}" CommandParameter="{sd:Int 1}"/>
+                <MenuItem Header="{sd:Localize Fit to curve width, Context=Menu}" Icon="{sd:Image {StaticResource ImageFitCurveWidth}, 16, 16, NearestNeighbor}"
+                          Command="{Binding ResetViewCommand}" CommandParameter="{sd:Int -1}"/>
+              </ContextMenu>
+            </FrameworkElement.ContextMenu>
+            <UIElement.InputBindings>
+              <!-- Navigation -->
+              <KeyBinding Key="Home" Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:MinInt}" />
+              <KeyBinding Key="Left" Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:Int -1}" />
+              <KeyBinding Key="Right" Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:Int 1}" />
+              <KeyBinding Key="End" Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:MaxInt}" />
+            </UIElement.InputBindings>
+          </sd:CanvasView>
+          <!-- Selection -->
+          <Canvas x:Name="SelectionCanvas" Visibility="Collapsed" />
+          <!-- Tracker -->
+          <sd:TrackerControl x:Name="Tracker" LineExtents="{Binding CurveArea}" Opacity="0.6" TrackMouse="True"
+                               Visibility="{sd:MultiBinding {Binding IsChecked, ElementName=TrackerToggleButton},
+                                                              {Binding IsMouseOver, ElementName=RootContainer},
+                                                              {Binding SelectedCurve, Converter={sd:ObjectToBool}},
+                                                              Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrHidden}}}" />
+        </Grid>
+      </ScrollViewer>
+    </DockPanel>
+  </Grid>
+</UserControl>

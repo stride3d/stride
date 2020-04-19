@@ -1,8 +1,0 @@
-!Texture
-Id: 8ba2aad5-959d-4e56-8f1d-c670b28ec459
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../Resources/bonfire8x8.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-IsStreamable: false

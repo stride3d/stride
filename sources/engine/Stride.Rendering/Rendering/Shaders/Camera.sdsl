@@ -1,0 +1,19 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader Camera
+{
+    cbuffer PerView {
+        // Camera Z NearClipPlane value.
+        stage float NearClipPlane = 1.0f;
+        // Camera Z FarClipPlane value.
+        stage float FarClipPlane = 100.0f;
+        // Z Retro projection factor used retro project a non-linear 1/z depth in the range [0.0 - 1.0] to a linear-depth in view space.
+        // Remarks: ZInViewSpace = ZProjection.y / (depth - ZProjection.x)
+        stage float2 ZProjection;
+
+        // Camera View size
+        stage float2 ViewSize;
+        // Camera aspect ratio.
+        stage float AspectRatio;
+    };
+};

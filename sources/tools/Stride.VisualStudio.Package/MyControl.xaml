@@ -1,0 +1,17 @@
+<UserControl x:Class="Stride.VisualStudio.MyControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             Background="{DynamicResource VsBrush.Window}"
+             Foreground="{DynamicResource VsBrush.WindowText}"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300"
+             Name="MyToolWindow">
+  <Grid>
+    <StackPanel Orientation="Vertical">
+      <TextBlock Margin="10" HorizontalAlignment="Center">Stride View</TextBlock>
+      <Button Content="_Click Me!" Click="button1_Click" Width="120" Height="80" Name="button1" />
+    </StackPanel>
+  </Grid>
+</UserControl>

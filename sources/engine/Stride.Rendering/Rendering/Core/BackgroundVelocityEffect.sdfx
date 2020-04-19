@@ -1,0 +1,21 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+// Computes screen space velocity for backgrounds
+effect BackgroundVelocityEffect
+{
+    using params StrideEffectBaseKeys;
+
+    mixin ShaderBase;
+    mixin ShadingBase;
+    mixin BackgroundVelocity;
+
+    // -----------------------------------------------
+    // MRT output definitions (color0 excluded)
+    // -----------------------------------------------
+    var targetExtensions = StrideEffectBaseKeys.RenderTargetExtensions;
+    if (targetExtensions != null)
+    {
+        mixin (targetExtensions);
+    }
+};

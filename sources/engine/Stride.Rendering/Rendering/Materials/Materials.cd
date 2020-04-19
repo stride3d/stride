@@ -1,0 +1,547 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Stride.Rendering.Materials.MaterialAttributes" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="1" Y="4.25" Width="2" />
+    <Members>
+      <Method Name="MaterialAttributes" Hidden="true" />
+      <Method Name="Visit" Hidden="true" />
+    </Members>
+    <AssociationLine Name="Overrides" Type="Stride.Rendering.Materials.MaterialOverrides" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="3" Y="4.656" />
+        <Point X="4" Y="4.656" />
+        <Point X="4" Y="5.5" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>BEAACEBAAQgAAIQAAgBAAAAEAADgAAAAAAAAACABAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialAttributes.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Tessellation" />
+      <Property Name="Displacement" />
+      <Property Name="Surface" />
+      <Property Name="MicroSurface" />
+      <Property Name="Diffuse" />
+      <Property Name="DiffuseModel" />
+      <Property Name="Specular" />
+      <Property Name="SpecularModel" />
+      <Property Name="Occlusion" />
+      <Property Name="Emissive" />
+      <Property Name="Transparency" />
+      <Property Name="Overrides" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialBlendLayer" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="8.5" Y="5.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAQAAAIQAAAAAAAQAQACAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialBlendLayer.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Material" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialBlendLayers" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="8.5" Y="4.25" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIQAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialBlendLayers.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialDiffuseLambertModelFeature" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="6.25" Y="18.75" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAgAAAAAAAAAAgAIAAAAAAAABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialDiffuseLambertModelFeature.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialDiffuseMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="6.75" Y="14" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAAAAAAAAAABAAAAAAAAABAAAAAAAABAQAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialDiffuseMapFeature.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialDisplacementMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="6.75" Y="9.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQAAAAAAAAAAAAAAAAAAAIAAAAAgAAAAgACABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialDisplacementMapFeature.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialEmissiveMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="6.25" Y="20.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAgQgBAAAIAAAAAAAAAAAAAABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialEmissiveMapFeature.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialGlossinessMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="6.75" Y="8.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAABAAEAAAAABAAAAAAAAABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialGlossinessMapFeature.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialMetalnessMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="9.25" Y="15.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialMetalnessMapFeature.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialNormalMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="6.75" Y="7" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>ABAAAQAAAAAIABAAQAABAAAAAAAAAAAAAAAACABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialNormalMapFeature.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialOcclusionMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="6.25" Y="23.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AFAAAAAAAAAAAAAAAACBAAAAAABAAAAAAECQAABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialOcclusionMapFeature.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialOverrides" Collapsed="true">
+    <Position X="3.5" Y="5.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAIAAAAAAAAAAAAAEAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialOverrides.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMapFeature" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="6.75" Y="15.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAABgAAIAAAgAAAABAAAAABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMapFeature.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetFresnelNone" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="22" Y="23.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetFresnelNone.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetFresnelSchlick" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="18.75" Y="23.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetFresnelSchlick.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetModelFeature" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="13.25" Y="22" Width="3" />
+    <Compartments>
+      <Compartment Name="Properties" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AEAAAAACABAAAAAAgAAAAAAAAAAAAIAAAAACAABAAAI=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicroFacetModelFeature.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Fresnel" />
+      <Property Name="Visibility" />
+      <Property Name="NormalDistribution" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetNormalDistributionBeckmann" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="24" Y="24.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetNormalDistributionBeckmann.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetNormalDistributionBlinnPhong" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="19.5" Y="25.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetNormalDistributionBlinnPhong.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetNormalDistributionGGX" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="19.5" Y="24.75" Width="4.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetNormalDistributionGGX.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetVisibilityCookTorrance" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="19.5" Y="28" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetVisibilityCookTorrance.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetVisibilityImplicit" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="24" Y="28" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetVisibilityImplicit.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetVisibilityKelemen" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="24" Y="30" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetVisibilityKelemen.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetVisibilityNeumann" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="19.5" Y="30" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetVisibilityNeumann.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetVisibilitySmithBeckmann" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="24" Y="27" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetVisibilitySmithBeckmann.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetVisibilitySmithGGXCorrelated" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="24" Y="29" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetVisibilitySmithGGXCorrelated.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetVisibilitySmithSchlickBeckmann" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="19.5" Y="27" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetVisibilitySmithSchlickBeckmann.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialSpecularMicrofacetVisibilitySmithSchlickGGX" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="19.5" Y="29" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAIAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialSpecularMicrofacetVisibilitySmithSchlickGGX.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialTessellationBaseFeature" Collapsed="true">
+    <Position X="6.75" Y="11.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AACEAAAACAAAAIAAAAAAAAQAAAAAAAACAAAAAABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialTessellationBaseFeature.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialTessellationFlatFeature" Collapsed="true">
+    <Position X="5" Y="12.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialTessellationFlatFeature.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialTessellationPNFeature" Collapsed="true">
+    <Position X="8.25" Y="12.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialTessellationPNFeature.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialTransparencyAdditiveFeature" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="6.25" Y="25.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAEAAAAAABAAAAASAAAAAABAAAAAAAAJAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialTransparencyAdditiveFeature.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialTransparencyCutoffFeature" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="9.25" Y="25.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAAABAAAAAQAAAAAABEAAAAAAABAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialTransparencyCutoffFeature.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Rendering.Material" Collapsed="true">
+    <Position X="13.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAAAEAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Material.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Rendering.Materials.MaterialDescriptor" Collapsed="true">
+    <Position X="5" Y="4.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAQAAAAQAAAAAAAEAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\MaterialDescriptor.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Attributes" />
+      <Property Name="Layers" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="Stride.Rendering.Materials.IMaterialAttributes" Collapsed="true">
+    <Position X="1" Y="3" Width="2" />
+    <InheritanceLine Type="Stride.Rendering.Materials.IMaterialFeature" FixedToPoint="true">
+      <Path>
+        <Point X="12.375" Y="2.191" />
+        <Point X="12.375" Y="2.625" />
+        <Point X="6.083" Y="2.625" Type="JumpStart" />
+        <Point X="5.917" Y="2.625" Type="JumpEnd" />
+        <Point X="1.929" Y="2.625" />
+        <Point X="1.929" Y="3" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialAttributes.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialDescriptor" Collapsed="true">
+    <Position X="5" Y="3" Width="2" />
+    <InheritanceLine Type="Stride.Rendering.Materials.IMaterialShaderGenerator" FixedFromPoint="true">
+      <Path>
+        <Point X="6" Y="1.062" />
+        <Point X="6" Y="3" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAQAAAAQAAAAAAAEAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialDescriptor.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialDiffuseFeature" Collapsed="true">
+    <Position X="3.5" Y="14" Width="2.25" />
+    <InheritanceLine Type="Stride.Rendering.Materials.IMaterialFeature" FixedToPoint="true">
+      <Path>
+        <Point X="12.375" Y="2.191" />
+        <Point X="12.375" Y="13.625" />
+        <Point X="4.625" Y="13.625" />
+        <Point X="4.625" Y="14" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialDiffuseFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialDiffuseModelFeature" Collapsed="true">
+    <Position X="3.5" Y="18.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialDiffuseModelFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialDisplacementFeature" Collapsed="true">
+    <Position X="3.5" Y="9.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialDisplacementFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialEmissiveFeature" Collapsed="true">
+    <Position X="3.5" Y="20.25" Width="2" />
+    <InheritanceLine Type="Stride.Rendering.Materials.IMaterialShadingModelFeature" FixedToPoint="true">
+      <Path>
+        <Point X="10.375" Y="17.82" />
+        <Point X="10.375" Y="19.875" />
+        <Point X="4.562" Y="19.875" />
+        <Point X="4.562" Y="20.25" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialEmissiveFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialFeature" Collapsed="true">
+    <Position X="11.5" Y="1.5" Width="1.75" />
+    <InheritanceLine Type="Stride.Rendering.Materials.IMaterialShaderGenerator" FixedFromPoint="true">
+      <Path>
+        <Point X="6.312" Y="1.062" />
+        <Point X="6.312" Y="1.312" />
+        <Point X="12.375" Y="1.312" />
+        <Point X="12.375" Y="1.5" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialLayers" Collapsed="true">
+    <Position X="8.5" Y="3" Width="1.5" />
+    <InheritanceLine Type="Stride.Rendering.Materials.IMaterialFeature" FixedToPoint="true">
+      <Path>
+        <Point X="12.375" Y="2.191" />
+        <Point X="12.375" Y="2.625" />
+        <Point X="9.25" Y="2.625" />
+        <Point X="9.25" Y="3" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialLayers.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialMicroSurfaceFeature" Collapsed="true">
+    <Position X="3.5" Y="8.25" Width="2.25" />
+    <InheritanceLine Type="Stride.Rendering.Materials.IMaterialFeature" FixedToPoint="true">
+      <Path>
+        <Point X="12.375" Y="2.191" />
+        <Point X="12.375" Y="7.875" />
+        <Point X="4.688" Y="7.875" />
+        <Point X="4.688" Y="8.25" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialMicroSurfaceFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialOcclusionFeature" Collapsed="true">
+    <Position X="3.25" Y="23.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialOcclusionFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialShaderGenerator" Collapsed="true">
+    <Position X="5" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialShaderGenerator.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialShadingModelFeature" Collapsed="true">
+    <Position X="9" Y="17" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialShadingModelFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialSpecularFeature" Collapsed="true">
+    <Position X="3.5" Y="15.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialSpecularFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialSpecularMicrofacetFresnelFunction" Collapsed="true">
+    <Position X="15.25" Y="23.5" Width="3.25" />
+    <InheritanceLine Type="Stride.Rendering.Materials.IMaterialSpecularMicrofacetFunction" FixedToPoint="true">
+      <Path>
+        <Point X="28.375" Y="22.562" />
+        <Point X="28.375" Y="23.125" />
+        <Point X="18.708" Y="23.125" Type="JumpStart" />
+        <Point X="18.542" Y="23.125" Type="JumpEnd" />
+        <Point X="16.875" Y="23.125" />
+        <Point X="16.875" Y="23.5" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialSpecularMicrofacetFresnelFunction.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialSpecularMicrofacetFunction" Collapsed="true">
+    <Position X="27" Y="22" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialSpecularMicrofacetFunction.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialSpecularMicrofacetNormalDistributionFunction" Collapsed="true">
+    <Position X="15.25" Y="24.75" Width="4" />
+    <InheritanceLine Type="Stride.Rendering.Materials.IMaterialSpecularMicrofacetFunction" FixedToPoint="true">
+      <Path>
+        <Point X="28.375" Y="22.562" />
+        <Point X="28.375" Y="24.45" />
+        <Point X="18.708" Y="24.45" Type="JumpStart" />
+        <Point X="18.542" Y="24.45" Type="JumpEnd" />
+        <Point X="17.25" Y="24.45" />
+        <Point X="17.25" Y="24.75" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialSpecularMicrofacetNormalDistributionFunction.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialSpecularMicrofacetVisibilityFunction" Collapsed="true">
+    <Position X="15.25" Y="27" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialSpecularMicrofacetVisibilityFunction.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialSpecularModelFeature" Collapsed="true">
+    <Position X="3.25" Y="22" Width="2.5" />
+    <InheritanceLine Type="Stride.Rendering.Materials.IMaterialShadingModelFeature" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="10.375" Y="17.82" />
+        <Point X="10.375" Y="21.625" />
+        <Point X="4.5" Y="21.625" />
+        <Point X="4.5" Y="22" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialSpecularModelFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialSurfaceFeature" Collapsed="true">
+    <Position X="3.5" Y="6.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialSurfaceFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialTessellationFeature" Collapsed="true">
+    <Position X="3.5" Y="11.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialTessellationFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Stride.Rendering.Materials.IMaterialTransparencyFeature" Collapsed="true">
+    <Position X="3.25" Y="24.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Rendering\Materials\IMaterialTransparencyFeature.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

@@ -1,0 +1,22 @@
+!PrefabAsset
+Id: 54499ca6-4dce-4a6d-a89c-7239509ecc32
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 47e29b92-3a2f-4b0d-a34e-7006583ec3bb
+    Parts:
+        -   Entity:
+                Id: 47e29b92-3a2f-4b0d-a34e-7006583ec3bb
+                Name: CurvedStand
+                Components:
+                    79e251d26013f344b89e8d3a0e87b548: !TransformComponent
+                        Id: d251e279-1360-44f3-b89e-8d3a0e87b548
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.3, Y: 1.3, Z: 1.3}
+                        Children: {}
+                    1ec9ef58454c934191e2f7b9a5848857: !ModelComponent
+                        Id: 58efc91e-4c45-4193-91e2-f7b9a5848857
+                        Model: 5c759e03-f13d-4962-b8f2-4ff82e154629:Models/standCurved
+                        Materials: {}

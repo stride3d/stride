@@ -1,0 +1,94 @@
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<#
+var curPlatform = (Stride.Core.PlatformType)System.Enum.Parse(typeof(Stride.Core.PlatformType), Properties.CurrentPlatform);
+var needSigning = true;
+#>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <!--Import Local Pre Settings for the solution being loaded -->
+  <Import Project="<#= Properties.StrideSdkRelativeDir #>\sources\targets\Stride.PreSettings.UnitTests.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{<#= ProjectGuid.ToString().ToUpperInvariant() #>}</ProjectGuid>
+<# if (curPlatform == Stride.Core.PlatformType.Android) { #>
+    <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AndroidApplication>true</AndroidApplication>
+    <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
+    <AndroidUseLatestPlatformSdk></AndroidUseLatestPlatformSdk>
+    <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
+    <AndroidStoreUncompressedFileExtensions />
+    <MandroidI18n />
+    <JavaMaximumHeapSize />
+    <JavaOptions />
+    <AssemblyName><#= ProjectName #></AssemblyName>
+<# } else if (curPlatform == Stride.Core.PlatformType.iOS) { #>
+    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Exe</OutputType>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <AssemblyName><#= ProjectName.Replace(".", "") #></AssemblyName>
+<# } else { #>
+    <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Exe</OutputType>
+    <StrideBuildTags>*</StrideBuildTags>
+    <AssemblyName><#= ProjectName #></AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+<# } #>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace><#= Properties.Namespace #></RootNamespace>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StridePlatform><#= curPlatform #></StridePlatform>
+    <StrideBuildProfile>$(StridePlatform)</StrideBuildProfile>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''"><#= curPlatform.GetDefaultGraphicsPlatform() #></StrideGraphicsApi>
+    <StrideOutputFolder>Tests\$(StrideGraphicsApi)\$(AssemblyName)</StrideOutputFolder>
+    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+<#@ include file="..\Common.PropertyGroups.targets.t4" #>
+  <ItemGroup>
+    <None Include="README.md" />
+    <Compile Include="TestClass1.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+<# if (curPlatform == Stride.Core.PlatformType.Android) { #>
+  <ItemGroup>
+    <Reference Label="Stride.DoNotSync" Include="Mono.Android" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Label="Stride.DoNotSync" Include="Properties\AndroidManifest.xml" />
+    <AndroidResource Label="Stride.DoNotSync" Include="Resources\Drawable\Icon.png" />
+    <Compile Label="Stride.DoNotSync" Include="Resources\Resource.Designer.cs" />
+    <Compile Label="Stride.DoNotSync" Include="<#= Properties.StrideSdkRelativeDir #>\sources\shared\tests\nunitlite\NUnitLiteLauncher.Android.cs">
+      <Link>NUnitLiteLauncher.Android.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
+<# } else if (curPlatform == Stride.Core.PlatformType.iOS) { #>
+  <ItemGroup>
+    <Reference Label="Stride.DoNotSync" Include="Xamarin.iOS" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Label="Stride.DoNotSync" Include="Info.plist" />
+    <Compile Label="Stride.DoNotSync" Include="<#= Properties.StrideSdkRelativeDir #>\sources\shared\tests\nunitlite\NUnitLiteLauncher.iPhone.cs">
+      <Link>NUnitLiteLauncher.iPhone.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
+<# } else { #>
+  <Import Condition="'$(StrideNETRuntime)' == ''" Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+<# } #>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+    Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
+

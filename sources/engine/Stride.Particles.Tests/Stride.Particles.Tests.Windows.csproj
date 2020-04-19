@@ -1,0 +1,66 @@
+﻿<Project>
+  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
+  <PropertyGroup>
+    <TargetFrameworks>net461</TargetFrameworks>
+    <AssemblyName>Stride.Particles.Tests</AssemblyName>
+    <RootNamespace>Stride.Particles.Tests</RootNamespace>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCompileAssets>true</StrideCompileAssets>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>xunit.runner.stride.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Particles\Stride.Particles.csproj" />
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="XunitAttributes.cs" />
+    <Compile Include="GameTest.cs" />
+    <Compile Include="ParticleForcesTest.cs" />
+    <Compile Include="ParticlePoolTest.cs" />
+    <Compile Include="ParticleSorterLiving.cs" />
+    <Compile Include="SimpleTest.cs" />
+    <Compile Include="VisualTestChildren.cs" />
+    <Compile Include="VisualTestCurves.cs" />
+    <Compile Include="VisualTestGeneral.cs" />
+    <Compile Include="VisualTestInitializers.cs" />
+    <Compile Include="VisualTestMaterials.cs" />
+    <Compile Include="VisualTestSoftEdge.cs" />
+    <Compile Include="VisualTestSpawners.cs" />
+    <Compile Include="VisualTestsRibbons.cs" />
+    <Compile Include="VisualTestUpdaters.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="GameAssets\Alphabet.sdtex" />
+    <None Include="GameAssets\Assets.sdprj" />
+    <None Include="GameAssets\GameSettings.sdgamesettings" />
+    <None Include="GameAssets\Gradient.sdtex" />
+    <None Include="GameAssets\GradientHorizontal.sdtex" />
+    <None Include="GameAssets\GradientVertical.sdtex" />
+    <None Include="GameAssets\GraphicsCompositor.sdgfxcomp" />
+    <None Include="GameAssets\MainScene.sdscene" />
+    <None Include="GameAssets\Material.sdmat" />
+    <None Include="GameAssets\ProceduralModelGround.sdpromodel" />
+    <None Include="GameAssets\Scene01.sdscene" />
+    <None Include="GameAssets\Teapot.sdpromodel" />
+    <None Include="GameAssets\uvGradient.sdtex" />
+    <None Include="GameAssets\VisualTestChildren.sdscene" />
+    <None Include="GameAssets\VisualTestCurves.sdscene" />
+    <None Include="GameAssets\VisualTestGeneral.sdscene" />
+    <None Include="GameAssets\VisualTestInitializers.sdscene" />
+    <None Include="GameAssets\VisualTestMaterials.sdscene" />
+    <None Include="GameAssets\VisualTestRibbons.sdscene" />
+    <None Include="GameAssets\VisualTestSoftEdge.sdscene" />
+    <None Include="GameAssets\VisualTestSpawners.sdscene" />
+    <None Include="GameAssets\VisualTestUpdaters.sdscene" />
+    <None Include="Stride.Particles.Tests.sdpkg" />
+  </ItemGroup>
+  <Import Project="..\..\targets\Stride.UnitTests.targets" />
+</Project>

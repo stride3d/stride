@@ -26,9 +26,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using Foundation;
 using UIKit;
-using Xenko.UnitTesting.UI;
+using Stride.UnitTesting.UI;
 
-namespace Xenko.Core.Tests
+namespace Stride.Core.Tests
 {
     public class Application
     {

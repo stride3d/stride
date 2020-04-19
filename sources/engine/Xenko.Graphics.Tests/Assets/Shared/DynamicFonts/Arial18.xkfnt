@@ -1,9 +1,0 @@
-!SpriteFont
-Id: d743e676-2c6f-4fc0-917d-4203d4d409ed
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-FontSource: !SystemFontProvider
-    FontName: Arial
-    Style: Regular
-FontType: !RuntimeRasterizedSpriteFontType
-    Size: 18.0

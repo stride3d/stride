@@ -1,0 +1,26 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+shader SharedTextureCoordinate : ShaderBase, Texturing
+{
+    override stage void PSMain()
+    {
+        // Remap all texture coords to TEXCOORD0
+        streams.TexCoord1 = streams.TexCoord;
+        streams.TexCoord2 = streams.TexCoord;
+        streams.TexCoord3 = streams.TexCoord;
+        streams.TexCoord4 = streams.TexCoord;
+        streams.TexCoord5 = streams.TexCoord;
+        streams.TexCoord6 = streams.TexCoord;
+        streams.TexCoord7 = streams.TexCoord;
+        streams.TexCoord8 = streams.TexCoord;
+        streams.TexCoord9 = streams.TexCoord;
+
+        base.PSMain();
+    }
+
+    override stage void VSMain()
+    {
+        base.VSMain();
+    }
+};

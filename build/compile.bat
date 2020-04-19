@@ -62,7 +62,7 @@ set _platform_target=Mixed Platforms
 
 rem Compiling the various solutions
 
-set Project=Xenko.sln
+set Project=Stride.sln
 rem We always compile tests for the main solution
 set __OldSkipTestBuild=%__SkipTestBuild%
 set __SkipTestBuild=false
@@ -70,79 +70,79 @@ call :compile
 set __SkipTestBuild=%__OldSkipTestBuild%
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.Direct3D.sln
+set Project=Stride.Direct3D.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.Direct3D.SDL.sln
+set Project=Stride.Direct3D.SDL.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.Direct3D.CoreCLR.sln
+set Project=Stride.Direct3D.CoreCLR.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.Direct3D12.sln
+set Project=Stride.Direct3D12.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.Null.sln
+set Project=Stride.Null.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.Vulkan.sln
+set Project=Stride.Vulkan.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.Vulkan.SDL.sln
+set Project=Stride.Vulkan.SDL.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.OpenGL.sln
+set Project=Stride.OpenGL.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.OpenGL.CoreCLR.sln
+set Project=Stride.OpenGL.CoreCLR.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.Linux.sln
+set Project=Stride.Linux.sln
 set _platform_target=Linux
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.Linux.Vulkan.sln
+set Project=Stride.Linux.Vulkan.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.Linux.CoreCLR.sln
+set Project=Stride.Linux.CoreCLR.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.Linux.Vulkan.CoreCLR.sln
+set Project=Stride.Linux.Vulkan.CoreCLR.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.macOS.sln
+set Project=Stride.macOS.sln
 set _platform_target=macOS
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.macOS.CoreCLR.sln
+set Project=Stride.macOS.CoreCLR.sln
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.Android.sln
+set Project=Stride.Android.sln
 set _platform_target=Android
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.iOS.sln
+set Project=Stride.iOS.sln
 set _platform_target=iPhone
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Xenko.UWP.sln
+set Project=Stride.UWP.sln
 set _platform_target=UWP
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
@@ -153,9 +153,9 @@ rem Compile our solution. The following variables needs to be set:
 rem "Project" is the solution name
 rem "_platform_target" is the platform being targeted
 :compile
-set _option=/nologo /nr:false /m /verbosity:%__BuildVerbosity% /p:Configuration=%__BuildType% /p:Platform="%_platform_target%" /p:XenkoSkipUnitTests=%__SkipTestBuild% %Project%
+set _option=/nologo /nr:false /m /verbosity:%__BuildVerbosity% /p:Configuration=%__BuildType% /p:Platform="%_platform_target%" /p:StrideSkipUnitTests=%__SkipTestBuild% %Project%
 
-if "%__BuildDoc%" == "1" set _option=%_option% /p:XenkoGenerateDoc=true
+if "%__BuildDoc%" == "1" set _option=%_option% /p:StrideGenerateDoc=true
 
 rem Skip Compilation if __SelectedProject was set and does not match what was requested
 if "%__SelectedProject%" NEQ "" (

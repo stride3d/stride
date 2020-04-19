@@ -1,0 +1,55 @@
+!SpriteSheet
+Id: 170d7900-50c3-46c0-ab61-fd86a5377c76
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: Sprite2D
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+Packing:
+    BorderSize: 0
+Sprites:
+    718df115852356499c3a52542b6036e8:
+        Source: ../../../data/tests/TexturePacking/imageBorder.png
+        Name: NRNR
+        TextureRegion: {X: 10, Y: 10, Width: 256, Height: 64}
+        PixelsPerUnit: 1.0
+        Center: {X: 32.0, Y: 48.0}
+        CenterFromMiddle: false
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    5355d5bb26e1754b852a91757b96936d:
+        Source: ../../../data/tests/TexturePacking/imageBorder.png
+        Name: RNR
+        TextureRegion: {X: 375, Y: 0, Width: 64, Height: 256}
+        PixelsPerUnit: 1.0
+        Orientation: Rotated90
+        Center: {X: 16.0, Y: 32.0}
+        CenterFromMiddle: false
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    728f6a146f8f1642be9e239508ae5694:
+        Source: ../../../data/tests/TexturePacking/imageBorder.png
+        Name: NRR
+        TextureRegion: {X: 375, Y: 0, Width: 64, Height: 256}
+        PixelsPerUnit: 1.0
+        Center: {X: 16.0, Y: 32.0}
+        CenterFromMiddle: false
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    79ece8bfe6844540acddff6901b801fc:
+        Source: ../../../data/tests/TexturePacking/imageBorder.png
+        Name: RR
+        TextureRegion: {X: 10, Y: 10, Width: 256, Height: 64}
+        PixelsPerUnit: 1.0
+        Orientation: Rotated90
+        Center: {X: 32.0, Y: 48.0}
+        CenterFromMiddle: false
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}
+    be53f34f768a014d910cdc65a91a8d4b:
+        Source: ../../../data/tests/TexturePacking/round.png
+        Name: Round
+        TextureRegion: {X: 0, Y: 0, Width: 64, Height: 64}
+        PixelsPerUnit: 8.0
+        Center: {X: 0.0, Y: 0.0}
+        Borders: {X: 0.0, Y: 0.0, Z: 0.0, W: 0.0}
+        BorderColor: {R: 0, G: 0, B: 0, A: 0}

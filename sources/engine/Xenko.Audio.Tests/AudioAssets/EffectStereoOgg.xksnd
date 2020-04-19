@@ -1,7 +1,0 @@
-!Sound
-Id: 803f9930-27d0-4178-8ce3-dfdf8b235cb5
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/audio/90-bboc1-stero.ogg
-StreamFromDisk: false
-Spatialized: true

@@ -1,0 +1,30 @@
+!Model
+Id: 079463bb-d4f9-433d-a5f3-39ba388feaec
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/Models/Gun.fbx
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    7344a234a5cc1fdb1e39e7371e39e737:
+        Name: MatteMT
+        MaterialInstance:
+            Material: 8539c8b2-974a-4abf-b1e9-194d552fa866:Models/MatteMT
+    320080a3133b85e84f5c5af64f5c5af6:
+        Name: GlossMT
+        MaterialInstance:
+            Material: b6095256-4056-4425-aafd-810a82e83c5c:Models/GlossMT
+    26a71dcfebd91d2e64e016eb64e016eb:
+        Name: GlowMT
+        MaterialInstance:
+            Material: ca2ec0c0-fb13-4709-9403-383f25dbb0fa:Models/GlowMT
+    6a70d88729ca6a32a5bb95c95bade139:
+        Name: SemiglossMT
+        MaterialInstance:
+            Material: df3e179d-ae4d-4238-bea1-64fc0cc0a332:Models/SemiglossMT
+    e3befa98ad23d3cfa84708dda84708dd:
+        Name: lambert1
+        MaterialInstance:
+            Material: 0dc0f6d0-607c-42b7-ba89-7704dfedb6d1:Models/LambertMT
+Skeleton: null
+~SourceHashes:
+    db0477852e7747342370c2de27455d34~../../Resources/Models/Gun.fbx: 12d1681ba554a9b1c1ad16bc405de6c7

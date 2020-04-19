@@ -1,9 +1,0 @@
-!Texture
-Id: f16ed18b-ed49-4471-ab10-bb4ee742bdbb
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../Resources/model/BG/sourceimages/BG_00.jpg
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-    PremultiplyAlpha: false
-IsStreamable: false

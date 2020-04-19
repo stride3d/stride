@@ -1,0 +1,41 @@
+!SceneAsset
+Id: ae4ecc1b-0b47-4c9d-ac8e-7f9720913084
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 6d2b02df-329f-4e05-b299-69f96d39c763
+        - ref!! ef9460fd-2e7a-41dc-9743-f9ec1174bb7f
+    Parts:
+        -   Entity:
+                Id: 6d2b02df-329f-4e05-b299-69f96d39c763
+                Name: Camera
+                Components:
+                    b0cc5210b30ff34f8fd768ac8f92a050: !TransformComponent
+                        Id: 1052ccb0-0fb3-4ff3-8fd7-68ac8f92a050
+                        Position: {X: 0.0, Y: 3.0, Z: 0.0}
+                        Rotation: {X: -0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b7775c99899e25408af52ed3914b0e21: !CameraComponent
+                        Id: 995c77b7-9e89-4025-8af5-2ed3914b0e21
+                        Name: null
+                        Projection: Perspective
+                        Slot: 49eb9b6d-cf35-4f82-bea9-03374be379e2
+        -   Entity:
+                Id: ef9460fd-2e7a-41dc-9743-f9ec1174bb7f
+                Name: Ambient light
+                Components:
+                    bd5a82ecd52fe84dbe9d06574d97516b: !TransformComponent
+                        Id: ec825abd-2fd5-4de8-be9d-06574d97516b
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    813f6ebb08e82b4c86b3c807f89fb511: !LightComponent
+                        Id: bb6e3f81-e808-4c2b-86b3-c807f89fb511
+                        Type: !LightAmbient
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}

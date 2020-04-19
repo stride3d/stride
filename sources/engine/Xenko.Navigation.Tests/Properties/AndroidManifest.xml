@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="Xenko.Navigation.Tests" android:versionCode="1" android:versionName="1.0">
-  <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="27" />
-  <application android:icon="@drawable/icon" android:label="Xenko.Navigation.Tests" android:theme="@android:style/Theme.NoTitleBar.Fullscreen"></application>
-  <uses-feature android:glEsVersion="0x00020000" android:required="true" />
-  <supports-screens android:smallScreens="true" android:normalScreens="true" android:largeScreens="true" android:xlargeScreens="true" android:anyDensity="true" />
-  <uses-permission android:name="android.permission.INTERNET" />
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-</manifest>

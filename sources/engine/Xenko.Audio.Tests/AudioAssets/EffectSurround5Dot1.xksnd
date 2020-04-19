@@ -1,7 +1,0 @@
-!Sound
-Id: 6909b9f2-f7cc-4f68-baf5-1fa221d48f5a
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/audio/90-bboc1-surround5.1.wav
-StreamFromDisk: false
-Spatialized: true

@@ -1,0 +1,13 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Resets the position to the origin.
+/// </summary>
+shader TransformationZero : TransformationBase
+{
+    stage override void BaseTransformVS()
+    {
+        streams.PositionStream4.Position = float4(0.0f, 0.0f, 0.0f, 1.0f);
+        base.BaseTransformVS();
+    }
+};

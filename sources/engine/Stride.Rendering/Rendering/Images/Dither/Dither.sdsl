@@ -1,0 +1,37 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+shader Dither : ColorTransformShader, Texturing
+{
+    // Time changing at each frame for the animation
+    float Time;
+
+    override float4 Compute(float4 color)
+    {
+        // Test cases that truncate to 8 bit and scale the result:
+        //return float4(Truncate(ScreenSpaceDither(color.rgb*0.1), 255), color.a) * 10;
+        //return float4(Truncate(color.rgb*0.1, 255), color.a) * 10;
+
+        return float4(ScreenSpaceDither(color.rgb), color.a);
+		//return float4(color.rgb, color.a);
+    }
+
+    float3 Truncate( float3 x, float n )
+    {
+	    return floor(x*n)/n;
+    }
+
+
+    float3 ScreenSpaceDither(float3 input)
+    {
+        float2 vScreenPos = streams.TexCoord;
+        vScreenPos /= Texture0TexelSize;
+
+        // http://alex.vlachos.com/graphics/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
+        // lestyn's RGB dither (7 asm instructions) from Portal 2 X360, slightly modified for VR
+        float3 vDither = dot(float2(131.0, 312.0), vScreenPos + Time);
+        vDither.rgb = frac(vDither.rgb / float3(103.0, 71.0, 97.0)) - float3(0.5, 0.5, 0.5);
+        float d = max(input.x, max(input.y, input.z));
+        return input + (vDither.rgb / 255.0);
+    }
+};

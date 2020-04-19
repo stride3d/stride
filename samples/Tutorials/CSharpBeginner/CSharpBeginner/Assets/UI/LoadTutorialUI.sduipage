@@ -1,0 +1,162 @@
+!UIPageAsset
+Id: 5175f272-13da-45dd-9f7b-540e7121dd56
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+Design:
+    Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+Hierarchy:
+    RootParts:
+        - !Grid ref!! 464d8733-9b88-486e-a93c-32a386a7a4db
+    Parts:
+        -   UIElement: !TextBlock
+                Id: 175165ef-6d72-47d9-bea5-f3bfe833f09f
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Width: 273.713379
+                Height: 22.65625
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Text: TutorialButtonTemplate
+                Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
+                TextSize: 20.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+        -   UIElement: !StackPanel
+                Id: 1751b62f-93fe-4bc5-b9c0-b801d6862771
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Width: 303.0
+                Height: 620.0
+                HorizontalAlignment: Left
+                Margin: {Top: 100.0}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Name: TutorialButtonsStackPanel
+                Children:
+                    e14bf8f0ccdf50dea05138671cff10ff: !Button ref!! ac458635-2d22-4017-ad25-4897cdc15efa
+        -   UIElement: !Button
+                Id: 3939d869-c66d-4893-8333-b74c735b7f29
+                DependencyProperties:
+                    51c0925b7825cb6e79eb818000a9e476~Panel.ZIndexPropertyKey: 10
+                BackgroundColor: {R: 156, G: 8, B: 8, A: 0}
+                DrawLayerNumber: 2
+                CanBeHitByUser: true
+                Width: 130.0
+                Height: 50.0
+                HorizontalAlignment: Left
+                VerticalAlignment: Top
+                Margin: {Top: 50.0}
+                Name: BtnTutorialMenu
+                Padding: {Left: 10.0, Top: 5.0, Right: 10.0, Bottom: 7.0}
+                Content: !TextBlock ref!! 42c26bd2-d2ad-4956-9ade-2c34e8211487
+                PressedImage: !SpriteFromTexture
+                    Texture: 11885e0d-3260-4b62-a0fd-d5f908fa3e8f:UI/btn_normal
+                    Center: {X: 0.0, Y: 0.0}
+                NotPressedImage: !SpriteFromTexture
+                    Texture: 11885e0d-3260-4b62-a0fd-d5f908fa3e8f:UI/btn_normal
+                    Center: {X: 0.0, Y: 0.0}
+                MouseOverImage: !SpriteFromTexture
+                    Texture: bfa21909-0aa7-4f47-9d73-b075d7ac0b39:UI/btn_hover
+                    Center: {X: 0.0, Y: 0.0}
+        -   UIElement: !StackPanel
+                Id: 3cc1f546-c886-435e-aba1-75ea9620a29b
+                DependencyProperties: {}
+                BackgroundColor: {R: 255, G: 255, B: 255, A: 255}
+                Width: 1280.0
+                Height: 100.0
+                VerticalAlignment: Top
+                Margin: {}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Children:
+                    01bca7a6fedbc754d1652dc05f622330: !TextBlock ref!! c9e62031-c22e-40cb-93a6-ab7b31525217
+                    4a6d58967cef7777e5e4181aa0234030: !TextBlock ref!! ef239f16-aedd-4bd0-bde5-b527be3b103c
+        -   UIElement: !TextBlock
+                Id: 42c26bd2-d2ad-4956-9ade-2c34e8211487
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Text: Menu
+                Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
+                TextSize: 24.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+        -   UIElement: !Grid
+                Id: 464d8733-9b88-486e-a93c-32a386a7a4db
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                Children:
+                    762d03d8d55e1f9d590aea2465e54673: !Button ref!! 3939d869-c66d-4893-8333-b74c735b7f29
+                    686e94f34572a48011c01dceebc07fe3: !StackPanel ref!! 3cc1f546-c886-435e-aba1-75ea9620a29b
+                    482b38b4b3545053d536339890c9fcd6: !StackPanel ref!! 1751b62f-93fe-4bc5-b9c0-b801d6862771
+                RowDefinitions: {}
+                ColumnDefinitions: {}
+                LayerDefinitions: {}
+        -   UIElement: !Button
+                Id: ac458635-2d22-4017-ad25-4897cdc15efa
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                CanBeHitByUser: true
+                Width: 303.0
+                Height: 32.65625
+                VerticalAlignment: Top
+                Margin: {}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Padding: {Left: 10.0, Top: 5.0, Right: 10.0, Bottom: 7.0}
+                Content: !TextBlock ref!! 175165ef-6d72-47d9-bea5-f3bfe833f09f
+                PressedImage: !SpriteFromTexture
+                    Texture: 11885e0d-3260-4b62-a0fd-d5f908fa3e8f:UI/btn_normal
+                    Center: {X: 0.0, Y: 0.0}
+                NotPressedImage: !SpriteFromTexture
+                    Texture: 11885e0d-3260-4b62-a0fd-d5f908fa3e8f:UI/btn_normal
+                    Center: {X: 0.0, Y: 0.0}
+                MouseOverImage: !SpriteFromTexture
+                    Texture: bfa21909-0aa7-4f47-9d73-b075d7ac0b39:UI/btn_hover
+                    Center: {X: 0.0, Y: 0.0}
+        -   UIElement: !TextBlock
+                Id: c9e62031-c22e-40cb-93a6-ab7b31525217
+                DependencyProperties: {}
+                BackgroundColor: {R: 255, G: 255, B: 255, A: 0}
+                Width: 1280.0
+                Height: 52.0
+                VerticalAlignment: Top
+                Margin: {Top: -11.0}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Name: titleText
+                Text: C# BEGINNER
+                Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
+                TextSize: 50.0
+                TextColor: {R: 0, G: 255, B: 255, A: 255}
+                TextAlignment: Center
+        -   UIElement: !TextBlock
+                Id: ef239f16-aedd-4bd0-bde5-b527be3b103c
+                DependencyProperties: {}
+                BackgroundColor: {R: 255, G: 255, B: 255, A: 0}
+                Width: 1280.0
+                Height: 59.0
+                VerticalAlignment: Top
+                Margin: {}
+                MaximumWidth: 3.40282347E+38
+                MaximumHeight: 3.40282347E+38
+                MaximumDepth: 3.40282347E+38
+                Name: tutorialTitleTxt
+                Text: Tutorial scene
+                Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
+                TextSize: 35.0
+                TextColor: {R: 6, G: 0, B: 20, A: 255}
+                TextAlignment: Center

@@ -1,0 +1,11 @@
+!Texture
+Id: cbf696d1-ec12-4cb6-9518-b4a9b51dfaf6
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/LogoStride.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+    Alpha: Explicit
+    PremultiplyAlpha: false
+GenerateMipmaps: false
+IsStreamable: false

@@ -1,0 +1,6 @@
+!Texture
+Id: a69bd2ab-8ebc-4c80-9ddb-605a1ba476c4
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../Resources/Textures/rooftile/rooftile_nml.png
+Type: !NormalMapTextureType {}

@@ -1,0 +1,8 @@
+!Texture
+Id: 8cc3c13d-b050-49ae-87cf-a58107f4e474
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/SmallJpeg.jpg
+Type: !ColorTextureType
+    ColorKeyEnabled: true
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

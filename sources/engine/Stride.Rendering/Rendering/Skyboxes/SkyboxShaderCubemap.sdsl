@@ -1,0 +1,17 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Skyboxes
+{
+    shader SkyboxShaderCubemap : SkyboxShaderBase
+    {
+        stage TextureCube CubeMap;
+
+        override stage float4 Shading()
+        {
+            var samplingDir = normalize(streams.skyboxViewDirection);
+            var color = CubeMap.Sample(LinearSampler, float3(samplingDir.x, samplingDir.y, -samplingDir.z)).rgb;
+            return float4(color * Intensity, 1.0);
+        }
+    };
+}

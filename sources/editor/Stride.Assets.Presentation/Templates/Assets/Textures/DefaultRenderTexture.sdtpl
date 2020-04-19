@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: 246FB8D2-0601-4697-AD14-184CFC520963
+AssetTypeName: RenderTextureAsset
+Name: Render target
+Scope: Asset
+Description: A render target asset you can render to, or use as an input texture
+Group: Texture
+Order: 50
+Icon: ..\.sdtpl\RenderTexture.png
+DefaultOutputName: RenderTexture

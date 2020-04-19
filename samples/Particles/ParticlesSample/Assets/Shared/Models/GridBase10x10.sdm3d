@@ -1,0 +1,14 @@
+!Model
+Id: 0fb6c306-2953-47bc-86ff-3e79cfec1836
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../Resources/Models/GridBase10x10.fbx
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    d38ed2aea9d7618e02a00a6fcf3b01f0:
+        Name: GridMTx10
+        MaterialInstance:
+            Material: 5390bda0-f8de-4f64-84e2-8a9596546b04:Materials/GridMTx10
+Skeleton: null
+~SourceHashes:
+    b8f4425f419a2966b9ecf5259ed130ab~../../../Resources/Models/GridBase10x10.fbx: d2129581a243c7487569fddcb4f9d938

@@ -1,0 +1,11 @@
+!TemplateAssetFactory
+Id: C3B2AADF-F715-42E3-94CF-D9C64394CEB5
+AssetTypeName: GameSettingsAsset
+Name: Game Settings
+Scope: Asset
+Description: An asset containing Game Settings (startup scene, graphics resolution, etc...)
+Group: Miscellaneous
+Icon: ..\.sdtpl\GameSettings.png
+Order: 1000
+DefaultOutputName: GameSettings
+FactoryTypeName: GameSettingsFactory

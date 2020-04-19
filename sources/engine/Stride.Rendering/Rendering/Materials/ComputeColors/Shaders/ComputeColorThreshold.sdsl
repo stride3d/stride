@@ -1,0 +1,20 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader ComputeColorThreshold : ComputeColor
+{
+    compose ComputeColor color1;
+    compose ComputeColor color2;
+
+    override float4 Compute()
+    {
+        float4 baseColor = color1.Compute();
+        float4 maskColor = color2.Compute();
+
+        return float4(
+            smoothstep(maskColor.r, maskColor.r, baseColor.r),
+            smoothstep(maskColor.g, maskColor.g, baseColor.g),
+            smoothstep(maskColor.b, maskColor.b, baseColor.b),
+            smoothstep(maskColor.a, maskColor.a, baseColor.a)
+        );
+    }
+};

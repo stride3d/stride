@@ -1,8 +1,0 @@
-!Texture
-Id: 38ae6ae8-009d-4ae5-87ba-d0e3be283dcd
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../Resources/stone4_nml.jpeg
-IsCompressed: false
-Type: !NormalMapTextureType
-    InvertY: false

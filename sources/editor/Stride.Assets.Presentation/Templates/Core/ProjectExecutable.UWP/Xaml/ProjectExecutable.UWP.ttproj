@@ -1,0 +1,18 @@
+!ProjectTemplate
+Files:
+  - {Source: $ProjectName$.csproj.t4, Target: $ProjectName$.csproj, IsTemplate: true}
+  - {Source: App.xaml.cs.t4, Target: App.xaml.cs, IsTemplate: true}
+  - {Source: App.xaml.t4, Target: App.xaml, IsTemplate: true}
+  - {Source: $PackageGameNameShort$MainPage.xaml.cs.t4, Target: $PackageGameNameShort$MainPage.xaml.cs, IsTemplate: true}
+  - {Source: $PackageGameNameShort$MainPage.xaml.t4, Target: $PackageGameNameShort$MainPage.xaml, IsTemplate: true}
+  - {Source: Package.appxmanifest.t4, Target: Package.appxmanifest, IsTemplate: true}
+  - {Source: ..\Properties\AssemblyInfo.cs.t4, Target: Properties\AssemblyInfo.cs, IsTemplate: true}
+  - {Source: ..\Properties\Default.rd.xml, Target: Properties\Default.rd.xml}
+  - {Source: ..\Assets\GameIcon150x150.png, Target: Assets\Logo.scale-100.png}
+  - {Source: ..\Assets\GameIcon300x300.png, Target: Assets\Logo.scale-200.png}
+  - {Source: ..\Assets\GameSplashScreen620x300.png, Target: Assets\SplashScreen.scale-100.png}
+  - {Source: ..\Assets\GameSplashScreen1240x600.png, Target: Assets\SplashScreen.scale-200.png}
+  - {Source: ..\Assets\GameIcon44x44.png, Target: Assets\SmallLogo.scale-100.png}
+  - {Source: ..\Assets\GameIcon88x88.png, Target: Assets\SmallLogo.scale-200.png}
+  - {Source: ..\Assets\GameIcon50x50.png, Target: Assets\StoreLogo.scale-100.png}
+  - {Source: ..\Assets\GameIcon100x100.png, Target: Assets\StoreLogo.scale-200.png}

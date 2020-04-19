@@ -1,0 +1,42 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader Transformation
+{
+    cbuffer PerView {
+        // View matrix. Default to Matrix.Identity.
+        stage float4x4 View;
+        // Inverse View matrix. Default to Matrix.Inverse(View)
+        stage float4x4 ViewInverse;
+        // Projection matrix. Default to Matrix.Identity.
+        stage float4x4 Projection;
+        // Projection matrix. Default to Matrix.Inverse(Projection).
+        stage float4x4 ProjectionInverse;
+        // ViewProjection matrix. Default to = View * Projection.
+        stage float4x4 ViewProjection;
+        // Screen projected ray vector.  Default to = new Vector2(-1.0f / Projection.M11, 1.0f / Projection.M22);
+        stage float2 ProjScreenRay;
+        // Eye vector. Default to = View^-1[M41,M42,M43,1.0]
+        stage float4 Eye;
+    };
+
+    cbuffer PerDraw {
+        // World matrix. Default to Matrix.Identity.
+        stage float4x4 World;
+    }
+    cbuffer PerDraw {
+        // Inverse World matrix. Default to Matrix.Inverse(World).
+        stage float4x4 WorldInverse;
+        // Inverse Transpose World matrix. Default to Matrix.Transpose(Matrix.Inverse(World)).
+        stage float4x4 WorldInverseTranspose;
+        // WorldView matrix. Default to = World * View.
+        stage float4x4 WorldView;
+        // Inverse WorldView matrix. Default to Matrix.Inverse(WorldView)
+        stage float4x4 WorldViewInverse;
+        // WorldViewProjection matrix. Default to = World * ViewProjection.
+        stage float4x4 WorldViewProjection;
+        // The scale of the World. Default to Vector2.One.
+        stage float3 WorldScale;
+        // Eye vector in model space. Default to = (World*View)^-1[M41,M42,M43,1.0]
+        stage float4 EyeMS;
+    };
+};

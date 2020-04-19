@@ -1,0 +1,19 @@
+<Project DefaultTargets="SignAndroidPackage" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <SolutionDir>$(MSBuildThisFileDirectory)</SolutionDir>
+    <SolutionName>Stride.Android</SolutionName>
+    <Platform>Android</Platform>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectsToBuild Include="..\sources\**\*.Android.csproj"/>
+  </ItemGroup>
+  
+  <Target Name="SignAndroidPackage">
+    <MSBuild Projects ="@(ProjectsToBuild)" 
+             Targets="SignAndroidPackage"
+             Properties="Configuration=$(Configuration);Platform=$(Platform);SolutionName=$(SolutionName);SolutionDir=$(SolutionDir);AndroidDeploymentMode=AndroidAPKDeployment">
+      <Output ItemName="OutputFiles" TaskParameter="TargetOutputs"/>
+    </MSBuild>
+  </Target>
+</Project>

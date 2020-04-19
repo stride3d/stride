@@ -1,0 +1,40 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+shader SpriteSuperSampler : SpriteBase
+{
+    stage override float4 Shading()
+    {
+		// "call of duty"-type of h4x4 checker box, but reduced to 9 picks instead of 13:
+		float2 jitters[] = {
+			float2(-2.0, 0.0),
+			float2(0.0, 0.0),
+			float2(2.0, 0.0),
+			float2(-1.0, 1.0),
+			float2(1.0, 1.0),
+			float2(-1.0, -1.0),
+			float2(1.0, -1.0),
+			float2(0.0, 2.0),
+			float2(0.0, -2.0)
+		};
+
+		float weightSum = 0;
+		float4 color = 0;
+        float2 texCoordBackup = streams.TexCoord;
+
+		[unroll]
+		for (uint j = 0; j < 9; ++j)
+		{
+			float2 jitter = jitters[j];
+			float dist = max(abs(jitter.x), abs(jitter.y));
+			float weight = 3 - dist;
+            streams.TexCoord = texCoordBackup + jitter * Texture0TexelSize;
+			color += weight * base.Shading();
+			weightSum += weight;
+		}
+
+        streams.TexCoord = texCoordBackup;
+		
+		return color / weightSum;
+    }
+};

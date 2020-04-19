@@ -1,0 +1,32 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// Simulates retina persistence / afterimage with bright ghost slowly fading out. 
+    /// </summary>
+    internal shader BloomAfterimageShader : ImageEffectShader
+    {
+        // Fade-out speed of the persistence image
+        stage float FadeOutSpeed;
+
+        // How much sensitive we are to the bright light
+        stage float Sensitivity;
+
+        stage override float4 Shading()
+        {
+	        float3 currentColor = Texture0.Sample(LinearSampler, streams.TexCoord).rgb;
+            float3 persistenceColor = Texture1.Sample(LinearSampler, streams.TexCoord).rgb;
+
+            persistenceColor *= FadeOutSpeed;
+
+            var newPersistence = persistenceColor + currentColor * Sensitivity;
+
+            // Never go brighter than the current brightness
+            if ( any(newPersistence > currentColor)) newPersistence = persistenceColor;
+
+	        return float4(newPersistence, 1.0);
+        }
+    };
+}

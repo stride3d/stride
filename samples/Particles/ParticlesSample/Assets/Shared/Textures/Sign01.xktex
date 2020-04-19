@@ -1,7 +1,0 @@
-!Texture
-Id: 18bfa691-aaad-4307-86f0-1bdcd5c07f64
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../Resources/Sign01.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

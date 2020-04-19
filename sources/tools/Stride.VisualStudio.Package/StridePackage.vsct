@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!--  This is the file that defines the actual layout and type of the commands.
+        It is divided in different sections (e.g. command definition, command
+        placement, ...), with each defining a specific set of properties.
+        See the comment before each section for more details about how to
+        use it. -->
+
+  <!--  The VSCT compiler (the tool that translates this file into the binary 
+        format that VisualStudio will consume) has the ability to run a preprocessor 
+        on the vsct file; this preprocessor is (usually) the C++ preprocessor, so 
+        it is possible to define includes and macros with the same syntax used 
+        in C++ files. Using this ability of the compiler here, we include some files 
+        defining some of the constants that we will use inside the file. -->
+
+  <!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
+  <Extern href="stdidcmd.h"/>
+
+  <!--This header contains the command ids for the menus provided by the shell. -->
+  <Extern href="vsshlids.h"/>
+
+  <!--The Commands section is where we the commands, menus and menu groups are defined.
+      This section uses a Guid to identify the package that provides the command defined inside it. -->
+  <Commands package="guidStride_VisualStudio_PackagePkg">
+    <!-- Inside this section we have different sub-sections: one for the menus, another  
+    for the menu groups, one for the buttons (the actual commands), one for the combos 
+    and the last one for the bitmaps used. Each element is identified by a command id that  
+    is a unique pair of guid and numeric identifier; the guid part of the identifier is usually  
+    called "command set" and is used to group different command inside a logically related  
+    group; your package should define its own command set in order to avoid collisions  
+    with command ids defined by other packages. -->
+    <Menus>
+      <!--<Menu guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTool" type="Toolbar" >
+        <CommandFlag>DefaultDocked</CommandFlag>
+        <Strings>
+          <ButtonText>Stride Toolbar</ButtonText>
+          <CommandName>Stride Toolbar</CommandName>
+        </Strings>
+      </Menu>-->
+      <Menu guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenu" priority="0x0800" type="Menu" >
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_MM_TOOLSADDINS" />
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Stride</ButtonText>
+          <CommandName>Stride</CommandName>
+        </Strings>
+      </Menu>
+    </Menus>
+
+    <Buttons>
+      <Button guid="guidStride_VisualStudio_PackageCmdSet" id="cmdStrideOpenWithGameStudio" priority="0x0100" type="Button">
+        <Parent guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenuGroupGameStudio" />
+        <Icon guid="guidVSPackage16" id="bmpStride"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Open with Game Studio</ButtonText>
+          <CommandName>cmdStrideOpenWithGameStudio</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidStride_VisualStudio_PackageCmdSet" id="cmdStrideCleanIntermediateAssetsSolutionCommand" priority="0x0200" type="Button">
+        <Parent guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenuGroupClean" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>Clean intermediate assets for Solution</ButtonText>
+          <CommandName>cmdStrideCleanIntermediateAssetsSolutionCommand</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidStride_VisualStudio_PackageCmdSet" id="cmdStrideCleanIntermediateAssetsProjectCommand" priority="0x0210" type="Button">
+        <Parent guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenuGroupClean" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>Clean intermediate assets for ...</ButtonText>
+          <CommandName>cmdStrideCleanIntermediateAssetsProjectCommand</CommandName>
+        </Strings>
+      </Button>
+    </Buttons>
+
+    <!-- In this section you can define new menu groups. A menu group is a container for 
+         other menus or buttons (commands); from a visual point of view you can see the 
+         group as the part of a menu contained between two lines. The parent of a group 
+         must be a menu. -->
+    <Groups>
+
+      <Group guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenuGroupGameStudio" priority="0x0800">
+        <Parent guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenu" />
+      </Group>
+      
+      <Group guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenuGroupClean" priority="0x0810">
+        <Parent guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenu" />
+      </Group>
+
+    </Groups>
+
+ 
+    <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
+    <Bitmaps>
+      <!--  The bitmap id is defined in a way that is a little bit different from the others: 
+            the declaration starts with a guid for the bitmap strip, then there is the resource id of the 
+            bitmap strip containing the bitmaps and then there are the numeric ids of the elements used 
+            inside a button definition. An important aspect of this declaration is that the element id 
+            must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
+      <Bitmap guid="guidVSPackage16" href="Resources\VSPackage16.png" usedList="bmpStride"/>
+      
+    </Bitmaps>
+ 
+  </Commands>
+
+  <VisibilityConstraints>
+    <!-- Make our menu become autovisible when our cmdSet GUID becomes active -->
+    <VisibilityItem context="guidStride_VisualStudio_PackageCmdSet" guid="guidStride_VisualStudio_PackageCmdSet" id="StrideTopMenu"/>
+  </VisibilityConstraints>
+
+
+  <Symbols>
+    <!-- This is the package guid. -->
+    <GuidSymbol name="guidStride_VisualStudio_PackagePkg" value="{b0b8feb1-7b83-43fc-9fc0-70065ddb80a1}" />
+    
+    <!-- This is the guid used to group the menu commands together -->
+    <GuidSymbol name="guidStride_VisualStudio_PackageCmdSet" value="{9428db93-bfea-4115-8d4a-40b047166e61}">
+      <IDSymbol name="StrideTool" value="0x1000" />
+      <IDSymbol name="StrideTopMenuGroupGameStudio" value="0x1021" />
+      <IDSymbol name="StrideTopMenuGroupClean" value="0x1022" />
+      <IDSymbol name="StrideTopMenu" value="0x1040" />
+      <IDSymbol name="cmdStrideOpenWithGameStudio" value="0x101" />
+      <IDSymbol name="cmdStrideCleanIntermediateAssetsSolutionCommand" value="0x103" />
+      <IDSymbol name="cmdStrideCleanIntermediateAssetsProjectCommand" value="0x104" />
+    </GuidSymbol>
+    
+    
+    
+    <GuidSymbol name="guidVSPackage16" value="{a873d334-36bd-4976-928b-870a5cb89f14}" >
+      <IDSymbol name="bmpStride" value="1" />
+    </GuidSymbol>
+  </Symbols>
+
+</CommandTable>

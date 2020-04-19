@@ -1,0 +1,116 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    shader MaterialPixelStream : MaterialStream, NormalStream, LightStream
+    {
+        // --------------------------------------------------
+        // Values defined by materials
+        // --------------------------------------------------
+
+        // Surface attributes
+        stage stream float3 matNormal;
+
+        // The color base attributes
+        stage stream float4 matColorBase;
+
+        // Diffuse attributes
+        stage stream float4 matDiffuse;
+
+        // Microsurface attributes
+        stage stream float  matGlossiness;
+
+        // Specular attributes
+        stage stream float3 matSpecular;
+
+        stage stream float  matSpecularIntensity;
+        // Occlusion attributes
+        stage stream float  matAmbientOcclusion;
+        stage stream float  matAmbientOcclusionDirectLightingFactor;
+        stage stream float  matCavity;
+        stage stream float  matCavityDiffuse;
+        stage stream float  matCavitySpecular;
+
+        // Emissive attributes
+        stage stream float4  matEmissive;
+        stage stream float   matEmissiveIntensity;
+
+        // Scattering attributes
+        stage stream float  matScatteringStrength;
+
+        // Transparent attributes
+        stage stream float2  matDiffuseSpecularAlphaBlend;
+        stage stream float3  matAlphaBlendColor;
+        stage stream float   matAlphaDiscard;
+
+        // Inputs while shading a material surface
+        stage stream float3 viewWS;
+    
+        // --------------------------------------------------
+        // Values Precomputed before lighting
+        // --------------------------------------------------
+        
+        stage stream float3 matDiffuseVisible;
+        
+        stage stream float alphaRoughness; // disney-burley roughness
+
+        stage stream float3 matSpecularVisible;
+        
+        stage stream float NdotV; // normal dot view
+
+        override void ResetStream()
+        {
+            base.ResetStream();
+
+            // Reset all values for material stream to avoid pulling from a different stage (VS...etc.)
+            // TODO: It might be interesting to support pulling from VS, but this should be done from the IMaterialSurface and dedicated ComputerColors
+            streams.matNormal = float3(0, 0, 1);
+
+            streams.matColorBase = 0.0f;
+            streams.matDiffuse = 0.0f; 
+            streams.matDiffuseVisible = 0.0f;      
+
+            streams.matSpecular = 0.0f;        
+            streams.matSpecularVisible = 0.0f;      
+            streams.matSpecularIntensity = 1.0f;
+
+            streams.matGlossiness = 0.0f;
+            streams.alphaRoughness = 1.0f;
+
+            streams.matAmbientOcclusion = 1.0f;  // 0.0: occluded, 1.0: not occluded
+            streams.matAmbientOcclusionDirectLightingFactor = 0.0f;
+
+            streams.matCavity = 1.0f;
+            streams.matCavityDiffuse = 0.0f;
+            streams.matCavitySpecular = 0.0f;
+
+            streams.matEmissive = 0.0f;
+            streams.matEmissiveIntensity = 0.0f;
+
+            streams.matScatteringStrength = 1.0f;
+
+            streams.matDiffuseSpecularAlphaBlend = 1.0f;
+            streams.matAlphaBlendColor = 1.0f;
+            streams.matAlphaDiscard = 0.1f;
+        }
+
+        void PrepareMaterialForLightingAndShading()
+        {
+            // Direct lighting can be slightly influenced by AO map
+            streams.lightDirectAmbientOcclusion = lerp(1.0, streams.matAmbientOcclusion, streams.matAmbientOcclusionDirectLightingFactor);
+
+            // Diffuse visible 
+            streams.matDiffuseVisible = streams.matDiffuse.rgb * lerp(1.0f, streams.matCavity, streams.matCavityDiffuse) * streams.matDiffuseSpecularAlphaBlend.r * streams.matAlphaBlendColor;
+            streams.matSpecularVisible = streams.matSpecular.rgb * streams.matSpecularIntensity * lerp(1.0f, streams.matCavity, streams.matCavitySpecular) * streams.matDiffuseSpecularAlphaBlend.g * streams.matAlphaBlendColor;
+
+            streams.NdotV = max(dot(streams.normalWS, streams.viewWS), 0.0001f);
+
+            var roughness = 1.0f - streams.matGlossiness;
+
+            // Make sure alphaRoughness is not going below a certain value as it can generate Infinity with some specular model
+            streams.alphaRoughness = max(roughness * roughness, 0.001); 
+            // TODO: precalculate alphaRoughness^2
+        }
+    };
+}
+

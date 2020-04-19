@@ -1,0 +1,25 @@
+!Animation
+Id: e3bf5815-0836-4044-a686-3c73e4766fee
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/knight/scenes/Guard_Idle.fbx
+ClipDuration:
+    Enabled: true
+    StartAnimationTime: 0:00:00:00.0000000
+    EndAnimationTime: 0:00:00:02.6330000
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+RepeatMode: LoopInfinite
+Type: !DifferenceAnimationAssetType
+    BaseSource: ../../../data/tests/knight/scenes/Idle.fbx
+    Mode: Animation
+    ClipDuration:
+        Enabled: true
+        StartAnimationTimeBox: 0:00:00:00.0000000
+        EndAnimationTimeBox: 0:00:00:02.6330000
+Skeleton: eed299b6-ee92-4a0c-9dc9-ec478f235c9c:mannequinModel Skeleton
+RootMotion: false
+PreviewModel: 10df5408-fbd1-4177-b0c2-e0190d6311a3:mannequinModel
+AnimationTimeMinimum: 0:00:00:00.0000000
+AnimationTimeMaximum: 0:00:00:02.6670000
+~SourceHashes:
+    aa36c580a7a0debbc192ed51db561e21~../../../data/tests/knight/scenes/Guard_Idle.fbx: 718cdbcc2378cb4b17a23e98dc227370

@@ -1,0 +1,18 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// A color transform for to output the luminance to the specified channel.
+    /// </summary>
+    internal shader LuminanceToChannelShader<MemberName TChannel> : ColorTransformShader
+    {
+        override float4 Compute(float4 color)
+        {
+			float4 outColor = color;
+			outColor.TChannel = LuminanceUtils.Luma(color.rgb);
+	        return outColor;
+        }
+    };
+}

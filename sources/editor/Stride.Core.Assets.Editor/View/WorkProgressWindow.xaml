@@ -1,0 +1,40 @@
+<sd:ModalWindow x:Class="Stride.Core.Assets.Editor.View.WorkProgressWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:progress="clr-namespace:Stride.Core.Assets.Editor.ViewModel.Progress"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors" mc:Ignorable="d"
+        Style="{DynamicResource WindowChromeStyle}" ShowInTaskbar="False"
+        Title="{Binding Title}" Height="480" Width="640" d:DataContext="{d:DesignInstance progress:WorkProgressViewModel}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <DockPanel Grid.Row="0" Margin="20">
+      <TextBlock DockPanel.Dock="Top" Text="{Binding ProgressMessage}" Margin="0,0,0,10" Visibility="{Binding WorkDone, Converter={sd:Chained {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
+      <TextBlock DockPanel.Dock="Top" Text="{sd:Localize Operation completed.}" Margin="0,0,0,10" Visibility="{sd:MultiBinding {Binding WorkDone}, {Binding HasFailed, Converter={sd:InvertBool}}, {Binding IsCancelled, Converter={sd:InvertBool}}, Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrCollapsed}}}"/>
+      <TextBlock DockPanel.Dock="Top" Text="{sd:Localize Operation failed.}" Margin="0,0,0,10" Visibility="{Binding HasFailed, Converter={sd:VisibleOrCollapsed}}"/>
+      <TextBlock DockPanel.Dock="Top" Text="{sd:Localize Operation cancelled.}" Margin="0,0,0,10" Visibility="{Binding IsCancelled, Converter={sd:VisibleOrCollapsed}}"/>
+      <ProgressBar Height="25" Minimum="{Binding Minimum}" Maximum="{Binding Maximum}" Value="{Binding ProgressValue}" IsIndeterminate="{Binding IsIndeterminate}"/>
+    </DockPanel>
+    <sd:TextLogViewer Grid.Row="1" Margin="20" LogMessages="{Binding Log.Messages}" CanClearLog="False"/>
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+      <UniformGrid Rows="1" Margin="20,0,20,20">
+        <Button Content="{sd:Localize Close, Context=Button}" Margin="10,0,0,0" Padding="16,4" IsCancel="True" IsEnabled="{Binding WorkDone}">
+          <i:Interaction.Behaviors>
+            <sd:ButtonCloseWindowBehavior DialogResult="OK"/>
+          </i:Interaction.Behaviors>
+        </Button>
+        <Button Content="{sd:Localize Cancel, Context=Button}" Margin="10,0,0,0" Padding="16,4" Command="{Binding CancelCommand}" Visibility="{Binding IsCancellable, Converter={sd:VisibleOrCollapsed}}" IsEnabled="{Binding WorkDone, Converter={sd:InvertBool}}">
+          <i:Interaction.Behaviors>
+            <sd:ButtonCloseWindowBehavior DialogResult="Cancel"/>
+          </i:Interaction.Behaviors>
+        </Button>
+      </UniformGrid>
+    </StackPanel>
+  </Grid>
+</sd:ModalWindow>

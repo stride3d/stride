@@ -1,7 +1,0 @@
-!Sound
-Id: 0da08544-184f-4a10-bce9-4f9bfcd391c2
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/audio/90-bboc1.mp3
-StreamFromDisk: true
-Spatialized: false

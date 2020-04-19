@@ -1,0 +1,39 @@
+!PrefabAsset
+Id: d8129849-afba-407e-8513-281a12d11b44
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 9a9e7e72-7cc0-4631-aee3-8ec36aad1662
+    Parts:
+        -   Entity:
+                Id: 9a9e7e72-7cc0-4631-aee3-8ec36aad1662
+                Name: Pillar0x5x0
+                Components:
+                    e96f0faea3329947a94aed18021d4112: !TransformComponent
+                        Id: ae0f6fe9-32a3-4799-a94a-ed18021d4112
+                        Position: {X: 0.0, Y: 2.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    9824be4e570113419527810ca0e59df5: !ModelComponent
+                        Id: 4ebe2498-0157-4113-9527-810ca0e59df5
+                        Model: 15707c44-e178-4460-b5ac-3012ce507687:Models/Pillar0x5x0
+                        Materials:
+                            375be21b17b931489b7075f15158cba7~0: ad74e5da-cb10-46b7-9c34-3d65a478df12:Materials/GridMTHazard
+                    23c28da116b69348aa23606dcc7b416f: !StaticColliderComponent
+                        Id: a18dc223-b616-4893-aa23-606dcc7b416f
+                        CollisionGroup: StaticFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            0c11aab71bdaff448b0974b597a6f84f: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 5.0, Z: 0.1}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}

@@ -1,0 +1,9 @@
+!Texture
+Id: 87f7c8cc-8c89-4cd1-9ee4-6dccebf786da
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/model/character/Sourceimages/mc_01.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+    PremultiplyAlpha: false
+IsStreamable: false

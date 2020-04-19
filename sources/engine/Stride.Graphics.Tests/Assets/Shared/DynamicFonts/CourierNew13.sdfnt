@@ -1,0 +1,10 @@
+!SpriteFont
+Id: 0dbf1792-c53a-41ea-9f98-ba65014c5277
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+FontSource: !SystemFontProvider
+    FontName: Courier New
+    Style: Regular
+FontType: !RuntimeRasterizedSpriteFontType
+    Size: 13.0
+    AntiAlias: Aliased

@@ -1,0 +1,14 @@
+!Model
+Id: 9a60e886-acea-482a-98b1-dd0d90ed6568
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../Resources/Stand/standCurved.fbx
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    e274a7dc94edc1896586423665864236:
+        Name: blinn1
+        MaterialInstance:
+            Material: d67fc80a-7a8d-4c98-b9d3-02d7d4c17070:Materials/PolishedStone
+Skeleton: null
+~SourceHashes:
+    3ee3dba936fa5aaeeee513b83f1fd22a~../../../Resources/Stand/standCurved.fbx: 4de6d17c7a13eb0dc0cfcda7302d8671

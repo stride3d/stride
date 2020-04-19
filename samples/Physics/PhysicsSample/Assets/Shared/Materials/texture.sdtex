@@ -1,0 +1,9 @@
+!Texture
+Id: e9eab42f-0fe7-45c0-9b13-32483242a9ea
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../Resources/texture.png
+IsCompressed: false
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+    PremultiplyAlpha: false

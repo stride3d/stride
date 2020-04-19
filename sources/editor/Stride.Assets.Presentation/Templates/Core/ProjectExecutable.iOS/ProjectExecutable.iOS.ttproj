@@ -1,0 +1,10 @@
+!ProjectTemplate
+Files:
+  - {Source: $ProjectName$.csproj.t4, Target: $ProjectName$.csproj, IsTemplate: true}
+  - {Source: $PackageGameNameShort$AppDelegate.cs.t4, Target: $PackageGameNameShort$AppDelegate.cs, IsTemplate: true}
+  - {Source: Info.plist.t4, Target: Info.plist, IsTemplate: true}
+  - {Source: Properties\AssemblyInfo.cs.t4, Target: Properties\AssemblyInfo.cs, IsTemplate: true}
+  - {Source: Resources\GameIcon57.png, Target: Resources\Icon.png }
+  - {Source: Resources\GameIcon114.png, Target: Resources\Icon@2x.png }
+  - {Source: Resources\GameIcon120.png, Target: Resources\Icon-60@2x.png }
+  - {Source: Resources\Default-568h@2x.png, Target: Resources\Default-568h@2x.png }

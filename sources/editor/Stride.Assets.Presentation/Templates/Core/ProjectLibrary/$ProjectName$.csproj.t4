@@ -1,0 +1,24 @@
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+<#@ import namespace="System.Linq" #>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+<# if (Properties.Namespace != Properties.ProjectName) { #>
+    <RootNamespace><#= Properties.Namespace #></RootNamespace>
+<# } #>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Stride.Engine" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+
+    <PackageReference Include="Stride.Video" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Physics" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Navigation" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Particles" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.UI" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Core" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
+  </ItemGroup>
+</Project>

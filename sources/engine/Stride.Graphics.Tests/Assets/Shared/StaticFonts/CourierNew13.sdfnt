@@ -1,0 +1,15 @@
+!SpriteFont
+Id: 90b99454-a7b4-4b88-8d42-638acc73e34b
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+FontSource: !SystemFontProvider
+    FontName: Courier New
+    Style: Regular
+FontType: !OfflineRasterizedSpriteFontType
+    Size: 13.0
+    CharacterSet: null
+    CharacterRegions:
+        c40d585e84e0504d9f98c0643c394343:
+            Start: ' '
+            End: "\x7F"
+    AntiAlias: Aliased

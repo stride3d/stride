@@ -1,0 +1,97 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Cubemap
+{
+    /// <summary>
+    /// Utilities functions for cubemap sampling.
+    /// </summary>
+    shader CubemapUtils
+    {
+        // TODO: this might change on OpenGL
+
+        // This is for indirect coordinate system cubemap sampling = Direct3D
+        //  ________ ________ ________ ________ ________ ________
+        // |     y  |  y     |   ___x |  z     |  y     |     y  |
+        // |     |  |  |     |  |     |  |     |  |     |     |  |
+        // | z___|  |  |___z |  |     |  |___x |  |___x | x___|  |
+        // |        |        |  z     |        |        |        |
+        // |________|________|________|________|________|________|
+        //   face X  face -X   face Y  face -Y   face Z   face -Z
+        //
+        float3 ConvertTexcoordsNoFlip(float2 inputTexcoord, int viewIndex)
+        {
+            float2 position = 2 * inputTexcoord - 1;
+
+            if (viewIndex == 0)
+                return float3(1, -position.y, -position.x); // face X
+            if (viewIndex == 1)
+                return float3(-1, -position.y, position.x); // face -X
+            if (viewIndex == 2)
+                return float3(position.x, 1, position.y); // face Y
+            if (viewIndex == 3)
+                return float3(position.x, -1, -position.y); // face -Y
+            if (viewIndex == 4)
+                return float3(position.x, -position.y, 1); // face Z
+            if (viewIndex == 5)
+                return float3(-position.x, -position.y, -1); // face -Z
+        
+            return 0;
+        }
+    
+        float3 ConvertTexcoordsFlip(float2 inputTexcoord, int viewIndex)
+        {
+            float2 position = float2(2, -2) * inputTexcoord + float2(-1, 1);
+
+            if (viewIndex == 0)
+                return float3(1, position.y, position.x); // face X
+            if (viewIndex == 1)
+                return float3(-1, position.y, -position.x); // face -X
+            if (viewIndex == 2)
+                return float3(position.x, 1, -position.y); // face Y
+            if (viewIndex == 3)
+                return float3(-position.x, -1, position.y); // face -Y
+            if (viewIndex == 4)
+                return float3(-position.x, position.y, 1); // face Z
+            if (viewIndex == 5)
+                return float3(position.x, position.y, -1); // face -Z
+        
+            return 0;
+        }
+
+        float3 ParallaxCorrectionCube(float3 samplingDir, float3 reflectionPoint, float3 cubemapCenter, float cubemapRange)
+        {
+            // TODO: evolve to a more generic transformation (rotation, scale of the BB)
+            reflectionPoint -= cubemapCenter;
+            float3 lambdaPos =  (cubemapRange - reflectionPoint) / samplingDir;
+            float3 lambdaNeg = (-cubemapRange - reflectionPoint) / samplingDir;
+
+            float3 maxLambda = max(lambdaPos, lambdaNeg); // only take strictly positive values
+            float minLambda = min(maxLambda.x, min(maxLambda.y, maxLambda.z)); // take the smallest one
+
+            // no need to normalize
+            return reflectionPoint + minLambda * samplingDir;
+        }
+
+        float3 ParallaxCorrectionSphere(float3 samplingDir, float3 reflectionPoint, float3 cubemapCenter, float cubemapRadius)
+        {
+            samplingDir = normalize(samplingDir);
+            float3 reflectionPointDir = reflectionPoint - cubemapCenter;
+        
+            float b = 2 * dot(reflectionPointDir, samplingDir);
+            float c = dot(reflectionPointDir, reflectionPointDir) - cubemapRadius * cubemapRadius;
+            float discr = b*b - 4*c;
+        
+            if (discr >= 0)
+            {
+                float sqrtDelta = sqrt(discr);
+                float lambda = 0.5 * (sqrtDelta - b);
+                // no need to normalize
+                return reflectionPointDir + lambda * samplingDir;
+            }
+            else
+            {
+                return samplingDir;
+            }
+        }
+    };
+}

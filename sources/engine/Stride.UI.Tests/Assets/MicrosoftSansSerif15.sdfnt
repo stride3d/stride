@@ -1,0 +1,14 @@
+!SpriteFont
+Id: 5112dbcb-a943-43fd-9228-2e8fecddf643
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+FontSource: !SystemFontProvider
+    FontName: Microsoft Sans Serif
+    Style: Regular
+FontType: !OfflineRasterizedSpriteFontType
+    Size: 21.0
+    CharacterSet: null
+    CharacterRegions:
+        365ff48ef811b64897d92c734aa46c96:
+            Start: ' '
+            End: "\x7F"

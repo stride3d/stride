@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Stride.Core.BuildEngine.IndexFileCommand" Collapsed="true">
+    <Position X="6.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="Stride.Core.BuildEngine.SingleFileImportCommand" Collapsed="true">
+    <Position X="7.75" Y="4" Width="2" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="Stride.Core.Assets.Compiler.ImportStreamCommand" Collapsed="true">
+    <Position X="7.75" Y="5.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAEgEAAGAAAAAAAAAAAAABAAAAAAAAAE=</HashCode>
+      <FileName>Compiler\ImportStreamCommand.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Core.Assets.Compiler.AssetCommand" Collapsed="true">
+    <Position X="5" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAA=</HashCode>
+      <FileName>Compiler\AssetCommand.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Core.Assets.Compiler.AssetCommand&lt;T&gt;" Collapsed="true">
+    <Position X="5" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAAAAAAAAEAEAAAAAAAIAAAAAAAAAAAAAgAAAAA=</HashCode>
+      <FileName>Compiler\AssetCommand.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Core.BuildEngine.BuildStep" Collapsed="true">
+    <Position X="3.5" Y="0.5" Width="1.75" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="Stride.Core.Assets.Compiler.AssetCompilerResult" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAIEAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Compiler\AssetCompilerResult.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="BuildSteps" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="Stride.Core.BuildEngine.CommandBuildStep" Collapsed="true">
+    <Position X="3.5" Y="1.5" Width="1.75" />
+    <AssociationLine Name="Command" Type="Stride.Core.BuildEngine.Command" FixedToPoint="true">
+      <Path>
+        <Point X="5.25" Y="1.75" />
+        <Point X="6.5" Y="1.75" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier />
+    <ShowAsAssociation>
+      <Property Name="Command" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Stride.Core.BuildEngine.Command" Collapsed="true">
+    <Position X="6.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

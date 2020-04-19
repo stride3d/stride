@@ -1,19 +1,19 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Engine.Design;
-using Xenko.Graphics;
-using Xenko.Particles.Components;
-using Xenko.Rendering.Sprites;
-using Xenko.UI;
-using Xenko.UI.Controls;
-using Xenko.UI.Panels;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Engine.Design;
+using Stride.Graphics;
+using Stride.Particles.Components;
+using Stride.Rendering.Sprites;
+using Stride.UI;
+using Stride.UI.Controls;
+using Stride.UI.Panels;
 
 namespace UIParticles
 {
@@ -51,29 +51,29 @@ namespace UIParticles
             // Allow user to resize the window with the mouse.
             Game.Window.AllowUserResizing = true;
 
-            // Create and initialize "Xenko Samples" Text
-            var xenkoSampleTextBlock = new ContentDecorator
+            // Create and initialize "Stride Samples" Text
+            var strideSampleTextBlock = new ContentDecorator
             {
-                BackgroundImage = SpriteFromSheet.Create(SplashScreenImages, "xenko_sample_text_bg"),
+                BackgroundImage = SpriteFromSheet.Create(SplashScreenImages, "stride_sample_text_bg"),
                 Content = new TextBlock
                 {
                     Font = WesternFont,
                     TextSize = 60,
-                    Text = "Xenko UI Particles",
+                    Text = "Stride UI Particles",
                     TextColor = Color.White,
                 },
                 Padding = new Thickness(35, 15, 35, 25),
                 HorizontalAlignment = HorizontalAlignment.Center
             };
 
-            xenkoSampleTextBlock.SetPanelZIndex(1);
+            strideSampleTextBlock.SetPanelZIndex(1);
             
 
             //*********************************
             // Confetti button
             var buttonImage = SpriteFromSheet.Create(SplashScreenImages, "button_long");
 
-            var xenkoButtonConfetti = new Button
+            var strideButtonConfetti = new Button
             {
                 NotPressedImage = buttonImage,
                 PressedImage = buttonImage,
@@ -92,15 +92,15 @@ namespace UIParticles
 //                BackgroundColor = Color.DarkOrchid
             };
 
-            xenkoButtonConfetti.SetPanelZIndex(1);
-            xenkoButtonConfetti.SetGridRow(1);
+            strideButtonConfetti.SetPanelZIndex(1);
+            strideButtonConfetti.SetGridRow(1);
 
-            xenkoButtonConfetti.Click += delegate
+            strideButtonConfetti.Click += delegate
             {
                 fusePercentage = 1f;
                 desiredState = GameState.NewGame;
-                var effectOffset = new Vector3(45 - xenkoButtonConfetti.RenderSize.X / 2, -5, 0);
-                SpawnParticles(xenkoButtonConfetti.WorldMatrix.TranslationVector + effectOffset, Prefab, 2f);
+                var effectOffset = new Vector3(45 - strideButtonConfetti.RenderSize.X / 2, -5, 0);
+                SpawnParticles(strideButtonConfetti.WorldMatrix.TranslationVector + effectOffset, Prefab, 2f);
             };
             //*********************************
 
@@ -108,7 +108,7 @@ namespace UIParticles
             // Stars button
             var buttonStars = SpriteFromSheet.Create(SplashScreenImages, "button_short");
 
-            var xenkoButtonStars = new Button
+            var strideButtonStars = new Button
             {
                 NotPressedImage = buttonStars,
                 PressedImage = buttonStars,
@@ -128,14 +128,14 @@ namespace UIParticles
 
             };
 
-            xenkoButtonStars.SetPanelZIndex(1);
-            xenkoButtonStars.SetGridRow(4);
+            strideButtonStars.SetPanelZIndex(1);
+            strideButtonStars.SetGridRow(4);
 
-            xenkoButtonStars.Click += delegate
+            strideButtonStars.Click += delegate
             {
                 desiredState = GameState.EndGame;
-                var effectOffset = new Vector3(45 - xenkoButtonStars.RenderSize.X / 2, -5, 0);
-                SpawnParticles(xenkoButtonStars.WorldMatrix.TranslationVector + effectOffset, Prefab, 2f);
+                var effectOffset = new Vector3(45 - strideButtonStars.RenderSize.X / 2, -5, 0);
+                SpawnParticles(strideButtonStars.WorldMatrix.TranslationVector + effectOffset, Prefab, 2f);
             };
             //*********************************
 
@@ -161,9 +161,9 @@ namespace UIParticles
             grid.ColumnDefinitions.Add(new StripDefinition());
             grid.LayerDefinitions.Add(new StripDefinition());
 
-            grid.Children.Add(xenkoSampleTextBlock);
-            grid.Children.Add(xenkoButtonConfetti);
-            grid.Children.Add(xenkoButtonStars);
+            grid.Children.Add(strideSampleTextBlock);
+            grid.Children.Add(strideButtonConfetti);
+            grid.Children.Add(strideButtonStars);
             grid.Children.Add(bottomBar);
 
             // Add the background

@@ -1,0 +1,51 @@
+!Skeleton
+Id: bfe057df-2fd1-402a-97bc-bd16edee241a
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/model/character/scene/character_00.FBX
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Nodes:
+    395cb7cb6fefb24b8efadac9c1f2b57e: {Name: RootNode, Depth: 0}
+    b4953e6b861e904b8c4908c3280d0b1a: {Name: Root, Depth: 1}
+    b22a736d15f81e498c1f0357a26957dc: {Name: part, Depth: 2}
+    492e5f8177dc9e44ad3093f8cb10d68f: {Name: jet_F_R_1, Depth: 3}
+    0858b0e6b7f8234984f31ac2537b8a84: {Name: jet_F_R1_1, Depth: 4}
+    0e4dbea26c712b4f803857ffa6387735: {Name: jet_F_R1_2, Depth: 5}
+    4205a5e72683af4c9ab6caf08efacdac: {Name: ef_B, Depth: 5}
+    9b6d0c2b9dbd624dadfc9fc8c01c7d7c: {Name: ef00_R002, Depth: 6}
+    fc346ff09cf23d4ebbe8101d294ca55d: {Name: ef002, Depth: 7}
+    f71b4758bfd4ad48ade3f71ba63f753e: {Name: ef003, Depth: 8}
+    498e1b9a67fe7b45970db455ea516fd0: {Name: ef00_R003, Depth: 6}
+    6ba7b73cd58bd3448feca526753440c3: {Name: ef004, Depth: 7}
+    ca5912f24dcc7f4db50a11cd5bc89bec: {Name: ef005, Depth: 8}
+    d4d07ce8e477a74eb9a0d44aa0e1f2fa: {Name: jet_F_R_2, Depth: 4}
+    0e831c91be864f41921ab257202597d3: {Name: jet_F_L_1, Depth: 3}
+    9f15d95784188646ab4d4bb97bd2a9f2: {Name: jet_F_L1, Depth: 4}
+    a3ec819e9087b44cbedbc6f8a674568f: {Name: jet_F_L002, Depth: 5}
+    970a9169ba145e438245a7340d0cfe9e: {Name: ef_C, Depth: 5}
+    09b13f91d584a948bf402e85761b21d3: {Name: ef00_R004, Depth: 6}
+    6f7de762e6b38a42a69bedecb97f890d: {Name: ef006, Depth: 7}
+    0fe99c672d65d34f8e2cb16fc94f94b2: {Name: ef009, Depth: 8}
+    6ef9b64ba5cd9b4c9544235e257e8a10: {Name: ef00_R005, Depth: 6}
+    3f36cc8acb66ed419ec1dc96c55621f4: {Name: ef008, Depth: 7}
+    2b7cae83b624b842b26393a3f603a5b6: {Name: ef010, Depth: 8}
+    274f4018731dca45be637907ea5f48c7: {Name: jet_F_L_2, Depth: 4}
+    dec07db2f075ab46a7757192dd28665d: {Name: Jet_B, Depth: 3}
+    6106a763734d1d43a3d813526023097f: {Name: Jet_B001, Depth: 4}
+    fa79bef57a636f418fe5d4d8193d043c: {Name: ef_A, Depth: 4}
+    b6cdb6f8504441479de973c338f814f1: {Name: ef00_R1, Depth: 5}
+    3d8cfeaa2d6bed45894b7624b0bf2b30: {Name: ef01_1, Depth: 6}
+    eeb3752e30aa4a49aca09c94e39b83fc: {Name: ef01_2, Depth: 7}
+    c5cd1e017664914692d555c7b9b16879: {Name: ef00_R0, Depth: 5}
+    ec3db26904789547afa89c99754b4a42: {Name: ef00_1, Depth: 6}
+    90acfc4670d6e9409337e7fbc6ff2dfb: {Name: ef00_2, Depth: 7}
+    5953eb68522c5e49a4166405f732a251: {Name: engine, Depth: 3}
+    1721fdaa95b10143929a889bc02d1240: {Name: engine001, Depth: 4}
+    55f9f52949d39d4d930062275c966f39: {Name: mc_body00, Depth: 3}
+    9de7bbfc07fe4f44925d33f6bd9d1d6b: {Name: driver_body001, Depth: 3}
+    0e40836ee47e354d84db6d668fd1d652: {Name: cloth_B_1, Depth: 3}
+    436375063ccc2e48b1c711852403645d: {Name: cloth_B_2, Depth: 4}
+    ba09975bc4cacb438acf696d655a47bf: {Name: cloth_a_1, Depth: 3}
+    5972df8b5cdb804099ad426348535bf2: {Name: cloth_a_2, Depth: 4}
+~SourceHashes:
+    d6c885d92d2ed6217baf4c1b77628dcd~../../Resources/model/character/scene/character_00.FBX: 1a0b83c9b02b333469043d7a7a964b16

@@ -1,0 +1,257 @@
+!UILibraryAsset
+Id: 79af0b55-a70f-4c7a-8f5b-967d55661736
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+Design:
+    Resolution: {X: 128.0, Y: 72.0, Z: 100.0}
+PublicUIElements:
+    1dfd7e9f-ab5a-4849-b6e3-1c50b0974f5f: ToggleButton
+    4266a97c-9ff2-45fb-8afd-5bd88a04c101: ModalElement
+    606486b0-61b1-498a-beed-5425893fc384: Border
+    6a778e64-1d79-44c8-b209-be1779349abb: TextBlock
+    72d195ac-472a-4f9b-8540-9f4f7d5fc53e: Grid
+    7d51286a-f844-48de-afe1-cb6b00e2dcb8: ScrollingText
+    97a0fc3a-e627-4122-b585-d33a6a7cd785: StackPanel
+    9b996723-bbd3-44c3-9406-fdc49875d2a2: Canvas
+    a35da784-9d42-4fe0-bd28-3eb547bc2812: ContentDecorator
+    a7e881dd-2f09-49b3-a87e-08a54bbc0cee: ScrollViewer
+    a89f94fa-840f-48d4-9b26-418e9e4a2358: UniformGrid
+    d44fc541-dd44-4a50-897d-c406966fac51: ImageElement
+    e8985e3a-8d82-40a6-adb1-76619eb19cd8: Button
+    eef44bd6-bd2d-4abe-8335-0971d5d83b10: EditText
+    f23d4157-8437-4285-845d-5cab68bca82a: ScrollBar
+    fcd540ef-6f9e-4cab-b24d-ba1533b0fdb9: Slider
+Hierarchy:
+    RootParts:
+        - !Button ref!! e8985e3a-8d82-40a6-adb1-76619eb19cd8
+        - !EditText ref!! eef44bd6-bd2d-4abe-8335-0971d5d83b10
+        - !Slider ref!! fcd540ef-6f9e-4cab-b24d-ba1533b0fdb9
+        - !ToggleButton ref!! 1dfd7e9f-ab5a-4849-b6e3-1c50b0974f5f
+        - !Border ref!! 606486b0-61b1-498a-beed-5425893fc384
+        - !ContentDecorator ref!! a35da784-9d42-4fe0-bd28-3eb547bc2812
+        - !ImageElement ref!! d44fc541-dd44-4a50-897d-c406966fac51
+        - !ModalElement ref!! 4266a97c-9ff2-45fb-8afd-5bd88a04c101
+        - !ScrollBar ref!! f23d4157-8437-4285-845d-5cab68bca82a
+        - !ScrollingText ref!! 7d51286a-f844-48de-afe1-cb6b00e2dcb8
+        - !ScrollViewer ref!! a7e881dd-2f09-49b3-a87e-08a54bbc0cee
+        - !TextBlock ref!! 6a778e64-1d79-44c8-b209-be1779349abb
+        - !Canvas ref!! 9b996723-bbd3-44c3-9406-fdc49875d2a2
+        - !Grid ref!! 72d195ac-472a-4f9b-8540-9f4f7d5fc53e
+        - !StackPanel ref!! 97a0fc3a-e627-4122-b585-d33a6a7cd785
+        - !UniformGrid ref!! a89f94fa-840f-48d4-9b26-418e9e4a2358
+    Parts:
+        -   UIElement: !ToggleButton
+                Id: 1dfd7e9f-ab5a-4849-b6e3-1c50b0974f5f
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                CanBeHitByUser: true
+                Margin: {}
+                Name: ToggleButton
+                Padding: {Left: 10.0, Top: 5.0, Right: 10.0, Bottom: 7.0}
+                Content: !TextBlock ref!! ac7f6048-d7d0-45ae-a8f3-e4bddafeec22
+                CheckedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 11
+                UncheckedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 13
+                IndeterminateImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 12
+        -   UIElement: !ModalElement
+                Id: 4266a97c-9ff2-45fb-8afd-5bd88a04c101
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                CanBeHitByUser: true
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                Name: ModalElement
+                Padding: {}
+                OverlayColor: {R: 0, G: 0, B: 0, A: 153}
+        -   UIElement: !TextBlock
+                Id: 5b044962-d303-4961-8195-e27d497b9e2b
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                Text: Click me!
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
+                TextSize: 20.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+        -   UIElement: !Border
+                Id: 606486b0-61b1-498a-beed-5425893fc384
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                Name: Border
+                Padding: {}
+                BorderColor: {R: 0, G: 0, B: 0, A: 255}
+                BorderThickness: {}
+        -   UIElement: !TextBlock
+                Id: 6a778e64-1d79-44c8-b209-be1779349abb
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                Name: TextBlock
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
+                TextSize: 20.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+        -   UIElement: !Grid
+                Id: 72d195ac-472a-4f9b-8540-9f4f7d5fc53e
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                Name: Grid
+                Children: {}
+                RowDefinitions: {}
+                ColumnDefinitions: {}
+                LayerDefinitions: {}
+        -   UIElement: !ScrollingText
+                Id: 7d51286a-f844-48de-afe1-cb6b00e2dcb8
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 4
+                Margin: {}
+                Name: ScrollingText
+                Text: 'Scrolling text! '
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+        -   UIElement: !StackPanel
+                Id: 97a0fc3a-e627-4122-b585-d33a6a7cd785
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                Name: StackPanel
+                Children: {}
+        -   UIElement: !Canvas
+                Id: 9b996723-bbd3-44c3-9406-fdc49875d2a2
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                Name: Canvas
+                Children: {}
+        -   UIElement: !ContentDecorator
+                Id: a35da784-9d42-4fe0-bd28-3eb547bc2812
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                Margin: {}
+                Name: ContentDecorator
+                Padding: {}
+        -   UIElement: !ScrollViewer
+                Id: a7e881dd-2f09-49b3-a87e-08a54bbc0cee
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                ClipToBounds: true
+                CanBeHitByUser: true
+                Margin: {}
+                Name: ScrollViewer
+                Padding: {}
+                ScrollBarColor: {R: 25, G: 25, B: 25, A: 255}
+        -   UIElement: !UniformGrid
+                Id: a89f94fa-840f-48d4-9b26-418e9e4a2358
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                Name: UniformGrid
+                Children: {}
+        -   UIElement: !TextBlock
+                Id: ac7f6048-d7d0-45ae-a8f3-e4bddafeec22
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                Text: Click me!
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
+                TextSize: 20.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+        -   UIElement: !ImageElement
+                Id: d44fc541-dd44-4a50-897d-c406966fac51
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                Name: ImageElement
+                Color: {R: 255, G: 255, B: 255, A: 255}
+        -   UIElement: !Button
+                Id: e8985e3a-8d82-40a6-adb1-76619eb19cd8
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                CanBeHitByUser: true
+                Margin: {}
+                Name: Button
+                Padding: {Left: 10.0, Top: 5.0, Right: 10.0, Bottom: 7.0}
+                Content: !TextBlock ref!! 5b044962-d303-4961-8195-e27d497b9e2b
+                PressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 2
+                NotPressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 1
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+        -   UIElement: !EditText
+                Id: eef44bd6-bd2d-4abe-8335-0971d5d83b10
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 5
+                CanBeHitByUser: true
+                Margin: {}
+                Name: EditText
+                Padding: {Left: 8.0, Top: 4.0, Right: 8.0, Bottom: 8.0}
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
+                TextSize: 20.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+                ActiveImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 3
+                InactiveImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 4
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 5
+                CaretColor: {R: 240, G: 240, B: 240, A: 255}
+                CaretWidth: 1.0
+                SelectionColor: {R: 240, G: 240, B: 240, A: 255}
+                IMESelectionColor: {R: 240, G: 255, B: 240, A: 255}
+                CaretFrequency: 1.0
+        -   UIElement: !ScrollBar
+                Id: f23d4157-8437-4285-845d-5cab68bca82a
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                Name: ScrollBar
+                BarColor: {R: 0, G: 0, B: 0, A: 0}
+        -   UIElement: !Slider
+                Id: fcd540ef-6f9e-4cab-b24d-ba1533b0fdb9
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 5
+                CanBeHitByUser: true
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                Name: Slider
+                TrackBackgroundImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 9
+                TrackForegroundImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 12
+                TrackStartingOffsets: {X: 3.0, Y: 3.0}
+                ThumbImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 7
+                MouseOverThumbImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 6
+                TickImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 8
+                TickOffset: 13.0

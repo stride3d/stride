@@ -1,8 +1,0 @@
-!Texture
-Id: c31206ba-e0bc-4192-b442-0c010c466c3d
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../Resources/graysmoke8x8.dds
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
-IsStreamable: false

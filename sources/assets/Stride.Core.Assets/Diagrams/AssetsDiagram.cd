@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Comment CommentText="Design-time Asset">
+    <Position X="3.364" Y="1.718" Height="0.333" Width="1.231" />
+  </Comment>
+  <Comment CommentText="Composite Asset">
+    <Position X="0.646" Y="3.802" Height="0.333" Width="1.231" />
+  </Comment>
+  <Comment CommentText="Importable Asset">
+    <Position X="2.375" Y="3.833" Height="0.333" Width="1.231" />
+  </Comment>
+  <Comment CommentText="SourceCode Asset">
+    <Position X="4.094" Y="3.833" Height="0.333" Width="1.231" />
+  </Comment>
+  <Comment CommentText="Raw Asset">
+    <Position X="3.937" Y="5.802" Height="0.333" Width="0.783" />
+  </Comment>
+  <Comment CommentText="Diagrams for assets">
+    <Position X="0.5" Y="0.5" Height="0.292" Width="1.367" />
+  </Comment>
+  <Class Name="Stride.Core.Assets.Asset" Collapsed="true">
+    <Position X="3.25" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAQAAAAEAEAAAACCAAIAAAgUAQAAAAAAIAQwA=</HashCode>
+      <FileName>Asset.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Core.Assets.AssetComposite" Collapsed="true">
+    <Position X="0.5" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAAAAAEAAAAAIAAAAAA=</HashCode>
+      <FileName>AssetComposite.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Core.Assets.AssetImport" Collapsed="true">
+    <Position X="2.25" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAgAAAAAAAAAAAAAACAAAAEAABAAAAAIAAAA=</HashCode>
+      <FileName>AssetImport.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Core.Assets.Package" Collapsed="true">
+    <Position X="5.75" Y="3" Width="1.5" />
+    <NestedTypes>
+      <Class Name="Stride.Core.Assets.Package.RemoveRawImports" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Package.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Stride.Core.Assets.Package.RenameSystemPackage" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Package.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>WAAAgIRABEKAAwQjBCFQACA0ABDAIIEGEEA1BAEADBE=</HashCode>
+      <FileName>Package.Constants.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Assets" />
+    </ShowAsCollectionAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Stride.Core.Assets.SourceCodeAsset" Collapsed="true">
+    <Position X="4" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgIAAAAAAAAAAAAAAAAAAAAAAAEgIAAAACAAAAAA=</HashCode>
+      <FileName>SourceCodeAsset.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Core.Assets.AssetImportTracked" Collapsed="true">
+    <Position X="1.25" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>AssetImportTracked.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Core.Assets.RawAsset" Collapsed="true">
+    <Position X="3.5" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAA=</HashCode>
+      <FileName>RawAsset.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Stride.Core.Assets.AssetItem" Collapsed="true">
+    <Position X="8.25" Y="3" Width="1.5" />
+    <NestedTypes>
+      <Class Name="Stride.Core.Assets.AssetItem.AssetItemComparerById" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>AssetItem.cs</NewMemberFileName>
+        </TypeIdentifier>
+        <Lollipop Position="0.2" />
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>CIwiAAAAAAAAABCEAAIQDAACAAABACEAAQAhAAAIABA=</HashCode>
+      <FileName>AssetItem.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Asset" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

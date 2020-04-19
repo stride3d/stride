@@ -1,7 +1,0 @@
-!Sound
-Id: 00b2ab97-0ed1-4728-beee-a783dfee7022
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/audio/90-bboc1_4Channels.wav
-StreamFromDisk: false
-Spatialized: true

@@ -1,0 +1,14 @@
+!SpriteFont
+Id: 5b5f75d3-4f7f-4325-b957-fd50161e104c
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+FontSource: !SystemFontProvider
+    FontName: Arial
+    Style: Regular
+FontType: !OfflineRasterizedSpriteFontType
+    Size: 40.0
+    CharacterSet: null
+    CharacterRegions:
+        3ac272b9233a4c41928355e7fcf2111a:
+            Start: ' '
+            End: "\x7F"

@@ -1,7 +1,0 @@
-!Sound
-Id: 8b123cb8-508d-46e5-8bb0-4619e3318835
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../data/tests/audio/parley11025Hz.wav
-StreamFromDisk: false
-Spatialized: true

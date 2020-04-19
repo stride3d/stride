@@ -1,0 +1,19 @@
+!Animation
+Id: 50665a42-a9d7-46ef-ae7b-1d59d0dabe06
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../Resources/Animation/Grab_L.fbx
+ClipDuration:
+    Enabled: false
+    StartAnimationTime: 0:00:00:00.0000000
+    EndAnimationTime: 0:00:30:00.0000000
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+RepeatMode: PlayOnceHold
+Type: !StandardAnimationAssetType {}
+Skeleton: b906bf22-0ae2-4b1d-943e-8377d7d34303:Models/HandModelLeft Skeleton
+RootMotion: false
+PreviewModel: c2f8cb33-c6dc-4c89-86bf-8369da9e0e0f:Models/HandModelLeft
+AnimationTimeMinimum: 0:00:00:00.0000000
+~SourceHashes:
+    a6a33c1a0db1400de6fac7d2eda800ff~../../Resources/Animation/Grab_L.fbx: b16f8f283ed13095f9f0388beea800ed
+AnimationTimeMaximum: 0:00:00:00.2000000

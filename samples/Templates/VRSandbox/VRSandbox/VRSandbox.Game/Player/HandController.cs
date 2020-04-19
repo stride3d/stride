@@ -1,15 +1,15 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
-using Xenko.Core;
-using Xenko.Core.Collections;
-using Xenko.Core.Mathematics;
-using Xenko.Animations;
-using Xenko.Engine;
-using Xenko.Engine.Events;
-using Xenko.Physics;
-using Xenko.VirtualReality;
+using Stride.Core;
+using Stride.Core.Collections;
+using Stride.Core.Mathematics;
+using Stride.Animations;
+using Stride.Engine;
+using Stride.Engine.Events;
+using Stride.Physics;
+using Stride.VirtualReality;
 
 namespace VRSandbox.Player
 {

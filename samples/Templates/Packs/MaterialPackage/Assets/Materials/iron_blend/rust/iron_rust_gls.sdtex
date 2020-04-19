@@ -1,0 +1,7 @@
+!Texture
+Id: e2ab8eed-3112-44e7-9188-87a575e337aa
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../../Resources/Textures/iron_blend/rust/iron_rust_gls.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

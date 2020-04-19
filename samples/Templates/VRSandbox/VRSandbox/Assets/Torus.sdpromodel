@@ -1,0 +1,11 @@
+!ProceduralModelAsset
+Id: 6e183d09-6745-45d1-980e-dcae98b9b671
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: !TorusProceduralModel
+    Thickness: 0.0125
+    Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+    UvScale: {X: 1.0, Y: 1.0}
+    LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+    MaterialInstance:
+        Material: 79e97d35-ad06-4677-8e66-815296fab586:Lamp material
