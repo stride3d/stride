@@ -1,4 +1,4 @@
-![Stride](https://stride3d.net/images/external/stride-logo-side.png)
+![Stride](sources/data/images/Logo/stride-logo-readme.png)
 =======
 
 Welcome to the Stride source code repository!
