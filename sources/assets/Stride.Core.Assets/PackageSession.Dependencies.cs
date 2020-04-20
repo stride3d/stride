@@ -146,8 +146,11 @@ namespace Stride.Core.Assets
                                     foreach (var dependencyPackageUpgrader in dependencyPackageUpgraders)
                                     {
                                         // Make sure this upgrader is not already added
-                                        if (!pendingPackageUpgrades.Contains(dependencyPackageUpgrader))
-                                            pendingPackageUpgrades.Add(dependencyPackageUpgrader);
+                                        if (!pendingPackageUpgrades.Any(x => x.DependencyPackage == dependencyPackageUpgrader.DependencyPackage))
+                                        {
+                                            // Note: it's important to clone because once upgraded, each instance will have its Dependency.Version tested/updated
+                                            pendingPackageUpgrades.Add(dependencyPackageUpgrader.Clone());
+                                        }
                                     }
                                 }
                             }

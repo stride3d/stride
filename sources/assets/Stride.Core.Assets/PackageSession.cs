@@ -1599,6 +1599,11 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                 if (ReferenceEquals(this, obj)) return true;
                 return Equals(obj as PendingPackageUpgrade);
             }
+
+            public PendingPackageUpgrade Clone()
+            {
+                return new PendingPackageUpgrade(PackageUpgrader, Dependency.Clone(), DependencyPackage);
+            }
         }
 
         private static PackageAnalysisParameters GetPackageAnalysisParametersForLoad()
