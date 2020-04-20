@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,7 +21,7 @@ namespace Stride.Core.Assets.Editor.View.Controls
     /// <summary>
     /// This control displays a collection of <see cref="ILogMessage"/> in a grid.
     /// </summary>
-    [TemplatePart(Name = "PART_LogGridView", Type = typeof(DataGridEx))] 
+    [TemplatePart(Name = "PART_LogGridView", Type = typeof(DataGridEx))]
     public class GridLogViewer : Control
     {
         /// <summary>
@@ -36,7 +37,7 @@ namespace Stride.Core.Assets.Editor.View.Controls
         /// <summary>
         /// Identifies the <see cref="LogMessages"/> dependency property.
         /// </summary>
-        public static readonly DependencyProperty LogMessagesProperty = DependencyProperty.Register("LogMessages", typeof(ObservableList<ILogMessage>), typeof(GridLogViewer), new PropertyMetadata(null));
+        public static readonly DependencyProperty LogMessagesProperty = DependencyProperty.Register("LogMessages", typeof(ObservableList<ILogMessage>), typeof(GridLogViewer), new PropertyMetadata(null, LogMessagesPropertyChanged));
 
         /// <summary>
         /// Identifies the <see cref="IsToolBarVisible"/> dependency property.
@@ -86,7 +87,23 @@ namespace Stride.Core.Assets.Editor.View.Controls
         /// <summary>
         /// Gets or sets the collection of <see cref="ILogMessage"/> to display.
         /// </summary>
-        public ObservableList<ILogMessage> LogMessages { get { return (ObservableList<ILogMessage>)GetValue(LogMessagesProperty); } set { SetValue(LogMessagesProperty, value); } }
+        public ObservableList<ILogMessage> LogMessages
+        {
+            get { return (ObservableList<ILogMessage>)GetValue(LogMessagesProperty); }
+            set
+            {
+                var prevList = LogMessages;
+                if (prevList != null)
+                {
+                    prevList.CollectionChanged -= OnLogMessagesCollectionChanged;
+                }
+                SetValue(LogMessagesProperty, value);
+                if (value != null)
+                {
+                    value.CollectionChanged += OnLogMessagesCollectionChanged;
+                }
+            }
+        }
 
         public ObservableList<ILogMessage> FilteredLogMessages { get; set; } = new ObservableList<ILogMessage>();
 
@@ -169,25 +186,68 @@ namespace Stride.Core.Assets.Editor.View.Controls
             }
 
         }
+
+        private static void LogMessagesPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var logViewer = (GridLogViewer)d;
+
+            if (e.OldValue is ObservableList<ILogMessage> prevList)
+            {
+                prevList.CollectionChanged -= logViewer.OnLogMessagesCollectionChanged;
+            }
+            if (e.NewValue is ObservableList<ILogMessage> newList)
+            {
+                newList.CollectionChanged += logViewer.OnLogMessagesCollectionChanged;
+            }
+        }
+
+        private void OnLogMessagesCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (logGridView == null || logGridView.ItemsSource == null || LogMessages == null)
+                return;
+
+            if (e.Action == NotifyCollectionChangedAction.Reset)
+            {
+                FilteredLogMessages.Clear();
+            }
+            else
+            {
+                // Only apply filter if there's any new displayable messages
+                bool refreshFilter = false;
+                if (e.OldItems != null)
+                    refreshFilter = e.OldItems.OfType<ILogMessage>().Any(IsMessageVisible);
+
+                if (!refreshFilter && e.NewItems != null)
+                    refreshFilter = e.NewItems.OfType<ILogMessage>().Any(IsMessageVisible);
+
+                if (refreshFilter)
+                    ApplyFilters();
+            }
+        }
+
         private static void FilterPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var logViewer = (GridLogViewer)d;
             logViewer.ApplyFilters();
         }
 
-        
         private void ApplyFilters()
         {
-            if (logGridView == null || logGridView.ItemsSource == null)
+            if (logGridView == null || logGridView.ItemsSource == null || LogMessages == null)
                 return;
-            this.FilteredLogMessages.Clear();
-            this.FilteredLogMessages.AddRange(this.LogMessages.Where(x =>
-            x.IsDebug() && ShowDebugMessages ||
-            x.IsError() && ShowErrorMessages ||
-            x.IsFatal() && ShowFatalMessages ||
-            x.IsInfo() && ShowInfoMessages ||
-            x.IsVerbose() && ShowVerboseMessages ||
-            x.IsWarning() && ShowWarningMessages));
+
+            FilteredLogMessages.Clear();
+            FilteredLogMessages.AddRange(LogMessages.Where(IsMessageVisible));
+        }
+
+        private bool IsMessageVisible(ILogMessage x)
+        {
+            return x.IsDebug() && ShowDebugMessages
+                || x.IsError() && ShowErrorMessages
+                || x.IsFatal() && ShowFatalMessages
+                || x.IsInfo() && ShowInfoMessages
+                || x.IsVerbose() && ShowVerboseMessages
+                || x.IsWarning() && ShowWarningMessages;
         }
     }
 }

@@ -540,7 +540,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
             CopyCommonProperties(Editor.NodeContainer, sourcePanel.AssetSidePanel, targetPanelElement);
 
             // Initialize the new hierarchy of elements that starts from the target and contains all the children
-            IEnumerable <UIElementViewModel> children = sourcePanel.Children.ToList();
+            IEnumerable<UIElementViewModel> children = sourcePanel.Children.ToList();
             var hierarchy = UIAssetPropertyGraph.CloneSubHierarchies(Asset.Session.AssetNodeContainer, Asset.Asset, children.Select(c => c.Id.ObjectId), SubHierarchyCloneFlags.None, out _);
             hierarchy.RootParts.Add(targetPanel.UIElement);
             hierarchy.Parts.Add(targetPanel);
@@ -631,7 +631,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
             var sourceNode = nodeContainer.GetOrCreateNode(sourcePanel);
             var targetNode = nodeContainer.GetOrCreateNode(targetPanel);
 
-            foreach (var targetChild in targetNode.Members.Where(x => x.Name != nameof(Panel.Children) && x.Name != nameof(UIElement.Id)))
+            foreach (var targetChild in targetNode.Members.Where(x => x.Name != nameof(Panel.Children) && x.Name != nameof(UIElement.Id) && x.Name != nameof(UIElement.DependencyProperties)))
             {
                 var name = targetChild.Name;
                 var sourceChild = sourceNode.TryGetChild(name);
@@ -640,6 +640,9 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
                     targetChild.Update(AssetCloner.Clone(sourceChild.Retrieve()));
                 }
             }
+
+            // Copy the dependency properties, eg. the source panel may be inside a grid and has set grid row/column
+            sourcePanel.DependencyProperties.CopyTo(targetPanel.DependencyProperties);
         }
     }
 }

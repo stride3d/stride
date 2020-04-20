@@ -39,14 +39,14 @@ namespace Stride.Assets.Presentation.Templates
         protected override IEnumerable<AssetItem> CreateAssets(AssetTemplateGeneratorParameters parameters)
         {
             var importedAssets = new List<AssetItem>();
-            using (var media = new FFmpegMedia())
+            foreach (var assetItem in base.CreateAssets(parameters))
             {
-                foreach (var assetItem in base.CreateAssets(parameters))
+                if (assetItem.Asset is SoundAsset soundAsset)
                 {
-                    if (assetItem.Asset is SoundAsset soundAsset)
+                    using (var media = new FFmpegMedia())
                     {
                         media.Open(soundAsset.Source.ToWindowsPath());
-                        foreach( var audioTrack in media.Streams.OfType<AudioStream>().ToList())
+                        foreach (var audioTrack in media.Streams.OfType<AudioStream>().ToList())
                         {
                             var assetCopy = AssetCloner.Clone(soundAsset);
                             assetCopy.Index = audioTrack.Index;
