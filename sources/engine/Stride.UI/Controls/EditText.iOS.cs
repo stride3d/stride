@@ -1,4 +1,4 @@
-﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_PLATFORM_IOS
 
@@ -66,10 +66,11 @@ namespace Stride.UI.Controls
 
             if (currentActiveEditText != null)
             {
+                // TODO: Check if this is still needed; currently disabled since SlowDownDrawCalls was removed
                 // we need to skip some draw calls here to let the time to iOS to draw its own keyboard animations... (Thank you iOS)
                 // If we don't do this when changing the type of keyboard (split / docked / undocked), the keyboard freeze for about 5/10 seconds before updating.
                 // Note: Setting UIView.EnableAnimation to false does not solve the problem. Only animation when the keyboard appear/disappear are skipped.
-                currentActiveEditText.GetGame().SlowDownDrawCalls = true;
+                //currentActiveEditText.GetGame().SlowDownDrawCalls = true;
             }
         }
 
@@ -128,8 +129,9 @@ namespace Stride.UI.Controls
 
             if (currentActiveEditText != null)
             {
+                // TODO: Check if this is still needed; currently disabled since SlowDownDrawCalls was removed
                 // Editing finished, we can now draw back to normal frame rate.
-                currentActiveEditText.GetGame().SlowDownDrawCalls = false;
+                //currentActiveEditText.GetGame().SlowDownDrawCalls = false;
             }
         }
 
