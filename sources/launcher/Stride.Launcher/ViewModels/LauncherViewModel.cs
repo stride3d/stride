@@ -583,16 +583,6 @@ namespace Stride.LauncherApp.ViewModels
 
         private void DisplayReleaseAnnouncement()
         {
-            const string announcementName = "Release30";
-            if (!PrivacyPolicyHelper.Stride30Accepted)
-            {
-                // If the user is a beta user, it will have already accepted Privacy Policy 1.2 before the first chance to display this announcement.
-                // If he didn't, we don't need to display the message so we mark this announcement as done.
-                var taskName = AnnouncementViewModel.GetTaskName(announcementName);
-                SaveTaskAsDone(taskName);
-            }
-            var viewModel = new AnnouncementViewModel(this, announcementName);
-            Announcement = viewModel.MarkdownAnnouncement != null ? viewModel : null;
         }
 
         void IPackagesLogger.Log(MessageLevel level, string message)

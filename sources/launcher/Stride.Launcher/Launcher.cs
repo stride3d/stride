@@ -162,7 +162,7 @@ namespace Stride.LauncherApp
                 // We need to do that before starting recording metrics
                 // TODO: we do not display Privacy Policy anymore from launcher, because it's either accepted from installer or shown again when a new version of GS with new Privacy Policy starts. Might want to reconsider that after the 2.0 free period
                 PrivacyPolicyHelper.RestartApplication = SelfUpdater.RestartApplication;
-                PrivacyPolicyHelper.EnsurePrivacyPolicyStride30();
+                PrivacyPolicyHelper.EnsurePrivacyPolicyStride40();
 
                 // Install Metrics for the launcher
                 using (Metrics = new MetricsClient(CommonApps.StrideLauncherAppId))
