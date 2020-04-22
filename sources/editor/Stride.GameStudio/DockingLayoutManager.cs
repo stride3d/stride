@@ -12,9 +12,9 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Behaviors;
 using Stride.Core.Presentation.Extensions;
-using Xceed.Wpf.AvalonDock;
-using Xceed.Wpf.AvalonDock.Layout;
-using Xceed.Wpf.AvalonDock.Layout.Serialization;
+using AvalonDock;
+using AvalonDock.Layout;
+using AvalonDock.Layout.Serialization;
 using Microsoft.Xaml.Behaviors;
 
 namespace Stride.GameStudio

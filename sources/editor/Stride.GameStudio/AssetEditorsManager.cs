@@ -22,7 +22,7 @@ using Stride.Core.Threading;
 using Stride.Animations;
 using Stride.Assets.Presentation.CurveEditor.ViewModels;
 using Stride.Assets.Presentation.CurveEditor.Views;
-using Xceed.Wpf.AvalonDock.Layout;
+using AvalonDock.Layout;
 
 namespace Stride.GameStudio
 {

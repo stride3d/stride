@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Xaml.Behaviors;
 using Stride.Core.Presentation.Extensions;
-using Xceed.Wpf.AvalonDock.Controls;
+using AvalonDock.Controls;
 
 namespace Stride.GameStudio
 {

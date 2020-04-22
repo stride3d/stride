@@ -45,6 +45,7 @@ Stride uses the following open-source products.
 
 * [Assimp](http://assimp.sourceforge.net/) (BSD 3-clause License)
 * [AsyncEx](https://github.com/StephenCleary/AsyncEx) (MIT License)
+* [AvalonDock](https://github.com/Dirkster99/AvalonDock) (Ms-PL)
 * [DocFX](https://dotnet.github.io/docfx/) (MIT License)
 * [ffmpeg](https://ffmpeg.org/) (GPL 3)
 * [FreeImage](http://freeimage.sourceforge.net/) (FreeImage Public License - Version 1.0)
