@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 // Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
@@ -4464,45 +4464,45 @@
           <DockPanel>
             <ToolBarTray DockPanel.Dock="Top" Visibility="{Binding IsToolBarVisible, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:VisibleOrCollapsed}}">
               <ToolBar ToolBarTray.IsLocked="True" Visibility="{Binding CanClearLog, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:VisibleOrCollapsed}}">
-                <Button x:Name="PART_ClearLog">
+                <Button x:Name="PART_ClearLog" ToolTip="{sd:Localize Clear Log, Context=ToolTip}">
                   <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextBrush}" Data="{StaticResource GeometryDelete}"/>
                 </Button>
               </ToolBar>
               <ToolBar ToolBarTray.IsLocked="True" Header="Filters:" Visibility="{Binding CanFilterLog, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:VisibleOrCollapsed}}">
-                <ToggleButton IsChecked="{Binding ShowDebugMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                <ToggleButton IsChecked="{Binding ShowDebugMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Debug, Context=ToolTip}">
                   <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextBrush}" Data="{StaticResource GeometryDebugMessage}"/>
                 </ToggleButton>
-                <ToggleButton IsChecked="{Binding ShowVerboseMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                <ToggleButton IsChecked="{Binding ShowVerboseMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Verbose, Context=ToolTip}">
                   <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextBrush}" Data="{StaticResource GeometryVerboseMessage}"/>
                 </ToggleButton>
-                <ToggleButton IsChecked="{Binding ShowInfoMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                <ToggleButton IsChecked="{Binding ShowInfoMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Info, Context=ToolTip}">
                   <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextBrush}" Data="{StaticResource GeometryInfoMessage}"/>
                 </ToggleButton>
-                <ToggleButton IsChecked="{Binding ShowWarningMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                <ToggleButton IsChecked="{Binding ShowWarningMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Warning, Context=ToolTip}">
                   <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextBrush}" Data="{StaticResource GeometryWarningMessage}"/>
                 </ToggleButton>
-                <ToggleButton IsChecked="{Binding ShowErrorMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                <ToggleButton IsChecked="{Binding ShowErrorMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Error, Context=ToolTip}">
                   <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextBrush}" Data="{StaticResource GeometryErrorMessage}"/>
                 </ToggleButton>
-                <ToggleButton IsChecked="{Binding ShowFatalMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                <ToggleButton IsChecked="{Binding ShowFatalMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Fatal, Context=ToolTip}">
                   <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextBrush}" Data="{StaticResource GeometryFatalMessage}"/>
                 </ToggleButton>
-                <ToggleButton IsChecked="{Binding ShowStacktrace, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                <ToggleButton IsChecked="{Binding ShowStacktrace, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Toggle Exception Stack Trace, Context=ToolTip}">
                   <Label Content="(...)" Width="16" Height="12" FontSize="10" HorizontalContentAlignment="Center" />
                 </ToggleButton>
               </ToolBar>
               <ToolBar ToolBarTray.IsLocked="True" Header="Search:" Visibility="{Binding CanSearchLog, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:VisibleOrCollapsed}}">
                 <ctrl:TextBox UseTimedValidation="True" Width="150" Text="{Binding SearchToken, RelativeSource={RelativeSource Mode=TemplatedParent}, Mode=OneWayToSource}" WatermarkContent="Search"/>
-                <Button x:Name="PART_PreviousResult">
+                <Button x:Name="PART_PreviousResult" ToolTip="{sd:Localize Go to previous search result, Context=ToolTip}">
                   <Path Width="8" Height="8" Stretch="Uniform" Fill="{DynamicResource TextBrush}" Data="{StaticResource GeometryPrevious}"/>
                 </Button>
-                <Button x:Name="PART_NextResult">
+                <Button x:Name="PART_NextResult" ToolTip="{sd:Localize Go to next search result, Context=ToolTip}">
                   <Path Width="8" Height="8" Stretch="Uniform" Fill="{DynamicResource TextBrush}" Data="{StaticResource GeometryNext}"/>
                 </Button>
-                <ToggleButton IsChecked="{Binding SearchMatchCase, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                <ToggleButton IsChecked="{Binding SearchMatchCase, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Match case, Context=ToolTip}">
                   <Path Width="16" Height="16" Stretch="Uniform" Fill="{DynamicResource TextBrush}" Data="{StaticResource GeometryMatchCase}"/>
                 </ToggleButton>
-                <ToggleButton IsChecked="{Binding SearchMatchWord, RelativeSource={RelativeSource Mode=TemplatedParent}}">
+                <ToggleButton IsChecked="{Binding SearchMatchWord, RelativeSource={RelativeSource Mode=TemplatedParent}}" ToolTip="{sd:Localize Match whole word, Context=ToolTip}">
                   <Path Width="16" Height="16" Stretch="Uniform" Fill="{DynamicResource TextBrush}" Data="{StaticResource GeometryMatchWord}"/>
                 </ToggleButton>
               </ToolBar>
