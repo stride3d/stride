@@ -7,7 +7,7 @@
         xmlns:strings="clr-namespace:Stride.GameStudio.Resources.Strings"
         xmlns:stringsEd="clr-namespace:Stride.Core.Assets.Editor.Resources.Strings;assembly=Stride.Core.Assets.Editor"
         xmlns:gs="clr-namespace:Stride.GameStudio"
-        xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
+        xmlns:xcad="https://github.com/Dirkster99/AvalonDock"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:viewModels="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
         xmlns:viewModels1="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;assembly=Stride.Core.Assets.Editor"

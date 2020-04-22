@@ -24,7 +24,7 @@ using Stride.Core.Presentation.Extensions;
 using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
-using Xceed.Wpf.AvalonDock.Layout;
+using AvalonDock.Layout;
 #if DEBUG
 using Stride.Assets.Presentation.Test;
 #endif

@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Windows;
-using Xceed.Wpf.AvalonDock.Controls;
+using AvalonDock.Controls;
 
 namespace Stride.GameStudio.View
 {

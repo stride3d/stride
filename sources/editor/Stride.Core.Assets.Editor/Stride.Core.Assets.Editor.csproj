@@ -10,7 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <PackageReference Include="Extended.Wpf.Toolkit" Version="3.8.1" />
+    <PackageReference Include="Dirkster.AvalonDock" Version="4.10.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.6.0" />
     <Reference Include="System.ComponentModel.Composition" />
     <PackageReference Include="System.Diagnostics.Tracing" Version="4.3.0" />
@@ -82,8 +82,5 @@
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <Target Name="IncludeExtraAssemblies">
-    <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)Xceed.Wpf.Toolkit.dll" />
-    </ItemGroup>
   </Target>
 </Project>
