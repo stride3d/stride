@@ -73,7 +73,7 @@ namespace Stride.GameStudio
             }
 
             PrivacyPolicyHelper.RestartApplication = RestartApplication;
-            PrivacyPolicyHelper.EnsurePrivacyPolicyStride30();
+            PrivacyPolicyHelper.EnsurePrivacyPolicyStride40();
 
             // We use MRU of the current version only when we're trying to reload last session.
             var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);

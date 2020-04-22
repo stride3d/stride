@@ -39,7 +39,7 @@ namespace Stride.PrivacyPolicy
         internal static Action RestartApplication { get; set; }
 
         /// <summary>
-        /// Checks whether the Privacy Policy for Stride 2.0 has been accepted or not. If not, displays a window asking for the agreement.
+        /// Checks whether the Privacy Policy for Stride 4.0 has been accepted or not. If not, displays a window asking for the agreement.
         /// If the user declines, the application is terminated. Otherwise, it is restarted with the same arguments.
         /// </summary>
         internal static void EnsurePrivacyPolicyStride40()
