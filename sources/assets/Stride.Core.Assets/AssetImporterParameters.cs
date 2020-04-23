@@ -24,6 +24,7 @@ namespace Stride.Core.Assets
         /// </summary>
         public AssetImporterParameters()
         {
+            InputParameters = new PropertyCollection();
             SelectedOutputTypes = new Dictionary<Type, bool>();
         }
 
@@ -53,6 +54,12 @@ namespace Stride.Core.Assets
                 SelectedOutputTypes[type] = true;
             }
         }
+
+        /// <summary>
+        /// Gets the import input parameters.
+        /// </summary>
+        /// <value>The import input parameters.</value>
+        public PropertyCollection InputParameters { get; private set; }
 
         /// <summary>
         /// Gets the selected output types.

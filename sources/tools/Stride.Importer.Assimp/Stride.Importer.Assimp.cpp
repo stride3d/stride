@@ -1440,16 +1440,18 @@ private:
 	}
 
 public:
-	EntityInfo^ ExtractEntity(String^ inputFilename, String^ outputFilename, bool extractTextureDependencies)
+	EntityInfo^ ExtractEntity(String^ inputFilename, String^ outputFilename, bool extractTextureDependencies, bool deduplicateMaterials)
 	{
 		try
 		{
 			// the importer is kept here since it owns the scene object.
 			//TODO: check the options
 			Assimp::Importer importer;
-			auto scene = Initialize(inputFilename, outputFilename, &importer,
-				aiProcess_SortByPType
-					| aiProcess_RemoveRedundantMaterials);
+
+			auto importFlags = aiProcess_SortByPType;
+			if (deduplicateMaterials)
+				importFlags = (aiPostProcessSteps)(importFlags | aiProcess_RemoveRedundantMaterials);
+			auto scene = Initialize(inputFilename, outputFilename, &importer, importFlags);
 
 			// If scene is null, something went wrong inside Assimp
 			if (scene == nullptr)
@@ -1487,20 +1489,23 @@ public:
 		}
 	}
 
-	Model^ Convert(String^ inputFilename, String^ outputFilename)
+	Model^ Convert(String^ inputFilename, String^ outputFilename, bool deduplicateMaterials)
 	{
 		// the importer is kept here since it owns the scene object.
 		Assimp::Importer importer;
-		auto scene = Initialize(inputFilename, outputFilename, &importer, 
+
+		auto importFlags =
 			aiProcess_CalcTangentSpace
-				| aiProcess_RemoveRedundantMaterials
-                | aiProcess_Triangulate
-				| aiProcess_GenNormals 
-                | aiProcess_JoinIdenticalVertices
-                | aiProcess_LimitBoneWeights
-                | aiProcess_SortByPType
-				| aiProcess_FlipWindingOrder
-				| aiProcess_FlipUVs );
+			| aiProcess_Triangulate
+			| aiProcess_GenNormals
+			| aiProcess_JoinIdenticalVertices
+			| aiProcess_LimitBoneWeights
+			| aiProcess_SortByPType
+			| aiProcess_FlipWindingOrder
+			| aiProcess_FlipUVs;
+		if (deduplicateMaterials)
+			importFlags = (aiPostProcessSteps)(importFlags | aiProcess_RemoveRedundantMaterials);
+		auto scene = Initialize(inputFilename, outputFilename, &importer, importFlags);
 		return ConvertAssimpScene(scene);
 	}
 

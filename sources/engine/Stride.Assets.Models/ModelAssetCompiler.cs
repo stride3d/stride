@@ -67,6 +67,7 @@ namespace Stride.Assets.Models
             importModelCommand.ScaleImport = asset.ScaleImport;
             importModelCommand.PivotPosition = asset.PivotPosition;
             importModelCommand.MergeMeshes = asset.MergeMeshes;
+            importModelCommand.DeduplicateMaterials = asset.DeduplicateMaterials;
             importModelCommand.ModelModifiers = asset.Modifiers;
 
             if (skeleton != null)

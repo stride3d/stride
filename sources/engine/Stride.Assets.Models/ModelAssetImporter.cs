@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Diagnostics;
@@ -19,6 +20,8 @@ namespace Stride.Assets.Models
 {
     public abstract class ModelAssetImporter : AssetImporterBase
     {
+        public static readonly PropertyKey<bool> DeduplicateMaterialsKey = new PropertyKey<bool>("DeduplicateMaterials", typeof(ModelAssetImporter));
+
         public override IEnumerable<Type> RootAssetTypes
         {
             get

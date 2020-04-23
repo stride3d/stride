@@ -40,6 +40,9 @@ namespace Stride.Assets.Presentation.Templates
         private readonly DummyReferenceContainer referenceContainer = new DummyReferenceContainer();
 
         private bool importMaterials = true;
+        private bool showDeduplicateMaterialsCheckBox = true;
+        private bool showFbxDedupeNotSupportedWarning = false;
+        private bool deduplicateMaterials = true;
         private bool importTextures = true;
         private bool importSkeleton = true;
         private bool dontImportSkeleton;
@@ -52,6 +55,10 @@ namespace Stride.Assets.Presentation.Templates
         }
 
         public bool ImportMaterials { get { return importMaterials; } set { SetValue(ref importMaterials, value); } }
+
+        public bool ShowDeduplicateMaterialsCheckBox { get { return showDeduplicateMaterialsCheckBox; } set { SetValue(ref showDeduplicateMaterialsCheckBox, value); } }
+        public bool ShowFbxDedupeNotSupportedWarning { get { return showFbxDedupeNotSupportedWarning; } set { SetValue(ref showFbxDedupeNotSupportedWarning, value); } }
+        public bool DeduplicateMaterials { get { return deduplicateMaterials; } set { SetValue(ref deduplicateMaterials, value); } }
 
         public bool ImportTextures { get { return importTextures; } set { SetValue(ref importTextures, value); } }
 

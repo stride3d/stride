@@ -28,6 +28,7 @@ namespace Stride.Assets.Models
         public bool Allow32BitIndex { get; set; }
         public int MaxInputSlots { get; set; }
         public bool AllowUnsignedBlendIndices { get; set; }
+        public bool DeduplicateMaterials { get; set; }
         public List<ModelMaterial> Materials { get; set; }
         public string EffectName { get; set; }
 
