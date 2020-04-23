@@ -18,6 +18,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
             return null;
         }
 
+        protected virtual void PrepareImporterInputParametersForUpdateFromSource(PropertyCollection importerInputParameters, TAsset asset)
+        {
+            // Do nothing by default
+        }
+
         protected virtual void UpdateAssetFromSource(TAsset assetToMerge)
         {
             // Do nothing by default
@@ -29,6 +34,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             if (importer != null)
             {
                 var importParameters = new AssetImporterParameters { Logger = logger };
+                PrepareImporterInputParametersForUpdateFromSource(importParameters.InputParameters, Asset);
                 importParameters.SelectedOutputTypes.Add(AssetType, true);
                 try
                 {

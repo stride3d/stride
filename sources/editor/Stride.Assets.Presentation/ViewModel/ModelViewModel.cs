@@ -47,6 +47,12 @@ namespace Stride.Assets.Presentation.ViewModel
             return AssetRegistry.FindImporterForFile(Asset.Source).OfType<ModelAssetImporter>().FirstOrDefault();
         }
 
+        protected override void PrepareImporterInputParametersForUpdateFromSource(PropertyCollection importerInputParameters, ModelAsset asset)
+        {
+            // This setting will be ignored if it's the FBX importer
+            importerInputParameters.Set(ModelAssetImporter.DeduplicateMaterialsKey, asset.DeduplicateMaterials);
+        }
+
         protected override void UpdateAssetFromSource(ModelAsset assetToMerge)
         {
             // Create a dictionary containing all new and old materials, favoring old ones to maintain existing references

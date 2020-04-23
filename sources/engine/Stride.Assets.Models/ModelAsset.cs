@@ -66,10 +66,10 @@ namespace Stride.Assets.Models
 
 
         /// <summary>
-        /// Gets or sets the model meshe merge property. When set to true to a model without skeleton, the meshes of the model are merged together by material.
+        /// Gets or sets the model meshes merge property. When set to true to a model without skeleton, the meshes of the model are merged together by material.
         /// </summary>
         /// <userdoc>
-        /// When checked and the model has no skeleton, the meshes of the model are merged together by material. 
+        /// When checked and the model has no skeleton, the meshes of the model are merged together by material.
         /// In most cases this improves the performances but prevents the meshes to be culled independently.
         /// </userdoc>
         [DataMember(35)]
@@ -81,6 +81,11 @@ namespace Stride.Assets.Models
         [MemberCollection(ReadOnly = true)]
         [Category]
         public List<ModelMaterial> Materials { get; } = new List<ModelMaterial>();
+
+        [DataMember(45)]
+        [DefaultValue(true)]
+        [Display(Browsable = false)]
+        public bool DeduplicateMaterials { get; set; } = true;
 
         [DataMember(50)]
         [Category]
