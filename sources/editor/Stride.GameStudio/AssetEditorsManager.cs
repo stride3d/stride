@@ -165,10 +165,6 @@ namespace Stride.GameStudio
 
         private void CurveEditorClosed(object sender, EventArgs eventArgs)
         {
-            var editorPane = (LayoutAnchorable)sender;
-            if (editorPane.IsVisible)
-                return;
-
             RemoveCurveEditor(true);
         }
 
@@ -522,8 +518,6 @@ namespace Stride.GameStudio
         private void EditorPaneClosed(object sender, EventArgs eventArgs)
         {
             var editorPane = (LayoutAnchorable)sender;
-            if (editorPane.IsVisible)
-                return;
 
             var element = editorPane.Content as FrameworkElement;
             var asset = element?.DataContext as AssetViewModel;
