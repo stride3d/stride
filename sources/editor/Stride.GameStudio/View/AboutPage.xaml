@@ -16,17 +16,13 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml" />
       </ResourceDictionary.MergedDictionaries>
-
-      <BitmapImage x:Key="StrideLogoWhite" UriSource="../Resources/StrideLogoDefaultWhite.png" />
     </ResourceDictionary>
   </Window.Resources>
   <StackPanel Margin="20">
     <!-- Stride logo -->
     <Image DockPanel.Dock="Top" x:Name="Logo"
-           HorizontalAlignment="Center" VerticalAlignment="Center" 
-           Height="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelHeight)}"
-           Width="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelWidth)}"
-           Source="{StaticResource StrideLogoWhite}" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+           HorizontalAlignment="Center" VerticalAlignment="Center"
+           Width="424" Source="{StaticResource StrideLogo}"/>
     <Grid Margin="20">
       <Grid.ColumnDefinitions>
         <ColumnDefinition />
