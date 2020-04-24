@@ -73,6 +73,7 @@
   <!--  WINDOWS  -->
   <Style TargetType="{x:Type Window}" x:Key="WindowChromeStyle">
     <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
+    <Setter Property="SnapsToDevicePixels" Value="True"/>
     <Setter Property="WindowChrome.WindowChrome">
       <Setter.Value>
         <WindowChrome CornerRadius="0" CaptionHeight="30"/>
