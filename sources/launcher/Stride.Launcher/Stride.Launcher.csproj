@@ -46,6 +46,7 @@
   <PropertyGroup>
     <ApplicationIcon>Resources\Launcher.ico</ApplicationIcon>
     <RootNamespace>Stride.LauncherApp</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\list-26.png" />

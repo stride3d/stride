@@ -21,7 +21,7 @@
   <Color x:Key="DefaultColor">#FF9BB1C5</Color>
   <SolidColorBrush x:Key="DropdownButtonBackgroundBrush" Color="#FF333333" />
   <SolidColorBrush x:Key="ComboBoxBackground" Color="#212125" />
-  <SolidColorBrush x:Key="ComboBoxItemHoverBackground" Color="#3399FF"/>
+  <SolidColorBrush x:Key="ComboBoxItemHoverBackground" Color="#007ACC"/>
 
   <Color x:Key="TopGradientSelectColor">#FFFFFFFF</Color>
   <Color x:Key="BottomGradientSelectColor">#FF737373</Color>
@@ -59,7 +59,7 @@
 
   <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#101011" />
 
-  <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#3399FF"/>
+  <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#007ACC"/>
   <SolidColorBrush x:Key="SelectedTextBrush" Color="#E6E6E6"/>
 
   <Color x:Key="EmphasisGreenColor">#FF8ABB2E</Color>
@@ -146,5 +146,19 @@
     <GradientStop Color="#444" Offset="0.0" />
     <GradientStop Color="#888" Offset="1.0" />
   </LinearGradientBrush>
+
+  <!-- Environment -->
+  <SolidColorBrush x:Key="MainWindowActiveCaptionText" Color="#929292"/>
+  <SolidColorBrush x:Key="MainWindowActiveDefaultBorder" Color="#007ACC"/>
+  <SolidColorBrush x:Key="MainWindowButtonActiveBorder" Color="Transparent"/>
+  <SolidColorBrush x:Key="MainWindowButtonDown" Color="#007ACC"/>
+  <SolidColorBrush x:Key="MainWindowButtonDownBorder" Color="#007ACC"/>
+  <SolidColorBrush x:Key="MainWindowButtonHoverActive" Color="#72555555"/>
+  <SolidColorBrush x:Key="MainWindowButtonHoverActiveBorder" Color="#72555555"/>
+  <SolidColorBrush x:Key="MainWindowButtonHoverInactive" Color="#72555555"/>
+  <SolidColorBrush x:Key="MainWindowButtonHoverInactiveBorder" Color="#72555555"/>
+  <SolidColorBrush x:Key="MainWindowButtonInactiveBorder" Color="Transparent"/>
+  <SolidColorBrush x:Key="MainWindowInactiveBorder" Color="#2E2E36"/>
+  <SolidColorBrush x:Key="MainWindowInactiveCaptionText" Color="#929292"/>
 
 </ResourceDictionary>

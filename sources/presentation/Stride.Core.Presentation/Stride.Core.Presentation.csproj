@@ -43,10 +43,7 @@
     <Resource Include="Resources\Images\close_window.png" />
     <Resource Include="Resources\Images\error-32.png" />
     <Resource Include="Resources\Images\info-32.png" />
-    <Resource Include="Resources\Images\maximize_window.png" />
-    <Resource Include="Resources\Images\minimize_window.png" />
     <Resource Include="Resources\Images\question-32.png" />
-    <Resource Include="Resources\Images\restore_window.png" />
     <Resource Include="Resources\Images\gear--pencil.png" />
     <Resource Include="Resources\Images\lock-unlock.png" />
     <Resource Include="Resources\Images\lock.png" />
