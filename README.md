@@ -13,7 +13,7 @@ To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 ## License
 
-Stride is covered by [MIT](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
+Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
 
 You can find the list of third party projects [here](THIRD%20PARTY.md).
 
