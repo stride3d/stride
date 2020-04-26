@@ -58,7 +58,7 @@ Ask for help or report issues:
 ### Build Stride
 
 1. Open a command prompt, point it to a directory and clone Stride to it: `git clone https://github.com/stride3d/stride.git`
-2. Open `<StrideDir>\build\Stride.sln` with Visual Studio 2019 and build `Stride.GameStudio` or run it from VS's toolbar.
+2. Open `<StrideDir>\build\Stride.sln` with Visual Studio 2019 and build `Stride.GameStudio` (it should be the default startup project) or run it from VS's toolbar.
 * Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
 
 If building failed:
