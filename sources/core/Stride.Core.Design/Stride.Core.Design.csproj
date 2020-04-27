@@ -31,7 +31,7 @@
     <ProjectReference Include="..\Stride.Core.Yaml\Stride.Core.Yaml.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="2.3.2262-g94fae01e" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
     <PackageReference Include="NuGet.Configuration" Version="5.5.1" />
     <PackageReference Include="SharpDX" Version="4.2.0" />

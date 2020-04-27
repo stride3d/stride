@@ -16,7 +16,7 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30">
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="2.3.2262-g94fae01e">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </PackageReference>
     <Reference Include="System.IO.Compression" />
