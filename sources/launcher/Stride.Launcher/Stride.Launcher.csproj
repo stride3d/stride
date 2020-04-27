@@ -51,7 +51,7 @@
     <None Remove="Resources\list-26.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Metrics" Version="1.0.0" />
+    <PackageReference Include="Stride.Metrics" Version="1.0.1" />
     <PackageReference Include="Stride.CrashReport" Version="1.0.1" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Diagnostics.Debug" />
