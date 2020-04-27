@@ -70,10 +70,68 @@
   <BitmapImage x:Key="ImageLocked" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/lock.png" />
   <BitmapImage x:Key="ImageUnlocked" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/lock-unlock.png" />
   <BitmapImage x:Key="ImageLength" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/ruler-triangle.png" />
-  
+
   <!--  WINDOWS  -->
+  <ControlTemplate x:Key="MainWindowButtonTemplate" TargetType="{x:Type Button}">
+    <Grid>
+      <Border x:Name="Background" Background="{TemplateBinding Background}"/>
+      <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+    </Grid>
+    <ControlTemplate.Triggers>
+      <!-- Active -->
+      <DataTrigger Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" Value="True">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{StaticResource MainWindowButtonActiveBorderBrush}"/>
+      </DataTrigger>
+      <!-- Inactive -->
+      <DataTrigger Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" Value="False">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{StaticResource MainWindowButtonInactiveBorderBrush}"/>
+      </DataTrigger>
+      <!-- Hover Active -->
+      <MultiDataTrigger>
+        <MultiDataTrigger.Conditions>
+          <Condition Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" Value="True"/>
+          <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True"/>
+        </MultiDataTrigger.Conditions>
+        <Setter Property="Background" Value="{StaticResource MainWindowButtonHoverActiveBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource MainWindowButtonHoverActiveBorderBrush}"/>
+      </MultiDataTrigger>
+      <!-- Hover Inactive -->
+      <MultiDataTrigger>
+        <MultiDataTrigger.Conditions>
+          <Condition Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" Value="False"/>
+          <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True"/>
+        </MultiDataTrigger.Conditions>
+        <Setter Property="Background" Value="{StaticResource MainWindowButtonHoverActiveBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource MainWindowButtonHoverActiveBorderBrush}"/>
+      </MultiDataTrigger>
+      <!-- Down -->
+      <Trigger Property="IsPressed" Value="True">
+        <Setter Property="Background" Value="{StaticResource MainWindowButtonDownBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource MainWindowButtonDownBorderBrush}"/>
+      </Trigger>
+      <!-- Disabled -->
+      <Trigger Property="IsEnabled" Value="False">
+        <Setter Property="Opacity" Value="0.25"/>
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+  <Style x:Key="MainWindowButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="{StaticResource MainWindowButtonActiveBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CommandParameter" Value="{Binding RelativeSource={RelativeSource TemplatedParent}}"/>
+    <Setter Property="Height" Value="32"/>
+    <Setter Property="HorizontalAlignment" Value="Center"/>
+    <Setter Property="Template" Value="{StaticResource MainWindowButtonTemplate}"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="Width" Value="46"/>
+    <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+  </Style>
+
   <Style TargetType="{x:Type Window}" x:Key="WindowChromeStyle">
-    <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+    <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
     <Setter Property="SnapsToDevicePixels" Value="True"/>
     <Setter Property="WindowChrome.WindowChrome">
       <Setter.Value>
@@ -85,20 +143,20 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Window">
-          <Border x:Name="ContentBorder" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource MainWindowActiveDefaultBorderBrush}" BorderThickness="1" IsHitTestVisible="True">
+          <Border x:Name="ContentBorder" Background="{TemplateBinding Background}" BorderBrush="{StaticResource MainWindowInactiveBorderBrush}" BorderThickness="1" IsHitTestVisible="True">
             <DockPanel>
               <DockPanel x:Name="TitleBar" DockPanel.Dock="Top" VerticalAlignment="Top" WindowChrome.IsHitTestVisibleInChrome="False" Height="32">
-                <Button Style="{DynamicResource MainWindowButtonStyle}" DockPanel.Dock="Right" Content="{me:Image {StaticResource VectorCloseWindow}, 12, 12}" x:Name="CloseButton" Command="{x:Static cmd:SystemCommands.CloseWindowCommand}"/>
-                <Button Style="{DynamicResource MainWindowButtonStyle}" DockPanel.Dock="Right" Content="{me:Image {StaticResource VectorMaximizeWindow}, 12, 12}" x:Name="MaximizeButton" Command="{x:Static cmd:SystemCommands.MaximizeWindowCommand}"/>
-                <Button Style="{DynamicResource MainWindowButtonStyle}" DockPanel.Dock="Right" Content="{me:Image {StaticResource VectorRestoreWindow}, 12, 12}" x:Name="RestoreButton" Command="{x:Static cmd:SystemCommands.RestoreWindowCommand}" Visibility="Collapsed"/>
-                <Button Style="{DynamicResource MainWindowButtonStyle}" DockPanel.Dock="Right" Content="{me:Image {StaticResource VectorMinimizeWindow}, 12, 12}" x:Name="MinimizeButton" Command="{x:Static cmd:SystemCommands.MinimizeWindowCommand}"/>
-                <Button Style="{DynamicResource MainWindowButtonStyle}" DockPanel.Dock="Left" Command="{x:Static cmd:SystemCommands.ShowSystemMenuCommand}" Background="Transparent" Width="44">
+                <Button Style="{StaticResource MainWindowButtonStyle}" DockPanel.Dock="Right" Content="{me:Image {StaticResource VectorCloseWindow}, 12, 12}" x:Name="CloseButton" Command="{x:Static cmd:SystemCommands.CloseWindowCommand}"/>
+                <Button Style="{StaticResource MainWindowButtonStyle}" DockPanel.Dock="Right" Content="{me:Image {StaticResource VectorMaximizeWindow}, 12, 12}" x:Name="MaximizeButton" Command="{x:Static cmd:SystemCommands.MaximizeWindowCommand}"/>
+                <Button Style="{StaticResource MainWindowButtonStyle}" DockPanel.Dock="Right" Content="{me:Image {StaticResource VectorRestoreWindow}, 12, 12}" x:Name="RestoreButton" Command="{x:Static cmd:SystemCommands.RestoreWindowCommand}" Visibility="Collapsed"/>
+                <Button Style="{StaticResource MainWindowButtonStyle}" DockPanel.Dock="Right" Content="{me:Image {StaticResource VectorMinimizeWindow}, 12, 12}" x:Name="MinimizeButton" Command="{x:Static cmd:SystemCommands.MinimizeWindowCommand}"/>
+                <Button Style="{StaticResource MainWindowButtonStyle}" DockPanel.Dock="Left" Command="{x:Static cmd:SystemCommands.ShowSystemMenuCommand}" Background="Transparent" Width="44">
                   <Image Source="{DynamicResource VectorEditorIcon}" Height="20"/>
                   <Button.InputBindings>
                     <MouseBinding Gesture="LeftDoubleClick" Command="{x:Static cmd:SystemCommands.CloseWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}"/>
                   </Button.InputBindings>
                 </Button>
-                <TextBlock x:Name="Caption" Foreground="{DynamicResource MainWindowActiveCaptionTextBrush}" Text="{TemplateBinding Title}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                <TextBlock x:Name="Caption" Foreground="{StaticResource MainWindowInactiveCaptionTextBrush}" Text="{TemplateBinding Title}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
               </DockPanel>
               <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                 <AdornerDecorator>
@@ -108,9 +166,9 @@
             </DockPanel>
           </Border>
           <ControlTemplate.Triggers>
-            <Trigger Property="IsActive" Value="False">
-              <Setter TargetName="ContentBorder" Property="BorderBrush" Value="{DynamicResource MainWindowInactiveBorder}"/>
-              <Setter TargetName="Caption" Property="Foreground" Value="{DynamicResource MainWindowInactiveCaptionText}"/>
+            <Trigger Property="IsActive" Value="True">
+              <Setter TargetName="ContentBorder" Property="BorderBrush" Value="{StaticResource MainWindowActiveDefaultBorderBrush}"/>
+              <Setter TargetName="Caption" Property="Foreground" Value="{StaticResource MainWindowActiveCaptionTextBrush}"/>
             </Trigger>
             <Trigger Property="ResizeMode" Value="NoResize">
               <Setter TargetName="MaximizeButton" Property="Visibility" Value="Collapsed"/>
@@ -789,65 +847,6 @@
     </ControlTemplate.Triggers>
   </ControlTemplate>
 
-  <!-- MainWindowButton -->
-  <Style x:Key="MainWindowButtonStyle" TargetType="{x:Type Button}">
-    <Setter Property="Background" Value="Transparent"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource MainWindowButtonActiveBorderBrush}"/>
-    <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="CommandParameter" Value="{Binding RelativeSource={RelativeSource TemplatedParent}}"/>
-    <Setter Property="Height" Value="32"/>
-    <Setter Property="HorizontalAlignment" Value="Center"/>
-    <Setter Property="Template" Value="{DynamicResource MainWindowButtonTemplate}"/>
-    <Setter Property="VerticalAlignment" Value="Center"/>
-    <Setter Property="Width" Value="46"/>
-    <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
-  </Style>
-  <ControlTemplate x:Key="MainWindowButtonTemplate" TargetType="{x:Type Button}">
-    <Grid>
-      <Border x:Name="Background" Background="{TemplateBinding Background}"/>
-      <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-    </Grid>
-    <ControlTemplate.Triggers>
-      <!-- Active -->
-      <DataTrigger Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" Value="True">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource MainWindowButtonActiveBorderBrush}"/>
-      </DataTrigger>
-      <!-- Inactive -->
-      <DataTrigger Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" Value="False">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource MainWindowButtonInactiveBorderBrush}"/>
-      </DataTrigger>
-      <!-- Hover Active -->
-      <MultiDataTrigger>
-        <MultiDataTrigger.Conditions>
-          <Condition Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" Value="True"/>
-          <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True"/>
-        </MultiDataTrigger.Conditions>
-        <Setter Property="Background" Value="{DynamicResource MainWindowButtonHoverActiveBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource MainWindowButtonHoverActiveBorderBrush}"/>
-      </MultiDataTrigger>
-      <!-- Hover Inactive -->
-      <MultiDataTrigger>
-        <MultiDataTrigger.Conditions>
-          <Condition Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" Value="False"/>
-          <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True"/>
-        </MultiDataTrigger.Conditions>
-        <Setter Property="Background" Value="{DynamicResource MainWindowButtonHoverActiveBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource MainWindowButtonHoverActiveBorderBrush}"/>
-      </MultiDataTrigger>
-      <!-- Down -->
-      <Trigger Property="IsPressed" Value="True">
-        <Setter Property="Background" Value="{DynamicResource MainWindowButtonDownBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource MainWindowButtonDownBorderBrush}"/>
-      </Trigger>
-      <!-- Disabled -->
-      <Trigger Property="IsEnabled" Value="False">
-        <Setter Property="Opacity" Value="0.25"/>
-      </Trigger>
-    </ControlTemplate.Triggers>
-  </ControlTemplate>
-
   <Style x:Key="RadioButtonFocusVisual">
     <Setter Property="Control.Template">
       <Setter.Value>
@@ -1078,18 +1077,18 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type Thumb}">
-          <Border Background="{DynamicResource ScrollBarBrush}">
+          <Border Background="{StaticResource ScrollBarBrush}">
             <Rectangle x:Name="ThumbRectangle" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="4,0" Fill="{DynamicResource ScrollBarThumbBackgroundBrush}"/>
           </Border>
           <ControlTemplate.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{DynamicResource ScrollBarThumbMouseOverBackgroundBrush}"/>
+              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{StaticResource ScrollBarThumbMouseOverBackgroundBrush}"/>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False" >
-              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{DynamicResource ScrollBarThumbDisabledBrush}"/>
+              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{StaticResource ScrollBarThumbDisabledBrush}"/>
             </Trigger>
             <Trigger Property="IsDragging" Value="True">
-              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{DynamicResource ScrollBarThumbPressedBackgroundBrush}"/>
+              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{StaticResource ScrollBarThumbPressedBackgroundBrush}"/>
             </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -1100,18 +1099,18 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type Thumb}">
-          <Border Background="{DynamicResource ScrollBarBrush}">
+          <Border Background="{StaticResource ScrollBarBrush}">
             <Rectangle x:Name="ThumbRectangle" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,4" Fill="{DynamicResource ScrollBarThumbBackgroundBrush}"/>
           </Border>
           <ControlTemplate.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{DynamicResource ScrollBarThumbMouseOverBackgroundBrush}"/>
+              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{StaticResource ScrollBarThumbMouseOverBackgroundBrush}"/>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
-              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{DynamicResource ScrollBarThumbDisabledBrush}"/>
+              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{StaticResource ScrollBarThumbDisabledBrush}"/>
             </Trigger>
             <Trigger Property="IsDragging" Value="True">
-              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{DynamicResource ScrollBarThumbPressedBackgroundBrush}"/>
+              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{StaticResource ScrollBarThumbPressedBackgroundBrush}"/>
             </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -1126,7 +1125,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type RepeatButton}">
           <Grid>
-            <Rectangle Fill="{DynamicResource ScrollBarArrowBackgroundBrush}" />
+            <Rectangle Fill="{StaticResource ScrollBarArrowBackgroundBrush}" />
           </Grid>
         </ControlTemplate>
       </Setter.Value>
