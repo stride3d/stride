@@ -169,10 +169,14 @@ namespace Stride.LauncherApp.ViewModels
                         Environment.Exit(1);
                     }
                 });
+                // Run news task early so that it can run while we fetch package versions
+                var newsTask = FetchNewsPages();
+
                 await RetrieveServerStrideVersions();
                 await VsixPackage.UpdateFromStore();
                 await CheckForFirstInstall();
-                await FetchNewsPages();
+
+                await newsTask;
             });
             IsSynchronizing = false;
         }
