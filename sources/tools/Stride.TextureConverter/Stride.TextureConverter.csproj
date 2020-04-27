@@ -4,7 +4,7 @@
   <PropertyGroup>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <OutputType>Library</OutputType>
-    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>

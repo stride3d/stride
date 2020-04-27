@@ -8,7 +8,7 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
     <StridePackAssets>true</StridePackAssets>
-    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

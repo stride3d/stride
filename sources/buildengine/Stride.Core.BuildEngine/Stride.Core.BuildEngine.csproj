@@ -10,7 +10,7 @@
     <OutputType>Exe</OutputType>
     <PlatformTarget>x86</PlatformTarget>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">

@@ -5,7 +5,7 @@
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <OutputType>Exe</OutputType>
     <Prefer32Bit>false</Prefer32Bit>
-    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>

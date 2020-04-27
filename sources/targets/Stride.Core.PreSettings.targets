@@ -18,7 +18,8 @@
     <!-- Using C# version 7.3 -->
     <LangVersion>7.3</LangVersion>
     <StrideRuntimeTargetFramework>net461</StrideRuntimeTargetFramework>
-    <TargetFrameworkTool>net472</TargetFrameworkTool>
+    <StrideEditorTargetFramework>net472</StrideEditorTargetFramework>
+    <StrideEditorTargetFrameworks>net472</StrideEditorTargetFrameworks>
     <TargetFrameworkVersionTool>v4.7.2</TargetFrameworkVersionTool>
     <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP;NET45</StridePlatformDefines>
 

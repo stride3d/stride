@@ -13,7 +13,7 @@
     <RootNamespace>Stride.VisualStudio</RootNamespace>
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
-    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideSkipAutoPack>true</StrideSkipAutoPack>

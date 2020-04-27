@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <StridePackAssets>true</StridePackAssets>
-    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <EnableDefaultItems>false</EnableDefaultItems>
     <!-- Extract PackageVersion from ThisPackageVersion.cs -->
     <_StrideThisPackageVersionLines>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)ThisPackageVersion.cs'))</_StrideThisPackageVersionLines>

@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net40</TargetFramework>
     <StrideCommonDependenciesDir>..\..\..\deps\</StrideCommonDependenciesDir>
-    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
