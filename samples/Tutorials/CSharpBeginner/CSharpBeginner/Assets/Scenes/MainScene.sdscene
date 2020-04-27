@@ -15,6 +15,9 @@ ChildrenIds:
     - ee2eb459-7847-42b5-bd69-fc43a6625fd5
     - c00aec52-d6b8-4eab-80c2-460ac8109da6
     - 328aea72-1405-48be-bf32-2363a61870f7
+    - d625592d-d7c2-4151-bd8e-09ff90120d9e
+    - ca777fe9-5471-4137-a42d-fa87b6c20c91
+    - deb8b6f8-1da6-4ad7-8499-ebd34e1d423b
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
@@ -1181,8 +1184,8 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
-                                BiasParameters: {}
                                 ComputeTransmittance: false
+                                BiasParameters: {}
                         Intensity: 5.0
         -   Entity:
                 Id: c9e66833-93a0-4863-a950-cfb10583590f

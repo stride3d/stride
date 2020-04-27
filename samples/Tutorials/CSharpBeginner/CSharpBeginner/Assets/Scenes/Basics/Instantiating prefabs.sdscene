@@ -1,0 +1,148 @@
+!SceneAsset
+Id: deb8b6f8-1da6-4ad7-8499-ebd34e1d423b
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Parent: 3ed06063-5bdf-4f8e-9090-47bcaba297e5:Scenes/MainScene
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 450fd948-e31c-412f-abdf-6c11384ebb96
+        - ref!! c5a0d3a8-64be-40b3-a77d-4777f8506b93
+        - ref!! 99103453-cab2-4258-896e-b5eeb8ab5782
+    Parts:
+        -   Entity:
+                Id: 005b2fb2-422d-4b20-a6a6-3877b963ec90
+                Name: Box2
+                Components:
+                    871611dfbf1309a5a1aacea7dbc0d8d0: !TransformComponent
+                        Id: 238c2531-0eb9-4113-89c0-f29c13c10862
+                        Position: {X: -0.245857731, Y: 0.2435637, Z: 0.3265859}
+                        Rotation: {X: 0.0, Y: -0.06815393, Z: 0.0, W: -0.9976749}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
+                        Id: 5a56d871-d438-4e7f-bd4c-52f887d2279c
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
+                BasePartId: 34bedf8d-2a34-4da0-b990-51f1e8f71c3d
+                InstanceId: 65ba808b-c39d-41df-9ab4-ab845cc15f5b
+        -   Entity:
+                Id: 450fd948-e31c-412f-abdf-6c11384ebb96
+                Name: Camera
+                Components:
+                    d5dd94550dc377d8b1703c74aae2cee5: !TransformComponent
+                        Id: efcaa571-9b64-4318-b4b6-fb0f120e5ce1
+                        Position: {X: 1.6883601, Y: 1.87811244, Z: -0.9501704}
+                        Rotation: {X: -0.162651092, Y: 0.7513566, Z: 0.2013254, W: 0.607022166}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f1cc2f84c67fbd3cc50a22dd0ef605a5: !CameraComponent
+                        Id: 7d9c7dd7-dd29-4f14-a9df-db086571ee36
+                        Enabled: false
+                        Name: null
+                        Projection: Perspective
+                        VerticalFieldOfView: 75.0
+                        Slot: c9cb3666-f711-498c-9878-292e79ed7993
+        -   Entity:
+                Id: 592f69e1-ac18-4919-9ce4-9be9db32e3e6
+                Name: Child box 2
+                Components:
+                    871611dfbf1309a5a1aacea7dbc0d8d0: !TransformComponent
+                        Id: 057f56e1-d665-4ae8-b425-2cf49750ee8c
+                        Position: {X: 0.0647526756, Y: 1.2431916, Z: 0.07122181}
+                        Rotation: {X: 0.0, Y: 0.333040535, Z: 0.0, W: 0.9429125}
+                        Scale: {X: 0.3, Y: 0.3, Z: 0.3}
+                        Children: {}
+                    dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
+                        Id: 3b3ff79a-f704-4397-8e43-73624783fd94
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
+                BasePartId: 71702f06-c005-40f5-b711-312985cbbfda
+                InstanceId: 65ba808b-c39d-41df-9ab4-ab845cc15f5b
+        -   Entity:
+                Id: 99103453-cab2-4258-896e-b5eeb8ab5782
+                Name: PrefabsDemo
+                Components:
+                    3891204b2e1f62582acb5056817268e3: !TransformComponent
+                        Id: 991f2edd-3681-44d5-86c1-22a818ec1168
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b4f1479fe5796b7da7eb20c9eca8e39b: !CSharpBeginner.Code.InstantiatingPrefabsDemo,CSharpBeginner.Game
+                        Id: cb765d4d-e632-4564-bf8a-60419bf50a3c
+                        PileOfBoxesPrefab: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
+        -   Entity:
+                Id: a52f9da7-91de-4e21-be7b-5429110a444a
+                Name: Box3
+                Components:
+                    871611dfbf1309a5a1aacea7dbc0d8d0: !TransformComponent
+                        Id: e133c497-701d-4b6d-8128-d3b6e79b7621
+                        Position: {X: 0.03315501, Y: 0.231646821, Z: -0.3597781}
+                        Rotation: {X: 0.0, Y: 0.08563991, Z: 0.0, W: -0.9963261}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
+                        Id: acda3124-fdb1-4b79-812a-81cbac83d278
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
+                BasePartId: 1616b3e2-836f-443c-b07e-7b065c1bb4d2
+                InstanceId: 65ba808b-c39d-41df-9ab4-ab845cc15f5b
+        -   Entity:
+                Id: b3bb2539-827f-4505-babe-80d5dd7ca7d6
+                Name: Box1
+                Components:
+                    871611dfbf1309a5a1aacea7dbc0d8d0: !TransformComponent
+                        Id: 5031c0b8-049f-4156-9c62-a0862673ff64
+                        Position: {X: 0.247229859, Y: 0.2435637, Z: 0.204489514}
+                        Rotation: {X: 0.0, Y: -0.0107316971, Z: 0.0, W: -0.9999424}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children:
+                            f384e75dfe17bd1c2057cef77b9623cb: ref!! d00d7031-b629-4628-903b-139364daa492
+                            8bf989676d4925ed6ff4a211147844bd: ref!! 057f56e1-d665-4ae8-b425-2cf49750ee8c
+                    dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
+                        Id: d5419afa-9d63-4c85-8809-2a22d86700bd
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
+                BasePartId: 8c97da7a-4bbe-46cd-82dc-a284092aa87d
+                InstanceId: 65ba808b-c39d-41df-9ab4-ab845cc15f5b
+        -   Entity:
+                Id: c5a0d3a8-64be-40b3-a77d-4777f8506b93
+                Name: Pile of boxes
+                Components:
+                    4c4fb9bf350bf6c7e2f7f1e03022839b: !TransformComponent
+                        Id: 2b0dfa61-5a22-426c-8793-5377eadfdd03
+                        Position: {X: 0.0, Y: 0.0, Z: 2.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            4e5044bd6b44104f5e0f9cf39d0a8e91: ref!! 5031c0b8-049f-4156-9c62-a0862673ff64
+                            2338fef92ee50612d2200db05526853e: ref!! 238c2531-0eb9-4113-89c0-f29c13c10862
+                            1d988b0f460f5817489f2d8d007c7737: ref!! e133c497-701d-4b6d-8128-d3b6e79b7621
+        -   Entity:
+                Id: e13bf2c1-0048-49b6-84bd-4304b27237c8
+                Name: Child box 1
+                Components:
+                    871611dfbf1309a5a1aacea7dbc0d8d0: !TransformComponent
+                        Id: d00d7031-b629-4628-903b-139364daa492
+                        Position: {X: 0.0, Y: 0.7665516, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.7, Y: 0.7, Z: 0.7}
+                        Children: {}
+                    dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
+                        Id: 7a927491-9456-4064-bafa-d04abc769bc4
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
+                BasePartId: 9f4984c2-8f4c-4f55-a4bd-902e8d387b20
+                InstanceId: 65ba808b-c39d-41df-9ab4-ab845cc15f5b

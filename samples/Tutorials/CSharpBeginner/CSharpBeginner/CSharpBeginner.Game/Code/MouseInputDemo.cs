@@ -14,7 +14,7 @@ namespace CSharpBeginner.Code
         public Entity GreenTeapot;
         public Entity PinkTeapot;
 
-        private float currentScrollIndex = 0;
+        private float _currentScrollIndex = 0;
 
         public override void Start() { }
 
@@ -48,9 +48,9 @@ namespace CSharpBeginner.Code
                 // We can use the mousewheel delta do determine if a mousewheel has rotated. 
                 // Scrolling forward gives a mousewheel delta of 1, and scrolling backwards gives a mousewheel delta of -1. 
                 // If in the next frame the mousewheel is not scrolled, the mouse wheel delta is 0 again.
-                currentScrollIndex += Input.MouseWheelDelta;
-                DebugText.Print("Scroll the mouse wheel to control the rotate the pink theapot. Scroll index: " + currentScrollIndex, new Int2(400, 660));
-                PinkTeapot.Transform.Rotation = Quaternion.RotationY(0.02f * currentScrollIndex);
+                _currentScrollIndex += Input.MouseWheelDelta;
+                DebugText.Print("Scroll the mouse wheel to control the rotate the pink theapot. Scroll index: " + _currentScrollIndex, new Int2(400, 660));
+                PinkTeapot.Transform.Rotation = Quaternion.RotationY(0.02f * _currentScrollIndex);
 
                 // We can draw some text at the position of our mouse by getting the absolute mouse position
                 var mousePos = Input.AbsoluteMousePosition;

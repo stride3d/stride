@@ -9,14 +9,14 @@ namespace CSharpBeginner.Code
     /// </summary>
     public class ChildEntitiesDemo : SyncScript
     {
-        Entity child0;
-        Entity child1;
+        private Entity _child0;
+        private Entity _child1;
 
         public override void Start()
         {
             // We can get a child by using GetChild(). This takes an index number starting at 0
-            child0 = Entity.GetChild(0);
-            child1 = Entity.GetChild(1);
+            _child0 = Entity.GetChild(0);
+            _child1 = Entity.GetChild(1);
             
             // If we would try to get Child 3 (which doesn't exist), we would get an exception
             // var nonExistinGChild = Entity.GetChild(2); 
