@@ -92,6 +92,8 @@ namespace Stride.LauncherApp
             var result = true;
 
             // Check for .NET 4.7.2+
+            // Note: it should now always be the case since renaming: Stride launcher is a separate forced setup to run, and it checks for 4.7.2.
+            // Still keeping code for future framework updates
             if (!CheckDotNet4Version(461808))
             {
                 prerequisiteLog.AppendLine("- .NET framework 4.7.2");

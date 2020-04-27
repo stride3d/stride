@@ -19,7 +19,7 @@ namespace Stride.LauncherApp.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Urls {
@@ -70,7 +70,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://doc.stride3d.net/{0}/.
+        ///   Looks up a localized string similar to https://doc.stride3d.net/{0}/.
         /// </summary>
         public static string Documentation {
             get {
@@ -88,7 +88,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://forums.stride3d.net/.
+        ///   Looks up a localized string similar to https://forums.stride3d.net/.
         /// </summary>
         public static string Forums {
             get {
@@ -97,7 +97,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://doc.stride3d.net/{0}/studio_getting_started_links.txt.
+        ///   Looks up a localized string similar to https://doc.stride3d.net/{0}/studio_getting_started_links.txt.
         /// </summary>
         public static string GettingStarted {
             get {
@@ -133,7 +133,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://www.reddit.com/r/stride3d.
+        ///   Looks up a localized string similar to https://www.reddit.com/r/stride3d.
         /// </summary>
         public static string Reddit {
             get {
@@ -151,7 +151,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://stride3d.net/feed.xml.
+        ///   Looks up a localized string similar to https://stride3d.net/feed.xml.
         /// </summary>
         public static string RssFeed {
             get {
@@ -160,7 +160,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://forums.stride3d.net/c/showcase.
+        ///   Looks up a localized string similar to https://forums.stride3d.net/c/showcase.
         /// </summary>
         public static string Showcases {
             get {

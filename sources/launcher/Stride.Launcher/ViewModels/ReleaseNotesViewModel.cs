@@ -23,7 +23,7 @@ namespace Stride.LauncherApp.ViewModels
         private bool isLoaded;
         private bool isUnavailable;
 
-        private const string RootUrl = "http://doc.stride3d.net";
+        private const string RootUrl = "https://doc.stride3d.net";
         private const string ReleaseNotesFileName = "ReleaseNotes.md";
         private string baseUrl;
 
