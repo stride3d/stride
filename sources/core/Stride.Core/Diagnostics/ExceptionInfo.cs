@@ -11,7 +11,7 @@ namespace Stride.Core.Diagnostics
     /// <summary>
     /// This class is used to store some properties of an exception. It is serializable.
     /// </summary>
-    [DataContract]
+    [DataContract, Serializable]
     public sealed class ExceptionInfo
     {
         private static readonly ExceptionInfo[] EmptyExceptions = new ExceptionInfo[0];

@@ -7,16 +7,17 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.ServiceModel;
 using System.Threading;
+using ServiceWire.NamedPipes;
 using Stride.Core.VisualStudio;
+using static Stride.ExecServer.AppDomainShadow;
+using static Stride.ExecServer.ExecServerApp;
 
 namespace Stride.ExecServer
 {
     /// <summary>
-    /// Remote implementation of the server
+    /// Remote implementation of the ServiceWire server
     /// </summary>
-    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single, ConcurrencyMode=ConcurrencyMode.Multiple)]
     internal class ExecServerRemote : IExecServerRemote
     {
         public const int BusyReturnCode = -8000;
@@ -65,7 +66,7 @@ namespace Stride.ExecServer
         {
         }
 
-        public int Run(string currentDirectory, Dictionary<string, string> environmentVariables, string[] args, bool shadowCache, int? debuggerProcessId)
+        public int Run(string currentDirectory, Dictionary<string, string> environmentVariables, string[] args, bool shadowCache, int? debuggerProcessId, string callbackAddress)
         {
             bool lockTaken = false;
             try
@@ -89,10 +90,11 @@ namespace Stride.ExecServer
                         debugger?.Attach();
                     }
                 }
-
-                var logger = OperationContext.Current.GetCallbackChannel<IServerLogger>();
-                var result = shadowManager.Run(currentDirectory, environmentVariables, args, shadowCache, logger);
-                return result;
+                using (var callbackChannel = new NpClient<IServerLogger>(new NpEndPoint(callbackAddress)))
+                {
+                    var result = shadowManager.Run(currentDirectory, environmentVariables, args, shadowCache, callbackChannel);
+                    return result;
+                }
             }
             finally
             {

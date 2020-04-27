@@ -2,8 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using System.ServiceModel;
-
+using ServiceWire.NamedPipes;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
@@ -13,7 +12,10 @@ namespace Stride.Core.Assets.CompilerApp
     class RemoteLogForwarder : LogListener
     {
         private readonly ILogger mainLogger;
-        private readonly List<IForwardSerializableLogRemote> remoteLogs = new List<IForwardSerializableLogRemote>();
+        /// <summary>
+        /// ServiceWire clients to send remote logs.
+        /// </summary>
+        private readonly List<NpClient<IForwardSerializableLogRemote>> remoteLogs = new List<NpClient<IForwardSerializableLogRemote>>();
         private bool activeRemoteLogs = true;
         
         public RemoteLogForwarder(ILogger mainLogger, IEnumerable<string> logPipeNames)
@@ -22,9 +24,8 @@ namespace Stride.Core.Assets.CompilerApp
 
             foreach (var logPipeName in logPipeNames)
             {
-                var namedPipeBinding = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None) { SendTimeout = TimeSpan.FromSeconds(300.0) };
-                var remoteLog = ChannelFactory<IForwardSerializableLogRemote>.CreateChannel(namedPipeBinding, new EndpointAddress(logPipeName));
-                remoteLogs.Add(remoteLog);
+                var client = new NpClient<IForwardSerializableLogRemote>(new NpEndPoint(logPipeName), new StrideServiceWireSerializer());
+                remoteLogs.Add(client);
             }
 
             activeRemoteLogs = remoteLogs.Count > 0;
@@ -34,24 +35,12 @@ namespace Stride.Core.Assets.CompilerApp
         {
             foreach (var remoteLog in remoteLogs)
             {
-                if (remoteLog != null)
-                    TryCloseChannel(remoteLog);
+                try
+                {
+                    remoteLog?.Dispose();
+                }
+                catch { }
             }
-        }
-
-        private static void TryCloseChannel(IForwardSerializableLogRemote remoteLog)
-        {
-            try
-            {
-                // ReSharper disable SuspiciousTypeConversion.Global
-                var channel = remoteLog as ICommunicationObject;
-                // ReSharper restore SuspiciousTypeConversion.Global
-                if (channel != null && channel.State == CommunicationState.Opened)
-                    channel.Close();
-            }
-            // ReSharper disable EmptyGeneralCatchClause
-            catch { }
-            // ReSharper restore EmptyGeneralCatchClause
         }
 
         protected override void OnLog(ILogMessage message)
@@ -85,14 +74,18 @@ namespace Stride.Core.Assets.CompilerApp
                 var remoteLog = remoteLogs[i];
                 try
                 {
-                    remoteLog?.ForwardSerializableLog(serializableMessage);
+                    remoteLog?.Proxy?.ForwardSerializableLog(serializableMessage);
                 }
                     // ReSharper disable EmptyGeneralCatchClause
                 catch
                 {
                     // Communication failed, let's null it out so that we don't try again
+                    try
+                    {
+                        remoteLog.Dispose();
+                    }
+                    catch { }
                     remoteLogs[i] = null;
-                    TryCloseChannel(remoteLog);
 
                     // Check if we still need to log anything
                     var newActiveRemoteLogs = false;

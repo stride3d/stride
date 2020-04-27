@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.ServiceModel;
 using System.Threading.Tasks;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
@@ -13,7 +12,6 @@ using Stride.Core.Storage;
 
 namespace Stride.Core.Assets.CompilerApp
 {
-    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single, UseSynchronizationContext = false)]
     public class ProcessBuilderRemote : IProcessBuilderRemote
     {
         private readonly AssemblyContainer assemblyContainer;

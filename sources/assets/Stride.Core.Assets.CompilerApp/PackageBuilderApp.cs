@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.ServiceModel;
 using System.Text;
 
 using Mono.Options;
@@ -29,7 +28,6 @@ using Stride.Core.Assets.CompilerApp.Tasks;
 
 namespace Stride.Core.Assets.CompilerApp
 {
-    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single, UseSynchronizationContext = false)]
     class PackageBuilderApp : IPackageBuilderApp
     {
         private static Stopwatch clock;

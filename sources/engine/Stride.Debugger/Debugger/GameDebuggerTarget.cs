@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using ServiceWire.NamedPipes;
 using Stride.Core.Diagnostics;
 using Stride.Core.MicroThreading;
 using Stride.Core.Reflection;
@@ -216,19 +217,24 @@ namespace Stride.Debugger.Target
         public void MainLoop(IGameDebuggerHost gameDebuggerHost)
         {
             host = gameDebuggerHost;
-            host.RegisterTarget();
-
-            Log.MessageLogged += Log_MessageLogged;
-
-            // Log suppressed exceptions in scripts
-            ScriptSystem.Log.MessageLogged += Log_MessageLogged;
-            Scheduler.Log.MessageLogged += Log_MessageLogged;
-
-            Log.Info("Starting debugging session");
-
-            while (!requestedExit)
+            string callbackChannelEndpoint = "Stride/Debugger/GameDebuggerTarget/CallbackChannel";
+            using (var callbackHost = new NpHost(callbackChannelEndpoint, null, null))
             {
-                Thread.Sleep(10);
+                callbackHost.AddService<IGameDebuggerTarget>(this);
+                host.RegisterTarget(callbackChannelEndpoint);
+
+                Log.MessageLogged += Log_MessageLogged;
+
+                // Log suppressed exceptions in scripts
+                ScriptSystem.Log.MessageLogged += Log_MessageLogged;
+                Scheduler.Log.MessageLogged += Log_MessageLogged;
+
+                Log.Info("Starting debugging session");
+
+                while (!requestedExit)
+                {
+                    Thread.Sleep(10);
+                }
             }
         }
 

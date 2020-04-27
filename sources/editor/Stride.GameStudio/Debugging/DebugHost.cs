@@ -3,8 +3,7 @@
 
 using System;
 using System.Diagnostics;
-using System.ServiceModel;
-
+using ServiceWire.NamedPipes;
 using Stride.Core.Diagnostics;
 using Stride.Core.VisualStudio;
 using Stride.Debugger.Target;
@@ -17,7 +16,7 @@ namespace Stride.GameStudio.Debugging
     class DebugHost : IDisposable
     {
         private AttachedChildProcessJob attachedChildProcessJob;
-        public ServiceHost ServiceHost { get; private set; }
+        public NpHost ServiceHost { get; private set; }
         public GameDebuggerHost GameHost { get; private set; }
 
         public void Start(string workingDirectory, Process debuggerProcess, LoggerResult logger)
@@ -26,7 +25,7 @@ namespace Stride.GameStudio.Debugging
 
             using (var debugger = debuggerProcess != null ? VisualStudioDebugger.GetByProcess(debuggerProcess.Id) : null)
             {
-                var address = "net.pipe://localhost/" + Guid.NewGuid();
+                var address = "Stride/Debugger/" + Guid.NewGuid();
                 var arguments = $"--host=\"{address}\"";
 
                 // Child process should wait for a debugger to be attached
@@ -44,10 +43,10 @@ namespace Stride.GameStudio.Debugging
                     RedirectStandardError = true,
                 };
 
-                // Start WCF pipe
+                // Start ServiceWire pipe
                 var gameDebuggerHost = new GameDebuggerHost(logger);
-                ServiceHost = new ServiceHost(gameDebuggerHost);
-                ServiceHost.AddServiceEndpoint(typeof(IGameDebuggerHost), new NetNamedPipeBinding(NetNamedPipeSecurityMode.None) { MaxReceivedMessageSize = int.MaxValue }, address);
+                ServiceHost = new NpHost(address, null, null);
+                ServiceHost.AddService<IGameDebuggerHost>(gameDebuggerHost);
                 ServiceHost.Open();
 
                 var process = new Process { StartInfo = startInfo };
@@ -74,7 +73,7 @@ namespace Stride.GameStudio.Debugging
             }
             if (ServiceHost != null)
             {
-                ServiceHost.Abort();
+                ServiceHost.Close();
                 ServiceHost = null;
             }
         }

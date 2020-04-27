@@ -15,7 +15,7 @@ using Stride.Core.Serialization.Contents;
 
 namespace Stride.Core.BuildEngine
 {
-    [DataContract(Inherited = true)]
+    [DataContract(Inherited = true), Serializable]
     public abstract class Command
     {
         /// <summary>

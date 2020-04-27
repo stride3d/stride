@@ -2,14 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using System.ServiceModel;
+using ServiceWire.NamedPipes;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
 using Stride.VisualStudio.Commands;
 
 namespace Stride.VisualStudio.BuildEngine
 {
-    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class PackageBuildMonitorRemote : IForwardSerializableLogRemote
     {
         private string logPipeUrl;
@@ -21,8 +20,8 @@ namespace Stride.VisualStudio.BuildEngine
             this.logPipeUrl = logPipeUrl;
 
             // Listen to pipe with this as listener
-            var host = new ServiceHost(this);
-            host.AddServiceEndpoint(typeof(IForwardSerializableLogRemote), new NetNamedPipeBinding(NetNamedPipeSecurityMode.None) { MaxReceivedMessageSize = int.MaxValue }, this.logPipeUrl);
+            var host = new NpHost(this.logPipeUrl, null, null, new StrideServiceWireSerializer());
+            host.AddService<IForwardSerializableLogRemote>(this);
             host.Open();
         }
 

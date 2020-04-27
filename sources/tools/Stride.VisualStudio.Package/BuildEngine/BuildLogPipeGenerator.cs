@@ -12,7 +12,7 @@ namespace Stride.VisualStudio
 {
     public class BuildLogPipeGenerator
     {
-        private string logPipeUrl = "net.pipe://localhost/Stride.BuildEngine.Monitor." + Guid.NewGuid();
+        private string logPipeUrl = "Stride/BuildEngine/Monitor/" + Guid.NewGuid();
         private SolutionEventsListener solutionEventsListener;
 
         public string LogPipeUrl

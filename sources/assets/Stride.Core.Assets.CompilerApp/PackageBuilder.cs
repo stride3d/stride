@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.ServiceModel;
 
 using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Diagnostics;
@@ -23,6 +22,7 @@ using Stride;
 using Stride.Assets;
 using Stride.Graphics;
 using Stride.Core.VisualStudio;
+using ServiceWire.NamedPipes;
 
 namespace Stride.Core.Assets.CompilerApp
 {
@@ -227,7 +227,7 @@ namespace Stride.Core.Assets.CompilerApp
             e.Step.StepProcessed -= BuildStepProcessed;
         }
 
-        private static void RegisterRemoteLogger(IProcessBuilderRemote processBuilderRemote)
+        private static void RegisterRemoteLogger(NpClient<IProcessBuilderRemote> processBuilderRemote)
         {
             // The pipe might be broken while we try to output log, so let's try/catch the call to prevent program for crashing here (it should crash at a proper location anyway if the pipe is broken/closed)
             // ReSharper disable EmptyGeneralCatchClause
@@ -238,7 +238,7 @@ namespace Stride.Core.Assets.CompilerApp
                     var assetMessage = logMessage as AssetLogMessage;
                     var message = assetMessage != null ? new AssetSerializableLogMessage(assetMessage) : new SerializableLogMessage((LogMessage)logMessage);
 
-                    processBuilderRemote.ForwardLog(message);
+                    processBuilderRemote.Proxy.ForwardLog(message);
                 }
                 catch
                 {
@@ -254,17 +254,14 @@ namespace Stride.Core.Assets.CompilerApp
 
             VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
 
-            // Open WCF channel with master builder
-            var namedPipeBinding = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None) { SendTimeout = TimeSpan.FromSeconds(300.0), MaxReceivedMessageSize = int.MaxValue };
-            var processBuilderRemote = ChannelFactory<IProcessBuilderRemote>.CreateChannel(namedPipeBinding, new EndpointAddress(builderOptions.SlavePipe));
-
-            try
+            // Open ServiceWire Client Channel
+            using (var client = new NpClient<IProcessBuilderRemote>(new NpEndPoint(builderOptions.SlavePipe), new StrideServiceWireSerializer()))
             {
-                RegisterRemoteLogger(processBuilderRemote);
+                RegisterRemoteLogger(client);
 
                 // Make sure to laod all assemblies containing serializers
                 // TODO: Review how costly it is to do so, and possibily find a way to restrict what needs to be loaded (i.e. only app plugins?)
-                foreach (var assemblyLocation in processBuilderRemote.GetAssemblyContainerLoadedAssemblies())
+                foreach (var assemblyLocation in client.Proxy.GetAssemblyContainerLoadedAssemblies())
                 {
                     AssemblyContainer.Default.LoadAssemblyFromPath(assemblyLocation, builderOptions.Logger);
                 }
@@ -283,20 +280,20 @@ namespace Stride.Core.Assets.CompilerApp
                 MicroThread microthread = scheduler.Add(async () =>
                 {
                     // Deserialize command and parameters
-                    Command command = processBuilderRemote.GetCommandToExecute();
+                    Command command = client.Proxy.GetCommandToExecute();
 
                     // Run command
                     var inputHashes = FileVersionTracker.GetDefault();
                     var builderContext = new BuilderContext(inputHashes, null);
 
-                    var commandContext = new RemoteCommandContext(processBuilderRemote, command, builderContext, logger);
+                    var commandContext = new RemoteCommandContext(client.Proxy, command, builderContext, logger);
                     MicrothreadLocalDatabases.MountDatabase(commandContext.GetOutputObjectsGroups());
                     command.PreCommand(commandContext);
                     status = await command.DoCommand(commandContext);
                     command.PostCommand(commandContext, status);
 
                     // Returns result to master builder
-                    processBuilderRemote.RegisterResult(commandContext.ResultEntry);
+                    client.Proxy.RegisterResult(commandContext.ResultEntry);
                 });
 
                 while (true)
@@ -324,13 +321,6 @@ namespace Stride.Core.Assets.CompilerApp
                     return BuildResultCode.Successful;
 
                 return BuildResultCode.BuildError;
-            }
-            finally
-            {
-                // Close WCF channel
-                // ReSharper disable SuspiciousTypeConversion.Global
-                ((IClientChannel)processBuilderRemote).Close();
-                // ReSharper restore SuspiciousTypeConversion.Global
             }
         }
 
@@ -368,7 +358,7 @@ namespace Stride.Core.Assets.CompilerApp
                 await Task.Delay(1, command.CancellationToken);
             }
 
-            var address = "net.pipe://localhost/" + Guid.NewGuid();
+            var address = "Stride/CompilerApp/PackageBuilderApp/" + Guid.NewGuid();
             var arguments = $"--slave=\"{address}\" --build-path=\"{builderOptions.BuildDirectory}\"";
 
             using (var debugger = VisualStudioDebugger.GetAttached())
@@ -379,10 +369,10 @@ namespace Stride.Core.Assets.CompilerApp
                 }
             }
 
-            // Start WCF pipe for communication with process
+            // Start ServiceWire pipe for communication with process
             var processBuilderRemote = new ProcessBuilderRemote(assemblyContainer, commandContext, command);
-            var host = new ServiceHost(processBuilderRemote);
-            host.AddServiceEndpoint(typeof(IProcessBuilderRemote), new NetNamedPipeBinding(NetNamedPipeSecurityMode.None) { MaxReceivedMessageSize = int.MaxValue }, address);
+            var host = new NpHost(address,null,null, new StrideServiceWireSerializer());
+            host.AddService<IProcessBuilderRemote>(processBuilderRemote);
 
             var startInfo = new ProcessStartInfo
             {

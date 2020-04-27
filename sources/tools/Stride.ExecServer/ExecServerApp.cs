@@ -8,12 +8,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.ServiceModel;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
+using ServiceWire.NamedPipes;
 using Stride.Core.VisualStudio;
-using Binding = System.ServiceModel.Channels.Binding;
 
 namespace Stride.ExecServer
 {
@@ -56,7 +54,7 @@ namespace Stride.ExecServer
                 args.RemoveAt(0);
                 var executablePath = ExtractPath(args, "executable");
                 var execServerApp = new ExecServerRemote(executablePath, executablePath, false, false, true);
-                int result = execServerApp.Run(Environment.CurrentDirectory, new Dictionary<string, string>(), args.ToArray(), false, null);
+                int result = execServerApp.Run(Environment.CurrentDirectory, new Dictionary<string, string>(), args.ToArray(), false, null,null);
                 return result;
             }
 
@@ -138,19 +136,14 @@ namespace Stride.ExecServer
 
             // Start WCF pipe for communication with process
             var execServerApp = new ExecServerRemote(entryAssemblyPath, executablePath, true, useAppDomainCaching, serverInstanceIndex == 0);
-            var host = new ServiceHost(execServerApp);
-            host.AddServiceEndpoint(typeof(IExecServerRemote), new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
-            {
-                MaxReceivedMessageSize = int.MaxValue,
-                SendTimeout = TimeSpan.FromHours(1),
-                ReceiveTimeout = TimeSpan.FromHours(1),
-            }, address);
+            var host = new NpHost(address, null, null);
+            host.AddService<IExecServerRemote>(execServerApp);
 
             try
             {
                 host.Open();
             }
-            catch (AddressAlreadyInUseException)
+            catch (Exception e)
             {
                 // Uncomment the following line to see which process got a ExitCodeServerAlreadyInUse
                 // File.WriteAllText(Path.Combine(Environment.CurrentDirectory, $"test_ExecServer{Process.GetCurrentProcess().Id}.log"), $"Exit code: {ExitCodeServerAlreadyInUse}\r\n");
@@ -181,14 +174,6 @@ namespace Stride.ExecServer
         /// <returns>Return status.</returns>
         private int RunClient(string executablePath, string workingDirectory, Dictionary<string, string> environmentVariables, List<string> args, bool shadowCache, int? debuggerProcessId)
         {
-            var binding = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
-            {
-                MaxReceivedMessageSize = int.MaxValue,
-                OpenTimeout = TimeSpan.FromMilliseconds(100),
-                SendTimeout = TimeSpan.FromHours(1),
-                ReceiveTimeout = TimeSpan.FromHours(1),
-            };
-
             // Number of concurrent processes: use number of CPU, but no more than 8
             int maxServerInstanceIndex = Math.Max(Environment.ProcessorCount, 8);
 
@@ -210,37 +195,33 @@ namespace Stride.ExecServer
 
                     TrySameConnectionAgain:
                         var redirectLog = new RedirectLogger();
-                        var client = clients[serverInstanceIndex] ?? new ExecServerRemoteClient(redirectLog, binding, new EndpointAddress(address));
+                        var client = clients[serverInstanceIndex] ?? new ExecServerRemoteClient(address, redirectLog);
                         // Console.WriteLine("{0}: ExecServer Try to connect", DateTime.Now);
 
-                        var service = client.ChannelFactory.CreateChannel();
+                        var service = client.Proxy;
                         try
                         {
                             service.Check();
 
                             // Keep this connection
                             clients[serverInstanceIndex] = client;
-
-                            //Console.WriteLine("{0}: ExecServer - running start", DateTime.Now);
                             try
                             {
-                                var result = service.Run(workingDirectory, environmentVariables, args.ToArray(), shadowCache, debuggerProcessId);
+                                var result = service.Run(workingDirectory, environmentVariables, args.ToArray(), shadowCache, debuggerProcessId, client.CallbackAddress);
                                 if (result == ExecServerRemote.BusyReturnCode)
                                 {
                                     // Try next server
                                     continue;
                                 }
-                                //Console.WriteLine("{0}: ExecServer - running end", DateTime.Now);
                                 return result;
                             }
                             finally
                             {
-                                CloseService(ref service);
                             }
                         }
-                        catch (EndpointNotFoundException)
+                        catch (Exception e)
                         {
-                            CloseService(ref service);
+                            Console.WriteLine("Error {0}", e);
 
                             // Close and uncache client connection (server is not started yet)
                             clients[serverInstanceIndex] = null;
@@ -291,11 +272,6 @@ namespace Stride.ExecServer
 
                             goto TrySameConnectionAgain;
                         }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine("Error {0}", e);
-                            return -300;
-                        }
                     }
 
                     // Wait for the process to startup before trying again
@@ -314,50 +290,16 @@ namespace Stride.ExecServer
                 CloseClients(clients);
             }
         }
-
-        /// <summary>
-        /// Closes a WCF service.
-        /// </summary>
-        /// <param name="service">The service.</param>
-        private static void CloseService(ref IExecServerRemote service)
-        {
-            if (service != null)
-            {
-                try
-                {
-                    var clientChannel = ((IClientChannel)service);
-                    if (clientChannel.State == CommunicationState.Faulted)
-                    {
-                        clientChannel.Abort();
-                    }
-                    else
-                    {
-                        clientChannel.Close();
-                    }
-
-                    clientChannel.Dispose();
-                    //Console.WriteLine("ExecServer - Close connection - Client channel state: {0}", clientChannel.State);
-                }
-                catch (Exception)
-                {
-                    //Console.WriteLine("Exception while closing connection {0}", ex);
-                }
-                service = null;
-            }
-        }
-
         private static void CloseClient(ref ExecServerRemoteClient client)
         {
             if (client != null)
             {
                 try
                 {
-                    //Console.WriteLine("Closing client");
-                    client.Close();
+                    client.Dispose();
                 }
                 catch (Exception)
                 {
-                    //Console.WriteLine("Exception while closing {0}", client);
                 }
                 client = null;
             }
@@ -429,7 +371,7 @@ namespace Stride.ExecServer
         private static string GetEndpointAddress(string executablePath, int serverInstanceIndex)
         {
             var executableKey = Regex.Replace(executablePath, "[:\\/#]", "_");
-            var address = "net.pipe://localhost/" + executableKey + "_" + serverInstanceIndex;
+            var address = "ExecServerApp/" + executableKey + "_" + serverInstanceIndex;
             return address;
         }
 
@@ -446,17 +388,51 @@ namespace Stride.ExecServer
             return path;
         }
 
-        private class ExecServerRemoteClient : DuplexClientBase<IExecServerRemote>
+        private class ExecServerRemoteClient : IDisposable
         {
-            public ExecServerRemoteClient(IServerLogger logger, Binding binding, EndpointAddress remoteAddress)
-                : base(logger, binding, remoteAddress) { }
+            private NpClient<IExecServerRemote> _client;
+            private NpHost _callbackChannel;
+
+            public IExecServerRemote Proxy { get { return _client.Proxy; } }
+            public string CallbackAddress { get; set; }
+            public ExecServerRemoteClient(string remoteAddress, RedirectLogger logger)
+            {
+                _client = new NpClient<IExecServerRemote>(new NpEndPoint(remoteAddress));
+
+                //Create callback channel
+                this.CallbackAddress = remoteAddress + "_callback";
+                _callbackChannel= new NpHost(this.CallbackAddress, null, null);
+                _callbackChannel.AddService<IServerLogger>(logger);
+            }
+
+            #region IDisposable Support
+            private bool disposedValue = false; // To detect redundant calls
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        _client.Dispose();
+                        _callbackChannel.Close();
+                        _callbackChannel.Dispose();
+                    }
+                    disposedValue = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+            }
+            #endregion
         }
 
         /// <summary>
         /// Loggers that receive logs from the exec server for the running app.
         /// </summary>
-        [CallbackBehavior(UseSynchronizationContext = false, AutomaticSessionShutdown = true)]
-        private class RedirectLogger : IServerLogger
+        public class RedirectLogger : IServerLogger
         {
             public void OnLog(string text, ConsoleColor color)
             {

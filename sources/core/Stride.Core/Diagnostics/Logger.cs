@@ -10,6 +10,7 @@ namespace Stride.Core.Diagnostics
     /// </summary>
     public abstract partial class Logger : ILogger
     {
+        private static object _lock = new object();
         protected readonly bool[] EnableTypes;
 
         /// <summary>
@@ -100,19 +101,22 @@ namespace Stride.Core.Diagnostics
 
         public void Log([NotNull] ILogMessage logMessage)
         {
-            if (logMessage == null)
-                throw new ArgumentNullException(nameof(logMessage));
-
-            // Even if the type is not enabled, set HasErrors property
-            // This allow to know that there is an error even if is is not logger.
-            if (logMessage.Type == LogMessageType.Error || logMessage.Type == LogMessageType.Fatal)
-                HasErrors = true;
-
-            // Only log when a particular type is enabled
-            if (EnableTypes[(int)logMessage.Type])
+            lock (_lock)
             {
-                LogRaw(logMessage);
-                MessageLogged?.Invoke(this, new MessageLoggedEventArgs(logMessage));
+                if (logMessage == null)
+                    throw new ArgumentNullException(nameof(logMessage));
+
+                // Even if the type is not enabled, set HasErrors property
+                // This allow to know that there is an error even if it is not logger.
+                if (logMessage.Type == LogMessageType.Error || logMessage.Type == LogMessageType.Fatal)
+                    HasErrors = true;
+
+                // Only log when a particular type is enabled
+                if (EnableTypes[(int)logMessage.Type])
+                {
+                    LogRaw(logMessage);
+                    MessageLogged?.Invoke(this, new MessageLoggedEventArgs(logMessage));
+                }
             }
         }
 
