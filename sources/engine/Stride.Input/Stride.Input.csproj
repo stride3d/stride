@@ -2,11 +2,14 @@
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideRuntimeWindowsDotNet>true</StrideRuntimeWindowsDotNet>
+    <StrideRuntimeWindowsNetCoreApp3>true</StrideRuntimeWindowsNetCoreApp3>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <StridePlatformDependent>true</StridePlatformDependent>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideProjectPlatformDependentWindows>true</StrideProjectPlatformDependentWindows>
