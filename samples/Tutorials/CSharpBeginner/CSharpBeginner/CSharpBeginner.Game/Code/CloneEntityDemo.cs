@@ -10,40 +10,40 @@ namespace CSharpBeginner.Code
     public class CloneEntityDemo : SyncScript
     {
         public Entity MasterSword;
-        private Entity _clone0;
-        private Entity _clone1;
-        private Entity _clone2;
+        private Entity clone0;
+        private Entity clone1;
+        private Entity clone2;
 
         public override void Start()
         {
             // Clone 0
             // The Clone method clones an existing entity. 
             // However, if we don't add it to the scene, we will never get to see it.
-            _clone0 = MasterSword.Clone();
-            _clone0.Transform.Position += new Vector3(0, 1, 0);
+            clone0 = MasterSword.Clone();
+            clone0.Transform.Position += new Vector3(0, 1, 0);
 
 
             // Clone 1
-            _clone1 = MasterSword.Clone();
+            clone1 = MasterSword.Clone();
 
             // We can add Clone1 to the same scene that the current entity is part of
-            Entity.Scene.Entities.Add(_clone1);
+            Entity.Scene.Entities.Add(clone1);
 
             // The cloned entity will be at the same worldposition as the original Sword entity
             // Move it to the right so that we can see it
-            _clone1.Transform.Position += new Vector3(-1, 0, 0); 
-            _clone1.Transform.Scale = new Vector3(1.3f);
+            clone1.Transform.Position += new Vector3(-1, 0, 0);
+            clone1.Transform.Scale = new Vector3(1.3f);
 
 
             // Clone 2
-            _clone2 = MasterSword.Clone();
+            clone2 = MasterSword.Clone();
 
             // We can also add a cloned entity as a child of an existing entity. 
             // That means it will use the parent's world position + parent's local position
-            _clone2.Transform.Parent = Entity.Transform;
+            clone2.Transform.Parent = Entity.Transform;
 
             // Move it the right so that we can see it
-            _clone2.Transform.Scale = new Vector3(1.6f);
+            clone2.Transform.Scale = new Vector3(1.6f);
         }
 
         public override void Update()

@@ -9,19 +9,19 @@ namespace CSharpBeginner.Code
     /// </summary>
     public class DeltaTimeDemo : SyncScript
     {
-        private float _rotationSpeed = 0.6f;
+        private float rotationSpeed = 0.6f;
 
         // In this variable we keep track of the total time the game runs
-        private float _totalTime = 0;
+        private float totalTime = 0;
 
         // We use these variable for creating a simple countdown timer
-        private float _countdownStartTime = 5.0f;
-        private float _countdownTime = 0;
+        private float countdownStartTime = 5.0f;
+        private float countdownTime = 0;
 
         public override void Start()
         {
             // We start the countdown timer at the initial countdown time of 5 seconds
-            _countdownTime = _countdownStartTime;
+            countdownTime = countdownStartTime;
         }
 
         public override void Update()
@@ -30,23 +30,23 @@ namespace CSharpBeginner.Code
             var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
 
             // We update the total time
-            _totalTime += deltaTime;
+            totalTime += deltaTime;
 
             // Since we have a countdown timer, we subtract the delta time from the count down time
-            _countdownTime -= deltaTime;
+            countdownTime -= deltaTime;
 
             // If the repeatTimer, reaches 0, we reset the countDownTime back to the count down start time
-            if (_countdownTime < 0)
+            if (countdownTime < 0)
             {
-                _countdownTime = _countdownStartTime;
-                _rotationSpeed *= -1;
+                countdownTime = countdownStartTime;
+                rotationSpeed *= -1;
             }
 
-            Entity.Transform.Rotation *= Quaternion.RotationY(deltaTime * _rotationSpeed);
-             
+            Entity.Transform.Rotation *= Quaternion.RotationY(deltaTime * rotationSpeed);
+
             // We display the total time and the countdown time on screen
-            DebugText.Print("Total time: " + _totalTime, new Int2(480, 540));
-            DebugText.Print("Countdown time: " + _countdownTime, new Int2(480, 560));
+            DebugText.Print("Total time: " + totalTime, new Int2(480, 540));
+            DebugText.Print("Countdown time: " + countdownTime, new Int2(480, 560));
         }
     }
 }

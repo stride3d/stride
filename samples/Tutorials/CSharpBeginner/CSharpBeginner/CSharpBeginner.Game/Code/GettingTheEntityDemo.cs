@@ -9,27 +9,27 @@ namespace CSharpBeginner.Code
     /// </summary>
     public class GettingTheEntityDemo : SyncScript
     {
-        private string _name = string.Empty;
-        private string _parentName = string.Empty;
+        private string name = string.Empty;
+        private string parentName = string.Empty;
 
         // Executes only once, at the start of the game
         public override void Start()
         {
             // We store the name of the Entity that we are attached to
-            _name = Entity.Name;
+            name = Entity.Name;
 
             // We retrieve the parent entity by using the GetParent() command.
-            Entity parentEntity = Entity.GetParent();
+            var parentEntity = Entity.GetParent();
 
             // It is possible that our entity does not have a parent. We therefore check if the parent is not null.
             if (parentEntity != null)
             {
                 // We store the name of our Parent entity
-                _parentName = parentEntity.Name;
+                parentName = parentEntity.Name;
             }
 
             // The above code can be shortened to 1 line by using the '?' operator  
-            _parentName = Entity.GetParent()?.Name ?? string.Empty;
+            parentName = Entity.GetParent()?.Name ?? string.Empty;
         }
 
         // Updates every frame
@@ -37,8 +37,8 @@ namespace CSharpBeginner.Code
         {
             // Using the 'DebugText.Print' command, we can quickly print information to the screen
             // NOTE: DebugText only works when debugging the game. During release it is automatically disabled
-            DebugText.Print(_parentName, new Int2(580, 580));
-            DebugText.Print(_name, new Int2(800, 580));
+            DebugText.Print(parentName, new Int2(580, 580));
+            DebugText.Print(name, new Int2(800, 580));
         }
     }
 }

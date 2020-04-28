@@ -10,26 +10,26 @@ namespace CSharpBeginner.Code
     /// </summary>
     public class GettingAComponentDemo : SyncScript
     {
-        private int _ammoCount1 = 0;
-        private int _ammoCount2 = 0;
+        private int ammoCount1 = 0;
+        private int ammoCount2 = 0;
 
         public override void Start()
         {
             // We retrieve the Ammo component that is also attached to the current entity
-            AmmoComponent ammoComponent1 = Entity.Get<AmmoComponent>();
+            var ammoComponent1 = Entity.Get<AmmoComponent>();
 
             // We can now access public methods and properties of the retrieve component
-            _ammoCount1 = ammoComponent1.GetTotalAmmo();
+            ammoCount1 = ammoComponent1.GetTotalAmmo();
 
             // We now remove the AmmoComponent from our entity. If we try to retrieve it again, null will be returned
             Entity.Remove<AmmoComponent>();
-            AmmoComponent ammoComponent2 = Entity.Get<AmmoComponent>();
+            var ammoComponent2 = Entity.Get<AmmoComponent>();
 
             // Now that 'ammoComponent' is null, we will never be able to retrieve the total ammo
             if (ammoComponent2 != null)
-            { 
+            {
                 // This line will never happen
-                _ammoCount2 = ammoComponent2.GetTotalAmmo();
+                ammoCount2 = ammoComponent2.GetTotalAmmo();
             }
 
             // Add the component again so that it doesn't crash next run
@@ -39,8 +39,8 @@ namespace CSharpBeginner.Code
         public override void Update()
         {
             // We display the stored ammo count on screen
-            DebugText.Print("Ammo count 1: " + _ammoCount1.ToString(), new Int2(300, 200));
-            DebugText.Print("Ammo count 2: " + _ammoCount2.ToString(), new Int2(300, 220));
+            DebugText.Print("Ammo count 1: " + ammoCount1.ToString(), new Int2(300, 200));
+            DebugText.Print("Ammo count 2: " + ammoCount2.ToString(), new Int2(300, 220));
         }
     }
 }
