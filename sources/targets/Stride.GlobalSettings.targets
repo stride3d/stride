@@ -148,11 +148,6 @@
     <StrideEffectCompiler>true</StrideEffectCompiler>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(StrideNETRuntime)' == 'CoreCLR' ">
-    <StrideNETRuntimeDefines>STRIDE_RUNTIME_CORECLR</StrideNETRuntimeDefines>
-    <AutoIncludeSystemAssembly>true</AutoIncludeSystemAssembly>
-  </PropertyGroup>
-
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);$(StrideGraphicsApiDefines)</DefineConstants>
   </PropertyGroup>

@@ -111,8 +111,11 @@
   <!-- 
     Settings StrideNETRuntime specific
   -->
-  <PropertyGroup Condition=" '$(StrideNETRuntime)' == 'CoreCLR' ">
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('netcoreapp'))">
+    <StrideNETRuntimeDefines>STRIDE_RUNTIME_CORECLR</StrideNETRuntimeDefines>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('net4'))">
+    <StrideNETRuntimeDefines>STRIDE_RUNTIME_NETFW</StrideNETRuntimeDefines>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+#if STRIDE_RUNTIME_NETFW
 using EnvDTE;
+#endif
 
 namespace Stride.Core.VisualStudio
 {
@@ -15,11 +17,14 @@ namespace Stride.Core.VisualStudio
     /// </summary>
     internal class VisualStudioDebugger : IDisposable
     {
+#if STRIDE_RUNTIME_NETFW
         private readonly STAContext context;
         private readonly DTE dte;
+#endif
 
         public int ProcessId { get; private set; }
 
+#if STRIDE_RUNTIME_NETFW
         private VisualStudioDebugger(STAContext context, DTE dte, int processId)
         {
             this.context = context;
@@ -124,5 +129,36 @@ namespace Stride.Core.VisualStudio
                 return result;
             });
         }
+#else
+        public static VisualStudioDebugger GetByProcess(int processId)
+        {
+            return null;
+        }
+
+        public static VisualStudioDebugger GetAttached()
+        {
+            return null;
+        }
+
+        public void Attach()
+        {
+            throw new PlatformNotSupportedException("EnvDTE is not supported with this runtime");
+        }
+
+        public void Detach()
+        {
+            throw new PlatformNotSupportedException("EnvDTE is not supported with this runtime");
+        }
+
+        public void AttachToProcess(int processId)
+        {
+            throw new PlatformNotSupportedException("EnvDTE is not supported with this runtime");
+        }
+
+        public void Dispose()
+        {
+            throw new PlatformNotSupportedException("EnvDTE is not supported with this runtime");
+        }
+#endif
     }
 }

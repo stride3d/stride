@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+#if STRIDE_RUNTIME_NETFW
 using EnvDTE;
+#endif
 using Process = System.Diagnostics.Process;
 
 namespace Stride.Core.VisualStudio
@@ -15,6 +17,7 @@ namespace Stride.Core.VisualStudio
     /// </summary>
     class VisualStudioDTE
     {
+#if STRIDE_RUNTIME_NETFW
         public static IEnumerable<Process> GetActiveInstances()
         {
             return GetActiveDTEs().Select(x => x.ProcessId).Select(Process.GetProcessById);
@@ -78,5 +81,11 @@ namespace Stride.Core.VisualStudio
 
         [DllImport("ole32.dll")]
         private static extern int GetRunningObjectTable(int reserved, out IRunningObjectTable prot);
+#else
+        public static IEnumerable<Process> GetActiveInstances()
+        {
+            return new Process[0];
+        }
+#endif
     }
 }
