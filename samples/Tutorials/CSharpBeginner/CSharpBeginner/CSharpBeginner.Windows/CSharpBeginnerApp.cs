@@ -1,5 +1,3 @@
-using Stride.Engine;
-
 namespace CSharpBeginner
 {
     class CSharpBeginnerApp

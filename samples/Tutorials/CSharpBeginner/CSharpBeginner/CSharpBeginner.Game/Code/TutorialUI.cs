@@ -12,32 +12,32 @@ namespace CSharpBeginner.Code
     {
         public Entity Camera;
 
-        private Scene _tutorialScene;
-        private UIPage _activePage;
-        private Button _btnTutorialMenu;
-        private StackPanel _tutorialButtonsStackPanel;
-        private TextBlock _tutorialTitleTxt;
+        private Scene tutorialScene;
+        private UIPage activePage;
+        private Button btnTutorialMenu;
+        private StackPanel tutorialButtonsStackPanel;
+        private TextBlock tutorialTitleTxt;
 
-        private float _cameraLerpTimer = 0;
-        private float _cameraLerpTime = 2.0f;
+        private float cameraLerpTimer = 0;
+        private float cameraLerpTime = 2.0f;
 
-        private TransformComponent _startTransform;
-        private TransformComponent _targetTransform;
+        private TransformComponent startTransform;
+        private TransformComponent targetTransform;
 
         public override void Start()
         {
             Game.Window.IsMouseVisible = true;
 
-            _activePage = Entity.Get<UIComponent>().Page;
+            activePage = Entity.Get<UIComponent>().Page;
 
-            _btnTutorialMenu = _activePage.RootElement.FindVisualChildOfType<Button>("BtnTutorialMenu");
-            _btnTutorialMenu.Click += BtnTutorialMenuClicked;
+            btnTutorialMenu = activePage.RootElement.FindVisualChildOfType<Button>("BtnTutorialMenu");
+            btnTutorialMenu.Click += BtnTutorialMenuClicked;
 
-            _tutorialTitleTxt = _activePage.RootElement.FindVisualChildOfType<TextBlock>("tutorialTitleTxt");
-            _tutorialTitleTxt.Text = "";
+            tutorialTitleTxt = activePage.RootElement.FindVisualChildOfType<TextBlock>("tutorialTitleTxt");
+            tutorialTitleTxt.Text = "";
 
-            _tutorialButtonsStackPanel = _activePage.RootElement.FindVisualChildOfType<StackPanel>("TutorialButtonsStackPanel");
-            var placeHolderButton = _tutorialButtonsStackPanel.Children[0] as Button;
+            tutorialButtonsStackPanel = activePage.RootElement.FindVisualChildOfType<StackPanel>("TutorialButtonsStackPanel");
+            var placeHolderButton = tutorialButtonsStackPanel.Children[0] as Button;
             var placeHolderTextBlock = placeHolderButton.VisualChildren[0] as TextBlock;
             placeHolderButton.Visibility = Visibility.Hidden;
 
@@ -81,40 +81,40 @@ namespace CSharpBeginner.Code
 
                 };
                 button.Click += (sender, e) => BtnLoadTutorial(sender, e, keyPair);
-                
-                _tutorialButtonsStackPanel.Children.Add(button);
+
+                tutorialButtonsStackPanel.Children.Add(button);
             }
-            _tutorialButtonsStackPanel.Children.Remove(placeHolderButton);
+            tutorialButtonsStackPanel.Children.Remove(placeHolderButton);
         }
 
         private void BtnTutorialMenuClicked(object sender, RoutedEventArgs e)
         {
-            _tutorialButtonsStackPanel.Visibility = _tutorialButtonsStackPanel.IsVisible ? Visibility.Hidden : Visibility.Visible;
+            tutorialButtonsStackPanel.Visibility = tutorialButtonsStackPanel.IsVisible ? Visibility.Hidden : Visibility.Visible;
         }
 
         private void BtnLoadTutorial(object sender, RoutedEventArgs e, KeyValuePair<string, string> newTutorialScene)
         {
-            _startTransform = new TransformComponent();
-            _targetTransform = new TransformComponent();
-            _cameraLerpTimer = 0;
+            startTransform = new TransformComponent();
+            targetTransform = new TransformComponent();
+            cameraLerpTimer = 0;
 
-            if (_tutorialScene != null)
+            if (tutorialScene != null)
             {
-                SceneSystem.SceneInstance.RootScene.Children.Remove(_tutorialScene);
+                SceneSystem.SceneInstance.RootScene.Children.Remove(tutorialScene);
             }
-            _startTransform.Position = Camera.Transform.Position;
-            _startTransform.Rotation = Camera.Transform.Rotation;
+            startTransform.Position = Camera.Transform.Position;
+            startTransform.Rotation = Camera.Transform.Rotation;
 
-            _tutorialTitleTxt.Text = newTutorialScene.Key;
-            _tutorialButtonsStackPanel.Visibility = Visibility.Hidden;
-            _tutorialScene = Content.Load<Scene>("Scenes/Basics/" + newTutorialScene.Value);
-            _tutorialScene.Parent = Entity.Scene;  
-            foreach (var entity in this._tutorialScene.Entities)
+            tutorialTitleTxt.Text = newTutorialScene.Key;
+            tutorialButtonsStackPanel.Visibility = Visibility.Hidden;
+            tutorialScene = Content.Load<Scene>("Scenes/Basics/" + newTutorialScene.Value);
+            tutorialScene.Parent = Entity.Scene;
+            foreach (var entity in this.tutorialScene.Entities)
             {
                 if (entity.Name == "Camera")
                 {
-                    _targetTransform.Position = entity.Transform.Position;
-                    _targetTransform.Rotation = entity.Transform.Rotation;
+                    targetTransform.Position = entity.Transform.Position;
+                    targetTransform.Rotation = entity.Transform.Rotation;
                     break;
                 }
             }
@@ -122,13 +122,13 @@ namespace CSharpBeginner.Code
 
         public override void Update()
         {
-            if (_startTransform != null && _cameraLerpTimer < _cameraLerpTime)
+            if (startTransform != null && cameraLerpTimer < cameraLerpTime)
             {
                 var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
-                _cameraLerpTimer += deltaTime;
-                var lerpTime = _cameraLerpTimer / _cameraLerpTime;
-                Camera.Transform.Position = Vector3.Lerp(_startTransform.Position, _targetTransform.Position, lerpTime);
-                Camera.Transform.Rotation = Quaternion.Lerp(_startTransform.Rotation, _targetTransform.Rotation, lerpTime);
+                cameraLerpTimer += deltaTime;
+                var lerpTime = cameraLerpTimer / cameraLerpTime;
+                Camera.Transform.Position = Vector3.Lerp(startTransform.Position, targetTransform.Position, lerpTime);
+                Camera.Transform.Rotation = Quaternion.Lerp(startTransform.Rotation, targetTransform.Rotation, lerpTime);
             }
         }
     }
