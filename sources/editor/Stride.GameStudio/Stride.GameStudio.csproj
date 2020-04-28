@@ -43,7 +43,7 @@
     <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="EnvDTE" Version="8.0.1" />
     <PackageReference Include="Stride.Metrics" Version="1.0.3" />
-    <PackageReference Include="Stride.CrashReport" Version="1.0.1" />
+    <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
     <PackageReference Include="Mono.Cecil" Version="0.10.4" />
     <Reference Include="Renci.SshNet, Version=2016.0.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
