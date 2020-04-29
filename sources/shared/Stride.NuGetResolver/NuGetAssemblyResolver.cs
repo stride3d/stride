@@ -36,8 +36,9 @@ namespace Stride.Core.Assets
         [ModuleInitializer(-100000)]
         internal static void __Initialize__()
         {
-            // Only perform this for entry assembly (which is null during module .ctor)
-            if (Assembly.GetEntryAssembly() != null)
+            // Only perform this for entry assembly
+            if (!(Assembly.GetEntryAssembly() == null // .NET FW: null during module .ctor
+                || Assembly.GetEntryAssembly() == Assembly.GetCallingAssembly())) // .NET Core: check against calling assembly
                 return;
 
             // Make sure our nuget local store is added to nuget config
