@@ -19,10 +19,6 @@ namespace Stride.Engine.Processors
     {
         private Dictionary<VoxelVolumeComponent, DataVoxelVolume> renderVoxelVolumes = new Dictionary<VoxelVolumeComponent, DataVoxelVolume>();
         public Dictionary<VoxelVolumeComponent, ProcessedVoxelVolume> processedVoxelVolumes = new Dictionary<VoxelVolumeComponent, ProcessedVoxelVolume>();
-        bool isDirty;
-        SceneSystem sceneSystem;
-        GraphicsDevice graphicsDevice;
-        CommandList commandList;
 
         public VisibilityGroup VisibilityGroup { get; set; }
         public RenderGroup RenderGroup { get; set; }
@@ -33,9 +29,6 @@ namespace Stride.Engine.Processors
             VisibilityGroup.Tags.Set(VoxelRenderer.CurrentRenderVoxelVolumes, renderVoxelVolumes);
             VisibilityGroup.Tags.Set(VoxelRenderer.CurrentProcessedVoxelVolumes, processedVoxelVolumes);
             VisibilityGroup.Tags.Set(VoxelRenderFeature.CurrentProcessedVoxelVolumes, processedVoxelVolumes);
-            sceneSystem = Services.GetService<SceneSystem>();
-            graphicsDevice = Services.GetService<IGraphicsDeviceService>().GraphicsDevice;
-            commandList = Services.GetService<CommandList>();
         }
 
         public override void Draw(RenderContext context)
@@ -54,19 +47,6 @@ namespace Stride.Engine.Processors
             if (!renderVoxelVolumes.TryGetValue(component, out var data))
                 return null;
             return data;
-        }
-
-        protected override void OnEntityComponentAdding(Entity entity, VoxelVolumeComponent component, VoxelVolumeComponent data)
-        {
-            component.Changed += ComponentChanged;
-        }
-        protected override void OnEntityComponentRemoved(Entity entity, VoxelVolumeComponent component, VoxelVolumeComponent data)
-        {
-            component.Changed -= ComponentChanged;
-        }
-        private void ComponentChanged(object sender, EventArgs eventArgs)
-        {
-            isDirty = true;
         }
 
         private void RegenerateVoxelVolumes()
