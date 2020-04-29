@@ -64,8 +64,6 @@ namespace Stride.ConnectionRouter
                     return 0;
                 }
 
-                SetupTrayIcon(logFileName);
-
                 // Enable file logging
                 if (!string.IsNullOrEmpty(logFileName))
                 {
@@ -104,6 +102,8 @@ namespace Stride.ConnectionRouter
                         }) { IsBackground = true }.Start();
                     }
 
+                    SetupTrayIcon(logFileName);
+
                     // Start WinForms loop
                     System.Windows.Forms.Application.Run();
                 }
@@ -139,24 +139,26 @@ namespace Stride.ConnectionRouter
             notifyIcon.Text = "Stride Connection Router";
             notifyIcon.Icon = Properties.Resources.Logo;
             notifyIcon.Visible = true;
-            notifyIcon.ContextMenu = new System.Windows.Forms.ContextMenu();
+            var contextMenu = new System.Windows.Forms.ContextMenuStrip(components);
 
             if (!string.IsNullOrEmpty(logFileName))
             {
-                var showLogMenuItem = new System.Windows.Forms.MenuItem("Show &Log");
+                var showLogMenuItem = new System.Windows.Forms.ToolStripMenuItem("Show &Log");
                 showLogMenuItem.Click += (sender, args) => OnShowLogClick(logFileName);
-                notifyIcon.ContextMenu.MenuItems.Add(showLogMenuItem);
+                contextMenu.Items.Add(showLogMenuItem);
 
                 notifyIcon.BalloonTipClicked += (sender, args) => OnShowLogClick(logFileName);
             }
 
-            var openConsoleMenuItem = new System.Windows.Forms.MenuItem("Open Console");
-            openConsoleMenuItem.Click += (sender, args) => OnOpenConsoleClick((System.Windows.Forms.MenuItem)sender);
-            notifyIcon.ContextMenu.MenuItems.Add(openConsoleMenuItem);
+            var openConsoleMenuItem = new System.Windows.Forms.ToolStripMenuItem("Open Console");
+            openConsoleMenuItem.Click += (sender, args) => OnOpenConsoleClick((System.Windows.Forms.ToolStripMenuItem)sender);
+            contextMenu.Items.Add(openConsoleMenuItem);
 
-            var exitMenuItem = new System.Windows.Forms.MenuItem("E&xit");
+            var exitMenuItem = new System.Windows.Forms.ToolStripMenuItem("E&xit");
             exitMenuItem.Click += (sender, args) => OnExitClick();
-            notifyIcon.ContextMenu.MenuItems.Add(exitMenuItem);
+            contextMenu.Items.Add(exitMenuItem);
+
+            notifyIcon.ContextMenuStrip = contextMenu;
 
             GlobalLogger.GlobalMessageLogged += (logMessage) =>
             {
@@ -178,7 +180,7 @@ namespace Stride.ConnectionRouter
             };
         }
 
-        private static void OnOpenConsoleClick(System.Windows.Forms.MenuItem menuItem)
+        private static void OnOpenConsoleClick(System.Windows.Forms.ToolStripMenuItem menuItem)
         {
             menuItem.Enabled = false;
 
