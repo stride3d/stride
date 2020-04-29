@@ -20,7 +20,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
     /// When a registed navigation mesh is reloaded, <see cref="Changed"/> will get called
     /// </summary>
     [DataContract]
-    public class NavigationMeshManager : IAsyncDisposable
+    public class NavigationMeshManager : Core.IAsyncDisposable
     {
         [DataMember]
         public readonly Dictionary<AssetId, NavigationMesh> Meshes = new Dictionary<AssetId, NavigationMesh>();

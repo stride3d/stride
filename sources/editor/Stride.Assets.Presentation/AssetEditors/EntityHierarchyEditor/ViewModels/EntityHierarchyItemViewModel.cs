@@ -558,12 +558,12 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                     .DepthFirst(x => x.Children).OfType<EntityViewModel>()
                     .SelectMany(e => e.Folders).DepthFirst(f => f.Folders)
                     .Where(f => !f.InnerSubEntities.Any())
-                    .Reverse().Select(f => KeyValuePair.Create(f.Owner.Id, Tuple.Create(f.Path, f.Asset))).ToList();
+                    .Reverse().Select(f => Core.KeyValuePair.Create(f.Owner.Id, Tuple.Create(f.Path, f.Asset))).ToList();
 
                 // Entities that are being directly moved with their folder path
                 var thisPath = (this as EntityFolderViewModel)?.Path ?? "";
                 // Note: cannot use a dictionary here since sibling entities would have the same path.
-                var entities = children.OfType<EntityViewModel>().Select(entity => KeyValuePair.Create(thisPath, entity)).ToList();
+                var entities = children.OfType<EntityViewModel>().Select(entity => Core.KeyValuePair.Create(thisPath, entity)).ToList();
 
                 // Move entities that are within folders being directly moved
                 foreach (var folder in children.OfType<EntityFolderViewModel>())
@@ -576,7 +576,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                         var detachedPath = e.EntityDesign.Folder.Substring(oldParentPath.Length);
                         // Prefix the new parent path
                         var newPath = EntityFolderViewModel.CombinePath(newParentPath, detachedPath);
-                        return KeyValuePair.Create(newPath, e);
+                        return Core.KeyValuePair.Create(newPath, e);
                     }));
                 }
 

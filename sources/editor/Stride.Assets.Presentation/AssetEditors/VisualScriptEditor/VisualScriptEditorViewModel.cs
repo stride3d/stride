@@ -299,20 +299,20 @@ namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
                 switch (methodSymbol.DeclaredAccessibility)
                 {
                     case RoslynAccessibility.Protected:
-                        method.Accessibility = Accessibility.Protected;
+                        method.Accessibility = Scripts.Accessibility.Protected;
                         break;
                     case RoslynAccessibility.Internal:
-                        method.Accessibility = Accessibility.Internal;
+                        method.Accessibility = Scripts.Accessibility.Internal;
                         break;
                     case RoslynAccessibility.ProtectedOrInternal:
-                        method.Accessibility = Accessibility.ProtectedOrInternal;
+                        method.Accessibility = Scripts.Accessibility.ProtectedOrInternal;
                         break;
                     case RoslynAccessibility.Public:
-                        method.Accessibility = Accessibility.Public;
+                        method.Accessibility = Scripts.Accessibility.Public;
                         break;
                     default:
                         // Default to protected if we are not sure
-                        method.Accessibility = Accessibility.Protected;
+                        method.Accessibility = Scripts.Accessibility.Protected;
                         break;
                 }
 

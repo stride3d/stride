@@ -7,6 +7,7 @@ using System.Windows.Input;
 using Microsoft.Xaml.Behaviors;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Internal;
+using NotNullAttribute = Stride.Core.Annotations.NotNullAttribute;
 
 namespace Stride.Core.Presentation.Behaviors
 {

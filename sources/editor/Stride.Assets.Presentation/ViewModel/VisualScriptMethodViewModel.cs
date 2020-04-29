@@ -24,7 +24,7 @@ namespace Stride.Assets.Presentation.ViewModel
         private readonly IObjectNode blocksContent;
         private readonly IObjectNode linksContent;
         private readonly IObjectNode parametersContent;
-        private readonly MemberGraphNodeBinding<Accessibility> accessibilityNodeBinding;
+        private readonly MemberGraphNodeBinding<Scripts.Accessibility> accessibilityNodeBinding;
         private readonly MemberGraphNodeBinding<VirtualModifier> virtualModifierNodeBinding;
         private readonly MemberGraphNodeBinding<bool> isStaticNodeBinding;
         private readonly MemberGraphNodeBinding<string> nameNodeBinding;
@@ -40,7 +40,7 @@ namespace Stride.Assets.Presentation.ViewModel
             parametersContent = methodNode[nameof(method.Parameters)].Target;
 
             // Create bindings
-            accessibilityNodeBinding = new MemberGraphNodeBinding<Accessibility>(methodNode[nameof(method.Accessibility)], nameof(Accessibility), OnPropertyChanging, OnPropertyChanged, visualScript.UndoRedoService);
+            accessibilityNodeBinding = new MemberGraphNodeBinding<Scripts.Accessibility>(methodNode[nameof(method.Accessibility)], nameof(Scripts.Accessibility), OnPropertyChanging, OnPropertyChanged, visualScript.UndoRedoService);
             virtualModifierNodeBinding = new MemberGraphNodeBinding<VirtualModifier>(methodNode[nameof(method.VirtualModifier)], nameof(VirtualModifier), OnPropertyChanging, OnPropertyChanged, visualScript.UndoRedoService);
             isStaticNodeBinding = new MemberGraphNodeBinding<bool>(methodNode[nameof(method.IsStatic)], nameof(IsStatic), OnPropertyChanging, OnPropertyChanged, visualScript.UndoRedoService);
             nameNodeBinding = new MemberGraphNodeBinding<string>(methodNode[nameof(method.Name)], nameof(Name), OnPropertyChanging, OnPropertyChanged, visualScript.UndoRedoService);
@@ -58,7 +58,7 @@ namespace Stride.Assets.Presentation.ViewModel
             base.Destroy();
         }
 
-        public Accessibility Accessibility { get { return accessibilityNodeBinding.Value; } set { accessibilityNodeBinding.Value = value; } }
+        public Scripts.Accessibility Accessibility { get { return accessibilityNodeBinding.Value; } set { accessibilityNodeBinding.Value = value; } }
 
         public VirtualModifier VirtualModifier { get { return virtualModifierNodeBinding.Value; } set { virtualModifierNodeBinding.Value = value; } }
 
