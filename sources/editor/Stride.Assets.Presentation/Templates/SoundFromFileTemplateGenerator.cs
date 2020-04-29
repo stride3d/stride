@@ -4,9 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Stride.Assets.Media;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
-using Stride.Assets.Media;
+using Stride.Core.IO;
 using Stride.Video.FFmpeg;
 
 namespace Stride.Assets.Presentation.Templates
@@ -46,13 +47,18 @@ namespace Stride.Assets.Presentation.Templates
                     using (var media = new FFmpegMedia())
                     {
                         media.Open(soundAsset.Source.ToWindowsPath());
-                        foreach (var audioTrack in media.Streams.OfType<AudioStream>().ToList())
+                        var audioStreams = media.Streams.OfType<AudioStream>().ToList();
+                        foreach (var audioTrack in audioStreams)
                         {
                             var assetCopy = AssetCloner.Clone(soundAsset);
                             assetCopy.Index = audioTrack.Index;
                             assetCopy.SampleRate = audioTrack.SampleRate;
 
-                            importedAssets.Add(new AssetItem(assetItem.Location + " track " + audioTrack.Index, assetCopy));
+                            // If there's more than one streams, append the track index to the asset name
+                            var fileLocation = audioStreams.Count > 1
+                                ? (UFile)(assetItem.Location + " track " + audioTrack.Index)
+                                : assetItem.Location;
+                            importedAssets.Add(new AssetItem(fileLocation, assetCopy));
                         }
                     }
                 }
