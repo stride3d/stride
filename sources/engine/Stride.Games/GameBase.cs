@@ -270,9 +270,7 @@ namespace Stride.Games
         public TimeSpan TargetElapsedTime { get; set; }
 
         /// <summary>
-        /// Access to the throttler used to set the minimum time allowed between each updates,
-        /// set it's <see cref="ThreadThrottler.MinimumElapsedTime"/> to TimeSpan.FromSeconds(1d / yourFramePerSeconds)
-        /// to control the maximum frames per second.
+        /// Access to the throttler used to set the minimum time allowed between each updates.
         /// </summary>
         public ThreadThrottler WindowMinimumUpdateRate { get; }
 
