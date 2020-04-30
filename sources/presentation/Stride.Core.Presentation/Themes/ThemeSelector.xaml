@@ -70,12 +70,72 @@
   <BitmapImage x:Key="ImageLocked" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/lock.png" />
   <BitmapImage x:Key="ImageUnlocked" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/lock-unlock.png" />
   <BitmapImage x:Key="ImageLength" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/ruler-triangle.png" />
+
   <!--  WINDOWS  -->
+  <ControlTemplate x:Key="MainWindowButtonTemplate" TargetType="{x:Type Button}">
+    <Grid>
+      <Border x:Name="Background" Background="{TemplateBinding Background}"/>
+      <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+    </Grid>
+    <ControlTemplate.Triggers>
+      <!-- Active -->
+      <DataTrigger Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" Value="True">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{StaticResource MainWindowButtonActiveBorderBrush}"/>
+      </DataTrigger>
+      <!-- Inactive -->
+      <DataTrigger Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" Value="False">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{StaticResource MainWindowButtonInactiveBorderBrush}"/>
+      </DataTrigger>
+      <!-- Hover Active -->
+      <MultiDataTrigger>
+        <MultiDataTrigger.Conditions>
+          <Condition Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" Value="True"/>
+          <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True"/>
+        </MultiDataTrigger.Conditions>
+        <Setter Property="Background" Value="{StaticResource MainWindowButtonHoverActiveBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource MainWindowButtonHoverActiveBorderBrush}"/>
+      </MultiDataTrigger>
+      <!-- Hover Inactive -->
+      <MultiDataTrigger>
+        <MultiDataTrigger.Conditions>
+          <Condition Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsActive}" Value="False"/>
+          <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True"/>
+        </MultiDataTrigger.Conditions>
+        <Setter Property="Background" Value="{StaticResource MainWindowButtonHoverActiveBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource MainWindowButtonHoverActiveBorderBrush}"/>
+      </MultiDataTrigger>
+      <!-- Down -->
+      <Trigger Property="IsPressed" Value="True">
+        <Setter Property="Background" Value="{StaticResource MainWindowButtonDownBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource MainWindowButtonDownBorderBrush}"/>
+      </Trigger>
+      <!-- Disabled -->
+      <Trigger Property="IsEnabled" Value="False">
+        <Setter Property="Opacity" Value="0.25"/>
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+  <Style x:Key="MainWindowButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="{StaticResource MainWindowButtonActiveBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CommandParameter" Value="{Binding RelativeSource={RelativeSource TemplatedParent}}"/>
+    <Setter Property="Height" Value="32"/>
+    <Setter Property="HorizontalAlignment" Value="Center"/>
+    <Setter Property="Template" Value="{StaticResource MainWindowButtonTemplate}"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+    <Setter Property="Width" Value="46"/>
+    <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+  </Style>
+
   <Style TargetType="{x:Type Window}" x:Key="WindowChromeStyle">
     <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
+    <Setter Property="SnapsToDevicePixels" Value="True"/>
     <Setter Property="WindowChrome.WindowChrome">
       <Setter.Value>
-        <WindowChrome CornerRadius="0" CaptionHeight="30"/>
+        <WindowChrome CornerRadius="0" CaptionHeight="29"/>
       </Setter.Value>
     </Setter>
     <Setter Property="WindowStyle" Value="None"/>
@@ -83,45 +143,47 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Window">
-          <Grid Background="{StaticResource BackgroundBrush}" Margin="6">
-            <Border x:Name="ContentBorder" Background="{StaticResource BackgroundBrush}" BorderBrush="Black" BorderThickness="1" IsHitTestVisible="True">
-              <DockPanel>
-                <DockPanel x:Name="TitleBar" DockPanel.Dock="Top" VerticalAlignment="Top" WindowChrome.IsHitTestVisibleInChrome="False"
-                           Height="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(WindowChrome.WindowChrome).ResizeBorderThickness}">
-                  <Button Content="{me:Image {StaticResource VectorCloseWindow}, 10, 10, NearestNeighbor}"  Width="30" Height="25" Background="Transparent" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.CloseWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                  <Button Content="{me:Image {StaticResource VectorMaximizeWindow}, 12, 12, NearestNeighbor}"  Width="30" Height="25" Background="Transparent" x:Name="MaximizeButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.MaximizeWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                  <Button Content="{me:Image {StaticResource VectorRestoreWindow}, 12, 12, NearestNeighbor}" Width="30" Height="25" Background="Transparent" x:Name="RestoreButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.RestoreWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                  <Button Content="{me:Image {StaticResource VectorMinimizeWindow}, 12, 12, NearestNeighbor}"  Width="30" Height="25" Background="Transparent" x:Name="MinimizeButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.MinimizeWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                  <Button DockPanel.Dock="Left" Margin="4,0" Padding="0" Background="Transparent" Width="28" Height="25" VerticalAlignment="Center" VerticalContentAlignment="Center" Command="{x:Static cmd:SystemCommands.ShowSystemMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button.Template>
-                      <ControlTemplate TargetType="Button">
-                        <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True"/>
-                      </ControlTemplate>
-                    </Button.Template>
-                    <Image Source="{DynamicResource VectorEditorIcon}" Width="22" Opacity="0.5"/>
-                  </Button>
-                  <TextBlock VerticalAlignment="Center" Text="{TemplateBinding Title}" Margin="0,4" FontSize="13"/>
-                </DockPanel>
-                <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
-                  <AdornerDecorator>
-                    <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
-                  </AdornerDecorator>
-                </Border>
+          <Border x:Name="ContentBorder" Background="{TemplateBinding Background}" BorderBrush="{StaticResource MainWindowInactiveBorderBrush}" BorderThickness="1" IsHitTestVisible="True">
+            <DockPanel>
+              <DockPanel x:Name="TitleBar" DockPanel.Dock="Top" VerticalAlignment="Top" WindowChrome.IsHitTestVisibleInChrome="False" Height="32">
+                <Button Style="{StaticResource MainWindowButtonStyle}" DockPanel.Dock="Right" Content="{me:Image {StaticResource VectorCloseWindow}, 12, 12}" x:Name="CloseButton" Command="{x:Static cmd:SystemCommands.CloseWindowCommand}"/>
+                <Button Style="{StaticResource MainWindowButtonStyle}" DockPanel.Dock="Right" Content="{me:Image {StaticResource VectorMaximizeWindow}, 12, 12}" x:Name="MaximizeButton" Command="{x:Static cmd:SystemCommands.MaximizeWindowCommand}"/>
+                <Button Style="{StaticResource MainWindowButtonStyle}" DockPanel.Dock="Right" Content="{me:Image {StaticResource VectorRestoreWindow}, 12, 12}" x:Name="RestoreButton" Command="{x:Static cmd:SystemCommands.RestoreWindowCommand}" Visibility="Collapsed"/>
+                <Button Style="{StaticResource MainWindowButtonStyle}" DockPanel.Dock="Right" Content="{me:Image {StaticResource VectorMinimizeWindow}, 12, 12}" x:Name="MinimizeButton" Command="{x:Static cmd:SystemCommands.MinimizeWindowCommand}"/>
+                <Button Style="{StaticResource MainWindowButtonStyle}" DockPanel.Dock="Left" Command="{x:Static cmd:SystemCommands.ShowSystemMenuCommand}" Background="Transparent" Width="44">
+                  <Image Source="{DynamicResource VectorEditorIcon}" Height="20"/>
+                  <Button.InputBindings>
+                    <MouseBinding Gesture="LeftDoubleClick" Command="{x:Static cmd:SystemCommands.CloseWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}"/>
+                  </Button.InputBindings>
+                </Button>
+                <TextBlock x:Name="Caption" Foreground="{StaticResource MainWindowInactiveCaptionTextBrush}" Text="{TemplateBinding Title}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
               </DockPanel>
-            </Border>
-          </Grid>
+              <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                <AdornerDecorator>
+                  <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                </AdornerDecorator>
+              </Border>
+            </DockPanel>
+          </Border>
           <ControlTemplate.Triggers>
+            <Trigger Property="IsActive" Value="True">
+              <Setter TargetName="ContentBorder" Property="BorderBrush" Value="{StaticResource MainWindowActiveDefaultBorderBrush}"/>
+              <Setter TargetName="Caption" Property="Foreground" Value="{StaticResource MainWindowActiveCaptionTextBrush}"/>
+            </Trigger>
+            <Trigger Property="ResizeMode" Value="NoResize">
+              <Setter TargetName="MaximizeButton" Property="Visibility" Value="Collapsed"/>
+              <Setter TargetName="MinimizeButton" Property="Visibility" Value="Collapsed"/>
+              <Setter TargetName="RestoreButton" Property="Visibility" Value="Collapsed"/>
+            </Trigger>
             <Trigger Property="WindowState" Value="Maximized">
-              <Setter Property="Visibility" Value="Collapsed" TargetName="MaximizeButton"/>
-              <Setter Property="BorderThickness" Value="0" TargetName="ContentBorder"/>
+              <Setter TargetName="ContentBorder" Property="BorderThickness" Value="0"/>
+              <Setter TargetName="MaximizeButton" Property="Visibility" Value="Collapsed"/>
+              <Setter TargetName="RestoreButton" Property="Visibility" Value="Visible"/>
               <Setter Property="WindowChrome.WindowChrome">
                 <Setter.Value>
-                  <WindowChrome ResizeBorderThickness="0" CornerRadius="0" CaptionHeight="30"/>
+                  <WindowChrome ResizeBorderThickness="0" CornerRadius="0" CaptionHeight="32"/>
                 </Setter.Value>
               </Setter>
-            </Trigger>
-            <Trigger Property="WindowState" Value="Normal">
-              <Setter Property="Visibility" Value="Collapsed" TargetName="RestoreButton"/>
             </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -321,7 +383,7 @@
             <ScrollContentPresenter Grid.Column="0" Grid.Row="0" Margin="{TemplateBinding Padding}" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" CanContentScroll="{TemplateBinding CanContentScroll}" Focusable="False"/>
             <ScrollBar Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Grid.Column="0" Grid.Row="1" x:Name="PART_HorizontalScrollBar" Orientation="Horizontal" Value="{Binding HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportWidth}" Minimum="0" Maximum="{TemplateBinding ScrollableWidth}" AutomationProperties.AutomationId="HorizontalScrollBar" Focusable="False"/>
             <ScrollBar Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Grid.Column="1" Grid.Row="0" x:Name="PART_VerticalScrollBar" Orientation="Vertical" Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportHeight}" Minimum="0" Maximum="{TemplateBinding ScrollableHeight}" AutomationProperties.AutomationId="VerticalScrollBar" Focusable="False"/>
-            <Rectangle Grid.Column="1" Grid.Row="1" Fill="{DynamicResource NormalBrush}"/>
+            <Rectangle Grid.Column="1" Grid.Row="1" Fill="{DynamicResource BackgroundBrush}"/>
           </Grid>
         </ControlTemplate>
       </Setter.Value>
@@ -757,7 +819,6 @@
     <Setter Property="BorderThickness" Value="0"/>
     <Setter Property="Margin" Value="0"/>
   </Style>
-
   <ControlTemplate x:Key="ButtonTemplate" TargetType="{x:Type Button}">
     <Grid x:Name="Grid">
       <Border x:Name="Background" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"/>
@@ -995,174 +1056,61 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type RepeatButton}">
-          <ControlTemplate.Resources>
-            <Storyboard x:Key="HoverOn">
-              <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="(UIElement.Opacity)">
-                <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0.8"/>
-              </DoubleAnimationUsingKeyFrames>
-            </Storyboard>
-            <Storyboard x:Key="HoverOff">
-              <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="(UIElement.Opacity)">
-                <SplineDoubleKeyFrame KeyTime="00:00:00.3000000" Value="0.3"/>
-              </DoubleAnimationUsingKeyFrames>
-            </Storyboard>
-            <Storyboard x:Key="PressedOn">
-              <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="(UIElement.Opacity)">
-                <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0.1"/>
-              </DoubleAnimationUsingKeyFrames>
-            </Storyboard>
-            <Storyboard x:Key="PressedOff">
-              <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="(UIElement.Opacity)">
-                <SplineDoubleKeyFrame KeyTime="00:00:00.3000000" Value="0.3"/>
-              </DoubleAnimationUsingKeyFrames>
-            </Storyboard>
-          </ControlTemplate.Resources>
           <Grid>
             <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Opacity="1" />
-            <ContentPresenter HorizontalAlignment="Center" x:Name="ContentPresenter" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}" Opacity="0.3" Height="Auto" />
+            <ContentPresenter HorizontalAlignment="Center" x:Name="ContentPresenter" VerticalAlignment="Center" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}" Opacity="1" Height="Auto" />
           </Grid>
           <ControlTemplate.Triggers>
-            <Trigger Property="IsKeyboardFocused" Value="true" />
-            <Trigger Property="IsMouseOver" Value="true">
-              <Trigger.ExitActions>
-                <BeginStoryboard Storyboard="{StaticResource HoverOff}" x:Name="HoverOff_BeginStoryboard"/>
-              </Trigger.ExitActions>
-              <Trigger.EnterActions>
-                <BeginStoryboard Storyboard="{StaticResource HoverOn}"/>
-              </Trigger.EnterActions>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="ContentPresenter" Property="Opacity" Value="0.5"/>
             </Trigger>
-            <Trigger Property="IsPressed" Value="true">
-              <Trigger.ExitActions>
-                <BeginStoryboard Storyboard="{StaticResource PressedOff}" x:Name="PressedOff_BeginStoryboard"/>
-              </Trigger.ExitActions>
-              <Trigger.EnterActions>
-                <BeginStoryboard Storyboard="{StaticResource PressedOn}" x:Name="PressedOn_BeginStoryboard"/>
-              </Trigger.EnterActions>
-            </Trigger>
-            <Trigger Property="IsEnabled" Value="false">
-              <Setter Property="Opacity" TargetName="ContentPresenter" Value="0.1"/>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="ContentPresenter" Property="Opacity" Value="0.25"/>
             </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>
     </Setter>
   </Style>
-  <Style x:Key="VerticalNuclearThumbStyle" d:IsControlPart="True" TargetType="{x:Type Thumb}" BasedOn="{x:Null}">
+
+  <Style x:Key="VerticalScrollBarThumbStyle" d:IsControlPart="True" TargetType="{x:Type Thumb}" BasedOn="{x:Null}">
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type Thumb}">
-          <ControlTemplate.Resources>
-            <Storyboard x:Key="HoverOn">
-              <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="HoverRectangle" Storyboard.TargetProperty="(UIElement.Opacity)">
-                <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0.8"/>
-              </DoubleAnimationUsingKeyFrames>
-            </Storyboard>
-            <Storyboard x:Key="HoverOff">
-              <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="HoverRectangle" Storyboard.TargetProperty="(UIElement.Opacity)">
-                <SplineDoubleKeyFrame KeyTime="00:00:00.3000000" Value="0.3"/>
-              </DoubleAnimationUsingKeyFrames>
-            </Storyboard>
-            <Storyboard x:Key="PressedOn">
-              <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="PressedRectangle" Storyboard.TargetProperty="(UIElement.Opacity)">
-                <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0.1"/>
-              </DoubleAnimationUsingKeyFrames>
-            </Storyboard>
-            <Storyboard x:Key="PressedOff">
-              <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="PressedRectangle" Storyboard.TargetProperty="(UIElement.Opacity)">
-                <SplineDoubleKeyFrame KeyTime="00:00:00.3000000" Value="0.3"/>
-              </DoubleAnimationUsingKeyFrames>
-            </Storyboard>
-          </ControlTemplate.Resources>
-          <Grid Margin="0,0,0,0" x:Name="Grid">
-            <Rectangle x:Name="HoverRectangle" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                       Width="Auto" Height="Auto" Stroke="{x:Null}" Margin="4.5,-2,4.5,-2" Opacity="0.3" MinHeight="10"
-                       Fill="{StaticResource ScrollBarThumbHoverBrush}"/>
-            <Rectangle x:Name="PressedRectangle" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                       Width="Auto" Height="Auto" Stroke="{x:Null}" Margin="4.5,-2,4.5,-2" Opacity="0.3" MinHeight="10"
-                       Fill="{StaticResource ScrollBarThumbPressedBrush}"/>
-          </Grid>
+          <Border Background="{StaticResource ScrollBarBrush}">
+            <Rectangle x:Name="ThumbRectangle" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="4,0" Fill="{DynamicResource ScrollBarThumbBackgroundBrush}"/>
+          </Border>
           <ControlTemplate.Triggers>
-            <Trigger Property="IsFocused" Value="True" />
             <Trigger Property="IsMouseOver" Value="True">
-              <Trigger.ExitActions>
-                <BeginStoryboard Storyboard="{StaticResource HoverOff}" x:Name="HoverOff_BeginStoryboard"/>
-              </Trigger.ExitActions>
-              <Trigger.EnterActions>
-                <BeginStoryboard Storyboard="{StaticResource HoverOn}"/>
-              </Trigger.EnterActions>
+              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{StaticResource ScrollBarThumbMouseOverBackgroundBrush}"/>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False" >
-              <Setter Property="Opacity" TargetName="Grid" Value="0.1"/>
+              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{StaticResource ScrollBarThumbDisabledBrush}"/>
             </Trigger>
             <Trigger Property="IsDragging" Value="True">
-              <Trigger.ExitActions>
-                <BeginStoryboard Storyboard="{StaticResource PressedOff}" x:Name="PressedOff_BeginStoryboard"/>
-              </Trigger.ExitActions>
-              <Trigger.EnterActions>
-                <BeginStoryboard Storyboard="{StaticResource PressedOn}" x:Name="PressedOn_BeginStoryboard"/>
-              </Trigger.EnterActions>
+              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{StaticResource ScrollBarThumbPressedBackgroundBrush}"/>
             </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>
     </Setter>
   </Style>
-
-  <Style x:Key="HorizontalNuclearThumbStyle" d:IsControlPart="True" TargetType="{x:Type Thumb}" BasedOn="{x:Null}">
+  <Style x:Key="HorizontalScrollBarThumbStyle" d:IsControlPart="True" TargetType="{x:Type Thumb}" BasedOn="{x:Null}">
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type Thumb}">
-          <ControlTemplate.Resources>
-            <Storyboard x:Key="HoverOn">
-              <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="HoverRectangle" Storyboard.TargetProperty="(UIElement.Opacity)">
-                <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0.8"/>
-              </DoubleAnimationUsingKeyFrames>
-            </Storyboard>
-            <Storyboard x:Key="HoverOff">
-              <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="HoverRectangle" Storyboard.TargetProperty="(UIElement.Opacity)">
-                <SplineDoubleKeyFrame KeyTime="00:00:00.3000000" Value="0.3"/>
-              </DoubleAnimationUsingKeyFrames>
-            </Storyboard>
-            <Storyboard x:Key="PressedOn">
-              <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="PressedRectangle" Storyboard.TargetProperty="(UIElement.Opacity)">
-                <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0.1"/>
-              </DoubleAnimationUsingKeyFrames>
-            </Storyboard>
-            <Storyboard x:Key="PressedOff">
-              <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="PressedRectangle" Storyboard.TargetProperty="(UIElement.Opacity)">
-                <SplineDoubleKeyFrame KeyTime="00:00:00.3000000" Value="0.3"/>
-              </DoubleAnimationUsingKeyFrames>
-            </Storyboard>
-          </ControlTemplate.Resources>
-          <Grid Margin="0,0,0,0" x:Name="Grid">
-            <Rectangle x:Name="HoverRectangle" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                       Width="Auto" Height="Auto" Stroke="{x:Null}" Margin="-2,4.5,-2,4.5" Opacity="0.3" MinWidth="10"
-                       Fill="{StaticResource ScrollBarThumbHoverBrush}"/>
-
-            <Rectangle x:Name="PressedRectangle" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                       Width="Auto" Height="Auto" Stroke="{x:Null}" Margin="-2,4.5,-2,4.5" Opacity="0.3" MinWidth="10"
-                       Fill="{StaticResource ScrollBarThumbPressedBrush}"/>
-          </Grid>
+          <Border Background="{StaticResource ScrollBarBrush}">
+            <Rectangle x:Name="ThumbRectangle" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,4" Fill="{DynamicResource ScrollBarThumbBackgroundBrush}"/>
+          </Border>
           <ControlTemplate.Triggers>
-            <Trigger Property="IsFocused" Value="True" />
             <Trigger Property="IsMouseOver" Value="True">
-              <Trigger.ExitActions>
-                <BeginStoryboard Storyboard="{StaticResource HoverOff}" x:Name="HoverOff_BeginStoryboard"/>
-              </Trigger.ExitActions>
-              <Trigger.EnterActions>
-                <BeginStoryboard Storyboard="{StaticResource HoverOn}"/>
-              </Trigger.EnterActions>
+              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{StaticResource ScrollBarThumbMouseOverBackgroundBrush}"/>
             </Trigger>
-            <Trigger Property="IsEnabled" Value="False" >
-              <Setter Property="Opacity" TargetName="Grid" Value="0.1"/>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{StaticResource ScrollBarThumbDisabledBrush}"/>
             </Trigger>
             <Trigger Property="IsDragging" Value="True">
-              <Trigger.ExitActions>
-                <BeginStoryboard Storyboard="{StaticResource PressedOff}" x:Name="PressedOff_BeginStoryboard"/>
-              </Trigger.ExitActions>
-              <Trigger.EnterActions>
-                <BeginStoryboard Storyboard="{StaticResource PressedOn}" x:Name="PressedOn_BeginStoryboard"/>
-              </Trigger.EnterActions>
+              <Setter TargetName="ThumbRectangle" Property="Fill" Value="{StaticResource ScrollBarThumbPressedBackgroundBrush}"/>
             </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -1170,16 +1118,14 @@
     </Setter>
   </Style>
 
-  <Style x:Key="NuclearScrollRepeatButtonStyle" d:IsControlPart="True" TargetType="{x:Type RepeatButton}">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderBrush" Value="Transparent" />
-    <Setter Property="IsTabStop" Value="false" />
-    <Setter Property="Focusable" Value="false" />
+  <Style x:Key="ScrollBarArrowRepeatButtonStyle" d:IsControlPart="True" TargetType="{x:Type RepeatButton}">
+    <Setter Property="IsTabStop" Value="False" />
+    <Setter Property="Focusable" Value="False" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type RepeatButton}">
           <Grid>
-            <Rectangle Fill="{TemplateBinding Background}" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="{TemplateBinding BorderThickness}" />
+            <Rectangle Fill="{StaticResource ScrollBarArrowBackgroundBrush}" />
           </Grid>
         </ControlTemplate>
       </Setter.Value>
@@ -1187,74 +1133,67 @@
   </Style>
 
   <ControlTemplate x:Key="VerticalScrollBarControlTemplate" TargetType="{x:Type ScrollBar}">
-    <Grid x:Name="GridRoot" Width="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidthKey}}" Background="{DynamicResource ScrollBarBackgroundNormalBrush}">
+    <Grid x:Name="GridRoot" Width="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidthKey}}" Background="{DynamicResource ScrollBarBrush}">
       <Grid.RowDefinitions>
-        <RowDefinition MaxHeight="18" />
+        <RowDefinition MaxHeight="17" />
         <RowDefinition Height="*" />
-        <RowDefinition MaxHeight="18" />
+        <RowDefinition MaxHeight="17" />
       </Grid.RowDefinitions>
-      <RepeatButton Grid.Row="0" x:Name="DecreaseRepeat" Command="ScrollBar.LineUpCommand" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Style="{DynamicResource {x:Type RepeatButton}}">
-        <Grid Margin="0" Background="Transparent">
-          <Path Margin="4.742,3.997,4.946,5.327" VerticalAlignment="Stretch" Height="Auto" Fill="{DynamicResource GlyphBrush}" Stretch="Fill" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="1" Data="M5.2422477,11.132184 L11.5544,11.132184 8.6412958,4.4969033 z" x:Name="DecreaseArrow" />
+      <!-- Scroll Up Button -->
+      <RepeatButton Grid.Row="0" x:Name="DecreaseRepeat" Command="ScrollBar.LineUpCommand" Style="{DynamicResource {x:Type RepeatButton}}">
+        <Grid Background="{DynamicResource ScrollBarArrowBackgroundBrush}">
+          <Path x:Name="DecreaseArrow" Fill="{DynamicResource ScrollBarArrowGlyphBrush}" Data="F1 M17,17z M0,0z M8.5,6.5L13,11 4,11z"/>
         </Grid>
       </RepeatButton>
+      <!-- Track and Thumb -->
       <Track Grid.Row="1" x:Name="PART_Track" Orientation="Vertical" IsDirectionReversed="True">
         <Track.Thumb>
-          <Thumb Style="{DynamicResource VerticalNuclearThumbStyle}" Background="{x:Null}" Foreground="{x:Null}" />
+          <Thumb Style="{DynamicResource VerticalScrollBarThumbStyle}"/>
         </Track.Thumb>
         <Track.IncreaseRepeatButton>
-          <RepeatButton x:Name="PageUp" Style="{DynamicResource NuclearScrollRepeatButtonStyle}" Command="ScrollBar.PageDownCommand" />
+          <RepeatButton x:Name="PageUp" Style="{DynamicResource ScrollBarArrowRepeatButtonStyle}" Command="ScrollBar.PageDownCommand" />
         </Track.IncreaseRepeatButton>
         <Track.DecreaseRepeatButton>
-          <RepeatButton x:Name="PageDown" Style="{DynamicResource NuclearScrollRepeatButtonStyle}" Command="ScrollBar.PageUpCommand" />
+          <RepeatButton x:Name="PageDown" Style="{DynamicResource ScrollBarArrowRepeatButtonStyle}" Command="ScrollBar.PageUpCommand" />
         </Track.DecreaseRepeatButton>
       </Track>
-      <RepeatButton Grid.Row="2" x:Name="IncreaseRepeat" Command="ScrollBar.LineDownCommand" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Style="{DynamicResource {x:Type RepeatButton}}">
-        <Grid Margin="0" Background="Transparent">
-          <Path Margin="4.742,3.997,4.946,5.327" x:Name="IncreaseArrow" VerticalAlignment="Stretch" Height="Auto" Fill="{DynamicResource GlyphBrush}" Stretch="Fill" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="1" Data="M5.2422477,11.132184 L11.5544,11.132184 8.6412958,4.4969033 z" RenderTransformOrigin="0.5,0.5">
-            <Path.RenderTransform>
-              <RotateTransform Angle="180" />
-            </Path.RenderTransform>
-          </Path>
+      <!-- Scroll Down Button -->
+      <RepeatButton Grid.Row="2" x:Name="IncreaseRepeat" Command="ScrollBar.LineDownCommand" Style="{DynamicResource {x:Type RepeatButton}}">
+        <Grid Background="{DynamicResource ScrollBarArrowBackgroundBrush}">
+          <Path x:Name="IncreaseArrow" Fill="{DynamicResource ScrollBarArrowGlyphBrush}" Data="F1 M17,17z M0,0z M8.5,10.5L4,6 13,6z"/>
         </Grid>
       </RepeatButton>
     </Grid>
   </ControlTemplate>
-
   <ControlTemplate x:Key="HorizontalScrollBarControlTemplate" TargetType="{x:Type ScrollBar}">
-    <Grid x:Name="GridRoot" Height="{DynamicResource {x:Static SystemParameters.HorizontalScrollBarHeightKey}}" Background="{DynamicResource ScrollBarBackgroundNormalBrush}">
+    <Grid x:Name="GridRoot" Height="{DynamicResource {x:Static SystemParameters.HorizontalScrollBarHeightKey}}" Background="{DynamicResource ScrollBarBrush}">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition MaxWidth="18" />
+        <ColumnDefinition MaxWidth="17" />
         <ColumnDefinition Width="*" />
-        <ColumnDefinition MaxWidth="18" />
+        <ColumnDefinition MaxWidth="17" />
       </Grid.ColumnDefinitions>
+      <!-- Scroll Left Button -->
       <RepeatButton Grid.Column="0" x:Name="DecreaseRepeat" Command="ScrollBar.LineLeftCommand" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Style="{DynamicResource {x:Type RepeatButton}}">
-        <Grid Margin="0" Background="Transparent">
-          <Path Margin="4.742,3.997,4.946,5.327" HorizontalAlignment="Stretch" Width="Auto" Fill="{DynamicResource GlyphBrush}" Stretch="Fill" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="1" Data="M5.2422477,11.132184 L11.5544,11.132184 8.6412958,4.4969033 z" x:Name="DecreaseArrow" RenderTransformOrigin="0.5,0.5">
-            <Path.RenderTransform>
-              <RotateTransform Angle="-90"/>
-            </Path.RenderTransform>
-          </Path>
+        <Grid Background="{DynamicResource ScrollBarArrowBackgroundBrush}">
+          <Path x:Name="DecreaseArrow" Fill="{DynamicResource ScrollBarArrowGlyphBrush}" Data="F1 M17,17z M0,0z M6.5,8.5L11,4 11,13z"/>
         </Grid>
       </RepeatButton>
+      <!-- Track and Thumb -->
       <Track Grid.Column="1" x:Name="PART_Track" Orientation="Horizontal">
         <Track.Thumb>
-          <Thumb Style="{DynamicResource HorizontalNuclearThumbStyle}" Background="{x:Null}" Foreground="{x:Null}"/>
+          <Thumb Style="{DynamicResource HorizontalScrollBarThumbStyle}"/>
         </Track.Thumb>
         <Track.IncreaseRepeatButton>
-          <RepeatButton x:Name="PageUp" Style="{DynamicResource NuclearScrollRepeatButtonStyle}" Command="ScrollBar.PageRightCommand"/>
+          <RepeatButton x:Name="PageUp" Style="{DynamicResource ScrollBarArrowRepeatButtonStyleBrush}" Command="ScrollBar.PageRightCommand"/>
         </Track.IncreaseRepeatButton>
         <Track.DecreaseRepeatButton>
-          <RepeatButton x:Name="PageDown" Style="{DynamicResource NuclearScrollRepeatButtonStyle}" Command="ScrollBar.PageLeftCommand"/>
+          <RepeatButton x:Name="PageDown" Style="{DynamicResource ScrollBarArrowRepeatButtonStyleBrush}" Command="ScrollBar.PageLeftCommand"/>
         </Track.DecreaseRepeatButton>
       </Track>
+      <!-- Scroll Right Button -->
       <RepeatButton Grid.Column="2" x:Name="IncreaseRepeat" Command="ScrollBar.LineRightCommand" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Style="{DynamicResource {x:Type RepeatButton}}">
-        <Grid Margin="0" Background="Transparent">
-          <Path Margin="4.742,3.997,4.946,5.327" x:Name="IncreaseArrow" HorizontalAlignment="Stretch" Width="Auto" Fill="{DynamicResource GlyphBrush}" Stretch="Fill" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="1" Data="M5.2422477,11.132184 L11.5544,11.132184 8.6412958,4.4969033 z" RenderTransformOrigin="0.5,0.5">
-            <Path.RenderTransform>
-              <RotateTransform Angle="90" />
-            </Path.RenderTransform>
-          </Path>
+        <Grid Background="{DynamicResource ScrollBarArrowBackgroundBrush}">
+          <Path x:Name="IncreaseArrow" Fill="{DynamicResource ScrollBarArrowGlyphBrush}" Data="F1 M17,17z M0,0z M10.5,8.5L6,13 6,4z"/>
         </Grid>
       </RepeatButton>
     </Grid>
@@ -1263,8 +1202,7 @@
   <Style TargetType="{x:Type ScrollBar}">
     <Setter Property="Stylus.IsFlicksEnabled" Value="False" />
     <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
-    <Setter Property="SnapsToDevicePixels" Value="True" />
-    <Setter Property="OverridesDefaultStyle" Value="true" />
+    <Setter Property="OverridesDefaultStyle" Value="True" />
     <Style.Triggers>
       <Trigger Property="Orientation" Value="Horizontal">
         <Setter Property="Height" Value="18" />
@@ -2748,10 +2686,10 @@
                 <Thumb Style="{DynamicResource NuclearSliderThumb}" Background="{DynamicResource NormalBrush}" Foreground="{x:Null}" Width="10" Height="{TemplateBinding ActualHeight}"/>
               </Track.Thumb>
               <Track.IncreaseRepeatButton>
-                <RepeatButton Style="{DynamicResource NuclearScrollRepeatButtonStyle}" Command="Slider.IncreaseLarge" />
+                <RepeatButton Style="{DynamicResource ScrollBarArrowRepeatButtonStyle}" Command="Slider.IncreaseLarge" />
               </Track.IncreaseRepeatButton>
               <Track.DecreaseRepeatButton>
-                <RepeatButton Style="{DynamicResource NuclearScrollRepeatButtonStyle}" Command="Slider.DecreaseLarge" />
+                <RepeatButton Style="{DynamicResource ScrollBarArrowRepeatButtonStyle}" Command="Slider.DecreaseLarge" />
               </Track.DecreaseRepeatButton>
             </Track>
             <TickBar Visibility="Collapsed" Grid.Row="2" x:Name="BottomTick" Height="4" SnapsToDevicePixels="True" Placement="Bottom" Fill="{TemplateBinding Foreground}" />

@@ -5,7 +5,8 @@
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:crashReport="clr-namespace:Stride.Editor.CrashReport"
         WindowStartupLocation="CenterScreen" Style="{DynamicResource WindowChromeStyle}"
-        Title="Privacy Policy" Icon="{DynamicResource LauncherIcon}" SizeToContent="WidthAndHeight">
+        Title="Privacy Policy" Icon="{DynamicResource LauncherIcon}" SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize">
   <Window.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>

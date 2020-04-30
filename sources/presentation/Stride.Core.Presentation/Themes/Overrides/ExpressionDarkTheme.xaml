@@ -21,7 +21,7 @@
   <Color x:Key="DefaultColor">#FF9BB1C5</Color>
   <SolidColorBrush x:Key="DropdownButtonBackgroundBrush" Color="#FF333333" />
   <SolidColorBrush x:Key="ComboBoxBackground" Color="#212125" />
-  <SolidColorBrush x:Key="ComboBoxItemHoverBackground" Color="#3399FF"/>
+  <SolidColorBrush x:Key="ComboBoxItemHoverBackground" Color="#007ACC"/>
 
   <Color x:Key="TopGradientSelectColor">#FFFFFFFF</Color>
   <Color x:Key="BottomGradientSelectColor">#FF737373</Color>
@@ -45,10 +45,6 @@
   <SolidColorBrush x:Key="GlyphBrush" Color="#FFD1D1D1" />
   <SolidColorBrush x:Key="GlyphHeaderBrush" Color="#FFD1D1D1" />
 
-  <SolidColorBrush x:Key="ScrollBarBackgroundNormalBrush" Color="#161616" />
-  <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="White" />
-  <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Color="White" />
-
   <SolidColorBrush x:Key="PressedBrush" Color="#7E000000"/>
 
   <SolidColorBrush x:Key="RedBrush" Color="#FFDC4E4E"/>
@@ -59,7 +55,7 @@
 
   <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#101011" />
 
-  <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#3399FF"/>
+  <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#007ACC"/>
   <SolidColorBrush x:Key="SelectedTextBrush" Color="#E6E6E6"/>
 
   <Color x:Key="EmphasisGreenColor">#FF8ABB2E</Color>
@@ -146,5 +142,26 @@
     <GradientStop Color="#444" Offset="0.0" />
     <GradientStop Color="#888" Offset="1.0" />
   </LinearGradientBrush>
+
+  <!-- Environment -->
+  <SolidColorBrush x:Key="MainWindowActiveCaptionTextBrush" Color="#929292"/>
+  <SolidColorBrush x:Key="MainWindowActiveDefaultBorderBrush" Color="#007ACC"/>
+  <SolidColorBrush x:Key="MainWindowButtonActiveBorderBrush" Color="Transparent"/>
+  <SolidColorBrush x:Key="MainWindowButtonDownBrush" Color="#007ACC"/>
+  <SolidColorBrush x:Key="MainWindowButtonDownBorderBrush" Color="#007ACC"/>
+  <SolidColorBrush x:Key="MainWindowButtonHoverActiveBrush" Color="#72555555"/>
+  <SolidColorBrush x:Key="MainWindowButtonHoverActiveBorderBrush" Color="#72555555"/>
+  <SolidColorBrush x:Key="MainWindowButtonHoverInactiveBrush" Color="#72555555"/>
+  <SolidColorBrush x:Key="MainWindowButtonHoverInactiveBorderBrush" Color="#72555555"/>
+  <SolidColorBrush x:Key="MainWindowButtonInactiveBorderBrush" Color="Transparent"/>
+  <SolidColorBrush x:Key="MainWindowInactiveBorderBrush" Color="#2E2E36"/>
+  <SolidColorBrush x:Key="MainWindowInactiveCaptionTextBrush" Color="#929292"/>
+  <SolidColorBrush x:Key="ScrollBarBrush" Color="#161616"/>
+  <SolidColorBrush x:Key="ScrollBarArrowBackgroundBrush" Color="#161616"/>
+  <SolidColorBrush x:Key="ScrollBarArrowGlyphBrush" Color="#646464"/>
+  <SolidColorBrush x:Key="ScrollBarThumbBackgroundBrush" Color="#333333"/>
+  <SolidColorBrush x:Key="ScrollBarThumbDisabledBrush" Color="#161616"/>
+  <SolidColorBrush x:Key="ScrollBarThumbMouseOverBackgroundBrush" Color="#6F6F73"/>
+  <SolidColorBrush x:Key="ScrollBarThumbPressedBackgroundBrush" Color="#999999"/>
 
 </ResourceDictionary>

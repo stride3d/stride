@@ -39,10 +39,6 @@
   <SolidColorBrush x:Key="GlyphBrush" Color="#1E1E1E" />
   <SolidColorBrush x:Key="GlyphHeaderBrush" Color="White" />
 
-  <SolidColorBrush x:Key="ScrollBarBackgroundNormalBrush" Color="#F2F2F2" />
-  <SolidColorBrush x:Key="ScrollBarThumbHoverBrush" Color="#686868" />
-  <SolidColorBrush x:Key="ScrollBarThumbPressedBrush" Color="#5B5B5B" />
-
   <SolidColorBrush x:Key="PressedBrush" Color="#7E000000"/>
 
   <SolidColorBrush x:Key="RedBrush" Color="#FFDC4E4E"/>
@@ -140,5 +136,26 @@
     <GradientStop Color="#444" Offset="0.0" />
     <GradientStop Color="#888" Offset="1.0" />
   </LinearGradientBrush>
+
+  <!-- Environment -->
+  <SolidColorBrush x:Key="MainWindowActiveCaptionTextBrush" Color="#525252"/>
+  <SolidColorBrush x:Key="MainWindowActiveDefaultBorderBrush" Color="#9B9FB9"/>
+  <SolidColorBrush x:Key="MainWindowButtonActiveBorderBrush" Color="Transparent"/>
+  <SolidColorBrush x:Key="MainWindowButtonDownBrush" Color="#007ACC"/>
+  <SolidColorBrush x:Key="MainWindowButtonDownBorderBrush" Color="#007ACC"/>
+  <SolidColorBrush x:Key="MainWindowButtonHoverActiveBrush" Color="#D8FFFFFF"/>
+  <SolidColorBrush x:Key="MainWindowButtonHoverActiveBorderBrush" Color="#D8FFFFFF"/>
+  <SolidColorBrush x:Key="MainWindowButtonHoverInactiveBrush" Color="#D8FFFFFF"/>
+  <SolidColorBrush x:Key="MainWindowButtonHoverInactiveBorderBrush" Color="#D8FFFFFF"/>
+  <SolidColorBrush x:Key="MainWindowButtonInactiveBorderBrush" Color="Transparent"/>
+  <SolidColorBrush x:Key="MainWindowInactiveBorderBrush" Color="#CCCEDB"/>
+  <SolidColorBrush x:Key="MainWindowInactiveCaptionTextBrush" Color="#99525252"/>
+  <SolidColorBrush x:Key="ScrollBarBrush" Color="#F5F5F5"/>
+  <SolidColorBrush x:Key="ScrollBarArrowBackgroundBrush" Color="#F5F5F5"/>
+  <SolidColorBrush x:Key="ScrollBarArrowGlyphBrush" Color="#868999"/>
+  <SolidColorBrush x:Key="ScrollBarThumbBackgroundBrush" Color="#C2C3C9"/>
+  <SolidColorBrush x:Key="ScrollBarThumbDisabledBrush" Color="#F5F5F5"/>
+  <SolidColorBrush x:Key="ScrollBarThumbMouseOverBackgroundBrush" Color="#686868"/>
+  <SolidColorBrush x:Key="ScrollBarThumbPressedBackgroundBrush" Color="#5B5B5B"/>
 
 </ResourceDictionary>

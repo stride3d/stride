@@ -730,6 +730,7 @@
     <Setter Property="IconContentTemplate" Value="{StaticResource AvalonDock_ThemeAero_IconContentTemplate}"/>
     <Setter Property="GridSplitterWidth" Value="4"/>
     <Setter Property="GridSplitterHeight" Value="4"/>
+    <Setter Property="UseLayoutRounding" Value="True"/>
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type avalonDock:DockingManager}">
