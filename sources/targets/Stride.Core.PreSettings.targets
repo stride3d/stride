@@ -70,10 +70,6 @@
     <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers Condition="'$(StrideRuntimeIdentifiers)' != ''">$(StrideRuntimeIdentifiers)</RuntimeIdentifiers>
 	
-    <!-- docfx doesn't like if there is no TargetFramework/RuntimeIdentifier set by default -->
-    <TargetFramework Condition="'$(StrideBuildDoc)' == 'true' And '$(TargetFramework)' == ''">$(TargetFrameworks.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</TargetFramework>
-    <RuntimeIdentifier Condition="'$(StrideBuildDoc)' == 'true' And '$(RuntimeIdentifier)' == ''">$(StrideRuntimeIdentifier)</RuntimeIdentifier>
-
     <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
 
     <!-- UpToDate check doesn't work with multi-TFM projects! https://github.com/dotnet/project-system/issues/2487 -->
