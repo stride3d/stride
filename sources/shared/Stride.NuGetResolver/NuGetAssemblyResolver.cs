@@ -24,6 +24,8 @@ namespace Stride.Core.Assets
 {
     class NuGetAssemblyResolver
     {
+        public const string DevSource = @"%LocalAppData%\Stride\NugetDev";
+
         static bool assembliesResolved;
         static object assembliesLock = new object();
         static List<string> assemblies;
@@ -50,9 +52,10 @@ namespace Stride.Core.Assets
                 {
                     strideFolder = folder;
                     var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
-                    // Remove non-existing sources: https://github.com/stride3d/stride/issues/338
-                    RemoveDeletedSources(settings, "Stride");
-                    CheckPackageSource(settings, $"Stride Dev {strideFolder}", Path.Combine(strideFolder, @"bin\packages"));
+
+                    Directory.CreateDirectory(Environment.ExpandEnvironmentVariables(DevSource));
+                    CheckPackageSource(settings, "Stride Dev", NuGet.Configuration.Settings.ApplyEnvironmentTransform(DevSource));
+
                     settings.SaveToDisk();
                     break;
                 }
@@ -139,7 +142,7 @@ namespace Stride.Core.Assets
             };
         }
 
-        private static void RemoveDeletedSources(ISettings settings, string prefixName)
+        private static void RemoveSources(ISettings settings, string prefixName)
         {
             var packageSources = settings.GetSection("packageSources");
             if (packageSources != null)
@@ -148,9 +151,7 @@ namespace Stride.Core.Assets
                 {
                     var path = packageSource.GetValueAsPath();
 
-                    if (packageSource.Key.StartsWith(prefixName)
-                        && Uri.TryCreate(path, UriKind.Absolute, out var uri) && uri.IsFile // make sure it's a valid file URI
-                        && !Directory.Exists(path)) // detect if directory has been deleted
+                    if (packageSource.Key.StartsWith(prefixName))
                     {
                         // Remove entry from packageSources
                         settings.Remove("packageSources", packageSource);

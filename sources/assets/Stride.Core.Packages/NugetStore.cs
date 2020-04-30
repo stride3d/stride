@@ -73,9 +73,11 @@ namespace Stride.Core.Packages
 
             settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
 
-            // Add dev source
-            RemoveDeletedSources(settings, "Xenko");
-            RemoveDeletedSources(settings, "Stride");
+            // Remove obsolete sources
+            RemoveDeletedSources(settings, "Xenko Dev");
+            // Note the space: we want to keep "Stride Dev" but not "Stride Dev {PATH}\bin\packages" anymore
+            RemoveSources(settings, "Stride Dev ");
+            // Add Stride package store (still used for Xenko up to 3.0)
             CheckPackageSource("Stride", DefaultPackageSource);
             settings.SaveToDisk();
 
@@ -92,6 +94,24 @@ namespace Stride.Core.Packages
 
             // Setup source provider as a V3 only.
             sourceRepositoryProvider = new NugetSourceRepositoryProvider(packageSourceProvider, this);
+        }
+
+        private static void RemoveSources(ISettings settings, string prefixName)
+        {
+            var packageSources = settings.GetSection("packageSources");
+            if (packageSources != null)
+            {
+                foreach (var packageSource in packageSources.Items.OfType<SourceItem>().ToList())
+                {
+                    var path = packageSource.GetValueAsPath();
+
+                    if (packageSource.Key.StartsWith(prefixName))
+                    {
+                        // Remove entry from packageSources
+                        settings.Remove("packageSources", packageSource);
+                    }
+                }
+            }
         }
 
         private static void RemoveDeletedSources(ISettings settings, string prefixName)
