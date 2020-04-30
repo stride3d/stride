@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -343,13 +344,34 @@ namespace Stride.Core.Presentation.Controls
                 var paragraph = (Paragraph)document.Blocks.AsEnumerable().First();
                 var stringComparison = SearchMatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
                 var searchToken = SearchToken;
+                var sb = new StringBuilder();
                 foreach (var message in logMessages.Where(x => ShouldDisplayMessage(x.Type)))
                 {
-                    string content = message.Text;
+                    sb.Clear();
+
+                    if (message.Module != null)
+                    {
+                        sb.AppendFormat("[{0}]: ", message.Module);
+                    }
+
+                    sb.AppendFormat("{0}: {1}", message.Type, message.Text);
+                    
                     var ex = message.ExceptionInfo;
-                    if (ShowStacktrace && ex != null)
-                        content = $"{content}{Environment.NewLine}{ex}";
-                    var lineText = $"{(message.Module != null ? $"[{message.Module}]: " : string.Empty)}{message.Type}:{content}{Environment.NewLine}";
+                    if (ex != null)
+                    {
+                        if (ShowStacktrace)
+                        {
+                            sb.AppendFormat("{0}{1}{0}", Environment.NewLine, ex);
+                        }
+                        else
+                        {
+                            sb.Append(" (...)");
+                        }
+                    }
+
+                    sb.AppendLine();
+
+                    var lineText = sb.ToString();
 
                     var logColor = GetLogColor(message.Type);
                     if (string.IsNullOrEmpty(searchToken))

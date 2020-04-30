@@ -73,14 +73,30 @@ namespace Stride.Core.Diagnostics
         /// <inheritdoc/>
         public override string ToString()
         {
-            var sb = new StringBuilder();
-            sb.AppendLine(Message);
-            if (StackTrace != null)
-                sb.AppendLine(StackTrace);
-            foreach (var innerException in InnerExceptions)
+            StringBuilder sb = new StringBuilder();
+            if (!string.IsNullOrEmpty(TypeName))
             {
-                sb.AppendFormat("Inner/Loader Exception: {0}{1}", innerException, Environment.NewLine);
+                sb.Append(TypeName);
             }
+
+            if (!string.IsNullOrEmpty(Message))
+            {
+                if(sb.Length != 0)
+                    sb.Append(": ");
+                sb.Append(Message);
+            }
+
+            foreach(var child in InnerExceptions)
+            {
+                sb.AppendFormat("{0} ---> {1}", Environment.NewLine, child.ToString());
+            }
+
+            if (StackTrace != null)
+            {
+                sb.AppendLine();
+                sb.Append(StackTrace);
+            }
+
             return sb.ToString();
         }
     }
