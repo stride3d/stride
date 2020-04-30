@@ -47,7 +47,16 @@ namespace Stride.Assets.Presentation.AssemblyReloading
 
                 // Serialize types from unloaded assemblies as Yaml, and unset them
                 var unloadingVisitor = new UnloadingVisitor(log, loadedAssembliesSet);
-                var assetItemsToReload = PrepareAssemblyReloading(session, unloadingVisitor, session.UndoRedoService);
+                Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload;
+                try
+                {
+                    assetItemsToReload = PrepareAssemblyReloading(session, unloadingVisitor, session.UndoRedoService);
+                }
+                catch (Exception e)
+                {
+                    log.Error( "Could not prepare asset for assembly reload", e);
+                    throw;
+                }
 
                 var reloadOperation = new ReloadAssembliesOperation(assemblyContainer, modifiedAssemblies, Enumerable.Empty<IDirtiable>());
                 session.UndoRedoService.SetName(reloadOperation, "Reload assemblies");
@@ -63,7 +72,15 @@ namespace Stride.Assets.Presentation.AssemblyReloading
 
                 // Restore deserialized objects (or IUnloadable if it didn't work)
                 var reloadingVisitor = new ReloadingVisitor(log, loadedAssembliesSet);
-                PostAssemblyReloading(session.UndoRedoService, session.AssetNodeContainer, reloadingVisitor, log, assetItemsToReload);
+                try
+                {
+                    PostAssemblyReloading(session.UndoRedoService, session.AssetNodeContainer, reloadingVisitor, log, assetItemsToReload);
+                }
+                catch (Exception e)
+                {
+                    log.Error("Could not restore asset after assembly reload", e);
+                    throw;
+                }
 
                 var undoOperation = new AnonymousDirtyingOperation(Enumerable.Empty<IDirtiable>(), undoAction, null);
                 session.UndoRedoService.PushOperation(undoOperation);
