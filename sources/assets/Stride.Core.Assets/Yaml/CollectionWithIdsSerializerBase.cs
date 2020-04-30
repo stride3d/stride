@@ -162,10 +162,7 @@ namespace Stride.Core.Yaml
                     if (objectContext.SerializerContext.AllowErrors)
                     {
                         var logger = objectContext.SerializerContext.Logger;
-                        if(ex.InnerException is DefaultObjectFactory.InstanceCreationException ice)
-                            logger?.Warning($"Ignored dictionary item that could not be deserialized:\n{ice.Message}", ex);
-                        else
-                            logger?.Warning($"Ignored dictionary item that could not be deserialized:\n{ex.Message}", ex);
+                        logger?.Warning($"{ex.Message}, this dictionary item will be ignored", ex);
                         objectContext.Reader.Skip(currentDepth, objectContext.Reader.Parser.Current == startParsingEvent);
                     }
                     else throw;

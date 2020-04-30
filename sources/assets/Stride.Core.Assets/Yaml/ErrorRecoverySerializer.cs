@@ -49,7 +49,7 @@ namespace Stride.Core.Yaml
                 // Deserialize normally
                 return base.ReadYaml(ref objectContext);
             }
-            catch (YamlException ex) // TODO: Filter only TagTypeSerializer TypeFromTag decoding errors? or more?
+            catch (Exception ex) when (ex is YamlException || ex is DefaultObjectFactory.InstanceCreationException) // TODO: Filter only TagTypeSerializer TypeFromTag decoding errors? or more?
             {
                 // Find the parsing range for this object
                 // Skipping is also important to make sure the depth is properly updated
@@ -105,7 +105,7 @@ namespace Stride.Core.Yaml
                     }
 
                     var log = objectContext.SerializerContext.Logger;
-                    log?.Warning($"Could not deserialize object of type {tag}; replacing it with an object implementing {nameof(IUnloadable)}:\n{ex.Message}", ex);
+                    log?.Warning($"Could not deserialize object of type '{typeName ?? tag}'; replacing it with an object implementing {nameof(IUnloadable)}", ex);
 
                     var unloadableObject = UnloadableObjectInstantiator.CreateUnloadableObject(type, typeName, assemblyName, ex.Message, parsingEvents);
                     objectContext.Instance = unloadableObject;

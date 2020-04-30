@@ -9,16 +9,7 @@ namespace Stride.Core.Serialization
         {
             if (mode == ArchiveMode.Deserialize && obj == null)
             {
-                try
-                {
-                    obj = new T();
-                }
-                catch (System.Exception)
-                {
-                    //obj = (T)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(T));
-                    //return;
-                    throw;
-                }
+                obj = new T();
             }
         }
     }
