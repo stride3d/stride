@@ -10,7 +10,7 @@ namespace Stride.Core
         /// <summary>
         /// Will block until this amount of time passed. 
         /// Set this to zero to disable throttling.
-        /// To control this value like a maximum FPS limiter, set this value to 10.
+        /// To control this value like an FPS limiter, set this value to TimeSpan.FromSeconds(1d / yourFPS).
         /// </summary>
         public TimeSpan MinimumElapsedTime { get; set; }
 
