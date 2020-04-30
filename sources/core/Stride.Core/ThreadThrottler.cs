@@ -8,12 +8,14 @@ namespace Stride.Core
     public class ThreadThrottler
     {
         /// <summary>
-        /// Minimum time allowed between each call
+        /// Will block until this amount of time passed. 
+        /// Set this to zero to disable throttling.
+        /// To control this value like an FPS limiter, set this value to TimeSpan.FromSeconds(1d / yourFPS).
         /// </summary>
         public TimeSpan MinimumElapsedTime { get; set; }
 
         /// <summary>
-        /// The type of throttler used, call 
+        /// The type of throttler used
         /// </summary>
         public ThrottlerType Type { get; private set; }
 
