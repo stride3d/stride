@@ -20,7 +20,7 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="2.3.2262-g94fae01e">
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </PackageReference>
     <Reference Include="System.Data.DataSetExtensions" />
