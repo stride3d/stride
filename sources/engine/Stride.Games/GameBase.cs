@@ -80,7 +80,7 @@ namespace Stride.Games
             
             TreatNotFocusedLikeMinimized = true;
             WindowMinimumUpdateRate = new ThreadThrottler(TimeSpan.FromSeconds(0d));
-            MinimizedMinimumUpdateRate = new ThreadThrottler(TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 15)); // by default 15 updates per second while minimized
+            MinimizedMinimumUpdateRate = new ThreadThrottler(15); // by default 15 updates per second while minimized
 
             isMouseVisible = true;
 
@@ -564,7 +564,7 @@ namespace Stride.Games
                         return;
                     }
 
-                    // We are going to call Update updateCount times, so we can substract this from accumulated elapsed game time
+                    // We are going to call Update updateCount times, so we can subtract this from accumulated elapsed game time
                     accumulatedElapsedGameTime = new TimeSpan(accumulatedElapsedGameTime.Ticks - (updateCount * TargetElapsedTime.Ticks));
                     singleFrameElapsedTime = TargetElapsedTime;
                 }
@@ -576,11 +576,11 @@ namespace Stride.Games
                 {
                     if (window.IsMinimized || window.Visible == false || (window.Focused == false && TreatNotFocusedLikeMinimized))
                     {
-                        MinimizedMinimumUpdateRate.Throttle(out _);
+                        MinimizedMinimumUpdateRate.Throttle(out long _);
                     }
                     else
                     {
-                        WindowMinimumUpdateRate.Throttle(out _);
+                        WindowMinimumUpdateRate.Throttle(out long _);
                     }
                 }
             }
