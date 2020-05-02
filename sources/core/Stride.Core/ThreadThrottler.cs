@@ -10,11 +10,10 @@ namespace Stride.Core
         /// <summary>
         /// Set this to zero to disable throttling.
         /// Minimum amount of time allowed between each 'update'.
-        /// Conversion is lossy, getter might not return the same value as the one you set
+        /// Conversion is lossy, getting this value back might not return the same value you set it to.
         /// </summary>
         /// <remarks>
-        /// If the thread enters while the time is lower than this it will be
-        /// blocked/throttled for the rest of the time before continuing.
+        /// See <see cref="Throttle(out long)"/>'s summary for an idea of how this property is used.
         /// </remarks>
         public TimeSpan MinimumElapsedTime
         {
@@ -205,7 +204,7 @@ namespace Stride.Core
                         // Average to account for general system responsiveness
                         spinwaitWindow /= 2d;
                     }
-                    else if(Type == ThrottlerType.PreciseManual)
+                    else if (Type == ThrottlerType.PreciseManual)
                     {
                         Utilities.Sleep(1);
                     }
