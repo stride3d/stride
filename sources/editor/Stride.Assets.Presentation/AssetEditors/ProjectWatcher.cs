@@ -305,6 +305,9 @@ namespace Stride.Assets.Presentation.AssetEditors
                     directoryWatcher.Track(loadedAssembly.Path);
 
                 // Track the project file
+                if (loadedAssembly.ProjectReference != null)
+                    continue;
+
                 directoryWatcher.Track(loadedAssembly.ProjectReference.Location);
 
                 var trackedAssembly = new TrackedAssembly { Package = package, LoadedAssembly = loadedAssembly };

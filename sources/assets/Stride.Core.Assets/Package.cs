@@ -1023,31 +1023,50 @@ namespace Stride.Core.Assets
             if (loadParameters == null) throw new ArgumentNullException(nameof(loadParameters));
             var assemblyContainer = loadParameters.AssemblyContainer ?? AssemblyContainer.Default;
 
-            // TODO: Add support for loading from packages
-            var project = Container as SolutionProject;
-            if (project == null || project.FullPath == null || project.Type != ProjectType.Library)
-                return;
+            // Load from package
+            if (Container is StandalonePackage standalonePackage)
+            {
+                foreach (var assemblyPath in standalonePackage.Assemblies)
+                {
+                    LoadAssemblyReferenceInternal(log, loadParameters, assemblyContainer, null, assemblyPath);
+                }
+            }
 
-            // Check if already loaded
-            // TODO: More advanced cases: unload removed references, etc...
-            var projectReference = new ProjectReference(project.Id, project.FullPath, Core.Assets.ProjectType.Library);
-            if (LoadedAssemblies.Any(x => x.ProjectReference == projectReference))
-                return;
+            // Load from csproj
+            if (Container is SolutionProject project && project.FullPath != null && project.Type == ProjectType.Library)
+            {
+                // Check if already loaded
+                // TODO: More advanced cases: unload removed references, etc...
+                var projectReference = new ProjectReference(project.Id, project.FullPath, Core.Assets.ProjectType.Library);
 
-            string assemblyPath = project.TargetPath;
-            var fullProjectLocation = project.FullPath.ToWindowsPath();
+                LoadAssemblyReferenceInternal(log, loadParameters, assemblyContainer, projectReference, project.TargetPath);
+            }
+        }
 
+        private void LoadAssemblyReferenceInternal(ILogger log, PackageLoadParameters loadParameters, AssemblyContainer assemblyContainer, ProjectReference projectReference, string assemblyPath)
+        {
             try
             {
+                // Check if already loaded
+                if (projectReference != null && LoadedAssemblies.Any(x => x.ProjectReference == projectReference))
+                    return;
+                else if (LoadedAssemblies.Any(x => string.Compare(x.Path, assemblyPath, true) == 0))
+                    return;
+
                 var forwardingLogger = new ForwardingLoggerResult(log);
 
-                if (loadParameters.AutoCompileProjects || string.IsNullOrWhiteSpace(assemblyPath))
+                // If csproj, we might need to compile it
+                if (projectReference != null)
                 {
-                    assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(Session?.SolutionPath, fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);
-                    if (string.IsNullOrWhiteSpace(assemblyPath))
+                    var fullProjectLocation = projectReference.Location.ToWindowsPath();
+                    if (loadParameters.AutoCompileProjects || string.IsNullOrWhiteSpace(assemblyPath))
                     {
-                        log.Error($"Unable to locate assembly reference for project [{fullProjectLocation}]");
-                        return;
+                        assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(Session?.SolutionPath, fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);
+                        if (string.IsNullOrWhiteSpace(assemblyPath))
+                        {
+                            log.Error($"Unable to locate assembly reference for project [{fullProjectLocation}]");
+                            return;
+                        }
                     }
                 }
 
@@ -1085,7 +1104,7 @@ namespace Stride.Core.Assets
             }
             catch (Exception ex)
             {
-                log.Error($"Unexpected error while loading project [{fullProjectLocation}] or assembly reference [{assemblyPath}]", ex);
+                log.Error($"Unexpected error while loading assembly reference [{assemblyPath}]", ex);
             }
         }
 

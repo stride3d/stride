@@ -243,7 +243,7 @@ namespace Stride.GameStudio
                 {
                     assembliesToReload.Add(modifiedAssembly.Value);
                 }
-                else
+                else if (modifiedAssembly.Key.ProjectReference != null)
                 {
                     // If source code has changed, rebuild. If the build is successfull, reload the assembly.
                     // Otherwise add the assembly back to the list of modified ones.

@@ -316,6 +316,11 @@ namespace Stride.Core.Assets
                         loadedProject.Package.Meta.Version = projectDependency.Version;
                         Projects.Add(loadedProject);
 
+                        if (loadedProject is StandalonePackage standalonePackage)
+                        {
+                            standalonePackage.Assemblies.AddRange(projectDependency.Assemblies);
+                        }
+
                         loadedPackage = loadedProject.Package;
                     }
                 }
@@ -367,9 +372,41 @@ namespace Stride.Core.Assets
                 // Update dependencies
                 if (flattenedDependencies)
                 {
-                    foreach (var library in projectAssets.Libraries)
+                    var libPaths = new Dictionary<string, LockFileLibrary>();
+                    foreach (var lib in projectAssets.Libraries)
                     {
+                        libPaths.Add(lib.Name, lib);
+                    }
+
+                    foreach (var targetLibrary in projectAssets.Targets.Last().Libraries)
+                    {
+                        var library = libPaths[targetLibrary.Name];
+
                         var projectDependency = new Dependency(library.Name, library.Version.ToPackageVersion(), library.Type == "project" ? DependencyType.Project : DependencyType.Package) { MSBuildProject = library.Type == "project" ? library.MSBuildProject : null };
+
+                        if (library.Type == "package")
+                        {
+                            // Find library path by testing with each PackageFolders
+                            var libraryPath = projectAssets.PackageFolders
+                                .Select(packageFolder => Path.Combine(packageFolder.Path, library.Path.Replace('/', Path.DirectorySeparatorChar)))
+                                .FirstOrDefault(x => Directory.Exists(x));
+
+                            if (libraryPath != null)
+                            {
+                                // Build list of assemblies
+                                foreach (var a in targetLibrary.RuntimeAssemblies)
+                                {
+                                    var assemblyFile = Path.Combine(libraryPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+                                    projectDependency.Assemblies.Add(assemblyFile);
+                                }
+                                foreach (var a in targetLibrary.RuntimeTargets)
+                                {
+                                    var assemblyFile = Path.Combine(libraryPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+                                    projectDependency.Assemblies.Add(assemblyFile);
+                                }
+                            }
+                        }
+
                         project.FlattenedDependencies.Add(projectDependency);
                         // Try to resolve package if already loaded
                         projectDependency.Package = project.Session.Packages.Find(projectDependency);
