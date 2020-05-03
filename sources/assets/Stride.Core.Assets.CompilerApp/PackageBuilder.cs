@@ -80,6 +80,7 @@ namespace Stride.Core.Assets.CompilerApp
                     AutoCompileProjects = !builderOptions.DisableAutoCompileProjects,
                     ExtraCompileProperties = builderOptions.ExtraCompileProperties,
                     RemoveUnloadableObjects = true,
+                    RegisterPackageAssemblies = true,
                     BuildConfiguration = builderOptions.ProjectConfiguration,
                 };
 

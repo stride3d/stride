@@ -901,6 +901,13 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
         public void LoadMissingReferences(ILogger log, PackageLoadParameters loadParameters = null)
         {
             LoadMissingDependencies(log, loadParameters);
+            if (log != null && (loadParameters?.RegisterPackageAssemblies ?? false))
+            {
+                foreach (var package in Packages.ToList())
+                {
+                    package.LoadAssemblies(log, loadParameters);
+                }
+            }
             LoadMissingAssets(log, Packages.ToList(), loadParameters);
         }
 
@@ -1003,7 +1010,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                     // Return immediately if there is any error
                     if (loggerResult.HasErrors)
                         return;
-       
+
                     //batch projects
                     var vsProjs = new Dictionary<string, Microsoft.Build.Evaluation.Project>();
 

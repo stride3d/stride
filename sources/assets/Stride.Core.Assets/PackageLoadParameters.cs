@@ -42,6 +42,7 @@ namespace Stride.Core.Assets
         public PackageLoadParameters()
         {
             LoadMissingDependencies = true;
+            RegisterPackageAssemblies = false;
             LoadAssemblyReferences = true;
             AutoCompileProjects = true;
             AutoLoadTemporaryAssets = true;
@@ -54,6 +55,11 @@ namespace Stride.Core.Assets
         /// </summary>
         /// <value><c>true</c> if [load missing dependencies]; otherwise, <c>false</c>.</value>
         public bool LoadMissingDependencies { get; set; }
+
+        /// <summary>
+        /// Register the package's assemblies from the project.
+        /// </summary>
+        public bool RegisterPackageAssemblies { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether [load assembly references].
@@ -109,7 +115,7 @@ namespace Stride.Core.Assets
         public CancellationToken? CancelToken { get; set; }
 
         /// <summary>
-        /// Gets or sets the assembly container used to load assemblies referenced by the package. If null, will use the 
+        /// Gets or sets the assembly container used to load assemblies referenced by the package. If null, will use the
         /// <see cref="Stride.Core.Reflection.AssemblyContainer.Default"/>
         /// </summary>
         /// <value>The assembly container.</value>
