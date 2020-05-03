@@ -22,16 +22,22 @@ namespace Stride.Core.Assets
 {
     static class RestoreHelper
     {
-        public static List<string> ListAssemblies(RestoreRequest request, RestoreResult result)
+        public static List<string> ListAssemblies(LockFile lockFile)
         {
             var assemblies = new List<string>();
 
-            var lockFile = result.LockFile;
-            var packageFolder = lockFile.PackageFolders[0].Path;
             var libPaths = new Dictionary<string, string>();
             foreach (var lib in lockFile.Libraries)
             {
-                libPaths.Add(lib.Name, Path.Combine(packageFolder, lib.Path.Replace('/', Path.DirectorySeparatorChar)));
+                foreach (var packageFolder in lockFile.PackageFolders)
+                {
+                    var libraryPath = Path.Combine(packageFolder.Path, lib.Path.Replace('/', Path.DirectorySeparatorChar));
+                    if (Directory.Exists(libraryPath))
+                    {
+                        libPaths.Add(lib.Name, libraryPath);
+                        break;
+                    }
+                }
             }
             var target = lockFile.Targets.Last();
             foreach (var lib in target.Libraries)

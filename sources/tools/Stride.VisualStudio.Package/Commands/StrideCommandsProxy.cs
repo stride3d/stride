@@ -334,7 +334,7 @@ namespace Stride.VisualStudio.Commands
                     var (request, result) = await RestoreHelper.Restore(logger, NuGetFramework.ParseFrameworkName(".NETFramework,Version=v4.7.2", DefaultFrameworkNameProvider.Instance), "win", packageName, new VersionRange(packageInfo.ExpectedVersion.ToNuGetVersion()));
                     if (result.Success)
                     {
-                        packageInfo.SdkPaths.AddRange(RestoreHelper.ListAssemblies(request, result));
+                        packageInfo.SdkPaths.AddRange(RestoreHelper.ListAssemblies(result.LockFile));
                         packageInfo.LoadedVersion = packageInfo.ExpectedVersion;
                     }
                     else

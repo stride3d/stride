@@ -94,7 +94,7 @@ namespace Stride.Core.Assets
                                 throw new InvalidOperationException($"Could not restore NuGet packages");
                             }
 
-                            assemblies = RestoreHelper.ListAssemblies(request, result);
+                            assemblies = RestoreHelper.ListAssemblies(result.LockFile);
                         }
                         catch (Exception e)
                         {
