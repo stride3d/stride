@@ -146,18 +146,27 @@ namespace Stride.Input
                 joystick.Acquire();
                 joystick.Poll();
                 joystick.GetCurrentState(ref state);
-
-                for (int i = 0; i < buttonInfos.Count; i++)
+                
+                // Some device might report (perhaps erroneously) more than 128 buttons, which DirectInputState doesn't support  
+                // Should be investigated with such a device at hand for proper testing
+                var buttonCount = buttonInfos.Count < state.Buttons.Length ? buttonInfos.Count : state.Buttons.Length;
+                for (int i = 0; i < buttonCount; i++)
                 {
                     HandleButton(i, state.Buttons[i]);
                 }
 
                 for (int i = 0; i < axisInfos.Count; i++)
                 {
-                    HandleAxis(i, ClampDeadZone(state.Axes[axisInfos[i].Offset] * 2.0f - 1.0f, InputManager.GameControllerAxisDeadZone));
+                    int axisMemIndex = axisInfos[i].Offset;
+                    // See previous comment
+                    if(axisMemIndex >= state.Axes.Length)
+                        continue;
+                    HandleAxis(i, ClampDeadZone(state.Axes[axisMemIndex] * 2.0f - 1.0f, InputManager.GameControllerAxisDeadZone));
                 }
-
-                for (int i = 0; i < directionInfos.Count; i++)
+                
+                // See previous comment
+                var dirCount = state.PovControllers.Length < directionInfos.Count ? state.PovControllers.Length : directionInfos.Count;
+                for (int i = 0; i < dirCount; i++)
                 {
                     int povController = state.PovControllers[i];
                     HandleDirection(i, povController >= 0 ? Direction.FromTicks(povController, 36000) : Direction.None);
