@@ -54,7 +54,7 @@ namespace Stride.Core.Serialization.Serializers
                     info.MethodInfos[i].MethodReturnType = stream.ReadString();
                     var paramLength = stream.ReadInt32();
                     info.MethodInfos[i].ParameterTypes = new string[paramLength];
-                    for (int j = 0; j < length; j++)
+                    for (int j = 0; j < paramLength; j++)
                     {
                         info.MethodInfos[i].ParameterTypes[j] = stream.ReadString();
                     }
