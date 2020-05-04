@@ -26,7 +26,7 @@ namespace Stride.Core.Assets
         {
             var assemblies = new List<string>();
 
-            var libPaths = new Dictionary<string, string>();
+            var libPaths = new Dictionary<ValueTuple<string, NuGet.Versioning.NuGetVersion>, string>();
             foreach (var lib in lockFile.Libraries)
             {
                 foreach (var packageFolder in lockFile.PackageFolders)
@@ -34,7 +34,7 @@ namespace Stride.Core.Assets
                     var libraryPath = Path.Combine(packageFolder.Path, lib.Path.Replace('/', Path.DirectorySeparatorChar));
                     if (Directory.Exists(libraryPath))
                     {
-                        libPaths.Add(lib.Name, libraryPath);
+                        libPaths.Add(ValueTuple.Create(lib.Name, lib.Version), libraryPath);
                         break;
                     }
                 }
@@ -42,16 +42,18 @@ namespace Stride.Core.Assets
             var target = lockFile.Targets.Last();
             foreach (var lib in target.Libraries)
             {
-                var libPath = libPaths[lib.Name];
-                foreach (var a in lib.RuntimeAssemblies)
+                if (libPaths.TryGetValue(ValueTuple.Create(lib.Name, lib.Version), out var libPath))
                 {
-                    var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
-                    assemblies.Add(assemblyFile);
-                }
-                foreach (var a in lib.RuntimeTargets)
-                {
-                    var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
-                    assemblies.Add(assemblyFile);
+                    foreach (var a in lib.RuntimeAssemblies)
+                    {
+                        var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+                        assemblies.Add(assemblyFile);
+                    }
+                    foreach (var a in lib.RuntimeTargets)
+                    {
+                        var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+                        assemblies.Add(assemblyFile);
+                    }
                 }
             }
 

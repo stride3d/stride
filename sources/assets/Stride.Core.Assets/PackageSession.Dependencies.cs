@@ -372,15 +372,16 @@ namespace Stride.Core.Assets
                 // Update dependencies
                 if (flattenedDependencies)
                 {
-                    var libPaths = new Dictionary<string, LockFileLibrary>();
+                    var libPaths = new Dictionary<ValueTuple<string, NuGet.Versioning.NuGetVersion>, LockFileLibrary>();
                     foreach (var lib in projectAssets.Libraries)
                     {
-                        libPaths.Add(lib.Name, lib);
+                        libPaths.Add(ValueTuple.Create(lib.Name, lib.Version), lib);
                     }
 
                     foreach (var targetLibrary in projectAssets.Targets.Last().Libraries)
                     {
-                        var library = libPaths[targetLibrary.Name];
+                        if (!libPaths.TryGetValue(ValueTuple.Create(targetLibrary.Name, targetLibrary.Version), out var library))
+                            continue;
 
                         var projectDependency = new Dependency(library.Name, library.Version.ToPackageVersion(), library.Type == "project" ? DependencyType.Project : DependencyType.Package) { MSBuildProject = library.Type == "project" ? library.MSBuildProject : null };
 
