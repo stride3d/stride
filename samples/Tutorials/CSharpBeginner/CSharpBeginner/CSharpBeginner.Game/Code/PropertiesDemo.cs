@@ -54,8 +54,8 @@ namespace CSharpBeginner.Code
             Mage
         }
 
-        /// <userdoc> This is a super long description. Use it to help the people that use your components, understand what this propery does.
-        /// The text above is displayed in game studio and also shows up when you hover over the property
+        /// <userdoc>This is a super long description. Use it to help the people that use your components, understand what a propery does.</userdoc>
+        /// The text above is displayed in game studio when a property is selected and also shows up when you hover over the property
         public string Explanation;
 
         public override void Update()
