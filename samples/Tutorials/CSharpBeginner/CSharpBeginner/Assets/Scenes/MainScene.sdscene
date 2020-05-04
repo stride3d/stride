@@ -21,12 +21,12 @@ ChildrenIds:
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
-        - ref!! 11c51eca-f227-48c5-afdb-199ed1d275cf
-        - ref!! c1cf572c-c8b1-4b83-b098-57cb06ec99f5
-        - ref!! 8765581e-6bc7-40da-b1c3-e477d2e872f6
-        - ref!! d6990e2c-5f6f-4f6f-8d0a-f0e8f0d0b357
-        - ref!! a594aea1-6b57-4bba-8e87-e779ab5df63e
         - ref!! cf1158b2-f763-41de-b108-a5a0112085af
+        - ref!! a594aea1-6b57-4bba-8e87-e779ab5df63e
+        - ref!! d6990e2c-5f6f-4f6f-8d0a-f0e8f0d0b357
+        - ref!! 8765581e-6bc7-40da-b1c3-e477d2e872f6
+        - ref!! c1cf572c-c8b1-4b83-b098-57cb06ec99f5
+        - ref!! 11c51eca-f227-48c5-afdb-199ed1d275cf
     Parts:
         -   Entity:
                 Id: 01b30e0c-d92a-4786-ab4c-ee699c72ef86
@@ -52,6 +52,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -129,6 +130,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -163,6 +165,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -173,7 +176,8 @@ Hierarchy:
                 BasePartAsset: 3cc3c21e-b26c-443d-80bb-cb82044d3220:BlocksPrefabs/Wall0x2x2
                 BasePartId: f73cb16c-30b9-4200-b872-56885e7023e2
                 InstanceId: 3beb599c-c755-403d-bf7c-319ade61295b
-        -   Entity:
+        -   Folder: TutorialRequirements
+            Entity:
                 Id: 11c51eca-f227-48c5-afdb-199ed1d275cf
                 Name: Camera
                 Components:
@@ -213,6 +217,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -247,6 +252,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -281,6 +287,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -297,9 +304,9 @@ Hierarchy:
                 Components:
                     6a152e8c545feb92f30fa624402a3f97: !TransformComponent
                         Id: 43ed748c-c373-419a-9fd6-fee061cdaa3c
-                        Position: {X: 5.51532936, Y: 0.9788635, Z: 0.1004901}
+                        Position: {X: 5.51532936, Y: 0.9788635, Z: -0.0416628867}
                         Rotation: {X: 0.0, Y: 0.707106769, Z: 0.0, W: 0.707106769}
-                        Scale: {X: 4.0, Y: 2.0, Z: 1.0}
+                        Scale: {X: 3.4, Y: 2.0, Z: 1.0}
                         Children: {}
                     227c35a3849d10bc2b4794292cb59202: !ModelComponent
                         Id: 774cd0a3-f064-4474-af29-37c14fa40a74
@@ -330,6 +337,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -392,6 +400,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -426,6 +435,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -502,6 +512,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             6f9d4e7e5147bf47ad510aa5f27d122b: !BoxColliderShapeDesc
                                 Is2D: false
@@ -536,6 +547,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -570,6 +582,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -604,6 +617,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -667,6 +681,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -701,6 +716,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -792,6 +808,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -802,7 +819,8 @@ Hierarchy:
                 BasePartAsset: 3cc3c21e-b26c-443d-80bb-cb82044d3220:BlocksPrefabs/Wall0x2x2
                 BasePartId: f73cb16c-30b9-4200-b872-56885e7023e2
                 InstanceId: c6365373-894d-4e38-99f1-da5e59218d39
-        -   Entity:
+        -   Folder: TutorialRequirements
+            Entity:
                 Id: 8765581e-6bc7-40da-b1c3-e477d2e872f6
                 Name: Skybox light
                 Components:
@@ -843,6 +861,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -925,6 +944,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1002,6 +1022,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1026,7 +1047,8 @@ Hierarchy:
                         Id: 6a3c8886-2eee-4811-a63b-9c86b3736ed9
                         Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
                         Materials: {}
-        -   Entity:
+        -   Folder: TutorialRequirements
+            Entity:
                 Id: a594aea1-6b57-4bba-8e87-e779ab5df63e
                 Name: Scene
                 Components:
@@ -1062,6 +1084,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1096,6 +1119,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1139,9 +1163,9 @@ Hierarchy:
                 Components:
                     6a152e8c545feb92f30fa624402a3f97: !TransformComponent
                         Id: d5522d5b-79a8-4f2a-bca8-42e1531891b2
-                        Position: {X: -5.53039742, Y: 0.9788635, Z: 0.100489445}
+                        Position: {X: -5.53039742, Y: 0.9788635, Z: -0.0005522594}
                         Rotation: {X: 0.0, Y: 0.707106769, Z: 0.0, W: 0.707106769}
-                        Scale: {X: 4.0, Y: 2.0, Z: 1.0}
+                        Scale: {X: 3.4, Y: 2.0, Z: 1.0}
                         Children: {}
                     227c35a3849d10bc2b4794292cb59202: !ModelComponent
                         Id: eab9b4c9-2a8f-484d-807f-7ad1fa3ea6ca
@@ -1162,7 +1186,8 @@ Hierarchy:
                         Id: 127852dd-2480-46bb-8d83-d767f1a535d8
                         Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
                         Materials: {}
-        -   Entity:
+        -   Folder: TutorialRequirements
+            Entity:
                 Id: c1cf572c-c8b1-4b83-b098-57cb06ec99f5
                 Name: Directional light
                 Components:
@@ -1211,6 +1236,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1245,6 +1271,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1279,6 +1306,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1289,7 +1317,8 @@ Hierarchy:
                 BasePartAsset: 3cc3c21e-b26c-443d-80bb-cb82044d3220:BlocksPrefabs/Wall0x2x2
                 BasePartId: f73cb16c-30b9-4200-b872-56885e7023e2
                 InstanceId: 2dd3aea5-9634-4f97-ab3f-c195c6b0fc23
-        -   Entity:
+        -   Folder: TutorialRequirements
+            Entity:
                 Id: cf1158b2-f763-41de-b108-a5a0112085af
                 Name: Models
                 Components:
@@ -1329,6 +1358,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1339,7 +1369,8 @@ Hierarchy:
                 BasePartAsset: 3cc3c21e-b26c-443d-80bb-cb82044d3220:BlocksPrefabs/Wall0x2x2
                 BasePartId: f73cb16c-30b9-4200-b872-56885e7023e2
                 InstanceId: fb298e8d-ae4d-4bcd-adc3-274b5b37dd3a
-        -   Entity:
+        -   Folder: TutorialRequirements
+            Entity:
                 Id: d6990e2c-5f6f-4f6f-8d0a-f0e8f0d0b357
                 Name: TutorialUI
                 Components:
@@ -1464,6 +1495,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1498,6 +1530,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1631,6 +1664,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1665,6 +1699,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
@@ -1699,6 +1734,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             9df49bef003d024fa22c1f610efca013: !BoxColliderShapeDesc
                                 Is2D: false
