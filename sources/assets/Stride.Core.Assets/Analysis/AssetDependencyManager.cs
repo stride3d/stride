@@ -358,6 +358,7 @@ namespace Stride.Core.Assets.Analysis
                     : new AssetItem(assetItem.Location, AssetCloner.Clone(assetItem.Asset), assetItem.Package)
                         {
                             SourceFolder = assetItem.SourceFolder,
+                            AlternativePath = assetItem.AlternativePath,
                         };
                 
                 dependencies = new AssetDependencies(assetItemCloned);

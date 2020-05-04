@@ -30,7 +30,7 @@ namespace Stride.Core.Assets
         /// <summary>
         /// Initializes a new instance of the <see cref="AssetItem" /> class.
         /// </summary>
-        /// <param name="location">The location.</param>
+        /// <param name="location">The location inside the package.</param>
         /// <param name="asset">The asset.</param>
         /// <exception cref="ArgumentNullException">location</exception>
         /// <exception cref="ArgumentNullException">asset</exception>
@@ -60,6 +60,12 @@ namespace Stride.Core.Assets
         /// <value>The location.</value>
         [NotNull]
         public UFile Location { get => location; internal set => location = value ?? throw new ArgumentNullException(nameof(value)); }
+
+        /// <summary>
+        /// Gets or sets the real location of this asset if it is overriden (similar to `Link` in C# project files).
+        /// </summary>
+        [CanBeNull]
+        public UFile AlternativePath { get; set; }
 
         /// <summary>
         /// Gets the directory where the assets will be stored on the disk relative to the <see cref="Package"/>. The directory
@@ -133,6 +139,7 @@ namespace Stride.Core.Assets
                 isDirty = isDirty,
                 SourceFolder = SourceFolder,
                 version = Version,
+                AlternativePath = AlternativePath,
             };
             YamlMetadata.CopyInto(item.YamlMetadata);
             return item;
@@ -170,7 +177,7 @@ namespace Stride.Core.Assets
 
                 rootDirectory = rootDirectory != null ? UPath.Combine(rootDirectory, localSourceFolder) : localSourceFolder;
 
-                var locationAndExtension = new UFile(Location + AssetRegistry.GetDefaultExtension(Asset.GetType()));
+                var locationAndExtension = AlternativePath ?? new UFile(Location + AssetRegistry.GetDefaultExtension(Asset.GetType()));
                 return rootDirectory != null ? UPath.Combine(rootDirectory, locationAndExtension) : locationAndExtension;
             }
         }

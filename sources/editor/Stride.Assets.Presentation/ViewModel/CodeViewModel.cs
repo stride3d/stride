@@ -232,7 +232,7 @@ namespace Stride.Assets.Presentation.ViewModel
         /// // Handle Script asset deletion (from Visual Studio/HDD external changes to Game Studio).
         /// </summary>
         /// <returns>False if user refused to continue (in case deleted assets were dirty).</returns>
-        private static async Task<bool> DeleteRemovedProjectAssets(ProjectViewModel projectViewModel, List<AssetViewModel> projectAssets, Project project, List<UFile> projectFiles)
+        private static async Task<bool> DeleteRemovedProjectAssets(ProjectViewModel projectViewModel, List<AssetViewModel> projectAssets, Project project, List<(UFile FilePath, UFile Link)> projectFiles)
         {
             // List IProjectAsset
             var currentProjectAssets = projectAssets.Where(x => x.AssetItem.Asset is IProjectAsset);
@@ -241,7 +241,7 @@ namespace Stride.Assets.Presentation.ViewModel
             foreach (var asset in currentProjectAssets)
             {
                 // Note: if file doesn't exist on HDD anymore (i.e. automatic csproj tracking for *.cs), no need to delete it anymore
-                bool isDeleted = !projectFiles.Contains(asset.AssetItem.FullPath);
+                bool isDeleted = !projectFiles.Any(x => x.FilePath == asset.AssetItem.FullPath);
                 if (isDeleted)
                 {
                     assetsToDelete.Add(asset);
@@ -275,7 +275,7 @@ namespace Stride.Assets.Presentation.ViewModel
         /// <summary>
         /// Handles project asset addition (from Visual Studio/HDD external changes to Game Studio).
         /// </summary>
-        private static void AddNewProjectAssets(ProjectViewModel projectViewModel, List<AssetViewModel> projectAssets, Project project, List<UFile> projectFiles)
+        private static void AddNewProjectAssets(ProjectViewModel projectViewModel, List<AssetViewModel> projectAssets, Project project, List<(UFile FilePath, UFile Link)> projectFiles)
         {
             // Nothing to add?
             if (projectFiles.Count == 0)
@@ -285,12 +285,12 @@ namespace Stride.Assets.Presentation.ViewModel
 
             var documentsToIgnore = (from scriptAsset in scriptAssets
                                      from document in projectFiles
-                                     let ufileDoc = new UFile(document)
+                                     let ufileDoc = document.FilePath
                                      where ufileDoc == scriptAsset.FullPath
                                      select document).ToList();
 
             //remove what we have already
-            var documentsCopy = new List<UFile>(projectFiles);
+            var documentsCopy = new List<(UFile FilePath, UFile Link)>(projectFiles);
             foreach (var document in documentsToIgnore)
             {
                 documentsCopy.Remove(document);
@@ -302,7 +302,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 var newScriptAssets = new List<AssetViewModel>();
                 foreach (var document in documentsCopy)
                 {
-                    var docFile = new UFile(document);
+                    var docFile = new UFile(document.FilePath);
                     var projFile = new UFile(project.FilePath);
 
                     var assetName = docFile.MakeRelative(projectViewModel.Package.RootDirectory).GetDirectoryAndFileNameWithoutExtension();

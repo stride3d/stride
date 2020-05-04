@@ -396,6 +396,7 @@ namespace Stride.Core.Assets
                 var assetItem = new AssetItem(asset.Location, newAsset)
                 {
                     SourceFolder = asset.SourceFolder,
+                    AlternativePath = asset.AlternativePath,
                 };
                 package.Assets.Add(assetItem);
             }
@@ -948,6 +949,7 @@ namespace Stride.Core.Assets
                 {
                     IsDirty = assetContent != null || aliasOccurred,
                     SourceFolder = sourceFolder.MakeRelative(RootDirectory),
+                    AlternativePath = assetFile.Link != null ? assetFullPath : null,
                 };
                 yamlMetadata.CopyInto(assetItem.YamlMetadata);
 
@@ -1281,7 +1283,7 @@ namespace Stride.Core.Assets
             return listFiles;
         }
 
-        public static List<UFile> FindAssetsInProject(string projectFullPath, out string nameSpace)
+        public static List<(UFile FilePath, UFile Link)> FindAssetsInProject(string projectFullPath, out string nameSpace)
         {
             var realFullPath = new UFile(projectFullPath);
             var project = VSProjectHelper.LoadProject(realFullPath);
@@ -1292,11 +1294,14 @@ namespace Stride.Core.Assets
                 nameSpace = null;
 
             var result = project.Items.Where(x => (x.ItemType == "Compile" || x.ItemType == "None") && string.IsNullOrEmpty(x.GetMetadataValue("AutoGen")))
+                // Build full path for Include and Link
+                .Select(x => (FilePath: UPath.Combine(dir, new UFile(x.EvaluatedInclude)), Link: x.HasMetadata("Link") ? UPath.Combine(dir, new UFile(x.GetMetadataValue("Link"))) : null))
+                // For items outside project, let's pretend they are link
+                .Select(x => (FilePath: x.FilePath, Link: x.Link ?? (!dir.Contains(x.FilePath) ? x.FilePath.GetFileName() : null)))
                 // Test both Stride and Xenko extensions
-                .Select(x => new UFile(x.EvaluatedInclude)).Where(x =>
-                    AssetRegistry.IsProjectAssetFileExtension(x.GetFileExtension())
-                    || AssetRegistry.IsProjectAssetFileExtension(x.GetFileExtension().Replace(".xk", ".sd")))
-                .Select(projectItem => UPath.Combine(dir, projectItem))
+                .Where(x =>
+                    AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension())
+                    || AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension().Replace(".xk", ".sd")))
                 // avoid duplicates otherwise it might save a single file as separte file with renaming
                 // had issues with case such as Effect.sdsl being registered twice (with glob pattern) and being saved as Effect.sdsl and Effect (2).sdsl
                 .Distinct()
@@ -1317,13 +1322,13 @@ namespace Stride.Core.Assets
                 return;
 
             string defaultNamespace;
-            var codePaths = FindAssetsInProject(project.FullPath, out defaultNamespace);
+            var projectAssets = FindAssetsInProject(project.FullPath, out defaultNamespace);
             package.RootNamespace = defaultNamespace;
-            var dir = new UDirectory(project.FullPath.GetFullDirectory());
+            var projectDirectory = new UDirectory(project.FullPath.GetFullDirectory());
 
-            foreach (var codePath in codePaths)
+            foreach (var projectAsset in projectAssets)
             {
-                list.Add(new PackageLoadingAssetFile(codePath, dir));
+                list.Add(new PackageLoadingAssetFile(projectAsset.FilePath, projectDirectory) { Link = projectAsset.Link });
             }
         }
 

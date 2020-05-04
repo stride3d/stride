@@ -27,7 +27,9 @@ namespace Stride.Core.Assets
 
         public bool Deleted;
 
-        public UFile AssetLocation => FilePath.MakeRelative(SourceFolder).GetDirectoryAndFileNameWithoutExtension();
+        public UFile AssetLocation => (Link ?? FilePath).MakeRelative(SourceFolder).GetDirectoryAndFileNameWithoutExtension();
+
+        public UFile Link { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageLoadingAssetFile"/> class.
