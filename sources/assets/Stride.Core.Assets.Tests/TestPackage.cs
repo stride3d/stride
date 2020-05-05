@@ -13,7 +13,7 @@ namespace Stride.Core.Assets.Tests
   
     public class TestPackage : TestBase
     {
-        [Fact]
+        [Fact(Skip = "Need check: we don't work with package directly anymore, they are considered external")]
         public void TestBasicPackageCreateSaveLoad()
         {
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
