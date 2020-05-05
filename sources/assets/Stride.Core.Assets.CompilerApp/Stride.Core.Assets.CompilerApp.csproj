@@ -16,13 +16,9 @@
     <OutputType>Exe</OutputType>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="EnvDTE" Version="8.0.1" Condition="$(TargetFramework.StartsWith('net4'))" />
