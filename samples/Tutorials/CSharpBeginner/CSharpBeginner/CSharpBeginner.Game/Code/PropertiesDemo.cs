@@ -21,13 +21,14 @@ namespace CSharpBeginner.Code
         [DataMember(5)]
         public bool SomeBoolean = true;
 
-        //Instead of using the name of the variable, you can also define your own text
+        // Instead of using the name of the variable, you can also define your own text
         [DataMember(4, "My custom text")]
         public float SomeFloat = 5.6f;
 
+        // Vectors
         public Vector2 SomeVector2; // Is the same as = new Vector2(0, 0);
         public Vector3 SomeVector3 = new Vector3(1, 2, 3);
-        public Vector4 SomeVector4 = new Vector4(5); //All 4 float value get the value of 5
+        public Vector4 SomeVector4 = new Vector4(5); // All 4 float value get the value of 5
         public Color SomeColor = Color.Red;
 
         // Turns a float in to a range slider
@@ -36,7 +37,11 @@ namespace CSharpBeginner.Code
         [DataMemberRange(1, 100, 0.1, 1, 3)]
         public float RangedFloat = 10.0f;
 
-        // If we want a list of ojects like strings, Entities or specific components, we have to create the new List right away
+        // Entities and components
+        public Entity ASingleEntity;
+        public CameraComponent ASingleCameraComponent;
+
+        // If we want a list of objects like strings, entities or specific components, we have to create the new List<> right away
         public List<string> StringList = new List<string>();
         public List<Entity> EntityList = new List<Entity>();
         public List<CameraComponent> CameraList = new List<CameraComponent>();
@@ -45,7 +50,7 @@ namespace CSharpBeginner.Code
         [DataMemberIgnore]
         public string HideMe;
 
-        //Enums can be used for dropdowns
+        // Enums can be used for dropdowns
         public CharacterType Character;
         public enum CharacterType
         {
