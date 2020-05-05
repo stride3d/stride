@@ -1,7 +1,7 @@
 ﻿<Project>
   <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
   <PropertyGroup>
-    <TargetFrameworks>net461</TargetFrameworks>
+    <TargetFramework>net461</TargetFramework>
     <AssemblyName>Stride.Physics.Tests</AssemblyName>
     <RootNamespace>Stride.Physics.Tests</RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>

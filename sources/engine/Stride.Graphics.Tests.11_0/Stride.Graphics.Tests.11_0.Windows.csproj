@@ -1,7 +1,7 @@
 <Project>
   <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
   <PropertyGroup>
-    <TargetFrameworks>net461</TargetFrameworks>
+    <TargetFramework>net461</TargetFramework>
     <AssemblyName>Stride.Graphics.Tests.11_0</AssemblyName>
     <RootNamespace>Stride.Graphics.Tests</RootNamespace>
     <StrideBuildTags>*</StrideBuildTags>
