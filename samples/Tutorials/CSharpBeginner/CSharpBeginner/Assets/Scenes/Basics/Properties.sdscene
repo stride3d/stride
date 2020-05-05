@@ -23,15 +23,15 @@ Hierarchy:
                         Children: {}
                     2152a9e53f38eda816420f34eb39f036: !CSharpBeginner.Code.PropertiesDemo,CSharpBeginner.Game
                         Id: 02e7fda4-24b3-437d-9641-1fcecdf1c8e4
+                        My custom text: 5.6
                         SomeBoolean: true
-                        SomeFloat: 5.6
-                        SomeInteger: 10
                         SomeString: Hello world
-                        SomeColor: {R: 255, G: 0, B: 0, A: 255}
+                        SomeInteger: 10
                         SomeVector2: {X: 1.0, Y: 2.0}
                         SomeVector3: {X: 1.0, Y: 2.0, Z: 3.0}
                         SomeVector4: {X: 1.0, Y: 2.0, Z: 3.0, W: 4.0}
-                        SomeEntity: ref!! 636e4147-1c07-48ee-84a9-8eada7a402ea
+                        SomeColor: {R: 255, G: 0, B: 0, A: 255}
+                        RangedFloat: 10.0
                         StringList:
                             d66098c323c01599e678936dc192de01: Stride
                             dc275836a690f9a8597d790971eb7cba: C#
@@ -39,6 +39,10 @@ Hierarchy:
                         EntityList:
                             b6444d59f1bbf1938a7b92fec2d5f622: ref!! 557b8f7d-38c7-426d-8ce1-801203b646dc
                             f6a55668f0d169b3c12737267c43227b: ref!! 636e4147-1c07-48ee-84a9-8eada7a402ea
+                        CameraList:
+                            acd3414d700ee12b22ad8469f6a52672: ref!! f6b0b765-51b7-4e5a-a548-e8579bc60a9d
+                        Character: Warrior
+                        Explanation: null
         -   Entity:
                 Id: 557b8f7d-38c7-426d-8ce1-801203b646dc
                 Name: Camera
