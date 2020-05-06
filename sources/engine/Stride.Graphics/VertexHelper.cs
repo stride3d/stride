@@ -121,7 +121,7 @@ namespace Stride.Graphics
             if (vertexBufferData == IntPtr.Zero) throw new ArgumentNullException("vertexBufferData");
             if (vertexCount <= 0) throw new ArgumentOutOfRangeException("vertexCount", "vertexCount must be > 0");
             if (vertexStride < 0) throw new ArgumentOutOfRangeException("vertexStride", "vertexStride must be >= 0");
-            if (maxTexcoord < 0) throw new ArgumentOutOfRangeException("maxTexcoord", "maxTexcoord must be > 0");
+            if (maxTexcoord < 0) throw new ArgumentOutOfRangeException("maxTexcoord", "maxTexcoord must be >= 0");
 
             // Get the stride from the vertex declaration if necessary
             if (vertexStride == 0)
