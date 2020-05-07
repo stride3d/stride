@@ -329,6 +329,8 @@ namespace Stride.Core.Assets
 
         public string TargetPath { get; set; }
 
+        public string AssemblyProcessorSerializationHashFile { get; set; }
+
         public UFile FullPath => VSProject.FullPath;
 
         private void DirectDependencies_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

@@ -30,7 +30,7 @@ namespace Stride.Core.Assets.CompilerApp
         /// <param name="useIncrementalBundles">Specifies if incremental bundles should be used, or writing a complete new one.</param>
         /// <exception cref="System.InvalidOperationException">
         /// </exception>
-        public void Build(Logger logger, PackageSession packageSession, string indexName, string outputDirectory, ISet<ObjectId> disableCompressionIds, bool useIncrementalBundles)
+        public void Build(Logger logger, PackageSession packageSession, string indexName, string outputDirectory, ISet<ObjectId> disableCompressionIds, bool useIncrementalBundles, List<string> bundleFiles)
         {
             if (logger == null) throw new ArgumentNullException("logger");
             if (packageSession == null) throw new ArgumentNullException("packageSession");
@@ -239,7 +239,13 @@ namespace Stride.Core.Assets.CompilerApp
                                 bundleBackend = outputBundleBackend;
                             }
 
-                            objDatabase.CreateBundle(bundle.ObjectIds.ToArray(), bundle.Name, bundleBackend, disableCompressionIds, bundle.IndexMap, dependencies, useIncrementalBundles);
+                            var topBundleUrl = objDatabase.CreateBundle(bundle.ObjectIds.ToArray(), bundle.Name, bundleBackend, disableCompressionIds, bundle.IndexMap, dependencies, useIncrementalBundles);
+                            // Expand list of incremental bundles
+                            BundleOdbBackend.ReadBundleHeader(topBundleUrl, out var bundleUrls);
+                            foreach (var bundleUrl in bundleUrls)
+                            {
+                                bundleFiles.Add(VirtualFileSystem.GetAbsolutePath(bundleUrl));
+                            }
                         }
 
                         // Dispose VFS created for groups

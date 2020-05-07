@@ -52,6 +52,7 @@
     <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe</StrideAssemblyProcessorPath>
     <StrideAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe</StrideAssemblyProcessorPath>
+    <StrideAssemblyProcessorSerializationHashFile>$(IntermediateOutputPath)$(TargetName).sdserializationhash</StrideAssemblyProcessorSerializationHashFile>
   </PropertyGroup>
   <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorPath)" Condition=" '$(StrideAssemblyProcessorPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
   <Target Name="StrideRunAssemblyProcessor" DependsOnTargets="ResolveAssemblyReferences">

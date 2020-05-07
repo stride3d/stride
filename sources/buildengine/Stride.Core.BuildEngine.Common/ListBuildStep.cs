@@ -20,6 +20,8 @@ namespace Stride.Core.BuildEngine
         /// <inheritdoc />
         public override string Title => ToString();
 
+        public IReadOnlyDictionary<ObjectUrl, InputObject> InputObjects => inputObjects;
+
         public IReadOnlyDictionary<ObjectUrl, OutputObject> OutputObjects => outputObjects;
 
         /// <inheritdoc/>
@@ -290,7 +292,7 @@ namespace Stride.Core.BuildEngine
             return outputObject;
         }
 
-        protected struct InputObject
+        public struct InputObject
         {
             public Command Command;
             public int Counter;

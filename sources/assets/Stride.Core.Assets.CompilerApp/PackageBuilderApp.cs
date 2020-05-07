@@ -93,6 +93,7 @@ namespace Stride.Core.Assets.CompilerApp
                 { "solution-file=", "Solution File Name", v => options.SolutionFile = v },
                 { "package-id=", "Package Id from the solution file", v => options.PackageId = Guid.Parse(v) },
                 { "package-file=", "Input Package File Name", v => options.PackageFile = v },
+                { "msbuild-uptodatecheck-filebase=", "BuildUpToDate File base for MSBuild; it will create one .inputs and one .outputs files", v => options.MSBuildUpToDateCheckFileBase = v },
                 { "o|output-path=", "Output path", v => options.OutputDirectory = v },
                 { "b|build-path=", "Build path", v => options.BuildDirectory = v },
                 { "log-file=", "Log build in a custom file.", v =>

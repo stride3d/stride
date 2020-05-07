@@ -32,6 +32,7 @@
     </Compile>
     <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
     <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
+    <None Include="..\..\..\deps\Stride.MSBuild.Tasks\bin\Release\**\*.*" PackagePath="tools\" Pack="true" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Assets.Models\Stride.Assets.Models.csproj" />

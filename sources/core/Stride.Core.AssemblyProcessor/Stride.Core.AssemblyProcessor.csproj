@@ -41,6 +41,7 @@
     <Compile Include="..\Stride.Core\Serialization\ArchiveMode.cs">
       <Link>Core\ArchiveMode.cs</Link>
     </Compile>
+    <Compile Include="..\Stride.Core\Serialization\DataSerializer.BinaryFormatVersion.cs" Link="Core\DataSerializer.BinaryFormatVersion.cs" />
     <Compile Include="..\Stride.Core\Serialization\DataSerializerGenericMode.cs">
       <Link>Core\DataSerializerGenericMode.cs</Link>
     </Compile>
