@@ -50,11 +50,16 @@
   <PropertyGroup>
     <!--By default, turn on assembly processor-->
     <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe</StrideAssemblyProcessorPath>
-    <StrideAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe</StrideAssemblyProcessorPath>
+    <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed.exe')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\</StrideAssemblyProcessorBasePath>
+    <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed.exe')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\</StrideAssemblyProcessorBasePath>
+    <StrideAssemblyProcessorPath>$(StrideAssemblyProcessorBasePath)Stride.Core.AssemblyProcessor.Packed.exe</StrideAssemblyProcessorPath>
     <StrideAssemblyProcessorSerializationHashFile>$(IntermediateOutputPath)$(TargetName).sdserializationhash</StrideAssemblyProcessorSerializationHashFile>
+
+    <StrideAssemblyProcessorHash>$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorPath).hash'))</StrideAssemblyProcessorHash>
+    <StrideAssemblyProcessorTempBasePath>$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
+    <StrideAssemblyProcessorTempPath>$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed.exe</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
-  <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorPath)" Condition=" '$(StrideAssemblyProcessorPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
+  <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorTempPath)" Condition=" '$(StrideAssemblyProcessorTempPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
   <Target Name="StrideRunAssemblyProcessor" DependsOnTargets="ResolveAssemblyReferences">
     <WriteLinesToFile File="$(IntermediateOutputPath)StrideReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
     <ItemGroup>
@@ -77,12 +82,18 @@
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --platform=$(StridePlatform) --targetFramework=$(StrideNETFrameworkVersion) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(StrideAssemblyProcessorOptions) --signkeyfile="$(AssemblyOriginatorKeyFile)" --delete-on-error</StrideAssemblyProcessorOptions>
     </PropertyGroup>
-    
+
+    <!-- Copy task to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
+    <ItemGroup>
+      <StrideAssemblyProcessorFilesToCopy Include="$(StrideAssemblyProcessorBasePath)*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(StrideAssemblyProcessorFilesToCopy)" DestinationFolder="$(StrideAssemblyProcessorTempBasePath)" Condition="!Exists('$(StrideAssemblyProcessorTempPath)')" />
+
     <!-- Run assembly processor -->
-    <Message Condition=" '$(StrideAssemblyProcessorDev)' != 'true' " Importance="low" Text="&quot;$(StrideAssemblyProcessorPath)&quot; $(StrideAssemblyProcessorOptions)"/>
+    <Message Condition=" '$(StrideAssemblyProcessorDev)' != 'true' " Importance="low" Text="&quot;$(StrideAssemblyProcessorTempPath)&quot; $(StrideAssemblyProcessorOptions)"/>
     <AssemblyProcessorTask Condition=" '$(StrideAssemblyProcessorDev)' != 'true' " Arguments="$(StrideAssemblyProcessorOptions)"/>
     <!-- Dev mode: don't use task to avoid locking the file -->
-    <Exec Condition=" '$(StrideAssemblyProcessorDev)' == 'true' " Command="&quot;$(StrideAssemblyProcessorPath)&quot; $(StrideAssemblyProcessorOptions)"/>
+    <Exec Condition=" '$(StrideAssemblyProcessorDev)' == 'true' " Command="&quot;$(StrideAssemblyProcessorTempPath)&quot; $(StrideAssemblyProcessorOptions)"/>
   </Target>
   <PropertyGroup Condition=" '$(StrideAssemblyProcessor)' == 'true'">
     <PrepareForRunDependsOn>
