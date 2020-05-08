@@ -52,14 +52,15 @@ namespace Stride.Rendering.ProceduralModels
         public Vector3 LocalOffset { get; set; }
 
         /// <summary>
-        /// Gets or sets the number of texture coordinates to generate. A value between 1 and 10, inclusive.
+        /// Gets or sets the number of texture coordinate channels to generate. A value between 1 and 10, inclusive.
         /// </summary>
         /// <value>
-        /// The number of texure coordinates.
+        /// The number of texure coordinate channels.
         /// </value>
         [DataMember(540)]
         [DataMemberRange(1, 10)]
-        public int NumOfTexCoords { get; set; } = 10;
+        [Display("Number of texture coordinate channels")]
+        public int NumberOfTextureCoordinates  { get; set; } = 10;
 
         /// <summary>
         /// Gets the material instance.
@@ -131,7 +132,7 @@ namespace Stride.Rendering.ProceduralModels
             var resultWithTangentBiNormal = VertexHelper.GenerateTangentBinormal(originalLayout, data.Vertices, data.Indices);
 
             // Generate Multitexcoords
-            var maxTexCoords = MathUtil.Clamp(NumOfTexCoords, 1, 10) - 1;
+            var maxTexCoords = MathUtil.Clamp(NumberOfTextureCoordinates, 1, 10) - 1;
             var result = VertexHelper.GenerateMultiTextureCoordinates(resultWithTangentBiNormal, vertexStride: 0, maxTexCoords);
 
             var meshDraw = new MeshDraw();

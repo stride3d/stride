@@ -108,7 +108,7 @@ namespace Stride.Graphics
         /// or
         /// vertexStride;vertexStride must be >= 0
         /// or
-        /// maxTexcoord;maxTexcoord must be > 0
+        /// maxTexcoord;maxTexcoord must be >= 0
         /// </exception>
         /// <exception cref="System.InvalidOperationException">The vertex buffer must contain at least the TEXCOORD</exception>
         /// <remarks>
