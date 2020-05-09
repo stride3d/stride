@@ -741,35 +741,6 @@ Hierarchy:
                         Id: 3aff3d9e-1144-4ae4-80a3-c55f609eb755
                         Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
                         Materials: {}
-        -   Folder: null
-            Entity:
-                Id: 75fa4754-410e-4878-947d-53cd542c3e87
-                Name: SwordModel
-                Components:
-                    53e58ce1c35e07b6d9f3c23aedfd4bad: !TransformComponent
-                        Id: e9f80586-d7ed-4a87-964e-390f301034f4
-                        Position: {X: -0.4492674, Y: 1.37974668, Z: -0.6138218}
-                        Rotation: {X: 0.144139141, Y: -0.692259967, Z: 0.144139111, W: 0.692259967}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    d39c34acc25c776a05897e9accc31423: !ModelComponent
-                        Id: 95a788ce-3434-4cf8-ae37-e6b7097edb6a
-                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
-                        Materials: {}
-        -   Entity:
-                Id: 79465203-faa0-46e8-82dd-184d345e8431
-                Name: SwordModel
-                Components:
-                    53e58ce1c35e07b6d9f3c23aedfd4bad: !TransformComponent
-                        Id: 59990585-9397-4237-b439-6ae90672fa2e
-                        Position: {X: 0.468746245, Y: 1.37974668, Z: -0.613822162}
-                        Rotation: {X: 0.1441391, Y: 0.692259967, Z: -0.144139126, W: 0.692259967}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    d39c34acc25c776a05897e9accc31423: !ModelComponent
-                        Id: d002902d-7bbc-470a-9ea4-eed10627377f
-                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
-                        Materials: {}
         -   Entity:
                 Id: 80443ae4-4786-4f59-912b-aefa27f31d39
                 Name: MagazineModel
@@ -1447,12 +1418,10 @@ Hierarchy:
                 Components:
                     27b40f87dc83f4e082bc391b44a630d1: !TransformComponent
                         Id: e1fc3070-5448-4f88-a2e9-1a7f700c9d98
-                        Position: {X: -4.34582233, Y: 4.76837158E-07, Z: -0.986444831}
+                        Position: {X: -4.31898546, Y: 4.76837158E-07, Z: -0.9314277}
                         Rotation: {X: 0.0, Y: 0.707106769, Z: 0.0, W: 0.707106769}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children:
-                            0a139d1a7656614e5b15886c98d98da3: ref!! 59990585-9397-4237-b439-6ae90672fa2e
-                            53b075f13e1edf04171ceb644ad3633a: ref!! e9f80586-d7ed-4a87-964e-390f301034f4
+                        Children: {}
                     3d00ed0baeabe05221aed41402b6be55: !ModelComponent
                         Id: 0fe31919-15cf-41e5-8e6b-4151a161b79b
                         Model: f5843999-e7e7-47d1-b2fe-b020a1f57982:Models/tableB

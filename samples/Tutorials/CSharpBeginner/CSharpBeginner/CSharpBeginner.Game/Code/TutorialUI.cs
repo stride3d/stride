@@ -19,7 +19,7 @@ namespace CSharpBeginner.Code
         private TextBlock tutorialTitleTxt;
 
         private float cameraLerpTimer = 0;
-        private float cameraLerpTime = 2.0f;
+        private float cameraLerpTime = 1.5f;
 
         private TransformComponent startTransform;
         private TransformComponent targetTransform;
@@ -40,6 +40,7 @@ namespace CSharpBeginner.Code
             var placeHolderButton = tutorialButtonsStackPanel.Children[0] as Button;
             var placeHolderTextBlock = placeHolderButton.VisualChildren[0] as TextBlock;
             placeHolderButton.Visibility = Visibility.Hidden;
+
 
             //Tutorial button text - Tutorial scene name
             var tutorialScenes = new Dictionary<string, string>();

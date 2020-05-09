@@ -31,7 +31,7 @@ namespace CSharpBeginner.Code
         public Vector4 SomeVector4 = new Vector4(5); // All 4 float value get the value of 5
         public Color SomeColor = Color.Red;
 
-        // Turns a float in to a range slider
+        // Turns a float value in to a range slider
         // Dragging the slider uses the smallstep value
         // Clicking the slider uses the bigstep value
         [DataMemberRange(1, 100, 0.1, 1, 3)]

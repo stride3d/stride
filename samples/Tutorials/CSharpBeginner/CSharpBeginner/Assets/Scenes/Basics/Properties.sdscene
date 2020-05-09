@@ -32,6 +32,8 @@ Hierarchy:
                         SomeVector4: {X: 1.0, Y: 2.0, Z: 3.0, W: 4.0}
                         SomeColor: {R: 255, G: 0, B: 0, A: 255}
                         RangedFloat: 10.0
+                        ASingleEntity: null
+                        ASingleCameraComponent: null
                         StringList:
                             d66098c323c01599e678936dc192de01: Stride
                             dc275836a690f9a8597d790971eb7cba: C#
