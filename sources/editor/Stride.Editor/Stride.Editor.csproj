@@ -8,6 +8,9 @@
     <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />

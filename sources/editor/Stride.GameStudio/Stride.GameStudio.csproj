@@ -20,6 +20,9 @@
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideLocalized>true</StrideLocalized>
     <DefineConstants>STRIDE_NUGET_RESOLVER_UX;$(DefineConstants)</DefineConstants>
+    <UseWPF>true</UseWPF>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>Stride.GameStudio.Program</StartupObject>
