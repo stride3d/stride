@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+#if STRIDE_INPUT_RAWINPUT
+using SharpDX.RawInput;
+#endif
 using Stride.Games;
 using WinFormsKeys = System.Windows.Forms.Keys;
 
@@ -42,7 +45,7 @@ namespace Stride.Input
             gameContext = inputManager.Game.Context as GameContext<Control>;
             uiControl = gameContext.Control;
             uiControl.LostFocus += UIControlOnLostFocus;
-            MissingInputHack(uiControl);
+            MissingInputHack();
 
             // Hook window proc
             defaultWndProc = Win32Native.GetWindowLong(uiControl.Handle, Win32Native.WindowLongType.WndProc);
@@ -64,24 +67,32 @@ namespace Stride.Input
         /// see Stride pull #181 for more information (https://github.com/stride3d/stride/pull/181).
         /// TODO: Find a proper solution to replace this workaround.
         /// </summary>
-        /// <param name="winformControl"></param>
-        private void MissingInputHack(Control winformControl)
+        private void MissingInputHack()
         {
 #if STRIDE_INPUT_RAWINPUT
-            if (winformControl.Handle == IntPtr.Zero)
+            Device.RegisterDevice(SharpDX.Multimedia.UsagePage.Generic, SharpDX.Multimedia.UsageId.GenericKeyboard, DeviceFlags.None);
+            Device.KeyboardInput += (sender, args) =>
             {
-                winformControl.HandleCreated += (sender, args) =>
+                switch (args.State)
                 {
-                    if (winformControl.Handle != IntPtr.Zero)
+                    case KeyState.SystemKeyDown:
+                    case KeyState.ImeKeyDown:
+                    case KeyState.KeyDown:
                     {
-                        MissingInputHack(winformControl);
+                        keyboard?.HandleKeyUp(args.Key);
+                        heldKeys.Add(args.Key);
+                        break;
                     }
-                };
-            }
-            else
-            {
-                SharpDX.RawInput.Device.RegisterDevice(SharpDX.Multimedia.UsagePage.Generic, SharpDX.Multimedia.UsageId.GenericKeyboard, SharpDX.RawInput.DeviceFlags.None, winformControl.Handle, SharpDX.RawInput.RegisterDeviceOptions.NoFiltering);
-            }
+                    case KeyState.SystemKeyUp:
+                    case KeyState.ImeKeyUp:
+                    case KeyState.KeyUp:
+                    {
+                        heldKeys.Remove(args.Key);
+                        keyboard?.HandleKeyDown(args.Key);
+                        break;
+                    }
+                }
+            };
 #endif
         }
 
