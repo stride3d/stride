@@ -178,13 +178,13 @@
   </PropertyGroup>
 
   <!-- Pack target -->
-  <!--<UsingTask TaskName="Stride.Core.Tasks.PackAssets" AssemblyFile="$(MSBuildThisFileDirectory)..\core\Stride.Core.Tasks\bin\$(Configuration)\net472\Stride.Core.Tasks.exe" />-->
+  <!--<UsingTask TaskName="Stride.Core.Tasks.PackAssets" AssemblyFile="$(MSBuildThisFileDirectory)..\core\Stride.Core.Tasks\bin\$(Configuration)\$(StrideEditorTargetFramework)\Stride.Core.Tasks.exe" />-->
   <Target Name="PrepareStrideAssetsForPack" BeforeTargets="_GetPackageFiles" Condition="'$(StridePackAssets)' == 'true'">
     <!-- We use exec version rather than task version, otherwise file will be locked during rebuild -->
     <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
       <Output TaskParameter="GeneratedItems" ItemName="None"/>
     </PackAssets>-->
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\core\Stride.Core.Tasks\bin\$(Configuration)\net472\Stride.Core.Tasks.exe&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)\stride&quot;" ConsoleToMsBuild="true">
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\core\Stride.Core.Tasks\bin\$(Configuration)\$(StrideEditorTargetFramework)\Stride.Core.Tasks.exe&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)\stride&quot;" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>

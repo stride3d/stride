@@ -47,8 +47,15 @@
 
     <StrideCompileAssetUpToDateCheckFileBase>$(ProjectDir)$(BaseIntermediateOutputPath)stride\assetcompiler-uptodatecheck</StrideCompileAssetUpToDateCheckFileBase>
 
-    <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net472\Stride.Core.Assets.CompilerApp.exe')">$(MSBuildThisFileDirectory)..\lib\net472\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
-    <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net472\Stride.Core.Assets.CompilerApp.exe')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net472\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
+    <!-- First try NuGet layout, then git checkout -->
+    <StrideCompileAssetCommandPath Condition="Exists('$(MSBuildThisFileDirectory)..\lib\')">$(MSBuildThisFileDirectory)..\lib</StrideCompileAssetCommandPath>
+    <StrideCompileAssetCommandPath Condition="Exists('$(MSBuildThisFileDirectory)..\bin\$(Configuration)\')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)</StrideCompileAssetCommandPath>
+
+    <!-- Try to guess correct which version of asset compiler to use depending on user TargetFramework -->
+    <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\netcoreapp3.1\Stride.Core.Assets.CompilerApp.exe') And $(TargetFramework.StartsWith('netcoreapp'))">netcoreapp3.1</StrideCompileAssetTargetFramework>
+    <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net472\Stride.Core.Assets.CompilerApp.exe')">net472</StrideCompileAssetTargetFramework>
+
+    <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == ''">$(StrideCompileAssetCommandPath)\$(StrideCompileAssetTargetFramework)\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
 
     <!--<StrideCompileAssetCommandProxy Condition="'$(DisableAssetCompilerExecServerProxy)' == 'true' Or '$(StrideDisableAssetCompilerExecServerProxy)' == 'true'">&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
     <StrideCompileAssetCommandProxy Condition="'$(StrideCompileAssetCommandProxy)' == ''">&quot;$(StridePackageStrideSdkBin)\Stride.Core.Assets.CompilerClient.exe&quot;</StrideCompileAssetCommandProxy>-->
@@ -57,8 +64,8 @@
 
   <!-- Prepare path to be able to copy Task dll to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
   <PropertyGroup>
-    <StrideMSBuildTaskSourcePath>$(MSBuildThisFileDirectory)..\tools\net472\Stride.MSBuild.Tasks.dll</StrideMSBuildTaskSourcePath>
-    <StrideMSBuildTaskAssemblyHash>$([System.IO.File]::ReadAllText('$(StrideMSBuildTaskSourcePath).hash'))</StrideMSBuildTaskAssemblyHash>
+    <StrideMSBuildTaskSourcePath>$(MSBuildThisFileDirectory)..\tools\$(StrideCompileAssetTargetFramework)\Stride.MSBuild.Tasks.dll</StrideMSBuildTaskSourcePath>
+    <StrideMSBuildTaskAssemblyHash Condition="Exists('$(StrideMSBuildTaskSourcePath)')">$([System.IO.File]::ReadAllText('$(StrideMSBuildTaskSourcePath).hash'))</StrideMSBuildTaskAssemblyHash>
     <StrideMSBuildTaskTempPath>$(TEMP)\Stride\MSBuildTasks\Stride.MSBuild.Tasks-$(StrideMSBuildTaskAssemblyHash).dll</StrideMSBuildTaskTempPath>
   </PropertyGroup>
 
