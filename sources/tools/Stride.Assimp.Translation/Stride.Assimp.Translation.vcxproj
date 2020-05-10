@@ -3,7 +3,7 @@
   <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <PropertyGroup>
     <StrideProjectType>Cpp</StrideProjectType>
-    <TargetFrameworkVersion>$(TargetFrameworkVersionTool)</TargetFrameworkVersion>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessorOptions />
   </PropertyGroup>
@@ -47,6 +47,7 @@
     <CharacterSet>MultiByte</CharacterSet>
     <CLRSupport>true</CLRSupport>
   </PropertyGroup>
+  <Import Project="..\..\targets\Stride.Core.Cpp.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>

@@ -3,7 +3,7 @@
   <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <PropertyGroup>
     <StrideProjectType>Cpp</StrideProjectType>
-    <TargetFrameworkVersion>$(TargetFrameworkVersionTool)</TargetFrameworkVersion>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessorOptions>
     </StrideAssemblyProcessorOptions>
@@ -55,6 +55,7 @@
     <CLRSupport>true</CLRSupport>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
+  <Import Project="..\..\targets\Stride.Core.Cpp.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -96,7 +97,7 @@
       <AdditionalOptions>/wd 4945 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
-  <ItemGroup>
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>

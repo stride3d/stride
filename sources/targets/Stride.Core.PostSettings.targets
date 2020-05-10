@@ -108,7 +108,7 @@
   </PropertyGroup>
   
   <!-- C++ doesn't auto-import language targets -->
-  <Import Condition="'$(StrideProjectType)' == 'Cpp' And '$(StrideCompilerTargetsEnable)' != 'false'" Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Condition="'$(StrideProjectType)' == 'Cpp' And '$(StrideCompilerTargetsEnable)' != 'false'" Project="$(MSBuildThisFileDirectory)Stride.Core.Cpp.targets" />
 
   <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorTempPath)" Condition=" '$(StrideAssemblyProcessorTempPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
   
