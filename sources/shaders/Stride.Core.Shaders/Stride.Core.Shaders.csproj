@@ -13,33 +13,6 @@
     <StrideAssemblyProcessorOptions>--serialization</StrideAssemblyProcessorOptions>
     <StrideBuildTags>*</StrideBuildTags>
   </PropertyGroup>
-  <Choose>
-    <When Condition="('$(StridePlatform)' == 'UWP')">
-      <ItemGroup>
-        <Reference Include="CppNet">
-          <HintPath>..\..\..\deps\CppNet\Store\CppNet.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="'$(StrideNETRuntime)' != ''">
-      <ItemGroup>
-        <Reference Include="CppNet">
-          <HintPath>..\..\..\deps\CppNet\$(StrideNETRuntime)\CppNet.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <Reference Include="CppNet">
-          <HintPath>..\..\..\deps\CppNet\CppNet.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-  <Choose>
-    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-    </When>
-  </Choose>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
@@ -69,6 +42,9 @@
     <None Include="Analysis\Hlsl\HlslDeclarations.h" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="CppNet">
+      <HintPath>..\..\..\deps\CppNet\netstandard1.3\CppNet.dll</HintPath>
+    </Reference>
     <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
     <ProjectReference Include="..\Irony\Irony.csproj" />
   </ItemGroup>

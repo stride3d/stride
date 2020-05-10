@@ -14,6 +14,8 @@
     <RestorePackages>true</RestorePackages>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <StrideRoslynPadTargetFramework Condition="$(TargetFramework.StartsWith('net4'))">net462</StrideRoslynPadTargetFramework>
+    <StrideRoslynPadTargetFramework Condition="$(TargetFramework.StartsWith('netcoreapp'))">netcoreapp3.1</StrideRoslynPadTargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
@@ -22,13 +24,13 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="3.4.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.4.0" />
     <Reference Include="RoslynPad.Editor.Windows">
-      <HintPath>$(StrideCommonDependenciesDir)RoslynPad\net462\RoslynPad.Editor.Windows.dll</HintPath>
+      <HintPath>$(StrideCommonDependenciesDir)RoslynPad\$(StrideRoslynPadTargetFramework)\RoslynPad.Editor.Windows.dll</HintPath>
     </Reference>
     <Reference Include="RoslynPad.Roslyn.Windows">
-      <HintPath>$(StrideCommonDependenciesDir)RoslynPad\net462\RoslynPad.Roslyn.Windows.dll</HintPath>
+      <HintPath>$(StrideCommonDependenciesDir)RoslynPad\$(StrideRoslynPadTargetFramework)\RoslynPad.Roslyn.Windows.dll</HintPath>
     </Reference>
     <Reference Include="RoslynPad.Roslyn">
-      <HintPath>$(StrideCommonDependenciesDir)RoslynPad\net462\RoslynPad.Roslyn.dll</HintPath>
+      <HintPath>$(StrideCommonDependenciesDir)RoslynPad\$(StrideRoslynPadTargetFramework)\RoslynPad.Roslyn.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Windows.Forms" />

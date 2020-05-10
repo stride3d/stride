@@ -22,13 +22,8 @@
     </When>
   </Choose>
   <ItemGroup>
-    <Reference Include="GNU.Getopt">
-      <HintPath>..\..\..\deps\Gettext.Net\GNU.Getopt.dll</HintPath>
-    </Reference>
-    <Reference Include="GNU.Gettext, Version=1.1.5392.32120, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\deps\Gettext.Net\GNU.Gettext.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Stride.GNU.Getopt" Version="1.0.0.0" />
+    <PackageReference Include="Stride.GNU.Gettext" Version="1.0.0.0" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />

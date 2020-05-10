@@ -21,10 +21,7 @@
     <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.4.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.4.0" />
-    <Reference Include="Renci.SshNet">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\deps\SSH.NET\Renci.SshNet.dll</HintPath>
-    </Reference>
+    <PackageReference Include="SSH.NET" Version="2016.1.0" />
     <PackageReference Include="System.AppContext" Version="4.3.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.6.0" />
     <PackageReference Include="System.Console" Version="4.3.1" />

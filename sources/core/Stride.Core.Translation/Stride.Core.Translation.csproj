@@ -13,10 +13,7 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GNU.Gettext, Version=1.1.6354.32453, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\deps\Gettext.Net\GNU.Gettext.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Stride.GNU.Gettext" Version="1.0.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
