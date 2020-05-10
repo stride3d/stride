@@ -102,9 +102,13 @@
     <!-- If StrideCompilerTargetsEnable is set to false, override LanguageTargets to an empty one -->
     <LanguageTargets Condition="'$(StrideCompilerTargetsEnable)' == 'false'">$(MSBuildThisFileDirectory)Stride.Core.DisableBuild.targets</LanguageTargets>
 
-    <StrideAssemblyProcessorHash Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorBasePath)\Stride.Core.AssemblyProcessor.Packed.exe.hash'))</StrideAssemblyProcessorHash>
-    <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
-    <StrideAssemblyProcessorTempPath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed.exe</StrideAssemblyProcessorTempPath>
+    <StrideAssemblyProcessorFramework Condition="'$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</StrideAssemblyProcessorFramework>
+    <StrideAssemblyProcessorFramework Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</StrideAssemblyProcessorFramework>
+    <StrideAssemblyProcessorExt Condition="'$(MSBuildRuntimeType)' == 'Core'">.dll</StrideAssemblyProcessorExt>
+    <StrideAssemblyProcessorExt Condition="'$(MSBuildRuntimeType)' != 'Core'">.exe</StrideAssemblyProcessorExt>
+    <StrideAssemblyProcessorHash Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorBasePath)\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt).hash'))</StrideAssemblyProcessorHash>
+    <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorTempBasePath>
+    <StrideAssemblyProcessorTempPath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
   
   <!-- C++ doesn't auto-import language targets -->
@@ -132,7 +136,7 @@
 
     <!-- Copy task to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
     <ItemGroup>
-      <StrideAssemblyProcessorFilesToCopy Include="$(StrideAssemblyProcessorBasePath)*.*" />
+      <StrideAssemblyProcessorFilesToCopy Include="$(StrideAssemblyProcessorBasePath)$(StrideAssemblyProcessorFramework)\*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(StrideAssemblyProcessorFilesToCopy)" DestinationFolder="$(StrideAssemblyProcessorTempBasePath)" Condition="!Exists('$(StrideAssemblyProcessorTempPath)')" />
 

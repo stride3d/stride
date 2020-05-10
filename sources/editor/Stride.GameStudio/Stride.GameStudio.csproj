@@ -39,8 +39,9 @@
     <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
     <PackageReference Include="Mono.Cecil" Version="0.10.4" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Stride.Core.AssemblyProcessor">
-      <HintPath>..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.exe</HintPath>
+    <Reference Include="Stride.Core.AssemblyProcessor" >
+      <HintPath Condition="$(TargetFramework.StartsWith('net4'))">..\..\..\deps\AssemblyProcessor\net472\Stride.Core.AssemblyProcessor.exe</HintPath>
+      <HintPath Condition="$(TargetFramework.StartsWith('netcoreapp'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Composition.Convention">
@@ -123,7 +124,7 @@
   <Target Name="IncludeExtraAssemblies">
     <ItemGroup>
       <BuildOutputInPackage Include="$(OutputPath)Mono.Cecil.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Core.AssemblyProcessor.exe" />
+      <BuildOutputInPackage Include="$(OutputPath)Stride.Core.AssemblyProcessor.*" />
     </ItemGroup>
   </Target>
 </Project>

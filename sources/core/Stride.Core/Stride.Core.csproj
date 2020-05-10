@@ -61,7 +61,7 @@
     <None Include="build\**\*.props" PackagePath="build\" Pack="true" />
     <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
     <None Include="build\**\*.props" PackagePath="buildTransitive\" Pack="true" />
-    <None Include="..\..\..\deps\AssemblyProcessor\*.*" PackagePath="tools\AssemblyProcessor\" Pack="true" />
+    <None Include="..\..\..\deps\AssemblyProcessor\**\*.*" Exclude="..\..\..\deps\AssemblyProcessor\.gitignore" PackagePath="tools\AssemblyProcessor\" Pack="true" />
   </ItemGroup>
   
   <ItemGroup>
