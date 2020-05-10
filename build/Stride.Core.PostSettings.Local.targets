@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!-- Override StrideBuildDirectory only now so that Stride common projects still get build in obj without StrideGraphicsApi -->
     <StrideAssemblyProcessorGlobal>true</StrideAssemblyProcessorGlobal>
-    <StrideAssemblyProcessorPath>$(StridePackageStride)\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed2.exe</StrideAssemblyProcessorPath>
+    <StrideAssemblyProcessorBasePath>$(StridePackageStride)\deps\AssemblyProcessor\</StrideAssemblyProcessorBasePath>
 
     <StrideDependenciesDir Condition="'$(StrideDependenciesDir)' == ''">$(StridePackageStride)\deps\</StrideDependenciesDir>
     <StrideDependenciesDir Condition="'$(StrideDependenciesDir)' != '' and !HasTrailingSlash('$(StrideDependenciesDir)')">$(StrideDependenciesDir)\</StrideDependenciesDir>

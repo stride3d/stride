@@ -101,14 +101,18 @@
 
     <!-- If StrideCompilerTargetsEnable is set to false, override LanguageTargets to an empty one -->
     <LanguageTargets Condition="'$(StrideCompilerTargetsEnable)' == 'false'">$(MSBuildThisFileDirectory)Stride.Core.DisableBuild.targets</LanguageTargets>
+
+    <StrideAssemblyProcessorHash Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorBasePath)\Stride.Core.AssemblyProcessor.Packed.exe.hash'))</StrideAssemblyProcessorHash>
+    <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
+    <StrideAssemblyProcessorTempPath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed.exe</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
   
   <!-- C++ doesn't auto-import language targets -->
   <Import Condition="'$(StrideProjectType)' == 'Cpp' And '$(StrideCompilerTargetsEnable)' != 'false'" Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 
-  <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorPath)" Condition=" '$(StrideAssemblyProcessorPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
+  <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorTempPath)" Condition=" '$(StrideAssemblyProcessorTempPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
   
-  <Target Name="RunStrideAssemblyProcessor" BeforeTargets="CopyFilesToOutputDirectory" Condition=" '$(StrideAssemblyProcessor)' == 'true' and '$(StrideAssemblyProcessorPath)' != '' and '$(StrideAssemblyProcessorGlobal)' == 'true' and '$(StrideAssemblyProcessorOptions)' != '' ">
+  <Target Name="RunStrideAssemblyProcessor" BeforeTargets="CopyFilesToOutputDirectory" Condition=" '$(StrideAssemblyProcessor)' == 'true' and '$(StrideAssemblyProcessorTempPath)' != '' and '$(StrideAssemblyProcessorGlobal)' == 'true' and '$(StrideAssemblyProcessorOptions)' != '' ">
     <PropertyGroup Condition="'$(StrideUserBuild)' != 'true'">
       <!-- Add Stride.Core path to assembly search directory -->
       <StrideAssemblyProcessorOptions Condition="'$(StrideCoreAssemblyPath)' != ''">$(StrideAssemblyProcessorOptions) --assembly="$(StrideCoreAssemblyPath)"</StrideAssemblyProcessorOptions>
@@ -126,11 +130,17 @@
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>
     </PropertyGroup>
 
+    <!-- Copy task to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
+    <ItemGroup>
+      <StrideAssemblyProcessorFilesToCopy Include="$(StrideAssemblyProcessorBasePath)*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(StrideAssemblyProcessorFilesToCopy)" DestinationFolder="$(StrideAssemblyProcessorTempBasePath)" Condition="!Exists('$(StrideAssemblyProcessorTempPath)')" />
+
     <!-- Run assembly processor -->
-    <Message Importance="High" Text="&quot;$(StrideAssemblyProcessorPath)&quot; $(StrideAssemblyProcessorOptions)"/>
+    <Message Importance="High" Text="&quot;$(StrideAssemblyProcessorTempPath)&quot; $(StrideAssemblyProcessorOptions)"/>
     <AssemblyProcessorTask Condition=" '$(StrideAssemblyProcessorDev)' != 'true' " Arguments="$(StrideAssemblyProcessorOptions)"/>
     <!-- Dev mode: don't use task to avoid locking the file -->
-    <Exec Condition=" '$(StrideAssemblyProcessorDev)' == 'true' " Command="&quot;$(StrideAssemblyProcessorPath)&quot; $(StrideAssemblyProcessorOptions)"/>
+    <Exec Condition=" '$(StrideAssemblyProcessorDev)' == 'true' " Command="&quot;$(StrideAssemblyProcessorTempPath)&quot; $(StrideAssemblyProcessorOptions)"/>
 
     <!-- Copy User Documentation (.usrdoc) file to output -->
     <Copy
@@ -177,6 +187,13 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
+
+  <!-- Make sure to run Pack even if IsInnerBuild is set to true, default run from MS is skipping it in this case -->
+  <Target Name="_StridePackAsBuildAfterTarget"
+        AfterTargets="Build"
+        Condition="'$(GeneratePackageOnBuild)' == 'true' And '$(StrideProjectType)' == 'CSharp'"
+        DependsOnTargets="Pack">
+  </Target>
 
   <!-- Auto NuGet build packages and deploy them -->
   <Import Project="$(MSBuildThisFileDirectory)Stride.AutoPack.targets"/>
