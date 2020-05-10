@@ -78,9 +78,37 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
+  <!-- Generate hash file for assembly -->
+  <UsingTask
+  TaskName="WriteAllText"
+  TaskFactory="RoslynCodeTaskFactory"
+  AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
+    <ParameterGroup>
+      <Path ParameterType="System.String" />
+      <Contents ParameterType="System.String" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System"/>
+      <Using Namespace="System.IO"/>
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+File.WriteAllText(Path, Contents);
+]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="GenerateHash" AfterTargets="PostBuildEvent">
+    <GetFileHash Files="$(SolutionDir)..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed.exe">
+      <Output
+          TaskParameter="Hash"
+          PropertyName="PackedAssemblyHash" />
+    </GetFileHash>
+    <WriteAllText Path="$(SolutionDir)..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed.exe.hash" Contents="$(PackedAssemblyHash)"/>
+  </Target>
   <PropertyGroup>
     <PostBuildEvent>xcopy /d /y $(TargetDir)*.* $(SolutionDir)..\deps\AssemblyProcessor
 cd $(SolutionDir)..\deps\AssemblyProcessor
-$(ILRepack) Stride.Core.AssemblyProcessor.exe Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll System.ValueTuple.dll /out:Stride.Core.AssemblyProcessor.Packed2.exe</PostBuildEvent>
+$(ILRepack) Stride.Core.AssemblyProcessor.exe Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll System.ValueTuple.dll /out:Stride.Core.AssemblyProcessor.Packed.exe</PostBuildEvent>
   </PropertyGroup>
 </Project>
