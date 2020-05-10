@@ -108,7 +108,7 @@ namespace CSharpBeginner.Code
 
             tutorialTitleTxt.Text = newTutorialScene.Key;
             tutorialButtonsStackPanel.Visibility = Visibility.Hidden;
-            tutorialScene = Content.Load<Scene>("Scenes/Basics/" + newTutorialScene.Value);
+            tutorialScene = Content.Load<Scene>("Scenes/Beginner/" + newTutorialScene.Value);
             tutorialScene.Parent = Entity.Scene;
             foreach (var entity in this.tutorialScene.Entities)
             {
