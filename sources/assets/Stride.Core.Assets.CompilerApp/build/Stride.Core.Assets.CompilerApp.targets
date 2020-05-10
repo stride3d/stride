@@ -64,11 +64,13 @@
 
   <!-- Prepare path to be able to copy Task dll to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
   <PropertyGroup>
+    <StrideMSBuildTaskTargetFramework Condition="'$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</StrideMSBuildTaskTargetFramework>
+    <StrideMSBuildTaskTargetFramework Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</StrideMSBuildTaskTargetFramework>
     <!-- First try NuGet layout, then git checkout -->
-    <StrideMSBuildTaskSourcePath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\$(StrideCompileAssetTargetFramework)\Stride.MSBuild.Tasks.dll')">$(MSBuildThisFileDirectory)..\tools\$(StrideCompileAssetTargetFramework)\Stride.MSBuild.Tasks.dll</StrideMSBuildTaskSourcePath>
-    <StrideMSBuildTaskSourcePath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\Stride.MSBuild.Tasks\bin\Release\$(StrideCompileAssetTargetFramework)\Stride.MSBuild.Tasks.dll')">$(MSBuildThisFileDirectory)..\..\..\..\deps\Stride.MSBuild.Tasks\bin\Release\$(StrideCompileAssetTargetFramework)\Stride.MSBuild.Tasks.dll</StrideMSBuildTaskSourcePath>
+    <StrideMSBuildTaskSourcePath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll')">$(MSBuildThisFileDirectory)..\tools\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll</StrideMSBuildTaskSourcePath>
+    <StrideMSBuildTaskSourcePath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\Stride.MSBuild.Tasks\bin\Release\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll')">$(MSBuildThisFileDirectory)..\..\..\..\deps\Stride.MSBuild.Tasks\bin\Release\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll</StrideMSBuildTaskSourcePath>
     <StrideMSBuildTaskAssemblyHash Condition="Exists('$(StrideMSBuildTaskSourcePath)')">$([System.IO.File]::ReadAllText('$(StrideMSBuildTaskSourcePath).hash'))</StrideMSBuildTaskAssemblyHash>
-    <StrideMSBuildTaskTempPath>$(TEMP)\Stride\MSBuildTasks\Stride.MSBuild.Tasks-$(StrideMSBuildTaskAssemblyHash).dll</StrideMSBuildTaskTempPath>
+    <StrideMSBuildTaskTempPath>$(TEMP)\Stride\MSBuildTasks\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks-$(StrideMSBuildTaskAssemblyHash).dll</StrideMSBuildTaskTempPath>
   </PropertyGroup>
 
   <UsingTask AssemblyFile="$(StrideMSBuildTaskTempPath)" TaskName="Stride.MSBuild.Tasks.SortItems"/>
