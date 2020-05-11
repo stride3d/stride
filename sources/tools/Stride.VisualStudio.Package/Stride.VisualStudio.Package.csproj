@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -146,6 +146,7 @@
   <Target Name="IncludeExtraAssemblies">
     <ItemGroup>
       <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\NuGet.*.dll" />
+      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\ServiceWire.dll" />
     </ItemGroup>
   </Target>
   <Import Project="$(StridePostSettingsTargets)" />
