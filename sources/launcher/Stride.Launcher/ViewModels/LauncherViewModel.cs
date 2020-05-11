@@ -57,7 +57,8 @@ namespace Stride.LauncherApp.ViewModels
 
             DisplayReleaseAnnouncement();
 
-            VsixPackage = new VsixVersionViewModel(this, store);
+            VsixPackage = new VsixVersionViewModel(this, store, store.VsixPluginId);
+            VsixPackageXenko = new VsixVersionViewModel(this, store, store.VsixPluginId.Replace("Stride", "Xenko"));
             // Commands
             InstallLatestVersionCommand = new AnonymousTaskCommand(ServiceProvider, InstallLatestVersion) { IsEnabled = false };
             OpenUrlCommand = new AnonymousTaskCommand<string>(ServiceProvider, OpenUrl);
@@ -92,6 +93,8 @@ namespace Stride.LauncherApp.ViewModels
         public bool ShowBetaVersions { get { return showBetaVersions; } set { SetValue(ref showBetaVersions, value); } }
 
         public VsixVersionViewModel VsixPackage { get; }
+
+        public VsixVersionViewModel VsixPackageXenko { get; }
 
         public StrideVersionViewModel ActiveVersion { get { return activeVersion; } set { SetValue(ref activeVersion, value); Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = (value != null) && value.CanStart); } }
 
@@ -175,6 +178,7 @@ namespace Stride.LauncherApp.ViewModels
                 await RetrieveServerStrideVersions();
                 await VsixPackage.UpdateFromStore();
                 await CheckForFirstInstall();
+                await VsixPackageXenko.UpdateFromStore();
 
                 await newsTask;
             });
