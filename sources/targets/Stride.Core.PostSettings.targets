@@ -192,13 +192,6 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
-  <!-- Make sure to run Pack even if IsInnerBuild is set to true, default run from MS is skipping it in this case -->
-  <Target Name="_StridePackAsBuildAfterTarget"
-        AfterTargets="Build"
-        Condition="'$(GeneratePackageOnBuild)' == 'true' And '$(StrideProjectType)' == 'CSharp'"
-        DependsOnTargets="Pack">
-  </Target>
-
   <!-- Auto NuGet build packages and deploy them -->
   <Import Project="$(MSBuildThisFileDirectory)Stride.AutoPack.targets"/>
 
