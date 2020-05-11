@@ -15,7 +15,7 @@ Hierarchy:
     Parts:
         -   Entity:
                 Id: 07347eb4-249b-41b0-a0d1-53648d6fb7a1
-                Name: Green Theapot
+                Name: Green Teapot
                 Components:
                     f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
                         Id: c6782912-86e4-4b95-a131-37275b5a8b31
@@ -62,7 +62,7 @@ Hierarchy:
                         GreenTeapot: ref!! 07347eb4-249b-41b0-a0d1-53648d6fb7a1
         -   Entity:
                 Id: 8cb12a7f-4d29-4a76-96f9-891bc5327ea6
-                Name: Blue Theapot
+                Name: Blue Teapot
                 Components:
                     f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
                         Id: 2e3cc2e8-f4ee-430f-b1b1-007e8656a529
@@ -76,7 +76,7 @@ Hierarchy:
                         Materials: {}
         -   Entity:
                 Id: c29e99d3-a22d-40cd-a186-47f86e45368f
-                Name: Yellow Theapot
+                Name: Yellow Teapot
                 Components:
                     f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
                         Id: a9a26b2f-87ba-4560-807c-821feee82430
