@@ -16,7 +16,7 @@ namespace CSharpBeginner.Code
             // Create a new VirtualButtonConfigSet if none exists. 
             Input.VirtualButtonConfigSet = Input.VirtualButtonConfigSet ?? new VirtualButtonConfigSet();
 
-            // Bind the "W" key and "Up arrow" a virtual button called "Forward".
+            // Bind the "W" key and "Up arrow" to a virtual button called "Forward".
             var forwardW = new VirtualButtonBinding("Forward", VirtualButton.Keyboard.W);
             var forwardUpArrow = new VirtualButtonBinding("Forward", VirtualButton.Keyboard.Up);
             var forwardLeftMouse = new VirtualButtonBinding("Forward", VirtualButton.Mouse.Left);
@@ -42,7 +42,7 @@ namespace CSharpBeginner.Code
                 BlueTeapot.Transform.Rotation *= Quaternion.RotationY(0.6f * deltaTime);
             }
 
-            DebugText.Print("Hold down W, the Up arrow or the left mouse button, to rotate the blue theapot", new Int2(600, 200));
+            DebugText.Print("Hold down W, the Up arrow or the left mouse button, to rotate the blue teapot", new Int2(600, 200));
             DebugText.Print("Virtual button 'Forward': " + movingForward, new Int2(600, 220));
         }
     }

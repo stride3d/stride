@@ -18,7 +18,7 @@ namespace CSharpBeginner.Code
             child1 = Entity.GetChild(1);
 
             // If we would try to get Child 3 (which doesn't exist), we would get an exception
-            // var nonExistinGChild = Entity.GetChild(2); 
+            // var nonExistingChild = Entity.GetChild(2); 
         }
 
         public override void Update()
