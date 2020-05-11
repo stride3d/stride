@@ -33,7 +33,7 @@ Hierarchy:
                         Slot: c9cb3666-f711-498c-9878-292e79ed7993
         -   Entity:
                 Id: 216b026f-a9fc-4b2b-9e67-1c0f155a75e2
-                Name: Yellow Theapot
+                Name: Yellow Teapot
                 Components:
                     f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
                         Id: dd47bf53-6469-4804-aeec-75dbde60f491
@@ -48,7 +48,7 @@ Hierarchy:
                             d520ca585d4faf100775350f15a43bf3~0: 619de649-4998-4996-bd74-085eaffdbbeb:Materials/Yellow
         -   Entity:
                 Id: 30e33c30-2e4e-4897-bc5d-b0f4eaa6cf45
-                Name: Green Theapot
+                Name: Green Teapot
                 Components:
                     f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
                         Id: ab577971-0021-4d67-a226-1f5458cf647d
@@ -79,7 +79,7 @@ Hierarchy:
                         PinkTeapot: ref!! d6a8c956-30ba-46eb-8c24-a2a4a21592aa
         -   Entity:
                 Id: 6d396448-ba38-4c5e-9ed5-9340b8fefc64
-                Name: Blue Theapot
+                Name: Blue Teapot
                 Components:
                     f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
                         Id: 31e6be99-cb82-4784-8539-b11dc2cde29e
@@ -94,7 +94,7 @@ Hierarchy:
         -   Folder: null
             Entity:
                 Id: d6a8c956-30ba-46eb-8c24-a2a4a21592aa
-                Name: Pink Theapot
+                Name: Pink Teapot
                 Components:
                     f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
                         Id: ce3becbe-c248-4289-9723-1d1dff0421ec
