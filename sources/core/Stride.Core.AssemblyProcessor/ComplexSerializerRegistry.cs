@@ -223,14 +223,14 @@ namespace Stride.Core.AssemblyProcessor
                 foreach (var genericParameterConstraint in genericParameter.Constraints)
                 {
                     // Skip value type constraint
-                    if (genericParameterConstraint.FullName != typeof(ValueType).FullName)
+                    if (genericParameterConstraint.ConstraintType.FullName != typeof(ValueType).FullName)
                     {
                         if (hasFirstContraint)
                         {
                             result.Append(", ");
                         }
 
-                        result.AppendFormat("{0}", genericParameterConstraint.ConvertCSharp());
+                        result.AppendFormat("{0}", genericParameterConstraint.ConstraintType.ConvertCSharp());
                         result.AppendLine();
 
                         hasFirstContraint = true;

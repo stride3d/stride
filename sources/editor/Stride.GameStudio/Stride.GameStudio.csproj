@@ -37,7 +37,7 @@
     <PackageReference Include="EnvDTE" Version="8.0.1" Condition="$(TargetFramework.StartsWith('net4'))" />
     <PackageReference Include="Stride.Metrics" Version="1.0.3" />
     <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
-    <PackageReference Include="Mono.Cecil" Version="0.10.4" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.2" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Stride.Core.AssemblyProcessor" >
       <HintPath Condition="$(TargetFramework.StartsWith('net4'))">..\..\..\deps\AssemblyProcessor\net472\Stride.Core.AssemblyProcessor.exe</HintPath>
