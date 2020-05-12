@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
@@ -91,7 +91,7 @@
     <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'UWP'" />
     <PackageReference Include="SharpDX.Direct3D12" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'UWP'" />
-    <PackageReference Include="Stride.OpenTK" Version="1.0.2" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'Android'" />
+    <PackageReference Include="Stride.OpenTK" Version="1.0.3" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'Android'" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="FrameworkResources.resx">
