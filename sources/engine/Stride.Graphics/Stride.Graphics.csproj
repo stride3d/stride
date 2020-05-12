@@ -67,18 +67,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
   </ItemGroup>
-  <ItemGroup Condition=" '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'Linux'">
-    <Reference Include="SharpFont">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(StrideDependenciesDir)SharpFont\$(StridePlatform)\SharpFont.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup Condition="'$(StridePlatform)' != 'iOS' And '$(StridePlatform)' != 'Linux'">
-    <Reference Include="SharpFont">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(StrideDependenciesDir)SharpFont\Portable\SharpFont.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
@@ -92,6 +80,7 @@
     <PackageReference Include="SharpDX.Direct3D12" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'UWP'" />
     <PackageReference Include="Stride.OpenTK" Version="1.0.3" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'Android'" />
+    <PackageReference Include="Stride.SharpFont" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="FrameworkResources.resx">
@@ -110,7 +99,6 @@
   </PropertyGroup>
   <Target Name="IncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)SharpFont.dll" />
       <BuildOutputInPackage Include="$(OutputPath)SharpVulkan.dll" Condition=" '$(StrideGraphicsApi)' == 'Vulkan' " />
       <BuildOutputInPackage Include="$(OutputPath)SDL2-CS.dll" Condition="$(StrideUI.Contains('SDL'))" />
     </ItemGroup>
