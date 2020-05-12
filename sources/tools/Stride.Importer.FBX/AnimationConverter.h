@@ -35,7 +35,7 @@ namespace Stride {
 
 					this->logger = logger;
 					this->sceneMapping = sceneMapping;
-					this->scene = sceneMapping->Scene;;
+					this->scene = sceneMapping->Scene;
 
 					auto documentInfo = scene->GetDocumentInfo();
 					if (documentInfo->Original_ApplicationName.Get() == "Maya")
@@ -803,7 +803,7 @@ namespace Stride {
 
 				void GetAnimationNodes(FbxAnimLayer* animLayer, FbxNode* pNode, List<String^>^ animationNodes)
 				{
-					auto nodeData = sceneMapping->FindNode(pNode);;
+					auto nodeData = sceneMapping->FindNode(pNode);
 					auto nodeName = nodeData.Name;
 
 					bool checkTranslation = pNode->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X) != NULL;

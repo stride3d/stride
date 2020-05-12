@@ -130,7 +130,7 @@ namespace ##Namespace##
         {
             var camera = Component;
             if (camera == null) return;
-            ;
+
             var rotation = Quaternion.Invert(Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
             var viewMatrix = Matrix.Translation(-position) * Matrix.RotationQuaternion(rotation);
             camera.ViewMatrix = viewMatrix;

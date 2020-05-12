@@ -133,7 +133,7 @@ namespace Stride.VirtualReality
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, graphicsDevice.FindOrCreateFBO(graphicsDevice.Presenter.BackBuffer));
 
-            var res = InternalSubmitFrame(frame, ref headMatrix);;
+            var res = InternalSubmitFrame(frame, ref headMatrix);
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, currentFrameBuffer);
 
