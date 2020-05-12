@@ -148,7 +148,7 @@ namespace Stride.Scripts
                             var drag = (GestureEventDrag)gestureEvent;
                             rotationDelta = drag.DeltaTranslation;
                             touchingFingers = drag.NumberOfFinger;
-                            if (touchingFingers == 1) rotationDelta = -rotationDelta; //reverse the delta in the case of a single finger camera move
+                            if (touchingFingers == 1) rotationDelta = -rotationDelta; // Reverse the delta in the case of a single finger camera move
                         }
                         break;
 
@@ -201,7 +201,7 @@ namespace Stride.Scripts
             var rotateCamera = Input.IsMouseButtonDown(MouseButton.Left) || Input.IsMouseButtonDown(MouseButton.Right) || touchingFingers == 1;
             if (rotateCamera)
             {
-                desiredYaw = Yaw -= 1.333f * rotationDelta.X * RotationSpeed; // we want to rotate faster Horizontally and Vertically
+                desiredYaw = Yaw -= 1.333f * rotationDelta.X * RotationSpeed; // We want to rotate faster Horizontally and Vertically
                 desiredPitch = Pitch = MathUtil.Clamp(Pitch - rotationDelta.Y * RotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
             }
 
@@ -235,7 +235,7 @@ namespace Stride.Scripts
                 desiredYaw = Yaw;
 
                 forward = -Vector3.Transform(ForwardVector, Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-                var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // camera forward vector project on the XZ plane
+                var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // Camera forward vector project on the XZ plane
                 position -= projectedForward * translationSpeed * MouseMoveSpeedFactor;
             }
 
@@ -255,7 +255,7 @@ namespace Stride.Scripts
                 desiredYaw = Yaw;
 
                 forward = Vector3.Transform(ForwardVector, Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-                var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // camera forward vector project on the XZ plane
+                var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // Camera forward vector project on the XZ plane
                 position -= projectedForward * translationSpeed * MouseWheelZoomSpeedFactor * -Input.MouseWheelDelta;
             }
             // Dolly
@@ -267,7 +267,7 @@ namespace Stride.Scripts
                     desiredYaw = Yaw;
 
                     forward = Vector3.Transform(ForwardVector, Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-                    var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // camera forward vector project on the XZ plane
+                    var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // Camera forward vector project on the XZ plane
                     position -= projectedForward * translationSpeed * MouseMoveSpeedFactor * rotationDelta.Y;
                 }
                 else if (Input.IsMouseButtonDown(MouseButton.Left) && Input.IsMouseButtonDown(MouseButton.Right))
@@ -296,7 +296,8 @@ namespace Stride.Scripts
         private void UpdateViewMatrix()
         {
             var camera = Component;
-            if (camera == null) return; ;
+            if (camera == null) return;
+
             var rotation = Quaternion.Invert(Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
             var viewMatrix = Matrix.Translation(-position) * Matrix.RotationQuaternion(rotation);
             camera.ViewMatrix = viewMatrix;

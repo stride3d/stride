@@ -1,4 +1,3 @@
-﻿
 using System;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
@@ -77,18 +76,18 @@ namespace ##Namespace##
 
                 if (Enabled)
                 {
-                    // toggle the filtering mode
+                    // Toggle the filtering mode
                     if (Input.IsKeyPressed(Keys.F1))
                     {
                         FilteringMode = (GameProfilingResults)(((int)FilteringMode + 1) % Enum.GetValues(typeof(GameProfilingResults)).Length);
                     }
-                    // toggle the sorting mode
+                    // Toggle the sorting mode
                     if (Input.IsKeyPressed(Keys.F2))
                     {
                         SortingMode = (GameProfilingSorting)(((int)SortingMode + 1) % Enum.GetValues(typeof(GameProfilingSorting)).Length);
                     }
 
-                    // update the result page
+                    // Update the result page
                     if (Input.IsKeyPressed(Keys.F3))
                     {
                         ResultPage = Math.Max(1, --ResultPage);
@@ -118,7 +117,7 @@ namespace ##Namespace##
                         ResultPage = 5;
                     }
 
-                    // update the refreshing speed
+                    // Update the refreshing speed
                     if (Input.IsKeyPressed(Keys.Subtract) || Input.IsKeyPressed(Keys.OemMinus))
                     {
                         RefreshTime = Math.Min(RefreshTime * 2, 10000);

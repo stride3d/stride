@@ -82,7 +82,7 @@ namespace Stride.UI
             {
                 if (float.IsNaN(value))
                     return;
-                minimumSize = MathUtil.Clamp(value, 0.0f, float.MaxValue); ;
+                minimumSize = MathUtil.Clamp(value, 0.0f, float.MaxValue);
                 CoerceMaximumSize(maximumSize);
                 DefinitionChanged?.Invoke(this, EventArgs.Empty);
             }
@@ -103,13 +103,13 @@ namespace Stride.UI
                     return;
 
                 type = value;
-                
+
                 DefinitionChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
         /// <summary>
-        /// Gets or sets the size value of the strip. 
+        /// Gets or sets the size value of the strip.
         /// Note that the value is interpreted differently depending on the strip <see cref="Type"/>.
         /// </summary>
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>

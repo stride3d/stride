@@ -381,7 +381,7 @@ namespace Stride.Core.Presentation.Controls
             var generator = ItemContainerGenerator;
 
             //Extent = finalSize;
-            var foundVisibleItem = false; ;
+            var foundVisibleItem = false;
             double currentY = 0;
             if (treeView.IsVirtualizing)
             {

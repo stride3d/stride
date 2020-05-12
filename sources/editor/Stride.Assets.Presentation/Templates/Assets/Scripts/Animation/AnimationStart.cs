@@ -18,21 +18,21 @@ namespace ##Namespace##
         public AnimationBlendOperation BlendOperation = AnimationBlendOperation.LinearBlend;
         public double StartTime = 0;
     }
-    
+
     /// <summary>
     /// Script which starts a few animations on its entity
     /// </summary>
     public class ##Scriptname## : StartupScript
     {
         /// <summary>
-        /// Al list of animations to be loaded when the script starts
+        /// A list of animations to be loaded when the script starts
         /// </summary>
         public readonly List<PlayAnimation> Animations = new List<PlayAnimation>();
 
         public override void Start()
         {
-			var animComponent = Entity.GetOrCreate<AnimationComponent>();
-        
+            var animComponent = Entity.GetOrCreate<AnimationComponent>();
+
             if (animComponent != null)
                 PlayAnimations(animComponent);
 
