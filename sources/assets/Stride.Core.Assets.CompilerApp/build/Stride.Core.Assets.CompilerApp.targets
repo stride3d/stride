@@ -216,6 +216,10 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="StrideAssetUpdateGeneratedFiles">
+    <Exec Command="&quot;$(StrideCompileAssetCommand)&quot; --updated-generated-files --package-file=&quot;$(MSBuildProjectFullPath)&quot;"/>
+  </Target>
+
   <!-- 
   *****************************************************************************************************************************
   Default items for sdsl/sdfx (mark generated files as dependent)

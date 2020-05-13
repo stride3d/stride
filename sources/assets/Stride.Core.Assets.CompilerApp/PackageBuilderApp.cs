@@ -25,6 +25,7 @@ using Stride.Rendering.Materials;
 using Stride.Rendering.ProceduralModels;
 using Stride.SpriteStudio.Offline;
 using Stride.Core.Assets.CompilerApp.Tasks;
+using Stride.Core.IO;
 
 namespace Stride.Core.Assets.CompilerApp
 {
@@ -66,6 +67,7 @@ namespace Stride.Core.Assets.CompilerApp
             var exeName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var showHelp = false;
             var packMode = false;
+            var updateGeneratedFilesMode = false;
             var buildEngineLogger = GlobalLogger.GetLogger("BuildEngine");
             var options = new PackageBuilderOptions(new ForwardingLoggerResult(buildEngineLogger));
 
@@ -114,6 +116,7 @@ namespace Stride.Core.Assets.CompilerApp
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
                 { "server=", "This Compiler is launched as a server", v => { } },
                 { "pack", "Special mode to copy assets and resources in a folder for NuGet packaging", v => packMode = true },
+                { "updated-generated-files", "Special mode to update generated files (such as .sdsl.cs)", v => updateGeneratedFilesMode = true },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
                 { "test=", "Run a test session.", v => options.TestName = v },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
@@ -197,6 +200,42 @@ namespace Stride.Core.Assets.CompilerApp
                     }
                     globalLoggerOnGlobalMessageLogged.TextFormatter = FormatLog;
                     GlobalLogger.GlobalMessageLogged += globalLoggerOnGlobalMessageLogged;
+                }
+
+                if (updateGeneratedFilesMode)
+                {
+                    PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+
+                    var csprojFile = options.PackageFile;
+
+                    var logger = new LoggerResult();
+                    var projectDirectory = new UDirectory(Path.GetDirectoryName(csprojFile));
+                    var package = Package.Load(logger, csprojFile, new PackageLoadParameters()
+                    {
+                        LoadMissingDependencies = false,
+                        AutoCompileProjects = false,
+                        LoadAssemblyReferences = false,
+                        AutoLoadTemporaryAssets = true,
+                        TemporaryAssetFilter = assetFile => AssetRegistry.IsProjectCodeGeneratorAssetFileExtension(assetFile.FilePath.GetFileExtension().ToLowerInvariant())
+                    });
+
+                    foreach (var assetItem in package.TemporaryAssets)
+                    {
+                        if (assetItem.Asset is IProjectFileGeneratorAsset projectGeneratorAsset)
+                        {
+                            try
+                            {
+                                options.Logger.Info($"Processing: {assetItem}");
+                                projectGeneratorAsset.SaveGeneratedAsset(assetItem);
+                            }
+                            catch (Exception e)
+                            {
+                                options.Logger.Error($"Unhandled exception while updating generated files for {assetItem}", e);
+                            }
+                        }
+                    }
+
+                    return (int)BuildResultCode.Successful;
                 }
 
                 if (unexpectedArgs.Any())

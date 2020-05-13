@@ -5,12 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-using Stride.Shaders.Parser;
-using Stride.Shaders.Parser.Mixins;
-
-namespace Stride.VisualStudio.Commands.Shaders
+namespace Stride.Shaders.Parser.Mixins
 {
-    class ShaderKeyFileHelper
+    public class ShaderKeyFileHelper
     {
         public static byte[] GenerateCode(string inputFileName, string inputFileContent)
         {
@@ -26,7 +23,7 @@ namespace Stride.VisualStudio.Commands.Shaders
                     // XKFX
                     macros = new[]
                     {
-                        new Stride.Core.Shaders.Parser.ShaderMacro("shader", "effect")
+                        new Core.Shaders.Parser.ShaderMacro("shader", "effect")
                     };
                 }
                 else
@@ -34,7 +31,7 @@ namespace Stride.VisualStudio.Commands.Shaders
                     // XKSL
                     macros = new[]
                     {
-                        new Stride.Core.Shaders.Parser.ShaderMacro("class", "shader")
+                        new Core.Shaders.Parser.ShaderMacro("class", "shader")
                     };
                 }
 
