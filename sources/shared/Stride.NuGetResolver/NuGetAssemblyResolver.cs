@@ -88,7 +88,7 @@ namespace Stride.Core.Assets
 
                             // Only allow this specific version
                             var versionRange = new VersionRange(new NuGetVersion(StrideVersion.NuGetVersion), true, new NuGetVersion(StrideVersion.NuGetVersion), true);
-                            var (request, result) = RestoreHelper.Restore(logger, nugetFramework, "win", Assembly.GetExecutingAssembly().GetName().Name, versionRange).Result;
+                            var (request, result) = RestoreHelper.Restore(logger, nugetFramework, "win", Assembly.GetExecutingAssembly().GetName().Name, versionRange);
                             if (!result.Success)
                             {
                                 throw new InvalidOperationException($"Could not restore NuGet packages");

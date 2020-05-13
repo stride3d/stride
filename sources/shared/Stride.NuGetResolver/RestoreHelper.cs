@@ -60,7 +60,7 @@ namespace Stride.Core.Assets
             return assemblies;
         }
 
-        public static async Task<(RestoreRequest, RestoreResult)> Restore(ILogger logger, NuGetFramework nugetFramework, string runtimeIdentifier, string packageName, VersionRange versionRange)
+        public static (RestoreRequest, RestoreResult) Restore(ILogger logger, NuGetFramework nugetFramework, string runtimeIdentifier, string packageName, VersionRange versionRange)
         {
             var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
 
@@ -129,12 +129,12 @@ namespace Stride.Core.Assets
                 {
                     try
                     {
-                        var results = await RestoreRunner.RunWithoutCommit(requests, restoreArgs);
+                        var results = RestoreRunner.RunWithoutCommit(requests, restoreArgs).Result;
 
                         // Commit results so that noop cache works next time
                         foreach (var result in results)
                         {
-                            await result.Result.CommitAsync(logger, CancellationToken.None);
+                            result.Result.CommitAsync(logger, CancellationToken.None).Wait();
                         }
                         var mainResult = results.First();
                         return (mainResult.SummaryRequest.Request, mainResult.Result);
