@@ -25,7 +25,7 @@ namespace CSharpBeginner.Code
                 if (Input.IsKeyDown(Keys.D1))
                 {
                     var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
-                    BlueTeapot.Transform.RotationEulerXYZ += new Vector3(0, 0.3f * deltaTime, 0);
+                    BlueTeapot.Transform.Rotation *= Quaternion.RotationY(0.3f * deltaTime);
                 }
 
                 // Use 'IsKeyPressed' for a single key press event. 
