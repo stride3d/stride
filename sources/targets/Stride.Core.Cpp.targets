@@ -1,8 +1,4 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup Condition="'$(TargetFramework)' != ''">
-    <OutDir>$(MSBuildProjectDirectory)\bin\$(TargetFramework)\$(Configuration)\</OutDir>
-    <IntDir>$(MSBuildProjectDirectory)\obj\$(TargetFramework)\$(Configuration)\</IntDir>
-  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.Cpp.CrossTargeting.targets" Condition="'$(TargetFrameworks)' != '' And '$(TargetFramework)' == ''" />
 </Project>
