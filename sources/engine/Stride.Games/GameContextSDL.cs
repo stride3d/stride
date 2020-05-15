@@ -17,8 +17,8 @@ namespace Stride.Games
         }
 
         /// <inheritDoc/>
-        public GameContextSDL(Window control, int requestedWidth = 0, int requestedHeight = 0)
-            : base(control ?? new GameFormSDL(), requestedWidth, requestedHeight) 
+        public GameContextSDL(Window control, int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
+            : base(control ?? new GameFormSDL(), requestedWidth, requestedHeight, isUserManagingRun)
         {
             ContextType = AppContextType.DesktopSDL;
         }

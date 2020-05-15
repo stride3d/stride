@@ -170,24 +170,33 @@ namespace Stride.Games
             // Initialize the init callback
             InitCallback();
 
-            var runCallback = new SDLMessageLoop.RenderCallback(RunCallback);
-            // Run the rendering loop
-            try
+            var context = (GameContextSDL)GameContext;
+            if (context.IsUserManagingRun)
             {
-                SDLMessageLoop.Run(window, () =>
-                {
-                    if (Exiting)
-                    {
-                        Destroy();
-                        return;
-                    }
-
-                    runCallback();
-                });
+                context.RunCallback = RunCallback;
+                context.ExitCallback = ExitCallback;
             }
-            finally
+            else
             {
-                ExitCallback?.Invoke();
+                var runCallback = new SDLMessageLoop.RenderCallback(RunCallback);
+                // Run the rendering loop
+                try
+                {
+                    SDLMessageLoop.Run(window, () =>
+                    {
+                        if (Exiting)
+                        {
+                            Destroy();
+                            return;
+                        }
+
+                        runCallback();
+                    });
+                }
+                finally
+                {
+                    ExitCallback?.Invoke();
+                }
             }
         }
 
