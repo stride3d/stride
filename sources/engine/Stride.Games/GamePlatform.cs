@@ -57,7 +57,7 @@ namespace Stride.Games
             return new GamePlatformiOS(game);
 #else
             // Here we cover all Desktop variants: OpenTK, SDL, Winforms,...
-            return new GamePlatformWindows(game);
+            return new GamePlatformDesktop(game);
 #endif
         }
 
