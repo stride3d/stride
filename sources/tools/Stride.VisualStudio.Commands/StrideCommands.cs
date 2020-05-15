@@ -4,13 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using NShader;
+using Stride.Core;
 using Stride.Core.Assets;
-using Stride.Shaders.Parser;
-using Stride.VisualStudio.BuildEngine;
-using Stride.VisualStudio.Commands.Shaders;
 using Stride.Core.Shaders.Ast;
 using Stride.Core.Shaders.Utility;
-using Stride.Core;
+using Stride.Shaders.Parser;
+using Stride.Shaders.Parser.Mixins;
+using Stride.VisualStudio.BuildEngine;
 
 namespace Stride.VisualStudio.Commands
 {
