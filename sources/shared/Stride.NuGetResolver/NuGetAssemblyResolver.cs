@@ -35,14 +35,8 @@ namespace Stride.Core.Assets
             assembliesResolved = true;
         }
 
-        [ModuleInitializer(-100000)]
-        internal static void __Initialize__()
+        internal static void SetupNuGet(string packageName, string packageVersion)
         {
-            // Only perform this for entry assembly
-            if (!(Assembly.GetEntryAssembly() == null // .NET FW: null during module .ctor
-                || Assembly.GetEntryAssembly() == Assembly.GetCallingAssembly())) // .NET Core: check against calling assembly
-                return;
-
             // Make sure our nuget local store is added to nuget config
             var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string strideFolder = null;
@@ -87,8 +81,8 @@ namespace Stride.Core.Assets
                             var nugetFramework = NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance);
 
                             // Only allow this specific version
-                            var versionRange = new VersionRange(new NuGetVersion(StrideVersion.NuGetVersion), true, new NuGetVersion(StrideVersion.NuGetVersion), true);
-                            var (request, result) = RestoreHelper.Restore(logger, nugetFramework, "win", Assembly.GetExecutingAssembly().GetName().Name, versionRange);
+                            var versionRange = new VersionRange(new NuGetVersion(packageVersion), true, new NuGetVersion(packageVersion), true);
+                            var (request, result) = RestoreHelper.Restore(logger, nugetFramework, "win", packageName, versionRange);
                             if (!result.Success)
                             {
                                 throw new InvalidOperationException($"Could not restore NuGet packages");

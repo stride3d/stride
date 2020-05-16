@@ -19,6 +19,7 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideLocalized>true</StrideLocalized>
+    <StrideSTAThreadOnMain>true</StrideSTAThreadOnMain>
     <DefineConstants>STRIDE_NUGET_RESOLVER_UX;$(DefineConstants)</DefineConstants>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
