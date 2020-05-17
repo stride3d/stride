@@ -150,6 +150,8 @@ namespace Stride.Games
                 //gameForm.AppDeactivated += OnDeactivated;
                 gameForm.UserResized += OnClientSizeChanged;
                 gameForm.CloseActions += GameForm_CloseActions;
+                gameForm.FullscreenToggle += OnFullscreenToggle;
+                
             }
             else
             {
