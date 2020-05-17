@@ -19,7 +19,7 @@ namespace JumpyJet
 
         private EventReceiver gameOverListener = new EventReceiver(GameGlobals.GameOverEventKey);
         private EventReceiver gameResetListener = new EventReceiver(GameGlobals.GameResetEventKey);
-        private EventReceiver gameStartedListener = new EventReceiver(GameGlobals.GameStartedventKey);
+        private EventReceiver gameStartedListener = new EventReceiver(GameGlobals.GameStartedEventKey);
 
         private readonly List<Entity> pipeSets = new List<Entity>();
         
@@ -83,12 +83,12 @@ namespace JumpyJet
                     var prevPipeSetIndex =  (i + pipeSets.Count - 1) % pipeSets.Count;
 
                     var nextPosX = pipeSets[prevPipeSetIndex].Transform.Position.X + GapBetweenPipe;
-                    pipeSetTransform.Position = new Vector3(nextPosX, GetPipeRandoYPosition(), 0);
+                    pipeSetTransform.Position = new Vector3(nextPosX, GetPipeRandomYPosition(), 0);
                 }
             }
         }
 
-        private float GetPipeRandoYPosition()
+        private float GetPipeRandomYPosition()
         {
             return GameGlobals.GamePixelToUnitScale * random.Next(50, 225);
         }
@@ -96,7 +96,7 @@ namespace JumpyJet
         private void Reset()
         {
             for (var i = 0; i < pipeSets.Count; ++i)
-                pipeSets[i].Transform.Position = new Vector3(StartPipePosition + i * GapBetweenPipe, GetPipeRandoYPosition(), 0);
+                pipeSets[i].Transform.Position = new Vector3(StartPipePosition + i * GapBetweenPipe, GetPipeRandomYPosition(), 0);
         }
 
         public override void Cancel()
