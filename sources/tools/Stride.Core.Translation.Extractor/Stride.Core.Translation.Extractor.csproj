@@ -12,21 +12,11 @@
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
-  <Choose>
-    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-      <ItemGroup>
-        <Reference Include="System" />
-        <Reference Include="System.Core" />
-      </ItemGroup>
-    </When>
-  </Choose>
   <ItemGroup>
     <PackageReference Include="Stride.GNU.Getopt" Version="1.0.0.0" />
     <PackageReference Include="Stride.GNU.Gettext" Version="1.0.0.0" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>

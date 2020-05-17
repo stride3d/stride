@@ -12,8 +12,6 @@
   <ItemGroup>
     <PackageReference Include="EnvDTE" Version="8.0.1" Condition="$(TargetFramework.StartsWith('net4'))" />
     <PackageReference Include="Stride.ServiceWire" Version="5.3.3" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

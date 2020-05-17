@@ -32,14 +32,6 @@
     <Reference Include="RoslynPad.Roslyn">
       <HintPath>$(StrideCommonDependenciesDir)RoslynPad\$(StrideRoslynPadTargetFramework)\RoslynPad.Roslyn.dll</HintPath>
     </Reference>
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

@@ -30,7 +30,6 @@
     <Reference Include="MonoDevelop.Ide">
       <HintPath>$(ProgramFiles)\Xamarin Studio\bin\MonoDevelop.Ide.dll</HintPath>
     </Reference>
-    <Reference Include="System.Data.DataSetExtensions" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Manifest.addin.xml" />

@@ -22,9 +22,6 @@
     </When>
   </Choose>
   <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
-  <ItemGroup Condition="$(StridePlatform) == 'Windows' And $(TargetFramework.StartsWith('net4'))">
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>

@@ -19,8 +19,6 @@
   <ItemGroup>
     <PackageReference Include="EnvDTE" Version="8.0.1" Condition="$(TargetFramework.StartsWith('net4'))" />
     <PackageReference Include="Stride.ServiceWire" Version="5.3.3" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\core\Stride.Core\Native\NativeLibraryInternal.cs">

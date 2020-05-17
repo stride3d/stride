@@ -11,9 +11,6 @@
     <PackageReference Include="NuGet.Protocol" Version="5.5.1" />
     <PackageReference Include="Stride.NuGet.PackageManagement" Version="5.5.1" />
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

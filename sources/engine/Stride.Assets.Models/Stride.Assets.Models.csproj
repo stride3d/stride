@@ -12,7 +12,6 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tools\Stride.Importer.Assimp\Stride.Importer.Assimp.vcxproj" PrivateAssets="All" />

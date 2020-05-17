@@ -8,10 +8,6 @@
     <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\..\shared\ConsoleProgram.cs">
       <Link>Frontend\Console\ConsoleProgram.cs</Link>
     </Compile>

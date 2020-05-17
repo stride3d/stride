@@ -26,7 +26,6 @@
     <Reference Include="nunit.framework">
       <HintPath>..\..\..\deps\NUnit\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.AssemblyProcessor\Stride.Core.AssemblyProcessor.csproj" />
