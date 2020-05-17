@@ -41,10 +41,15 @@ namespace CSharpBeginner.Code
         public Entity ASingleEntity;
         public CameraComponent ASingleCameraComponent;
 
-        // If we want a list of objects like strings, entities or specific components, we have to create the new List<> right away
+        // If we want a list of objects like strings, entities or specific components,
+        // we have to initialize the new List<> right away
         public List<string> StringList = new List<string>();
         public List<Entity> EntityList = new List<Entity>();
         public List<CameraComponent> CameraList = new List<CameraComponent>();
+
+        // Dictionaries also need to be initialized
+        public Dictionary<string, int> aSimpleDictionary = new Dictionary<string, int>();
+        public Dictionary<AmmoComponent, CameraComponent> aComponentDictionary = new Dictionary<AmmoComponent, CameraComponent>();
 
         // If we dont want a public property to be visible in the editor we can use '[DataMemberIgnore]'
         [DataMemberIgnore]
