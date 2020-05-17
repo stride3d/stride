@@ -23,7 +23,6 @@ using Stride.Graphics;
 using Stride.Particles;
 using Stride.Rendering.Materials;
 using Stride.Rendering.ProceduralModels;
-using Stride.SpriteStudio.Offline;
 using Stride.Core.Assets.CompilerApp.Tasks;
 using Stride.Core.IO;
 
@@ -48,7 +47,6 @@ namespace Stride.Core.Assets.CompilerApp
             RuntimeHelpers.RunModuleConstructor(typeof(MaterialKeys).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(SpriteFontAsset).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(ModelAsset).Module.ModuleHandle);
-            RuntimeHelpers.RunModuleConstructor(typeof(SpriteStudioAnimationAsset).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(ParticleSystem).Module.ModuleHandle);
             //var project = new Package();
             //project.Save("test.sdpkg");
