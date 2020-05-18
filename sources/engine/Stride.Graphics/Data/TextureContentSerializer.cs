@@ -73,6 +73,18 @@ namespace Stride.Graphics.Data
                     // Check if streaming service is available
                     if (texturesStreamingProvider != null)
                     {
+                        // Load initial texture (with limited number of mipmaps)
+                        if (storageHeader.InitialImage)
+                        {
+                            using (var textureData = Image.Load(stream.NativeStream))
+                            {
+                                if (texture.GraphicsDevice != null)
+                                    texture.OnDestroyed(); //Allows fast reloading todo review maybe?
+
+                                texture.InitializeFrom(textureData.Description, new TextureViewDescription(), textureData.ToDataBox());
+                            }
+                        }
+
                         if (allowContentStreaming)
                         {
                             // Register texture for streaming
@@ -84,18 +96,6 @@ namespace Stride.Graphics.Data
                         {
                             // Request texture loading (should be fully loaded)
                             texturesStreamingProvider.FullyLoadTexture(texture, ref imageDescription, ref storageHeader);
-                        }
-
-                        // Load initial texture (with limited number of mipmaps)
-                        if (storageHeader.InitialImage)
-                        {
-                            using (var textureData = Image.Load(stream.NativeStream))
-                            {
-                                if (texture.GraphicsDevice != null)
-                                    texture.OnDestroyed(); //Allows fast reloading todo review maybe?
-
-                                texture.InitializeFrom(textureData.Description, new TextureViewDescription(), textureData.ToDataBox());
-                            }
                         }
                     }
                     else
