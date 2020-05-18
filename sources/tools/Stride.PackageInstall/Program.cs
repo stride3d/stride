@@ -150,6 +150,17 @@ namespace Stride.PackageInstall
 
         private static void CheckVisualStudioAndBuildTools()
         {
+            var vsInstallerPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft Visual Studio\Installer\vs_installer.exe");
+
+            // Check if an old version of VS2017 is installed because some people had to update before everything was working
+            // https://github.com/stride3d/stride/issues/673#issuecomment-621155230
+            foreach (var vs2017Instance in VisualStudioVersions.AllAvailableVisualStudioInstances.Where(x => x.Version.Major == 15).ToList())
+            {
+                if (vs2017Instance.Version.Minor < 9)
+                {
+                    UpdateVisualStudioToLatest(vsInstallerPath, vs2017Instance);
+                }
+            }
 
             // Check if there is any VS2019 installed with necessary workloads
             var matchingVisualStudioInstallation = VisualStudioVersions.AvailableVisualStudioInstances.FirstOrDefault(x => NecessaryVS2019Workloads.All(workload => x.PackageVersions.ContainsKey(workload)));
@@ -162,29 +173,13 @@ namespace Stride.PackageInstall
             {
                 // Check if there is actually a VS2019+ installed
                 var existingVisualStudio2019Install = VisualStudioVersions.AvailableVisualStudioInstances.FirstOrDefault(x => x.PackageVersions.ContainsKey("Microsoft.VisualStudio.Component.CoreEditor"));
-                var vsInstallerPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft Visual Studio\Installer\vs_installer.exe");
                 if (AllowVisualStudioOnly && existingVisualStudio2019Install != null && File.Exists(vsInstallerPath))
                 {
                     // First, check if a Visual Studio update is needed
                     // Note: not necessary since VS2019, still keeping code for when we'll need a specific VS2019 version
                     if (existingVisualStudio2019Install.Version.Major == 16 && existingVisualStudio2019Install.Version.Minor < 0)
                     {
-                        // Not sure why, but it seems VS Update is sometimes sending Ctrl+C to our process...
-                        try
-                        {
-                            Console.CancelKeyPress += Console_IgnoreControlC;
-                            var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"update --noUpdateInstaller --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\"", DialogBoxTryAgainVS);
-                            if (vsInstallerExitCode != 0)
-                            {
-                                var errorMessage = $"Visual Studio 2019 update failed with error {vsInstallerExitCode}";
-                                MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                throw new InvalidOperationException(errorMessage);
-                            }
-                        }
-                        finally
-                        {
-                            Console.CancelKeyPress -= Console_IgnoreControlC;
-                        }
+                        UpdateVisualStudioToLatest(vsInstallerPath, existingVisualStudio2019Install);
                     }
 
                     // Second, check workloads
@@ -231,6 +226,26 @@ namespace Stride.PackageInstall
                         RunProgramAndAskUntilSuccess("Build Tools", "vs_buildtools.exe", buildToolsCommandLine, DialogBoxTryAgainVS);
                     }
                 }
+            }
+        }
+
+        private static void UpdateVisualStudioToLatest(string vsInstallerPath, IDEInfo existingVisualStudioInstall)
+        {
+            try
+            {
+                // Not sure why, but it seems VS Update is sometimes sending Ctrl+C to our process...
+                Console.CancelKeyPress += Console_IgnoreControlC;
+                var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"update --noUpdateInstaller --passive --norestart --installPath \"{existingVisualStudioInstall.InstallationPath}\"", DialogBoxTryAgainVS);
+                if (vsInstallerExitCode != 0)
+                {
+                    var errorMessage = $"{existingVisualStudioInstall.DisplayName} update failed with error {vsInstallerExitCode}";
+                    MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    throw new InvalidOperationException(errorMessage);
+                }
+            }
+            finally
+            {
+                Console.CancelKeyPress -= Console_IgnoreControlC;
             }
         }
 
