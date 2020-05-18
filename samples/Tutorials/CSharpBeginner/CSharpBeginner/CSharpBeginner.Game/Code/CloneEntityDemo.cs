@@ -42,7 +42,7 @@ namespace CSharpBeginner.Code
             // That means it will use the parent's world position + parent's local position
             clone2.Transform.Parent = Entity.Transform;
 
-            // Move it the right so that we can see it
+            // Scale it up in all axes so we can clearly see it
             clone2.Transform.Scale = new Vector3(1.6f);
         }
 

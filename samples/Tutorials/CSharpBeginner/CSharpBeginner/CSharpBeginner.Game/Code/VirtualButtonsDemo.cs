@@ -33,7 +33,7 @@ namespace CSharpBeginner.Code
 
         public override void Update()
         {
-            // We retrieve a float value from the virtual button. When the value is higher than 0, we now that we have at least of keys or mouse pressed
+            // We retrieve a float value from the virtual button. When the value is higher than 0, we know that we have at least one of the keys or mouse pressed
             var movingForward = Input.GetVirtualButton(0, "Forward");
 
             if (movingForward > 0)
