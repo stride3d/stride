@@ -18,7 +18,7 @@ namespace Stride.PackageInstall
 {
     class Program
     {
-        private static readonly string[] NecessaryVS2019Workloads = new[] { "Microsoft.VisualStudio.Workload.ManagedDesktop", "Microsoft.NetCore.ComponentGroup.DevelopmentTools.2.1" };
+        private static readonly string[] NecessaryVS2019Workloads = new[] { "Microsoft.VisualStudio.Workload.ManagedDesktop", "Microsoft.VisualStudio.Workload.NetCoreTools", "Microsoft.NetCore.ComponentGroup.DevelopmentTools.2.1" };
         private static readonly string[] NecessaryBuildTools2019Workloads = new[] { "Microsoft.VisualStudio.Workload.MSBuildTools", "Microsoft.VisualStudio.Workload.NetCoreBuildTools", "Microsoft.Net.Component.4.6.1.TargetingPack" };
         private const bool AllowVisualStudioOnly = true; // Somehow this doesn't work well yet, so disabled for now
 
