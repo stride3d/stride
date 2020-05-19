@@ -126,17 +126,13 @@ Example of use:
     <_StridePackageTargetPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == 'true'">PrerequisitesInstaller</_StridePackageTargetPrerequisitesInstaller>
   </PropertyGroup>
   <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;VSIXPlugin"/>
+
+  <Target Name="RestoreInternal">
+    <MSBuild Targets="Restore" Projects="$(StrideSolution).sln" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApi=$(StrideGraphicsApi);StridePlatforms=$(StridePlatforms)" />
+  </Target>
   
   <Target Name="Restore">
-    <PropertyGroup>
-      <RestoreExec><![CDATA[
-        set StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)
-        set StrideGraphicsApi=$(StrideGraphicsApi)
-        set StridePlatforms=$(StridePlatforms)
-        "$(NuGetPath)" restore "$(StrideSolution).sln"
-      ]]></RestoreExec>
-    </PropertyGroup>
-    <Exec Command="$(RestoreExec)" />
+    <CallTarget Targets="RestoreInternal" />
   </Target>
 
   <Target Name="Build">
@@ -178,12 +174,12 @@ Example of use:
   </Target>
 
   <Target Name="BuildAndroid">
-    <Exec Command='"$(NuGetPath)" restore "$(StrideSolution).Android.sln"' />
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Android"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).Android.sln" Properties="$(BuildProperties);StridePlatforms=Android;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
   <Target Name="BuildiOS">
-    <Exec Command='"$(NuGetPath)" restore "$(StrideSolution).iOS.sln"' />
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).iOS"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).iOS.sln" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
   
@@ -232,7 +228,7 @@ Example of use:
   </Target> 
   
   <Target Name="BuildmacOS">
-    <Exec Command='"$(NuGetPath)" restore "$(StrideSolution).macOS.sln"' />
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StrideSolution=$(StrideSolution).macOS"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).macOS.sln" Properties="$(BuildProperties);Platform=macOS"/>
   </Target> 
 
@@ -311,31 +307,31 @@ Example of use:
     <!-- Direct3D12 unit tests -->
     <ItemGroup Condition="$(StrideTestCategories.Contains(';GameDirect3D12;'))">
       <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).Direct3D12.sln</Solution></UnitTest>
+      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).Direct3D12</Solution></UnitTest>
     </ItemGroup>
 
     <!-- OpenGL unit tests -->
     <ItemGroup Condition="$(StrideTestCategories.Contains(';GameOpenGL;'))">
       <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).OpenGL.sln</Solution></UnitTest>
+      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).OpenGL</Solution></UnitTest>
     </ItemGroup>
 
     <!-- OpenGLES unit tests -->
     <ItemGroup Condition="$(StrideTestCategories.Contains(';GameOpenGLES;'))">
       <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).OpenGLES.sln</Solution></UnitTest>
+      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).OpenGLES</Solution></UnitTest>
     </ItemGroup>
     
     <!-- Vulkan unit tests -->
     <ItemGroup Condition="$(StrideTestCategories.Contains(';GameVulkan;'))">
       <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).Vulkan.sln</Solution></UnitTest>
+      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).Vulkan</Solution></UnitTest>
     </ItemGroup>
     
     <!-- Android unit tests -->
     <ItemGroup Condition="$(StrideTestCategories.Contains(';GameAndroid;'))">
       <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGameAndroid)"><Solution>$(StrideSolution).Android.sln</Solution></UnitTest> 
+      <UnitTest Include="@(UnitTestGameAndroid)"><Solution>$(StrideSolution).Android</Solution></UnitTest> 
     </ItemGroup>
     
     <!-- Samples unit tests -->
@@ -349,28 +345,28 @@ Example of use:
         <!-- Replace . into _ (needed for .sln targets) -->
         <TargetName>$([System.String]::Copy('%(Identity)').Replace('.','_'))</TargetName>
         <!-- Default solution -->
-        <Solution Condition="'%(UnitTestPrerequisites.Solution)' == ''">$(StrideSolution).sln</Solution>
+        <Solution Condition="'%(UnitTestPrerequisites.Solution)' == ''">$(StrideSolution)</Solution>
       </UnitTestPrerequisites>
       <UnitTest>
         <!-- Replace . into _ (needed for .sln targets) -->
         <TargetName>$([System.String]::Copy('%(Identity)').Replace('.','_'))</TargetName>
         <!-- Default solution -->
-        <Solution Condition="'%(UnitTest.Solution)' == ''">$(StrideSolution).sln</Solution>
+        <Solution Condition="'%(UnitTest.Solution)' == ''">$(StrideSolution)</Solution>
       </UnitTest>
     </ItemGroup>
     
     <!-- Restore NuGet packages -->
     <Message Importance="High" Text="Restoring NuGet packages"/>
-    <Exec Condition="'%(UnitTestPrerequisites.Solution)' != ''" Command='"$(NuGetPath)" restore "%(UnitTestPrerequisites.Solution)"' />
-    <Exec Condition="'%(UnitTest.Solution)' != ''" Command='"$(NuGetPath)" restore "%(UnitTest.Solution)"' />
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Condition="'%(UnitTestPrerequisites.Solution)' != ''" Properties="StrideSolution=%(UnitTestPrerequisites.Solution)"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Condition="'%(UnitTest.Solution)' != ''" Properties="StrideSolution=%(UnitTest.Solution)"/>
     
     <!-- First, build prerequisites -->
-    <Message Importance="High" Text="Building unit test prerequisites from solution %(Solution): @(UnitTestPrerequisites->'%(TargetName)')"/>
-    <MSBuild Targets="@(UnitTestPrerequisites->'%(TargetName)')" Projects="%(Solution)" Properties="$(BuildProperties);Platform=Mixed Platforms;DeployExtension=true"/>
+    <Message Condition="'%(UnitTestPrerequisites.Solution)' != ''" Importance="High" Text="Building unit test prerequisites from solution %(UnitTestPrerequisites.Solution).sln: @(UnitTestPrerequisites->'%(TargetName)')"/>
+    <MSBuild Condition="'%(UnitTestPrerequisites.Solution)' != ''" Targets="@(UnitTestPrerequisites->'%(TargetName)')" Projects="%(UnitTestPrerequisites.Solution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms;DeployExtension=true"/>
 
     <!-- Build unit tests -->
-    <Message Importance="High" Text="Building unit test from solution %(Solution): @(UnitTest->'%(TargetName)')"/>
-    <MSBuild Targets="@(UnitTest->'%(TargetName)');$(StrideTestExtraTargets)" Projects="%(Solution)" Properties="$(BuildProperties);DeployExtension=true">
+    <Message Condition="'%(UnitTest.Solution)' != ''" Importance="High" Text="Building unit test from solution %(UnitTest.Solution).sln: @(UnitTest->'%(TargetName)')"/>
+    <MSBuild Condition="'%(UnitTest.Solution)' != ''" Targets="@(UnitTest->'%(TargetName)');$(StrideTestExtraTargets)" Projects="%(Solution).sln" Properties="$(BuildProperties);DeployExtension=true">
       <Output TaskParameter="TargetOutputs" ItemName="AssembliesToTest" />
     </MSBuild>
 
@@ -514,7 +510,7 @@ Example of use:
   </Target>
   
   <Target Name="BuildLauncher">
-    <Exec Command='"$(NuGetPath)" restore "$(StrideSolutionLauncher).sln"' />
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StrideSolution=$(StrideSolutionLauncher)"/>
     <MSBuild Targets="Build" Projects="$(StrideSolutionLauncher).sln" Properties="$(BuildProperties);Platform=Any CPU"/>
   </Target>
 
