@@ -422,7 +422,7 @@ namespace Stride.Graphics.Tests
             Skip.If(sourceFormat == ImageFileType.Wmp || sourceFormat == ImageFileType.Tga, "TODO remove this when Load/Save methods are implemented for those types.");
             Skip.If(Platform.Type == PlatformType.Android && sourceFormat == ImageFileType.Tiff, "TODO remove this when Load/Save methods are implemented for this type.");
 
-            TestName = nameof(TestLoadDraw);
+            TestName = $"{nameof(TestLoadDraw)}({sourceFormat})";
 
             PerformDrawTest(
                 (game, context) =>

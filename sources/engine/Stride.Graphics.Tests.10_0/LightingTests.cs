@@ -102,113 +102,97 @@ namespace Stride.Graphics.Tests
         [Fact]
         public void SceneNoLighting()
         {
-            TestName = nameof(SceneNoLighting);
-            RunGameTest(new LightingTests { AmbientLight = false });
+            RunGameTest(new LightingTests { AmbientLight = false, TestName = nameof(SceneNoLighting) });
         }
 
         [Fact]
         public void SceneAmbientLight()
         {
-            TestName = nameof(SceneAmbientLight);
-            RunGameTest(new LightingTests());
+            RunGameTest(new LightingTests { TestName = nameof(SceneAmbientLight) });
         }
 
         [Fact]
         public void ScenePointLight()
         {
-            TestName = nameof(ScenePointLight);
-            RunGameTest(new LightingTests { PointLight = true });
+            RunGameTest(new LightingTests { PointLight = true, TestName = nameof(ScenePointLight) });
         }
 
         [Fact]
         public void ScenePointLightShadowCubeMap()
         {
-            TestName = nameof(ScenePointLightShadowCubeMap);
-            RunGameTest(new LightingTests { PointLightShadowCubeMap = true });
+            RunGameTest(new LightingTests { PointLightShadowCubeMap = true, TestName = nameof(ScenePointLightShadowCubeMap) });
         }
 
         [Fact]
         public void ScenePointLightShadowParaboloid()
         {
-            TestName = nameof(ScenePointLightShadowParaboloid);
-            RunGameTest(new LightingTests { PointLightShadowParaboloid = true });
+            RunGameTest(new LightingTests { PointLightShadowParaboloid = true, TestName = nameof(ScenePointLightShadowParaboloid) });
         }
 
         [Fact]
         public void SceneSpotLight()
         {
-            TestName = nameof(SceneSpotLight);
-            RunGameTest(new LightingTests { SpotLight = true });
+            RunGameTest(new LightingTests { SpotLight = true, TestName = nameof(SceneSpotLight) });
         }
 
         [Fact]
         public void SceneSpotLightShadow()
         {
-            TestName = nameof(SceneSpotLightShadow);
-            RunGameTest(new LightingTests { SpotLightShadow = true });
+            RunGameTest(new LightingTests { SpotLightShadow = true, TestName = nameof(SceneSpotLightShadow) });
         }
 
         [Fact]
         public void SceneDirectionalLight()
         {
-            TestName = nameof(SceneDirectionalLight);
-            RunGameTest(new LightingTests { DirectionalLight = true });
+            RunGameTest(new LightingTests { DirectionalLight = true, TestName = nameof(SceneDirectionalLight) });
         }
 
         [Fact]
         public void SceneDirectionalLightShadowOneCascade()
         {
-            TestName = nameof(SceneDirectionalLightShadowOneCascade);
-            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true });
+            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, TestName = nameof(SceneDirectionalLightShadowOneCascade) });
         }
 
         [Fact]
         public void SceneTwoDirectionalLightShadowOneCascade()
         {
-            TestName = nameof(SceneTwoDirectionalLightShadowOneCascade);
-            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowOneCascade2 = true });
+            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowOneCascade2 = true, TestName = nameof(SceneTwoDirectionalLightShadowOneCascade) });
         }
 
         [Fact]
         public void SceneDirectionalLightShadowOneFourCascade()
         {
-            TestName = nameof(SceneDirectionalLightShadowOneFourCascade);
-            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowFourCascades = true });
+            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowFourCascades = true, TestName = nameof(SceneDirectionalLightShadowOneFourCascade) });
         }
 
         [Fact]
         public void SceneDirectionalLightShadowOneCascadePCF()
         {
-            TestName = nameof(SceneDirectionalLightShadowOneCascadePCF);
-            RunGameTest(new LightingTests { DirectionalLightShadowOneCascadePCF = true });
+            RunGameTest(new LightingTests { DirectionalLightShadowOneCascadePCF = true, TestName = nameof(SceneDirectionalLightShadowOneCascadePCF) });
         }
 
         [Fact]
         public void SceneDirectionalLightShadowFourCascades()
         {
-            TestName = nameof(SceneDirectionalLightShadowFourCascades);
-            RunGameTest(new LightingTests { DirectionalLightShadowFourCascades = true });
+            RunGameTest(new LightingTests { DirectionalLightShadowFourCascades = true, TestName = nameof(SceneDirectionalLightShadowFourCascades) });
         }
 
         [Fact]
         public void SceneSkybox()
         {
-            TestName = nameof(SceneSkybox);
-            RunGameTest(new LightingTests { Skybox = true });
+            RunGameTest(new LightingTests { Skybox = true, TestName = nameof(SceneSkybox) });
         }
 
         [Fact]
         public void SceneSkyboxRotated()
         {
-            TestName = nameof(SceneSkyboxRotated);
-            RunGameTest(new LightingTests { SkyboxRotated = true });
+            RunGameTest(new LightingTests { SkyboxRotated = true, TestName = nameof(SceneSkyboxRotated) });
         }
 
         [Fact]
         public void SceneSkyboxMultiple()
         {
-            TestName = nameof(SceneSkyboxMultiple);
-            RunGameTest(new LightingTests { Skybox = true, SkyboxRotated = true });
+            RunGameTest(new LightingTests { Skybox = true, SkyboxRotated = true, TestName = nameof(SceneSkyboxMultiple) });
         }
 
     }
