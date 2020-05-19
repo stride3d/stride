@@ -99,12 +99,6 @@ namespace Stride.Graphics.Tests
         //    GraphicsDevice.DrawQuad(effectInstance.Effect, effectParameters);
         //}
 
-        internal static void Main()
-        {
-            using (var game = new TestScene())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

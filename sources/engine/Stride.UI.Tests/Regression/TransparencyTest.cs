@@ -26,8 +26,6 @@ namespace Stride.UI.Tests.Regression
 
         private float zValue;
 
-        public bool IsAutomatic;
-
         public TransparencyTest()
         {
         }
@@ -60,7 +58,7 @@ namespace Stride.UI.Tests.Regression
         {
             base.Update(gameTime);
 
-            if (IsAutomatic)
+            if (ForceInteractiveMode)
             {
                 zValue = 100 * (1 + (float)Math.Sin(gameTime.Total.TotalSeconds));
 
@@ -110,18 +108,6 @@ namespace Stride.UI.Tests.Regression
         public void RunTransparencyUnitTest()
         {
             RunGameTest(new TransparencyTest());
-        }
-
-        /// <summary>
-        /// Launch the Image test.
-        /// </summary>
-        internal static void Main()
-        {
-            using (var game = new TransparencyTest())
-            {
-                game.IsAutomatic = true;
-                game.Run();
-            }
         }
     }
 }

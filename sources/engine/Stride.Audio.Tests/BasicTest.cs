@@ -69,11 +69,5 @@ namespace Stride.Audio.Tests
         {
             RunGameTest(new BasicTest());
         }
-
-        internal static void Main()
-        {
-            using (var game = new BasicTest())
-                game.Run();
-        }
     }
 }

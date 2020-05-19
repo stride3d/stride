@@ -23,8 +23,6 @@ namespace Stride.UI.Tests.Regression
 
         private ContentDecorator decorator;
 
-        public bool IsAutomatic;
-
         private const string InitialText = "This is a scrolling text test. ";
         private const string TextWithBlanks = "  This is another test with a lot of blanks                             .";
 
@@ -44,7 +42,7 @@ namespace Stride.UI.Tests.Regression
                 Text = InitialText,
                 TextColor = Color.Black,
                 Font = Content.Load<SpriteFont>("CourierNew12"), 
-                IsEnabled = IsAutomatic,
+                IsEnabled = ForceInteractiveMode,
                 SynchronousCharacterGeneration = true
             };
             
@@ -162,18 +160,6 @@ namespace Stride.UI.Tests.Regression
         public void RunScrollingTextTest()
         {
             RunGameTest(new ScrollingTextTest());
-        }
-
-        /// <summary>
-        /// Launch the Image test.
-        /// </summary>
-        internal static void Main()
-        {
-            using (var game = new ScrollingTextTest())
-            {
-                game.IsAutomatic = true;
-                game.Run();
-            }
         }
     }
 }

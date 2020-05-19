@@ -50,12 +50,6 @@ namespace Stride.Graphics.Tests
             base.RegisterTests();
             FrameGameSystem.TakeScreenshot(2);
         }
-
-        internal static void Main()
-        {
-            using (var game = new TestLightShafts())
-                game.Run();
-        }
         
         /// <summary>
         /// Run the test

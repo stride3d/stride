@@ -68,14 +68,5 @@ namespace Stride.UI.Tests.Regression
         {
             RunGameTest(new BillboardModeTests());
         }
-
-        /// <summary>
-        /// Launch the Image test.
-        /// </summary>
-        internal static void Main()
-        {
-            using (var game = new BillboardModeTests())
-                game.Run();
-        }
     }
 }

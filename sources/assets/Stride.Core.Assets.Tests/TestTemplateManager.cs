@@ -50,11 +50,5 @@ namespace Stride.Core.Assets.Tests
         {
             return true;
         }
-
-        internal static void Main()
-        {
-            var test = new TestTemplateManager();
-            test.TestTemplateDescriptions();
-        }
     }
 }

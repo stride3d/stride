@@ -39,7 +39,6 @@
     <Compile Include="Engine\TestController.cs" />
     <Compile Include="Engine\TestGame.cs" />
     <Compile Include="Engine\TestUtilities.cs" />
-    <Compile Include="LaunchProgram.cs" />
     <Compile Include="PauseResumeTests.cs" />
     <Compile Include="SoundGenerator.cs" />
     <Compile Include="TestAudioEmitter.cs" />

@@ -204,14 +204,5 @@ namespace Stride.UI.Tests.Regression
         {
             RunGameTest(new StackPanelTest());
         }
-
-        /// <summary>
-        /// Launch the Image test.
-        /// </summary>
-        private static void Main()
-        {
-            using (var game = new StackPanelTest())
-                game.Run();
-        } 
     }
 }

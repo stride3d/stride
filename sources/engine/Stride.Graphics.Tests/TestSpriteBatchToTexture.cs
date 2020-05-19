@@ -88,12 +88,6 @@ namespace Stride.Graphics.Tests
             spriteBatch.End();
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestSpriteBatchToTexture())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

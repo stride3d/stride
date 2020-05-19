@@ -166,12 +166,6 @@ namespace Stride.Graphics.Tests
             return new RectangleF(sphereX * (SphereWidth + SphereSpace), sphereY * (SphereHeight + SphereSpace), SphereWidth, SphereHeight);
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestSpriteBatch3D())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

@@ -323,14 +323,6 @@ namespace Stride.Input.Tests
             batch.End();
         }
 
-        internal static void Main()
-        {
-            using (var game = new SensorGameTest())
-            {
-                game.Run();
-            }
-        }
-
         [Fact]
         public void RunSensorTest()
         {

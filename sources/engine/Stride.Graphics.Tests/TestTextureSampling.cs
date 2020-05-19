@@ -136,12 +136,6 @@ namespace Stride.Graphics.Tests
             }
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestTextureSampling())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

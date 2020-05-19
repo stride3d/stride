@@ -104,10 +104,5 @@ namespace Stride.Navigation.Tests
             game.Run();
             game.Dispose();
         }
-
-        internal static void Main()
-        {
-            StaticTest1();
-        }
     }
 }

@@ -132,12 +132,6 @@ namespace Stride.Graphics.Tests
             y += 1.4f * dim.Y;
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestSpriteBatchResolution())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

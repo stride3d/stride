@@ -66,12 +66,6 @@ namespace Stride.Graphics.Tests
             //GraphicsDevice.DrawTexture(offlineTarget.Texture);
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestDrawQuad())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

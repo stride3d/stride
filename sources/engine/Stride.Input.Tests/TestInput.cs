@@ -359,10 +359,5 @@ namespace Stride.Input.Tests
         {
             RunGameTest(new TestInput());
         }
-
-        internal static void Main()
-        {
-            RunInputTest();
-        }
     }
 }
