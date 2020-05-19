@@ -305,7 +305,7 @@ namespace Stride.Core.Assets.CompilerApp
                 else
                 {
                     builder = new PackageBuilder(options);
-                    if (!IsSlave && redirectLogToAppDomainAction == null)
+                    if (!IsSlave)
                     {
                         Console.CancelKeyPress += OnConsoleOnCancelKeyPress;
                     }
@@ -342,7 +342,7 @@ namespace Stride.Core.Assets.CompilerApp
                 {
                     GlobalLogger.GlobalMessageLogged -= globalLoggerOnGlobalMessageLogged;
                 }
-                if (builder != null && !IsSlave && redirectLogToAppDomainAction == null)
+                if (builder != null && !IsSlave)
                 {
                     Console.CancelKeyPress -= OnConsoleOnCancelKeyPress;
                 }
