@@ -57,7 +57,6 @@
 
     <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == ''">$(StrideCompileAssetCommandPath)\$(StrideCompileAssetTargetFramework)\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
 
-    <!--<StrideCompileAssetCommandProxy Condition="'$(DisableAssetCompilerExecServerProxy)' == 'true' Or '$(StrideDisableAssetCompilerExecServerProxy)' == 'true'">&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
     <StrideCompileAssetCommandProxy Condition="'$(StrideCompileAssetCommandProxy)' == ''">&quot;$(StridePackageStrideSdkBin)\Stride.Core.Assets.CompilerClient.exe&quot;</StrideCompileAssetCommandProxy>-->
     <StrideCompileAssetCommandProxy>&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
   </PropertyGroup>
