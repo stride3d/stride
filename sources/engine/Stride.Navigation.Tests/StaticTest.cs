@@ -8,10 +8,11 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
+using Stride.Graphics.Regression;
 
 namespace Stride.Navigation.Tests
 {
-    public class StaticTest : Game
+    public class StaticTest : GameTestBase
     {
         public Vector3 targetA = new Vector3(1.2f, 0.0f, -1.0f);
         public Vector3 targetB = new Vector3(1.2f, 0.0f, 1.0f);
@@ -100,9 +101,7 @@ namespace Stride.Navigation.Tests
         [Fact]
         public static void StaticTest1()
         {
-            StaticTest game = new StaticTest();
-            game.Run();
-            game.Dispose();
+            RunGameTest(new StaticTest());
         }
     }
 }
