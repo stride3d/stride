@@ -402,6 +402,12 @@ namespace Stride.Graphics.Regression
                 foreach (var file in testFilenames)
                     comparisonFailedMessages.Add($"  {file} (reference)");
             }
+            else
+            {
+                // If test is a success, let's delete the local file if it was previously generated
+                if (File.Exists(testFilenameUser))
+                    File.Delete(testFilenameUser);
+            }
         }
 
         private string GenerateName(string testArtifactPath, string frame, string platformSpecific)
