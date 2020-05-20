@@ -369,10 +369,11 @@ namespace Stride.Graphics.Regression
             var testFilenameUser = GenerateName(Path.Combine(rootFolder, @"tests\local"), frame, platformSpecific);
 
             var testFilenames = new List<string> { testFilename };
-            
+
             // First, if exact match doesn't exist, test any other pattern
             // TODO: We might want to sort/filter partially (platform, etc...)?
-            if (!File.Exists(testFilename))
+            var matchingImage = File.Exists(testFilename);
+            if (!matchingImage)
             {
                 testFilenames.Clear();
 
@@ -400,7 +401,7 @@ namespace Stride.Graphics.Regression
                 ImageTester.SaveImage(image, testFilenameUser);
                 comparisonFailedMessages.Add($"* {testFilenameUser} (current)");
                 foreach (var file in testFilenames)
-                    comparisonFailedMessages.Add($"  {file} (reference)");
+                    comparisonFailedMessages.Add($"  {file} ({ (matchingImage ? "reference" : "different platform/device") })");
             }
             else
             {
