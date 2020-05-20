@@ -232,8 +232,7 @@ namespace Stride.Graphics.Tests
         [Fact(Skip = "Similar to MaterialLayerABB but using API for easier debugging")]
         public void MaterialLayerABBWithAPI()
         {
-            TestName = nameof(MaterialLayerABBWithAPI);
-            //RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABB")));
+            //RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABB")) { TestName = nameof(MaterialLayerABBWithAPI) });
             RunGameTest(new MaterialTests(game =>
             {
                 // Use same gold as MaterialLayerABB
@@ -290,7 +289,10 @@ namespace Stride.Graphics.Tests
                 };
 
                 return CreateMaterial(materialDesc, context);
-            }));
+            })
+            {
+                TestName = nameof(MaterialLayerABBWithAPI)
+            });
         }
 
         #endregion
