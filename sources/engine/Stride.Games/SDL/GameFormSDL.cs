@@ -39,16 +39,6 @@ namespace Stride.Games
             RestoredActions += GameForm_RestoredActions;
             KeyDownActions += GameFormSDL_KeyDownActions;
         }
-
-        private void GameFormSDL_KeyDownActions(SDL.SDL_KeyboardEvent e)
-        {
-            if ((e.keysym.sym == SDL.SDL_Keycode.SDLK_RETURN) && ((e.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0))
-                this.FullscreenToggle?.Invoke(this, EventArgs.Empty);
-
-            if ((e.keysym.sym == SDL.SDL_Keycode.SDLK_F11))
-                this.FullscreenToggle?.Invoke(this, EventArgs.Empty);
-
-        }
         #endregion
 
         #region Events
@@ -146,7 +136,16 @@ namespace Stride.Games
             isUserResizing = false;
             ResumeRendering?.Invoke(this, EventArgs.Empty);
         }
-#endregion
+
+        private void GameFormSDL_KeyDownActions(SDL.SDL_KeyboardEvent e)
+        {
+            if ((e.keysym.sym == SDL.SDL_Keycode.SDLK_RETURN) && ((e.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0))
+            {
+                FullscreenToggle?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        #endregion
     }
 }
 #endif

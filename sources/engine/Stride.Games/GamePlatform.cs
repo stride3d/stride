@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Graphics;
 
 namespace Stride.Games
@@ -95,6 +96,12 @@ namespace Stride.Games
             if (window != null)
             {
                 window.Services = Services;
+
+                // Pass initial size
+                var requestedSize = new Int2(gameContext.RequestedWidth, gameContext.RequestedHeight);
+                window.PreferredWindowedSize = requestedSize;
+                window.PreferredFullscreenSize = requestedSize;
+
                 window.Initialize(gameContext);
                 return window;
             }

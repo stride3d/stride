@@ -68,9 +68,9 @@ namespace Stride.Games
         public event EventHandler<EventArgs> OrientationChanged;
 
         /// <summary>
-        /// Occurs when device full screen mode is toggled.
+        /// Occurs when device fullscreen mode is changed.
         /// </summary>
-        public event EventHandler<EventArgs> FullscreenToggle;
+        public event EventHandler<EventArgs> FullscreenChanged;
 
         /// <summary>
         /// Occurs before the window gets destroyed.
@@ -164,6 +164,44 @@ namespace Stride.Games
             }
         }
 
+        /// <summary>
+        /// The size the window should have when switching from fullscreen to windowed mode.
+        /// To get the current actual size use <see cref="ClientBounds"/>.
+        /// This gets overwritten when the user resizes the window. 
+        /// </summary>
+        public Int2 PreferredWindowedSize { get; set; } = new Int2(768, 432);
+
+        /// <summary>
+        /// The size the window should have when switching from windowed to fullscreen mode.
+        /// To get the current actual size use <see cref="ClientBounds"/>.
+        /// </summary>
+        public Int2 PreferredFullscreenSize { get; set; } = new Int2(1920, 1080);
+
+        /// <summary>
+        /// Switches between fullscreen and windowed mode.
+        /// </summary>
+        public bool IsFullscreen
+        {
+            get => isFullscreen;
+            set
+            {
+                if (value != isFullscreen)
+                {
+                    isFullscreen = value;
+                    FullscreenChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Allow the GraphicsDeviceMagnager to set the actual window state after applying the device changes.
+        /// </summary>
+        /// <param name="isReallyFullscreen"></param>
+        internal void SetIsReallyFullscreen(bool isReallyFullscreen)
+        {
+            isFullscreen = isReallyFullscreen;
+        }
+
         #endregion
 
         #region Public Methods and Operators
@@ -190,6 +228,8 @@ namespace Stride.Games
         internal Action RunCallback;
 
         internal Action ExitCallback;
+        
+        private bool isFullscreen;
 
         internal abstract void Run();
 
@@ -209,6 +249,12 @@ namespace Stride.Games
 
         protected void OnClientSizeChanged(object source, EventArgs e)
         {
+            if (!isFullscreen)
+            {
+                // Update preferred windowed size in windowed mode 
+                var resizeSize = ClientBounds.Size;
+                PreferredWindowedSize = new Int2(resizeSize.Width, resizeSize.Height); 
+            }
             var handler = ClientSizeChanged;
             handler?.Invoke(this, e);
         }
@@ -229,8 +275,7 @@ namespace Stride.Games
 
         protected void OnFullscreenToggle(object source, EventArgs e)
         {
-            var handler = FullscreenToggle;
-            handler?.Invoke(this, e);
+            IsFullscreen = !IsFullscreen;
         }
 
         protected void OnClosing(object source, EventArgs e)
