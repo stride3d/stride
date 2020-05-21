@@ -112,6 +112,7 @@ namespace Stride.PackageInstall
                 var webClient = new WebClient();
                 if (downloadUrl.Success && TryDownloadAndExecuteVSSetup(downloadUrl.Value))
                 {
+                    return true;
                 }
                 else
                 {
