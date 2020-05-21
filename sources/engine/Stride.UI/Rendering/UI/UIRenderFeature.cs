@@ -381,7 +381,7 @@ namespace Stride.Rendering.UI
                     if (renderObject.IsFixedSize)
                     {
                         forwardVector.Normalize();
-                        var distVec = (worldMatrix.TranslationVector - camera.Entity.Transform.Position);
+                        var distVec = (worldMatrix.TranslationVector - viewInverse.TranslationVector);
                         float distScalar;
                         Vector3.Dot(ref forwardVector, ref distVec, out distScalar);
                         distScalar = Math.Abs(distScalar);
