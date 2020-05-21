@@ -192,7 +192,7 @@ namespace Stride.Rendering.UI
                 renderingContext.Resolution = virtualResolution;
                 renderingContext.ViewProjectionMatrix = uiElementState.WorldViewProjectionMatrix;
                 renderingContext.DepthStencilBuffer = renderObject.IsFullScreen ? scopedDepthBuffer : context.CommandList.DepthStencilBuffer;
-                renderingContext.ShouldSnapText = renderObject.SnapText;
+                renderingContext.ShouldSnapText = renderObject.SnapText && renderObject.IsBillboard && (renderObject.IsFixedSize || renderObject.IsFullScreen);
 
                 // calculate an estimate of the UI real size by projecting the element virtual resolution on the screen
                 var virtualOrigin = uiElementState.WorldViewProjectionMatrix.Row4;
