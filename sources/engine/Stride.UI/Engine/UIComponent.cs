@@ -85,7 +85,7 @@ namespace Stride.Engine
         /// <summary>
         /// Gets or sets the value indicating of the UI texts should be snapped to closest pixel.
         /// </summary>
-        /// <userdoc>If checked, all the text of the UI is snapped to the closest pixel (pixel perfect).</userdoc>
+        /// <userdoc>If checked, all the text of the UI is snapped to the closest pixel (pixel perfect). This is only effective if IsFullScreen or IsFixedSize is set, as well as IsBillboard.</userdoc>
         [DataMember(60)]
         [Display("Snap Text")]
         [DefaultValue(true)]
