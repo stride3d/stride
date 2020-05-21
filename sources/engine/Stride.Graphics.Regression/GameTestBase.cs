@@ -274,7 +274,7 @@ namespace Stride.Graphics.Regression
             RunGameTest(game);
         }
 
-        protected void PerformDrawTest(Action<Game, RenderDrawContext> drawTestAction, GraphicsProfile? profileOverride = null, string subTestName = null, bool takeSnapshot = true)
+        protected void PerformDrawTest(Action<GameTestBase, RenderDrawContext> drawTestAction, GraphicsProfile? profileOverride = null, string subTestName = null, bool takeSnapshot = true)
         {
             // create the game instance
             var typeGame = GetType();

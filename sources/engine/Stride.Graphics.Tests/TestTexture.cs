@@ -422,11 +422,10 @@ namespace Stride.Graphics.Tests
             Skip.If(sourceFormat == ImageFileType.Wmp || sourceFormat == ImageFileType.Tga, "TODO remove this when Load/Save methods are implemented for those types.");
             Skip.If(Platform.Type == PlatformType.Android && sourceFormat == ImageFileType.Tiff, "TODO remove this when Load/Save methods are implemented for this type.");
 
-            TestName = $"{nameof(TestLoadDraw)}({sourceFormat})";
-
             PerformDrawTest(
                 (game, context) =>
                 {
+                    game.TestName = $"{nameof(TestLoadDraw)}({sourceFormat})";
                     context.CommandList.Clear(context.CommandList.RenderTarget, new Color4(Color.Green).ToColorSpace(ColorSpace.Linear));
                     context.CommandList.Clear(context.CommandList.DepthStencilBuffer, DepthStencilClearOptions.DepthBuffer);
 
