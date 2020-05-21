@@ -114,7 +114,7 @@ namespace Stride.Input.Tests
         {
             var width = 400;
             var bufferRatio = GraphicsDevice.Presenter.BackBuffer.Width / (float)GraphicsDevice.Presenter.BackBuffer.Height;
-            var ui = new UIComponent { Resolution = new Vector3(width, width / bufferRatio, 500) };
+            var ui = new UIComponent { Resolution = new Vector3(width, width / bufferRatio, 500), Size = new Vector3(1.0f) };
             SceneSystem.SceneInstance.RootScene.Entities.Add(new Entity { ui });
 
             currentText = new TextBlock { Font = font, TextColor = Color.White, VerticalAlignment = VerticalAlignment.Bottom, HorizontalAlignment = HorizontalAlignment.Center };
