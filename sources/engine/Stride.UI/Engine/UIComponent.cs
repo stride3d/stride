@@ -27,7 +27,7 @@ namespace Stride.Engine
         public UIComponent()
         {
             Resolution = new Vector3(DefaultWidth, DefaultHeight, DefaultDepth);
-            Size = Vector3.One;
+            Size = new Vector3(DefaultWidth / 1000.0f, DefaultHeight / 1000.0f, 1.0f);
         }
 
         /// <summary>
