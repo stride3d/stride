@@ -38,10 +38,10 @@ namespace Stride.UI.Tests.Regression
             element1 = new Button { Name = "1", Width = 300, Height = 150 };
             element1.PressedImage = SpriteFromSheet.Create(sprites, "Logo");
             element1.NotPressedImage = SpriteFromSheet.Create(sprites, "BorderButton");
-            element1.DependencyProperties.Set(Canvas.AbsolutePositionPropertyKey, new Vector3(350, 300, 0));
+            element1.DependencyProperties.Set(Canvas.AbsolutePositionPropertyKey, new Vector3(350, 400, 0));
             element1.DependencyProperties.Set(Panel.ZIndexPropertyKey, 1);
 
-            element2 = new Button { Name = "2", Width = 600, Height = 300 };
+            element2 = new Button { Name = "2", Width = 600, Height = 400 };
             element2.DependencyProperties.Set(Canvas.AbsolutePositionPropertyKey, new Vector3(200, 100, -50));
             element2.DependencyProperties.Set(Panel.ZIndexPropertyKey, 0);
             element2.PressedImage = (SpriteFromTexture)new Sprite(Content.Load<Texture>("ImageButtonPressed"));
