@@ -155,13 +155,15 @@ namespace Stride.UI.Events
         /// This functions reset all the registers and invalidate all the created routed events.
         /// It is mostly used for tests purposes.
         /// </summary>
-        internal static void ResetRegisters()
+        internal static void UnregisterRoutedEvent(RoutedEvent routedEvent)
         {
             lock(SyncRoot)
             {
-                RoutedEvents.Clear();
-                OwnerToEvents.Clear();
-                ClassesToClassHandlers.Clear(); 
+                RoutedEvents.Remove(routedEvent);
+                if (OwnerToEvents.TryGetValue(routedEvent.OwnerType, out var events))
+                    events.Remove(routedEvent.Name);
+                foreach (var classHandlersMap in ClassesToClassHandlers)
+                    classHandlersMap.Value.Remove(routedEvent);
             }
         }
     }
