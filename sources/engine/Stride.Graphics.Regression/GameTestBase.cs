@@ -25,6 +25,8 @@ namespace Stride.Graphics.Regression
     public abstract class GameTestBase : Game
     {
         public static bool ForceInteractiveMode;
+        // Note: it might cause OOM on 32-bit processes
+        public static bool CaptureRenderDocOnError = Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR") != null;
 
         public static readonly Logger TestGameLogger = GlobalLogger.GetLogger("TestGameLogger");
 
@@ -45,6 +47,7 @@ namespace Stride.Graphics.Regression
         private List<string> comparisonFailedMessages = new List<string>();
 
         private BackBufferSizeMode backBufferSizeMode;
+        private RenderDocManager renderDocManager;
 
         protected GameTestBase()
         {
@@ -75,6 +78,13 @@ namespace Stride.Graphics.Regression
         protected override void Initialize()
         {
             base.Initialize();
+
+            if (CaptureRenderDocOnError)
+            {
+                renderDocManager = new RenderDocManager();
+                if (!renderDocManager.IsInitialized)
+                    renderDocManager = null;
+            }
 
             // Disable streaming
             Streaming.Enabled = false;
@@ -208,6 +218,14 @@ namespace Stride.Graphics.Regression
         {
             await base.LoadContent();
 
+            // Setup RenderDoc capture
+            if (renderDocManager != null)
+            {
+                var renderdocCaptureFile = GenerateTestArtifactFileName(Path.Combine(FindStrideRootFolder(), @"tests\local"), null, GetPlatformSpecificFolder(), ".rdc");
+                renderDocManager.Initialize(renderdocCaptureFile);
+                renderDocManager.StartFrameCapture(GraphicsDevice, IntPtr.Zero);
+            }
+
             if (!ForceInteractiveMode)
                 InitializeSimulatedInputSource();
 
@@ -218,6 +236,22 @@ namespace Stride.Graphics.Regression
 #endif
 
             Script.AddTask(RegisterTestsInternal);
+        }
+
+        protected override void Destroy()
+        {
+            if (renderDocManager != null)
+            {
+                // Note: if no comparison error, let's discard the capture
+                if (comparisonFailedMessages.Count == 0 && comparisonMissingMessages.Count == 0)
+                    renderDocManager.DiscardFrameCapture(GraphicsDevice, IntPtr.Zero);
+                else
+                    renderDocManager.EndFrameCapture(GraphicsDevice, IntPtr.Zero);
+                // Note: we don't remove hooks in case another unit test need them later
+                //renderDocManager.RemoveHooks();
+            }
+
+            base.Destroy();
         }
 
         private Task RegisterTestsInternal()
@@ -244,7 +278,15 @@ namespace Stride.Graphics.Regression
         /// <param name="gameTime">the game time.</param>
         protected override void Draw(GameTime gameTime)
         {
-            base.Draw(gameTime);
+            GraphicsContext.CommandList.BeginProfile(Color.Orange, $"Frame #{gameTime.FrameCount}");
+            try
+            {
+                base.Draw(gameTime);
+            }
+            finally
+            {
+                GraphicsContext.CommandList.EndProfile();
+            }
 
             if (!ScreenShotAutomationEnabled)
                 return;
@@ -315,15 +357,11 @@ namespace Stride.Graphics.Regression
 
             GameTester.RunGameTest(game);
 
-            var failedTests = new List<string>();
-
             if (game.ScreenShotAutomationEnabled)
             {
                 Assert.True(game.comparisonFailedMessages.Count == 0, "Some image comparison failed:" + Environment.NewLine + string.Join(Environment.NewLine, game.comparisonFailedMessages));
                 Assert.True(game.comparisonMissingMessages.Count == 0, "Some reference images are missing, please copy them manually:" + Environment.NewLine + string.Join(Environment.NewLine, game.comparisonMissingMessages));
             }
-
-            Assert.True(failedTests.Count == 0, $"Some image comparison tests failed: {string.Join(", ", failedTests.Select(x => x))}");
         }
 
         private static string FindStrideRootFolder()
@@ -356,17 +394,11 @@ namespace Stride.Graphics.Regression
             //if (!ImageTester.ImageTestResultConnection.DeviceName.Contains("_"))
             //    ImageTester.ImageTestResultConnection.DeviceName += "_" + GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' '); // Workaround for sharpDX bug: Description ends with an series trailing of '\0' characters
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-            var platformSpecific = $"Windows.{GraphicsDevice.Platform}\\{GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ')}";
-#else
-            var platformSpecific = string.Empty;
-            throw new NotImplementedException();
-#endif
-
+            var platformSpecific = GetPlatformSpecificFolder();
             var rootFolder = FindStrideRootFolder();
 
-            var testFilename = GenerateName(Path.Combine(rootFolder, "tests"), frame, platformSpecific);
-            var testFilenameUser = GenerateName(Path.Combine(rootFolder, @"tests\local"), frame, platformSpecific);
+            var testFilename = GenerateTestArtifactFileName(Path.Combine(rootFolder, "tests"), frame, platformSpecific, ".png");
+            var testFilenameUser = GenerateTestArtifactFileName(Path.Combine(rootFolder, @"tests\local"), frame, platformSpecific, ".png");
 
             var testFilenames = new List<string> { testFilename };
 
@@ -377,7 +409,7 @@ namespace Stride.Graphics.Regression
             {
                 testFilenames.Clear();
 
-                var testFilenamePattern = GenerateName(Path.Combine(rootFolder, "tests"), frame, @"*\*");
+                var testFilenamePattern = GenerateTestArtifactFileName(Path.Combine(rootFolder, "tests"), frame, @"*\*", ".png");
                 var testFilenameRoot = testFilenamePattern.Substring(0, testFilenamePattern.IndexOf('*'));
                 var testFilenameRegex = new Regex("^" + Regex.Escape(testFilenamePattern).Replace(@"\*", @"[^\\]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
                 foreach (var file in Directory.EnumerateFiles(testFilenameRoot, "*.*", SearchOption.AllDirectories))
@@ -388,7 +420,7 @@ namespace Stride.Graphics.Regression
                     }
                 }
             }
-            
+
             if (testFilenames.Count == 0)
             {
                 // No source image, save this one so that user can later copy it to validated folder
@@ -411,7 +443,17 @@ namespace Stride.Graphics.Regression
             }
         }
 
-        private string GenerateName(string testArtifactPath, string frame, string platformSpecific)
+        private string GetPlatformSpecificFolder()
+        {
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+            return $"Windows.{GraphicsDevice.Platform}\\{GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ')}";
+#else
+            var platformSpecific = string.Empty;
+            throw new NotImplementedException();
+#endif
+        }
+
+        private string GenerateTestArtifactFileName(string testArtifactPath, string frame, string platformSpecific, string extension)
         {
             var fullClassName = GetType().FullName;
             var classNameIndex = fullClassName.LastIndexOf('.');
@@ -424,7 +466,7 @@ namespace Stride.Graphics.Regression
                 testFilename += $".{TestName}";
             if (frame != null)
                 testFilename += $".{frame}";
-            testFilename += ".png";
+            testFilename += extension;
             testFilename = Path.Combine(testFolder, platformSpecific, testFilename);
 
             // Collapse parent directories

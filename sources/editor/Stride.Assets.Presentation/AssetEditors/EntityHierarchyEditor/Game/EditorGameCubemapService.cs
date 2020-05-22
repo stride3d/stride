@@ -40,7 +40,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         {
             return await editor.Controller.InvokeAsync(() =>
             {
-                editor.ServiceProvider.TryGet<RenderDocManager>()?.StartCapture(game.GraphicsDevice, IntPtr.Zero);
+                editor.ServiceProvider.TryGet<RenderDocManager>()?.StartFrameCapture(game.GraphicsDevice, IntPtr.Zero);
 
                 var editorCompositor = game.EditorSceneSystem.GraphicsCompositor.Game;
                 try
