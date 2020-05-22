@@ -83,7 +83,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         {
             return editor.Controller.InvokeAsync(() =>
             {
-                editor.ServiceProvider.TryGet<RenderDocManager>()?.StartCapture(game.GraphicsDevice, IntPtr.Zero);
+                editor.ServiceProvider.TryGet<RenderDocManager>()?.StartFrameCapture(game.GraphicsDevice, IntPtr.Zero);
 
                 // Reset lightprobes temporarily (if requested)
                 // Note: we only process first LightProbeProcessor
