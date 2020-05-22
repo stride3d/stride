@@ -13,36 +13,22 @@ namespace Stride.UI.Tests.Events
     /// <summary>
     /// Test class for the <see cref="EventManager"/> class.
     /// </summary>
-    public class EventManagerTests
+    public class EventManagerTests : IDisposable
     {
-        /// <summary>
-        /// Launch all the tests of <see cref="EventManagerTests"/>
-        /// </summary>
-        internal void TestAll()
-        {
-            Initialize();
-            TestClassHandler();
-            TestRoutedEvent();
-        }
+        private RoutedEvent<RoutedEventArgs> testBasicHandler;
+        private RoutedEvent<MyTestRoutedEventArgs> testSpecialHandler;
 
-        private void ResetState()
+        public EventManagerTests()
         {
-            EventManager.ResetRegisters();
-        }
-
-        /// <summary>
-        /// Initialize the test series
-        /// </summary>
-        private void Initialize()
-        {
-            ResetState();
-
             testBasicHandler = EventManager.RegisterRoutedEvent<RoutedEventArgs>("TestBasicHandler", RoutingStrategy.Tunnel, typeof(EventManagerTests));
             testSpecialHandler = EventManager.RegisterRoutedEvent<MyTestRoutedEventArgs>("TestSpecialHandler", RoutingStrategy.Tunnel, typeof(EventManagerTests));
         }
 
-        private RoutedEvent<RoutedEventArgs> testBasicHandler;
-        private RoutedEvent<MyTestRoutedEventArgs> testSpecialHandler;
+        public void Dispose()
+        {
+            EventManager.UnregisterRoutedEvent(testBasicHandler);
+            EventManager.UnregisterRoutedEvent(testSpecialHandler);
+        }
 
         private void TestRoutedEventHandler(Object sender, RoutedEventArgs e)
         {
@@ -69,8 +55,6 @@ namespace Stride.UI.Tests.Events
         [Fact]
         public void TestClassHandler()
         {
-            Initialize();
-
             // test the ArgumentNullException
             Assert.Throws<ArgumentNullException>(() => EventManager.RegisterClassHandler(null, testBasicHandler, TestRoutedEventHandler));
             Assert.Throws<ArgumentNullException>(() => EventManager.RegisterClassHandler<RoutedEventArgs>(typeof(EventManagerTests), null, TestRoutedEventHandler));
@@ -104,8 +88,6 @@ namespace Stride.UI.Tests.Events
         [Fact]
         public void TestRoutedEvent()
         {
-            Initialize();
-
             // test argument null exception
             Assert.Throws<ArgumentNullException>(() => EventManager.RegisterRoutedEvent<RoutedEventArgs>(null, RoutingStrategy.Tunnel, typeof(EventManagerTests)));
             Assert.Throws<ArgumentNullException>(() => EventManager.RegisterRoutedEvent<RoutedEventArgs>("Test", RoutingStrategy.Tunnel, null));
