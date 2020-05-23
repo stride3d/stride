@@ -114,9 +114,9 @@ namespace Stride.Shaders.Tests
             Assert.True(mixin.Compositions.ContainsKey("SubCompute2"));
             Assert.True(mixin.Compositions.ContainsKey("SubComputes"));
 
-            Assert.Equal("mixin ComputeColor2", mixin.Compositions["SubCompute1"].ToString());
-            Assert.Equal("mixin ComputeColor", mixin.Compositions["SubCompute2"].ToString());
-            Assert.Equal("[mixin ComputeColorRedirect [{ColorRedirect = mixin ComputeColor2}]]", mixin.Compositions["SubComputes"].ToString());
+            Assert.Equal("mixin TestComputeColor2", mixin.Compositions["SubCompute1"].ToString());
+            Assert.Equal("mixin TestComputeColor", mixin.Compositions["SubCompute2"].ToString());
+            Assert.Equal("[mixin TestComputeColorRedirect [{ColorRedirect = mixin TestComputeColor2}]]", mixin.Compositions["SubComputes"].ToString());
         }
 
         /// <summary>

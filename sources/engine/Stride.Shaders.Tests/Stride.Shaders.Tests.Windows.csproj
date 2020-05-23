@@ -1,7 +1,7 @@
 <Project>
   <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
   <PropertyGroup>
-    <TargetFrameworks>net472</TargetFrameworks>
+    <TargetFramework>net472</TargetFramework>
     <AssemblyName>Stride.Shaders.Tests</AssemblyName>
     <RootNamespace>Stride.Shaders.Tests</RootNamespace>
     <StrideBuildTags>*</StrideBuildTags>

@@ -14,16 +14,16 @@ namespace TestABC
 
         if (TestParameters.UseComputeColor2)
         {
-            mixin ComputeColor2;
+            mixin TestComputeColor2;
         }
         else if (TestParameters.UseComputeColorRedirect)
         {
-            mixin ComputeColorRedirect;
-            mixin compose ColorRedirect = ComputeColor2;
+            mixin TestComputeColorRedirect;
+            mixin compose ColorRedirect = TestComputeColor2;
         } 
         else
         {
-            mixin ComputeColor;
+            mixin TestComputeColor;
         }
     };
 
