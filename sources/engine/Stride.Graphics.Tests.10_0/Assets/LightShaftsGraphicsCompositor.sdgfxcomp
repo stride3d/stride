@@ -103,18 +103,8 @@ RenderFeatures:
             11c8b8ccb522e3cd1dd6688016062a6d: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Engine
                 RenderStage: ref!! 6751fbbc-bc12-4f3a-9668-b70720253276
                 EffectName: Test
-    93933ad00d0c357d4915ad462cbfd04c: !Stride.Rendering.UI.UIRenderFeature,Stride.UI
-        RenderStageSelectors:
-            14a071694411235038a102ac3794bb4d: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Engine
-                RenderStage: ref!! 52b21c00-6aee-4222-858c-bacc94f148d6
-                EffectName: Test
-    9013eab3ea0ef6c98bf133b86c173d45: !Stride.Particles.Rendering.ParticleEmitterRenderFeature,Stride.Particles
-        RenderStageSelectors:
-            af1bd241305893ef8ff7952184e1cb0b: !Stride.Particles.Rendering.ParticleEmitterTransparentRenderStageSelector,Stride.Particles
-                OpaqueRenderStage: ref!! 6751fbbc-bc12-4f3a-9668-b70720253276
-                TransparentRenderStage: ref!! 52b21c00-6aee-4222-858c-bacc94f148d6
-                EffectName: null
-        PipelineProcessors: {}
+    93933ad00d0c357d4915ad462cbfd04c: ~(Deleted)
+    9013eab3ea0ef6c98bf133b86c173d45: ~(Deleted)
 SharedRenderers:
     60459475d3a3adaf2d1ba5d99913ca75: !Stride.Rendering.Compositing.ForwardRenderer,Stride.Engine
         Id: d11b9fda-bb32-4081-a148-52a154a4498a

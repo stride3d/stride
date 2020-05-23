@@ -88,6 +88,8 @@ namespace Stride.UI.Tests.Events
         [Fact]
         public void TestRoutedEvent()
         {
+            var originalRoutedEventCount = EventManager.GetRoutedEvents().Length;
+
             // test argument null exception
             Assert.Throws<ArgumentNullException>(() => EventManager.RegisterRoutedEvent<RoutedEventArgs>(null, RoutingStrategy.Tunnel, typeof(EventManagerTests)));
             Assert.Throws<ArgumentNullException>(() => EventManager.RegisterRoutedEvent<RoutedEventArgs>("Test", RoutingStrategy.Tunnel, null));
@@ -108,7 +110,7 @@ namespace Stride.UI.Tests.Events
             Assert.Equal(typeof(RoutedEventArgs), checkValues.HandlerSecondArgumentType);
 
             // check the get routed events functions
-            Assert.Equal(4, EventManager.GetRoutedEvents().Length);
+            Assert.Equal(4, EventManager.GetRoutedEvents().Length - originalRoutedEventCount);
             Assert.Contains(checkValues, EventManager.GetRoutedEvents());
             Assert.Contains(testBasicHandler, EventManager.GetRoutedEvents());
             Assert.Contains(testSpecialHandler, EventManager.GetRoutedEvents());
