@@ -23,6 +23,7 @@
     <RuntimeIdentifiers Condition="$(_StrideGraphicsApis.Contains(';Vulkan;'))">$(RuntimeIdentifiers);win-vulkan-x64</RuntimeIdentifiers>
 
     <RuntimeIdentifiers>$([MSBuild]::Unescape($(RuntimeIdentifiers.Trim(';'))))</RuntimeIdentifiers>
+	<RuntimeIdentifier>$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</RuntimeIdentifier>
     <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
 
     <StrideGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-x64'">Direct3D11</StrideGraphicsApi>
