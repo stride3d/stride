@@ -235,8 +235,8 @@ Example of use:
   <Target Name="DownloadXunitRunnerConsole">
     <MakeDir Directories="$(MSBuildThisFileDirectory)packages"/>
     <PropertyGroup>
-      <XunitRunnerConsolePathDefault>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net461\xunit.console.exe</XunitRunnerConsolePathDefault>
-      <XunitRunnerConsolePathX86>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net461\xunit.console.x86.exe</XunitRunnerConsolePathX86>
+      <XunitRunnerConsolePathDefault>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net472\xunit.console.exe</XunitRunnerConsolePathDefault>
+      <XunitRunnerConsolePathX86>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net472\xunit.console.x86.exe</XunitRunnerConsolePathX86>
     </PropertyGroup>
     <Exec Command='"$(NuGetPath)" install xunit.runner.console -Version $(XunitRunnerConsoleVersion)' Condition="!Exists('$(XunitRunnerConsolePathDefault)')" WorkingDirectory="$(MSBuildThisFileDirectory)packages" />
     <Error Text="Could not find xunit.runner at expected location [$(XunitRunnerConsolePathDefault)]" Condition="!Exists('$(XunitRunnerConsolePathDefault)')"/>
