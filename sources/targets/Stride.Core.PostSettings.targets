@@ -180,6 +180,13 @@
   
   <Import Condition="'$(StrideNativeOutputName)' != ''" Project="$(MSBuildThisFileDirectory)..\native\Stride.Native.targets" />
 
+  <!-- Workaround for https://github.com/dotnet/project-system/issues/6227 (UpToDateCheck: always fail if projects.assets.json is updated) -->
+  <Target Name="_GenerateCompileInputsProjectAssets" AfterTargets="_GenerateCompileInputs">
+    <ItemGroup>
+      <_CoreCompileResourceInputs Include="$(ProjectAssetsFile)" />
+    </ItemGroup>
+  </Target>
+
   <!-- Auto NuGet build packages and deploy them -->
   <Target Name="StrideAutoPackDeploy" AfterTargets="Pack">
     <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\Stride\NugetDev"/>
