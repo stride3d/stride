@@ -291,12 +291,14 @@ namespace Stride.Rendering.Images
                 if (fxaa != null)
                     fxaa.InputLuminanceInAlpha = true;
 
-                Antialiasing.SetInput(1, inputDepthTexture);
+                var bufferIndex = 1;
+                if (Antialiasing.RequiresDepthBuffer)
+                    Antialiasing.SetInput(bufferIndex++, inputDepthTexture);
 
                 bool requiresVelocityBuffer = Antialiasing.RequiresVelocityBuffer;
                 if (requiresVelocityBuffer)
                 {
-                    Antialiasing.SetInput(2, GetInput(6));
+                    Antialiasing.SetInput(bufferIndex++, GetInput(6));
                 }
 
                 var aaSurface = NewScopedRenderTarget2D(input.Width, input.Height, input.Format);
