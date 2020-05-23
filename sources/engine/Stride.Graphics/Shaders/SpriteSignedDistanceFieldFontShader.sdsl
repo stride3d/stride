@@ -2,13 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 shader SpriteSignedDistanceFieldFontShader : SpriteBase, SignedDistanceFieldFont
 {
-    // Color used to tint the sprite
-    [Color]
-    stage float4 Color = float4(1,1,1,1);
+    stage stream float4 Color : COLOR;
 
     // Shading of the sprite
     stage override float4 Shading()
     {
-        return FontColor(base.Shading(), Color, float4(0,0,0,1), 0.f);
+        return FontColor(base.Shading(), streams.Color, float4(0,0,0,1), 0.f);
     }
 };

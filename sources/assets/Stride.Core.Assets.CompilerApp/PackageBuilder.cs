@@ -98,8 +98,9 @@ namespace Stride.Core.Assets.CompilerApp
 
                 // Find loaded package (either sdpkg or csproj) -- otherwise fallback to first one
                 var packageFile = (UFile)builderOptions.PackageFile;
-                var package = projectSession.LocalPackages.FirstOrDefault(x => x.FullPath == packageFile || (x.Container is SolutionProject project && project.FullPath == packageFile))
-                    ?? projectSession.LocalPackages.First();
+                var package = projectSession.Packages.FirstOrDefault(x => x.FullPath == packageFile || (x.Container is SolutionProject project && project.FullPath == packageFile))
+                    ?? projectSession.LocalPackages.FirstOrDefault()
+                    ?? projectSession.Packages.FirstOrDefault();
 
                 // Setup variables
                 var buildDirectory = builderOptions.BuildDirectory;
@@ -162,7 +163,7 @@ namespace Stride.Core.Assets.CompilerApp
                 // Fill list of bundles
                 var bundlePacker = new BundlePacker();
                 var bundleFiles = new List<string>();
-                bundlePacker.Build(builderOptions.Logger, projectSession, indexName, outputDirectory, builder.DisableCompressionIds, context.GetCompilationMode() != CompilationMode.AppStore, bundleFiles);
+                bundlePacker.Build(builderOptions.Logger, projectSession, package, indexName, outputDirectory, builder.DisableCompressionIds, context.GetCompilationMode() != CompilationMode.AppStore, bundleFiles);
 
                 if (builderOptions.MSBuildUpToDateCheckFileBase != null)
                     SaveBuildUpToDateFile(builderOptions.MSBuildUpToDateCheckFileBase, builderOptions.PackageFile, package, bundleFiles);
