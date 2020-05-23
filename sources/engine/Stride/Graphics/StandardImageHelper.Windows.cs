@@ -24,7 +24,7 @@ namespace Stride.Graphics
                 var sourceArea = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
                 // Lock System.Drawing.Bitmap
 
-                var bitmapData = bitmap.LockBits(sourceArea, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
+                var bitmapData = bitmap.LockBits(sourceArea, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                 var image = Image.New2D(bitmap.Width, bitmap.Height, 1, PixelFormat.B8G8R8A8_UNorm, 1, bitmapData.Stride);
                 // var dataRect = new DataRectangle(bitmapData.Stride, bitmapData.Scan0);
 
@@ -87,7 +87,7 @@ namespace Stride.Graphics
                 var sourceArea = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
 
                 // Lock System.Drawing.Bitmap
-                var bitmapData = bitmap.LockBits(sourceArea, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
+                var bitmapData = bitmap.LockBits(sourceArea, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
                 try
                 {
