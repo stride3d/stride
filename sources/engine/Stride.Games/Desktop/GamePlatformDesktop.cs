@@ -27,9 +27,9 @@ using System.Reflection;
 
 namespace Stride.Games
 {
-    internal class GamePlatformWindows : GamePlatform
+    internal class GamePlatformDesktop : GamePlatform
     {
-        public GamePlatformWindows(GameBase game) : base(game)
+        public GamePlatformDesktop(GameBase game) : base(game)
         {
             IsBlockingRun = true;
 #if STRIDE_PLATFORM_WINDOWS_DESKTOP && STRIDE_RUNTIME_CORECLR
