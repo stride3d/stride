@@ -101,7 +101,7 @@ namespace Stride.Physics.Tests
                 hit = simulation.Raycast((cylinder.Transform.Position - Vector3.UnitZ * 2) + new Vector3(0.0f, -0.5f, 0.0f), cylinder.Transform.Position + new Vector3(0.0f, -0.5f, 0.0f));
                 Assert.True(hit.Succeeded);
                 Assert.Equal(0.0f, (new Vector3(0, -0.9999594f, -0.00901306048f) - hit.Normal).Length(), 3);
-                Assert.Equal(0.0f, (new Vector3(2.17587972f, -0.5f, -7.46081161f) - hit.Point).Length(), 3);
+                Assert.Equal(0.0f, (new Vector3(2.17587972f, -0.5f, -7.460182f) - hit.Point).Length(), 3);
 
                 hit = simulation.Raycast((cylinder.Transform.Position - Vector3.UnitZ * 2) + new Vector3(0.55f, 0.0f, 0.0f), cylinder.Transform.Position + new Vector3(0.55f, 0.0f, 0.0f));
                 Assert.False(hit.Succeeded);
