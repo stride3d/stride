@@ -183,7 +183,7 @@
   <!-- Workaround for https://github.com/dotnet/project-system/issues/6227 (UpToDateCheck: always fail if projects.assets.json is updated) -->
   <Target Name="_GenerateCompileInputsProjectAssets" AfterTargets="_GenerateCompileInputs">
     <ItemGroup>
-      <_CoreCompileResourceInputs Include="$(ProjectAssetsFile)" />
+      <CustomAdditionalCompileInputs Include="$(ProjectAssetsFile)" />
     </ItemGroup>
   </Target>
 
