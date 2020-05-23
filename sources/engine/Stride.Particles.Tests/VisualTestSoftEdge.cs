@@ -8,7 +8,9 @@ namespace Stride.Particles.Tests
 {
     public class VisualTestSoftEdge : GameTest
     {
-        public VisualTestSoftEdge(GraphicsProfile profile) : base("VisualTestSoftEdge", profile) { }
+        public VisualTestSoftEdge() : this(GraphicsProfile.Level_11_0) { }
+
+        private VisualTestSoftEdge(GraphicsProfile profile) : base("VisualTestSoftEdge", profile) { }
 
         [Fact]
         public void RunVisualTests10()
