@@ -133,6 +133,7 @@ namespace Stride.UI.Tests.Regression
         private void Draw3()
         {
             // test higher speed (result should be same as Draw1)
+            textScroller.Text = string.Empty; // force full reset
             textScroller.Text = InitialText;
             textScroller.ScrollingSpeed = 2 * textScroller.ScrollingSpeed;
             UpdateScrollingText(new TimeSpan(0, 0, 0, 2, 750));
