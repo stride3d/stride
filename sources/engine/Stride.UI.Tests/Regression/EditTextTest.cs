@@ -247,8 +247,8 @@ namespace Stride.UI.Tests.Regression
         {
             edit4.TextAlignment = TextAlignment.Center;
             edit4.IsSelectionActive = false;
-            AddPointerEvent(PointerEventType.Pressed, new Vector2(0.49625f, 0.8f));
-            AddPointerEvent(PointerEventType.Released, new Vector2(0.49625f, 0.8f));
+            AddPointerEvent(PointerEventType.Pressed, new Vector2(0.49625f, 0.66f));
+            AddPointerEvent(PointerEventType.Released, new Vector2(0.49625f, 0.66f));
             Input.Update(new GameTime());
         }
 
@@ -260,7 +260,7 @@ namespace Stride.UI.Tests.Regression
 
             edit4.TextAlignment = TextAlignment.Center;
             edit4.IsSelectionActive = false;
-            AddPointerEvent(PointerEventType.Pressed, new Vector2(0.5f, 0.8f));
+            AddPointerEvent(PointerEventType.Pressed, new Vector2(0.5f, 0.66f));
             Input.Update(new GameTime());
         }
 
@@ -269,7 +269,7 @@ namespace Stride.UI.Tests.Regression
             Assert.Equal(6, edit4.SelectionStart);
             Assert.Equal(0, edit4.SelectionLength);
             Assert.Equal(6, edit4.CaretPosition);
-            AddPointerEvent(PointerEventType.Moved, new Vector2(0.525f, 0.8f));
+            AddPointerEvent(PointerEventType.Moved, new Vector2(0.525f, 0.66f));
             Input.Update(new GameTime());
         }
 
@@ -278,7 +278,7 @@ namespace Stride.UI.Tests.Regression
             Assert.Equal(6, edit4.SelectionStart);
             Assert.Equal(3, edit4.SelectionLength);
             Assert.Equal(9, edit4.CaretPosition);
-            AddPointerEvent(PointerEventType.Moved, new Vector2(0.57f, 0.8f));
+            AddPointerEvent(PointerEventType.Moved, new Vector2(0.57f, 0.66f));
             Input.Update(new GameTime());
         }
 
@@ -287,7 +287,7 @@ namespace Stride.UI.Tests.Regression
             Assert.Equal(6, edit4.SelectionStart);
             Assert.Equal(6, edit4.SelectionLength);
             Assert.Equal(12, edit4.CaretPosition);
-            AddPointerEvent(PointerEventType.Moved, new Vector2(0.55f, 0.8f));
+            AddPointerEvent(PointerEventType.Moved, new Vector2(0.55f, 0.66f));
             Input.Update(new GameTime());
         }
 
@@ -296,7 +296,7 @@ namespace Stride.UI.Tests.Regression
             Assert.Equal(6, edit4.SelectionStart);
             Assert.Equal(5, edit4.SelectionLength);
             Assert.Equal(11, edit4.CaretPosition);
-            AddPointerEvent(PointerEventType.Moved, new Vector2(0.49f, 0.8f));
+            AddPointerEvent(PointerEventType.Moved, new Vector2(0.49f, 0.66f));
             Input.Update(new GameTime());
         }
 
@@ -305,7 +305,7 @@ namespace Stride.UI.Tests.Regression
             Assert.Equal(5, edit4.SelectionStart);
             Assert.Equal(1, edit4.SelectionLength);
             Assert.Equal(5, edit4.CaretPosition);
-            AddPointerEvent(PointerEventType.Moved, new Vector2(0.42f, 0.8f));
+            AddPointerEvent(PointerEventType.Moved, new Vector2(0.42f, 0.66f));
             Input.Update(new GameTime());
         }
 
@@ -314,7 +314,7 @@ namespace Stride.UI.Tests.Regression
             Assert.Equal(0, edit4.SelectionStart);
             Assert.Equal(6, edit4.SelectionLength);
             Assert.Equal(0, edit4.CaretPosition);
-            AddPointerEvent(PointerEventType.Moved, new Vector2(0.47f, 0.8f));
+            AddPointerEvent(PointerEventType.Moved, new Vector2(0.47f, 0.66f));
             Input.Update(new GameTime());
         }
 
@@ -323,8 +323,8 @@ namespace Stride.UI.Tests.Regression
             Assert.Equal(3, edit4.SelectionStart);
             Assert.Equal(3, edit4.SelectionLength);
             Assert.Equal(3, edit4.CaretPosition);
-            AddPointerEvent(PointerEventType.Moved, new Vector2(0.50f, 0.8f));
-            AddPointerEvent(PointerEventType.Released, new Vector2(0.50f, 0.8f));
+            AddPointerEvent(PointerEventType.Moved, new Vector2(0.50f, 0.66f));
+            AddPointerEvent(PointerEventType.Released, new Vector2(0.50f, 0.66f));
             Input.Update(new GameTime());
         }
 
@@ -336,20 +336,20 @@ namespace Stride.UI.Tests.Regression
 
             edit4.TextAlignment = TextAlignment.Center;
             edit4.IsSelectionActive = false;
-            AddPointerEvent(PointerEventType.Pressed, new Vector2(0.5f, 0.8f));
+            AddPointerEvent(PointerEventType.Pressed, new Vector2(0.5f, 0.66f));
             Input.Update(new GameTime());
         }
 
         private void SelectionGraphicTest2()
         {
-            AddPointerEvent(PointerEventType.Moved, new Vector2(0.57f, 0.8f));
+            AddPointerEvent(PointerEventType.Moved, new Vector2(0.57f, 0.66f));
             Input.Update(new GameTime());
         }
 
         private void SelectionGraphicTest3()
         {
-            AddPointerEvent(PointerEventType.Moved, new Vector2(0.42f, 0.8f));
-            AddPointerEvent(PointerEventType.Released, new Vector2(0.42f, 0.8f));
+            AddPointerEvent(PointerEventType.Moved, new Vector2(0.42f, 0.66f));
+            AddPointerEvent(PointerEventType.Released, new Vector2(0.42f, 0.66f));
             Input.Update(new GameTime());
         }
 
