@@ -51,7 +51,7 @@ namespace Stride.Core.Threading
         private readonly WorkerThread workers;
         private readonly HillClimbing hillClimber;
         private readonly ThreadRequests requests = new ThreadRequests();
-        private readonly ConcurrentQueue<Action> workItems = new ConcurrentQueue<Action>();
+        private readonly ConcurrentQueue<(object f, object p)> workItems = new ConcurrentQueue<(object, object)>();
 
         private volatile int numRequestedWorkers = 0;
 
@@ -113,7 +113,28 @@ namespace Stride.Core.Threading
             for (int i = 0; i < amount; i++)
             {
                 PooledDelegateHelper.AddReference(workItem);
-                workItems.Enqueue(workItem);
+                workItems.Enqueue((workItem, null));
+            }
+            EnsureThreadRequested(amount);
+        }
+
+        public void QueueWorkItem(Action<object> workItem, object param, int amount = 1)
+        {
+            // Throw right here to help debugging
+            if (workItem == null)
+            {
+                throw new NullReferenceException(nameof(workItem));
+            }
+
+            if (amount < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            }
+
+            for (int i = 0; i < amount; i++)
+            {
+                PooledDelegateHelper.AddReference(workItem);
+                workItems.Enqueue((workItem, param));
             }
             EnsureThreadRequested(amount);
         }
@@ -167,7 +188,7 @@ namespace Stride.Core.Threading
                 //
                 while (true)
                 {
-                    if (workItems.TryDequeue(out Action workItem) == false)
+                    if (workItems.TryDequeue(out var workItem) == false)
                     {
                         //
                         // No work.
@@ -191,18 +212,25 @@ namespace Stride.Core.Threading
                     //
                     // Execute the workitem outside of any finally blocks, so that it can be aborted if needed.
                     //
-                    try
+                    if(workItem.f is Action a)
                     {
-                        workItem.Invoke();
+                        try
+                        {
+                            a.Invoke();
+                        }
+                        finally
+                        {
+                            PooledDelegateHelper.Release(a);
+                        }
                     }
-                    finally
+                    else
                     {
-                        PooledDelegateHelper.Release(workItem);
+                        (workItem.f as Action<object>).Invoke( workItem.p );
                     }
 
 
                     // Release refs
-                    workItem = null;
+                    workItem = default;
 
                     //
                     // Notify the VM that we executed this workitem.  This is also our opportunity to ask whether Hill Climbing wants
