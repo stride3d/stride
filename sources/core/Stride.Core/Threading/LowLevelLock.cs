@@ -5,7 +5,7 @@
 using System.Diagnostics;
 using Monitor = System.Threading.Monitor;
 
-namespace SubSystem.Threading
+namespace Stride.Core.Threading
 {
     // This class provides implementation of uninterruptible lock for internal
     // use by thread pool.

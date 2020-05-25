@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 using System;
 using System.Threading;
-namespace SubSystem.Threading
+namespace Stride.Core.Threading
 {
     public partial class ThreadPool
     {

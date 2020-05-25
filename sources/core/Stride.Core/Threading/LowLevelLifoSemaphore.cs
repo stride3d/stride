@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Math = System.Math;
 
-namespace SubSystem.Threading
+namespace Stride.Core.Threading
 {
     /// <summary>
     /// A LIFO semaphore.

@@ -4,7 +4,7 @@
 
 using System;
 using System.Threading;
-namespace SubSystem.Threading
+namespace Stride.Core.Threading
 {
     public partial class ThreadPool
     {
@@ -17,8 +17,7 @@ namespace SubSystem.Threading
             /// <summary>
             /// Semaphore for controlling how many threads are currently working.
             /// </summary>
-            private static readonly LowLevelLifoSemaphore s_semaphore = new LowLevelLifoSemaphore(0, MaxPossibleThreadCount, SemaphoreSpinCount);
-
+            private static readonly LowLevelLifoSemaphore s_semaphore = new LowLevelLifoSemaphore(0, Environment.Is64BitProcess ? short.MaxValue : (short)1023, SemaphoreSpinCount);
             /// <summary>
             /// Maximum number of spins a thread pool worker thread performs before waiting for work
             /// </summary>
@@ -38,7 +37,7 @@ namespace SubSystem.Threading
                         if (TakeActiveRequest())
                         {
                             Volatile.Write(ref Pool._separated.lastDequeueTime, Environment.TickCount);
-                            if (Pool.s_workQueue.Dispatch())
+                            if (Pool.Dispatch())
                             {
                                 // If the queue runs out of work for us, we need to update the number of working workers to reflect that we are done working for now
                                 RemoveWorkingWorker();
