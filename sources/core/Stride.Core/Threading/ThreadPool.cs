@@ -7,7 +7,11 @@ using Stride.Core.Annotations;
 
 namespace Stride.Core.Threading
 {
-    /// <summary>
+	using System.Threading.Tasks;
+
+
+
+	/// <summary>
     /// Thread pool for scheduling actions.
     /// </summary>
     internal class ThreadPool
@@ -17,19 +21,19 @@ namespace Stride.Core.Threading
 		private readonly ParameterizedThreadStart cachedTaskLoop;
 		private readonly ConcurrentQueue<Action> queue = new ConcurrentQueue<Action>();
 		private readonly object lockObj = new object();
+		private readonly SubSystem.Threading.ThreadPool tp = new SubSystem.Threading.ThreadPool();
 		
-		private int idleCount;
 		private int itemCount;
 
         public ThreadPool()
 		{
 			// Cache delegate to avoid pointless allocation
-			cachedTaskLoop = ProcessWorkItems;
-			var threads = Environment.ProcessorCount > 2 ? Environment.ProcessorCount / 2 : 1;
+			/*cachedTaskLoop = ProcessWorkItems;
+			var threads = Environment.ProcessorCount > 2 ? Environment.ProcessorCount - 1 : 1;
 			for(int i = 0; i < threads; i++)
             {
 				NewThread();
-			}
+			}*/
 		}
 		
 		public void QueueWorkItem([NotNull, Pooled] Action workItem, int amount = 1)
@@ -45,24 +49,30 @@ namespace Stride.Core.Threading
 				throw new ArgumentOutOfRangeException(nameof(amount));
 			}
 
-			Interlocked.Add(ref itemCount, amount);
+			/*Interlocked.Add(ref itemCount, amount);*/
 			
 			for(int i = 0; i < amount; i++)
 			{
 				PooledDelegateHelper.AddReference(workItem);
-				queue.Enqueue(workItem);
+				tp.QueueUserWorkItem( () =>
+				{
+					Action a = (Action)workItem;
+					try
+					{
+						a();
+					}
+					finally
+					{
+						PooledDelegateHelper.Release(a);
+					}
+				} );
+				//queue.Enqueue(workItem);
 			}
-			
-			if(Volatile.Read(ref idleCount) == 0)
-				return;
-			
-			lock(lockObj)
+
+			/*lock(lockObj)
 			{
-				if(Volatile.Read(ref idleCount) == 0)
-					return;
-				
 				Monitor.Pulse(lockObj);
-			}
+			}*/
 		}
 
 		private void ProcessWorkItems(object paramObj)
@@ -73,42 +83,28 @@ namespace Stride.Core.Threading
 				{
 					Action action;
 					var sw = new SpinWait();
-					while(true)
+					while(queue.TryDequeue(out action) == false)
 					{
-						if(queue.TryDequeue(out action))
-						{
-							break;
-						}
-
 						if(Volatile.Read(ref itemCount) == 0)
 						{
-							if(sw.NextSpinWillYield)
+							lock( lockObj )
 							{
-								bool reset = false;
-								lock(lockObj)
+								if(Volatile.Read(ref itemCount) == 0)
 								{
-									if(Volatile.Read(ref itemCount) == 0)
-									{
-										Interlocked.Increment(ref idleCount);
-										Monitor.Wait(lockObj);
-										// We've got work to deal with, pulse other threads
-										Monitor.Pulse(lockObj);
-										reset = true;
-									}
+									Monitor.Wait(lockObj);
+									// We've got work to deal with, pulse other threads
+									Monitor.Pulse(lockObj);
 								}
-
-								if(reset)
-								{
-									Interlocked.Decrement(ref idleCount);
-									sw = new SpinWait();
-								}
-							}
-							else
-							{
-								// Spin for a while to catch more incoming work 
-								sw.SpinOnce();
+								continue;
 							}
 						}
+
+						if( sw.NextSpinWillYield )
+						{
+							sw = new SpinWait();
+						}
+						// Spin for a while to catch more incoming work 
+						sw.SpinOnce();
 					}
 
 					Interlocked.Decrement(ref itemCount);
