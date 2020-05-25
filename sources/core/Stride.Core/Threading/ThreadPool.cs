@@ -114,8 +114,8 @@ namespace Stride.Core.Threading
             {
                 PooledDelegateHelper.AddReference(workItem);
                 workItems.Enqueue(workItem);
-                EnsureThreadRequested();
             }
+            EnsureThreadRequested(amount);
         }
 
         /// <summary>
@@ -186,7 +186,7 @@ namespace Stride.Core.Threading
                     // If we found work, there may be more work.  Ask for another thread so that the other work can be processed
                     // in parallel.  Note that this will only ask for a max of #procs threads, so it's safe to call it for every dequeue.
                     //
-                    EnsureThreadRequested();
+                    EnsureThreadRequested(1);
 
                     //
                     // Execute the workitem outside of any finally blocks, so that it can be aborted if needed.
@@ -219,7 +219,7 @@ namespace Stride.Core.Threading
                 // thread to pick up where we left off.
                 //
                 if (needAnotherThread)
-                    EnsureThreadRequested();
+                    EnsureThreadRequested(1);
             }
         }
 
@@ -243,7 +243,7 @@ namespace Stride.Core.Threading
             return !workers.ShouldStopProcessingWorkNow();
         }
         
-        private void EnsureThreadRequested()
+        private void EnsureThreadRequested(int amount)
         {
             //
             // If we have not yet requested #procs threads, then request a new thread.
@@ -252,12 +252,14 @@ namespace Stride.Core.Threading
             // by the VM by the time we reach this point.
             //
             int count = requests.numOutstandingThreadRequests;
-            while (count < Environment.ProcessorCount)
+            var procCount = Environment.ProcessorCount;
+            while (count < procCount)
             {
-                int prev = Interlocked.CompareExchange(ref requests.numOutstandingThreadRequests, count + 1, count);
+                var newC = Math.Min(count + amount, procCount);
+                int prev = Interlocked.CompareExchange(ref requests.numOutstandingThreadRequests, newC, count);
                 if (prev == count)
                 {
-                    RequestWorker();
+                    RequestWorker(newC - prev);
                     break;
                 }
 
@@ -303,7 +305,7 @@ namespace Stride.Core.Threading
                         //
                         if (newMax > oldCounts.numThreadsGoal)
                         {
-                            workers.MaybeAddWorkingWorker();
+                            workers.MaybeAddWorkingWorker(1);
                         }
 
                         break;
@@ -350,10 +352,10 @@ namespace Stride.Core.Threading
             return false;
         }
 
-        private void RequestWorker()
+        private void RequestWorker(int amount)
         {
-            Interlocked.Increment(ref numRequestedWorkers);
-            workers.MaybeAddWorkingWorker();
+            Interlocked.Add(ref numRequestedWorkers, amount);
+            workers.MaybeAddWorkingWorker(amount);
             gate.EnsureRunning();
         }
 

@@ -21,14 +21,14 @@ namespace Stride.Core.Threading
             
             public WorkerThread(ThreadPool poolParam) => pool = poolParam;
 
-            public void MaybeAddWorkingWorker()
+            public void MaybeAddWorkingWorker(int amount)
             {
                 ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref pool.separated.Counts);
                 ThreadCounts newCounts;
                 while (true)
                 {
                     newCounts = counts;
-                    newCounts.numProcessingWork = Math.Max(counts.numProcessingWork, Math.Min((short)(counts.numProcessingWork + 1), counts.numThreadsGoal));
+                    newCounts.numProcessingWork = Math.Max(counts.numProcessingWork, Math.Min((short)(counts.numProcessingWork + amount), counts.numThreadsGoal));
                     newCounts.numExistingThreads = Math.Max(counts.numExistingThreads, newCounts.numProcessingWork);
 
                     if (newCounts == counts)
@@ -199,7 +199,7 @@ namespace Stride.Core.Threading
                 // if there is work to do.
                 if (pool.numRequestedWorkers > 0)
                 {
-                    MaybeAddWorkingWorker();
+                    MaybeAddWorkingWorker(1);
                 }
             }
 

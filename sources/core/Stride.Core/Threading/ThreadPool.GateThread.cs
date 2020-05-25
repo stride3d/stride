@@ -91,7 +91,7 @@ namespace Stride.Core.Threading
                                 if (oldCounts == counts)
                                 {
                                     pool.hillClimber.ForceChange(newCounts.numThreadsGoal);
-                                    pool.workers.MaybeAddWorkingWorker();
+                                    pool.workers.MaybeAddWorkingWorker(1);
                                     break;
                                 }
                                 counts = oldCounts;
