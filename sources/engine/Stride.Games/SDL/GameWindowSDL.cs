@@ -75,7 +75,7 @@ namespace Stride.Games
                 }
 
             }
-            else if (isFullScreenMaximized) //fullscreen to windowed
+            else //fullscreen to windowed or window resize
             {
                 isFullScreenMaximized = false;
 
