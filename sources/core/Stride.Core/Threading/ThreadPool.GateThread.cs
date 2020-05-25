@@ -16,96 +16,20 @@ namespace Stride.Core.Threading
             private const int DequeueDelayThresholdMs = GateThreadDelayMs * 2;
             private const int GateThreadRunningMask = 0x4;
 
-            private readonly ThreadPool Pool;
-            private int s_runningState;
+            private readonly ThreadPool pool;
+            private int runningState;
 
-            private readonly AutoResetEvent s_runGateThreadEvent = new AutoResetEvent(initialState: true);
+            private readonly AutoResetEvent runGateThreadEvent = new AutoResetEvent(initialState: true);
 
             /*private CpuUtilizationReader s_cpu;*/
             private const int MaxRuns = 2;
 
-            public GateThread(ThreadPool pool) => Pool = pool;
-
-            private void GateThreadStart()
-            {
-                /*_ = s_cpu.CurrentUtilization;*/ // The first reading is over a time range other than what we are focusing on, so we do not use the read.
-
-                AppContext.TryGetSwitch("System.Threading.ThreadPool.DisableStarvationDetection", out bool disableStarvationDetection);
-                AppContext.TryGetSwitch("System.Threading.ThreadPool.DebugBreakOnWorkerStarvation", out bool debuggerBreakOnWorkStarvation);
-
-                while (true)
-                {
-                    s_runGateThreadEvent.WaitOne();
-                    do
-                    {
-                        Thread.Sleep(GateThreadDelayMs);
-
-                        /*Pool._cpuUtilization = s_cpu.CurrentUtilization;*/
-
-                        if (disableStarvationDetection)
-                            continue;
-                        
-                        if (false == (Pool._numRequestedWorkers > 0 && SufficientDelaySinceLastDequeue()))
-                            continue;
-                        
-                        try
-                        {
-                            Pool._hillClimbingThreadAdjustmentLock.Acquire();
-                            ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref Pool._separated.counts);
-                            // don't add a thread if we're at max or if we are already in the process of adding threads
-                            while (counts.numExistingThreads < Pool._maxThreads && counts.numExistingThreads >= counts.numThreadsGoal)
-                            {
-                                if (debuggerBreakOnWorkStarvation)
-                                {
-                                    Debugger.Break();
-                                }
-
-                                ThreadCounts newCounts = counts;
-                                newCounts.numThreadsGoal = (short)(newCounts.numExistingThreads + 1);
-                                ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref Pool._separated.counts, newCounts, counts);
-                                if (oldCounts == counts)
-                                {
-                                    Pool.HillClimber.ForceChange(newCounts.numThreadsGoal);
-                                    Pool.Workers.MaybeAddWorkingWorker();
-                                    break;
-                                }
-                                counts = oldCounts;
-                            }
-                        }
-                        finally
-                        {
-                            Pool._hillClimbingThreadAdjustmentLock.Release();
-                        }
-                    } while (Pool._numRequestedWorkers > 0 || Interlocked.Decrement(ref s_runningState) > GetRunningStateForNumRuns(0));
-                }
-            }
-
-            // called by logic to spawn new worker threads, return true if it's been too long
-            // since the last dequeue operation - takes number of worker threads into account
-            // in deciding "too long"
-            private bool SufficientDelaySinceLastDequeue()
-            {
-                int delay = Environment.TickCount - Volatile.Read(ref Pool._separated.lastDequeueTime);
-
-                int minimumDelay;
-
-                if (Pool._cpuUtilization < CpuUtilizationLow)
-                {
-                    minimumDelay = GateThreadDelayMs;
-                }
-                else
-                {
-                    ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref Pool._separated.counts);
-                    int numThreads = counts.numThreadsGoal;
-                    minimumDelay = numThreads * DequeueDelayThresholdMs;
-                }
-                return delay > minimumDelay;
-            }
+            public GateThread(ThreadPool poolParam) => pool = poolParam;
 
             // This is called by a worker thread
             public void EnsureRunning()
             {
-                int numRunsMask = Interlocked.Exchange(ref s_runningState, GetRunningStateForNumRuns(MaxRuns));
+                int numRunsMask = Interlocked.Exchange(ref runningState, GetRunningStateForNumRuns(MaxRuns));
                 if ((numRunsMask & GateThreadRunningMask) == 0)
                 {
                     bool created = false;
@@ -118,14 +42,85 @@ namespace Stride.Core.Threading
                     {
                         if (!created)
                         {
-                            Interlocked.Exchange(ref s_runningState, 0);
+                            Interlocked.Exchange(ref runningState, 0);
                         }
                     }
                 }
                 else if (numRunsMask == GetRunningStateForNumRuns(0))
                 {
-                    s_runGateThreadEvent.Set();
+                    runGateThreadEvent.Set();
                 }
+            }
+
+            private void GateThreadStart()
+            {
+                /*_ = s_cpu.CurrentUtilization;*/ // The first reading is over a time range other than what we are focusing on, so we do not use the read.
+
+                AppContext.TryGetSwitch("System.Threading.ThreadPool.DisableStarvationDetection", out bool disableStarvationDetection);
+                AppContext.TryGetSwitch("System.Threading.ThreadPool.DebugBreakOnWorkerStarvation", out bool debuggerBreakOnWorkStarvation);
+
+                while (true)
+                {
+                    runGateThreadEvent.WaitOne();
+                    do
+                    {
+                        Thread.Sleep(GateThreadDelayMs);
+
+                        /*Pool._cpuUtilization = s_cpu.CurrentUtilization;*/
+
+                        if (disableStarvationDetection)
+                            continue;
+                        
+                        if (false == (pool.numRequestedWorkers > 0 && SufficientDelaySinceLastDequeue()))
+                            continue;
+                        
+                        lock(pool.hillClimbingThreadAdjustmentLock)
+                        {
+                            ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref pool.separated.Counts);
+                            // don't add a thread if we're at max or if we are already in the process of adding threads
+                            while (counts.numExistingThreads < pool.maxThreads && counts.numExistingThreads >= counts.numThreadsGoal)
+                            {
+                                if (debuggerBreakOnWorkStarvation)
+                                {
+                                    Debugger.Break();
+                                }
+
+                                ThreadCounts newCounts = counts;
+                                newCounts.numThreadsGoal = (short)(newCounts.numExistingThreads + 1);
+                                ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref pool.separated.Counts, newCounts, counts);
+                                if (oldCounts == counts)
+                                {
+                                    pool.hillClimber.ForceChange(newCounts.numThreadsGoal);
+                                    pool.workers.MaybeAddWorkingWorker();
+                                    break;
+                                }
+                                counts = oldCounts;
+                            }
+                        }
+                    } while (pool.numRequestedWorkers > 0 || Interlocked.Decrement(ref runningState) > GetRunningStateForNumRuns(0));
+                }
+            }
+
+            // called by logic to spawn new worker threads, return true if it's been too long
+            // since the last dequeue operation - takes number of worker threads into account
+            // in deciding "too long"
+            private bool SufficientDelaySinceLastDequeue()
+            {
+                int delay = Environment.TickCount - Volatile.Read(ref pool.separated.LastDequeueTime);
+
+                int minimumDelay;
+
+                if (pool.cpuUtilization < CpuUtilizationLow)
+                {
+                    minimumDelay = GateThreadDelayMs;
+                }
+                else
+                {
+                    ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref pool.separated.Counts);
+                    int numThreads = counts.numThreadsGoal;
+                    minimumDelay = numThreads * DequeueDelayThresholdMs;
+                }
+                return delay > minimumDelay;
             }
 
             private int GetRunningStateForNumRuns(int numRuns)

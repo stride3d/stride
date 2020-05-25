@@ -17,84 +17,84 @@ namespace Stride.Core.Threading
             private const int DefaultSampleIntervalMsLow = 10;
             private const int DefaultSampleIntervalMsHigh = 200;
 
-            private readonly ThreadPool ThreadPoolInstance;
+            private readonly ThreadPool pool;
 
-            private readonly int _wavePeriod;
-            private readonly int _samplesToMeasure;
-            private readonly double _targetThroughputRatio;
-            private readonly double _targetSignalToNoiseRatio;
-            private readonly double _maxChangePerSecond;
-            private readonly double _maxChangePerSample;
-            private readonly int _maxThreadWaveMagnitude;
-            private readonly int _sampleIntervalMsLow;
-            private readonly double _threadMagnitudeMultiplier;
-            private readonly int _sampleIntervalMsHigh;
-            private readonly double _throughputErrorSmoothingFactor;
-            private readonly double _gainExponent;
-            private readonly double _maxSampleError;
+            private readonly int wavePeriod;
+            private readonly int samplesToMeasure;
+            private readonly double targetThroughputRatio;
+            private readonly double targetSignalToNoiseRatio;
+            private readonly double maxChangePerSecond;
+            private readonly double maxChangePerSample;
+            private readonly int maxThreadWaveMagnitude;
+            private readonly int sampleIntervalMsLow;
+            private readonly double threadMagnitudeMultiplier;
+            private readonly int sampleIntervalMsHigh;
+            private readonly double throughputErrorSmoothingFactor;
+            private readonly double gainExponent;
+            private readonly double maxSampleError;
 
-            private double _currentControlSetting;
-            private long _totalSamples;
-            private int _lastThreadCount;
-            private double _averageThroughputNoise;
-            private int _accumulatedCompletionCount;
-            private double _accumulatedSampleDurationSeconds;
-            private readonly double[] _samples;
-            private readonly double[] _threadCounts;
-            private int _currentSampleMs;
+            private double currentControlSetting;
+            private long totalSamples;
+            private int lastThreadCount;
+            private double averageThroughputNoise;
+            private int accumulatedCompletionCount;
+            private double accumulatedSampleDurationSeconds;
+            private readonly double[] samples;
+            private readonly double[] threadCounts;
+            private int currentSampleMs;
 
-            private readonly Random _randomIntervalGenerator = new Random();
+            private readonly Random randomIntervalGenerator = new Random();
             
             public HillClimbing(ThreadPool pool) : this(
-                wavePeriod: 4,
-                maxWaveMagnitude: 20,
-                waveMagnitudeMultiplier: 100 / 100.0,
-                waveHistorySize: 8,
-                targetThroughputRatio: 15.0 / 100.0,
-                targetSignalToNoiseRatio: 300.0 / 100.0,
-                maxChangePerSecond: 4,
-                maxChangePerSample: 20,
-                sampleIntervalMsLow: DefaultSampleIntervalMsLow,
-                sampleIntervalMsHigh: DefaultSampleIntervalMsHigh,
-                errorSmoothingFactor: 1.0 / 100.0,
-                gainExponent: 200.0 / 100.0,
-                maxSampleError: 15.0 / 100.0,
-                pool: pool)
+                wavePeriodParam: 4,
+                maxWaveMagnitudeParam: 20,
+                waveMagnitudeMultiplierParam: 100 / 100.0,
+                waveHistorySizeParam: 8,
+                targetThroughputRatioParam: 15.0 / 100.0,
+                targetSignalToNoiseRatioParam: 300.0 / 100.0,
+                maxChangePerSecondParam: 4,
+                maxChangePerSampleParam: 20,
+                sampleIntervalMsLowParam: DefaultSampleIntervalMsLow,
+                sampleIntervalMsHighParam: DefaultSampleIntervalMsHigh,
+                errorSmoothingFactorParam: 1.0 / 100.0,
+                gainExponentParam: 200.0 / 100.0,
+                maxSampleErrorParam: 15.0 / 100.0,
+                poolParam: pool)
             {
                 
             }
             
-            public HillClimbing(int wavePeriod, int maxWaveMagnitude, double waveMagnitudeMultiplier, int waveHistorySize, double targetThroughputRatio,
-                double targetSignalToNoiseRatio, double maxChangePerSecond, double maxChangePerSample, int sampleIntervalMsLow, int sampleIntervalMsHigh,
-                double errorSmoothingFactor, double gainExponent, double maxSampleError, ThreadPool pool)
+            public HillClimbing(int wavePeriodParam, int maxWaveMagnitudeParam, double waveMagnitudeMultiplierParam, int waveHistorySizeParam, double targetThroughputRatioParam,
+                double targetSignalToNoiseRatioParam, double maxChangePerSecondParam, double maxChangePerSampleParam, int sampleIntervalMsLowParam, int sampleIntervalMsHighParam,
+                double errorSmoothingFactorParam, double gainExponentParam, double maxSampleErrorParam, ThreadPool poolParam)
             {
-                _wavePeriod = wavePeriod;
-                _maxThreadWaveMagnitude = maxWaveMagnitude;
-                _threadMagnitudeMultiplier = waveMagnitudeMultiplier;
-                _samplesToMeasure = wavePeriod * waveHistorySize;
-                _targetThroughputRatio = targetThroughputRatio;
-                _targetSignalToNoiseRatio = targetSignalToNoiseRatio;
-                _maxChangePerSecond = maxChangePerSecond;
-                _maxChangePerSample = maxChangePerSample;
-                if (sampleIntervalMsLow <= sampleIntervalMsHigh)
+                wavePeriod = wavePeriodParam;
+                maxThreadWaveMagnitude = maxWaveMagnitudeParam;
+                threadMagnitudeMultiplier = waveMagnitudeMultiplierParam;
+                samplesToMeasure = wavePeriodParam * waveHistorySizeParam;
+                targetThroughputRatio = targetThroughputRatioParam;
+                targetSignalToNoiseRatio = targetSignalToNoiseRatioParam;
+                maxChangePerSecond = maxChangePerSecondParam;
+                maxChangePerSample = maxChangePerSampleParam;
+                if (sampleIntervalMsLowParam <= sampleIntervalMsHighParam)
                 {
-                    _sampleIntervalMsLow = sampleIntervalMsLow;
-                    _sampleIntervalMsHigh = sampleIntervalMsHigh;
+                    sampleIntervalMsLow = sampleIntervalMsLowParam;
+                    sampleIntervalMsHigh = sampleIntervalMsHighParam;
                 }
                 else
                 {
-                    _sampleIntervalMsLow = DefaultSampleIntervalMsLow;
-                    _sampleIntervalMsHigh = DefaultSampleIntervalMsHigh;
+                    sampleIntervalMsLow = DefaultSampleIntervalMsLow;
+                    sampleIntervalMsHigh = DefaultSampleIntervalMsHigh;
                 }
-                _throughputErrorSmoothingFactor = errorSmoothingFactor;
-                _gainExponent = gainExponent;
-                _maxSampleError = maxSampleError;
+                throughputErrorSmoothingFactor = errorSmoothingFactorParam;
+                gainExponent = gainExponentParam;
+                maxSampleError = maxSampleErrorParam;
 
-                _samples = new double[_samplesToMeasure];
-                _threadCounts = new double[_samplesToMeasure];
+                samples = new double[samplesToMeasure];
+                threadCounts = new double[samplesToMeasure];
 
-                _currentSampleMs = _randomIntervalGenerator.Next(_sampleIntervalMsLow, _sampleIntervalMsHigh + 1);
-                ThreadPoolInstance = pool;
+                currentSampleMs = randomIntervalGenerator.Next(sampleIntervalMsLow, sampleIntervalMsHigh + 1);
+                pool = poolParam;
             }
 
             public (int newThreadCount, int newSampleMs) Update(int currentThreadCount, double sampleDurationSeconds, int numCompletions)
@@ -103,7 +103,7 @@ namespace Stride.Core.Threading
                 //
                 // If someone changed the thread count without telling us, update our records accordingly.
                 //
-                if (currentThreadCount != _lastThreadCount)
+                if (currentThreadCount != lastThreadCount)
                     ForceChange(currentThreadCount);
 
                 //
@@ -113,8 +113,8 @@ namespace Stride.Core.Threading
                 //
                 // Add in any data we've already collected about this sample
                 //
-                sampleDurationSeconds += _accumulatedSampleDurationSeconds;
-                numCompletions += _accumulatedCompletionCount;
+                sampleDurationSeconds += accumulatedSampleDurationSeconds;
+                numCompletions += accumulatedCompletionCount;
 
                 //
                 // We need to make sure we're collecting reasonably accurate data.  Since we're just counting the end
@@ -137,35 +137,35 @@ namespace Stride.Core.Threading
                 // two "low" samples and one "high" sample.  This will appear as periodic variation right in the frequency
                 // range we're targeting, which will not be filtered by the frequency-domain translation.
                 //
-                if (_totalSamples > 0 && ((currentThreadCount - 1.0) / numCompletions) >= _maxSampleError)
+                if (totalSamples > 0 && ((currentThreadCount - 1.0) / numCompletions) >= maxSampleError)
                 {
                     // not accurate enough yet.  Let's accumulate the data so far, and tell the ThreadPool
                     // to collect a little more.
-                    _accumulatedSampleDurationSeconds = sampleDurationSeconds;
-                    _accumulatedCompletionCount = numCompletions;
+                    accumulatedSampleDurationSeconds = sampleDurationSeconds;
+                    accumulatedCompletionCount = numCompletions;
                     return (currentThreadCount, 10);
                 }
 
                 //
                 // We've got enouugh data for our sample; reset our accumulators for next time.
                 //
-                _accumulatedSampleDurationSeconds = 0;
-                _accumulatedCompletionCount = 0;
+                accumulatedSampleDurationSeconds = 0;
+                accumulatedCompletionCount = 0;
 
                 //
                 // Add the current thread count and throughput sample to our history
                 //
                 double throughput = numCompletions / sampleDurationSeconds;
 
-                int sampleIndex = (int)(_totalSamples % _samplesToMeasure);
-                _samples[sampleIndex] = throughput;
-                _threadCounts[sampleIndex] = currentThreadCount;
-                _totalSamples++;
+                int sampleIndex = (int)(totalSamples % samplesToMeasure);
+                samples[sampleIndex] = throughput;
+                threadCounts[sampleIndex] = currentThreadCount;
+                totalSamples++;
 
                 //
                 // Set up defaults for our metrics
                 //
-                Complex ratio = default(Complex);
+                Complex ratio = default;
                 double confidence = 0;
 
                 //
@@ -173,9 +173,9 @@ namespace Stride.Core.Threading
                 // multiple of the primary wave's period; otherwise the frequency we're looking for will fall between two  frequency bands
                 // in the Fourier analysis, and we won't be able to measure it accurately.
                 //
-                int sampleCount = ((int)Math.Min(_totalSamples - 1, _samplesToMeasure)) / _wavePeriod * _wavePeriod;
+                int sampleCount = ((int)Math.Min(totalSamples - 1, samplesToMeasure)) / wavePeriod * wavePeriod;
 
-                if (sampleCount > _wavePeriod)
+                if (sampleCount > wavePeriod)
                 {
                     //
                     // Average the throughput and thread count samples, so we can scale the wave magnitudes later.
@@ -184,8 +184,8 @@ namespace Stride.Core.Threading
                     double threadSum = 0;
                     for (int i = 0; i < sampleCount; i++)
                     {
-                        sampleSum += _samples[(_totalSamples - sampleCount + i) % _samplesToMeasure];
-                        threadSum += _threadCounts[(_totalSamples - sampleCount + i) % _samplesToMeasure];
+                        sampleSum += samples[(totalSamples - sampleCount + i) % samplesToMeasure];
+                        threadSum += threadCounts[(totalSamples - sampleCount + i) % samplesToMeasure];
                     }
                     double averageThroughput = sampleSum / sampleCount;
                     double averageThreadCount = threadSum / sampleCount;
@@ -196,42 +196,42 @@ namespace Stride.Core.Threading
                         // Calculate the periods of the adjacent frequency bands we'll be using to measure noise levels.
                         // We want the two adjacent Fourier frequency bands.
                         //
-                        double adjacentPeriod1 = sampleCount / (((double)sampleCount / _wavePeriod) + 1);
-                        double adjacentPeriod2 = sampleCount / (((double)sampleCount / _wavePeriod) - 1);
+                        double adjacentPeriod1 = sampleCount / (((double)sampleCount / wavePeriod) + 1);
+                        double adjacentPeriod2 = sampleCount / (((double)sampleCount / wavePeriod) - 1);
 
                         //
                         // Get the the three different frequency components of the throughput (scaled by average
                         // throughput).  Our "error" estimate (the amount of noise that might be present in the
                         // frequency band we're really interested in) is the average of the adjacent bands.
                         //
-                        Complex throughputWaveComponent = GetWaveComponent(_samples, sampleCount, _wavePeriod) / averageThroughput;
-                        double throughputErrorEstimate = (GetWaveComponent(_samples, sampleCount, adjacentPeriod1) / averageThroughput).Abs();
+                        Complex throughputWaveComponent = GetWaveComponent(samples, sampleCount, wavePeriod) / averageThroughput;
+                        double throughputErrorEstimate = (GetWaveComponent(samples, sampleCount, adjacentPeriod1) / averageThroughput).Abs();
                         if (adjacentPeriod2 <= sampleCount)
                         {
-                            throughputErrorEstimate = Math.Max(throughputErrorEstimate, (GetWaveComponent(_samples, sampleCount, adjacentPeriod2) / averageThroughput).Abs());
+                            throughputErrorEstimate = Math.Max(throughputErrorEstimate, (GetWaveComponent(samples, sampleCount, adjacentPeriod2) / averageThroughput).Abs());
                         }
 
                         //
                         // Do the same for the thread counts, so we have something to compare to.  We don't measure thread count
                         // noise, because there is none; these are exact measurements.
                         //
-                        Complex threadWaveComponent = GetWaveComponent(_threadCounts, sampleCount, _wavePeriod) / averageThreadCount;
+                        Complex threadWaveComponent = GetWaveComponent(threadCounts, sampleCount, wavePeriod) / averageThreadCount;
 
                         //
                         // Update our moving average of the throughput noise.  We'll use this later as feedback to
                         // determine the new size of the thread wave.
                         //
-                        if (_averageThroughputNoise == 0)
-                            _averageThroughputNoise = throughputErrorEstimate;
+                        if (averageThroughputNoise == 0)
+                            averageThroughputNoise = throughputErrorEstimate;
                         else
-                            _averageThroughputNoise = (_throughputErrorSmoothingFactor * throughputErrorEstimate) + ((1.0 - _throughputErrorSmoothingFactor) * _averageThroughputNoise);
+                            averageThroughputNoise = (throughputErrorSmoothingFactor * throughputErrorEstimate) + ((1.0 - throughputErrorSmoothingFactor) * averageThroughputNoise);
 
                         if (threadWaveComponent.Abs() > 0)
                         {
                             //
                             // Adjust the throughput wave so it's centered around the target wave, and then calculate the adjusted throughput/thread ratio.
                             //
-                            ratio = (throughputWaveComponent - (_targetThroughputRatio * threadWaveComponent)) / threadWaveComponent;
+                            ratio = (throughputWaveComponent - (targetThroughputRatio * threadWaveComponent)) / threadWaveComponent;
                         }
                         else
                         {
@@ -242,9 +242,9 @@ namespace Stride.Core.Threading
                         // Calculate how confident we are in the ratio.  More noise == less confident.  This has
                         // the effect of slowing down movements that might be affected by random noise.
                         //
-                        double noiseForConfidence = Math.Max(_averageThroughputNoise, throughputErrorEstimate);
+                        double noiseForConfidence = Math.Max(averageThroughputNoise, throughputErrorEstimate);
                         if (noiseForConfidence > 0)
-                            confidence = (threadWaveComponent.Abs() / noiseForConfidence) / _targetSignalToNoiseRatio;
+                            confidence = (threadWaveComponent.Abs() / noiseForConfidence) / targetSignalToNoiseRatio;
                         else
                             confidence = 1.0; //there is no noise!
 
@@ -271,42 +271,42 @@ namespace Stride.Core.Threading
                 // are enhanced.  This allows us to move quickly if we're far away from the target, but more slowly
                 // if we're getting close, giving us rapid ramp-up without wild oscillations around the target.
                 //
-                double gain = _maxChangePerSecond * sampleDurationSeconds;
-                move = Math.Pow(Math.Abs(move), _gainExponent) * (move >= 0.0 ? 1 : -1) * gain;
-                move = Math.Min(move, _maxChangePerSample);
+                double gain = maxChangePerSecond * sampleDurationSeconds;
+                move = Math.Pow(Math.Abs(move), gainExponent) * (move >= 0.0 ? 1 : -1) * gain;
+                move = Math.Min(move, maxChangePerSample);
 
                 //
                 // If the result was positive, and CPU is > 95%, refuse the move.
                 //
-                if (move > 0.0 && ThreadPoolInstance._cpuUtilization > CpuUtilizationHigh)
+                if (move > 0.0 && pool.cpuUtilization > CpuUtilizationHigh)
                     move = 0.0;
 
                 //
                 // Apply the move to our control setting
                 //
-                _currentControlSetting += move;
+                currentControlSetting += move;
 
                 //
                 // Calculate the new thread wave magnitude, which is based on the moving average we've been keeping of
                 // the throughput error.  This average starts at zero, so we'll start with a nice safe little wave at first.
                 //
-                int newThreadWaveMagnitude = (int)(0.5 + (_currentControlSetting * _averageThroughputNoise * _targetSignalToNoiseRatio * _threadMagnitudeMultiplier * 2.0));
-                newThreadWaveMagnitude = Math.Min(newThreadWaveMagnitude, _maxThreadWaveMagnitude);
+                int newThreadWaveMagnitude = (int)(0.5 + (currentControlSetting * averageThroughputNoise * targetSignalToNoiseRatio * threadMagnitudeMultiplier * 2.0));
+                newThreadWaveMagnitude = Math.Min(newThreadWaveMagnitude, maxThreadWaveMagnitude);
                 newThreadWaveMagnitude = Math.Max(newThreadWaveMagnitude, 1);
 
                 //
                 // Make sure our control setting is within the ThreadPool's limits
                 //
-                int maxThreads = ThreadPoolInstance._maxThreads;
-                int minThreads = ThreadPoolInstance._minThreads;
+                int maxThreads = pool.maxThreads;
+                int minThreads = pool.minThreads;
 
-                _currentControlSetting = Math.Min(maxThreads - newThreadWaveMagnitude, _currentControlSetting);
-                _currentControlSetting = Math.Max(minThreads, _currentControlSetting);
+                currentControlSetting = Math.Min(maxThreads - newThreadWaveMagnitude, currentControlSetting);
+                currentControlSetting = Math.Max(minThreads, currentControlSetting);
 
                 //
                 // Calculate the new thread count (control setting + square wave)
                 //
-                int newThreadCount = (int)(_currentControlSetting + newThreadWaveMagnitude * ((_totalSamples / (_wavePeriod / 2)) % 2));
+                int newThreadCount = (int)(currentControlSetting + newThreadWaveMagnitude * ((totalSamples / (wavePeriod / 2)) % 2));
 
                 //
                 // Make sure the new thread count doesn't exceed the ThreadPool's limits
@@ -331,26 +331,26 @@ namespace Stride.Core.Threading
                 //
                 int newSampleInterval;
                 if (ratio.Real < 0.0 && newThreadCount == minThreads)
-                    newSampleInterval = (int)(0.5 + _currentSampleMs * (10.0 * Math.Max(-ratio.Real, 1.0)));
+                    newSampleInterval = (int)(0.5 + currentSampleMs * (10.0 * Math.Max(-ratio.Real, 1.0)));
                 else
-                    newSampleInterval = _currentSampleMs;
+                    newSampleInterval = currentSampleMs;
 
                 return (newThreadCount, newSampleInterval);
             }
 
-            private void ChangeThreadCount(int newThreadCount)
-            {
-                _lastThreadCount = newThreadCount;
-                _currentSampleMs = _randomIntervalGenerator.Next(_sampleIntervalMsLow, _sampleIntervalMsHigh + 1);
-            }
-
             public void ForceChange(int newThreadCount)
             {
-                if (_lastThreadCount != newThreadCount)
+                if (lastThreadCount != newThreadCount)
                 {
-                    _currentControlSetting += newThreadCount - _lastThreadCount;
+                    currentControlSetting += newThreadCount - lastThreadCount;
                     ChangeThreadCount(newThreadCount);
                 }
+            }
+
+            private void ChangeThreadCount(int newThreadCount)
+            {
+                lastThreadCount = newThreadCount;
+                currentSampleMs = randomIntervalGenerator.Next(sampleIntervalMsLow, sampleIntervalMsHigh + 1);
             }
 
             private Complex GetWaveComponent(double[] samples, int numSamples, double period)
@@ -370,7 +370,7 @@ namespace Stride.Core.Threading
                 double q1 = 0, q2 = 0;
                 for (int i = 0; i < numSamples; ++i)
                 {
-                    double q0 = coeff * q1 - q2 + samples[(_totalSamples - numSamples + i) % _samplesToMeasure];
+                    double q0 = coeff * q1 - q2 + samples[(totalSamples - numSamples + i) % samplesToMeasure];
                     q2 = q1;
                     q1 = q0;
                 }
@@ -385,8 +385,8 @@ namespace Stride.Core.Threading
                     Imaginary = imaginary;
                 }
 
-                public double Imaginary { get; }
-                public double Real { get; }
+                public double Imaginary;
+                public double Real;
 
                 public static Complex operator *(double scalar, Complex complex) => new Complex(scalar * complex.Real, scalar * complex.Imaginary);
 

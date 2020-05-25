@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Stride.Core.Annotations;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -13,97 +14,106 @@ namespace Stride.Core.Threading
     public sealed partial class ThreadPool
     {
         public static readonly ThreadPool Instance = new ThreadPool();
-        
-        private const int ThreadPoolThreadTimeoutMs = 20 * 1000;
+
         private static short MaxPossibleThreadCount => Environment.Is64BitProcess ? short.MaxValue : (short)1023;
-        
+
+        private const int ThreadPoolThreadTimeoutMs = 20 * 1000;
         private const int CpuUtilizationHigh = 95;
         private const int CpuUtilizationLow = 80;
-        private int _cpuUtilization = 0;
 
-        private short _minThreads;
-        private short _maxThreads;
+        private int cpuUtilization = 0;
 
-        [StructLayout(LayoutKind.Explicit, Size = CacheLineSize * 5)]
+        private short minThreads;
+        private short maxThreads;
+
+        [StructLayout(LayoutKind.Explicit, Size = CACHE_LINE_SIZE * 5)]
         private struct CacheLineSeparated
         {
-#if TARGET_ARM64
-            private const int CacheLineSize = 128;
-#else
-            private const int CacheLineSize = 64;
-#endif
-            [FieldOffset(CacheLineSize * 1)]
-            public ThreadCounts counts;
-            [FieldOffset(CacheLineSize * 2)]
-            public int lastDequeueTime;
-            [FieldOffset(CacheLineSize * 3)]
-            public int priorCompletionCount;
-            [FieldOffset(CacheLineSize * 3 + sizeof(int))]
-            public int priorCompletedWorkRequestsTime;
-            [FieldOffset(CacheLineSize * 3 + sizeof(int) * 2)]
-            public int nextCompletedWorkRequestsTime;
+            [FieldOffset(CACHE_LINE_SIZE * 1)]
+            public ThreadCounts Counts;
+            [FieldOffset(CACHE_LINE_SIZE * 2)]
+            public int LastDequeueTime;
+            [FieldOffset(CACHE_LINE_SIZE * 3)]
+            public int PriorCompletionCount;
+            [FieldOffset(CACHE_LINE_SIZE * 3 + sizeof(int))]
+            public int PriorCompletedWorkRequestsTime;
+            [FieldOffset(CACHE_LINE_SIZE * 3 + sizeof(int) * 2)]
+            public int NextCompletedWorkRequestsTime;
         }
 
-        private CacheLineSeparated _separated;
-        private long _currentSampleStartTime;
-        private long _completionCounter;
-        private int _threadAdjustmentIntervalMs;
+        private CacheLineSeparated separated;
+        private long currentSampleStartTime;
+        private long completionCounter;
+        private int threadAdjustmentIntervalMs;
 
-        private readonly LowLevelLock _hillClimbingThreadAdjustmentLock = new LowLevelLock();
-        private readonly GateThread Gate;
-        private readonly WorkerThread Workers;
-        private readonly HillClimbing HillClimber;
-        private readonly ThreadRequests Requests = new ThreadRequests();
-        private readonly ConcurrentQueue<Action> WorkItems = new ConcurrentQueue<Action>();
+        private readonly object hillClimbingThreadAdjustmentLock = new object();
+        private readonly GateThread gate;
+        private readonly WorkerThread workers;
+        private readonly HillClimbing hillClimber;
+        private readonly ThreadRequests requests = new ThreadRequests();
+        private readonly ConcurrentQueue<Action> workItems = new ConcurrentQueue<Action>();
 
-        private volatile int _numRequestedWorkers = 0;
+        private volatile int numRequestedWorkers = 0;
 
-        public int ThreadCount => ThreadCounts.VolatileReadCounts(ref _separated.counts).numExistingThreads;
-        public long CompletedWorkItemCount => Volatile.Read(ref _completionCounter);
+        public int ThreadCount => ThreadCounts.VolatileReadCounts(ref separated.Counts).numExistingThreads;
+        public long CompletedWorkItemCount => Volatile.Read(ref completionCounter);
+        public int GetMaxThreads() => maxThreads;
+
+        public int GetAvailableThreads()
+        {
+            ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref separated.Counts);
+            int count = maxThreads - counts.numProcessingWork;
+            if (count < 0)
+            {
+                return 0;
+            }
+
+            return count;
+        }
 
         public ThreadPool()
         {
-            _minThreads = (short)Environment.ProcessorCount;
-            if (_minThreads > MaxPossibleThreadCount)
+            minThreads = (short)Environment.ProcessorCount;
+            if (minThreads > MaxPossibleThreadCount)
             {
-                _minThreads = MaxPossibleThreadCount;
+                minThreads = MaxPossibleThreadCount;
             }
 
-            _maxThreads = MaxPossibleThreadCount;
-            if (_maxThreads < _minThreads)
+            maxThreads = MaxPossibleThreadCount;
+            if (maxThreads < minThreads)
             {
-                _maxThreads = _minThreads;
+                maxThreads = minThreads;
             }
 
-            _separated = new CacheLineSeparated
+            separated = new CacheLineSeparated
             {
-                counts = new ThreadCounts
+                Counts = new ThreadCounts
                 {
-                    numThreadsGoal = _minThreads
+                    numThreadsGoal = minThreads
                 }
             };
-            Gate = new GateThread(this);
-            Workers = new WorkerThread(this);
-            HillClimber = new HillClimbing(this);
+            gate = new GateThread(this);
+            workers = new WorkerThread(this);
+            hillClimber = new HillClimbing(this);
         }
 
-        public void QueueWorkItem(Action workItem, int amount = 1)
+        public void QueueWorkItem([NotNull, Pooled] Action workItem, int amount = 1)
         {
             // Throw right here to help debugging
-            if(workItem == null)
+            if (workItem == null)
             {
                 throw new NullReferenceException(nameof(workItem));
             }
 
-            if(amount < 1)
+            if (amount < 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(amount));
             }
 
-            for( int i = 0; i < amount; i++ )
+            for (int i = 0; i < amount; i++)
             {
                 PooledDelegateHelper.AddReference(workItem);
-                WorkItems.Enqueue(workItem);
+                workItems.Enqueue(workItem);
                 EnsureThreadRequested();
             }
         }
@@ -115,7 +125,7 @@ namespace Stride.Core.Threading
         /// <c>true</c> if this thread did as much work as was available or its quantum expired.
         /// <c>false</c> if this thread stopped working early.
         /// </returns>
-        public bool Dispatch()
+        private bool Dispatch()
         {
             //
             // Update our records to indicate that an outstanding request for a thread has now been fulfilled.
@@ -125,8 +135,7 @@ namespace Stride.Core.Threading
             // CoreCLR: Note that if this thread is aborted before we get a chance to request another one, the VM will
             // record a thread request on our behalf.  So we don't need to worry about getting aborted right here.
             //
-            
-            //MarkThreadRequestSatisfied();
+
             //
             // One of our outstanding thread requests has been satisfied.
             // Decrement the count so that future calls to EnsureThreadRequested will succeed.
@@ -134,18 +143,18 @@ namespace Stride.Core.Threading
             // CoreCLR: Note that there is a separate count in the VM which has already been decremented
             // by the VM by the time we reach this point.
             //
-            int count = Requests.numOutstandingThreadRequests;
-            while( count > 0 )
+            int count = requests.numOutstandingThreadRequests;
+            while (count > 0)
             {
-                int prev = Interlocked.CompareExchange( ref Requests.numOutstandingThreadRequests, count - 1, count );
-                if( prev == count )
+                int prev = Interlocked.CompareExchange(ref requests.numOutstandingThreadRequests, count - 1, count);
+                if (prev == count)
                 {
                     break;
                 }
 
                 count = prev;
             }
-            
+
             //
             // Assume that we're going to need another thread if this one returns to the VM.  We'll set this to
             // false later, but only if we're absolutely certain that the queue is empty.
@@ -156,9 +165,9 @@ namespace Stride.Core.Threading
                 //
                 // Loop until our quantum expires or there is no work.
                 //
-                while( true )
+                while (true)
                 {
-                    if( WorkItems.TryDequeue( out Action workItem ) == false )
+                    if (workItems.TryDequeue(out Action workItem) == false)
                     {
                         //
                         // No work.
@@ -199,7 +208,7 @@ namespace Stride.Core.Threading
                     // Notify the VM that we executed this workitem.  This is also our opportunity to ask whether Hill Climbing wants
                     // us to return the thread to the pool or not.
                     //
-                    if( ! NotifyWorkItemComplete() )
+                    if (!NotifyWorkItemComplete())
                         return false;
                 }
             }
@@ -209,13 +218,32 @@ namespace Stride.Core.Threading
                 // If we are exiting for any reason other than that the queue is definitely empty, ask for another
                 // thread to pick up where we left off.
                 //
-                if( needAnotherThread )
+                if (needAnotherThread)
                     EnsureThreadRequested();
             }
         }
+
+        private bool NotifyWorkItemComplete()
+        {
+            Interlocked.Increment(ref completionCounter);
+            Volatile.Write(ref separated.LastDequeueTime, Environment.TickCount);
+
+            if (ShouldAdjustMaxWorkersActive() && Monitor.TryEnter(hillClimbingThreadAdjustmentLock))
+            {
+                try
+                {
+                    AdjustMaxWorkersActive();
+                }
+                finally
+                {
+                    Monitor.Exit(hillClimbingThreadAdjustmentLock);
+                }
+            }
+
+            return !workers.ShouldStopProcessingWorkNow();
+        }
         
-        
-        public void EnsureThreadRequested()
+        private void EnsureThreadRequested()
         {
             //
             // If we have not yet requested #procs threads, then request a new thread.
@@ -223,11 +251,11 @@ namespace Stride.Core.Threading
             // CoreCLR: Note that there is a separate count in the VM which has already been incremented
             // by the VM by the time we reach this point.
             //
-            int count = Requests.numOutstandingThreadRequests;
-            while( count < Environment.ProcessorCount )
+            int count = requests.numOutstandingThreadRequests;
+            while (count < Environment.ProcessorCount)
             {
-                int prev = Interlocked.CompareExchange( ref Requests.numOutstandingThreadRequests, count + 1, count );
-                if( prev == count )
+                int prev = Interlocked.CompareExchange(ref requests.numOutstandingThreadRequests, count + 1, count);
+                if (prev == count)
                 {
                     RequestWorker();
                     break;
@@ -237,67 +265,34 @@ namespace Stride.Core.Threading
             }
         }
 
-        public int GetMaxThreads() => _maxThreads;
-
-        public int GetAvailableThreads()
-        {
-            ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref _separated.counts);
-            int count = _maxThreads - counts.numProcessingWork;
-            if (count < 0)
-            {
-                return 0;
-            }
-            return count;
-        }
-
-        private bool NotifyWorkItemComplete()
-        {
-            Interlocked.Increment(ref _completionCounter);
-            Volatile.Write(ref _separated.lastDequeueTime, Environment.TickCount);
-
-            if (ShouldAdjustMaxWorkersActive() && _hillClimbingThreadAdjustmentLock.TryAcquire())
-            {
-                try
-                {
-                    AdjustMaxWorkersActive();
-                }
-                finally
-                {
-                    _hillClimbingThreadAdjustmentLock.Release();
-                }
-            }
-
-            return !Workers.ShouldStopProcessingWorkNow();
-        }
-
         //
         // This method must only be called if ShouldAdjustMaxWorkersActive has returned true, *and*
         // _hillClimbingThreadAdjustmentLock is held.
         //
         private void AdjustMaxWorkersActive()
         {
-            _hillClimbingThreadAdjustmentLock.VerifyIsLocked();
+            Debug.Assert(Monitor.IsEntered(hillClimbingThreadAdjustmentLock));
             int currentTicks = Environment.TickCount;
-            int totalNumCompletions = (int)Volatile.Read(ref _completionCounter);
-            int numCompletions = totalNumCompletions - _separated.priorCompletionCount;
-            long startTime = _currentSampleStartTime;
+            int totalNumCompletions = (int)Volatile.Read(ref completionCounter);
+            int numCompletions = totalNumCompletions - separated.PriorCompletionCount;
+            long startTime = currentSampleStartTime;
             long endTime = Stopwatch.GetTimestamp();
             long freq = Stopwatch.Frequency;
 
             double elapsedSeconds = (double)(endTime - startTime) / freq;
 
-            if (elapsedSeconds * 1000 >= _threadAdjustmentIntervalMs / 2)
+            if (elapsedSeconds * 1000 >= threadAdjustmentIntervalMs / 2)
             {
-                ThreadCounts currentCounts = ThreadCounts.VolatileReadCounts(ref _separated.counts);
+                ThreadCounts currentCounts = ThreadCounts.VolatileReadCounts(ref separated.Counts);
                 int newMax;
-                (newMax, _threadAdjustmentIntervalMs) = HillClimber.Update(currentCounts.numThreadsGoal, elapsedSeconds, numCompletions);
+                (newMax, threadAdjustmentIntervalMs) = hillClimber.Update(currentCounts.numThreadsGoal, elapsedSeconds, numCompletions);
 
                 while (newMax != currentCounts.numThreadsGoal)
                 {
                     ThreadCounts newCounts = currentCounts;
                     newCounts.numThreadsGoal = (short)newMax;
 
-                    ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref _separated.counts, newCounts, currentCounts);
+                    ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref separated.Counts, newCounts, currentCounts);
                     if (oldCounts == currentCounts)
                     {
                         //
@@ -308,8 +303,9 @@ namespace Stride.Core.Threading
                         //
                         if (newMax > oldCounts.numThreadsGoal)
                         {
-                            Workers.MaybeAddWorkingWorker();
+                            workers.MaybeAddWorkingWorker();
                         }
+
                         break;
                     }
                     else
@@ -324,18 +320,19 @@ namespace Stride.Core.Threading
                         currentCounts = oldCounts;
                     }
                 }
-                _separated.priorCompletionCount = totalNumCompletions;
-                _separated.nextCompletedWorkRequestsTime = currentTicks + _threadAdjustmentIntervalMs;
-                Volatile.Write(ref _separated.priorCompletedWorkRequestsTime, currentTicks);
-                _currentSampleStartTime = endTime;
+
+                separated.PriorCompletionCount = totalNumCompletions;
+                separated.NextCompletedWorkRequestsTime = currentTicks + threadAdjustmentIntervalMs;
+                Volatile.Write(ref separated.PriorCompletedWorkRequestsTime, currentTicks);
+                currentSampleStartTime = endTime;
             }
         }
 
         private bool ShouldAdjustMaxWorkersActive()
         {
             // We need to subtract by prior time because Environment.TickCount can wrap around, making a comparison of absolute times unreliable.
-            int priorTime = Volatile.Read(ref _separated.priorCompletedWorkRequestsTime);
-            int requiredInterval = _separated.nextCompletedWorkRequestsTime - priorTime;
+            int priorTime = Volatile.Read(ref separated.PriorCompletedWorkRequestsTime);
+            int requiredInterval = separated.NextCompletedWorkRequestsTime - priorTime;
             int elapsedInterval = Environment.TickCount - priorTime;
             if (elapsedInterval >= requiredInterval)
             {
@@ -346,19 +343,20 @@ namespace Stride.Core.Threading
                 // threads processing work to stop in response to a decreased thread count goal. The logic here is a bit
                 // different from the original CoreCLR code from which this implementation was ported because in this
                 // implementation there are no retired threads, so only the count of threads processing work is considered.
-                ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref _separated.counts);
+                ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref separated.Counts);
                 return counts.numProcessingWork <= counts.numThreadsGoal;
             }
+
             return false;
         }
 
-        public void RequestWorker()
+        private void RequestWorker()
         {
-            Interlocked.Increment(ref _numRequestedWorkers);
-            Workers.MaybeAddWorkingWorker();
-            Gate.EnsureRunning();
+            Interlocked.Increment(ref numRequestedWorkers);
+            workers.MaybeAddWorkingWorker();
+            gate.EnsureRunning();
         }
-        
+
         /// <summary>
         /// Tracks information on the number of threads we want/have in different states in our thread pool.
         /// </summary>
@@ -406,6 +404,7 @@ namespace Stride.Core.Threading
                     result.Validate();
                     newCounts.Validate();
                 }
+
                 return result;
             }
 
@@ -415,7 +414,7 @@ namespace Stride.Core.Threading
 
             public override bool Equals(object obj)
             {
-                return obj is ThreadCounts counts && this._asLong == counts._asLong;
+                return obj is ThreadCounts counts && _asLong == counts._asLong;
             }
 
             public override int GetHashCode()
@@ -433,7 +432,7 @@ namespace Stride.Core.Threading
         }
 
         [StructLayout(LayoutKind.Sequential)] // enforce layout so that padding reduces false sharing
-        public class ThreadRequests
+        private class ThreadRequests
         {
             private readonly PaddingFalseSharing pad1;
 
@@ -441,17 +440,18 @@ namespace Stride.Core.Threading
 
             private readonly PaddingFalseSharing pad2;
         }
-        
+
         /// <summary>Padding structure used to minimize false sharing</summary>
-        [ StructLayout( LayoutKind.Explicit, Size = PaddingFalseSharing.CACHE_LINE_SIZE - sizeof(int) ) ]
-        public struct PaddingFalseSharing
+        [StructLayout(LayoutKind.Explicit, Size = CACHE_LINE_SIZE - sizeof(int))]
+        private struct PaddingFalseSharing
         {
-            /// <summary>A size greater than or equal to the size of the most common CPU cache lines.</summary>
-            #if TARGET_ARM64
-            public const int CACHE_LINE_SIZE = 128;
-            #else
-            public const int CACHE_LINE_SIZE = 64;
-            #endif
         }
+        
+        /// <summary>A size greater than or equal to the size of the most common CPU cache lines.</summary>
+#if TARGET_ARM64
+        public const int CACHE_LINE_SIZE = 128;
+#else
+        public const int CACHE_LINE_SIZE = 64;
+#endif
     }
 }

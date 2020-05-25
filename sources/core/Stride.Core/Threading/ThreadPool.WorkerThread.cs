@@ -9,119 +9,21 @@ namespace Stride.Core.Threading
     public partial class ThreadPool
     {
         /// <summary>
-        /// The worker thread infastructure for the CLR thread pool.
+        /// The worker thread infrastructure for the CLR thread pool.
         /// </summary>
         private class WorkerThread
         {
-            private readonly ThreadPool Pool;
+            private readonly ThreadPool pool;
             /// <summary>
             /// Semaphore for controlling how many threads are currently working.
             /// </summary>
-            private static readonly LowLevelLifoSemaphore s_semaphore = new LowLevelLifoSemaphore(0, Environment.Is64BitProcess ? short.MaxValue : (short)1023, SemaphoreSpinCount);
-            /// <summary>
-            /// Maximum number of spins a thread pool worker thread performs before waiting for work
-            /// </summary>
-            private static int SemaphoreSpinCount
-            {
-                get => 70;
-            }
+            private static readonly Semaphore Semaphore = new Semaphore(0, Environment.Is64BitProcess ? short.MaxValue : (short)1023, 70);
             
-            public WorkerThread(ThreadPool pool) => Pool = pool;
-
-            private void WorkerThreadStart()
-            {
-                while (true)
-                {
-                    while (WaitForRequest())
-                    {
-                        if (TakeActiveRequest())
-                        {
-                            Volatile.Write(ref Pool._separated.lastDequeueTime, Environment.TickCount);
-                            if (Pool.Dispatch())
-                            {
-                                // If the queue runs out of work for us, we need to update the number of working workers to reflect that we are done working for now
-                                RemoveWorkingWorker();
-                            }
-                        }
-                        else
-                        {
-                            // If we woke up but couldn't find a request, we need to update the number of working workers to reflect that we are done working for now
-                            RemoveWorkingWorker();
-                        }
-                    }
-
-                    Pool._hillClimbingThreadAdjustmentLock.Acquire();
-                    try
-                    {
-                        // At this point, the thread's wait timed out. We are shutting down this thread.
-                        // We are going to decrement the number of exisiting threads to no longer include this one
-                        // and then change the max number of threads in the thread pool to reflect that we don't need as many
-                        // as we had. Finally, we are going to tell hill climbing that we changed the max number of threads.
-                        ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref Pool._separated.counts);
-                        while (true)
-                        {
-                            if (counts.numExistingThreads == counts.numProcessingWork)
-                            {
-                                // In this case, enough work came in that this thread should not time out and should go back to work.
-                                break;
-                            }
-
-                            ThreadCounts newCounts = counts;
-                            newCounts.numExistingThreads--;
-                            newCounts.numThreadsGoal = Math.Max(Pool._minThreads, Math.Min(newCounts.numExistingThreads, newCounts.numThreadsGoal));
-                            ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref Pool._separated.counts, newCounts, counts);
-                            if (oldCounts == counts)
-                            {
-                                Pool.HillClimber.ForceChange(newCounts.numThreadsGoal);
-                                return;
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        Pool._hillClimbingThreadAdjustmentLock.Release();
-                    }
-                }
-            }
-
-            /// <summary>
-            /// Waits for a request to work.
-            /// </summary>
-            /// <returns>If this thread was woken up before it timed out.</returns>
-            private bool WaitForRequest() => s_semaphore.Wait(ThreadPoolThreadTimeoutMs);
-
-            /// <summary>
-            /// Reduce the number of working workers by one, but maybe add back a worker (possibily this thread) if a thread request comes in while we are marking this thread as not working.
-            /// </summary>
-            private void RemoveWorkingWorker()
-            {
-                ThreadCounts currentCounts = ThreadCounts.VolatileReadCounts(ref Pool._separated.counts);
-                while (true)
-                {
-                    ThreadCounts newCounts = currentCounts;
-                    newCounts.numProcessingWork--;
-                    ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref Pool._separated.counts, newCounts, currentCounts);
-
-                    if (oldCounts == currentCounts)
-                    {
-                        break;
-                    }
-                    currentCounts = oldCounts;
-                }
-
-                // It's possible that we decided we had thread requests just before a request came in,
-                // but reduced the worker count *after* the request came in.  In this case, we might
-                // miss the notification of a thread request.  So we wake up a thread (maybe this one!)
-                // if there is work to do.
-                if (Pool._numRequestedWorkers > 0)
-                {
-                    MaybeAddWorkingWorker();
-                }
-            }
+            public WorkerThread(ThreadPool poolParam) => pool = poolParam;
 
             public void MaybeAddWorkingWorker()
             {
-                ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref Pool._separated.counts);
+                ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref pool.separated.Counts);
                 ThreadCounts newCounts;
                 while (true)
                 {
@@ -134,7 +36,7 @@ namespace Stride.Core.Threading
                         return;
                     }
 
-                    ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref Pool._separated.counts, newCounts, counts);
+                    ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref pool.separated.Counts, newCounts, counts);
 
                     if (oldCounts == counts)
                     {
@@ -149,7 +51,7 @@ namespace Stride.Core.Threading
 
                 if (toRelease > 0)
                 {
-                    s_semaphore.Release(toRelease);
+                    Semaphore.Release(toRelease);
                 }
 
                 while (toCreate > 0)
@@ -160,14 +62,14 @@ namespace Stride.Core.Threading
                     }
                     else
                     {
-                        counts = ThreadCounts.VolatileReadCounts(ref Pool._separated.counts);
+                        counts = ThreadCounts.VolatileReadCounts(ref pool.separated.Counts);
                         while (true)
                         {
                             newCounts = counts;
                             newCounts.numProcessingWork -= (short)toCreate;
                             newCounts.numExistingThreads -= (short)toCreate;
 
-                            ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref Pool._separated.counts, newCounts, counts);
+                            ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref pool.separated.Counts, newCounts, counts);
                             if (oldCounts == counts)
                             {
                                 break;
@@ -187,7 +89,7 @@ namespace Stride.Core.Threading
             /// <returns>Whether or not this thread should stop processing work even if there is still work in the queue.</returns>
             public bool ShouldStopProcessingWorkNow()
             {
-                ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref Pool._separated.counts);
+                ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref pool.separated.Counts);
                 while (true)
                 {
                     // When there are more threads processing work than the thread count goal, hill climbing must have decided
@@ -205,7 +107,7 @@ namespace Stride.Core.Threading
                     ThreadCounts newCounts = counts;
                     newCounts.numProcessingWork--;
 
-                    ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref Pool._separated.counts, newCounts, counts);
+                    ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref pool.separated.Counts, newCounts, counts);
 
                     if (oldCounts == counts)
                     {
@@ -215,12 +117,98 @@ namespace Stride.Core.Threading
                 }
             }
 
+            private void WorkerThreadStart()
+            {
+                while (true)
+                {
+                    while (WaitForRequest())
+                    {
+                        if (TakeActiveRequest())
+                        {
+                            Volatile.Write(ref pool.separated.LastDequeueTime, Environment.TickCount);
+                            if (pool.Dispatch())
+                            {
+                                // If the queue runs out of work for us, we need to update the number of working workers to reflect that we are done working for now
+                                RemoveWorkingWorker();
+                            }
+                        }
+                        else
+                        {
+                            // If we woke up but couldn't find a request, we need to update the number of working workers to reflect that we are done working for now
+                            RemoveWorkingWorker();
+                        }
+                    }
+
+                    lock(pool.hillClimbingThreadAdjustmentLock)
+                    {
+                        // At this point, the thread's wait timed out. We are shutting down this thread.
+                        // We are going to decrement the number of exisiting threads to no longer include this one
+                        // and then change the max number of threads in the thread pool to reflect that we don't need as many
+                        // as we had. Finally, we are going to tell hill climbing that we changed the max number of threads.
+                        ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref pool.separated.Counts);
+                        while (true)
+                        {
+                            if (counts.numExistingThreads == counts.numProcessingWork)
+                            {
+                                // In this case, enough work came in that this thread should not time out and should go back to work.
+                                break;
+                            }
+
+                            ThreadCounts newCounts = counts;
+                            newCounts.numExistingThreads--;
+                            newCounts.numThreadsGoal = Math.Max(pool.minThreads, Math.Min(newCounts.numExistingThreads, newCounts.numThreadsGoal));
+                            ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref pool.separated.Counts, newCounts, counts);
+                            if (oldCounts == counts)
+                            {
+                                pool.hillClimber.ForceChange(newCounts.numThreadsGoal);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Waits for a request to work.
+            /// </summary>
+            /// <returns>If this thread was woken up before it timed out.</returns>
+            private bool WaitForRequest() => Semaphore.Wait(ThreadPoolThreadTimeoutMs);
+
+            /// <summary>
+            /// Reduce the number of working workers by one, but maybe add back a worker (possibily this thread) if a thread request comes in while we are marking this thread as not working.
+            /// </summary>
+            private void RemoveWorkingWorker()
+            {
+                ThreadCounts currentCounts = ThreadCounts.VolatileReadCounts(ref pool.separated.Counts);
+                while (true)
+                {
+                    ThreadCounts newCounts = currentCounts;
+                    newCounts.numProcessingWork--;
+                    ThreadCounts oldCounts = ThreadCounts.CompareExchangeCounts(ref pool.separated.Counts, newCounts, currentCounts);
+
+                    if (oldCounts == currentCounts)
+                    {
+                        break;
+                    }
+                    currentCounts = oldCounts;
+                }
+
+                // It's possible that we decided we had thread requests just before a request came in,
+                // but reduced the worker count *after* the request came in.  In this case, we might
+                // miss the notification of a thread request.  So we wake up a thread (maybe this one!)
+                // if there is work to do.
+                if (pool.numRequestedWorkers > 0)
+                {
+                    MaybeAddWorkingWorker();
+                }
+            }
+
             private bool TakeActiveRequest()
             {
-                int count = Pool._numRequestedWorkers;
+                int count = pool.numRequestedWorkers;
                 while (count > 0)
                 {
-                    int prevCount = Interlocked.CompareExchange(ref Pool._numRequestedWorkers, count - 1, count);
+                    int prevCount = Interlocked.CompareExchange(ref pool.numRequestedWorkers, count - 1, count);
                     if (prevCount == count)
                     {
                         return true;
