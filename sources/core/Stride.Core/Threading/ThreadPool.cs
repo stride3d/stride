@@ -158,6 +158,33 @@ namespace Stride.Core.Threading
             EnsureThreadRequested(amount);
         }
 
+        public bool TryCooperate()
+        {
+            if (workItems.TryDequeue(out var workItem))
+            {
+                if (workItem.f is Action a)
+                {
+                    try
+                    {
+                        a.Invoke();
+                    }
+                    finally
+                    {
+                        PooledDelegateHelper.Release(a);
+                    }
+                }
+                else
+                {
+                    (workItem.f as Action<object>).Invoke(workItem.p);
+                }
+
+                NotifyWorkItemComplete();
+                return true;
+            }
+
+            return false;
+        }
+        
         /// <summary>
         /// Dispatches work items to this thread.
         /// </summary>
@@ -199,7 +226,6 @@ namespace Stride.Core.Threading
             // Assume that we're going to need another thread if this one returns to the VM.  We'll set this to
             // false later, but only if we're absolutely certain that the queue is empty.
             //
-            bool needAnotherThread = true;
             try
             {
                 //
@@ -209,15 +235,6 @@ namespace Stride.Core.Threading
                 {
                     if (workItems.TryDequeue(out var workItem) == false)
                     {
-                        //
-                        // No work.
-                        // If we missed a steal, though, there may be more work in the queue.
-                        // Instead of looping around and trying again, we'll just request another thread.  Hopefully the thread
-                        // that owns the contended work-stealing queue will pick up its own workitems in the meantime,
-                        // which will be more efficient than this thread doing it anyway.
-                        //
-                        needAnotherThread = false;
-
                         // Tell the VM we're returning normally, not because Hill Climbing asked us to return.
                         return true;
                     }
@@ -231,7 +248,7 @@ namespace Stride.Core.Threading
                     //
                     // Execute the workitem outside of any finally blocks, so that it can be aborted if needed.
                     //
-                    if(workItem.f is Action a)
+                    if (workItem.f is Action a)
                     {
                         try
                         {
@@ -244,7 +261,7 @@ namespace Stride.Core.Threading
                     }
                     else
                     {
-                        (workItem.f as Action<object>).Invoke( workItem.p );
+                        (workItem.f as Action<object>).Invoke(workItem.p);
                     }
 
 
@@ -255,26 +272,20 @@ namespace Stride.Core.Threading
                     // Notify the VM that we executed this workitem.  This is also our opportunity to ask whether Hill Climbing wants
                     // us to return the thread to the pool or not.
                     //
-                    if (!NotifyWorkItemComplete())
+                    NotifyWorkItemComplete();
+                    if (!PokeHillClimbing())
                         return false;
                 }
             }
-            finally
+            catch
             {
-                //
-                // If we are exiting for any reason other than that the queue is definitely empty, ask for another
-                // thread to pick up where we left off.
-                //
-                if (needAnotherThread)
-                    EnsureThreadRequested(1);
+                EnsureThreadRequested(1);
+                throw;
             }
         }
 
-        private bool NotifyWorkItemComplete()
+        private bool PokeHillClimbing()
         {
-            Interlocked.Increment(ref completionCounter);
-            Volatile.Write(ref separated.LastDequeueTime, Environment.TickCount);
-
             if (ShouldAdjustMaxWorkersActive() && Monitor.TryEnter(hillClimbingThreadAdjustmentLock))
             {
                 try
@@ -288,6 +299,12 @@ namespace Stride.Core.Threading
             }
 
             return !workers.ShouldStopProcessingWorkNow();
+        }
+
+        private void NotifyWorkItemComplete()
+        {
+            Interlocked.Increment(ref completionCounter);
+            Volatile.Write(ref separated.LastDequeueTime, Environment.TickCount);
         }
         
         private void EnsureThreadRequested(int amount)
