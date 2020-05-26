@@ -41,10 +41,10 @@ namespace Stride.Core.Threading
             [FieldOffset(CACHE_LINE_SIZE * 2)]
             public int LastDequeueTime;
             [FieldOffset(CACHE_LINE_SIZE * 3)]
-            public int PriorCompletionCount;
-            [FieldOffset(CACHE_LINE_SIZE * 3 + sizeof(int))]
+            public ulong PriorCompletionCount;
+            [FieldOffset(CACHE_LINE_SIZE * 3 + sizeof(ulong))]
             public int PriorCompletedWorkRequestsTime;
-            [FieldOffset(CACHE_LINE_SIZE * 3 + sizeof(int) * 2)]
+            [FieldOffset(CACHE_LINE_SIZE * 3 + sizeof(long) + sizeof(int))]
             public int NextCompletedWorkRequestsTime;
         }
 
@@ -69,7 +69,7 @@ namespace Stride.Core.Threading
         /// <summary>
         /// Amount of work completed
         /// </summary>
-        public long CompletedWorkItemCount => Volatile.Read(ref completionCounter);
+        public ulong CompletedWorkItemCount => (ulong)Volatile.Read(ref completionCounter);
         /// <summary>
         /// Maximum amount of threads allowed
         /// </summary>
@@ -322,8 +322,8 @@ namespace Stride.Core.Threading
         {
             Debug.Assert(Monitor.IsEntered(hillClimbingThreadAdjustmentLock));
             int currentTicks = Environment.TickCount;
-            int totalNumCompletions = (int)Volatile.Read(ref completionCounter);
-            int numCompletions = totalNumCompletions - separated.PriorCompletionCount;
+            ulong totalNumCompletions = (ulong)Volatile.Read(ref completionCounter);
+            int numCompletions = (int)(totalNumCompletions - separated.PriorCompletionCount);
             long startTime = currentSampleStartTime;
             long endTime = Stopwatch.GetTimestamp();
             long freq = Stopwatch.Frequency;
