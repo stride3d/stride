@@ -20,7 +20,8 @@ namespace Stride.Core.Threading
             private int runningState;
 
             private readonly AutoResetEvent runGateThreadEvent = new AutoResetEvent(initialState: true);
-
+            
+            // Eideren: I can't port cpu utilization yet as we don't have such mecanisms for our target platforms 
             /*private CpuUtilizationReader s_cpu;*/
             private const int MaxRuns = 2;
 

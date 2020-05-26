@@ -11,8 +11,15 @@ using System.Threading;
 
 namespace Stride.Core.Threading
 {
+    /// <summary>
+    /// Thread pool for scheduling actions.
+    /// Can be instantiated and generates less garbage than dotnet's.
+    /// </summary>
     public sealed partial class ThreadPool
     {
+        /// <summary>
+        /// The default instance that the whole process shares, use this one to avoid wasting process memory.
+        /// </summary>
         public static readonly ThreadPool Instance = new ThreadPool();
 
         private static short MaxPossibleThreadCount => Environment.Is64BitProcess ? short.MaxValue : (short)1023;
@@ -55,10 +62,22 @@ namespace Stride.Core.Threading
 
         private volatile int numRequestedWorkers = 0;
 
+        /// <summary>
+        /// Amount of threads that this pool manages
+        /// </summary>
         public int ThreadCount => ThreadCounts.VolatileReadCounts(ref separated.Counts).numExistingThreads;
+        /// <summary>
+        /// Amount of work completed
+        /// </summary>
         public long CompletedWorkItemCount => Volatile.Read(ref completionCounter);
+        /// <summary>
+        /// Maximum amount of threads allowed
+        /// </summary>
         public int GetMaxThreads() => maxThreads;
 
+        /// <summary>
+        /// Amount of threads waiting for work
+        /// </summary>
         public int GetAvailableThreads()
         {
             ThreadCounts counts = ThreadCounts.VolatileReadCounts(ref separated.Counts);
