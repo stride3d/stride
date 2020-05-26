@@ -14,12 +14,19 @@ namespace Stride.Core.Threading
         private class WorkerThread
         {
             private readonly ThreadPool pool;
+            private readonly ThreadStart threadStart;
             /// <summary>
             /// Semaphore for controlling how many threads are currently working.
             /// </summary>
             private static readonly Semaphore Semaphore = new Semaphore(0, Environment.Is64BitProcess ? short.MaxValue : (short)1023, 70);
-            
-            public WorkerThread(ThreadPool poolParam) => pool = poolParam;
+
+
+
+            public WorkerThread( ThreadPool poolParam )
+            {
+                threadStart = WorkerThreadStart;
+                pool = poolParam;
+            }
 
             public void MaybeAddWorkingWorker(int amount)
             {
@@ -222,9 +229,11 @@ namespace Stride.Core.Threading
             {
                 try
                 {
-                    Thread workerThread = new Thread(WorkerThreadStart);
-                    workerThread.IsBackground = true;
-                    workerThread.Start();
+                    new Thread(threadStart)
+                    {
+                        IsBackground = true,
+                        Priority = ThreadPriority.Highest,
+                    }.Start();
                 }
                 catch (ThreadStartException)
                 {

@@ -133,9 +133,10 @@ namespace Stride.Core.Threading
 
             private void CreateGateThread()
             {
-                Thread gateThread = new Thread(GateThreadStart);
-                gateThread.IsBackground = true;
-                gateThread.Start();
+                new Thread(GateThreadStart)
+                {
+                    IsBackground = true
+                }.Start();
             }
         }
     }
