@@ -1,0 +1,98 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <!--
+  Various development tools to build project/packages with graphics API dependent parts
+  
+  Packages will be built with following layout:
+     runtimes/win/lib/netstandard2.0/Direct3D11/MyAssembly.dll
+     runtimes/win/lib/netstandard2.0/MyAssembly.dll (placeholder so that we can piggyback on "RuntimeCopyLocalItems" from NET.Sdk)
+     ref/netstandard2.0/MyAssembly.dll
+  -->
+
+  <Target Name="_StrideComputePackagePathWithGraphicsApi" AfterTargets="_StrideComputePackagePath" Condition="'$(StrideGraphicsApiDependent)' == 'true'">
+    <PropertyGroup>
+      <_StridePackagePathLibrary>$(_StridePackagePathLibrary)\$(StrideGraphicsApi)</_StridePackagePathLibrary>
+    </PropertyGroup>
+  </Target>
+  
+  <!-- ==================================================================
+       Targets used for Build to enumerate each StrideGraphicsApi for each RuntimeIdentifier
+  -->
+  <Target Name="_StridePrepareGraphicsApiMatrix" AfterTargets="_SdkPrepareProjectFlavorMatrix" Condition="'$(StrideGraphicsApiDependent)' == 'true'">
+    <MSBuild Projects="@(_SdkProjectFlavorMatrixItem)"
+         BuildInParallel="$(BuildInParallel)"
+         Properties="%(_SdkProjectFlavorMatrixItem.SetTargetFramework);%(_SdkProjectFlavorMatrixItem.SetRuntimeIdentifier)"
+         Targets="_StrideGetGraphicsApisPerTargetFrameworkAndRid">
+      <Output ItemName="_SdkProjectFlavorMatrixItemStaging" TaskParameter="TargetOutputs" />
+    </MSBuild>
+
+    <ItemGroup>
+      <_SdkProjectFlavorMatrixItem Remove="@(_SdkProjectFlavorMatrixItem)" />
+      <_SdkProjectFlavorMatrixItem Include="@(_SdkProjectFlavorMatrixItemStaging->'%(OriginalItemSpec)')" KeepMetadata="TargetFramework;SetTargetFramework;Rid;SetRuntimeIdentifier;StrideGraphicsApi;SetStrideGraphicsApi;StrideDefaultGraphicsApi" />
+      <_SdkProjectFlavorMatrixItemStaging Remove="@(_SdkProjectFlavorMatrixItemStaging)" />
+      <_SdkProjectFlavorMatrixItem Update="@(_SdkProjectFlavorMatrixItem)">
+        <SetRuntimeIdentifier Condition="'%(_SdkProjectFlavorMatrixItem.StrideGraphicsApi)' != ''">%(_SdkProjectFlavorMatrixItem.SetRuntimeIdentifier);StrideGraphicsApi=%(_SdkProjectFlavorMatrixItem.StrideGraphicsApi)</SetRuntimeIdentifier>
+      </_SdkProjectFlavorMatrixItem>
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideGetGraphicsApisPerTargetFrameworkAndRid" Returns="@(_StrideGraphicsApisItem)">
+    <ItemGroup>
+      <_StrideGraphicsApisItems Include="$(StrideGraphicsApis)" TargetFramework="$(TargetFramework)"/>
+      <_StrideGraphicsApisItem Include="@(_StrideGraphicsApisItems->'%(TargetFramework)')" StrideGraphicsApi="%(_StrideGraphicsApisItems.Identity)" StrideDefaultGraphicsApi="$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ==================================================================
+       Target to adjust ProjectReference StrideGraphicsApi
+  -->
+  <Target Name="_StrideProjectReferenceGraphicsApi" AfterTargets="_StrideProjectReferenceRuntimeIdentifier">
+    <PropertyGroup>
+      <!-- Transmit current graphics API. This is useful in case we have transitions such as: Direct3D12->ProjectWithoutGraphicsApi->Direct3D12
+           otherwise it would try to build 3rd project twice (due to the reference from ProjectWithoutGraphicsApi). -->
+      <_StrideGraphicsApiCurrent>$(StrideGraphicsApi)</_StrideGraphicsApiCurrent>
+      <!-- We use a fallback in case the project without graphics API is the project initiating the build. -->
+      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">$(StrideDefaultGraphicsApi)</_StrideGraphicsApiCurrent>
+      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">Direct3D11</_StrideGraphicsApiCurrent>
+    </PropertyGroup>
+    <ItemGroup>
+      <_MSBuildProjectReferenceExistent Update="@(_MSBuildProjectReferenceExistent)">
+        <StrideGraphicsApi>$(_StrideGraphicsApiCurrent)</StrideGraphicsApi>
+        <SetTargetFramework>%(_MSBuildProjectReferenceExistent.SetTargetFramework);StrideGraphicsApi=$(_StrideGraphicsApiCurrent)</SetTargetFramework>
+      </_MSBuildProjectReferenceExistent>
+    </ItemGroup>
+  </Target>
+
+  <!-- ==================================================================
+       Target to generate Package with proper layout (built on top of MSBuild.Sdk.Extras 2.0.87)
+  -->
+  <Target Name="_StrideBuildOutputInPackImpl" Condition="'$(ExtrasIncludeDefaultProjectBuildOutputInPack)' != 'false'">
+
+    <PropertyGroup>
+      <ExtrasDisableNoneRidSpecificOutputKeepMetadataOptimization Condition="'$(ExtrasDisableNoneRidSpecificOutputKeepMetadataOptimization)' == ''">false</ExtrasDisableNoneRidSpecificOutputKeepMetadataOptimization>
+
+      <!-- Ideally should be empty, but that disables KeepMetadata property -->
+      <ExtrasNoneRidSpecificOutputKeepMetadata Condition="'$(ExtrasNoneRidSpecificOutputKeepMetadata)' == '' and '$(ExtrasDisableNoneRidSpecificOutputKeepMetadataOptimization)' == 'false'">Pack</ExtrasNoneRidSpecificOutputKeepMetadata>
+      <ExtrasNoneRidSpecificOutputKeepMetadata Condition="'$(ExtrasNoneRidSpecificOutputKeepMetadata)' == '' and '$(ExtrasDisableNoneRidSpecificOutputKeepMetadataOptimization)' != 'false'"></ExtrasNoneRidSpecificOutputKeepMetadata>
+
+      <_StrideDefaultRuntimeIdentifier Condition="'$(ExtrasBuildEachRuntimeIdentifier)' == 'true'">$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</_StrideDefaultRuntimeIdentifier>
+    </PropertyGroup>
+
+    <!-- Include the runtimes files -->
+    <ItemGroup>
+      <!-- Copy default StrideGraphicsApi (or no StrideGraphicsApi) to top folder -->
+      <None Condition="'%(RidSpecificOutput.StrideGraphicsApi)' == '%(RidSpecificOutput.StrideDefaultGraphicsApi)'" Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="runtimes/%(RidSpecificOutput.Rid)/lib/%(RidSpecificOutput.TargetFramework)" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />
+      <!-- Add StrideGraphicsApi to PackagePath if necessary -->
+      <None Condition="'%(RidSpecificOutput.StrideGraphicsApi)' != ''" Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="runtimes/%(RidSpecificOutput.Rid)/lib/%(RidSpecificOutput.TargetFramework)/%(RidSpecificOutput.StrideGraphicsApi)/" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />
+
+      <!-- Copy files from default RuntimeIdentifier to ref folder -->
+      <None Condition="'$(ExtrasBuildEachRuntimeIdentifier)' == 'true' And '%(RidSpecificOutput.Rid)' == '$(_StrideDefaultRuntimeIdentifier)' And '%(RidSpecificOutput.StrideGraphicsApi)' == '%(RidSpecificOutput.StrideDefaultGraphicsApi)'" Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="ref/%(RidSpecificOutput.TargetFramework)" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />
+    </ItemGroup>
+
+  </Target>
+  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
+    <!-- Replace _SdkIncludeDefaultProjectBuildOutputInPackImpl with our own target -->
+    <ExtrasIncludeDefaultProjectBuildOutputInPackTarget>_StrideBuildOutputInPackImpl</ExtrasIncludeDefaultProjectBuildOutputInPackTarget>
+    <ExtrasRidSpecificOutputKeepMetadata>TargetFramework;Rid;StrideGraphicsApi;StrideDefaultGraphicsApi</ExtrasRidSpecificOutputKeepMetadata>
+  </PropertyGroup>
+
+</Project>

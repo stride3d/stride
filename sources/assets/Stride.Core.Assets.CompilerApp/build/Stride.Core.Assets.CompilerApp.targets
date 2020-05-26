@@ -1,4 +1,4 @@
-<Project InitialTargets="_StrideCheckVisualCRuntime2013" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project InitialTargets="_StrideCheckVisualCRuntime2013;_StrideCheckAssetCompiler" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Check if Visual C++ Runtime 2013 is properly installed -->
   <!-- Should be moved to Stride.Assets as soon as transitive build dependencies are enabled by default in VS2019 (https://github.com/NuGet/Home/issues/6091#issuecomment-438073285) -->
   <Target Name="_StrideCheckVisualCRuntime2013" Condition="'$(MSBuildRuntimeType)' == 'Full'">
@@ -59,6 +59,10 @@
 
     <StrideCompileAssetCommandProxy>&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
   </PropertyGroup>
+
+  <Target Name="_StrideCheckAssetCompiler">
+    <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
+  </Target>
 
   <!-- Prepare path to be able to copy Task dll to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
   <PropertyGroup>

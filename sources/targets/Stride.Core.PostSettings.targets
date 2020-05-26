@@ -13,7 +13,13 @@
   <!--Import Local Post Settings for the solution being loaded -->
   <Import Project="$(SolutionDir)$(SolutionName).PostSettings.Local.targets" Condition="Exists('$(SolutionDir)$(SolutionName).PostSettings.Local.targets')" />
   <Import Project="$(SolutionDir)Stride.Core.PostSettings.Local.targets" Condition="Exists('$(SolutionDir)Stride.Core.PostSettings.Local.targets')" />
-  
+
+  <!-- Setup default RuntimeIdentifier for design-time build -->
+  <PropertyGroup Condition="$(DesignTimeBuild) == 'true'">
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifiers)' != ''">$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</RuntimeIdentifier>
+  </PropertyGroup>
+
+
   <!-- Include platform dependent assembly when specified -->
   <Choose>
     <When Condition="'$(StridePlatformDependent)' == 'true'">
@@ -32,11 +38,7 @@
     </When>
   </Choose>
 
-  <!-- Setup VisualStudioVersion -->
-  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '11.0' ">
-    <VisualStudioVersion>11.0</VisualStudioVersion>
-  </PropertyGroup>
-
+  <!-- Code Analysis -->
   <PropertyGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Stride.ruleset</CodeAnalysisRuleSet>
     <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
@@ -54,8 +56,8 @@
     </ItemGroup>
   </Target>
 
+  <!-- docfx doesn't like if there is no TargetFramework/RuntimeIdentifier set by default -->
   <PropertyGroup Condition="'$(StrideBuildDoc)' == 'true'">
-    <!-- docfx doesn't like if there is no TargetFramework/RuntimeIdentifier set by default -->
     <TargetFramework Condition="'$(TargetFramework)' == ''">$(TargetFrameworks.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</TargetFramework>
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(StrideRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>  
@@ -68,13 +70,6 @@
     <OutputPath Condition="'$(StrideProjectType)' == 'Cpp'">$(OutDir)</OutputPath>
     <IntermediateOutputPath Condition="'$(StrideProjectType)' == 'Cpp'">$(IntDir)</IntermediateOutputPath>
   </PropertyGroup>
-
-  <!-- Workaround for https://github.com/onovotny/MSBuildSdkExtras/issues/174 -->
-  <Target Name="_StrideRemoveNonExistingResgenFile" BeforeTargets="CoreCompile" Condition="'$(_SdkSetAndroidResgenFile)' == 'true' And '$(AndroidResgenFile)' != '' And !Exists('$(AndroidResgenFile)')">
-    <ItemGroup>
-      <Compile Remove="$(AndroidResgenFile)"/>
-    </ItemGroup>
-  </Target>
 
   <!-- User Documentation (.usrdoc) -->
   <PropertyGroup Condition="'$(StridePublicApi)' == 'true'">
@@ -114,8 +109,8 @@
   <!-- C++ doesn't auto-import language targets -->
   <Import Condition="'$(StrideProjectType)' == 'Cpp' And '$(StrideCompilerTargetsEnable)' != 'false'" Project="$(MSBuildThisFileDirectory)Stride.Core.Cpp.targets" />
 
+  <!-- Assembly Processor -->
   <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorTempPath)" Condition=" '$(StrideAssemblyProcessorTempPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
-  
   <Target Name="RunStrideAssemblyProcessor" BeforeTargets="CopyFilesToOutputDirectory" Condition=" '$(StrideAssemblyProcessor)' == 'true' and '$(StrideAssemblyProcessorTempPath)' != '' and '$(StrideAssemblyProcessorGlobal)' == 'true' and '$(StrideAssemblyProcessorOptions)' != '' ">
     <PropertyGroup Condition="'$(StrideUserBuild)' != 'true'">
       <!-- Add Stride.Core path to assembly search directory -->
@@ -163,21 +158,7 @@
   </Target>
 
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.Sign.targets" />
-  
-  <Target Name="SetPrivateOnProjectReferences" BeforeTargets="BeforeCompile" AfterTargets="IncludeTransitiveProjectReferences">
-    <!-- Automatically add Private on project references if they are already built in same folder as output folder -->
-	<!-- Also add PrivateAssets All to all Private projects -->
-    <ItemGroup Condition="'$(OutputPath)' == '$(StrideOutputCommonDir)'">
-      <ProjectReferenceNew Include="@(ProjectReference)">
-        <Private>False</Private>
-      </ProjectReferenceNew>
-      <ProjectReference Remove="@(ProjectReference)"/>
-      <ProjectReference Include="@(ProjectReferenceNew)"/>
-    </ItemGroup>
-  </Target>
-
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.PostSettings.Dependencies.targets"/>
-  
   <Import Condition="'$(StrideNativeOutputName)' != ''" Project="$(MSBuildThisFileDirectory)..\native\Stride.Native.targets" />
 
   <!-- Workaround for https://github.com/dotnet/project-system/issues/6227 (UpToDateCheck: always fail if projects.assets.json is updated) -->
@@ -198,6 +179,13 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
+  <Target Name="_StridePackRemoveRuntimeIdentifierIfSingle" BeforeTargets="_SdkGetBuildOutputFilesWithTfm;_SdkGetDebugSymbolsWithTfm">
+
+    <PropertyGroup Condition="'$(RuntimeIdentifier)' != '' And '$(RuntimeIdentifiers)' == ''">
+      <RuntimeIdentifier></RuntimeIdentifier>
+    </PropertyGroup>
+  </Target>
+
 
   <!-- Auto NuGet build packages and deploy them -->
   <Import Project="$(MSBuildThisFileDirectory)Stride.AutoPack.targets"/>
@@ -226,4 +214,49 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="_StrideSetFinalOutputPathOnBuildOutputFiles" AfterTargets="_GetBuildOutputFilesWithTfm">
+    <ItemGroup>
+      <BuildOutputInPackage Update="@(BuildOutputInPackage)" Condition="'%(BuildOutputInPackage.FinalOutputPath)' == ''">
+        <FinalOutputPath>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '%(BuildOutputInPackage.FullPath)'))</FinalOutputPath>
+      </BuildOutputInPackage>
+    </ItemGroup>    
+  </Target>
+
+  <!-- ==================================================================
+       Targets to adjust ProjectReference RuntimeIdentifier
+       They properly set the RuntimeIdentifier of ProjectReference (since we have sometimes weird transitions like win => win-d3d11 or win => noRID)
+       If we don't do it, MSBuild slap current RID, and even if this RID is overriden inside the build of the project, it will still trigger an unecessary build w/ double writes -->
+  <Target Name="_StrideSdkGetBestRidForTfm" Returns="@(_RuntimeIdentifierItem)">
+    <PropertyGroup Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == ''">
+      <!-- If referencing project has a runtime identifier and it's part of the supported RuntimeIdentifiers list, use it -->
+      <_RuntimeIdentifiersTemp>;$(RuntimeIdentifiers);</_RuntimeIdentifiersTemp>
+      <RuntimeIdentifier Condition="'$(CurrentRuntimeIdentifier)' != '' And $(_RuntimeIdentifiersTemp.Contains(';$(CurrentRuntimeIdentifier);'))">$(CurrentRuntimeIdentifier)</RuntimeIdentifier>
+      <!-- Otherwise, fallback to first one -->
+      <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</RuntimeIdentifier>
+    </PropertyGroup>
+    <ItemGroup>
+      <_RuntimeIdentifierItem Include="$(RuntimeIdentifier)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideProjectReferenceRuntimeIdentifier" BeforeTargets="PrepareProjectReferences">
+    <!-- Query default RID of ProjectReference that are not RidAgnostic -->
+    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
+             Condition="'%(_MSBuildProjectReferenceExistent.IsRidAgnostic)' == 'false'"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="TargetFramework=%(_MSBuildProjectReferenceExistent.NearestTargetFramework);CurrentRuntimeIdentifier=$(RuntimeIdentifier)"
+             Targets="_StrideSdkGetBestRidForTfm">
+      <Output ItemName="_MSBuildProjectReferenceExistentWithRID" TaskParameter="TargetOutputs"  />
+    </MSBuild>
+
+    <ItemGroup>
+      <_MSBuildProjectReferenceExistentWithRID2 Include="@(_MSBuildProjectReferenceExistentWithRID->'%(OriginalItemSpec)')">
+        <RuntimeIdentifier>%(Identity)</RuntimeIdentifier>
+        <SetTargetFramework>%(_MSBuildProjectReferenceExistentWithRID.SetTargetFramework);RuntimeIdentifier=%(Identity)</SetTargetFramework>
+        <GlobalPropertiesToRemove>$([System.String]::Copy('%(_MSBuildProjectReferenceExistentWithRID.GlobalPropertiesToRemove)').Replace(';RuntimeIdentifier', ''))</GlobalPropertiesToRemove>
+      </_MSBuildProjectReferenceExistentWithRID2>
+
+      <_MSBuildProjectReferenceExistent Remove="@(_MSBuildProjectReferenceExistentWithRID2)"/>
+      <_MSBuildProjectReferenceExistent Include="@(_MSBuildProjectReferenceExistentWithRID2)"/>
+    </ItemGroup>
+  </Target>
 </Project>

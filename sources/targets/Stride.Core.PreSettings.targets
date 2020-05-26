@@ -47,14 +47,14 @@
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);monoandroid81</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);xamarinios10</StrideRuntimeTargetFrameworks>
 
-    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_StridePlatforms.Contains(';Windows;'))">$(StrideRuntimeIdentifiers);win</StrideRuntimeIdentifiers>
+    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And ('$(TargetFramework)' == 'netstandard2.0' Or $(TargetFramework.StartsWith('net4')) Or $(TargetFramework.StartsWith('netcoreapp'))) And $(_StridePlatforms.Contains(';Windows;'))">$(StrideRuntimeIdentifiers);win</StrideRuntimeIdentifiers>
     <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_StridePlatforms.Contains(';Linux;'))">$(StrideRuntimeIdentifiers);linux</StrideRuntimeIdentifiers>
     <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_StridePlatforms.Contains(';macOS;'))">$(StrideRuntimeIdentifiers);osx</StrideRuntimeIdentifiers>
     <!-- Default: at least win (used when compiling only a single platform such as UWP for netstandard assemblies) -->
     <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And '$(StrideRuntimeIdentifiers)' == ''">win</StrideRuntimeIdentifiers>
 
-    <!-- Need to use "win" runtime identifier for all other platforms as a workaround https://github.com/NuGet/Home/issues/7661#issuecomment-450040204 -->
-    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' != 'netstandard2.0'">any</StrideRuntimeIdentifiers>
+    <!-- Need to use a runtime identifier for all other platforms as a workaround https://github.com/NuGet/Home/issues/7661#issuecomment-450040204 -->
+    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' != 'netstandard2.0' And !$(TargetFramework.StartsWith('net4')) And !$(TargetFramework.StartsWith('netcoreapp'))">any</StrideRuntimeIdentifiers>
     
     <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeIdentifiers)' != ''">;$(StrideRuntimeIdentifiers);</StrideRuntimeIdentifiers>
 
@@ -79,39 +79,6 @@
   <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' And '$(StrideRuntimeNetStandard)' == 'true' ">
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' != 'true'">
-    <!-- Force default runtime identifier -->
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' != 'win' And '$(RuntimeIdentifier)' != 'linux' And '$(RuntimeIdentifier)' != 'osx'">$(StrideRuntimeIdentifier)</RuntimeIdentifier>
-  </PropertyGroup>
-
-  <!-- Those two targets are used to properly set the RuntimeIdentifier of ProjectReference (since we have sometimes weird transitions like win => win-d3d11 or win => noRID)
-       If we don't do it, MSBuild slap current RID, and even if this RID is overriden inside the build of the project, it will still trigger an unecessary build w/ double writes -->  
-  <Target Name="_StrideSdkGetDefaultRidForTfm" Returns="$(RuntimeIdentifier)">
-    <PropertyGroup>
-      <ExtrasBuildEachRuntimeIdentifier Condition="'$(ExtrasBuildEachRuntimeIdentifier)' == ''">false</ExtrasBuildEachRuntimeIdentifier>
-    </PropertyGroup>
-  </Target>
-  <Target Name="_StrideProjectReferenceRuntimeIdentifier" BeforeTargets="PrepareProjectReferences">
-    <!-- Query default RID of ProjectReference that are not RidAgnostic -->
-    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
-             Condition="'%(_MSBuildProjectReferenceExistent.IsRidAgnostic)' == 'false'"
-             BuildInParallel="$(BuildInParallel)"
-             Properties="TargetFramework=%(_MSBuildProjectReferenceExistent.NearestTargetFramework)"
-             Targets="_StrideSdkGetDefaultRidForTfm">
-      <Output ItemName="_MSBuildProjectReferenceExistentWithRID" TaskParameter="TargetOutputs"  />
-    </MSBuild>
-    <ItemGroup>
-      <_MSBuildProjectReferenceExistentWithRID2 Include="@(_MSBuildProjectReferenceExistentWithRID->'%(OriginalItemSpec)')">
-        <RuntimeIdentifier>%(Identity)</RuntimeIdentifier>
-        <SetTargetFramework>%(_MSBuildProjectReferenceExistentWithRID.SetTargetFramework);RuntimeIdentifier=%(Identity)</SetTargetFramework>
-        <GlobalPropertiesToRemove>$([System.String]::Copy('%(_MSBuildProjectReferenceExistentWithRID.GlobalPropertiesToRemove)').Replace(';RuntimeIdentifier', ''))</GlobalPropertiesToRemove>
-      </_MSBuildProjectReferenceExistentWithRID2>
-      
-      <_MSBuildProjectReferenceExistent Remove="@(_MSBuildProjectReferenceExistentWithRID2)"/>
-      <_MSBuildProjectReferenceExistent Include="@(_MSBuildProjectReferenceExistentWithRID2)"/>
-    </ItemGroup>
-  </Target>
 
   <!-- Force a full Build & Pack if dependency was only built with a single TargetFramework (which would set IsInnerBuild and skip any Pack logic)
        This is only a problem when building from command line, Visual Studio builds each project completely.

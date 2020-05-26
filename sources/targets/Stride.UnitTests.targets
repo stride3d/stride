@@ -5,25 +5,24 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true' And '$(StridePlatform)' == 'Windows'">
-    <!-- Build list of Graphics API -->
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StrideGraphicsApiDependentBuildAll)' != 'true'">$(StrideGraphicsApiOriginal)</StrideGraphicsApis>
-
-    <_StrideGraphicsApis Condition="'$(StrideGraphicsApis)' != ''">;$(StrideGraphicsApis);</_StrideGraphicsApis>
+    <!-- Build list of Graphics API for platform that supports multiple -->
+    <StrideGraphicsApisWindows Condition="'$(StrideGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApisWindows>
+    <StrideGraphicsApisWindows Condition="'$(StrideGraphicsApisWindows)' == ''">$(StrideGraphicsApisTestsWindows)</StrideGraphicsApisWindows>
+    <StrideGraphicsApisWindows Condition="'$(StrideGraphicsApisWindows)' == ''">Direct3D11</StrideGraphicsApisWindows>
+    <_StrideGraphicsApisWindows>;$(StrideGraphicsApisWindows);</_StrideGraphicsApisWindows>
 
     <!-- Do not pack unit tests by default -->
     <StrideSkipAutoPack Condition="'$(StrideSkipAutoPack)' == ''">true</StrideSkipAutoPack>
 
     <!-- Compute list of runtime identifiers based on platforms and graphics platforms -->
     <RuntimeIdentifiers></RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_StrideGraphicsApis.Contains(';Direct3D11;')) Or '$(_StrideGraphicsApis)' == ''">$(RuntimeIdentifiers);win-x64</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_StrideGraphicsApis.Contains(';Direct3D12;'))">$(RuntimeIdentifiers);win-d3d12-x64</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_StrideGraphicsApis.Contains(';OpenGL;'))">$(RuntimeIdentifiers);win-opengl-x64</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_StrideGraphicsApis.Contains(';OpenGLES;'))">$(RuntimeIdentifiers);win-opengles-x64</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_StrideGraphicsApis.Contains(';Vulkan;'))">$(RuntimeIdentifiers);win-vulkan-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_StrideGraphicsApisWindows.Contains(';Direct3D11;'))">$(RuntimeIdentifiers);win-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_StrideGraphicsApisWindows.Contains(';Direct3D12;'))">$(RuntimeIdentifiers);win-d3d12-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_StrideGraphicsApisWindows.Contains(';OpenGL;'))">$(RuntimeIdentifiers);win-opengl-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_StrideGraphicsApisWindows.Contains(';OpenGLES;'))">$(RuntimeIdentifiers);win-opengles-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_StrideGraphicsApisWindows.Contains(';Vulkan;'))">$(RuntimeIdentifiers);win-vulkan-x64</RuntimeIdentifiers>
 
     <RuntimeIdentifiers>$([MSBuild]::Unescape($(RuntimeIdentifiers.Trim(';'))))</RuntimeIdentifiers>
-	<RuntimeIdentifier>$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</RuntimeIdentifier>
     <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
 
     <StrideGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-x64'">Direct3D11</StrideGraphicsApi>
@@ -41,7 +40,6 @@
     <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true'">false</StrideCompilerTargetsEnable>
     <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
 
-    <StrideUnitTest>true</StrideUnitTest>
     <StrideCommonDependenciesDir></StrideCommonDependenciesDir>
 
     <!-- Unit tests are executables (execute asset compiler, embed native libraries, etc... -->
