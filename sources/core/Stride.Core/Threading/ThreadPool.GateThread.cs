@@ -135,7 +135,8 @@ namespace Stride.Core.Threading
             {
                 new Thread(GateThreadStart)
                 {
-                    IsBackground = true
+                    IsBackground = true,
+                    Name = nameof(GateThread)
                 }.Start();
             }
         }

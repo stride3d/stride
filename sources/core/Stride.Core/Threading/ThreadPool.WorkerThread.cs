@@ -8,6 +8,12 @@ namespace Stride.Core.Threading
 {
     public partial class ThreadPool
     {
+        [ThreadStatic]
+        static bool _isCurrentAWorker;
+        public static bool IsCurrentAWorker => _isCurrentAWorker;
+
+
+
         /// <summary>
         /// The worker thread infrastructure for the CLR thread pool.
         /// </summary>
@@ -126,6 +132,7 @@ namespace Stride.Core.Threading
 
             private void WorkerThreadStart()
             {
+                _isCurrentAWorker = true;
                 while (true)
                 {
                     while (WaitForRequest())
@@ -233,6 +240,7 @@ namespace Stride.Core.Threading
                     {
                         IsBackground = true,
                         Priority = ThreadPriority.Highest,
+                        Name = nameof(WorkerThread)
                     }.Start();
                 }
                 catch (ThreadStartException)
