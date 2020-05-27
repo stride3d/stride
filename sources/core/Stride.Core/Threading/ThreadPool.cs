@@ -21,7 +21,7 @@ namespace Stride.Core.Threading
         public static readonly ThreadPool Instance = new ThreadPool();
         
         [ThreadStatic]
-        static bool _isCurrentAWorker;
+        static bool isCurrentAWorker;
         
         private readonly ConcurrentQueue<Action> workItems = new ConcurrentQueue<Action>();
         private readonly SemaphoreW semaphore;
@@ -31,7 +31,7 @@ namespace Stride.Core.Threading
         /// <summary> Amount of work completed </summary>
         public ulong CompletedWorkItemCount => (ulong)Volatile.Read(ref completionCounter);
         /// <summary> Is the thread reading this property a worker thread </summary>
-        public static bool IsCurrentAWorker => _isCurrentAWorker;
+        public static bool IsCurrentAWorker => isCurrentAWorker;
 
         public ThreadPool()
         {
@@ -96,7 +96,7 @@ namespace Stride.Core.Threading
 
         private void WorkerThreadScope()
         {
-            _isCurrentAWorker = true;
+            isCurrentAWorker = true;
             try
             {
                 while (true)
