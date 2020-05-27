@@ -11,7 +11,7 @@ namespace Stride.Core.Threading
 {
     public sealed partial class ThreadPool
     {
-        private class Semaphore
+        private class SemaphoreW
         {
             private CacheLineSeparatedCounts separated;
 
@@ -24,7 +24,7 @@ namespace Stride.Core.Threading
             /// <summary>
             /// Eideren: Is not actually lifo, standard 2.0 doesn't have such constructs right now
             /// </summary>
-            private System.Threading.Semaphore lifoSemaphore;
+            private Semaphore lifoSemaphore;
             
             public static void SpinWait(int spinIndex, int processorCount)
             {
@@ -71,7 +71,7 @@ namespace Stride.Core.Threading
                 //     anyway (the intended use for this class), so it's preferable to put the thread into the proper wait state
             }
 
-            public Semaphore(int initialSignalCount, int maximumSignalCount, int spinCount)
+            public SemaphoreW(int initialSignalCount, int maximumSignalCount, int spinCount)
             {
                 Debug.Assert(initialSignalCount >= 0);
                 Debug.Assert(initialSignalCount <= maximumSignalCount);
@@ -83,10 +83,10 @@ namespace Stride.Core.Threading
                 this.maximumSignalCount = maximumSignalCount;
                 this.spinCount = spinCount;
 
-                lifoSemaphore = new System.Threading.Semaphore(0, maximumSignalCount);
+                lifoSemaphore = new Semaphore(0, maximumSignalCount);
             }
 
-            public bool Wait(int timeoutMs)
+            public bool Wait(int timeoutMs = -1)
             {
                 Debug.Assert(timeoutMs >= -1);
 
@@ -234,8 +234,17 @@ namespace Stride.Core.Threading
                     if (countsBeforeUpdate == counts)
                     {
                         Debug.Assert(releaseCount <= maximumSignalCount - counts._signalCount);
-                        if(countOfWaitersToWake > 0)
-                            lifoSemaphore.Release(countOfWaitersToWake);//ReleaseCore(countOfWaitersToWake);
+                        try
+                        {
+                            if (countOfWaitersToWake > 0)
+                                lifoSemaphore.Release(countOfWaitersToWake);
+                        }
+                        catch (System.Exception e)
+                        {
+                            throw new System.InvalidOperationException( $"Tried to release {countOfWaitersToWake}", e );
+                        }
+
+
                         return;
                     }
 
