@@ -1,6 +1,5 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
 using System.Reflection;
@@ -13,6 +12,9 @@ namespace Stride.Core.Threading
 {
     public sealed partial class ThreadPool
     {
+        /// <summary>
+        /// Mostly lifted from dotnet's LowLevelLifoSemaphore
+        /// </summary>
         private class SemaphoreW
         {
             private static readonly int OptimalMaxSpinWaitsPerSpinIteration;
