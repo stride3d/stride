@@ -89,7 +89,6 @@
     <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
              Condition="'%(_MSBuildProjectReferenceExistent.SetTargetFramework)' != ''"
              BuildInParallel="$(BuildInParallel)"
-             Properties="SkipPackOnInnerBuild=true"
              Targets="Build;Pack"
              RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;RuntimeIdentifier">
     </MSBuild>

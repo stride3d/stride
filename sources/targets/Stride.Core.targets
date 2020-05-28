@@ -19,10 +19,11 @@
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifiers)' != ''">$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</RuntimeIdentifier>
   </PropertyGroup>
 
-  <!-- Workaround: Remove RuntimeIdentifier from Solution references (https://github.com/onovotny/MSBuildSdkExtras/issues/139) -->
-  <Target Name="_StrideRemoveRuntimeIdentifier" AfterTargets="AssignProjectConfiguration">
+  <!-- Workaround: Remove RuntimeIdentifier from Solution references (https://github.com/onovotny/MSBuildSdkExtras/issues/139)
+                   additionally, also remove it from all references to avoid issues -->
+  <Target Name="_StrideProjectReferenceRemoveRuntimeIdentifier" AfterTargets="AssignProjectConfiguration">
     <ItemGroup>
-      <ProjectReferenceWithConfiguration Condition="'%(ProjectReferenceWithConfiguration.ReferenceSourceTarget)' != 'ProjectReference'">
+      <ProjectReferenceWithConfiguration>
         <GlobalPropertiesToRemove>%(ProjectReferenceWithConfiguration.GlobalPropertiesToRemove);RuntimeIdentifier</GlobalPropertiesToRemove>
       </ProjectReferenceWithConfiguration>
     </ItemGroup>
