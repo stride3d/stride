@@ -1,42 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Runtime identifiers -->
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' != 'true' And '$(StridePlatform)' == 'Windows'">
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true' And '$(StridePlatform)' == 'Windows'">
+  <!--Import Unit Tests Local Settings for the solution being loaded -->
+  <Import Project="$(SolutionDir)$(SolutionName).UnitTests.Build.targets" Condition="Exists('$(SolutionDir)$(SolutionName).UnitTests.Build.targets')" />
+
+  <!-- Setup GraphicsApi -->
+  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
     <!-- Build list of Graphics API for platform that supports multiple -->
-    <StrideGraphicsApisWindows Condition="'$(StrideGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApisWindows>
-    <StrideGraphicsApisWindows Condition="'$(StrideGraphicsApisWindows)' == ''">$(StrideGraphicsApisTestsWindows)</StrideGraphicsApisWindows>
-    <StrideGraphicsApisWindows Condition="'$(StrideGraphicsApisWindows)' == ''">Direct3D11</StrideGraphicsApisWindows>
-    <_StrideGraphicsApisWindows>;$(StrideGraphicsApisWindows);</_StrideGraphicsApisWindows>
-
-    <!-- Do not pack unit tests by default -->
-    <StrideSkipAutoPack Condition="'$(StrideSkipAutoPack)' == ''">true</StrideSkipAutoPack>
-
-    <!-- Compute list of runtime identifiers based on platforms and graphics platforms -->
-    <RuntimeIdentifiers></RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_StrideGraphicsApisWindows.Contains(';Direct3D11;'))">$(RuntimeIdentifiers);win-x64</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_StrideGraphicsApisWindows.Contains(';Direct3D12;'))">$(RuntimeIdentifiers);win-d3d12-x64</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_StrideGraphicsApisWindows.Contains(';OpenGL;'))">$(RuntimeIdentifiers);win-opengl-x64</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_StrideGraphicsApisWindows.Contains(';OpenGLES;'))">$(RuntimeIdentifiers);win-opengles-x64</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_StrideGraphicsApisWindows.Contains(';Vulkan;'))">$(RuntimeIdentifiers);win-vulkan-x64</RuntimeIdentifiers>
-
-    <RuntimeIdentifiers>$([MSBuild]::Unescape($(RuntimeIdentifiers.Trim(';'))))</RuntimeIdentifiers>
-    <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
-
-    <StrideGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-x64'">Direct3D11</StrideGraphicsApi>
-    <StrideGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d12-x64'">Direct3D12</StrideGraphicsApi>
-    <StrideGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-opengl-x64'">OpenGL</StrideGraphicsApi>
-    <StrideGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-opengles-x64'">OpenGLES</StrideGraphicsApi>
-    <StrideGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-vulkan-x64'">Vulkan</StrideGraphicsApi>
-    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''">Direct3D11</StrideGraphicsApi>
+    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideGraphicsApi>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)Stride.PackageVersion.targets"/>
 
   <PropertyGroup>
-    <!-- Do not compile unit test when packaging -->
+  <!-- Do not compile unit test when packaging -->
     <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true'">false</StrideCompilerTargetsEnable>
     <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
 
@@ -55,18 +33,6 @@
     <AddSyntheticProjectReferencesForSolutionDependencies>false</AddSyntheticProjectReferencesForSolutionDependencies>
 
   </PropertyGroup>
-  
-  <PropertyGroup>
-    <StrideCommonDependenciesDir>$(StridePackageStride)\deps\</StrideCommonDependenciesDir>
-  </PropertyGroup>
-
-  <!-- Override graphics platform (no need to get it from game settings asset) -->
-  <Target Name="StrideGetGraphicsPlatform">
-    <!-- Do nothing for StrideGraphicsApi, keep it as set by locals target -->
-    <PropertyGroup>
-      <StrideCompileAssetOptions>$(StrideCompileAssetOptions) --property:StrideGraphicsApi=$(StrideGraphicsApi)</StrideCompileAssetOptions>
-    </PropertyGroup>
-  </Target>
 
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' != 'true'">
     <OutputPath>$(MSBuildThisFileDirectory)..\..\bin\Tests\$(AssemblyName)\$(StridePlatform)\</OutputPath>
@@ -103,9 +69,6 @@
     <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
   </ItemGroup>
 
-  <!-- Auto NuGet build packages and deploy them -->
-  <Import Project="$(MSBuildThisFileDirectory)Stride.AutoPack.targets"/>
-
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 
   <!-- Add Default targets used by Msbuild for undefined Platforms / or when skipping compilation under a platform -->
@@ -113,6 +76,9 @@
 
   <!-- This needs to be after Sdk.targets -->
   <Import Project="$(MSBuildThisFileDirectory)..\core\Stride.Core\build\Stride.Core.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.Core.RuntimeIdentifier.ProjectReference.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.GraphicsApi.PackageReference.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.GraphicsApi.Dev.targets"/>
   <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'" Project="$(MSBuildThisFileDirectory)..\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
 
 </Project>

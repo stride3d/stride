@@ -18,12 +18,21 @@
   <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.Core.PostSettings.targets"/>
 
   <!-- Handles StrideGraphicsApi variable (note: need to be done after Core.PostSettings) -->
-  <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.GraphicsApi.Dev.targets"/>
+  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'Windows'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'UWP'">Direct3D11</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'Linux'">Vulkan;OpenGL</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'macOS'">Vulkan</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'Android'">OpenGLES</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'iOS'">OpenGLES</StrideGraphicsApis>
+    <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
+  </PropertyGroup>
   <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.GraphicsApi.PackageReference.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.GraphicsApi.Dev.targets"/>
 
   <!-- Setup default GraphicsApi for design-time build -->
   <PropertyGroup Condition="$(DesignTimeBuild) == 'true'">
-    <StrideGraphicsApi Condition="'$(StrideGraphicsApiDependent)' == 'true'">Direct3D11</StrideGraphicsApi>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApiDependent)' == 'true'">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
   </PropertyGroup>
 
   <!-- Adjust OutputPath -->

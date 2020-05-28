@@ -45,7 +45,7 @@
   <!-- ==================================================================
        Target to adjust ProjectReference StrideGraphicsApi
   -->
-  <Target Name="_StrideProjectReferenceGraphicsApi" AfterTargets="_StrideProjectReferenceRuntimeIdentifier">
+  <Target Name="_StrideProjectReferenceGraphicsApi" BeforeTargets="PrepareProjectReferences">
     <PropertyGroup>
       <!-- Transmit current graphics API. This is useful in case we have transitions such as: Direct3D12->ProjectWithoutGraphicsApi->Direct3D12
            otherwise it would try to build 3rd project twice (due to the reference from ProjectWithoutGraphicsApi). -->
@@ -82,7 +82,7 @@
       <!-- Copy default StrideGraphicsApi (or no StrideGraphicsApi) to top folder -->
       <None Condition="'%(RidSpecificOutput.StrideGraphicsApi)' == '%(RidSpecificOutput.StrideDefaultGraphicsApi)'" Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="runtimes/%(RidSpecificOutput.Rid)/lib/%(RidSpecificOutput.TargetFramework)" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />
       <!-- Add StrideGraphicsApi to PackagePath if necessary -->
-      <None Condition="'%(RidSpecificOutput.StrideGraphicsApi)' != ''" Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="runtimes/%(RidSpecificOutput.Rid)/lib/%(RidSpecificOutput.TargetFramework)/%(RidSpecificOutput.StrideGraphicsApi)/" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />
+      <None Condition="'%(RidSpecificOutput.StrideGraphicsApi)' != ''" Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="runtimes/%(RidSpecificOutput.Rid)/lib/%(RidSpecificOutput.TargetFramework)/%(RidSpecificOutput.StrideGraphicsApi)" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />
 
       <!-- Copy files from default RuntimeIdentifier to ref folder -->
       <None Condition="'$(ExtrasBuildEachRuntimeIdentifier)' == 'true' And '%(RidSpecificOutput.Rid)' == '$(_StrideDefaultRuntimeIdentifier)' And '%(RidSpecificOutput.StrideGraphicsApi)' == '%(RidSpecificOutput.StrideDefaultGraphicsApi)'" Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="ref/%(RidSpecificOutput.TargetFramework)" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />

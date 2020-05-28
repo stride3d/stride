@@ -1,15 +1,6 @@
 <!-- Global settings used to configure the StrideGraphicsApi -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="RuntimeIdentifier">
 
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
-    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'UWP'">Direct3D11</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Linux'">Vulkan;OpenGL</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'macOS'">Vulkan</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Android'">OpenGLES</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'iOS'">OpenGLES</StrideGraphicsApis>
-  </PropertyGroup>
-  
   <!-- Default values -->
   <PropertyGroup>
     <!-- Defaults for CPU and GraphicsApi based on platform-->

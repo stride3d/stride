@@ -1,0 +1,8 @@
+<!-- Build file pre-included by all Stride projects -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
+    <StrideGraphicsApisTests Condition="'$(StrideGraphicsApisTests)' == ''">Vulkan</StrideGraphicsApisTests>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Direct3D11;Vulkan</StrideGraphicsApis>
+  </PropertyGroup>
+</Project>
+

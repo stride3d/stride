@@ -3,8 +3,6 @@
   <PropertyGroup>
     <StrideCommonPreSettingsName>Stride</StrideCommonPreSettingsName>
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
-    <StrideGraphicsApisTestsWindows Condition="'$(StrideGraphicsApisTestsWindows)' == ''">Vulkan</StrideGraphicsApisTestsWindows>
-    <StrideGraphicsApisWindows Condition="'$(StrideGraphicsApisWindows)' == ''">Direct3D11;Vulkan</StrideGraphicsApisWindows>
   </PropertyGroup>
 </Project>
 

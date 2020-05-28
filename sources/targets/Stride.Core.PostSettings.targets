@@ -221,42 +221,5 @@
       </BuildOutputInPackage>
     </ItemGroup>    
   </Target>
-
-  <!-- ==================================================================
-       Targets to adjust ProjectReference RuntimeIdentifier
-       They properly set the RuntimeIdentifier of ProjectReference (since we have sometimes weird transitions like win => win-d3d11 or win => noRID)
-       If we don't do it, MSBuild slap current RID, and even if this RID is overriden inside the build of the project, it will still trigger an unecessary build w/ double writes -->
-  <Target Name="_StrideSdkGetBestRidForTfm" Returns="@(_RuntimeIdentifierItem)">
-    <PropertyGroup Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == ''">
-      <!-- If referencing project has a runtime identifier and it's part of the supported RuntimeIdentifiers list, use it -->
-      <_RuntimeIdentifiersTemp>;$(RuntimeIdentifiers);</_RuntimeIdentifiersTemp>
-      <RuntimeIdentifier Condition="'$(CurrentRuntimeIdentifier)' != '' And $(_RuntimeIdentifiersTemp.Contains(';$(CurrentRuntimeIdentifier);'))">$(CurrentRuntimeIdentifier)</RuntimeIdentifier>
-      <!-- Otherwise, fallback to first one -->
-      <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</RuntimeIdentifier>
-    </PropertyGroup>
-    <ItemGroup>
-      <_RuntimeIdentifierItem Include="$(RuntimeIdentifier)" />
-    </ItemGroup>
-  </Target>
-  <Target Name="_StrideProjectReferenceRuntimeIdentifier" BeforeTargets="PrepareProjectReferences">
-    <!-- Query default RID of ProjectReference that are not RidAgnostic -->
-    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
-             Condition="'%(_MSBuildProjectReferenceExistent.IsRidAgnostic)' == 'false'"
-             BuildInParallel="$(BuildInParallel)"
-             Properties="TargetFramework=%(_MSBuildProjectReferenceExistent.NearestTargetFramework);CurrentRuntimeIdentifier=$(RuntimeIdentifier)"
-             Targets="_StrideSdkGetBestRidForTfm">
-      <Output ItemName="_MSBuildProjectReferenceExistentWithRID" TaskParameter="TargetOutputs"  />
-    </MSBuild>
-
-    <ItemGroup>
-      <_MSBuildProjectReferenceExistentWithRID2 Include="@(_MSBuildProjectReferenceExistentWithRID->'%(OriginalItemSpec)')">
-        <RuntimeIdentifier>%(Identity)</RuntimeIdentifier>
-        <SetTargetFramework>%(_MSBuildProjectReferenceExistentWithRID.SetTargetFramework);RuntimeIdentifier=%(Identity)</SetTargetFramework>
-        <GlobalPropertiesToRemove>$([System.String]::Copy('%(_MSBuildProjectReferenceExistentWithRID.GlobalPropertiesToRemove)').Replace(';RuntimeIdentifier', ''))</GlobalPropertiesToRemove>
-      </_MSBuildProjectReferenceExistentWithRID2>
-
-      <_MSBuildProjectReferenceExistent Remove="@(_MSBuildProjectReferenceExistentWithRID2)"/>
-      <_MSBuildProjectReferenceExistent Include="@(_MSBuildProjectReferenceExistentWithRID2)"/>
-    </ItemGroup>
-  </Target>
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.RuntimeIdentifier.ProjectReference.targets" />
 </Project>
