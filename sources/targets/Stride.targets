@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <!--Import Stride common settings-->
-  <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.Core.PostSettings.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.targets"/>
 
   <!-- Handles StrideGraphicsApi variable (note: need to be done after Core.PostSettings) -->
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
@@ -26,8 +26,8 @@
     <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'iOS'">OpenGLES</StrideGraphicsApis>
     <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
   </PropertyGroup>
-  <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.GraphicsApi.PackageReference.targets"/>
-  <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.GraphicsApi.Dev.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.PackageReference.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.Dev.targets"/>
 
   <!-- Setup default GraphicsApi for design-time build -->
   <PropertyGroup Condition="$(DesignTimeBuild) == 'true'">

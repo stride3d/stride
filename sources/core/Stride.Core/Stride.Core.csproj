@@ -2,7 +2,7 @@
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.Core.props" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   
   <PropertyGroup>
@@ -121,6 +121,6 @@
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
   
-  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 </Project>

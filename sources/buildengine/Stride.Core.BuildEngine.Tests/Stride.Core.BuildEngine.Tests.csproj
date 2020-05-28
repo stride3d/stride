@@ -1,5 +1,5 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
+  <Import Project="..\..\targets\Stride.UnitTests.props" />
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>

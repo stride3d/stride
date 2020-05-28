@@ -1,5 +1,13 @@
-<!-- Global settings used to configure the StrideGraphicsApi -->
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="RuntimeIdentifier">
+<!-- Build file pre-included by all Stride projects -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <StrideSdkTargets>$(MSBuildThisFileDirectory)Stride.targets</StrideSdkTargets>
+    <StrideAssemblyProcessorGlobal>true</StrideAssemblyProcessorGlobal>
+    <StrideAssemblyProcessorDefaultOptions>--auto-notify-property --parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorDefaultOptions>
+  </PropertyGroup>
+
+  <!--Import Stride settings-->
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.props"/>
 
   <!-- Default values -->
   <PropertyGroup>
@@ -14,9 +22,6 @@
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' and '$(StrideDefaultGraphicsApi)' != ''">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
     <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
   </PropertyGroup>
-
-  <!--Import global Stride settings-->
-  <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.Core.GlobalSettings.targets"/>
 
   <!-- 
     Settings StrideGraphicsApi specific
@@ -44,7 +49,7 @@
   <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
     <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_VULKAN</StrideGraphicsApiDefines>
   </PropertyGroup>
-  
+
   <!-- 
     Settings StridePlatform specific
   -->
@@ -71,7 +76,7 @@
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);$(StrideGraphicsApiDefines)</DefineConstants>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <StrideUI Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS'">SDL</StrideUI>
     <StrideUI Condition="'$(StrideGraphicsApi)' == 'OpenGL'">$(StrideUI);OPENTK</StrideUI>
@@ -115,4 +120,5 @@
       </None>
     </ItemGroup>
   </Target>
+
 </Project>

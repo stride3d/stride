@@ -1,5 +1,5 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.props" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -86,6 +86,6 @@
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
   </ItemGroup>
   <ItemGroup />
-  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 </Project>

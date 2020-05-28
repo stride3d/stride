@@ -76,9 +76,9 @@
 
   <!-- This needs to be after Sdk.targets -->
   <Import Project="$(MSBuildThisFileDirectory)..\core\Stride.Core\build\Stride.Core.targets"/>
-  <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.Core.RuntimeIdentifier.ProjectReference.targets"/>
-  <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.GraphicsApi.PackageReference.targets"/>
-  <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.GraphicsApi.Dev.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.RuntimeIdentifier.ProjectReference.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.PackageReference.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.Dev.targets"/>
   <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'" Project="$(MSBuildThisFileDirectory)..\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>
 
 </Project>

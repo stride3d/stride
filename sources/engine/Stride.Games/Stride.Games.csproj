@@ -6,7 +6,7 @@
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <UseWindowsForms Condition="$(StrideUI.Contains('WINFORMS')) OR $(StrideUI.Contains('WPF'))">true</UseWindowsForms>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.props" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -30,6 +30,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Graphics\Stride.Graphics.csproj" />
   </ItemGroup>
-  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 </Project>

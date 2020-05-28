@@ -3,7 +3,7 @@
     <StrideRuntime>true</StrideRuntime>
     <StrideRuntimeNetStandard>true</StrideRuntimeNetStandard>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.Core.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -22,6 +22,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core\Stride.Core.csproj" />
   </ItemGroup>
-  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

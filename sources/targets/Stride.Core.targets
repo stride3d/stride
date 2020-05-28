@@ -11,8 +11,8 @@
   <Target Name="GetPackagingOutputs"/>
 
   <!--Import Local Post Settings for the solution being loaded -->
-  <Import Project="$(SolutionDir)$(SolutionName).PostSettings.Local.targets" Condition="Exists('$(SolutionDir)$(SolutionName).PostSettings.Local.targets')" />
-  <Import Project="$(SolutionDir)Stride.Core.PostSettings.Local.targets" Condition="Exists('$(SolutionDir)Stride.Core.PostSettings.Local.targets')" />
+  <Import Project="$(SolutionDir)$(SolutionName).Build.targets" Condition="Exists('$(SolutionDir)$(SolutionName).Build.targets')" />
+  <Import Project="$(SolutionDir)Stride.Core.Build.targets" Condition="Exists('$(SolutionDir)Stride.Core.Build.targets')" />
 
   <!-- Setup default RuntimeIdentifier for design-time build -->
   <PropertyGroup Condition="$(DesignTimeBuild) == 'true'">

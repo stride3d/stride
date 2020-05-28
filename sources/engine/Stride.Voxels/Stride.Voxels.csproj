@@ -3,7 +3,7 @@
     <StrideRuntime>true</StrideRuntime>
     <StrideRuntimeNetStandard>true</StrideRuntimeNetStandard>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
@@ -25,6 +25,6 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

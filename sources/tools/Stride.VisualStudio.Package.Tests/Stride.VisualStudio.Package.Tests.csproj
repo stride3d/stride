@@ -1,5 +1,5 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.props" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
@@ -56,7 +56,7 @@
     </Compile>
   </ItemGroup>
   <Import Project="..\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems" Label="Shared" />
-  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <Target Name="LocateDevenv" AfterTargets="PrepareForBuild">
     <!-- Compute and save VisualStudio path to a file so that it can be used when running the test. Note: ideally we should use a Task, but Visual Studio lock the files -->

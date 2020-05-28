@@ -1,5 +1,5 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.props" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -25,7 +25,7 @@
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="..\..\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
-  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 
   <PropertyGroup>
