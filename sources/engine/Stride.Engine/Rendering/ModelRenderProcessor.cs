@@ -89,6 +89,36 @@ namespace Stride.Rendering
 
             var modelViewHierarchy = modelComponent.Skeleton;
             var nodeTransformations = modelViewHierarchy.NodeTransformations;
+            
+            // Check instancing
+            var isInstanced = modelComponent.IsInstanced
+                && modelComponent.InstanceTransformations != null
+                && modelComponent.InstanceTransformations.Length > 0;
+
+            renderModel.IsInstanced = isInstanced;
+
+            // Update instance transformation data from ModelComponent
+            var instanceWorld = renderModel.InstanceWorldMatrices;
+            var instanceWorldInverse = renderModel.InstanceWorldInverseMatrices;
+            if (isInstanced)
+            {
+                instanceWorld = modelComponent.InstanceTransformations;
+
+                if (instanceWorldInverse.Length < instanceWorld.Length)
+                {
+                    instanceWorldInverse = new Matrix[instanceWorld.Length];
+                }
+
+                // Invert matrices
+                for (int i = 0; i < instanceWorld.Length; i++)
+                {
+                    Matrix.Invert(ref instanceWorld[i], out instanceWorldInverse[i]);
+                }
+
+                // assign back to render model
+                renderModel.InstanceWorldMatrices = instanceWorld;
+                renderModel.InstanceWorldInverseMatrices = instanceWorldInverse;
+            }
 
             for (int sourceMeshIndex = 0; sourceMeshIndex < renderModel.Materials.Length; sourceMeshIndex++)
             {

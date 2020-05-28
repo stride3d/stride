@@ -1,0 +1,40 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Transforms the position of the vertex in world space first then in projection space
+/// </summary>
+shader TransformationWAndVPInstanced : TransformationBase, PositionStream4, PositionHStream4
+{
+    // Just for test, move to general transformation shader
+    struct InstanceTransform
+    {
+        float4x4 Matrix;
+    };
+
+    rgroup PerMaterial
+    {
+        stage StructuredBuffer<InstanceTransform> InstanceWorld;
+        stage StructuredBuffer<InstanceTransform> InstanceWorldInverse;
+    }
+
+    stage override void PreTransformPosition()
+    {
+        base.PreTransformPosition();
+        float4x4 iw = InstanceWorld[streams.InstanceID].Matrix;
+        float4 posWS = mul(streams.Position, iw);
+        streams.PositionWS = mul(posWS, Transformation.World);
+    }
+
+    stage override void PostTransformPosition()
+    {
+        base.PostTransformPosition();
+        streams.ShadingPosition = ComputeShadingPosition(streams.PositionWS);
+        streams.PositionH = streams.ShadingPosition;
+        streams.DepthVS = streams.ShadingPosition.w;
+    }
+    
+    stage override float4 ComputeShadingPosition(float4 world)
+    {
+        return mul(world, Transformation.ViewProjection);
+    }
+};

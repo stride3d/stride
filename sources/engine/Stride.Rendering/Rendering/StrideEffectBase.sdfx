@@ -37,7 +37,15 @@ namespace Stride.Rendering
         // Come after material surface per vertex
         mixin TransformationBase;
         mixin NormalStream;
-        mixin TransformationWAndVP;
+
+        if (MaterialKeys.HasInstancing)
+        {
+            mixin TransformationWAndVPInstanced;
+        }
+        else
+        {
+            mixin TransformationWAndVP;
+        }
 
         // -----------------------------------------------
         // Performs normal mapping (in case of no-skinning, otherwise it is overloaded below)

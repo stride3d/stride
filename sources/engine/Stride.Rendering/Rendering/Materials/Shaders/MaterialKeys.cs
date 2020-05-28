@@ -128,6 +128,8 @@ namespace Stride.Rendering.Materials
         
         public static readonly PermutationParameterKey<bool> UsePixelShaderWithDepthPass = ParameterKeys.NewPermutation<bool>();
 
+        public static readonly PermutationParameterKey<bool> HasInstancing = ParameterKeys.NewPermutation<bool>();
+
         static MaterialKeys()
         {
             //SpecularPowerScaled = ParameterKeys.NewDynamic(ParameterDynamicValue.New<float, float>(SpecularPower, ScaleSpecularPower));

@@ -49,7 +49,14 @@ namespace Stride.Rendering
                 }
                 context.Mixin(mixin, "TransformationBase");
                 context.Mixin(mixin, "NormalStream");
-                context.Mixin(mixin, "TransformationWAndVP");
+                if (context.GetParam(MaterialKeys.HasInstancing))
+                {
+                    context.Mixin(mixin, "TransformationWAndVPInstanced");
+                }
+                else
+                {
+                    context.Mixin(mixin, "TransformationWAndVP");
+                }
                 if (context.GetParam(MaterialKeys.HasNormalMap))
                 {
                     context.Mixin(mixin, "NormalFromNormalMapping");

@@ -142,6 +142,15 @@ namespace Stride.Engine
         public bool IsShadowCaster { get; set; }
 
         /// <summary>
+        /// Gets or sets a boolean indicating if this model component is instanced.
+        /// </summary>
+        /// <value>A boolean indicating if this model component is is instanced.</value>
+        /// <userdoc>Tells the material whether instancing is used.</userdoc>
+        [DataMember(25)]
+        [DefaultValue(true)]
+        public bool IsInstanced { get; set; }
+
+        /// <summary>
         /// The render group for this component.
         /// </summary>
         [DataMember(20)]
@@ -162,6 +171,13 @@ namespace Stride.Engine
         /// <value>The bounding sphere.</value>
         [DataMemberIgnore]
         public BoundingSphere BoundingSphere;
+
+        /// <summary>
+        /// The instance transformation matrices.
+        /// </summary>
+        /// <value>The bounding sphere.</value>
+        [DataMemberIgnore]
+        public Matrix[] InstanceTransformations;
 
         /// <summary>
         /// Gets the material at the specified index. If the material is not overriden by this component, it will try to get it from <see cref="Stride.Rendering.Model.Materials"/>
@@ -305,7 +321,7 @@ namespace Stride.Engine
                     BoundingBox = meshInfo.BoundingBox;
                     BoundingSphere = meshInfo.BoundingSphere;
                     modelHasBoundingBox = true;
-                }
+                }  
             }
         }
     }
