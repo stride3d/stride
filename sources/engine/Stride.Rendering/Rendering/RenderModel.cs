@@ -18,12 +18,7 @@ namespace Stride.Rendering
 
         // Transformation instancing, this could move up to RenderMesh, if needed per mesh
         public bool IsInstanced;
-        public Matrix[] InstanceWorldMatrices = new Matrix[0];
-        public Matrix[] InstanceWorldInverseMatrices = new Matrix[0];
-
-        // TODO: Manage buffers, where to transfer the data to the buffers?
-        public Buffer<Matrix> InstanceWorld;
-        public Buffer<Matrix> InstanceWorldInverse;
+        public int InstanceCount;
 
         public struct MaterialInfo
         {

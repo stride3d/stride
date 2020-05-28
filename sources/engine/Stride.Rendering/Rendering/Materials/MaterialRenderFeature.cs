@@ -299,12 +299,6 @@ namespace Stride.Rendering.Materials
                 // Register resources usage
                 Context.StreamingManager?.StreamResources(materialParameters);
 
-                if (renderMesh.RenderModel.IsInstanced)
-                {
-                    materialParameters.Set(TransformationWAndVPInstancedKeys.InstanceWorld, renderMesh.RenderModel.InstanceWorld);
-                    materialParameters.Set(TransformationWAndVPInstancedKeys.InstanceWorldInverse, renderMesh.RenderModel.InstanceWorldInverse);
-                }
-
                 if (!UpdateMaterial(RenderSystem, threadContext, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters))
                     return;
 

@@ -92,39 +92,34 @@ namespace Stride.Rendering
             
             // Check instancing
             var isInstanced = modelComponent.IsInstanced
-                && modelComponent.InstanceTransformations != null
-                && modelComponent.InstanceTransformations.Length > 0;
+                && modelComponent.InstanceWorldMatrices != null
+                && modelComponent.InstanceWorldMatrices.Length > 0
+                && modelComponent.InstanceWorldBuffer != null
+                && modelComponent.InstanceWorldInverseBuffer != null;
 
             renderModel.IsInstanced = isInstanced;
 
-            // Update instance transformation data from ModelComponent
-            var instanceWorld = renderModel.InstanceWorldMatrices;
-            var instanceWorldInverse = renderModel.InstanceWorldInverseMatrices;
             if (isInstanced)
             {
-                instanceWorld = modelComponent.InstanceTransformations;
-
-                if (instanceWorldInverse.Length < instanceWorld.Length)
-                {
-                    instanceWorldInverse = new Matrix[instanceWorld.Length];
-                }
-
-                // Invert matrices
-                for (int i = 0; i < instanceWorld.Length; i++)
-                {
-                    Matrix.Invert(ref instanceWorld[i], out instanceWorldInverse[i]);
-                }
-
-                // assign back to render model
-                renderModel.InstanceWorldMatrices = instanceWorld;
-                renderModel.InstanceWorldInverseMatrices = instanceWorldInverse;
+                renderModel.InstanceCount = modelComponent.InstanceWorldMatrices.Length;
             }
 
             for (int sourceMeshIndex = 0; sourceMeshIndex < renderModel.Materials.Length; sourceMeshIndex++)
             {
-                var passes = renderModel.Materials[sourceMeshIndex].MeshCount;
+                var materialInfo = renderModel.Materials[sourceMeshIndex];
+
+                if (renderModel.IsInstanced)
+                {
+                    foreach (var materialPass in materialInfo.Material.Passes)
+                    {
+                        materialPass.Parameters.Set(TransformationWAndVPInstancedKeys.InstanceWorld, modelComponent.InstanceWorldBuffer);
+                        materialPass.Parameters.Set(TransformationWAndVPInstancedKeys.InstanceWorldInverse, modelComponent.InstanceWorldInverseBuffer);
+                    }
+                }
+
+                var passes = materialInfo.MeshCount;
                 // Note: indices in RenderModel.Meshes and Model.Meshes are different (due to multipass materials)
-                var meshIndex = renderModel.Materials[sourceMeshIndex].MeshStartIndex;
+                var meshIndex = materialInfo.MeshStartIndex;
 
                 for (int pass = 0; pass < passes; ++pass, ++meshIndex)
                 {

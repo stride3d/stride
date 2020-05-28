@@ -10,6 +10,7 @@ using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
+using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Updater;
 
@@ -147,7 +148,6 @@ namespace Stride.Engine
         /// <value>A boolean indicating if this model component is is instanced.</value>
         /// <userdoc>Tells the material whether instancing is used.</userdoc>
         [DataMember(25)]
-        [DefaultValue(true)]
         public bool IsInstanced { get; set; }
 
         /// <summary>
@@ -175,9 +175,18 @@ namespace Stride.Engine
         /// <summary>
         /// The instance transformation matrices.
         /// </summary>
-        /// <value>The bounding sphere.</value>
         [DataMemberIgnore]
-        public Matrix[] InstanceTransformations;
+        public Matrix[] InstanceWorldMatrices = new Matrix[0];
+
+        /// <summary>
+        /// The inverse instance transformation matrices, updated automatically.
+        /// </summary>
+        [DataMemberIgnore]
+        public Matrix[] InstanceWorldInverseMatrices = new Matrix[0];
+
+        // TODO: Manage buffers, where to transfer the data to the buffers?
+        public Buffer<Matrix> InstanceWorldBuffer;
+        public Buffer<Matrix> InstanceWorldInverseBuffer;
 
         /// <summary>
         /// Gets the material at the specified index. If the material is not overriden by this component, it will try to get it from <see cref="Stride.Rendering.Model.Materials"/>

@@ -218,14 +218,14 @@ namespace Stride.Rendering
                 if (drawData.IndexBuffer == null)
                 {
                     if (renderMesh.RenderModel.IsInstanced)
-                        commandList.DrawInstanced(drawData.DrawCount, renderMesh.RenderModel.InstanceWorldMatrices.Length, drawData.StartLocation);
+                        commandList.DrawInstanced(drawData.DrawCount, renderMesh.RenderModel.InstanceCount, drawData.StartLocation);
                     else
                         commandList.Draw(drawData.DrawCount, drawData.StartLocation);
                 }
                 else
                 {
                     if (renderMesh.RenderModel.IsInstanced)
-                        commandList.DrawIndexedInstanced(drawData.DrawCount, renderMesh.RenderModel.InstanceWorldMatrices.Length, drawData.StartLocation);
+                        commandList.DrawIndexedInstanced(drawData.DrawCount, renderMesh.RenderModel.InstanceCount, drawData.StartLocation);
                     else
                         commandList.DrawIndexed(drawData.DrawCount, drawData.StartLocation);
                 }

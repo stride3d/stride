@@ -23,6 +23,7 @@ shader TransformationWAndVPInstanced : TransformationBase, PositionStream4, Posi
         float4x4 iw = InstanceWorld[streams.InstanceID].Matrix;
         float4 posWS = mul(streams.Position, iw);
         streams.PositionWS = mul(posWS, Transformation.World);
+        //streams.PositionWS = mul(streams.Position, Transformation.World);
     }
 
     stage override void PostTransformPosition()
