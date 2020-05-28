@@ -1,4 +1,4 @@
-<Project InitialTargets="_StrideCheckVisualCRuntime2013;_StrideCheckAssetCompiler" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project InitialTargets="_StrideCheckVisualCRuntime2013" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Check if Visual C++ Runtime 2013 is properly installed -->
   <!-- Should be moved to Stride.Assets as soon as transitive build dependencies are enabled by default in VS2019 (https://github.com/NuGet/Home/issues/6091#issuecomment-438073285) -->
   <Target Name="_StrideCheckVisualCRuntime2013" Condition="'$(MSBuildRuntimeType)' == 'Full'">
@@ -46,23 +46,7 @@
     <StrideCompileAssetOutputPath Condition="'$(StrideCompileAssetOutputPath)' == ''">$(TargetDir)data</StrideCompileAssetOutputPath>
 
     <StrideCompileAssetUpToDateCheckFileBase>$(ProjectDir)$(IntermediateOutputPath)stride\assetcompiler-uptodatecheck</StrideCompileAssetUpToDateCheckFileBase>
-
-    <!-- First try NuGet layout, then git checkout -->
-    <StrideCompileAssetCommandPath Condition="Exists('$(MSBuildThisFileDirectory)..\lib\')">$(MSBuildThisFileDirectory)..\lib</StrideCompileAssetCommandPath>
-    <StrideCompileAssetCommandPath Condition="Exists('$(MSBuildThisFileDirectory)..\bin\$(Configuration)\')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)</StrideCompileAssetCommandPath>
-
-    <!-- Try to guess correct which version of asset compiler to use depending on user TargetFramework -->
-    <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\netcoreapp3.1\Stride.Core.Assets.CompilerApp.exe') And $(TargetFramework.StartsWith('netcoreapp'))">netcoreapp3.1</StrideCompileAssetTargetFramework>
-    <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net472\Stride.Core.Assets.CompilerApp.exe')">net472</StrideCompileAssetTargetFramework>
-
-    <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == ''">$(StrideCompileAssetCommandPath)\$(StrideCompileAssetTargetFramework)\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
-
-    <StrideCompileAssetCommandProxy>&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
   </PropertyGroup>
-
-  <Target Name="_StrideCheckAssetCompiler">
-    <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
-  </Target>
 
   <!-- Prepare path to be able to copy Task dll to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
   <PropertyGroup>
@@ -125,10 +109,24 @@
   <!--Compile assets for all StridePackage items and only for an executable-->
   <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true'" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
     <PropertyGroup>
+      <!-- First try NuGet layout, then git checkout -->
+      <StrideCompileAssetCommandPath Condition="Exists('$(MSBuildThisFileDirectory)..\lib\')">$(MSBuildThisFileDirectory)..\lib</StrideCompileAssetCommandPath>
+      <StrideCompileAssetCommandPath Condition="Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)</StrideCompileAssetCommandPath>
+
+      <!-- Try to guess correct which version of asset compiler to use depending on user TargetFramework -->
+      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\netcoreapp3.1\Stride.Core.Assets.CompilerApp.exe') And $(TargetFramework.StartsWith('netcoreapp'))">netcoreapp3.1</StrideCompileAssetTargetFramework>
+      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net472\Stride.Core.Assets.CompilerApp.exe')">net472</StrideCompileAssetTargetFramework>
+
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == ''">$(StrideCompileAssetCommandPath)\$(StrideCompileAssetTargetFramework)\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
+
+      <StrideCompileAssetCommandProxy>&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
+
       <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --property:StrideGraphicsApi=$(StrideGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot; --log-pipe=&quot;$(StrideBuildEngineLogPipeUrl)&quot;</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
     </PropertyGroup>
+
+    <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
 
     <!-- Ensure the output directory exists -->
     <MakeDir Directories="$(TargetDir)"/>
