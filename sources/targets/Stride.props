@@ -4,6 +4,7 @@
     <StrideSdkTargets>$(MSBuildThisFileDirectory)Stride.targets</StrideSdkTargets>
     <StrideAssemblyProcessorGlobal>true</StrideAssemblyProcessorGlobal>
     <StrideAssemblyProcessorDefaultOptions>--auto-notify-property --parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorDefaultOptions>
+    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
   </PropertyGroup>
 
   <!--Import Stride settings-->
@@ -20,7 +21,6 @@
     <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'macOS'">Vulkan</StrideDefaultGraphicsApi>
     <StrideGraphicsApiOriginal>$(StrideGraphicsApi)</StrideGraphicsApiOriginal>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' and '$(StrideDefaultGraphicsApi)' != ''">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
-    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
   </PropertyGroup>
 
   <!-- 
