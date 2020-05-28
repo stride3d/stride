@@ -13,7 +13,7 @@
       <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</RuntimeIdentifier>
     </PropertyGroup>
     <ItemGroup>
-      <_RuntimeIdentifierItem Include="$(RuntimeIdentifier)" />
+      <_RuntimeIdentifierItem Include="$(RuntimeIdentifier)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
     </ItemGroup>
   </Target>
   <Target Name="_StrideProjectReferenceRuntimeIdentifier" BeforeTargets="PrepareProjectReferences">
@@ -29,6 +29,7 @@
     <ItemGroup>
       <_MSBuildProjectReferenceExistentWithRID2 Include="@(_MSBuildProjectReferenceExistentWithRID->'%(OriginalItemSpec)')">
         <RuntimeIdentifier>%(Identity)</RuntimeIdentifier>
+        <StrideGraphicsApiDependent>%(StrideGraphicsApiDependent)</StrideGraphicsApiDependent>
         <SetTargetFramework>%(_MSBuildProjectReferenceExistentWithRID.SetTargetFramework);RuntimeIdentifier=%(Identity)</SetTargetFramework>
         <GlobalPropertiesToRemove>$([System.String]::Copy('%(_MSBuildProjectReferenceExistentWithRID.GlobalPropertiesToRemove)').Replace(';RuntimeIdentifier', ''))</GlobalPropertiesToRemove>
       </_MSBuildProjectReferenceExistentWithRID2>

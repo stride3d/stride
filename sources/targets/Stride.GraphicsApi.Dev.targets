@@ -55,9 +55,12 @@
       <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">Direct3D11</_StrideGraphicsApiCurrent>
     </PropertyGroup>
     <ItemGroup>
-      <_MSBuildProjectReferenceExistent Update="@(_MSBuildProjectReferenceExistent)">
+      <_MSBuildProjectReferenceExistent Update="@(_MSBuildProjectReferenceExistent)" Condition="'%(_MSBuildProjectReferenceExistent.StrideGraphicsApiDependent)' == 'true'">
         <StrideGraphicsApi>$(_StrideGraphicsApiCurrent)</StrideGraphicsApi>
         <SetTargetFramework>%(_MSBuildProjectReferenceExistent.SetTargetFramework);StrideGraphicsApi=$(_StrideGraphicsApiCurrent)</SetTargetFramework>
+      </_MSBuildProjectReferenceExistent>
+      <_MSBuildProjectReferenceExistent Update="@(_MSBuildProjectReferenceExistent)" Condition="'%(_MSBuildProjectReferenceExistent.StrideGraphicsApiDependent)' != 'true'">
+        <GlobalPropertiesToRemove>%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);StrideGraphicsApi</GlobalPropertiesToRemove>
       </_MSBuildProjectReferenceExistent>
     </ItemGroup>
   </Target>
