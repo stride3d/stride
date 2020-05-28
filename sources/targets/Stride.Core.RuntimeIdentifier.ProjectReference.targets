@@ -8,11 +8,11 @@
     <PropertyGroup Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == ''">
       <!-- If referencing project has a runtime identifier and it's part of the supported RuntimeIdentifiers list, use it -->
       <_RuntimeIdentifiersTemp>;$(RuntimeIdentifiers);</_RuntimeIdentifiersTemp>
-      <RuntimeIdentifier Condition="'$(CurrentRuntimeIdentifier)' != '' And $(_RuntimeIdentifiersTemp.Contains(';$(CurrentRuntimeIdentifier);'))">$(CurrentRuntimeIdentifier)</RuntimeIdentifier>
+      <RuntimeIdentifier Condition="'$(ReferencingRuntimeIdentifier)' != '' And $(_RuntimeIdentifiersTemp.Contains(';$(ReferencingRuntimeIdentifier);'))">$(ReferencingRuntimeIdentifier)</RuntimeIdentifier>
       <!-- Otherwise, fallback to first one -->
       <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</RuntimeIdentifier>
     </PropertyGroup>
-    <ItemGroup>
+    <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
       <_RuntimeIdentifierItem Include="$(RuntimeIdentifier)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
     </ItemGroup>
   </Target>
@@ -21,7 +21,8 @@
     <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
              Condition="'%(_MSBuildProjectReferenceExistent.IsRidAgnostic)' == 'false'"
              BuildInParallel="$(BuildInParallel)"
-             Properties="TargetFramework=%(_MSBuildProjectReferenceExistent.NearestTargetFramework);CurrentRuntimeIdentifier=$(RuntimeIdentifier)"
+             Properties="TargetFramework=%(_MSBuildProjectReferenceExistent.NearestTargetFramework);ReferencingRuntimeIdentifier=$(RuntimeIdentifier)"
+             RemoveProperties="RuntimeIdentifier"
              Targets="_StrideSdkGetBestRidForTfm">
       <Output ItemName="_MSBuildProjectReferenceExistentWithRID" TaskParameter="TargetOutputs"  />
     </MSBuild>
