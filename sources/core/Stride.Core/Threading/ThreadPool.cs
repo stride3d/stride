@@ -20,6 +20,7 @@ namespace Stride.Core.Threading
         /// </summary>
         public static readonly ThreadPool Instance = new ThreadPool();
         
+        private static readonly bool SingleCore;
         [ThreadStatic]
         static bool isCurrentAWorker;
         
@@ -42,7 +43,12 @@ namespace Stride.Core.Threading
             }
             semaphore = new SemaphoreW(0, 140);
         }
-        
+
+        static ThreadPool()
+        {
+            SingleCore = Environment.ProcessorCount < 2;
+        }
+
         public void QueueWorkItem([NotNull, Pooled] Action workItem, int amount = 1)
         {
             // Throw right here to help debugging

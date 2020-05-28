@@ -185,7 +185,7 @@ namespace Stride.Core.Threading
 
                     // Waiting for signal as a spinner
                     int spinIndex = 0;
-                    while (spinIndex < spinCount)
+                    while (SingleCore == false && spinIndex < spinCount)
                     {
                         Spin(spinIndex, 10);
                         spinIndex++;
@@ -301,7 +301,7 @@ namespace Stride.Core.Threading
                     //     spin loop too early can cause excessive context switcing from the wait.
                     //   - If there are multiple threads doing Yield and Sleep(0) (typically from the same spin loop due to contention),
                     //     they may switch between one another, delaying work that can make progress.
-                    if ((spinIndex < sleep0Threshold || (spinIndex - sleep0Threshold) % 2 != 0))
+                    if (SingleCore == false && (spinIndex < sleep0Threshold || (spinIndex - sleep0Threshold) % 2 != 0))
                     {
                         // Cap the maximum spin count to a value such that many thousands of CPU cycles would not be wasted doing
                         // the equivalent of YieldProcessor(), as that that point SwitchToThread/Sleep(0) are more likely to be able to
@@ -325,7 +325,7 @@ namespace Stride.Core.Threading
                     // uninterruptible version of Sleep(0). Not doing Thread.Yield, it does not seem to have any
                     // benefit over Sleep(0).
                     Thread.Sleep(0);
-                    /*Thread.UninterruptibleSleep0();*/// Eideren: Not a thing on standard 2.0, commented out for now
+                    /*Thread.UninterruptibleSleep0();*/ // Eideren: Not a thing on standard 2.0, commented out for now
 
                     // Don't want to Sleep(1) in this spin wait:
                     //   - Don't want to spin for that long, since a proper wait will follow when the spin wait fails
