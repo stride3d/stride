@@ -5,9 +5,6 @@
     <StrideAssemblyProcessorGlobal>true</StrideAssemblyProcessorGlobal>
     <StrideAssemblyProcessorBasePath>$(StridePackageStride)\deps\AssemblyProcessor\</StrideAssemblyProcessorBasePath>
 
-    <StrideDependenciesDir Condition="'$(StrideDependenciesDir)' == ''">$(StridePackageStride)\deps\</StrideDependenciesDir>
-    <StrideDependenciesDir Condition="'$(StrideDependenciesDir)' != '' and !HasTrailingSlash('$(StrideDependenciesDir)')">$(StrideDependenciesDir)\</StrideDependenciesDir>
-
     <StrideCoreAssemblyPath>$(MSBuildThisFileDirectory)..\Bin\$(StrideBuildDirectory)\Stride.Core.dll</StrideCoreAssemblyPath>
   </PropertyGroup>
 

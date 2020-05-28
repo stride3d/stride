@@ -112,7 +112,7 @@
   <!-- Assembly Processor -->
   <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorTempPath)" Condition=" '$(StrideAssemblyProcessorTempPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
   <Target Name="RunStrideAssemblyProcessor" BeforeTargets="CopyFilesToOutputDirectory" Condition=" '$(StrideAssemblyProcessor)' == 'true' and '$(StrideAssemblyProcessorTempPath)' != '' and '$(StrideAssemblyProcessorGlobal)' == 'true' and '$(StrideAssemblyProcessorOptions)' != '' ">
-    <PropertyGroup Condition="'$(StrideUserBuild)' != 'true'">
+    <PropertyGroup>
       <!-- Add Stride.Core path to assembly search directory -->
       <StrideAssemblyProcessorOptions Condition="'$(StrideCoreAssemblyPath)' != ''">$(StrideAssemblyProcessorOptions) --assembly="$(StrideCoreAssemblyPath)"</StrideAssemblyProcessorOptions>
     </PropertyGroup>

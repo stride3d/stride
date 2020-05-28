@@ -10,7 +10,6 @@
 
     <!--By default, use AssemblyProcessor from solution, unless this is a user build-->
     <StrideSdkToolsDir Condition="'$(StrideSdkToolsDir)' == ''">$(SolutionDir)Bin\Windows\Tools\</StrideSdkToolsDir>
-    <StrideSdkToolsDir Condition="'$(StrideUserBuild)' == 'true'">$(StrideSdkDir)\Bin\Windows\Tools\</StrideSdkToolsDir>
     <StrideAssetCompilerCommand>$(StrideSdkToolsDir)Stride.Core.Assets.CompilerApp.exe</StrideAssetCompilerCommand>
   </PropertyGroup>
 

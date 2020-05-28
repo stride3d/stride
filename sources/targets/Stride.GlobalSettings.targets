@@ -15,11 +15,6 @@
     <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <StrideDependenciesDir Condition="'$(StrideDependenciesDir)' != '' and !HasTrailingSlash('$(StrideDependenciesDir)')">$(StrideDependenciesDir)\</StrideDependenciesDir>
-    <StrideDependenciesDir Condition="'$(StrideDependenciesDir)' == ''">$(StridePackageStride)\deps\</StrideDependenciesDir>
-  </PropertyGroup>
-
   <!--Import global Stride settings-->
   <Import Project="$(MSBuildThisFileDirectory)..\targets\Stride.Core.GlobalSettings.targets"/>
 
@@ -58,17 +53,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(StridePlatform)' == 'UWP' ">
-    <AutoIncludeSystemAssembly>true</AutoIncludeSystemAssembly>
     <ProjectLockFile Condition="'$(ProjectLockFile)' == ''">$(MSBuildThisFileDirectory)..\build\project.lock.json</ProjectLockFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' ">
-    <StrideExternalSuffix>.Android</StrideExternalSuffix>
-  </PropertyGroup>
-  
   <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
-    <StrideExternalSuffix>.iOS</StrideExternalSuffix>
-    <NUnitLiteBinDir>$(StrideDependenciesDir)NUnitLite\net-monotouch\</NUnitLiteBinDir>
+    <NUnitLiteBinDir>$(MSBuildThisFileDirectory)..\..\deps\NUnitLite\net-monotouch\</NUnitLiteBinDir>
   </PropertyGroup>
 
   <!-- 
@@ -99,10 +88,7 @@
     <StrideUIList Condition="'$(StrideUI)' == ''" Include="None" />
   </ItemGroup>
 
-  
-  <!--Building Stride SDK itself?-->
-  <PropertyGroup Condition=" '$(StrideUserBuild)' != 'true' ">
-    <!--Output All files in solution\Bin directory-->
+  <PropertyGroup>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

@@ -10,10 +10,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
-  <Choose>
-    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-    </When>
-  </Choose>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>

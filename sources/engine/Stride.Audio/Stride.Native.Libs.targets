@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'iOS' or '$(StridePlatform)' == 'macOS'" Include="$(StrideDependenciesDir)\NativePath\iOS\libCelt.a" />
+    <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'iOS' or '$(StridePlatform)' == 'macOS'" Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libCelt.a" />
     <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Android'" Include="libCelt.a;libCompilerRt.a" />
   </ItemGroup>
 </Project>

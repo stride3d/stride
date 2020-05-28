@@ -17,10 +17,6 @@
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
     <DefineConstants Condition="'$(StridePlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))">$(DefineConstants);STRIDE_INPUT_RAWINPUT</DefineConstants>
   </PropertyGroup>
-  <Choose>
-    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-    </When>
-  </Choose>
   <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

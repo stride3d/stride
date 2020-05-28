@@ -15,10 +15,6 @@
     <StridePackAssets>true</StridePackAssets>
     <DefineConstants>$(DefineConstants);STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES</DefineConstants>
   </PropertyGroup>
-  <Choose>
-    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-    </When>
-  </Choose>
   <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
   <Choose>
     <When Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
@@ -27,7 +23,7 @@
           <ItemGroup>
             <Reference Include="SharpVulkan">
               <SpecificVersion>False</SpecificVersion>
-              <HintPath>$(StrideDependenciesDir)\SharpVulkan\$(StridePlatform)\SharpVulkan.dll</HintPath>
+              <HintPath>..\..\..\deps\SharpVulkan\$(StridePlatform)\SharpVulkan.dll</HintPath>
             </Reference>
           </ItemGroup>
         </When>
@@ -35,7 +31,7 @@
           <ItemGroup>
             <Reference Include="SharpVulkan">
               <SpecificVersion>False</SpecificVersion>
-              <HintPath>$(StrideDependenciesDir)\SharpVulkan\Other\SharpVulkan.dll</HintPath>
+              <HintPath>..\..\..\deps\SharpVulkan\Other\SharpVulkan.dll</HintPath>
             </Reference>
           </ItemGroup>
         </Otherwise>
@@ -45,7 +41,7 @@
   <Choose>
     <When Condition="$(StrideUI.Contains('SDL'))">
       <ItemGroup>
-        <StrideNativeLib Include="$(StrideDependenciesDir)\SDL2\$(StridePlatform)\**\*SDL2*">
+        <StrideNativeLib Include="..\..\..\deps\SDL2\$(StridePlatform)\**\*SDL2*">
           <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
           <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -54,14 +50,14 @@
     </When>
   </Choose>
   <ItemGroup Condition=" '$(StridePlatform)' == 'macOS' Or '$(StrideGraphicsApi)' == 'Vulkan' ">
-    <StrideNativeLib Include="$(StrideDependenciesDir)\MoltenVK\$(StridePlatform)\**\*.*">
+    <StrideNativeLib Include="..\..\..\deps\MoltenVK\$(StridePlatform)\**\*.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>
-    <StrideNativeLib Include="$(StrideDependenciesDir)\freetype\$(StridePlatform)\**\*.*">
+    <StrideNativeLib Include="..\..\..\deps\freetype\$(StridePlatform)\**\*.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

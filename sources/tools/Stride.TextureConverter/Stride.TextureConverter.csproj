@@ -14,13 +14,13 @@
     <Compile Remove="Frontend\TexArray.cs" />
   </ItemGroup>
   <ItemGroup>
-    <StrideNativeLib Include="$(StrideDependenciesDir)FreeImage\Release\**\*.dll">
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FreeImage\Release\**\*.dll">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </StrideNativeLib>
-    <StrideNativeLib Include="$(StrideDependenciesDir)TextureWrappers\Release\**\*.dll">
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.dll">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </StrideNativeLib>
-    <StrideNativeLib Include="$(StrideDependenciesDir)PVRTT\**\*.dll">
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.dll">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </StrideNativeLib>
   </ItemGroup>

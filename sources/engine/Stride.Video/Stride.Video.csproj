@@ -33,14 +33,14 @@
   <Choose>
     <When Condition="$(DefineConstants.Contains(STRIDE_VIDEO_FFMPEG))">
       <ItemGroup Condition="'$(StridePlatform)' == 'Android'">
-        <StrideNativeLib Include="$(StrideDependenciesDir)\FFmpeg\$(StridePlatform)\**\*.so">
+        <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FFmpeg\$(StridePlatform)\**\*.so">
           <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
           <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </StrideNativeLib>
       </ItemGroup>
       <ItemGroup Condition="'$(StridePlatform)' == 'Windows'">
-        <StrideNativeLib Include="$(StrideDependenciesDir)\FFmpeg\$(StridePlatform)\**\*.dll">
+        <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FFmpeg\$(StridePlatform)\**\*.dll">
           <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
           <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
