@@ -40,7 +40,7 @@ namespace Stride.Core.Threading
             {
                 NewWorker();
             }
-            semaphore = new SemaphoreW(0, int.MaxValue, 70);
+            semaphore = new SemaphoreW(0, 140);
         }
         
         public void QueueWorkItem([NotNull, Pooled] Action workItem, int amount = 1)
