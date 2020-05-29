@@ -2,6 +2,7 @@
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <EnableDefaultItems>false</EnableDefaultItems>
     <StrideCompileAssets>true</StrideCompileAssets>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
