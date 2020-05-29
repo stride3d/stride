@@ -51,6 +51,7 @@
            otherwise it would try to build 3rd project twice (due to the reference from ProjectWithoutGraphicsApi). -->
       <_StrideGraphicsApiCurrent>$(StrideGraphicsApi)</_StrideGraphicsApiCurrent>
       <!-- We use a fallback in case the project without graphics API is the project initiating the build. -->
+      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</_StrideGraphicsApiCurrent>
       <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">$(StrideDefaultGraphicsApi)</_StrideGraphicsApiCurrent>
       <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">Direct3D11</_StrideGraphicsApiCurrent>
     </PropertyGroup>

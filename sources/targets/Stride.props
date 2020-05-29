@@ -11,7 +11,7 @@
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.props"/>
 
   <!-- Default values -->
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
     <!-- Defaults for CPU and GraphicsApi based on platform-->
     <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'Windows'">Direct3D11</StrideDefaultGraphicsApi>
     <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'UWP'">Direct3D11</StrideDefaultGraphicsApi>
