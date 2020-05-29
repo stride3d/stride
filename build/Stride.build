@@ -155,7 +155,7 @@ Example of use:
 
   <Target Name="BuildWindowsDirect3D11">
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=Direct3D11;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
   
   <Target Name="BuildWindowsDirect3D12">
@@ -215,7 +215,7 @@ Example of use:
       <StridePlatforms>Linux</StridePlatforms>
     </PropertyGroup>
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApisDependentBuildAll=$(StrideGraphicsApisDependentBuildAll)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApisDependentBuildAll=$(StrideGraphicsApisDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApisDependentBuildAll=$(StrideGraphicsApisDependentBuildAll)"/>
   </Target> 
 
   <Target Name="BuildLinuxVulkan">
