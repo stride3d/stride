@@ -125,7 +125,10 @@ namespace Stride.Core.Assets.CompilerApp
                             if (equalIndex == -1)
                                 throw new OptionException("Expect name1=value1;name2=value2 format.", "property");
 
-                            options.Properties.Add(nameValue.Substring(0, equalIndex), nameValue.Substring(equalIndex + 1));
+                            var name = nameValue.Substring(0, equalIndex);
+                            var value = nameValue.Substring(equalIndex + 1);
+                            if (value != string.Empty)
+                                options.Properties.Add(name, value);
                         }
                     }
                 }
