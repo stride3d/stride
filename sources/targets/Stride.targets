@@ -17,14 +17,6 @@
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.targets"/>
 
   <!-- Handles StrideGraphicsApi variable (note: need to be done after Core.PostSettings) -->
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'Windows'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'UWP'">Direct3D11</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'Linux'">Vulkan;OpenGL</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'macOS'">Vulkan</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'Android'">OpenGLES</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'iOS'">OpenGLES</StrideGraphicsApis>
-  </PropertyGroup>
   <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.PackageReference.targets"/>
   <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.Dev.targets"/>
 

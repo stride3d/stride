@@ -10,19 +10,6 @@
   <!--Import Stride settings-->
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.props"/>
 
-  <!-- Default values -->
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
-    <!-- Defaults for CPU and GraphicsApi based on platform-->
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'Windows'">Direct3D11</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'UWP'">Direct3D11</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'Android'">OpenGLES</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'iOS'">OpenGLES</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'Linux'">OpenGL</StrideDefaultGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'macOS'">Vulkan</StrideDefaultGraphicsApi>
-    <StrideGraphicsApiOriginal>$(StrideGraphicsApi)</StrideGraphicsApiOriginal>
-    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' and '$(StrideDefaultGraphicsApi)' != ''">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
-  </PropertyGroup>
-
   <!-- 
     Settings StrideGraphicsApi specific
   -->
