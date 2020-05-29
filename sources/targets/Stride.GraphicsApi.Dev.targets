@@ -35,7 +35,7 @@
       </_SdkProjectFlavorMatrixItem>
     </ItemGroup>
   </Target>
-  <Target Name="_StrideGetGraphicsApisPerTargetFrameworkAndRid" Returns="@(_StrideGraphicsApisItem)">
+  <Target Name="_StrideGetGraphicsApisPerTargetFrameworkAndRid" Returns="@(_StrideGraphicsApisItem)" Condition="'$(StrideGraphicsApis)' != ''">
     <ItemGroup>
       <_StrideGraphicsApisItems Include="$(StrideGraphicsApis)" TargetFramework="$(TargetFramework)"/>
       <_StrideGraphicsApisItem Include="@(_StrideGraphicsApisItems->'%(TargetFramework)')" StrideGraphicsApi="%(_StrideGraphicsApisItems.Identity)" StrideDefaultGraphicsApi="$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])" />

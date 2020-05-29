@@ -16,14 +16,37 @@
   <!--Import Stride common settings-->
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.targets"/>
 
-  <!-- Handles StrideGraphicsApi variable (note: need to be done after Core.PostSettings) -->
+  <!-- 
+    Settings StrideGraphicsApi specific
+  -->
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Direct3D11' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_DIRECT3D;STRIDE_GRAPHICS_API_DIRECT3D11</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Direct3D12' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_DIRECT3D;STRIDE_GRAPHICS_API_DIRECT3D12</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Null' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_NULL</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'OpenGL' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLCORE</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'OpenGLES' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLES</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_VULKAN</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  
+
   <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.PackageReference.targets"/>
   <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.Dev.targets"/>
-
-  <!-- Setup default GraphicsApi for design-time build -->
-  <PropertyGroup Condition="$(DesignTimeBuild) == 'true'">
-    <StrideGraphicsApi Condition="'$(StrideGraphicsApiDependent)' == 'true'">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
-  </PropertyGroup>
 
   <!-- Adjust OutputPath -->
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">

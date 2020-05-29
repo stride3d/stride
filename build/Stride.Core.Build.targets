@@ -7,9 +7,4 @@
 
     <StrideCoreAssemblyPath>$(MSBuildThisFileDirectory)..\Bin\$(StrideBuildDirectory)\Stride.Core.dll</StrideCoreAssemblyPath>
   </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'Windows' ">
-    <StrideShaderUseSharpDX>true</StrideShaderUseSharpDX>
-    <DefineConstants>FRAMEWORK_SHADER_USE_SHARPDX;$(DefineConstants)</DefineConstants>
-  </PropertyGroup>
 </Project>
