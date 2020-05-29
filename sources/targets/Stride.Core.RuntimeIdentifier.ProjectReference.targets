@@ -8,12 +8,12 @@
     <PropertyGroup Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == ''">
       <!-- If referencing project has a runtime identifier and it's part of the supported RuntimeIdentifiers list, use it -->
       <_RuntimeIdentifiersTemp>;$(RuntimeIdentifiers);</_RuntimeIdentifiersTemp>
-      <RuntimeIdentifier Condition="'$(ReferencingRuntimeIdentifier)' != '' And $(_RuntimeIdentifiersTemp.Contains(';$(ReferencingRuntimeIdentifier);'))">$(ReferencingRuntimeIdentifier)</RuntimeIdentifier>
+      <_StrideRuntimeIdentifier Condition="'$(ReferencingRuntimeIdentifier)' != '' And $(_RuntimeIdentifiersTemp.Contains(';$(ReferencingRuntimeIdentifier);'))">$(ReferencingRuntimeIdentifier)</_StrideRuntimeIdentifier>
       <!-- Otherwise, fallback to first one -->
-      <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</RuntimeIdentifier>
+      <_StrideRuntimeIdentifier Condition="'$(_StrideRuntimeIdentifier)' == ''">$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</_StrideRuntimeIdentifier>
     </PropertyGroup>
-    <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
-      <_RuntimeIdentifierItem Include="$(RuntimeIdentifier)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
+    <ItemGroup Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == ''">
+      <_RuntimeIdentifierItem Condition="'$(_StrideRuntimeIdentifier)' != ''" Include="$(_StrideRuntimeIdentifier)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
     </ItemGroup>
   </Target>
   <Target Name="_StrideProjectReferenceRuntimeIdentifier" BeforeTargets="PrepareProjectReferences">
