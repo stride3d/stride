@@ -10,22 +10,27 @@
   <!--Import Stride settings-->
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.props"/>
 
+  <!-- Default GraphicsApi -->
+  <PropertyGroup>
+    <StrideGraphicsApisWindows Condition="'$(StrideGraphicsApisWindows)' == ''">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApisWindows>
+    <StrideGraphicsApisLinux Condition="'$(StrideGraphicsApisLinux)' == ''">Vulkan;OpenGL</StrideGraphicsApisLinux>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'Windows'">$(StrideGraphicsApisWindows)</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'Linux'">$(StrideGraphicsApisLinux)</StrideGraphicsApis>
+
+    <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'UWP'">Direct3D11</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'macOS'">Vulkan</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'Android'">OpenGLES</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'iOS'">OpenGLES</StrideDefaultGraphicsApi>
+  </PropertyGroup>
   <!-- Some platforms only have a single graphics API.
       If yes, set it right away and disable StrideGraphicsApiDependent (only for inner builds, check using TargetFrameworks) -->
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'Windows'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'Linux'">Vulkan;OpenGL</StrideGraphicsApis>
-    <StrideGraphicsApi Condition="'$(StridePlatform)' == 'UWP'">Direct3D11</StrideGraphicsApi>
-    <StrideGraphicsApi Condition="'$(StridePlatform)' == 'macOS'">Vulkan</StrideGraphicsApi>
-    <StrideGraphicsApi Condition="'$(StridePlatform)' == 'Android'">OpenGLES</StrideGraphicsApi>
-    <StrideGraphicsApi Condition="'$(StridePlatform)' == 'iOS'">OpenGLES</StrideGraphicsApi>
-    <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true' And '$(TargetFrameworks)' != '' and '$(TargetFramework)' == ''">
+  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true' And !('$(TargetFrameworks)' != '' and '$(TargetFramework)' == '')">
     <StrideGraphicsApiDependent Condition="'$(StridePlatform)' == 'UWP'">false</StrideGraphicsApiDependent>
     <StrideGraphicsApiDependent Condition="'$(StridePlatform)' == 'macOS'">false</StrideGraphicsApiDependent>
     <StrideGraphicsApiDependent Condition="'$(StridePlatform)' == 'Android'">false</StrideGraphicsApiDependent>
     <StrideGraphicsApiDependent Condition="'$(StridePlatform)' == 'iOS'">false</StrideGraphicsApiDependent>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApiDependent)' == 'false'">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
   </PropertyGroup>
   <!-- Setup default GraphicsApi for design-time build (that's the one used for Visual Studio intellisense, so it can be useful to override when working on a specific API) -->
   <PropertyGroup Condition="'$(DesignTimeBuild)' == 'true' And '$(StrideGraphicsApiDependent)' == 'true' And '$(StrideGraphicsApi)' == ''">
