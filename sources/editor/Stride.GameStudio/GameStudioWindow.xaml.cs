@@ -215,6 +215,8 @@ namespace Stride.GameStudio
             var wasWindowMaximized = GameStudioInternalSettings.WindowMaximized.GetValue();
             var workArea = this.GetWorkArea();
 
+            AdjustMaxSizeWithTaskbar();
+            
             if (wasWindowMaximized || previousWorkAreaWidth > (int)workArea.Width || previousWorkAreaHeight > (int)workArea.Height)
             {
                 // Resolution has changed (and is now smaller), let's make the window fill all available space.
@@ -456,6 +458,23 @@ namespace Stride.GameStudio
         private void EditorWindowPreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             ((EditorViewModel)DataContext).Status.DiscardStatus();
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            base.OnStateChanged(e);
+            // To handle window changing screen
+            AdjustMaxSizeWithTaskbar();
+        }
+
+        void AdjustMaxSizeWithTaskbar()
+        {
+            // There's an issue were auto-hide taskbars cannot be focused while WPF windows are maximized
+            // decreasing, even slightly, the maximum size fixes that issue
+            var v = this.GetWorkArea();
+            MaxWidth = v.Width;
+            // Yes, works even when the taskbar is on the left and right of the screen, somehow
+            MaxHeight = v.Height - 0.1d;
         }
     }
 }
