@@ -121,7 +121,7 @@ namespace Stride.Rendering.Materials
                 var materialInfo = renderMesh.MaterialInfo;
 
                 // Add instanced shaders
-                material.Parameters.Set(MaterialKeys.HasInstancing, renderMesh.ActiveMeshDraw.InstanceCount > 0);
+                material.Parameters.Set(MaterialKeys.HasInstancing, renderMesh.InstanceCount > 0);
 
                 // Material use first 16 bits
                 var materialHashCode = material != null ? ((uint)material.GetHashCode() & 0x0FFF) | ((uint)material.PassIndex << 12) : 0;

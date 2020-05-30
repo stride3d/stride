@@ -10,7 +10,6 @@ using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
-using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Updater;
 
@@ -310,7 +309,7 @@ namespace Stride.Engine
                     BoundingBox = meshInfo.BoundingBox;
                     BoundingSphere = meshInfo.BoundingSphere;
                     modelHasBoundingBox = true;
-                }  
+                }
             }
         }
     }

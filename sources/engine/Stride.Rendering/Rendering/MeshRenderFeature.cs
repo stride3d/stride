@@ -217,15 +217,15 @@ namespace Stride.Rendering
                 // Draw
                 if (drawData.IndexBuffer == null)
                 {
-                    if (drawData.InstanceCount > 0)
-                        commandList.DrawInstanced(drawData.DrawCount, drawData.InstanceCount, drawData.StartLocation);
+                    if (renderMesh.InstanceCount > 0)
+                        commandList.DrawInstanced(drawData.DrawCount, renderMesh.InstanceCount, drawData.StartLocation);
                     else
                         commandList.Draw(drawData.DrawCount, drawData.StartLocation);
                 }
                 else
                 {
-                    if (drawData.InstanceCount > 0)
-                        commandList.DrawIndexedInstanced(drawData.DrawCount, drawData.InstanceCount, drawData.StartLocation);
+                    if (renderMesh.InstanceCount > 0)
+                        commandList.DrawIndexedInstanced(drawData.DrawCount, renderMesh.InstanceCount, drawData.StartLocation);
                     else
                         commandList.DrawIndexed(drawData.DrawCount, drawData.StartLocation);
                 }

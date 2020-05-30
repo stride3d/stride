@@ -92,11 +92,9 @@ namespace Stride.Rendering
 
             for (int sourceMeshIndex = 0; sourceMeshIndex < renderModel.Materials.Length; sourceMeshIndex++)
             {
-                var materialInfo = renderModel.Materials[sourceMeshIndex];
-
-                var passes = materialInfo.MeshCount;
+                var passes = renderModel.Materials[sourceMeshIndex].MeshCount;
                 // Note: indices in RenderModel.Meshes and Model.Meshes are different (due to multipass materials)
-                var meshIndex = materialInfo.MeshStartIndex;
+                var meshIndex = renderModel.Materials[sourceMeshIndex].MeshStartIndex;
 
                 for (int pass = 0; pass < passes; ++pass, ++meshIndex)
                 {

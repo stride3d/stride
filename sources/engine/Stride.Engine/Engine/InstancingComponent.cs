@@ -5,6 +5,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
+using Stride.Graphics;
 
 namespace Stride.Engine
 {
@@ -14,6 +15,7 @@ namespace Stride.Engine
         /// <summary>
         /// The instance count
         /// </summary>
+        [DataMemberIgnore]
         public int InstanceCount;
 
         /// <summary>
@@ -31,7 +33,15 @@ namespace Stride.Engine
         /// <summary>
         /// The bounding box of the world matrices, updated automatically by the <see cref="InstancingProcessor"/>.
         /// </summary>
+        [DataMemberIgnore]
         public BoundingBox BoundingBox = BoundingBox.Empty;
+
+        // GPU buffers, managed by the render feature
+        [DataMemberIgnore]
+        public Buffer<Matrix> InstanceWorldBuffer;
+
+        [DataMemberIgnore]
+        public Buffer<Matrix> InstanceWorldInverseBuffer;
 
         bool matricesUpdated;
 
@@ -77,7 +87,7 @@ namespace Stride.Engine
                         var pos = WorldMatrices[i].TranslationVector;
                         BoundingBox.Merge(ref bb, ref pos, out bb);
                     }
-                    BoundingBox = bb; 
+                    BoundingBox = bb;
                 }
                 else
                 {

@@ -4,15 +4,19 @@ using System.Text;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
+using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Engine.Rendering
 {
     public struct InstancingData 
     {
+        public int InstanceCount;
+
         public Matrix[] WorldMatrices;
         public Matrix[] WorldInverseMatrices;
 
         // GPU buffers, managed by the render feature
+        public bool BuffersManagedByUser;
         public Buffer<Matrix> InstanceWorldBuffer;
         public Buffer<Matrix> InstanceWorldInverseBuffer;
     }
@@ -48,16 +52,59 @@ namespace Stride.Engine.Rendering
 
                 var instancingComponent = modelComponent.Entity.Get<InstancingComponent>();
                 if (instancingComponent == null)
+                {
+                    renderMesh.InstanceCount = 0;
                     continue;
+                }
 
-                var data = renderObjectInstancingData[renderMesh.StaticObjectNode];
-                data.WorldMatrices = instancingComponent.WorldMatrices;
-                data.WorldInverseMatrices = instancingComponent.WorldInverseMatrices;
-                renderMesh.ActiveMeshDraw.InstanceCount = instancingComponent.InstanceCount;
+                var instancingData = renderObjectInstancingData[renderMesh.StaticObjectNode];
 
-                renderMesh.BoundingBox.Center += instancingComponent.BoundingBox.Center;
-                renderMesh.BoundingBox.Extent += instancingComponent.BoundingBox.Extent;
+                // Instancing data
+                if (instancingComponent.Enabled && instancingComponent.InstanceCount > 0)
+                {
+                    instancingData.InstanceCount = instancingComponent.InstanceCount;
+                    instancingData.WorldMatrices = instancingComponent.WorldMatrices;
+                    instancingData.WorldInverseMatrices = instancingComponent.WorldInverseMatrices;
+
+                    if (instancingComponent.InstanceWorldBuffer != null)
+                    {
+                        instancingData.InstanceWorldBuffer = instancingComponent.InstanceWorldBuffer;
+                        instancingData.InstanceWorldInverseBuffer = instancingComponent.InstanceWorldInverseBuffer;
+                        instancingData.BuffersManagedByUser = true;
+                    }
+                    else
+                    {
+                        if (instancingData.InstanceWorldBuffer == null || instancingData.InstanceWorldBuffer.ElementCount < instancingComponent.InstanceCount)
+                        {
+                            instancingData.InstanceWorldBuffer?.Dispose();
+                            instancingData.InstanceWorldInverseBuffer?.Dispose();
+
+                            instancingData.InstanceWorldBuffer = CreateMatrixBuffer(Context.GraphicsDevice, instancingComponent.InstanceCount);
+                            instancingData.InstanceWorldInverseBuffer = CreateMatrixBuffer(Context.GraphicsDevice, instancingComponent.InstanceCount);
+                        }
+
+                        instancingData.BuffersManagedByUser = false;
+                    }
+
+                    // Bounding box
+                    renderMesh.BoundingBox.Center += instancingComponent.BoundingBox.Center;
+                    renderMesh.BoundingBox.Extent += instancingComponent.BoundingBox.Extent;
+                }
+                else
+                {
+                    instancingData.InstanceCount = 0;
+                }
+
+                // Update instance count on mesh
+                renderMesh.InstanceCount = instancingData.InstanceCount;
+
+                renderObjectInstancingData[renderMesh.StaticObjectNode] = instancingData;
             }
+        }
+
+        private static Buffer<Matrix> CreateMatrixBuffer(GraphicsDevice graphicsDevice, int elementCount)
+        {
+            return Buffer.New<Matrix>(graphicsDevice, elementCount, BufferFlags.ShaderResource | BufferFlags.StructuredBuffer, GraphicsResourceUsage.Dynamic);
         }
 
         /// <inheritdoc/>
@@ -84,11 +131,17 @@ namespace Stride.Engine.Rendering
 
                 var instancingData = renderObjectInstancingData[renderMesh.StaticObjectNode];
 
-                instancingData.InstanceWorldBuffer.SetData(context.CommandList, instancingData.WorldMatrices);
-                instancingData.InstanceWorldInverseBuffer.SetData(context.CommandList, instancingData.WorldInverseMatrices);
+                if (instancingData.InstanceCount > 0)
+                {
+                    if (!instancingData.BuffersManagedByUser)
+                    {
+                        instancingData.InstanceWorldBuffer.SetData(context.CommandList, instancingData.WorldMatrices);
+                        instancingData.InstanceWorldInverseBuffer.SetData(context.CommandList, instancingData.WorldInverseMatrices);
+                    }
 
-                renderNode.Resources.DescriptorSet.SetShaderResourceView(group.DescriptorEntryStart, instancingData.InstanceWorldBuffer);
-                renderNode.Resources.DescriptorSet.SetShaderResourceView(group.DescriptorEntryStart + 1, instancingData.InstanceWorldInverseBuffer);
+                    renderNode.Resources.DescriptorSet.SetShaderResourceView(group.DescriptorEntryStart, instancingData.InstanceWorldBuffer);
+                    renderNode.Resources.DescriptorSet.SetShaderResourceView(group.DescriptorEntryStart + 1, instancingData.InstanceWorldInverseBuffer);
+                }
             }
         }
     }

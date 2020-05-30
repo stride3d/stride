@@ -14,8 +14,6 @@ namespace Stride.Rendering
 
         public int DrawCount;
 
-        public int InstanceCount;
-
         public int StartLocation;
 
         public VertexBufferBinding[] VertexBuffers;
