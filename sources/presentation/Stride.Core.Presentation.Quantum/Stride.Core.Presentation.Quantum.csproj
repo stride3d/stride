@@ -1,7 +1,7 @@
 ﻿<Project>
 
-  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Stride.Core.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
  
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
@@ -22,7 +22,7 @@
     <ProjectReference Include="..\Stride.Core.Quantum\Stride.Core.Quantum.csproj" />
   </ItemGroup>
 
-  <Import Project="$(StridePostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 
 </Project>

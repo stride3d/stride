@@ -3,8 +3,8 @@
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePlatformDependent>true</StridePlatformDependent>
@@ -33,14 +33,14 @@
   <Choose>
     <When Condition="$(DefineConstants.Contains(STRIDE_VIDEO_FFMPEG))">
       <ItemGroup Condition="'$(StridePlatform)' == 'Android'">
-        <StrideNativeLib Include="$(StrideDependenciesDir)\FFmpeg\$(StridePlatform)\**\*.so">
+        <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FFmpeg\$(StridePlatform)\**\*.so">
           <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
           <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </StrideNativeLib>
       </ItemGroup>
       <ItemGroup Condition="'$(StridePlatform)' == 'Windows'">
-        <StrideNativeLib Include="$(StrideDependenciesDir)\FFmpeg\$(StridePlatform)\**\*.dll">
+        <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FFmpeg\$(StridePlatform)\**\*.dll">
           <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
           <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -51,6 +51,6 @@
   <ItemGroup>
     <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" Condition="'$(StridePlatform)' == 'Windows'" />
   </ItemGroup>
-  <Import Project="$(StridePostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 </Project>

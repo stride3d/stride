@@ -25,8 +25,6 @@
   *****************************************************************************************************************************
   -->
   <PropertyGroup>
-    <!-- Windows10 was renammed into UWP -->
-    <StridePlatform Condition="'$(StridePlatform)' == 'Windows10'">UWP</StridePlatform>
     <!-- Default mappings -->
     <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetPlatformIdentifier)' == 'UAP'">UWP</StridePlatform>
     <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'MonoAndroid'">Android</StridePlatform>

@@ -2,7 +2,7 @@
   <ItemGroup>
     <Reference Include="SDL2-CS">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(StrideDependenciesDir)\SDL2-CS\SDL2-CS.dll</HintPath>
+      <HintPath>$(MSBuildThisFileDirectory)..\..\deps\SDL2-CS\SDL2-CS.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

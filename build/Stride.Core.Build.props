@@ -9,7 +9,6 @@
     <!-- Resolve path (remove ".." elements), for better support on Xamarin iOS -->
     <StridePackageStride>$([System.IO.Path]::GetFullPath('$(StridePackageStride)'))</StridePackageStride>
     <StridePackageStrideBin Condition="'$(StridePackageStrideBin)' == ''">$(StridePackageStride)\Bin</StridePackageStrideBin>
-    <StridePackageStrideSdkBin Condition="'$(StridePackageStrideSdkBin)' == ''">$(StridePackageStrideBin)\Windows</StridePackageStrideSdkBin>
     <StridePackageStridePlatformBin Condition="'$(StridePackageStridePlatformBin)' == ''">$(StridePackageStrideBin)\$(StridePlatformFullName)</StridePackageStridePlatformBin>
   </PropertyGroup>
 </Project>

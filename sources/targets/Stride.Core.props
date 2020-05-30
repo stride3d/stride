@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <!--Import Local Pre Settings for the solution being loaded -->
-  <Import Project="$(SolutionDir)$(SolutionName).PreSettings.Local.targets" Condition="Exists('$(SolutionDir)$(SolutionName).PreSettings.Local.targets')" />
-  <Import Project="$(SolutionDir)Stride.Core.PreSettings.Local.targets" Condition="Exists('$(SolutionDir)Stride.Core.PreSettings.Local.targets')" />
+  <Import Project="$(SolutionDir)$(SolutionName).Build.props" Condition="Exists('$(SolutionDir)$(SolutionName).Build.props')" />
+  <Import Project="$(SolutionDir)Stride.Core.Build.props" Condition="Exists('$(SolutionDir)Stride.Core.Build.props')" />
   
     <!-- 
     Settings StridePlatform specific
@@ -47,14 +47,14 @@
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);monoandroid81</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);xamarinios10</StrideRuntimeTargetFrameworks>
 
-    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_StridePlatforms.Contains(';Windows;'))">$(StrideRuntimeIdentifiers);win</StrideRuntimeIdentifiers>
+    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And ('$(TargetFramework)' == 'netstandard2.0' Or $(TargetFramework.StartsWith('net4')) Or $(TargetFramework.StartsWith('netcoreapp'))) And $(_StridePlatforms.Contains(';Windows;'))">$(StrideRuntimeIdentifiers);win</StrideRuntimeIdentifiers>
     <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_StridePlatforms.Contains(';Linux;'))">$(StrideRuntimeIdentifiers);linux</StrideRuntimeIdentifiers>
     <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_StridePlatforms.Contains(';macOS;'))">$(StrideRuntimeIdentifiers);osx</StrideRuntimeIdentifiers>
     <!-- Default: at least win (used when compiling only a single platform such as UWP for netstandard assemblies) -->
     <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And '$(StrideRuntimeIdentifiers)' == ''">win</StrideRuntimeIdentifiers>
 
-    <!-- Need to use "win" runtime identifier for all other platforms as a workaround https://github.com/NuGet/Home/issues/7661#issuecomment-450040204 -->
-    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' != 'netstandard2.0'">any</StrideRuntimeIdentifiers>
+    <!-- Need to use a runtime identifier for all other platforms as a workaround https://github.com/NuGet/Home/issues/7661#issuecomment-450040204 -->
+    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' != 'netstandard2.0' And !$(TargetFramework.StartsWith('net4')) And !$(TargetFramework.StartsWith('netcoreapp'))">any</StrideRuntimeIdentifiers>
     
     <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeIdentifiers)' != ''">;$(StrideRuntimeIdentifiers);</StrideRuntimeIdentifiers>
 
@@ -80,39 +80,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' != 'true'">
-    <!-- Force default runtime identifier -->
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' != 'win' And '$(RuntimeIdentifier)' != 'linux' And '$(RuntimeIdentifier)' != 'osx'">$(StrideRuntimeIdentifier)</RuntimeIdentifier>
-  </PropertyGroup>
-
-  <!-- Those two targets are used to properly set the RuntimeIdentifier of ProjectReference (since we have sometimes weird transitions like win => win-d3d11 or win => noRID)
-       If we don't do it, MSBuild slap current RID, and even if this RID is overriden inside the build of the project, it will still trigger an unecessary build w/ double writes -->  
-  <Target Name="_StrideSdkGetDefaultRidForTfm" Returns="$(RuntimeIdentifier)">
-    <PropertyGroup>
-      <ExtrasBuildEachRuntimeIdentifier Condition="'$(ExtrasBuildEachRuntimeIdentifier)' == ''">false</ExtrasBuildEachRuntimeIdentifier>
-    </PropertyGroup>
-  </Target>
-  <Target Name="_StrideProjectReferenceRuntimeIdentifier" BeforeTargets="PrepareProjectReferences">
-    <!-- Query default RID of ProjectReference that are not RidAgnostic -->
-    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
-             Condition="'%(_MSBuildProjectReferenceExistent.IsRidAgnostic)' == 'false'"
-             BuildInParallel="$(BuildInParallel)"
-             Properties="TargetFramework=%(_MSBuildProjectReferenceExistent.NearestTargetFramework)"
-             Targets="_StrideSdkGetDefaultRidForTfm">
-      <Output ItemName="_MSBuildProjectReferenceExistentWithRID" TaskParameter="TargetOutputs"  />
-    </MSBuild>
-    <ItemGroup>
-      <_MSBuildProjectReferenceExistentWithRID2 Include="@(_MSBuildProjectReferenceExistentWithRID->'%(OriginalItemSpec)')">
-        <RuntimeIdentifier>%(Identity)</RuntimeIdentifier>
-        <SetTargetFramework>%(_MSBuildProjectReferenceExistentWithRID.SetTargetFramework);RuntimeIdentifier=%(Identity)</SetTargetFramework>
-        <GlobalPropertiesToRemove>$([System.String]::Copy('%(_MSBuildProjectReferenceExistentWithRID.GlobalPropertiesToRemove)').Replace(';RuntimeIdentifier', ''))</GlobalPropertiesToRemove>
-      </_MSBuildProjectReferenceExistentWithRID2>
-      
-      <_MSBuildProjectReferenceExistent Remove="@(_MSBuildProjectReferenceExistentWithRID2)"/>
-      <_MSBuildProjectReferenceExistent Include="@(_MSBuildProjectReferenceExistentWithRID2)"/>
-    </ItemGroup>
-  </Target>
-
   <!-- Force a full Build & Pack if dependency was only built with a single TargetFramework (which would set IsInnerBuild and skip any Pack logic)
        This is only a problem when building from command line, Visual Studio builds each project completely.
        We use SkipPackOnInnerBuild to avoid infinite recursion. -->
@@ -122,7 +89,6 @@
     <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
              Condition="'%(_MSBuildProjectReferenceExistent.SetTargetFramework)' != ''"
              BuildInParallel="$(BuildInParallel)"
-             Properties="SkipPackOnInnerBuild=true"
              Targets="Build;Pack"
              RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;RuntimeIdentifier">
     </MSBuild>
@@ -164,8 +130,7 @@
 
     <StridePlatformFullName Condition="'$(StridePlatformFullName)' == ''">$(StridePlatform)</StridePlatformFullName>
     
-    <StrideGlobalSettingsTargets Condition="'$(StrideGlobalSettingsTargets)' == ''">$(MSBuildThisFileDirectory)Stride.Core.GlobalSettings.targets</StrideGlobalSettingsTargets>
-    <StridePostSettingsTargets Condition="'$(StridePostSettingsTargets)' == ''">$(MSBuildThisFileDirectory)Stride.Core.PostSettings.targets</StridePostSettingsTargets>
+    <StrideSdkTargets Condition="'$(StrideSdkTargets)' == ''">$(MSBuildThisFileDirectory)Stride.Core.targets</StrideSdkTargets>
   </PropertyGroup>
 
   <!-- Ensure appropriate Solution Platform are available -->
@@ -179,6 +144,141 @@
     </When>
   </Choose>
 
-  <!--Import Global Settings-->
-  <Import Project="$(StrideGlobalSettingsTargets)"/>
+  <Import Project="$(MSBuildThisFileDirectory)Stride.PackageVersion.targets"/>
+
+  <!-- Sdk settings -->
+  <PropertyGroup>
+    <!-- If we don't set it, default targets will add PlatformName in some cases -->
+    <BaseOutputPath>bin\</BaseOutputPath>
+    <OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <!-- Default values -->
+  <PropertyGroup>
+    <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">false</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--auto-notify-property --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+  </PropertyGroup>
+
+  <!-- 
+    Global Settings per project
+  -->
+  <PropertyGroup>
+    <StrideCommonDependenciesDir Condition="'$(StrideCommonDependenciesDir)' == ''">$(MSBuildThisFileDirectory)..\..\deps\</StrideCommonDependenciesDir>
+    <StrideCommonDependenciesDir Condition="'$(StrideCommonDependenciesDir)' != '' and !HasTrailingSlash('$(StrideCommonDependenciesDir)')">$(StrideCommonDependenciesDir)\</StrideCommonDependenciesDir>
+    <ErrorReport>prompt</ErrorReport>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Windows' ">
+    <!-- Limited version used by tools but that doesn't require installation of .NET on most computers (4.5.1 is default of many OS, 4.5.2/4.6 isn't) -->
+    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP;NET45</StridePlatformDefines>
+    <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'UWP' ">
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_UWP;NET45;NETFX_CORE;WINDOWS_UAP</StridePlatformDefines>
+    <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-win10\</NUnitLiteBinDir>
+    <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Linux' ">
+    <StridePlatformDefines>STRIDE_PLATFORM_LINUX;STRIDE_PLATFORM_UNIX;NET45</StridePlatformDefines>
+    <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'macOS' ">
+    <StridePlatformDefines>STRIDE_PLATFORM_MACOS;STRIDE_PLATFORM_UNIX;NET45</StridePlatformDefines>
+    <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' ">
+    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID;NET45</StridePlatformDefines>
+    <AndroidStoreUncompressedFileExtensions />
+    <MandroidI18n />
+    <!-- Avoid Xamarin.Android.Common.targets(519,3): error MSB4044: The "FilterAssemblies" task was not given a value for the required parameter "DesignTimeBuild". -->
+    <DesignTimeBuild Condition="'$(DesignTimeBuild)' == ''">False</DesignTimeBuild>
+    <!-- Use AssemblyName rather than RootNamespace for Resource class otherwise it might clash between some assemblies (i.e. Stride and Stride.Engine) -->
+    <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' And '$(OutputType)' == 'Exe' ">
+    <AndroidApplication>true</AndroidApplication>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' And '$(Configuration)' == 'Debug' ">
+    <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
+    <AndroidLinkMode>None</AndroidLinkMode>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' And '$(Configuration)' == 'Release' ">
+    <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+  </PropertyGroup>
+  <!-- Workaround for https://github.com/xamarin/xamarin-android/issues/1235 -->
+  <Target Name="_FixupLibraryProjectsEmbeddedResource" AfterTargets="_AddLibraryProjectsEmbeddedResourceToProject">
+    <ItemGroup>
+      <_LibraryProjectsEmbeddedResource Include="@(EmbeddedResource)" Condition="'%(Identity)' == '$(IntermediateOutputPath)__AndroidLibraryProjects__.zip'"/>
+      <EmbeddedResource Remove="@(_LibraryProjectsEmbeddedResource)"/>
+      <EmbeddedResource Include="@(_LibraryProjectsEmbeddedResource)">
+        <LogicalName>__AndroidLibraryProjects__.zip</LogicalName>
+      </EmbeddedResource>
+    </ItemGroup>
+  </Target>
+
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
+    <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
+    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS;NET45</StridePlatformDefines>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition=" '$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'UWP' ">
+      <ItemGroup>
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Xml" />
+        <Reference Include="System.Xml.Linq" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <!-- Create empty project platform configuration so that MSBuild and Visual Studio Configuration Manager know about it -->
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Debug|iPhone' "/>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Release|iPhone' "/>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Debug|iPhoneSimulator' "/>
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' "/>
+
+  <!-- 
+    Settings StrideNETRuntime specific
+  -->
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('netcoreapp'))">
+    <StrideNETRuntimeDefines>STRIDE_RUNTIME_CORECLR</StrideNETRuntimeDefines>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('net4'))">
+    <StrideNETRuntimeDefines>STRIDE_RUNTIME_NETFW</StrideNETRuntimeDefines>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>$(StridePlatformDefines);$(DefineConstants)</DefineConstants>
+    <DefineConstants Condition="'$(StrideNETRuntimeDefines)' != ''">$(DefineConstants);$(StrideNETRuntimeDefines)</DefineConstants>
+  </PropertyGroup>
+
+  <!-- SourceLink -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Condition="'$(StrideProjectType)' == 'CSharp'" Version="1.0.0" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <!-- Copy the libcore.a and libfreetype.a libraries to the project root directory for future native link.
+       Note: this target is redefined in References.targets for user projects -->
+  <Target Name="CopyStrideNativeLibraries" Condition=" '$(StridePlatform)' == 'iOS' and '$(OutputType)' == 'Exe'">
+  </Target>
+
+  <!-- Used by Stride.build to detect if unit tests prefer to run in 32 or 64 bits (note: it's a copy of Stride.UnitTests.targets one because some unit tests import Stride.Core.PreSettings.targets rather than Stride.UnitTests.targets) -->
+  <Target Name="_StrideAfterGetTargetPathWithTargetPlatformMoniker" AfterTargets="GetTargetPathWithTargetPlatformMoniker">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Update="$(TargetPath)">
+        <PlatformTarget>$(PlatformTarget)</PlatformTarget>
+      </TargetPathWithTargetPlatformMoniker>
+    </ItemGroup>
+  </Target>
+
 </Project>
