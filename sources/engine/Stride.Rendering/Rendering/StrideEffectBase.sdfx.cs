@@ -49,7 +49,7 @@ namespace Stride.Rendering
                 }
                 context.Mixin(mixin, "TransformationBase");
                 context.Mixin(mixin, "NormalStream");
-                if (context.GetParam(MaterialKeys.HasInstancing))
+                if (context.GetParam(StrideEffectBaseKeys.HasInstancing))
                 {
                     context.Mixin(mixin, "TransformationWAndVPInstanced");
                 }

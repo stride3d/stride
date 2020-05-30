@@ -120,9 +120,6 @@ namespace Stride.Rendering.Materials
                 var material = renderMesh.MaterialPass;
                 var materialInfo = renderMesh.MaterialInfo;
 
-                // Add instanced shaders
-                material.Parameters.Set(MaterialKeys.HasInstancing, renderMesh.InstanceCount > 0);
-
                 // Material use first 16 bits
                 var materialHashCode = material != null ? ((uint)material.GetHashCode() & 0x0FFF) | ((uint)material.PassIndex << 12) : 0;
                 renderObject.StateSortKey = (renderObject.StateSortKey & 0x0000FFFF) | (materialHashCode << 16);
@@ -221,7 +218,6 @@ namespace Stride.Rendering.Materials
                             {
                                 materialInfo.VertexStageSurfaceShaders = material.Parameters.Get(MaterialKeys.VertexStageSurfaceShaders);
                                 materialInfo.VertexStageStreamInitializer = material.Parameters.Get(MaterialKeys.VertexStageStreamInitializer);
-                                materialInfo.HasInstancing = material.Parameters.Get(MaterialKeys.HasInstancing);
 
                                 materialInfo.DomainStageSurfaceShaders = material.Parameters.Get(MaterialKeys.DomainStageSurfaceShaders);
                                 materialInfo.DomainStageStreamInitializer = material.Parameters.Get(MaterialKeys.DomainStageStreamInitializer);
@@ -245,8 +241,6 @@ namespace Stride.Rendering.Materials
                         renderEffect.EffectValidator.ValidateParameter(MaterialKeys.VertexStageSurfaceShaders, materialInfo.VertexStageSurfaceShaders);
                     if (materialInfo.VertexStageStreamInitializer != null)
                         renderEffect.EffectValidator.ValidateParameter(MaterialKeys.VertexStageStreamInitializer, materialInfo.VertexStageStreamInitializer);
-                    if (materialInfo.HasInstancing)
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.HasInstancing, materialInfo.HasInstancing);
 
                     // DS
                     if (materialInfo.DomainStageSurfaceShaders != null)

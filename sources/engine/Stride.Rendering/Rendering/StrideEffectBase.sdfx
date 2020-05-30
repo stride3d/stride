@@ -38,7 +38,7 @@ namespace Stride.Rendering
         mixin TransformationBase;
         mixin NormalStream;
 
-        if (MaterialKeys.HasInstancing)
+        if (StrideEffectBaseKeys.HasInstancing)
         {
             mixin TransformationWAndVPInstanced;
         }

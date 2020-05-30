@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Stride.Core.Mathematics;
+using Stride.Core.Threading;
 using Stride.Graphics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
@@ -25,12 +26,14 @@ namespace Stride.Engine.Rendering
     {
         private StaticObjectPropertyKey<InstancingData> renderObjectInstancingDataInfoKey;
 
+        private StaticObjectPropertyKey<RenderEffect> renderEffectKey;
         private LogicalGroupReference instancingResourceGroupKey;
 
         /// <inheritdoc/>
         protected override void InitializeCore()
         {
             renderObjectInstancingDataInfoKey = RootRenderFeature.RenderData.CreateStaticObjectKey<InstancingData>();
+            renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
             instancingResourceGroupKey = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawLogicalGroup("Instancing");
         }
 
@@ -107,11 +110,61 @@ namespace Stride.Engine.Rendering
             return Buffer.New<Matrix>(graphicsDevice, elementCount, BufferFlags.ShaderResource | BufferFlags.StructuredBuffer, GraphicsResourceUsage.Dynamic);
         }
 
+        public override void PrepareEffectPermutations(RenderDrawContext context)
+        {
+            var renderObjectInstancingData = RootRenderFeature.RenderData.GetData(renderObjectInstancingDataInfoKey);
+
+            var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
+            int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
+
+            Dispatcher.ForEach(RootRenderFeature.RenderObjects, renderObject =>
+            {
+                var renderMesh = (RenderMesh)renderObject;
+
+                var staticObjectNode = renderMesh.StaticObjectNode;
+                var instancingData = renderObjectInstancingData[staticObjectNode];
+
+                for (int i = 0; i < effectSlotCount; i++)
+                {
+                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + i;
+                    var renderEffect = renderEffects[staticEffectObjectNode];
+
+                    if (renderEffect != null)
+                    {
+                        renderEffect.EffectValidator.ValidateParameter(StrideEffectBaseKeys.HasInstancing, instancingData.InstanceCount > 0);
+                    }
+                }
+            });
+        }
+
         /// <inheritdoc/>
         public unsafe override void Prepare(RenderDrawContext context)
         {
             var renderObjectInstancingData = RootRenderFeature.RenderData.GetData(renderObjectInstancingDataInfoKey);
 
+            // Upload buffers data per render object
+            foreach (var renderObject in RootRenderFeature.RenderObjects)
+            {
+                if (instancingResourceGroupKey.Index < 0)
+                    continue;
+
+                var renderMesh = renderObject as RenderMesh;
+                if (renderMesh == null)
+                    continue;
+
+                var instancingData = renderObjectInstancingData[renderMesh.StaticObjectNode];
+
+                if (instancingData.InstanceCount > 0)
+                {
+                    if (!instancingData.BuffersManagedByUser)
+                    {
+                        instancingData.InstanceWorldBuffer.SetData(context.CommandList, instancingData.WorldMatrices);
+                        instancingData.InstanceWorldInverseBuffer.SetData(context.CommandList, instancingData.WorldInverseMatrices);
+                    }
+                }
+            }
+
+            // Assign buffers to render node
             foreach (var renderNode in ((RootEffectRenderFeature)RootRenderFeature).RenderNodes)
             {
                 var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
@@ -132,13 +185,7 @@ namespace Stride.Engine.Rendering
                 var instancingData = renderObjectInstancingData[renderMesh.StaticObjectNode];
 
                 if (instancingData.InstanceCount > 0)
-                {
-                    if (!instancingData.BuffersManagedByUser)
-                    {
-                        instancingData.InstanceWorldBuffer.SetData(context.CommandList, instancingData.WorldMatrices);
-                        instancingData.InstanceWorldInverseBuffer.SetData(context.CommandList, instancingData.WorldInverseMatrices);
-                    }
-
+                { 
                     renderNode.Resources.DescriptorSet.SetShaderResourceView(group.DescriptorEntryStart, instancingData.InstanceWorldBuffer);
                     renderNode.Resources.DescriptorSet.SetShaderResourceView(group.DescriptorEntryStart + 1, instancingData.InstanceWorldInverseBuffer);
                 }
