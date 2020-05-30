@@ -2,15 +2,16 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System.Collections.Generic;
-using SharpVulkan;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
     public partial struct CompiledCommandList
     {
         internal CommandList Builder;
-        internal CommandBuffer NativeCommandBuffer;
-        internal List<SharpVulkan.DescriptorPool> DescriptorPools;
+        internal VkCommandBuffer NativeCommandBuffer;
+        internal List<VkDescriptorPool> DescriptorPools;
         internal List<Texture> StagingResources;
     }
 }

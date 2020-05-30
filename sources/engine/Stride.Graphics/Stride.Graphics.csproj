@@ -17,28 +17,6 @@
   </PropertyGroup>
   <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
   <Choose>
-    <When Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
-      <Choose>
-        <When Condition=" '$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'macOS' ">
-          <ItemGroup>
-            <Reference Include="SharpVulkan">
-              <SpecificVersion>False</SpecificVersion>
-              <HintPath>..\..\..\deps\SharpVulkan\$(StridePlatform)\SharpVulkan.dll</HintPath>
-            </Reference>
-          </ItemGroup>
-        </When>
-        <Otherwise>
-          <ItemGroup>
-            <Reference Include="SharpVulkan">
-              <SpecificVersion>False</SpecificVersion>
-              <HintPath>..\..\..\deps\SharpVulkan\Other\SharpVulkan.dll</HintPath>
-            </Reference>
-          </ItemGroup>
-        </Otherwise>
-      </Choose>
-    </When>
-  </Choose>
-  <Choose>
     <When Condition="$(StrideUI.Contains('SDL'))">
       <ItemGroup>
         <StrideNativeLib Include="..\..\..\deps\SDL2\$(StridePlatform)\**\*SDL2*">
@@ -79,6 +57,7 @@
     <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'UWP'" />
     <PackageReference Include="SharpDX.Direct3D12" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'UWP'" />
+    <PackageReference Include="Vortice.Vulkan" Version="1.2.141-alpha-001" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS'" />
     <PackageReference Include="Stride.OpenTK" Version="1.0.3" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'Android'" />
     <PackageReference Include="Stride.SharpFont" Version="1.0.0" />
   </ItemGroup>
@@ -98,7 +77,6 @@
   </PropertyGroup>
   <Target Name="IncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)SharpVulkan.dll" Condition=" '$(StrideGraphicsApi)' == 'Vulkan' " />
       <BuildOutputInPackage Include="$(OutputPath)SDL2-CS.dll" Condition="$(StrideUI.Contains('SDL'))" />
     </ItemGroup>
   </Target>

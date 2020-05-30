@@ -6,7 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using SharpVulkan;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
 
 namespace Stride.Graphics
@@ -21,9 +22,12 @@ namespace Stride.Graphics
         /// </summary>
         internal static void InitializeInternal()
         {
+            var result = vkInitialize();
+            result.CheckResult();
+
             // Create the default instance to enumerate physical devices
             defaultInstance = new GraphicsAdapterFactoryInstance(false);
-            var nativePhysicalDevices = defaultInstance.NativeInstance.PhysicalDevices;
+            var nativePhysicalDevices = vkEnumeratePhysicalDevices(defaultInstance.NativeInstance);
 
             var adapterList = new List<GraphicsAdapter>();
             for (int i = 0; i < nativePhysicalDevices.Length; i++)
@@ -77,10 +81,10 @@ namespace Stride.Graphics
 
     internal class GraphicsAdapterFactoryInstance : IDisposable
     {
-        private DebugReportCallback debugReportCallback;
+        private VkDebugReportCallbackEXT debugReportCallback;
         private DebugReportCallbackDelegate debugReport;
 
-        internal Instance NativeInstance;
+        internal VkInstance NativeInstance;
         internal bool HasXlibSurfaceSupport;
 
         internal BeginDebugMarkerDelegate BeginDebugMarker;
@@ -88,12 +92,12 @@ namespace Stride.Graphics
 
         public unsafe GraphicsAdapterFactoryInstance(bool enableValidation)
         {
-            var applicationInfo = new ApplicationInfo
+            var applicationInfo = new VkApplicationInfo
             {
-                StructureType = StructureType.ApplicationInfo,
-                ApiVersion = new SharpVulkan.Version(1, 0, 0),
-                EngineName = Marshal.StringToHGlobalAnsi("Stride"),
-                //EngineVersion = new SharpVulkan.Version()
+                sType = VkStructureType.ApplicationInfo,
+                apiVersion = new VkVersion(1, 0, 0),
+                pEngineName = (byte*)Marshal.StringToHGlobalAnsi("Stride"),
+                //engineVersion = new VkVersion()
             };
 
             var desiredLayerNames = new[]
@@ -115,14 +119,14 @@ namespace Stride.Graphics
 
             if (enableValidation)
             {
-                var layers = Vulkan.InstanceLayerProperties;
+                var layers = vkEnumerateInstanceLayerProperties();
                 var availableLayerNames = new HashSet<string>();
 
                 for (int index = 0; index < layers.Length; index++)
                 {
                     var properties = layers[index];
-                    var namePointer = new IntPtr(Interop.Fixed(ref properties.LayerName));
-                    var name = Marshal.PtrToStringAnsi(namePointer);
+                    var namePointer = properties.layerName;
+                    var name = Marshal.PtrToStringAnsi((IntPtr)namePointer);
 
                     availableLayerNames.Add(name);
                 }
@@ -132,14 +136,14 @@ namespace Stride.Graphics
                     .Select(Marshal.StringToHGlobalAnsi).ToArray();
             }
 
-            var extensionProperties = Vulkan.GetInstanceExtensionProperties();
+            var extensionProperties = vkEnumerateInstanceExtensionProperties();
             var availableExtensionNames = new List<string>();
             var desiredExtensionNames = new List<string>();
 
             for (int index = 0; index < extensionProperties.Length; index++)
             {
-                var namePointer = new IntPtr(Interop.Fixed(ref extensionProperties[index].ExtensionName));
-                var name = Marshal.PtrToStringAnsi(namePointer);
+                var extensionProperty = extensionProperties[index];
+                var name = Marshal.PtrToStringAnsi((IntPtr)extensionProperty.extensionName);
                 availableExtensionNames.Add(name);
             }
 
@@ -182,29 +186,30 @@ namespace Stride.Graphics
             {
                 fixed (void* enabledExtensionNamesPointer = &enabledExtensionNames[0])
                 {
-                    var instanceCreateInfo = new InstanceCreateInfo
+                    var instanceCreateInfo = new VkInstanceCreateInfo
                     {
-                        StructureType = StructureType.InstanceCreateInfo,
-                        ApplicationInfo = new IntPtr(&applicationInfo),
-                        EnabledLayerCount = enabledLayerNames != null ? (uint)enabledLayerNames.Length : 0,
-                        EnabledLayerNames = enabledLayerNames?.Length > 0 ? new IntPtr(Interop.Fixed(enabledLayerNames)) : IntPtr.Zero,
-                        EnabledExtensionCount = (uint)enabledExtensionNames.Length,
-                        EnabledExtensionNames = new IntPtr(enabledExtensionNamesPointer)
+                        sType = VkStructureType.InstanceCreateInfo,
+                        pApplicationInfo = &applicationInfo,
+                        enabledLayerCount = enabledLayerNames != null ? (uint)enabledLayerNames.Length : 0,
+                        ppEnabledLayerNames = enabledLayerNames?.Length > 0 ? (byte**)Core.Interop.Fixed(enabledLayerNames) : null,
+                        enabledExtensionCount = (uint)enabledExtensionNames.Length,
+                        ppEnabledExtensionNames = (byte**)enabledExtensionNamesPointer,
                     };
 
-                    NativeInstance = Vulkan.CreateInstance(ref instanceCreateInfo);
+                    vkCreateInstance(&instanceCreateInfo, null, out NativeInstance);
+                    vkLoadInstance(NativeInstance);
                 }
 
                 if (enableDebugReport)
                 {
-                    var createDebugReportCallback = (CreateDebugReportCallbackDelegate)Marshal.GetDelegateForFunctionPointer(NativeInstance.GetProcAddress((byte*)createDebugReportCallbackName), typeof(CreateDebugReportCallbackDelegate));
+                    var createDebugReportCallback = (CreateDebugReportCallbackDelegate)Marshal.GetDelegateForFunctionPointer(vkGetInstanceProcAddr(NativeInstance, (byte*)createDebugReportCallbackName), typeof(CreateDebugReportCallbackDelegate));
 
                     debugReport = DebugReport;
-                    var createInfo = new DebugReportCallbackCreateInfo
+                    var createInfo = new VkDebugReportCallbackCreateInfoEXT
                     {
-                        StructureType = StructureType.DebugReportCallbackCreateInfo,
-                        Flags = (uint)(DebugReportFlags.Error | DebugReportFlags.Warning /* | DebugReportFlags.PerformanceWarning | DebugReportFlags.Information | DebugReportFlags.Debug*/),
-                        Callback = Marshal.GetFunctionPointerForDelegate(debugReport)
+                        sType = VkStructureType.DebugReportCallbackCreateInfoEXT,
+                        flags = VkDebugReportFlagsEXT.ErrorEXT | VkDebugReportFlagsEXT.WarningEXT /* | VkDebugReportFlagsEXT.PerformanceWarningEXT | VkDebugReportFlagsEXT.InformationEXT | VkDebugReportFlagsEXT.DebugEXT*/,
+                        pfnCallback = Marshal.GetFunctionPointerForDelegate(debugReport)
                     };
                     createDebugReportCallback(NativeInstance, ref createInfo, null, out debugReportCallback);
                 }
@@ -213,12 +218,12 @@ namespace Stride.Graphics
                 {
                     var beginDebugMarkerName = System.Text.Encoding.ASCII.GetBytes("vkCmdDebugMarkerBeginEXT");
 
-                    var ptr = NativeInstance.GetProcAddress((byte*)Interop.Fixed(beginDebugMarkerName));
+                    var ptr = vkGetInstanceProcAddr(NativeInstance, (byte*)Core.Interop.Fixed(beginDebugMarkerName));
                     if (ptr != IntPtr.Zero)
                         BeginDebugMarker = (BeginDebugMarkerDelegate)Marshal.GetDelegateForFunctionPointer(ptr, typeof(BeginDebugMarkerDelegate));
 
                     var endDebugMarkerName = System.Text.Encoding.ASCII.GetBytes("vkCmdDebugMarkerEndEXT");
-                    ptr = NativeInstance.GetProcAddress((byte*)Interop.Fixed(endDebugMarkerName));
+                    ptr = vkGetInstanceProcAddr(NativeInstance, (byte*)Core.Interop.Fixed(endDebugMarkerName));
                     if (ptr != IntPtr.Zero)
                         EndDebugMarker = (EndDebugMarkerDelegate)Marshal.GetDelegateForFunctionPointer(ptr, typeof(EndDebugMarkerDelegate));
                 }
@@ -235,38 +240,38 @@ namespace Stride.Graphics
                     Marshal.FreeHGlobal(enabledLayerName);
                 }
 
-                Marshal.FreeHGlobal(applicationInfo.EngineName);
+                Marshal.FreeHGlobal((IntPtr)applicationInfo.pEngineName);
                 Marshal.FreeHGlobal(createDebugReportCallbackName);
             }
         }
 
-        private static RawBool DebugReport(DebugReportFlags flags, DebugReportObjectType objectType, ulong @object, PointerSize location, int messageCode, string layerPrefix, string message, IntPtr userData)
+        private static VkBool32 DebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, ulong @object, VkPointerSize location, int messageCode, string layerPrefix, string message, IntPtr userData)
         {
             Debug.WriteLine($"{flags}: {message} ([{messageCode}] {layerPrefix})");
-            return true;
+            return false;
         }
 
         public unsafe void Dispose()
         {
-            if (debugReportCallback != DebugReportCallback.Null)
+            if (debugReportCallback != VkDebugReportCallbackEXT.Null)
             {
-                NativeInstance.DestroyDebugReportCallback(debugReportCallback);
+                vkDestroyDebugReportCallbackEXT(NativeInstance, debugReportCallback, null);
             }
 
-            NativeInstance.Destroy();
+            vkDestroyInstance(NativeInstance, null);
         }
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal unsafe delegate void BeginDebugMarkerDelegate(CommandBuffer commandBuffer, DebugMarkerMarkerInfo* markerInfo);
+        internal unsafe delegate void BeginDebugMarkerDelegate(VkCommandBuffer commandBuffer, VkDebugMarkerMarkerInfoEXT* markerInfo);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate void EndDebugMarkerDelegate(CommandBuffer commandBuffer);
+        internal delegate void EndDebugMarkerDelegate(VkCommandBuffer commandBuffer);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        private delegate RawBool DebugReportCallbackDelegate(DebugReportFlags flags, DebugReportObjectType objectType, ulong @object, PointerSize location, int messageCode, string layerPrefix, string message, IntPtr userData);
+        private delegate VkBool32 DebugReportCallbackDelegate(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, ulong @object, VkPointerSize location, int messageCode, string layerPrefix, string message, IntPtr userData);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private unsafe delegate Result CreateDebugReportCallbackDelegate(Instance instance, ref DebugReportCallbackCreateInfo createInfo, AllocationCallbacks* allocator, out DebugReportCallback callback);
+        private unsafe delegate VkResult CreateDebugReportCallbackDelegate(VkInstance instance, ref VkDebugReportCallbackCreateInfoEXT createInfo, VkAllocationCallbacks* allocator, out VkDebugReportCallbackEXT callback);
     }
 }
 #endif 

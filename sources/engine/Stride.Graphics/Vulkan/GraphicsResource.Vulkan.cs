@@ -2,7 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
-using SharpVulkan;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -11,10 +12,10 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResource
     {
-        internal DeviceMemory NativeMemory;
+        internal VkDeviceMemory NativeMemory;
         internal long? StagingFenceValue;
         internal CommandList StagingBuilder;
-        internal PipelineStageFlags NativePipelineStageMask;
+        internal VkPipelineStageFlags NativePipelineStageMask;
 
         protected bool IsDebugMode
         {
@@ -38,7 +39,7 @@ namespace Stride.Graphics
             //    {
             //        var nameInfo = new DebugMarkerObjectNameInfo
             //        {
-            //            StructureType = StructureType.DebugMarkerObjectNameInfo,
+            //            sType = VkStructureType.DebugMarkerObjectNameInfo,
             //            Object = ,
             //            ObjectName = new IntPtr(bytesPointer),
             //            ObjectType = 
@@ -48,39 +49,39 @@ namespace Stride.Graphics
             //}
         }
 
-        protected unsafe void AllocateMemory(MemoryPropertyFlags memoryProperties, MemoryRequirements memoryRequirements)
+        protected unsafe void AllocateMemory(VkMemoryPropertyFlags memoryProperties, VkMemoryRequirements memoryRequirements)
         {
-            if (NativeMemory != DeviceMemory.Null)
+            if (NativeMemory != VkDeviceMemory.Null)
                 return;
 
-            if (memoryRequirements.Size == 0)
+            if (memoryRequirements.size == 0)
                 return;
 
-            var allocateInfo = new MemoryAllocateInfo
+            var allocateInfo = new VkMemoryAllocateInfo
             {
-                StructureType = StructureType.MemoryAllocateInfo,
-                AllocationSize = memoryRequirements.Size,
+                sType = VkStructureType.MemoryAllocateInfo,
+                allocationSize = memoryRequirements.size,
             };
 
-            PhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
-            GraphicsDevice.NativePhysicalDevice.GetMemoryProperties(out physicalDeviceMemoryProperties);
-            var typeBits = memoryRequirements.MemoryTypeBits;
-            for (uint i = 0; i < physicalDeviceMemoryProperties.MemoryTypeCount; i++)
+            vkGetPhysicalDeviceMemoryProperties(GraphicsDevice.NativePhysicalDevice, out var physicalDeviceMemoryProperties);
+            var typeBits = memoryRequirements.memoryTypeBits;
+            for (uint i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; i++)
             {
                 if ((typeBits & 1) == 1)
                 {
                     // Type is available, does it match user properties?
-                    var memoryType = *((MemoryType*)&physicalDeviceMemoryProperties.MemoryTypes + i);
-                    if ((memoryType.PropertyFlags & memoryProperties) == memoryProperties)
+                    var memoryType = *(&physicalDeviceMemoryProperties.memoryTypes_0 + i);
+                    if ((memoryType.propertyFlags & memoryProperties) == memoryProperties)
                     {
-                        allocateInfo.MemoryTypeIndex = i;
+                        allocateInfo.memoryTypeIndex = i;
                         break;
                     }
                 }
                 typeBits >>= 1;
             }
 
-            NativeMemory = GraphicsDevice.NativeDevice.AllocateMemory(ref allocateInfo);
+            fixed (VkDeviceMemory* nativeMemoryPtr = &NativeMemory)
+               vkAllocateMemory(GraphicsDevice.NativeDevice, &allocateInfo, null, nativeMemoryPtr);
         }
     }
 }

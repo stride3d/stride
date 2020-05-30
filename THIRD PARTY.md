@@ -20,7 +20,7 @@ Stride uses the following open-source products.
 * [SDL2](https://www.libsdl.org/) (zlib License)
 * [SharpDX](http://sharpdx.org/) (MIT License)
 * [SharpFont](https://github.com/Robmaister/SharpFont) (MIT License)
-* [SharpVulkan](https://github.com/jwollen/SharpVulkan) (MIT License)
+* [Vortice.Vulkan](https://github.com/amerkoleci/Vortice.Vulkan) (MIT License)
 * [SharpYaml](https://github.com/xoofx/SharpYaml) (MIT License)
 * [SlimMath](https://code.google.com/p/slimmath/) (MIT License)
 * [SocketsForPCL](https://github.com/rdavisau/sockets-for-pcl) (MIT License)
