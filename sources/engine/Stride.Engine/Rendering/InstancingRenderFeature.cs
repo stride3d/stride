@@ -88,10 +88,6 @@ namespace Stride.Engine.Rendering
 
                         instancingData.BuffersManagedByUser = false;
                     }
-
-                    // Bounding box
-                    renderMesh.BoundingBox.Center += instancingComponent.BoundingBox.Center;
-                    renderMesh.BoundingBox.Extent += instancingComponent.BoundingBox.Extent;
                 }
                 else
                 {
