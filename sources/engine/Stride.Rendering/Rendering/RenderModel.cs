@@ -16,10 +16,6 @@ namespace Stride.Rendering
         public RenderMesh[] Meshes;
         public MaterialInfo[] Materials;
 
-        // Transformation instancing, this could move up to RenderMesh, if needed per mesh
-        public bool IsInstanced;
-        public int InstanceCount;
-
         public struct MaterialInfo
         {
             public Material Material;

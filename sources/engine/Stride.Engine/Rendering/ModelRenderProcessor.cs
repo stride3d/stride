@@ -89,33 +89,10 @@ namespace Stride.Rendering
 
             var modelViewHierarchy = modelComponent.Skeleton;
             var nodeTransformations = modelViewHierarchy.NodeTransformations;
-            
-            // Check instancing
-            var isInstanced = modelComponent.IsInstanced
-                && modelComponent.InstanceWorldMatrices != null
-                && modelComponent.InstanceWorldMatrices.Length > 0
-                && modelComponent.InstanceWorldBuffer != null
-                && modelComponent.InstanceWorldInverseBuffer != null;
-
-            renderModel.IsInstanced = isInstanced;
-
-            if (isInstanced)
-            {
-                renderModel.InstanceCount = modelComponent.InstanceWorldMatrices.Length;
-            }
 
             for (int sourceMeshIndex = 0; sourceMeshIndex < renderModel.Materials.Length; sourceMeshIndex++)
             {
                 var materialInfo = renderModel.Materials[sourceMeshIndex];
-
-                if (renderModel.IsInstanced)
-                {
-                    foreach (var materialPass in materialInfo.Material.Passes)
-                    {
-                        materialPass.Parameters.Set(TransformationWAndVPInstancedKeys.InstanceWorld, modelComponent.InstanceWorldBuffer);
-                        materialPass.Parameters.Set(TransformationWAndVPInstancedKeys.InstanceWorldInverse, modelComponent.InstanceWorldInverseBuffer);
-                    }
-                }
 
                 var passes = materialInfo.MeshCount;
                 // Note: indices in RenderModel.Meshes and Model.Meshes are different (due to multipass materials)

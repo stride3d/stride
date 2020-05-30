@@ -11,10 +11,10 @@ shader TransformationWAndVPInstanced : TransformationBase, PositionStream4, Posi
         float4x4 Matrix;
     };
 
-    rgroup PerMaterial
+    rgroup PerDraw.Instancing
     {
-        stage StructuredBuffer<InstanceTransform> InstanceWorld;
-        stage StructuredBuffer<InstanceTransform> InstanceWorldInverse;
+        StructuredBuffer<InstanceTransform> InstanceWorld;
+        StructuredBuffer<InstanceTransform> InstanceWorldInverse;
     }
 
     stage override void PreTransformPosition()

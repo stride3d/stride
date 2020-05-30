@@ -143,14 +143,6 @@ namespace Stride.Engine
         public bool IsShadowCaster { get; set; }
 
         /// <summary>
-        /// Gets or sets a boolean indicating if this model component is instanced.
-        /// </summary>
-        /// <value>A boolean indicating if this model component is is instanced.</value>
-        /// <userdoc>Tells the material whether instancing is used.</userdoc>
-        [DataMember(25)]
-        public bool IsInstanced { get; set; }
-
-        /// <summary>
         /// The render group for this component.
         /// </summary>
         [DataMember(20)]
@@ -171,22 +163,6 @@ namespace Stride.Engine
         /// <value>The bounding sphere.</value>
         [DataMemberIgnore]
         public BoundingSphere BoundingSphere;
-
-        /// <summary>
-        /// The instance transformation matrices.
-        /// </summary>
-        [DataMemberIgnore]
-        public Matrix[] InstanceWorldMatrices = new Matrix[0];
-
-        /// <summary>
-        /// The inverse instance transformation matrices, updated automatically.
-        /// </summary>
-        [DataMemberIgnore]
-        public Matrix[] InstanceWorldInverseMatrices = new Matrix[0];
-
-        // TODO: Manage buffers, where to transfer the data to the buffers?
-        public Buffer<Matrix> InstanceWorldBuffer;
-        public Buffer<Matrix> InstanceWorldInverseBuffer;
 
         /// <summary>
         /// Gets the material at the specified index. If the material is not overriden by this component, it will try to get it from <see cref="Stride.Rendering.Model.Materials"/>
@@ -250,6 +226,10 @@ namespace Stride.Engine
             }
         }
 
+        /// <summary>
+        /// Updates the skeleton, skinning and bounding box with the associated transform component.
+        /// </summary>
+        /// <param name="transformComponent">The transform component.</param>
         internal void Update(TransformComponent transformComponent)
         {
             if (!Enabled || model == null)
