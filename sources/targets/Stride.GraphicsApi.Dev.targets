@@ -87,6 +87,8 @@
       <None Condition="'%(RidSpecificOutput.StrideGraphicsApi)' == '%(RidSpecificOutput.StrideDefaultGraphicsApi)'" Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="runtimes/%(RidSpecificOutput.Rid)/lib/%(RidSpecificOutput.TargetFramework)" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />
       <!-- Add StrideGraphicsApi to PackagePath if necessary -->
       <None Condition="'%(RidSpecificOutput.StrideGraphicsApi)' != ''" Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="runtimes/%(RidSpecificOutput.Rid)/lib/%(RidSpecificOutput.TargetFramework)/%(RidSpecificOutput.StrideGraphicsApi)" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />
+      <!-- Also handle the case when there is no RIDs -->
+      <None Condition="'%(_BuildOutputInPackage.StrideGraphicsApi)' != ''" Include="@(_BuildOutputInPackage->'%(Identity)')" PackagePath="lib/%(_BuildOutputInPackage.TargetFramework)/%(_BuildOutputInPackage.StrideGraphicsApi)" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />
 
       <!-- Copy files from default RuntimeIdentifier to ref folder -->
       <None Condition="'$(ExtrasBuildEachRuntimeIdentifier)' == 'true' And '%(RidSpecificOutput.Rid)' == '$(_StrideDefaultRuntimeIdentifier)' And '%(RidSpecificOutput.StrideGraphicsApi)' == '%(RidSpecificOutput.StrideDefaultGraphicsApi)'" Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="ref/%(RidSpecificOutput.TargetFramework)" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />

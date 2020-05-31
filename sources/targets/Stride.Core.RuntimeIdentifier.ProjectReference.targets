@@ -15,11 +15,14 @@
     <ItemGroup Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == ''">
       <_RuntimeIdentifierItem Condition="'$(_StrideRuntimeIdentifier)' != ''" Include="$(_StrideRuntimeIdentifier)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
     </ItemGroup>
+    <!-- Use a fake runtime identifier to transmit StrideGraphicsApiDependent -->
+    <ItemGroup Condition="'@(_RuntimeIdentifierItem)' == ''">
+      <_RuntimeIdentifierItem Include="stride_fake_graphics_api" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
+    </ItemGroup>
   </Target>
-  <Target Name="_StrideProjectReferenceRuntimeIdentifier" BeforeTargets="PrepareProjectReferences">
+  <Target Name="_StrideProjectReferenceRuntimeIdentifierAndGraphicsApiDependent" BeforeTargets="PrepareProjectReferences">
     <!-- Query default RID of ProjectReference that are not RidAgnostic -->
     <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
-             Condition="'%(_MSBuildProjectReferenceExistent.IsRidAgnostic)' == 'false'"
              BuildInParallel="$(BuildInParallel)"
              Properties="TargetFramework=%(_MSBuildProjectReferenceExistent.NearestTargetFramework);ReferencingRuntimeIdentifier=$(RuntimeIdentifier)"
              RemoveProperties="RuntimeIdentifier"
@@ -28,11 +31,14 @@
     </MSBuild>
 
     <ItemGroup>
-      <_MSBuildProjectReferenceExistentWithRID2 Include="@(_MSBuildProjectReferenceExistentWithRID->'%(OriginalItemSpec)')">
+      <_MSBuildProjectReferenceExistentWithRID2 Include="@(_MSBuildProjectReferenceExistentWithRID->'%(OriginalItemSpec)')" Condition="'%(Identity)' != 'stride_fake_graphics_api'">
         <RuntimeIdentifier>%(Identity)</RuntimeIdentifier>
         <StrideGraphicsApiDependent>%(StrideGraphicsApiDependent)</StrideGraphicsApiDependent>
         <SetTargetFramework>%(_MSBuildProjectReferenceExistentWithRID.SetTargetFramework);RuntimeIdentifier=%(Identity)</SetTargetFramework>
         <GlobalPropertiesToRemove>$([System.String]::Copy('%(_MSBuildProjectReferenceExistentWithRID.GlobalPropertiesToRemove)').Replace(';RuntimeIdentifier', ''))</GlobalPropertiesToRemove>
+      </_MSBuildProjectReferenceExistentWithRID2>
+      <_MSBuildProjectReferenceExistentWithRID2 Include="@(_MSBuildProjectReferenceExistentWithRID->'%(OriginalItemSpec)')" Condition="'%(Identity)' == 'stride_fake_graphics_api' And '%(StrideGraphicsApiDependent)' != ''">
+        <StrideGraphicsApiDependent>%(StrideGraphicsApiDependent)</StrideGraphicsApiDependent>
       </_MSBuildProjectReferenceExistentWithRID2>
 
       <_MSBuildProjectReferenceExistent Remove="@(_MSBuildProjectReferenceExistentWithRID2)"/>
