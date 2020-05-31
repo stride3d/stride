@@ -60,7 +60,7 @@ namespace Stride.Engine.Rendering
                     continue;
                 }
 
-                var instancingData = renderObjectInstancingData[renderMesh.StaticObjectNode];
+                ref var instancingData = ref renderObjectInstancingData[renderMesh.StaticObjectNode];
 
                 // Instancing data
                 if (instancingComponent.Enabled && instancingComponent.InstanceCount > 0)
@@ -96,8 +96,6 @@ namespace Stride.Engine.Rendering
 
                 // Update instance count on mesh
                 renderMesh.InstanceCount = instancingData.InstanceCount;
-
-                renderObjectInstancingData[renderMesh.StaticObjectNode] = instancingData;
             }
         }
 
