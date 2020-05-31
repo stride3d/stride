@@ -352,7 +352,7 @@ namespace Stride.Graphics
 #if STRIDE_UI_SDL
             var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
             SDL2.SDL.SDL_Vulkan_CreateSurface(control.SdlHandle, GraphicsDevice.NativeInstance.NativeHandle, out var surfacePtr);
-            surface = new Surface((IntPtr)surfacePtr);x
+            surface = new Surface((IntPtr)surfacePtr);
 #elif STRIDE_PLATFORM_WINDOWS
             var controlHandle = Description.DeviceWindowHandle.Handle;
             if (controlHandle == IntPtr.Zero)
