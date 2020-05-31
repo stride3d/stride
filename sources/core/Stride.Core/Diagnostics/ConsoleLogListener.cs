@@ -112,7 +112,7 @@ namespace Stride.Core.Diagnostics
                 Debug.WriteLine(GetDefaultText(logMessage));
                 if (!string.IsNullOrEmpty(exceptionMsg))
                 {
-                    Debug.WriteLine(logMessage);
+                    Debug.WriteLine(exceptionMsg);
                 }
             }
 
