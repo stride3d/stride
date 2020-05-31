@@ -29,6 +29,16 @@ namespace Stride.Graphics
         private readonly int adapterOrdinal;
         private readonly VkPhysicalDeviceProperties properties;
 
+        private static readonly Dictionary<int, string> VendorNames = new Dictionary<int, string>
+        {
+            [0x1002] = "AMD",
+            [0x1010] = "ImgTec",
+            [0x10DE] = "NVIDIA",
+            [0x13B5] = "ARM",
+            [0x5143] = "Qualcomm",
+            [0x8086] = "INTEL",
+        };
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphicsAdapter" /> class.
         /// </summary>
@@ -59,7 +69,12 @@ namespace Stride.Graphics
             {
                 // TODO VULKAN api
                 var propertiesCopy = properties;
-                return Marshal.PtrToStringAnsi((IntPtr)propertiesCopy.deviceName);
+
+                var description = Marshal.PtrToStringAnsi((IntPtr)propertiesCopy.deviceName);
+                if (VendorNames.TryGetValue(VendorId, out var vendorName))
+                    description = $"{vendorName} {description}";
+
+                return description;
             }
         }
 
