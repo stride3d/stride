@@ -14,14 +14,13 @@ using Android.Runtime;
 using OpenTK.Graphics;
 using OpenTK.Platform.Android;
 using Stride.Core;
-using Stride.Engine;
 using Stride.Games;
 using Stride.Games.Android;
 using Stride.Graphics.OpenGL;
 
 namespace Stride.Starter
 {
-    using Resource = Stride.Engine.Resource;
+    using Resource = Stride.Games.Resource;
     
     // NOTE: the class should implement View.IOnSystemUiVisibilityChangeListener but doing so will prevent the engine to work on Android below 3.0 (API Level 11 is mandatory).
     // So the methods are implemented but the class does not implement View.IOnSystemUiVisibilityChangeListener.
@@ -42,7 +41,7 @@ namespace Stride.Starter
         /// <summary>
         /// The instance of the game to run.
         /// </summary>
-        protected Game Game;
+        protected GameBase Game;
 
         private Action setFullscreenViewCallback;
         private StatusBarVisibility lastVisibility;

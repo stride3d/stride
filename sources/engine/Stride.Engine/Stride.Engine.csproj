@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
+    <StrideRuntimeNetStandard>true</StrideRuntimeNetStandard>
   </PropertyGroup>
 
   <Import Project="..\..\targets\Stride.props" />
@@ -22,24 +23,6 @@
     <!-- force generate Resource.designer.cs to namespace Stride.Engine to fix issue #553 -->
     <AndroidResgenNamespace>Stride.Engine</AndroidResgenNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Resources\Resource.Designer.cs" />
-  </ItemGroup>
-  <Choose>
-    <When Condition=" '$(StridePlatform)' == 'Android'">
-      <PropertyGroup>
-        <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
-      </PropertyGroup>
-      <ItemGroup>
-        <Compile Include="Resources\Resource.Designer.cs" />
-        <AndroidResource Include="Resources\Layout\Game.axml">
-          <SubType>AndroidResource</SubType>
-        </AndroidResource>
-        <Reference Include="System.Xml" />
-      </ItemGroup>
-    </When>
-  </Choose>
 
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

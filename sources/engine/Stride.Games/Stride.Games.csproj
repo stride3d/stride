@@ -20,6 +20,23 @@
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Resources\Resource.Designer.cs" />
+  </ItemGroup>
+  <Choose>
+    <When Condition=" '$(StridePlatform)' == 'Android'">
+      <PropertyGroup>
+        <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="Resources\Resource.Designer.cs" />
+        <AndroidResource Include="Resources\Layout\Game.axml">
+          <SubType>AndroidResource</SubType>
+        </AndroidResource>
+        <Reference Include="System.Xml" />
+      </ItemGroup>
+    </When>
+  </Choose>
   <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

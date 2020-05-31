@@ -97,6 +97,12 @@ namespace Stride.Graphics
         /// </summary>
         public abstract Texture BackBuffer { get; }
 
+        // Temporarily here until we can move WindowsMixedRealityGraphicsPresenter to Stride.VirtualReality (currently not possible because Stride.Games creates it)
+        // This allows to keep Stride.Engine platform-independent
+        internal Texture LeftEyeBuffer { get; set; }
+
+        internal Texture RightEyeBuffer { get; set; }
+
         /// <summary>
         /// Gets the default depth stencil buffer for this presenter.
         /// </summary>

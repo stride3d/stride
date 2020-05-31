@@ -6,7 +6,6 @@ using CoreGraphics;
 using Foundation;
 using OpenTK;
 using UIKit;
-using Stride.Engine;
 using Stride.Games;
 
 namespace Stride.Starter
@@ -16,7 +15,7 @@ namespace Stride.Starter
         /// <summary>
         /// The instance of the game to run.
         /// </summary>
-	    protected Game Game;
+	    protected GameBase Game;
 		
 		/// <summary>
 		/// The main windows of the application.
