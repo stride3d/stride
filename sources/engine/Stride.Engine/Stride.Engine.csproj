@@ -52,19 +52,9 @@
     <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />
     <ProjectReference Include="..\Stride.Rendering\Stride.Rendering.csproj" />
     <ProjectReference Include="..\Stride.VirtualReality\Stride.VirtualReality.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj" />
   </ItemGroup>
   <Import Project="..\Stride.Shared\Refactor\Stride.Refactor.projitems" Label="Shared" />
-  <Choose>
-    <When Condition="'$(StrideEffectCompiler)' == 'true'">
-      <ItemGroup Condition="'$(StrideEffectCompiler)' == 'true'">
-        <ProjectReference Include="..\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj">
-          <Project>{E8B3553F-A79F-4E50-B75B-ACEE771C320C}</Project>
-          <Name>Stride.Shaders.Compiler</Name>
-          <Private>False</Private>
-        </ProjectReference>
-      </ItemGroup>
-    </When>
-  </Choose>
   <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

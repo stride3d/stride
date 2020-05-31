@@ -25,15 +25,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
   </ItemGroup>
-  <Choose>
-    <When Condition="'$(StrideEffectCompiler)' == 'true'">
-      <ItemGroup Condition="'$(StrideEffectCompiler)' == 'true'">
-        <ProjectReference Include="..\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj">
-                  <Private>False</Private>
-        </ProjectReference>
-      </ItemGroup>
-    </When>
-  </Choose>
   <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

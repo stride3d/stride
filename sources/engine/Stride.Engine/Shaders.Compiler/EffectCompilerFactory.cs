@@ -16,7 +16,6 @@ namespace Stride.Shaders.Compiler
         {
             EffectCompilerBase compiler = null;
 
-#if STRIDE_EFFECT_COMPILER
             if ((effectCompilationMode & EffectCompilationMode.Local) != 0)
             {
                 // Local allowed and available, let's use that
@@ -25,7 +24,6 @@ namespace Stride.Shaders.Compiler
                     SourceDirectories = { EffectCompilerBase.DefaultSourceShaderFolder },
                 };
             }
-#endif
 
             // Nothing to do remotely
             bool needRemoteCompiler = (compiler == null && (effectCompilationMode & EffectCompilationMode.Remote) != 0);

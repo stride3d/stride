@@ -80,11 +80,6 @@
     Global Defines
   -->
   <PropertyGroup>
-    <StrideGraphicsApiDefines>$(StrideGraphicsApiDefines);STRIDE_EFFECT_COMPILER</StrideGraphicsApiDefines>
-    <StrideEffectCompiler>true</StrideEffectCompiler>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <DefineConstants>$(DefineConstants);$(StrideGraphicsApiDefines)</DefineConstants>
   </PropertyGroup>
 
