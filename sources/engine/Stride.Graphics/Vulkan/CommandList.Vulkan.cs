@@ -648,8 +648,7 @@ namespace Stride.Graphics
                         sType = VkStructureType.DebugMarkerMarkerInfoEXT,
                         pMarkerName = bytesPointer,
                     };
-                    *(Color4*)&debugMarkerInfo.color = profileColor;
-                    GraphicsAdapterFactory.GetInstance(GraphicsDevice.IsDebugMode).BeginDebugMarker(currentCommandList.NativeCommandBuffer, &debugMarkerInfo);
+                    vkCmdDebugMarkerBeginEXT(currentCommandList.NativeCommandBuffer, &debugMarkerInfo);
                 }
             }
         }
@@ -661,7 +660,7 @@ namespace Stride.Graphics
         {
             if (GraphicsDevice.IsProfilingSupported)
             {
-                GraphicsAdapterFactory.GetInstance(GraphicsDevice.IsDebugMode).EndDebugMarker(currentCommandList.NativeCommandBuffer);
+                vkCmdDebugMarkerEndEXT(currentCommandList.NativeCommandBuffer);
             }
         }
         /// <summary>

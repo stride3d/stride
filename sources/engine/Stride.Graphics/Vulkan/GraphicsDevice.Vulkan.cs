@@ -302,13 +302,13 @@ namespace Stride.Graphics
                 }
             }
 
-            desiredExtensionNames.Add("VK_KHR_swapchain");
-            if (!availableExtensionNames.Contains("VK_KHR_swapchain"))
+            desiredExtensionNames.Add(KHRSwapchainExtensionName);
+            if (!availableExtensionNames.Contains(KHRSwapchainExtensionName))
                 throw new InvalidOperationException();
 
-            if (availableExtensionNames.Contains("VK_EXT_debug_marker") && IsDebugMode)
+            if (availableExtensionNames.Contains(EXTDebugMarkerExtensionName) && IsDebugMode)
             {
-                desiredExtensionNames.Add("VK_EXT_debug_marker");
+                desiredExtensionNames.Add(EXTDebugMarkerExtensionName);
                 IsProfilingSupported = true;
             }
 
