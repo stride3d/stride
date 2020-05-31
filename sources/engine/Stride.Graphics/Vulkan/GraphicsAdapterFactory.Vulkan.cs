@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Graphics
 {
@@ -86,6 +87,9 @@ namespace Stride.Graphics
 
         internal VkInstance NativeInstance;
         internal bool HasXlibSurfaceSupport;
+
+        // We use GraphicsDevice (similar to OpenGL)
+        private static readonly Logger Log = GlobalLogger.GetLogger("GraphicsDevice");
 
         public unsafe GraphicsAdapterFactoryInstance(bool enableValidation)
         {
@@ -222,13 +226,23 @@ namespace Stride.Graphics
         private unsafe static VkBool32 DebugReport(VkDebugUtilsMessageSeverityFlagsEXT severity, VkDebugUtilsMessageTypeFlagsEXT types, VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, IntPtr userData)
         {
             var message = Vortice.Vulkan.Interop.GetString(pCallbackData->pMessage);
-            if ((types & VkDebugUtilsMessageTypeFlagsEXT.ValidationEXT) != 0)
+
+            // Redirect to log
+            if (severity == VkDebugUtilsMessageSeverityFlagsEXT.ErrorEXT)
             {
-                Debug.WriteLine($"[Vulkan]: Validation: {severity} - {message}");
+                Log.Error(message);
             }
-            else
+            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.WarningEXT)
             {
-                Debug.WriteLine($"[Vulkan]: {severity} - {message}");
+                Log.Warning(message);
+            }
+            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.InfoEXT)
+            {
+                Log.Info(message);
+            }
+            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.VerboseEXT)
+            {
+                Log.Verbose(message);
             }
 
             return false;
