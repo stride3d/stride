@@ -65,7 +65,15 @@ namespace Stride.Rendering
         if (MaterialKeys.HasSkinningPosition)
         {
             mixin macro MaterialKeys.SkinningMaxBones;
-            mixin TransformationSkinning;
+
+            if (StrideEffectBaseKeys.HasInstancing)
+            {
+                mixin TransformationSkinningInstanced;
+            }
+            else
+            {
+                mixin TransformationSkinning;
+            }
 
             if (MaterialKeys.HasSkinningNormal)
             {

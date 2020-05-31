@@ -68,7 +68,14 @@ namespace Stride.Rendering
                 if (context.GetParam(MaterialKeys.HasSkinningPosition))
                 {
                     mixin.AddMacro("SkinningMaxBones", context.GetParam(MaterialKeys.SkinningMaxBones));
-                    context.Mixin(mixin, "TransformationSkinning");
+                    if (context.GetParam(StrideEffectBaseKeys.HasInstancing))
+                    {
+                        context.Mixin(mixin, "TransformationSkinningInstanced");
+                    }
+                    else
+                    {
+                        context.Mixin(mixin, "TransformationSkinning");
+                    }
                     if (context.GetParam(MaterialKeys.HasSkinningNormal))
                     {
                         context.Mixin(mixin, "NormalMeshSkinning");

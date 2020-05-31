@@ -1,0 +1,18 @@
+shader TransformationInstancing : TransformationBase
+{
+    struct InstanceTransform
+    {
+        float4x4 Matrix;
+    };
+
+    rgroup PerDraw.Instancing
+    {
+        StructuredBuffer<InstanceTransform> InstanceWorld;
+        StructuredBuffer<InstanceTransform> InstanceWorldInverse;
+    }
+
+    float4x4 GetInstanceWorld()
+    {
+        return InstanceWorld[streams.InstanceID].Matrix;
+    }
+};
