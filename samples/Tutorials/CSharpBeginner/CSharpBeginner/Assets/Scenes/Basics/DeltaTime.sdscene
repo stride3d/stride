@@ -56,5 +56,5 @@ Hierarchy:
                         Id: 210bc310-d21a-44a9-bccf-173c4926a47d
                         Model: f68ea240-695a-4de5-9884-60d77544fcd6:Models/mannequinModel
                         Materials: {}
-                    3e42ba7a5d85c5f92dc2c5097deed788: !CSharpBeginner.Code.DeltaTimeDemo,CSharpBeginner.Game
-                        Id: d1936f8d-349f-41cd-a753-b06c74b7abf3
+                    83e36a04eb04bebb41bd5077a76714b6: !CSharpBeginner.Code.DeltaTimeDemo,CSharpBeginner.Game
+                        Id: ec4745f4-aa61-428b-935a-20ecc241fd7e

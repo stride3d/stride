@@ -1385,8 +1385,8 @@ Hierarchy:
                         Page: 5175f272-13da-45dd-9f7b-540e7121dd56:UI/LoadTutorialUI
                         Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
                         Size: {X: 1.0, Y: 1.0, Z: 1.0}
-                    a071ed0a8246a83ec97aadc7a70f4da8: !CSharpBeginner.Code.TutorialUI,CSharpBeginner.Game
-                        Id: 243d53f1-6acd-4a38-aee8-14bf536d1f0f
+                    c39e507eff9e95b1921762d65324d8a5: !CSharpBeginner.Code.TutorialUI,CSharpBeginner.Game
+                        Id: 7920ca63-c911-40bf-b358-7bcfab540966
                         Camera: ref!! 11c51eca-f227-48c5-afdb-199ed1d275cf
         -   Entity:
                 Id: d85c827e-72b6-48fd-8a88-97d01983bebb

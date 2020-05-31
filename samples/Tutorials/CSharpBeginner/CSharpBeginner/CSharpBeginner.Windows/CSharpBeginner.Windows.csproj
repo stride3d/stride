@@ -1,6 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
+<Project Sdk="Microsoft.NET.Sdk">  <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
     <ApplicationIcon>Resources\GameIcon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
@@ -16,5 +14,4 @@
   <ItemGroup>
     <ProjectReference Include="..\CSharpBeginner.Game\CSharpBeginner.Game.csproj" />
   </ItemGroup>
-
 </Project>
