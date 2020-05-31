@@ -7,11 +7,27 @@
     <SolutionPath Condition=" '$(SolutionPath)' == '' ">$(SolutionDir)$(SolutionName).sln</SolutionPath>
   </PropertyGroup>
 
+  <!-- Setup StridePlatform according to current TargetFramework/RuntimeIdentifier -->
+  <PropertyGroup>
+    <!-- Default values -->
+    <StridePlatformOriginal>$(StridePlatform)</StridePlatformOriginal>
+    <StridePlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And ('$(RuntimeIdentifier)' == '' Or $(RuntimeIdentifier.StartsWith('win'))) ">Windows</StridePlatform>
+    <StridePlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(RuntimeIdentifier.StartsWith('linux')) ">Linux</StridePlatform>
+    <StridePlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(RuntimeIdentifier.StartsWith('osx')) ">macOS</StridePlatform>
+    <StridePlatform Condition=" $(TargetFramework.StartsWith('uap10.0')) ">UWP</StridePlatform>
+    <StridePlatform Condition=" '$(TargetFramework)' == 'monoandroid81' ">Android</StridePlatform>
+    <StridePlatform Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</StridePlatform>
+    <!-- Default fallback -->
+    <StridePlatform Condition=" '$(StridePlatform)' == '' ">Windows</StridePlatform>
+
+    <StridePlatformFullName Condition="'$(StridePlatformFullName)' == ''">$(StridePlatform)</StridePlatformFullName>
+  </PropertyGroup>
+
   <!--Import Local Pre Settings for the solution being loaded -->
   <Import Project="$(SolutionDir)$(SolutionName).Build.props" Condition="Exists('$(SolutionDir)$(SolutionName).Build.props')" />
   <Import Project="$(SolutionDir)Stride.Core.Build.props" Condition="Exists('$(SolutionDir)Stride.Core.Build.props')" />
   
-    <!-- 
+  <!-- 
     Settings StridePlatform specific
   -->
   <PropertyGroup>
@@ -117,19 +133,6 @@
     <!-- Flag used per-project settings to specify that it should only be compiled on Windows Desktop-->
     <StrideWindowsOnly Condition="'$(StrideWindowsOnly)' == ''">false</StrideWindowsOnly>
 
-    <!-- Default values -->
-    <StridePlatformOriginal>$(StridePlatform)</StridePlatformOriginal>
-    <StridePlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And ('$(RuntimeIdentifier)' == '' Or $(RuntimeIdentifier.StartsWith('win'))) ">Windows</StridePlatform>
-    <StridePlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(RuntimeIdentifier.StartsWith('linux')) ">Linux</StridePlatform>
-    <StridePlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(RuntimeIdentifier.StartsWith('osx')) ">macOS</StridePlatform>
-    <StridePlatform Condition=" $(TargetFramework.StartsWith('uap10.0')) ">UWP</StridePlatform>
-    <StridePlatform Condition=" '$(TargetFramework)' == 'monoandroid81' ">Android</StridePlatform>
-    <StridePlatform Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</StridePlatform>
-    <!-- Default fallback -->
-    <StridePlatform Condition=" '$(StridePlatform)' == '' ">Windows</StridePlatform>
-
-    <StridePlatformFullName Condition="'$(StridePlatformFullName)' == ''">$(StridePlatform)</StridePlatformFullName>
-    
     <StrideSdkTargets Condition="'$(StrideSdkTargets)' == ''">$(MSBuildThisFileDirectory)Stride.Core.targets</StrideSdkTargets>
   </PropertyGroup>
 

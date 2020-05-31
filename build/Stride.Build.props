@@ -4,5 +4,8 @@
     <StrideCommonPreSettingsName>Stride</StrideCommonPreSettingsName>
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
+    <StrideGraphicsApisTests Condition="'$(StrideGraphicsApisTests)' == ''">Direct3D11</StrideGraphicsApisTests>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
+  </PropertyGroup>
 </Project>
-
