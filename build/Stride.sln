@@ -23,6 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Ta
 		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
 		..\sources\targets\Stride.props = ..\sources\targets\Stride.props
 		..\sources\targets\Stride.targets = ..\sources\targets\Stride.targets
+		..\sources\targets\Stride.UnitTests.CrossTargeting.targets = ..\sources\targets\Stride.UnitTests.CrossTargeting.targets
 		..\sources\targets\Stride.UnitTests.DisableBuild.targets = ..\sources\targets\Stride.UnitTests.DisableBuild.targets
 		..\sources\targets\Stride.UnitTests.props = ..\sources\targets\Stride.UnitTests.props
 		..\sources\targets\Stride.UnitTests.targets = ..\sources\targets\Stride.UnitTests.targets
@@ -72,6 +73,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Build", "00-Targ
 		Stride.Build.targets = Stride.Build.targets
 		Stride.Core.Build.props = Stride.Core.Build.props
 		Stride.Core.Build.targets = Stride.Core.Build.targets
+		Stride.UnitTests.Build.targets = Stride.UnitTests.Build.targets
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "30-CoreDesign", "30-CoreDesign", "{25F10A0B-7259-404C-86BE-FD2363C92F72}"

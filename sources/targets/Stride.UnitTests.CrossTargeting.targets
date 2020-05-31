@@ -1,0 +1,7 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Workaround so that Build returns list of produced executables even if there is multiple TargetFrameworks
+       https://github.com/microsoft/msbuild/issues/2148#issuecomment-305033099 -->
+  <Target Name="Build" 
+    DependsOnTargets="_SetBuildInnerTarget;DispatchToInnerBuilds" 
+    Returns="@(InnerOutput)" />
+</Project>
