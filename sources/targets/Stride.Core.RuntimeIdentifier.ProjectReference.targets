@@ -26,7 +26,8 @@
              BuildInParallel="$(BuildInParallel)"
              Properties="TargetFramework=%(_MSBuildProjectReferenceExistent.NearestTargetFramework);ReferencingRuntimeIdentifier=$(RuntimeIdentifier)"
              RemoveProperties="RuntimeIdentifier"
-             Targets="_StrideSdkGetBestRidForTfm">
+             Targets="_StrideSdkGetBestRidForTfm"
+             SkipNonexistentTargets="true">
       <Output ItemName="_MSBuildProjectReferenceExistentWithRID" TaskParameter="TargetOutputs"  />
     </MSBuild>
 
