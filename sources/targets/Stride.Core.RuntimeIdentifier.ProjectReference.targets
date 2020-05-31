@@ -4,7 +4,7 @@
        Targets to adjust ProjectReference RuntimeIdentifier
        They properly set the RuntimeIdentifier of ProjectReference (since we have sometimes weird transitions like win => win-d3d11 or win => noRID)
        If we don't do it, MSBuild slap current RID, and even if this RID is overriden inside the build of the project, it will still trigger an unecessary build w/ double writes -->
-  <Target Name="_StrideSdkGetBestRidForTfm" Returns="@(_RuntimeIdentifierItem)">
+  <Target Name="_StrideSdkGetBestRidForTfm" Returns="@(_RuntimeIdentifierItem)" Condition="'$(StrideProjectType)' != 'Cpp'">
     <PropertyGroup Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == ''">
       <!-- If referencing project has a runtime identifier and it's part of the supported RuntimeIdentifiers list, use it -->
       <_RuntimeIdentifiersTemp>;$(RuntimeIdentifiers);</_RuntimeIdentifiersTemp>
