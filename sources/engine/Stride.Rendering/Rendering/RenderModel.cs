@@ -14,7 +14,13 @@ namespace Stride.Rendering
         public RenderMesh[] Meshes;
         public MaterialInfo[] Materials;
 
-
+        /// <summary>
+        /// The number of <see cref="Mesh"/>es when <see cref="Meshes"/> was generated.
+        /// </summary>
+        /// <remarks>
+        /// A single mesh may be split into multiple RenderMeshes due to multiple material passes.
+        /// </remarks>
+        public int UniqueMeshCount;
         public struct MaterialInfo
         {
             public Material Material;
