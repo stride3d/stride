@@ -98,15 +98,16 @@
 
   <!-- Force a full Build & Pack if dependency was only built with a single TargetFramework (which would set IsInnerBuild and skip any Pack logic)
        This is only a problem when building from command line, Visual Studio builds each project completely.
-       We use SkipPackOnInnerBuild to avoid infinite recursion. -->
+       Recursion is automatically avoided by MSBuild not rebuilding same target
+       (we have to be careful to not introduce new global variables otherwise build becomes non-deterministic). -->
   <Target Name="_StrideTriggerPackOnInnerBuild"
         BeforeTargets="CoreCompile"
-        Condition="'$(BuildingInsideVisualStudio)' != 'true' And '$(GeneratePackageOnBuild)' == 'true' And '$(SkipPackOnInnerBuild)' != 'true'">
+        Condition="'$(BuildingInsideVisualStudio)' != 'true' And '$(GeneratePackageOnBuild)' == 'true'">
     <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
              Condition="'%(_MSBuildProjectReferenceExistent.SetTargetFramework)' != ''"
              BuildInParallel="$(BuildInParallel)"
              Targets="Build;Pack"
-             RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;RuntimeIdentifier">
+             RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;RuntimeIdentifier;StrideGraphicsApi">
     </MSBuild>
   </Target>
 
