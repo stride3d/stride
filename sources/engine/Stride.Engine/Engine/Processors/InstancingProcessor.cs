@@ -32,22 +32,23 @@ namespace Stride.Engine.Processors
                 var instancingComponent = entity.Key;
                 var instancingData = entity.Value;
 
-                UpdateInstancingData(instancingComponent, instancingData);
+                if (instancingComponent.Type is IInstancingMany instancingMany)
+                    UpdateInstancingDataMany(instancingComponent, instancingMany, instancingData);
             });
         }
 
-        private void UpdateInstancingData(InstancingComponent instancingComponent, InstancingData instancingData)
+        private void UpdateInstancingDataMany(InstancingComponent instancingComponent, IInstancingMany instancingMany, InstancingData instancingData)
         {
-            if (instancingComponent.Enabled && instancingComponent.InstanceCount > 0)
+            if (instancingComponent.Enabled && instancingMany.InstanceCount > 0)
             {
-                instancingComponent.Process();
+                instancingMany.Update();
 
                 if (instancingData.TransformComponent != null && instancingData.ModelComponent != null)
                 {
                     // Bounding box
                     foreach (var meshInfo in instancingData.ModelComponent.MeshInfos)
                     {
-                        var ibb = new BoundingBoxExt(instancingComponent.BoundingBox);
+                        var ibb = new BoundingBoxExt(instancingMany.BoundingBox);
                         ibb.Transform(instancingData.TransformComponent.WorldMatrix);
                         var center = meshInfo.BoundingBox.Center + ibb.Center - instancingData.TransformComponent.WorldMatrix.TranslationVector;
                         var extend = meshInfo.BoundingBox.Extent + ibb.Extent;

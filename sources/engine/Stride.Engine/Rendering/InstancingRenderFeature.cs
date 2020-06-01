@@ -62,36 +62,41 @@ namespace Stride.Engine.Rendering
 
                 ref var instancingData = ref renderObjectInstancingData[renderMesh.StaticObjectNode];
 
-                // Instancing data
-                if (instancingComponent.Enabled && instancingComponent.InstanceCount > 0)
-                {
-                    instancingData.InstanceCount = instancingComponent.InstanceCount;
-                    instancingData.WorldMatrices = instancingComponent.WorldMatrices;
-                    instancingData.WorldInverseMatrices = instancingComponent.WorldInverseMatrices;
 
-                    if (instancingComponent.InstanceWorldBuffer != null)
+                if (instancingComponent.Type is InstancingManyBase instancingManyBase)
+                {
+                    // Instancing data
+                    if (instancingComponent.Enabled && instancingManyBase.InstanceCount > 0)
                     {
-                        instancingData.InstanceWorldBuffer = instancingComponent.InstanceWorldBuffer;
-                        instancingData.InstanceWorldInverseBuffer = instancingComponent.InstanceWorldInverseBuffer;
-                        instancingData.BuffersManagedByUser = true;
+                        instancingData.InstanceCount = instancingManyBase.InstanceCount;
+
+                        if (instancingManyBase is InstancingUserBuffer instancingUserBuffer)
+                        {
+                            instancingData.InstanceWorldBuffer = instancingUserBuffer.InstanceWorldBuffer;
+                            instancingData.InstanceWorldInverseBuffer = instancingUserBuffer.InstanceWorldInverseBuffer;
+                            instancingData.BuffersManagedByUser = true;
+                        }
+                        else if (instancingManyBase is InstancingMany instancingMany)
+                        {
+                            instancingData.WorldMatrices = instancingMany.WorldMatrices;
+                            instancingData.WorldInverseMatrices = instancingMany.WorldInverseMatrices;
+
+                            if (instancingData.InstanceWorldBuffer == null || instancingData.InstanceWorldBuffer.ElementCount < instancingManyBase.InstanceCount)
+                            {
+                                instancingData.InstanceWorldBuffer?.Dispose();
+                                instancingData.InstanceWorldInverseBuffer?.Dispose();
+
+                                instancingData.InstanceWorldBuffer = CreateMatrixBuffer(Context.GraphicsDevice, instancingManyBase.InstanceCount);
+                                instancingData.InstanceWorldInverseBuffer = CreateMatrixBuffer(Context.GraphicsDevice, instancingManyBase.InstanceCount);
+                            }
+
+                            instancingData.BuffersManagedByUser = false;
+                        }
                     }
                     else
                     {
-                        if (instancingData.InstanceWorldBuffer == null || instancingData.InstanceWorldBuffer.ElementCount < instancingComponent.InstanceCount)
-                        {
-                            instancingData.InstanceWorldBuffer?.Dispose();
-                            instancingData.InstanceWorldInverseBuffer?.Dispose();
-
-                            instancingData.InstanceWorldBuffer = CreateMatrixBuffer(Context.GraphicsDevice, instancingComponent.InstanceCount);
-                            instancingData.InstanceWorldInverseBuffer = CreateMatrixBuffer(Context.GraphicsDevice, instancingComponent.InstanceCount);
-                        }
-
-                        instancingData.BuffersManagedByUser = false;
-                    }
-                }
-                else
-                {
-                    instancingData.InstanceCount = 0;
+                        instancingData.InstanceCount = 0;
+                    } 
                 }
 
                 // Update instance count on mesh
