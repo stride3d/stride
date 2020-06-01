@@ -38,7 +38,7 @@ namespace Stride.Rendering.Materials
 
         /// <userdoc>Specify the function to use to calculate the environment DFG term in the micro-facet lighting equation. 
         /// This defines how the material reflects specular cubemaps.</userdoc>
-        [DataMember(30)]
+        [DataMember(40)]
         [Display("Environment (DFG)")]
         [NotNull]
         public IMaterialSpecularMicrofacetEnvironmentFunction Environment { get; set; } = new MaterialSpecularMicrofacetEnvironmentGGXLUT();
@@ -86,7 +86,7 @@ namespace Stride.Rendering.Materials
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Equals(Fresnel, other.Fresnel) && Equals(Visibility, other.Visibility) && Equals(NormalDistribution, other.NormalDistribution);
+            return Equals(Fresnel, other.Fresnel) && Equals(Visibility, other.Visibility) && Equals(NormalDistribution, other.NormalDistribution) && Equals(Environment, other.Environment);
         }
 
         public override bool Equals(object obj)
@@ -104,6 +104,7 @@ namespace Stride.Rendering.Materials
                 int hashCode = (Fresnel != null ? Fresnel.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Visibility != null ? Visibility.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (NormalDistribution != null ? NormalDistribution.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Environment != null ? Environment.GetHashCode() : 0);
                 return hashCode;
             }
         }
