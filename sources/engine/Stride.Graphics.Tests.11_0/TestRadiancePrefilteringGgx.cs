@@ -243,11 +243,5 @@ namespace Stride.Graphics.Tests
 
             RunGameTest(new TestRadiancePrefilteringGgx());
         }
-
-        internal static void Main()
-        {
-            using (var game = new TestRadiancePrefilteringGgx(true))
-                game.Run();
-        }
     }
 }

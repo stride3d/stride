@@ -93,12 +93,6 @@ namespace Stride.Graphics.Tests
             spriteBatch.End();
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestDynamicSpriteFontJapanese())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

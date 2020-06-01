@@ -1,11 +1,11 @@
-<Project>
+﻿<Project>
   <Import Project="..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="..\..\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems" Label="Shared" />
   <Import Project="..\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems" Label="Shared" />
   <Import Project="..\..\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -20,6 +20,9 @@
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideLocalized>true</StrideLocalized>
     <DefineConstants>STRIDE_NUGET_RESOLVER_UX;$(DefineConstants)</DefineConstants>
+    <UseWPF>true</UseWPF>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>Stride.GameStudio.Program</StartupObject>
@@ -34,28 +37,11 @@
     <PackageReference Include="EnvDTE" Version="8.0.1" Condition="$(TargetFramework.StartsWith('net4'))" />
     <PackageReference Include="Stride.Metrics" Version="1.0.3" />
     <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
-    <PackageReference Include="Mono.Cecil" Version="0.10.4" />
-    <Reference Include="Renci.SshNet, Version=2016.0.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\deps\SSH.NET\Renci.SshNet.dll</HintPath>
+    <PackageReference Include="Mono.Cecil" Version="0.11.2" />
+    <Reference Include="Stride.Core.AssemblyProcessor" >
+      <HintPath Condition="$(TargetFramework.StartsWith('net4'))">..\..\..\deps\AssemblyProcessor\net472\Stride.Core.AssemblyProcessor.exe</HintPath>
+      <HintPath Condition="$(TargetFramework.StartsWith('netcoreapp'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Stride.Core.AssemblyProcessor">
-      <HintPath>..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.exe</HintPath>
-    </Reference>
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Composition.Convention">
-    </Reference>
-    <Reference Include="System.Security" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Xml.Serialization" />
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" Exclude="App.xaml" />
@@ -114,8 +100,8 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <Import Project="$(StridePostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
@@ -124,7 +110,7 @@
   <Target Name="IncludeExtraAssemblies">
     <ItemGroup>
       <BuildOutputInPackage Include="$(OutputPath)Mono.Cecil.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Core.AssemblyProcessor.exe" />
+      <BuildOutputInPackage Include="$(OutputPath)Stride.Core.AssemblyProcessor.*" />
     </ItemGroup>
   </Target>
 </Project>

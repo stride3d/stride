@@ -108,7 +108,7 @@ namespace Stride.Graphics
         /// or
         /// vertexStride;vertexStride must be >= 0
         /// or
-        /// maxTexcoord;maxTexcoord must be > 0
+        /// maxTexcoord;maxTexcoord must be >= 0
         /// </exception>
         /// <exception cref="System.InvalidOperationException">The vertex buffer must contain at least the TEXCOORD</exception>
         /// <remarks>
@@ -121,7 +121,7 @@ namespace Stride.Graphics
             if (vertexBufferData == IntPtr.Zero) throw new ArgumentNullException("vertexBufferData");
             if (vertexCount <= 0) throw new ArgumentOutOfRangeException("vertexCount", "vertexCount must be > 0");
             if (vertexStride < 0) throw new ArgumentOutOfRangeException("vertexStride", "vertexStride must be >= 0");
-            if (maxTexcoord < 0) throw new ArgumentOutOfRangeException("maxTexcoord", "maxTexcoord must be > 0");
+            if (maxTexcoord < 0) throw new ArgumentOutOfRangeException("maxTexcoord", "maxTexcoord must be >= 0");
 
             // Get the stride from the vertex declaration if necessary
             if (vertexStride == 0)

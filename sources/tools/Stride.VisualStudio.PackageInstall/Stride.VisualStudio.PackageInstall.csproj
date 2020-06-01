@@ -23,9 +23,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="2.3.2262-g94fae01e">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </PackageReference>
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\VisualStudioVersions.cs">

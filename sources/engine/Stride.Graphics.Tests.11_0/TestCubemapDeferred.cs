@@ -145,12 +145,6 @@ namespace Stride.Graphics.Tests
             }
         }
 
-        public static void Main()
-        {
-            using (var game = new TestCubemapDeferred())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

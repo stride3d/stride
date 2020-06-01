@@ -4,9 +4,10 @@
     <StrideRuntimeWindowsDotNet>true</StrideRuntimeWindowsDotNet>
     <StrideRuntimeWindowsNetCoreApp3>true</StrideRuntimeWindowsNetCoreApp3>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+    <UseWindowsForms Condition="$(StrideUI.Contains('WINFORMS')) OR $(StrideUI.Contains('WPF'))">true</UseWindowsForms>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -15,18 +16,27 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StridePlatformDependent>true</StridePlatformDependent>
-    <StrideProjectPlatformDependentWindows>true</StrideProjectPlatformDependentWindows>
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
-  <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
+  <ItemGroup>
+    <Compile Remove="Resources\Resource.Designer.cs" />
+  </ItemGroup>
   <Choose>
-    <When Condition="$(StrideUI.Contains('WINFORMS')) OR $(StrideUI.Contains('WPF'))">
+    <When Condition=" '$(StridePlatform)' == 'Android'">
+      <PropertyGroup>
+        <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
+      </PropertyGroup>
       <ItemGroup>
-        <Reference Include="System.Windows.Forms" />
+        <Compile Include="Resources\Resource.Designer.cs" />
+        <AndroidResource Include="Resources\Layout\Game.axml">
+          <SubType>AndroidResource</SubType>
+        </AndroidResource>
+        <Reference Include="System.Xml" />
       </ItemGroup>
     </When>
   </Choose>
+  <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
@@ -36,6 +46,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Graphics\Stride.Graphics.csproj" />
   </ItemGroup>
-  <Import Project="$(StridePostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 </Project>

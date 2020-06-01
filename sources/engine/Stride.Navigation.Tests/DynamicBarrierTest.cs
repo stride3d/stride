@@ -14,7 +14,7 @@ using Stride.Rendering.Compositing;
 
 namespace Stride.Navigation.Tests
 {
-    public class DynamicBarrierTest : Game
+    public class DynamicBarrierTest : GameTestBase
     {
         private Entity entityA;
         private Entity entityB;
@@ -148,14 +148,7 @@ namespace Stride.Navigation.Tests
         [Fact]
         public static void DynamicBarrierTest1()
         {
-            DynamicBarrierTest game = new DynamicBarrierTest();
-            game.Run();
-            game.Dispose();
-        }
-
-        internal static void Main()
-        {
-            DynamicBarrierTest1();
+            RunGameTest(new DynamicBarrierTest());
         }
     }
 }

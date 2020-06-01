@@ -19,7 +19,7 @@ namespace JumpyJet
     public class CharacterScript : AsyncScript
     {
         private EventReceiver gameResetListener = new EventReceiver(GameGlobals.GameResetEventKey);
-        private EventReceiver gameStartedListener = new EventReceiver(GameGlobals.GameStartedventKey);
+        private EventReceiver gameStartedListener = new EventReceiver(GameGlobals.GameStartedEventKey);
 
         private static readonly Vector3 Gravity = new Vector3(0, -17, 0);
         private static readonly Vector3 StartPos = new Vector3(-1, 0, 0);
@@ -145,7 +145,7 @@ namespace JumpyJet
 
         private void UpdateTransformation()
         {
-            Entity.Transform.Position= position;
+            Entity.Transform.Position = position;
             Entity.Transform.RotationEulerXYZ = rotation;
         }
 

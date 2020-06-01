@@ -7,7 +7,8 @@ using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Shaders;
 #if STRIDE_GRAPHICS_API_VULKAN
-using SharpVulkan;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -18,7 +19,7 @@ namespace Stride.Graphics
 #if !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES
         internal readonly DescriptorSetLayoutBuilder Builder;
 
-        internal SharpVulkan.DescriptorSetLayout NativeLayout;
+        internal VkDescriptorSetLayout NativeLayout;
 
         internal uint[] TypeCounts;
 
@@ -44,22 +45,22 @@ namespace Stride.Graphics
         protected internal override unsafe void OnDestroyed()
         {
             GraphicsDevice.NativeDevice.DestroyDescriptorSetLayout(NativeLayout);
-            NativeLayout = SharpVulkan.DescriptorSetLayout.Null;
+            NativeLayout = VkDescriptorSetLayout.Null;
 
             base.OnDestroyed();
         }
 #endif
 
-        internal static unsafe SharpVulkan.DescriptorSetLayout CreateNativeDescriptorSetLayout(GraphicsDevice device, IList<DescriptorSetLayoutBuilder.Entry> entries, out uint[] typeCounts)
+        internal static unsafe VkDescriptorSetLayout CreateNativeDescriptorSetLayout(GraphicsDevice device, IList<DescriptorSetLayoutBuilder.Entry> entries, out uint[] typeCounts)
         {
-            var bindings = new DescriptorSetLayoutBinding[entries.Count];
-            var immutableSamplers = new Sampler[entries.Count];
+            var bindings = new VkDescriptorSetLayoutBinding[entries.Count];
+            var immutableSamplers = new VkSampler[entries.Count];
 
             int usedBindingCount = 0;
 
             typeCounts = new uint[DescriptorTypeCount];
 
-            fixed (Sampler* immutableSamplersPointer = &immutableSamplers[0])
+            fixed (VkSampler* immutableSamplersPointer = &immutableSamplers[0])
             {
                 for (int i = 0; i < entries.Count; i++)
                 {
@@ -69,12 +70,12 @@ namespace Stride.Graphics
                     if (entry.ArraySize == 0)
                         continue;
 
-                    bindings[usedBindingCount] = new DescriptorSetLayoutBinding
+                    bindings[usedBindingCount] = new VkDescriptorSetLayoutBinding
                     {
-                        DescriptorType = VulkanConvertExtensions.ConvertDescriptorType(entry.Class, entry.Type),
-                        StageFlags = ShaderStageFlags.All, // TODO VULKAN: Filter?
-                        Binding = (uint)i,
-                        DescriptorCount = (uint)entry.ArraySize
+                        descriptorType = VulkanConvertExtensions.ConvertDescriptorType(entry.Class, entry.Type),
+                        stageFlags = VkShaderStageFlags.All, // TODO VULKAN: Filter?
+                        binding = (uint)i,
+                        descriptorCount = (uint)entry.ArraySize
                     };
 
                     if (entry.ImmutableSampler != null)
@@ -85,24 +86,25 @@ namespace Stride.Graphics
                             throw new NotImplementedException();
                         }
 
-                        // Remember this, so we can choose the right DescriptorType in DescriptorSet.SetShaderResourceView
+                        // Remember this, so we can choose the right VkDescriptorType in DescriptorSet.SetShaderResourceView
                         immutableSamplers[i] = entry.ImmutableSampler.NativeSampler;
-                        //bindings[i].DescriptorType = DescriptorType.CombinedImageSampler;
-                        bindings[usedBindingCount].ImmutableSamplers = new IntPtr(immutableSamplersPointer + i);
+                        //bindings[i].VkDescriptorType = VkDescriptorType.CombinedImageSampler;
+                        bindings[usedBindingCount].pImmutableSamplers = immutableSamplersPointer + i;
                     }
 
-                    typeCounts[(int)bindings[usedBindingCount].DescriptorType] += bindings[usedBindingCount].DescriptorCount;
+                    typeCounts[(int)bindings[usedBindingCount].descriptorType] += bindings[usedBindingCount].descriptorCount;
 
                     usedBindingCount++;
                 }
 
-                var createInfo = new DescriptorSetLayoutCreateInfo
+                var createInfo = new VkDescriptorSetLayoutCreateInfo
                 {
-                    StructureType = StructureType.DescriptorSetLayoutCreateInfo,
-                    BindingCount = (uint)usedBindingCount,
-                    Bindings = usedBindingCount > 0 ? new IntPtr(Interop.Fixed(bindings)) : IntPtr.Zero
+                    sType = VkStructureType.DescriptorSetLayoutCreateInfo,
+                    bindingCount = (uint)usedBindingCount,
+                    pBindings = usedBindingCount > 0 ? (VkDescriptorSetLayoutBinding*)Core.Interop.Fixed(bindings) : null,
                 };
-                return device.NativeDevice.CreateDescriptorSetLayout(ref createInfo);
+                vkCreateDescriptorSetLayout(device.NativeDevice, &createInfo, null, out var descriptorSetLayout);
+                return descriptorSetLayout;
             }
         }
     }

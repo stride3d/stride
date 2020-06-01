@@ -19,11 +19,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="2.3.2262-g94fae01e">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </PackageReference>
-    <Reference Include="System.IO.Compression" />
+    <PackageReference Include="System.IO.Compression" Version="4.3.0" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\VisualStudioVersions.cs">
@@ -40,11 +37,6 @@
     </None>
     <None Include="..\..\prerequisites\install-prerequisites.exe" Condition="Exists('..\..\prerequisites\install-prerequisites.exe')">
       <Link>install-prerequisites.exe</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="vs_Setup.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

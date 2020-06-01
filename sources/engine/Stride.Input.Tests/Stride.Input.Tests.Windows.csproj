@@ -1,7 +1,8 @@
 <Project>
-  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
+  <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>net461</TargetFrameworks>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <AssemblyName>Stride.Input.Tests</AssemblyName>
     <RootNamespace>Stride.Input.Tests</RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>

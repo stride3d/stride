@@ -1,3 +1,4 @@
+
 // Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
@@ -98,8 +99,9 @@ namespace Stride.Core.Assets.CompilerApp
 
                 // Find loaded package (either sdpkg or csproj) -- otherwise fallback to first one
                 var packageFile = (UFile)builderOptions.PackageFile;
-                var package = projectSession.LocalPackages.FirstOrDefault(x => x.FullPath == packageFile || (x.Container is SolutionProject project && project.FullPath == packageFile))
-                    ?? projectSession.LocalPackages.First();
+                var package = projectSession.Packages.FirstOrDefault(x => x.FullPath == packageFile || (x.Container is SolutionProject project && project.FullPath == packageFile))
+                    ?? projectSession.LocalPackages.FirstOrDefault()
+                    ?? projectSession.Packages.FirstOrDefault();
 
                 // Setup variables
                 var buildDirectory = builderOptions.BuildDirectory;
@@ -142,10 +144,12 @@ namespace Stride.Core.Assets.CompilerApp
                 // Setup the remote process build
                 var remoteBuilderHelper = new PackageBuilderRemoteHelper(projectSession.AssemblyContainer, builderOptions);
 
-                var indexName = "index." + package.Meta.Name;
+                var indexName = $"index.{package.Meta.Name}.{builderOptions.Platform}";
                 // Add runtime identifier (if any) to avoid clash when building multiple at the same time (this happens when using ExtrasBuildEachRuntimeIdentifier feature of MSBuild.Sdk.Extras)
                 if (builderOptions.Properties.TryGetValue("RuntimeIdentifier", out var runtimeIdentifier))
                     indexName += $".{runtimeIdentifier}";
+                if (builderOptions.Properties.TryGetValue("StrideGraphicsApi", out var graphicsApi))
+                    indexName += $".{graphicsApi}";
 
                 // Create the builder
                 builder = new Builder(builderOptions.Logger, buildDirectory, indexName) { ThreadCount = builderOptions.ThreadCount, TryExecuteRemote = remoteBuilderHelper.TryExecuteRemote };
@@ -162,7 +166,7 @@ namespace Stride.Core.Assets.CompilerApp
                 // Fill list of bundles
                 var bundlePacker = new BundlePacker();
                 var bundleFiles = new List<string>();
-                bundlePacker.Build(builderOptions.Logger, projectSession, indexName, outputDirectory, builder.DisableCompressionIds, context.GetCompilationMode() != CompilationMode.AppStore, bundleFiles);
+                bundlePacker.Build(builderOptions.Logger, projectSession, package, indexName, outputDirectory, builder.DisableCompressionIds, context.GetCompilationMode() != CompilationMode.AppStore, bundleFiles);
 
                 if (builderOptions.MSBuildUpToDateCheckFileBase != null)
                     SaveBuildUpToDateFile(builderOptions.MSBuildUpToDateCheckFileBase, builderOptions.PackageFile, package, bundleFiles);

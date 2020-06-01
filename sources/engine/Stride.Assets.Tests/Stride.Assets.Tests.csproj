@@ -1,7 +1,8 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
+  <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup>

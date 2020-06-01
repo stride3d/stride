@@ -1,6 +1,6 @@
 <Project>
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
@@ -10,8 +10,6 @@
   <ItemGroup>
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.FixProjectReferences\Stride.FixProjectReferences.csproj" />
@@ -19,6 +17,6 @@
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
-  <Import Project="$(StridePostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 </Project>

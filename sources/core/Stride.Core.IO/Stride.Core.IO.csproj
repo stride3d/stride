@@ -2,8 +2,8 @@
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Stride.Core.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   
   <PropertyGroup>
     <Description>Stride Core IO assembly.</Description>
@@ -17,11 +17,7 @@
     <StridePlatformDependent>true</StridePlatformDependent>
     <StrideBuildTags>*</StrideBuildTags>
   </PropertyGroup>
-  
-  <Choose>
-    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-    </When>
-  </Choose>
+
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
@@ -36,7 +32,7 @@
     <PackageReference Include="SharpDX" Version="4.2.0" Condition="'$(StridePlatform)' == 'UWP'" />
   </ItemGroup>
   
-  <Import Project="$(StridePostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 
 </Project>

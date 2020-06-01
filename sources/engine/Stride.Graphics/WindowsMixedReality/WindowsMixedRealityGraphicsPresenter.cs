@@ -67,10 +67,6 @@ namespace Stride.Graphics
 
         internal HolographicFrame HolographicFrame { get; set; }
 
-        internal Texture LeftEyeBuffer { get; private set; }
-
-        internal Texture RightEyeBuffer { get; private set; }
-
         internal static IDirect3DSurface CreateDirect3DSurface(IntPtr dxgiSurface)
         {
             uint hr = CreateDirect3D11SurfaceFromDXGISurface(dxgiSurface, out IntPtr inspectableSurface);

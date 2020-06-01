@@ -134,16 +134,6 @@ namespace Stride.Physics.Tests
             SaveCurrentFrameBufferToHdd();
             ScreenshotRequested = false;
         }
-
-        /// <summary>
-        /// This is useful if you want to run all the tests on your own machine and compare images
-        /// </summary>
-        public static void Main()
-        {
-            using (var game = new ColliderShapesTest()) { game.ColliderShapesTest1(); }
-            using (var game = new CharacterTest()) { game.CharacterTest1(); }
-            using (var game = new SkinnedTest()) { game.SkinnedTest1(); }
-        }
     }
 }
 

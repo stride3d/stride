@@ -155,12 +155,6 @@ namespace Stride.Graphics.Tests
             return "HanSans size " + size +" pixels. 漢字のサイズは" + size + "ピクセル。";
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestDynamicSpriteFontVarious())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

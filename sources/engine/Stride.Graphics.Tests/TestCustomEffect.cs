@@ -60,12 +60,6 @@ namespace Stride.Graphics.Tests
             GraphicsContext.DrawQuad(effectInstance);
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestCustomEffect())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

@@ -1,7 +1,8 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
+  <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>net461</TargetFrameworks>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <AssemblyName>Stride.Audio.Tests</AssemblyName>
     <RootNamespace>Stride.Audio.Tests</RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
@@ -26,10 +27,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="AudioTestGame.cs" />
     <Compile Include="BasicTest.cs" />
@@ -43,7 +40,6 @@
     <Compile Include="Engine\TestController.cs" />
     <Compile Include="Engine\TestGame.cs" />
     <Compile Include="Engine\TestUtilities.cs" />
-    <Compile Include="LaunchProgram.cs" />
     <Compile Include="PauseResumeTests.cs" />
     <Compile Include="SoundGenerator.cs" />
     <Compile Include="TestAudioEmitter.cs" />

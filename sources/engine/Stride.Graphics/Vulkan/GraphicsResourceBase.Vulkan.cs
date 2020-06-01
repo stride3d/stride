@@ -4,7 +4,8 @@
 using System;
 using System.Diagnostics;
 
-using SharpVulkan;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {

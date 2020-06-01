@@ -171,11 +171,5 @@ namespace Stride.Graphics.Tests
 
             RunGameTest(new TestLambertPrefilteringSH());
         }
-
-        internal static void Main()
-        {
-            using (var game = new TestLambertPrefilteringSH())
-                game.Run();
-        }
     }
 }

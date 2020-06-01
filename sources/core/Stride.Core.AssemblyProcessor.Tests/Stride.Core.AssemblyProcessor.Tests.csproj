@@ -3,6 +3,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <TargetFramework>net472</TargetFramework>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -26,7 +27,6 @@
     <Reference Include="nunit.framework">
       <HintPath>..\..\..\deps\NUnit\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core.AssemblyProcessor\Stride.Core.AssemblyProcessor.csproj" />

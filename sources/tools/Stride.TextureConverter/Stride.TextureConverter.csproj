@@ -1,6 +1,6 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <OutputType>Library</OutputType>
@@ -8,29 +8,25 @@
     <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\..\shared\ConsoleProgram.cs">
       <Link>Frontend\Console\ConsoleProgram.cs</Link>
     </Compile>
     <Compile Remove="Frontend\TexArray.cs" />
   </ItemGroup>
   <ItemGroup>
-    <StrideNativeLib Include="$(StrideDependenciesDir)FreeImage\Release\**\*.dll">
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FreeImage\Release\**\*.dll">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </StrideNativeLib>
-    <StrideNativeLib Include="$(StrideDependenciesDir)TextureWrappers\Release\**\*.dll">
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\TextureWrappers\Release\**\*.dll">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </StrideNativeLib>
-    <StrideNativeLib Include="$(StrideDependenciesDir)PVRTT\**\*.dll">
+    <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\PVRTT\**\*.dll">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
   </ItemGroup>
-  <Import Project="$(StridePostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 </Project>

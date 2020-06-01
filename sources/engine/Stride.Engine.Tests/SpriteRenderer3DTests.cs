@@ -148,11 +148,5 @@ namespace Stride.Engine.Tests
         {
             RunGameTest(new SpriteRenderer3DTests());
         }
-
-        internal static void Main()
-        {
-            using (var game = new SpriteRenderer3DTests())
-                game.Run();
-        }
     }
 }

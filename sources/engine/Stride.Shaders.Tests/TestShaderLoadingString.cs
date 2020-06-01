@@ -24,7 +24,7 @@ namespace Stride.Shaders.Tests
 
         const string ShaderSourceName = "ConstantCol";
         const string ShaderSourceCode =
-@"shader ConstantCol<float4 Value> : ComputeColor
+@"shader ConstantCol<float4 Value> : TestComputeColor
 {
     override float4 Compute()
     {
@@ -68,7 +68,7 @@ namespace Stride.Shaders.Tests
 
             var simple = shaderLoader.LoadClassSource(shaderClassString, new Stride.Core.Shaders.Parser.ShaderMacro[0], log, false)?.Type;
 
-            Assert.Single(simple.Members);
+            Assert.Equal(2, simple.Members.Count);
 
             var shaderClassString2 = new ShaderClassString(ShaderSourceName, ShaderSourceCode, new Vector4(1, 1, 1, 1));
 

@@ -28,8 +28,6 @@ namespace Stride.UI.Tests.Regression
 
         private ScrollingText scrollingText;
 
-        public bool IsUpdateAutomatic;
-
         public ComplexLayoutTest()
         {
         }
@@ -102,7 +100,7 @@ namespace Stride.UI.Tests.Regression
             };
             ApplyToggleButtonBlockDefaultStyle(toggle);
 
-            scrollingText = new ScrollingText { Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), Text = "<<<--- Scrolling text in a button ", IsEnabled = IsUpdateAutomatic };
+            scrollingText = new ScrollingText { Font = Content.Load<SpriteFont>("MicrosoftSansSerif15"), Text = "<<<--- Scrolling text in a button ", IsEnabled = ForceInteractiveMode };
             ApplyScrollingTextDefaultStyle(scrollingText);
             var button7 = new Button { Margin = Thickness.UniformRectangle(5), Content = scrollingText };
             ApplyButtonDefaultStyle(button7);
@@ -230,18 +228,6 @@ namespace Stride.UI.Tests.Regression
         public void RunComplexLayoutTest()
         {
             RunGameTest(new ComplexLayoutTest());
-        }
-
-        /// <summary>
-        /// Launch the Image test.
-        /// </summary>
-        internal static void Main()
-        {
-            using (var game = new ComplexLayoutTest())
-            {
-                game.IsUpdateAutomatic = true;
-                game.Run();
-            }
         }
     }
 }

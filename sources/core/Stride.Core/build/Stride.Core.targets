@@ -25,8 +25,6 @@
   *****************************************************************************************************************************
   -->
   <PropertyGroup>
-    <!-- Windows10 was renammed into UWP -->
-    <StridePlatform Condition="'$(StridePlatform)' == 'Windows10'">UWP</StridePlatform>
     <!-- Default mappings -->
     <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetPlatformIdentifier)' == 'UAP'">UWP</StridePlatform>
     <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'MonoAndroid'">Android</StridePlatform>
@@ -50,14 +48,18 @@
   <PropertyGroup>
     <!--By default, turn on assembly processor-->
     <StrideAssemblyProcessor Condition="'$(StrideAssemblyProcessor)' == ''">true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed.exe')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\</StrideAssemblyProcessorBasePath>
-    <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Stride.Core.AssemblyProcessor.Packed.exe')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\</StrideAssemblyProcessorBasePath>
-    <StrideAssemblyProcessorPath>$(StrideAssemblyProcessorBasePath)Stride.Core.AssemblyProcessor.Packed.exe</StrideAssemblyProcessorPath>
+    <StrideAssemblyProcessorFramework Condition="'$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</StrideAssemblyProcessorFramework>
+    <StrideAssemblyProcessorFramework Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</StrideAssemblyProcessorFramework>
+    <StrideAssemblyProcessorExt Condition="'$(MSBuildRuntimeType)' == 'Core'">.dll</StrideAssemblyProcessorExt>
+    <StrideAssemblyProcessorExt Condition="'$(MSBuildRuntimeType)' != 'Core'">.exe</StrideAssemblyProcessorExt>
+    <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
+    <StrideAssemblyProcessorBasePath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorBasePath>
+    <StrideAssemblyProcessorPath>$(StrideAssemblyProcessorBasePath)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorPath>
     <StrideAssemblyProcessorSerializationHashFile>$(IntermediateOutputPath)$(TargetName).sdserializationhash</StrideAssemblyProcessorSerializationHashFile>
 
     <StrideAssemblyProcessorHash>$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorPath).hash'))</StrideAssemblyProcessorHash>
-    <StrideAssemblyProcessorTempBasePath>$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
-    <StrideAssemblyProcessorTempPath>$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed.exe</StrideAssemblyProcessorTempPath>
+    <StrideAssemblyProcessorTempBasePath>$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
+    <StrideAssemblyProcessorTempPath>$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
   <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorTempPath)" Condition=" '$(StrideAssemblyProcessorTempPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
   <Target Name="StrideRunAssemblyProcessor" DependsOnTargets="ResolveAssemblyReferences">

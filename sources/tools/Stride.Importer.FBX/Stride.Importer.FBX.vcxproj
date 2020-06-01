@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <StrideProjectType>Cpp</StrideProjectType>
-    <TargetFrameworkVersion>$(TargetFrameworkVersionTool)</TargetFrameworkVersion>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessorOptions>
     </StrideAssemblyProcessorOptions>
@@ -55,6 +55,7 @@
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <Import Project="..\..\targets\Stride.Core.Cpp.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -64,13 +65,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>bin\$(TargetFramework)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(TargetFramework)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>bin\$(TargetFramework)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(TargetFramework)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(FbxSdkDir)\include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
@@ -252,10 +253,12 @@
     <Reference Include="BulletSharp">
       <HintPath>..\..\..\deps\BulletPhysics\BulletSharp.NetStandard.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
-  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="$(StrideSdkTargets)" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <Target Name="EnsureFbxSdkInstalled" BeforeTargets="PrepareForBuild">

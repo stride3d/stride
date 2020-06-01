@@ -1,0 +1,78 @@
+<!-- Build file post-included by all Stride projects -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Setup compiler targets per platform / language -->
+  <PropertyGroup>
+    <!-- Process by default scripts with AssemblyProcessor -->
+    <StrideAssemblyProcessor Condition="'$(StrideScript)' == 'true'">true</StrideAssemblyProcessor>
+
+    <StrideIsExecutable Condition=" '$(OutputType)' == 'Exe'">true</StrideIsExecutable>
+    <StrideIsExecutable Condition=" '$(OutputType)' == 'WinExe'">true</StrideIsExecutable>
+
+    <!--By default, use AssemblyProcessor from solution, unless this is a user build-->
+    <StrideSdkToolsDir Condition="'$(StrideSdkToolsDir)' == ''">$(SolutionDir)Bin\Windows\Tools\</StrideSdkToolsDir>
+    <StrideAssetCompilerCommand>$(StrideSdkToolsDir)Stride.Core.Assets.CompilerApp.exe</StrideAssetCompilerCommand>
+  </PropertyGroup>
+
+  <!--Import Stride common settings-->
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.targets"/>
+
+  <!-- 
+    Settings StrideGraphicsApi specific
+  -->
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Direct3D11' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_DIRECT3D;STRIDE_GRAPHICS_API_DIRECT3D11</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Direct3D12' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_DIRECT3D;STRIDE_GRAPHICS_API_DIRECT3D12</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Null' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_NULL</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'OpenGL' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLCORE</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'OpenGLES' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLES</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_VULKAN</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  
+
+  <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.PackageReference.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.Dev.targets"/>
+
+  <!-- Adjust OutputPath -->
+  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+    <IntermediateOutputPath>obj\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\$(StrideGraphicsApi)\</IntermediateOutputPath>
+    <OutputPath>bin\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\$(StrideGraphicsApi)\</OutputPath>
+  </PropertyGroup>
+
+  <!-- If it exists, replace SharedAssemblyInfo.cs with the Package one (which contain NuGet and git versions) -->
+  <Target Name="StrideReplaceVersionInfo" Condition="'$(StridePackageBuild)' == 'true'" BeforeTargets="PrepareResources">
+    <Error Condition="!Exists('$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.NuGet.cs')" Text="File SharedAssemblyInfo.NuGet.cs doesn't seem to have been generated. Please make sure Stride.build PackageEnvironment target has been run succesfully."/>
+    <ItemGroup>
+      <StrideSharedAssemblyFile Include="@(Compile)" Condition="'%(Compile.FullPath)' == '$([System.IO.Path]::GetFullPath(`$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.cs`))'"/>
+      <Compile Remove="@(StrideSharedAssemblyFile)" />
+      <Compile Include="@(StrideSharedAssemblyFile->'$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.NuGet.cs')" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Make sure sdsl/sdfx are properly setup with code generator; also mark generated code file as dependent -->
+  <ItemGroup>
+    <Compile Update="**\*.sdsl.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.sdsl" Generator="StrideShaderKeyGenerator" />
+    <Compile Update="**\*.sdfx.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
+  </ItemGroup>
+
+</Project>

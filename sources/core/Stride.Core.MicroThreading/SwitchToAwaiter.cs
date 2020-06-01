@@ -6,11 +6,7 @@ using System.Threading.Tasks;
 
 namespace Stride.Core.MicroThreading
 {
-#if NET45
     public class SwitchToAwaiter : INotifyCompletion
-#else
-    public class SwitchToAwaiter
-#endif
     {
         private Scheduler scheduler;
 

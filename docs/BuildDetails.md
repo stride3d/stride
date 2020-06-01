@@ -67,12 +67,6 @@ Note: we don't apply them transitively yet (project output won't contains the `.
 
 By adding a reference to `Stride.Native.targets`, it is easy to build some C/C++ files that will be compiled on all platforms and automatically added to the `.ssdeps` file.
 
-## ExecServer
-
-ExecServer is a mechanism used by some of our tools to avoid JIT-ing every time frequently run code, increasing startup performance. In practice, it is used to run the compiler app.
-
-Internally, it uses [LoaderOptimization.MultiDomain](https://msdn.microsoft.com/en-us/library/system.loaderoptimization(v=vs.110).aspx) optimization.
-
 ### Limitations
 
 It seems that using those optimization don't work well with shadow copying and [probing privatePath](https://msdn.microsoft.com/en-us/library/823z9h8w(v=vs.110).aspx). This forces us to copy the `Direct3D11` specific assemblies to the top level `Windows` folder at startup of some tools. This is little bit unfortunate as it seems to disturb the MSBuild assembly searching (happens before `$(AssemblySearchPaths)`). As a result, inside Stride solution it is necessary to explicitely add `<ProjectReference>` to the graphics specific assemblies otherwise wrong ones might be picked up.

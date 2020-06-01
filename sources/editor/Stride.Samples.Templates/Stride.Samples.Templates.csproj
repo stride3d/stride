@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.props" />
 
   <PropertyGroup>
     <StridePackAssets>true</StridePackAssets>
@@ -10,7 +10,7 @@
     <PackageVersion>$([System.Text.RegularExpressions.Regex]::Match($(_StrideThisPackageVersionLines), `.*Current = \"(.*)\";.*`).Groups[1].Value)</PackageVersion>
   </PropertyGroup>
 
-  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="$(StrideSdkTargets)" />
 
   <ItemGroup>
     <Compile Include="ThisPackageVersion.cs" />

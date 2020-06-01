@@ -451,10 +451,6 @@ namespace Stride.Engine.Tests
             Assert.True(removeChildCheck);
             Assert.True(prevRootAsChildCheck);
         }
-
-        internal static void Main()
-        {
-        }
     }
 
     public class CustomEntityManager : EntityManager

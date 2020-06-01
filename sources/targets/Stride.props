@@ -1,0 +1,130 @@
+<!-- Build file pre-included by all Stride projects -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <StrideSdkTargets>$(MSBuildThisFileDirectory)Stride.targets</StrideSdkTargets>
+    <StrideAssemblyProcessorGlobal>true</StrideAssemblyProcessorGlobal>
+    <StrideAssemblyProcessorDefaultOptions>--auto-notify-property --parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorDefaultOptions>
+    <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
+  </PropertyGroup>
+
+  <!--Import Stride settings-->
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.props"/>
+
+  <!-- Default GraphicsApi -->
+  <PropertyGroup>
+    <StrideGraphicsApisWindows Condition="'$(StrideGraphicsApisWindows)' == ''">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApisWindows>
+    <StrideGraphicsApisLinux Condition="'$(StrideGraphicsApisLinux)' == ''">Vulkan;OpenGL</StrideGraphicsApisLinux>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'Windows'">$(StrideGraphicsApisWindows)</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == '' And '$(StridePlatform)' == 'Linux'">$(StrideGraphicsApisLinux)</StrideGraphicsApis>
+
+    <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'UWP'">Direct3D11</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'macOS'">Vulkan</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'Android'">OpenGLES</StrideDefaultGraphicsApi>
+    <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'iOS'">OpenGLES</StrideDefaultGraphicsApi>
+  </PropertyGroup>
+  <!-- Some platforms only have a single graphics API.
+      If yes, set it right away and disable StrideGraphicsApiDependent (only for inner builds, check using TargetFrameworks) -->
+  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true' And !('$(TargetFrameworks)' != '' and '$(TargetFramework)' == '')">
+    <StrideGraphicsApiDependent Condition="'$(StridePlatform)' == 'UWP'">false</StrideGraphicsApiDependent>
+    <StrideGraphicsApiDependent Condition="'$(StridePlatform)' == 'macOS'">false</StrideGraphicsApiDependent>
+    <StrideGraphicsApiDependent Condition="'$(StridePlatform)' == 'Android'">false</StrideGraphicsApiDependent>
+    <StrideGraphicsApiDependent Condition="'$(StridePlatform)' == 'iOS'">false</StrideGraphicsApiDependent>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApiDependent)' == 'false'">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
+  </PropertyGroup>
+  <!-- Setup default GraphicsApi for design-time build (that's the one used for Visual Studio intellisense, so it can be useful to override when working on a specific API) -->
+  <PropertyGroup Condition="'$(DesignTimeBuild)' == 'true' And '$(StrideGraphicsApiDependent)' == 'true' And '$(StrideGraphicsApi)' == ''">
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''">$(StrideDefaultGraphicsApiDesignTime)</StrideGraphicsApi>
+    <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == ''">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
+  </PropertyGroup>
+
+  <!-- 
+    Settings StrideGraphicsApi specific
+  -->
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Direct3D11' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_DIRECT3D;STRIDE_GRAPHICS_API_DIRECT3D11</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Direct3D12' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_DIRECT3D;STRIDE_GRAPHICS_API_DIRECT3D12</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Null' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_NULL</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'OpenGL' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLCORE</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'OpenGLES' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_OPENGL;STRIDE_GRAPHICS_API_OPENGLES</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
+    <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_VULKAN</StrideGraphicsApiDefines>
+  </PropertyGroup>
+
+  <!-- 
+    Settings StridePlatform specific
+  -->
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'UWP' ">
+    <ProjectLockFile Condition="'$(ProjectLockFile)' == ''">$(MSBuildThisFileDirectory)..\build\project.lock.json</ProjectLockFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
+    <NUnitLiteBinDir>$(MSBuildThisFileDirectory)..\..\deps\NUnitLite\net-monotouch\</NUnitLiteBinDir>
+  </PropertyGroup>
+
+  <!-- 
+    Global Defines
+  -->
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);$(StrideGraphicsApiDefines)</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <StrideUI Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS'">SDL</StrideUI>
+    <StrideUI Condition="'$(StrideGraphicsApi)' == 'OpenGL'">$(StrideUI);OPENTK</StrideUI>
+    <StrideUI Condition="'$(StridePlatform)' == 'Windows' AND ($(TargetFramework.StartsWith('net4')) OR $(TargetFramework.StartsWith('netcoreapp3'))) AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
+
+    <DefineConstants Condition="$(StrideUI.Contains('SDL'))">$(DefineConstants);STRIDE_UI_SDL</DefineConstants>
+    <DefineConstants Condition="$(StrideUI.Contains('OPENTK'))">$(DefineConstants);STRIDE_UI_OPENTK</DefineConstants>
+    <DefineConstants Condition="$(StrideUI.Contains('WINFORMS'))">$(DefineConstants);STRIDE_UI_WINFORMS</DefineConstants>
+    <DefineConstants Condition="$(StrideUI.Contains('WPF'))">$(DefineConstants);STRIDE_UI_WPF</DefineConstants>
+  </PropertyGroup>
+  <!-- Build the StrideUIList using the value of StrideUI -->
+  <ItemGroup Condition="'$(StrideUIList)' == ''">
+    <StrideUIList Condition="'$(StrideUI)' != ''" Include="$(StrideUI)" />
+    <StrideUIList Condition="'$(StrideUI)' == ''" Include="None" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <!-- Pack target -->
+  <!--<UsingTask TaskName="Stride.Core.Tasks.PackAssets" AssemblyFile="$(MSBuildThisFileDirectory)..\core\Stride.Core.Tasks\bin\$(Configuration)\$(StrideEditorTargetFramework)\Stride.Core.Tasks.exe" />-->
+  <Target Name="PrepareStrideAssetsForPack" BeforeTargets="_GetPackageFiles" Condition="'$(StridePackAssets)' == 'true'">
+    <!-- We use exec version rather than task version, otherwise file will be locked during rebuild -->
+    <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
+      <Output TaskParameter="GeneratedItems" ItemName="None"/>
+    </PackAssets>-->
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\core\Stride.Core.Tasks\bin\$(Configuration)\$(StrideEditorTargetFramework)\Stride.Core.Tasks.exe&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)\stride&quot;" ConsoleToMsBuild="true">
+      <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
+    </Exec>
+    <ItemGroup>
+      <PackAssetsLine Update="@(PackAssetsLine)">
+        <SourcePath>$([System.String]::new('%(Identity)').Split('|')[0])</SourcePath>
+        <PackagePath>$([System.String]::new('%(Identity)').Split('|')[1])</PackagePath>
+      </PackAssetsLine>
+      <None Include="%(PackAssetsLine.SourcePath)">
+        <Pack>true</Pack>
+        <PackagePath>%(PackAssetsLine.PackagePath)</PackagePath>
+      </None>
+    </ItemGroup>
+  </Target>
+
+</Project>

@@ -101,12 +101,7 @@ namespace Sockets.Plugin
         public Task DisconnectAsync()
         {
             return Task.Run(() => {
-#if !STRIDE_RUNTIME_CORECLR
-                    // As long as we target .NET 4.5 we cannot use `Dispose'.
-                _backingTcpClient.Close();
-#else
                 _backingTcpClient.Dispose();
-#endif
                 _secureStream = null;
             });
         }

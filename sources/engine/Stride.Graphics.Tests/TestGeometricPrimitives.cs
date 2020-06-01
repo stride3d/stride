@@ -156,12 +156,6 @@ namespace Stride.Graphics.Tests
             }
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestGeometricPrimitives())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

@@ -1,0 +1,49 @@
+<!-- Build file post-included by all Stride projects -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- ==================================================================
+       Targets to adjust ProjectReference RuntimeIdentifier
+       They properly set the RuntimeIdentifier of ProjectReference (since we have sometimes weird transitions like win => win-d3d11 or win => noRID)
+       If we don't do it, MSBuild slap current RID, and even if this RID is overriden inside the build of the project, it will still trigger an unecessary build w/ double writes -->
+  <Target Name="_StrideSdkGetBestRidForTfm" Returns="@(_RuntimeIdentifierItem)" Condition="'$(StrideProjectType)' != 'Cpp'">
+    <PropertyGroup Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == ''">
+      <!-- If referencing project has a runtime identifier and it's part of the supported RuntimeIdentifiers list, use it -->
+      <_RuntimeIdentifiersTemp>;$(RuntimeIdentifiers);</_RuntimeIdentifiersTemp>
+      <_StrideRuntimeIdentifier Condition="'$(ReferencingRuntimeIdentifier)' != '' And $(_RuntimeIdentifiersTemp.Contains(';$(ReferencingRuntimeIdentifier);'))">$(ReferencingRuntimeIdentifier)</_StrideRuntimeIdentifier>
+      <!-- Otherwise, fallback to first one -->
+      <_StrideRuntimeIdentifier Condition="'$(_StrideRuntimeIdentifier)' == ''">$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</_StrideRuntimeIdentifier>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == ''">
+      <_RuntimeIdentifierItem Condition="'$(_StrideRuntimeIdentifier)' != ''" Include="$(_StrideRuntimeIdentifier)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
+    </ItemGroup>
+    <!-- Use a fake runtime identifier to transmit StrideGraphicsApiDependent -->
+    <ItemGroup Condition="'@(_RuntimeIdentifierItem)' == ''">
+      <_RuntimeIdentifierItem Include="stride_fake_graphics_api" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideProjectReferenceRuntimeIdentifierAndGraphicsApiDependent" BeforeTargets="PrepareProjectReferences">
+    <!-- Query default RID of ProjectReference that are not RidAgnostic -->
+    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="TargetFramework=%(_MSBuildProjectReferenceExistent.NearestTargetFramework);ReferencingRuntimeIdentifier=$(RuntimeIdentifier)"
+             RemoveProperties="RuntimeIdentifier"
+             Targets="_StrideSdkGetBestRidForTfm"
+             SkipNonexistentTargets="true">
+      <Output ItemName="_MSBuildProjectReferenceExistentWithRID" TaskParameter="TargetOutputs"  />
+    </MSBuild>
+
+    <ItemGroup>
+      <_MSBuildProjectReferenceExistentWithRID2 Include="@(_MSBuildProjectReferenceExistentWithRID->'%(OriginalItemSpec)')" Condition="'%(Identity)' != 'stride_fake_graphics_api'">
+        <RuntimeIdentifier>%(Identity)</RuntimeIdentifier>
+        <StrideGraphicsApiDependent>%(StrideGraphicsApiDependent)</StrideGraphicsApiDependent>
+        <SetTargetFramework>%(_MSBuildProjectReferenceExistentWithRID.SetTargetFramework);RuntimeIdentifier=%(Identity)</SetTargetFramework>
+        <GlobalPropertiesToRemove>$([System.String]::Copy('%(_MSBuildProjectReferenceExistentWithRID.GlobalPropertiesToRemove)').Replace(';RuntimeIdentifier', ''))</GlobalPropertiesToRemove>
+      </_MSBuildProjectReferenceExistentWithRID2>
+      <_MSBuildProjectReferenceExistentWithRID2 Include="@(_MSBuildProjectReferenceExistentWithRID->'%(OriginalItemSpec)')" Condition="'%(Identity)' == 'stride_fake_graphics_api' And '%(StrideGraphicsApiDependent)' != ''">
+        <StrideGraphicsApiDependent>%(StrideGraphicsApiDependent)</StrideGraphicsApiDependent>
+      </_MSBuildProjectReferenceExistentWithRID2>
+
+      <_MSBuildProjectReferenceExistent Remove="@(_MSBuildProjectReferenceExistentWithRID2)"/>
+      <_MSBuildProjectReferenceExistent Include="@(_MSBuildProjectReferenceExistentWithRID2)"/>
+    </ItemGroup>
+  </Target>
+</Project>

@@ -1,4 +1,3 @@
 *.pdb
 *.xml
-!Stride.Core.AssemblyProcessor.*
-Stride.Core.AssemblyProcessor.vshost.*
+!*/Stride.Core.AssemblyProcessor.*

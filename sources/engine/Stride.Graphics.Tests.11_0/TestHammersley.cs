@@ -77,12 +77,6 @@ namespace Stride.Graphics.Tests
             base.Draw(gameTime);
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestHammersley())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

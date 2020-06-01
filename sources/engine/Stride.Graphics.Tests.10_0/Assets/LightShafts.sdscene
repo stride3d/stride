@@ -439,21 +439,6 @@ Hierarchy:
                         Id: fd24d5e2-16d4-4191-9e0a-e314757b5a6c
                         Model: 879181e4-ed39-495f-8f1d-e586e650cc82:Model
                         LightShaft: ref!! 780b7663-a294-4e8e-8c09-52c6bb41d543
-                    d1826804d19c6aeb37a24fdda10d47cc: !StaticColliderComponent
-                        Id: 7f2be5c5-8efd-4432-98f5-0a8b38879f40
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        ColliderShapes:
-                            d203d62d40a3990bcbdc3df9011c6f0c: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
         -   Folder: Level
             Entity:
                 Id: fce550a1-75be-42db-b233-24f6c9e3bd08

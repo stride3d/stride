@@ -272,7 +272,7 @@ namespace Stride.Core.AssemblyProcessor
                         Attributes = genericParameter.Attributes,
                     };
                     foreach (var constraint in genericParameter.Constraints)
-                        genericParameterCopy.Constraints.Add(context.Assembly.MainModule.ImportReference(constraint));
+                        genericParameterCopy.Constraints.Add(new GenericParameterConstraint(context.Assembly.MainModule.ImportReference(constraint.ConstraintType)));
                     updateCurrentMethod.GenericParameters.Add(genericParameterCopy);
 
                     genericsMapping[genericParameter] = genericParameterCopy;

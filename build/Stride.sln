@@ -11,28 +11,21 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Targets.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
 	ProjectSection(SolutionItems) = preProject
 		..\store.config = ..\store.config
-		..\sources\targets\Stride.Core.Android.CSharp.targets = ..\sources\targets\Stride.Core.Android.CSharp.targets
-		..\sources\targets\Stride.Core.CoreCLR.Cpp.targets = ..\sources\targets\Stride.Core.CoreCLR.Cpp.targets
-		..\sources\targets\Stride.Core.CoreCLR.CSharp.targets = ..\sources\targets\Stride.Core.CoreCLR.CSharp.targets
+		..\sources\targets\Stride.Core.Cpp.props = ..\sources\targets\Stride.Core.Cpp.props
 		..\sources\targets\Stride.Core.Cpp.targets = ..\sources\targets\Stride.Core.Cpp.targets
-		..\sources\targets\Stride.Core.CSharp.targets = ..\sources\targets\Stride.Core.CSharp.targets
-		..\sources\targets\Stride.Core.GlobalSettings.targets = ..\sources\targets\Stride.Core.GlobalSettings.targets
-		..\sources\targets\Stride.Core.iOS.CSharp.targets = ..\sources\targets\Stride.Core.iOS.CSharp.targets
 		..\sources\targets\Stride.Core.PostSettings.Dependencies.targets = ..\sources\targets\Stride.Core.PostSettings.Dependencies.targets
-		..\sources\targets\Stride.Core.PostSettings.targets = ..\sources\targets\Stride.Core.PostSettings.targets
-		..\sources\targets\Stride.Core.PreSettings.targets = ..\sources\targets\Stride.Core.PreSettings.targets
+		..\sources\targets\Stride.Core.props = ..\sources\targets\Stride.Core.props
+		..\sources\targets\Stride.Core.RuntimeIdentifier.ProjectReference.targets = ..\sources\targets\Stride.Core.RuntimeIdentifier.ProjectReference.targets
 		..\sources\targets\Stride.Core.Sign.targets = ..\sources\targets\Stride.Core.Sign.targets
-		..\sources\targets\Stride.Core.UWP.Cpp.targets = ..\sources\targets\Stride.Core.UWP.Cpp.targets
-		..\sources\targets\Stride.Core.UWP.CSharp.targets = ..\sources\targets\Stride.Core.UWP.CSharp.targets
-		..\sources\targets\Stride.GlobalSettings.targets = ..\sources\targets\Stride.GlobalSettings.targets
+		..\sources\targets\Stride.Core.targets = ..\sources\targets\Stride.Core.targets
+		..\sources\targets\Stride.GraphicsApi.Dev.targets = ..\sources\targets\Stride.GraphicsApi.Dev.targets
+		..\sources\targets\Stride.GraphicsApi.PackageReference.targets = ..\sources\targets\Stride.GraphicsApi.PackageReference.targets
 		..\sources\native\Stride.Native.targets = ..\sources\native\Stride.Native.targets
-		..\sources\targets\Stride.PostSettings.References.targets = ..\sources\targets\Stride.PostSettings.References.targets
-		..\sources\targets\Stride.PostSettings.targets = ..\sources\targets\Stride.PostSettings.targets
-		..\sources\targets\Stride.PostSettings.User.targets = ..\sources\targets\Stride.PostSettings.User.targets
-		..\sources\targets\Stride.PreSettings.targets = ..\sources\targets\Stride.PreSettings.targets
-		..\sources\targets\Stride.PreSettings.UnitTests.targets = ..\sources\targets\Stride.PreSettings.UnitTests.targets
-		..\sources\targets\Stride.PreSettings.User.targets = ..\sources\targets\Stride.PreSettings.User.targets
+		..\sources\targets\Stride.props = ..\sources\targets\Stride.props
+		..\sources\targets\Stride.targets = ..\sources\targets\Stride.targets
+		..\sources\targets\Stride.UnitTests.CrossTargeting.targets = ..\sources\targets\Stride.UnitTests.CrossTargeting.targets
 		..\sources\targets\Stride.UnitTests.DisableBuild.targets = ..\sources\targets\Stride.UnitTests.DisableBuild.targets
+		..\sources\targets\Stride.UnitTests.props = ..\sources\targets\Stride.UnitTests.props
 		..\sources\targets\Stride.UnitTests.targets = ..\sources\targets\Stride.UnitTests.targets
 	EndProjectSection
 EndProject
@@ -76,10 +69,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Build", "00-Targets.Build", "{0B81090E-4066-4723-A658-8AEDBEADE619}"
 	ProjectSection(SolutionItems) = preProject
 		Stride.build = Stride.build
-		Stride.Core.GlobalSettings.Local.targets = Stride.Core.GlobalSettings.Local.targets
-		Stride.Core.PostSettings.Local.targets = Stride.Core.PostSettings.Local.targets
-		Stride.Core.PreSettings.Local.targets = Stride.Core.PreSettings.Local.targets
-		Stride.PreSettings.Local.targets = Stride.PreSettings.Local.targets
+		Stride.Build.props = Stride.Build.props
+		Stride.Build.targets = Stride.Build.targets
+		Stride.Core.Build.props = Stride.Core.Build.props
+		Stride.Core.Build.targets = Stride.Core.Build.targets
+		Stride.UnitTests.Build.targets = Stride.UnitTests.Build.targets
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "30-CoreDesign", "30-CoreDesign", "{25F10A0B-7259-404C-86BE-FD2363C92F72}"
@@ -202,9 +196,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.Editor", "..\sources\editor\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj", "{5863574D-7A55-49BC-8E65-BABB74D8E66E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.CompilerApp", "..\sources\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj", "{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}"
-	ProjectSection(ProjectDependencies) = postProject
-		{8D783A73-0BE3-423E-8FF6-984125C07BFE} = {8D783A73-0BE3-423E-8FF6-984125C07BFE}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.FixProjectReferences", "..\sources\tools\Stride.FixProjectReferences\Stride.FixProjectReferences.csproj", "{7DBC5A0B-76F5-4D9E-9798-540DA214099C}"
 EndProject
@@ -273,10 +264,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.EffectCompilerServer", "..\sources\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj", "{E25E7778-0B2F-4A0B-BCD6-1DE95320B531}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.PrivacyPolicy", "..\sources\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.shproj", "{950BADD0-AD5A-4F58-87EC-4ADAECBEA89B}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.ExecServer", "..\sources\tools\Stride.ExecServer\Stride.ExecServer.csproj", "{5E241BE1-FFB6-49F2-98B4-7869BA7D9F5A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.CompilerClient", "..\sources\assets\Stride.Core.Assets.CompilerClient\Stride.Core.Assets.CompilerClient.csproj", "{8D783A73-0BE3-423E-8FF6-984125C07BFE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.SpriteStudio.Offline", "..\sources\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj", "{63562B0A-E501-42C2-97BB-13D3AD3A7DB4}"
 EndProject
@@ -447,7 +434,6 @@ Global
 		..\sources\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems*{50d1a3bb-4b41-4ef5-8d2f-3618a3b6c698}*SharedItemsImports = 5
 		..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems*{5863574d-7a55-49bc-8e65-babb74d8e66e}*SharedItemsImports = 5
 		..\sources\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems*{5bfe4386-3c42-4118-96c8-4b68441f1661}*SharedItemsImports = 5
-		..\sources\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems*{5e241be1-ffb6-49f2-98b4-7869ba7d9f5a}*SharedItemsImports = 5
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{75d71310-ecf7-4592-9e35-3fe540040982}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{75d71310-ecf7-4592-9e35-3fe540040982}*SharedItemsImports = 5
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{77e2fcc0-4ca6-436c-be6f-9418cb807d45}*SharedItemsImports = 5
@@ -1118,26 +1104,6 @@ Global
 		{E25E7778-0B2F-4A0B-BCD6-1DE95320B531}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{E25E7778-0B2F-4A0B-BCD6-1DE95320B531}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{E25E7778-0B2F-4A0B-BCD6-1DE95320B531}.Release|Win32.ActiveCfg = Release|Any CPU
-		{5E241BE1-FFB6-49F2-98B4-7869BA7D9F5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5E241BE1-FFB6-49F2-98B4-7869BA7D9F5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5E241BE1-FFB6-49F2-98B4-7869BA7D9F5A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{5E241BE1-FFB6-49F2-98B4-7869BA7D9F5A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{5E241BE1-FFB6-49F2-98B4-7869BA7D9F5A}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{5E241BE1-FFB6-49F2-98B4-7869BA7D9F5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5E241BE1-FFB6-49F2-98B4-7869BA7D9F5A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5E241BE1-FFB6-49F2-98B4-7869BA7D9F5A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{5E241BE1-FFB6-49F2-98B4-7869BA7D9F5A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{5E241BE1-FFB6-49F2-98B4-7869BA7D9F5A}.Release|Win32.ActiveCfg = Release|Any CPU
-		{8D783A73-0BE3-423E-8FF6-984125C07BFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8D783A73-0BE3-423E-8FF6-984125C07BFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8D783A73-0BE3-423E-8FF6-984125C07BFE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{8D783A73-0BE3-423E-8FF6-984125C07BFE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{8D783A73-0BE3-423E-8FF6-984125C07BFE}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{8D783A73-0BE3-423E-8FF6-984125C07BFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8D783A73-0BE3-423E-8FF6-984125C07BFE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8D783A73-0BE3-423E-8FF6-984125C07BFE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{8D783A73-0BE3-423E-8FF6-984125C07BFE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{8D783A73-0BE3-423E-8FF6-984125C07BFE}.Release|Win32.ActiveCfg = Release|Any CPU
 		{63562B0A-E501-42C2-97BB-13D3AD3A7DB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{63562B0A-E501-42C2-97BB-13D3AD3A7DB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63562B0A-E501-42C2-97BB-13D3AD3A7DB4}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -1682,8 +1648,6 @@ Global
 		{77E2FCC0-4CA6-436C-BE6F-9418CB807D45} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{E25E7778-0B2F-4A0B-BCD6-1DE95320B531} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{950BADD0-AD5A-4F58-87EC-4ADAECBEA89B} = {5D2D3BE8-9910-45CA-8E45-95660DA4C563}
-		{5E241BE1-FFB6-49F2-98B4-7869BA7D9F5A} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
-		{8D783A73-0BE3-423E-8FF6-984125C07BFE} = {A2A4342E-024B-4063-B10C-1DA96CA3046D}
 		{63562B0A-E501-42C2-97BB-13D3AD3A7DB4} = {F765035E-F4F4-4CFA-BA02-755DC677AA97}
 		{9BC63BEC-F305-451D-BB31-262938EA964D} = {4C142567-C42B-40F5-B092-798882190209}
 		{9AC6D791-811E-4D6A-B08E-93F0093EF268} = {75A820AB-0F21-40F2-9448-5D7F495B97A0}

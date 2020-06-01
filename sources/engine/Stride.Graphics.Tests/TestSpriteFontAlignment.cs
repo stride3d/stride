@@ -105,12 +105,6 @@ One blank line below
             spriteBatch.End();
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestSpriteFontAlignment())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

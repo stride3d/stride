@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <StrideProjectType>Cpp</StrideProjectType>
-    <TargetFrameworkVersion>$(TargetFrameworkVersionTool)</TargetFrameworkVersion>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessorOptions>
     </StrideAssemblyProcessorOptions>
@@ -26,16 +26,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C2306552-6C42-464C-8981-32FEF4F9458D}</ProjectGuid>
     <Keyword>ManagedCProj</Keyword>
@@ -55,6 +45,7 @@
     <CLRSupport>true</CLRSupport>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
+  <Import Project="..\..\targets\Stride.Core.Cpp.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -62,6 +53,16 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>bin\$(TargetFramework)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(TargetFramework)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>bin\$(TargetFramework)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(TargetFramework)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -150,6 +151,8 @@
     <Reference Include="BulletSharp">
       <HintPath>..\..\..\deps\BulletPhysics\BulletSharp.NetStandard.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
@@ -253,7 +256,7 @@
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="$(StrideSdkTargets)" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>

@@ -2,7 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 
-using SharpVulkan;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {

@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using SharpVulkan;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Graphics
 {
@@ -21,9 +23,12 @@ namespace Stride.Graphics
         /// </summary>
         internal static void InitializeInternal()
         {
+            var result = vkInitialize();
+            result.CheckResult();
+
             // Create the default instance to enumerate physical devices
             defaultInstance = new GraphicsAdapterFactoryInstance(false);
-            var nativePhysicalDevices = defaultInstance.NativeInstance.PhysicalDevices;
+            var nativePhysicalDevices = vkEnumeratePhysicalDevices(defaultInstance.NativeInstance);
 
             var adapterList = new List<GraphicsAdapter>();
             for (int i = 0; i < nativePhysicalDevices.Length; i++)
@@ -77,150 +82,129 @@ namespace Stride.Graphics
 
     internal class GraphicsAdapterFactoryInstance : IDisposable
     {
-        private DebugReportCallback debugReportCallback;
-        private DebugReportCallbackDelegate debugReport;
+        private VkDebugUtilsMessengerEXT debugReportCallback;
+        private vkDebugUtilsMessengerCallbackEXT debugReport;
 
-        internal Instance NativeInstance;
+        internal VkInstance NativeInstance;
         internal bool HasXlibSurfaceSupport;
 
-        internal BeginDebugMarkerDelegate BeginDebugMarker;
-        internal EndDebugMarkerDelegate EndDebugMarker;
+        // We use GraphicsDevice (similar to OpenGL)
+        private static readonly Logger Log = GlobalLogger.GetLogger("GraphicsDevice");
 
         public unsafe GraphicsAdapterFactoryInstance(bool enableValidation)
         {
-            var applicationInfo = new ApplicationInfo
+            var applicationInfo = new VkApplicationInfo
             {
-                StructureType = StructureType.ApplicationInfo,
-                ApiVersion = new SharpVulkan.Version(1, 0, 0),
-                EngineName = Marshal.StringToHGlobalAnsi("Stride"),
-                //EngineVersion = new SharpVulkan.Version()
+                sType = VkStructureType.ApplicationInfo,
+                apiVersion = new VkVersion(1, 0, 0),
+                pEngineName = (byte*)Marshal.StringToHGlobalAnsi("Stride"),
+                //engineVersion = new VkVersion()
             };
 
-            var desiredLayerNames = new[]
+            var validationLayerNames = new[]
             {
-                    //"VK_LAYER_LUNARG_standard_validation",
-                    "VK_LAYER_GOOGLE_threading",
-                    "VK_LAYER_LUNARG_parameter_validation",
-                    "VK_LAYER_LUNARG_device_limits",
-                    "VK_LAYER_LUNARG_object_tracker",
-                    "VK_LAYER_LUNARG_image",
-                    "VK_LAYER_LUNARG_core_validation",
-                    "VK_LAYER_LUNARG_swapchain",
-                    "VK_LAYER_GOOGLE_unique_objects",
-                    //"VK_LAYER_LUNARG_api_dump",
-                    //"VK_LAYER_LUNARG_vktrace"
-                };
+                "VK_LAYER_KHRONOS_validation",
+            };
 
             IntPtr[] enabledLayerNames = new IntPtr[0];
 
             if (enableValidation)
             {
-                var layers = Vulkan.InstanceLayerProperties;
+                var layers = vkEnumerateInstanceLayerProperties();
                 var availableLayerNames = new HashSet<string>();
 
                 for (int index = 0; index < layers.Length; index++)
                 {
                     var properties = layers[index];
-                    var namePointer = new IntPtr(Interop.Fixed(ref properties.LayerName));
-                    var name = Marshal.PtrToStringAnsi(namePointer);
+                    var namePointer = properties.layerName;
+                    var name = Marshal.PtrToStringAnsi((IntPtr)namePointer);
 
                     availableLayerNames.Add(name);
                 }
 
-                enabledLayerNames = desiredLayerNames
+                enabledLayerNames = validationLayerNames
                     .Where(x => availableLayerNames.Contains(x))
                     .Select(Marshal.StringToHGlobalAnsi).ToArray();
+
+                // Check if validation was really available
+                enableValidation = enabledLayerNames.Length > 0;
             }
 
-            var extensionProperties = Vulkan.GetInstanceExtensionProperties();
+            var extensionProperties = vkEnumerateInstanceExtensionProperties();
             var availableExtensionNames = new List<string>();
             var desiredExtensionNames = new List<string>();
 
             for (int index = 0; index < extensionProperties.Length; index++)
             {
-                var namePointer = new IntPtr(Interop.Fixed(ref extensionProperties[index].ExtensionName));
-                var name = Marshal.PtrToStringAnsi(namePointer);
+                var extensionProperty = extensionProperties[index];
+                var name = Marshal.PtrToStringAnsi((IntPtr)extensionProperty.extensionName);
                 availableExtensionNames.Add(name);
             }
 
-            desiredExtensionNames.Add("VK_KHR_surface");
-            if (!availableExtensionNames.Contains("VK_KHR_surface"))
-                throw new InvalidOperationException("Required extension VK_KHR_surface is not available");
+            desiredExtensionNames.Add(KHRSurfaceExtensionName);
+            if (!availableExtensionNames.Contains(KHRSurfaceExtensionName))
+                throw new InvalidOperationException($"Required extension {KHRSurfaceExtensionName} is not available");
 
 #if STRIDE_PLATFORM_WINDOWS_DESKTOP
-            desiredExtensionNames.Add("VK_KHR_win32_surface");
-            if (!availableExtensionNames.Contains("VK_KHR_win32_surface"))
-                throw new InvalidOperationException("Required extension VK_KHR_win32_surface is not available");
+            desiredExtensionNames.Add(KHRWin32SurfaceExtensionName);
+            if (!availableExtensionNames.Contains(KHRWin32SurfaceExtensionName))
+                throw new InvalidOperationException($"Required extension {KHRWin32SurfaceExtensionName} is not available");
 #elif STRIDE_PLATFORM_ANDROID
-                desiredExtensionNames.Add("VK_KHR_android_surface");
-                if (!availableExtensionNames.Contains("VK_KHR_android_surface"))
-                    throw new InvalidOperationException("Required extension VK_KHR_android_surface is not available");
+            desiredExtensionNames.Add(KHRAndroidSurfaceExtensionName);
+            if (!availableExtensionNames.Contains(KHRAndroidSurfaceExtensionName))
+                throw new InvalidOperationException($"Required extension {KHRAndroidSurfaceExtensionName} is not available");
 #elif STRIDE_PLATFORM_LINUX
-                if (availableExtensionNames.Contains("VK_KHR_xlib_surface"))
-                {
-                    desiredExtensionNames.Add("VK_KHR_xlib_surface");
-                    HasXlibSurfaceSupport = true;
-                }
-                else if (availableExtensionNames.Contains("VK_KHR_xcb_surface"))
-                {
-                    desiredExtensionNames.Add("VK_KHR_xcb_surface");
-                }
-                else
-                {
-                    throw new InvalidOperationException("None of the supported surface extensions VK_KHR_xcb_surface or VK_KHR_xlib_surface is available");
-                }
+            if (availableExtensionNames.Contains("VK_KHR_xlib_surface"))
+            {
+                desiredExtensionNames.Add("VK_KHR_xlib_surface");
+                HasXlibSurfaceSupport = true;
+            }
+            else if (availableExtensionNames.Contains("VK_KHR_xcb_surface"))
+            {
+                desiredExtensionNames.Add("VK_KHR_xcb_surface");
+            }
+            else
+            {
+                throw new InvalidOperationException("None of the supported surface extensions VK_KHR_xcb_surface or VK_KHR_xlib_surface is available");
+            }
 #endif
-            bool enableDebugReport = enableValidation && availableExtensionNames.Contains("VK_EXT_debug_report");
+            bool enableDebugReport = enableValidation && availableExtensionNames.Contains(EXTDebugUtilsExtensionName);
             if (enableDebugReport)
-                desiredExtensionNames.Add("VK_EXT_debug_report");
+                desiredExtensionNames.Add(EXTDebugUtilsExtensionName);
 
             var enabledExtensionNames = desiredExtensionNames.Select(Marshal.StringToHGlobalAnsi).ToArray();
-
-            var createDebugReportCallbackName = Marshal.StringToHGlobalAnsi("vkCreateDebugReportCallbackEXT");
 
             try
             {
                 fixed (void* enabledExtensionNamesPointer = &enabledExtensionNames[0])
                 {
-                    var instanceCreateInfo = new InstanceCreateInfo
+                    var instanceCreateInfo = new VkInstanceCreateInfo
                     {
-                        StructureType = StructureType.InstanceCreateInfo,
-                        ApplicationInfo = new IntPtr(&applicationInfo),
-                        EnabledLayerCount = enabledLayerNames != null ? (uint)enabledLayerNames.Length : 0,
-                        EnabledLayerNames = enabledLayerNames?.Length > 0 ? new IntPtr(Interop.Fixed(enabledLayerNames)) : IntPtr.Zero,
-                        EnabledExtensionCount = (uint)enabledExtensionNames.Length,
-                        EnabledExtensionNames = new IntPtr(enabledExtensionNamesPointer)
+                        sType = VkStructureType.InstanceCreateInfo,
+                        pApplicationInfo = &applicationInfo,
+                        enabledLayerCount = enabledLayerNames != null ? (uint)enabledLayerNames.Length : 0,
+                        ppEnabledLayerNames = enabledLayerNames?.Length > 0 ? (byte**)Core.Interop.Fixed(enabledLayerNames) : null,
+                        enabledExtensionCount = (uint)enabledExtensionNames.Length,
+                        ppEnabledExtensionNames = (byte**)enabledExtensionNamesPointer,
                     };
 
-                    NativeInstance = Vulkan.CreateInstance(ref instanceCreateInfo);
+                    vkCreateInstance(&instanceCreateInfo, null, out NativeInstance);
+                    vkLoadInstance(NativeInstance);
                 }
 
-                if (enableDebugReport)
+                // Check if validation layer was available (otherwise detected count is 0)
+                if (enableValidation)
                 {
-                    var createDebugReportCallback = (CreateDebugReportCallbackDelegate)Marshal.GetDelegateForFunctionPointer(NativeInstance.GetProcAddress((byte*)createDebugReportCallbackName), typeof(CreateDebugReportCallbackDelegate));
-
                     debugReport = DebugReport;
-                    var createInfo = new DebugReportCallbackCreateInfo
+                    var createInfo = new VkDebugUtilsMessengerCreateInfoEXT
                     {
-                        StructureType = StructureType.DebugReportCallbackCreateInfo,
-                        Flags = (uint)(DebugReportFlags.Error | DebugReportFlags.Warning /* | DebugReportFlags.PerformanceWarning | DebugReportFlags.Information | DebugReportFlags.Debug*/),
-                        Callback = Marshal.GetFunctionPointerForDelegate(debugReport)
+                        sType = VkStructureType.DebugUtilsMessengerCreateInfoEXT,
+                        messageSeverity = VkDebugUtilsMessageSeverityFlagsEXT.VerboseEXT | VkDebugUtilsMessageSeverityFlagsEXT.ErrorEXT | VkDebugUtilsMessageSeverityFlagsEXT.WarningEXT,
+                        messageType = VkDebugUtilsMessageTypeFlagsEXT.GeneralEXT | VkDebugUtilsMessageTypeFlagsEXT.ValidationEXT | VkDebugUtilsMessageTypeFlagsEXT.PerformanceEXT,
+                        pfnUserCallback = Marshal.GetFunctionPointerForDelegate(debugReport)
                     };
-                    createDebugReportCallback(NativeInstance, ref createInfo, null, out debugReportCallback);
-                }
 
-                if (availableExtensionNames.Contains("VK_EXT_debug_marker"))
-                {
-                    var beginDebugMarkerName = System.Text.Encoding.ASCII.GetBytes("vkCmdDebugMarkerBeginEXT");
-
-                    var ptr = NativeInstance.GetProcAddress((byte*)Interop.Fixed(beginDebugMarkerName));
-                    if (ptr != IntPtr.Zero)
-                        BeginDebugMarker = (BeginDebugMarkerDelegate)Marshal.GetDelegateForFunctionPointer(ptr, typeof(BeginDebugMarkerDelegate));
-
-                    var endDebugMarkerName = System.Text.Encoding.ASCII.GetBytes("vkCmdDebugMarkerEndEXT");
-                    ptr = NativeInstance.GetProcAddress((byte*)Interop.Fixed(endDebugMarkerName));
-                    if (ptr != IntPtr.Zero)
-                        EndDebugMarker = (EndDebugMarkerDelegate)Marshal.GetDelegateForFunctionPointer(ptr, typeof(EndDebugMarkerDelegate));
+                    vkCreateDebugUtilsMessengerEXT(NativeInstance, &createInfo, null, out debugReportCallback).CheckResult();
                 }
             }
             finally
@@ -235,38 +219,45 @@ namespace Stride.Graphics
                     Marshal.FreeHGlobal(enabledLayerName);
                 }
 
-                Marshal.FreeHGlobal(applicationInfo.EngineName);
-                Marshal.FreeHGlobal(createDebugReportCallbackName);
+                Marshal.FreeHGlobal((IntPtr)applicationInfo.pEngineName);
             }
         }
 
-        private static RawBool DebugReport(DebugReportFlags flags, DebugReportObjectType objectType, ulong @object, PointerSize location, int messageCode, string layerPrefix, string message, IntPtr userData)
+        private unsafe static VkBool32 DebugReport(VkDebugUtilsMessageSeverityFlagsEXT severity, VkDebugUtilsMessageTypeFlagsEXT types, VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, IntPtr userData)
         {
-            Debug.WriteLine($"{flags}: {message} ([{messageCode}] {layerPrefix})");
-            return true;
+            var message = Vortice.Vulkan.Interop.GetString(pCallbackData->pMessage);
+
+            // Redirect to log
+            if (severity == VkDebugUtilsMessageSeverityFlagsEXT.ErrorEXT)
+            {
+                Log.Error(message);
+            }
+            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.WarningEXT)
+            {
+                Log.Warning(message);
+            }
+            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.InfoEXT)
+            {
+                Log.Info(message);
+            }
+            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.VerboseEXT)
+            {
+                Log.Verbose(message);
+            }
+
+            return false;
         }
 
         public unsafe void Dispose()
         {
-            if (debugReportCallback != DebugReportCallback.Null)
+            if (debugReportCallback != VkDebugUtilsMessengerEXT.Null)
             {
-                NativeInstance.DestroyDebugReportCallback(debugReportCallback);
+                vkDestroyDebugUtilsMessengerEXT(NativeInstance, debugReportCallback, null);
+                debugReportCallback = VkDebugUtilsMessengerEXT.Null;
             }
 
-            NativeInstance.Destroy();
+            vkDestroyInstance(NativeInstance, null);
         }
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal unsafe delegate void BeginDebugMarkerDelegate(CommandBuffer commandBuffer, DebugMarkerMarkerInfo* markerInfo);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate void EndDebugMarkerDelegate(CommandBuffer commandBuffer);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        private delegate RawBool DebugReportCallbackDelegate(DebugReportFlags flags, DebugReportObjectType objectType, ulong @object, PointerSize location, int messageCode, string layerPrefix, string message, IntPtr userData);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private unsafe delegate Result CreateDebugReportCallbackDelegate(Instance instance, ref DebugReportCallbackCreateInfo createInfo, AllocationCallbacks* allocator, out DebugReportCallback callback);
     }
 }
 #endif 

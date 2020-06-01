@@ -4,7 +4,7 @@
     <StrideRuntimeNetStandard>true</StrideRuntimeNetStandard>
   </PropertyGroup>
 
-  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.Core.props" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
@@ -77,7 +77,7 @@
     <None Include="Parsing\Data\Construction\_about_parser_construction.txt" />
   </ItemGroup>
   
-  <Import Project="$(StridePostSettingsTargets)" />
+  <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
 </Project>

@@ -41,7 +41,7 @@ namespace Stride.Graphics
         /// <param name="instanceCount">The instance count.</param>
         /// <param name="vertexStride">The vertex stride.</param>
         /// <exception cref="System.ArgumentNullException">elements</exception>
-        public VertexDeclaration(VertexElement[] elements, int instanceCount = 0, int vertexStride = 0) 
+        public VertexDeclaration(VertexElement[] elements, int instanceCount, int vertexStride) 
         {
             if (elements == null) throw new ArgumentNullException("elements");
 

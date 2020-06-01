@@ -68,14 +68,5 @@ namespace Stride.UI.Tests.Regression
         {
             RunGameTest(new UniformGridTest());
         }
-
-        /// <summary>
-        /// Launch the Image test.
-        /// </summary>
-        internal static void Main()
-        {
-            using (var game = new UniformGridTest())
-                game.Run();
-        }
     }
 }

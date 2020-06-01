@@ -43,7 +43,7 @@ Hierarchy:
                         BlueTeapot: ref!! 842c111f-8523-40b6-ac65-314d6167c8c9
         -   Entity:
                 Id: 842c111f-8523-40b6-ac65-314d6167c8c9
-                Name: Blue Theapot
+                Name: Blue Teapot
                 Components:
                     f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
                         Id: 56e36513-da23-456b-be30-832e6964f089

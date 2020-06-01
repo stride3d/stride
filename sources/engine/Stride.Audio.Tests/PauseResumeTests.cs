@@ -49,11 +49,5 @@ namespace Stride.Audio.Tests
         {
             RunGameTest(new PauseResumeTest());
         }
-
-        internal static void Main()
-        {
-            using (var game = new PauseResumeTest())
-                game.Run();
-        }
     }
 }

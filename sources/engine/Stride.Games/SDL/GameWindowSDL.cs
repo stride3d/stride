@@ -24,9 +24,7 @@ namespace Stride.Games
         private WindowHandle windowHandle;
 
         private bool isFullScreenMaximized;
-        private FormBorderStyle savedFormBorderStyle;
-        private bool oldVisible;
-        private bool deviceChangeChangedVisible;
+        private Point savedFormLocation;
         private bool? deviceChangeWillBeFullScreen;
 
         private bool allowUserResizing;
@@ -46,31 +44,9 @@ namespace Stride.Games
 
         public override void BeginScreenDeviceChange(bool willBeFullScreen)
         {
-            if (willBeFullScreen && !isFullScreenMaximized && window != null)
+            if (!isFullScreenMaximized && window != null)
             {
-                savedFormBorderStyle = window.FormBorderStyle;
-            }
-
-            if (willBeFullScreen != isFullScreenMaximized)
-            {
-                deviceChangeChangedVisible = true;
-                oldVisible = Visible;
-                Visible = false;
-
-                if (window != null)
-                {
-                    window.SendToBack();
-                }
-            }
-            else
-            {
-                deviceChangeChangedVisible = false;
-            }
-
-            if (!willBeFullScreen && isFullScreenMaximized && window != null)
-            {
-                window.TopMost = false;
-                window.FormBorderStyle = savedFormBorderStyle;
+                savedFormLocation = window.Location;
             }
 
             deviceChangeWillBeFullScreen = willBeFullScreen;
@@ -81,34 +57,43 @@ namespace Stride.Games
             if (!deviceChangeWillBeFullScreen.HasValue)
                 return;
 
-            if (deviceChangeWillBeFullScreen.Value)
+            if (deviceChangeWillBeFullScreen.Value) //windowed to fullscreen
             {
                 isFullScreenMaximized = true;
-            }
-            else if (isFullScreenMaximized)
-            {
+
                 if (window != null)
                 {
+                    window.ClientSize = new Size2(clientWidth, clientHeight);
+                }
+
+                // Notifies the GameForm about the fullscreen state
+                var gameForm = window as GameFormSDL;
+                if (gameForm != null)
+                {
+                    gameForm.IsFullScreen = isFullScreenMaximized;
+                    gameForm.BringToFront();
+                }
+
+            }
+            else //fullscreen to windowed or window resize
+            {
+                isFullScreenMaximized = false;
+
+                // Notifies the GameForm about the fullscreen state
+                var gameForm = window as GameFormSDL;
+                if (gameForm != null)
+                {
+                    gameForm.IsFullScreen = isFullScreenMaximized;
+                }
+
+                if (window != null)
+                {
+                    window.ClientSize = new Size2(clientWidth, clientHeight);
+                    window.Location = savedFormLocation;
+                    UpdateFormBorder();
                     window.BringToFront();
                 }
-                isFullScreenMaximized = false;
-            }
 
-            UpdateFormBorder();
-
-            if (deviceChangeChangedVisible)
-                Visible = oldVisible;
-
-            if (window != null)
-            {
-                window.ClientSize = new Size2(clientWidth, clientHeight);
-            }
-
-            // Notifies the GameForm about the fullscreen state
-            var gameForm = window as GameFormSDL;
-            if (gameForm != null)
-            {
-                gameForm.IsFullScreen = isFullScreenMaximized;
             }
 
             deviceChangeWillBeFullScreen = null;
@@ -150,6 +135,8 @@ namespace Stride.Games
                 //gameForm.AppDeactivated += OnDeactivated;
                 gameForm.UserResized += OnClientSizeChanged;
                 gameForm.CloseActions += GameForm_CloseActions;
+                gameForm.FullscreenToggle += OnFullscreenToggle;
+                
             }
             else
             {
@@ -170,24 +157,33 @@ namespace Stride.Games
             // Initialize the init callback
             InitCallback();
 
-            var runCallback = new SDLMessageLoop.RenderCallback(RunCallback);
-            // Run the rendering loop
-            try
+            var context = (GameContextSDL)GameContext;
+            if (context.IsUserManagingRun)
             {
-                SDLMessageLoop.Run(window, () =>
-                {
-                    if (Exiting)
-                    {
-                        Destroy();
-                        return;
-                    }
-
-                    runCallback();
-                });
+                context.RunCallback = RunCallback;
+                context.ExitCallback = ExitCallback;
             }
-            finally
+            else
             {
-                ExitCallback?.Invoke();
+                var runCallback = new SDLMessageLoop.RenderCallback(RunCallback);
+                // Run the rendering loop
+                try
+                {
+                    SDLMessageLoop.Run(window, () =>
+                    {
+                        if (Exiting)
+                        {
+                            Destroy();
+                            return;
+                        }
+
+                        runCallback();
+                    });
+                }
+                finally
+                {
+                    ExitCallback?.Invoke();
+                }
             }
         }
 

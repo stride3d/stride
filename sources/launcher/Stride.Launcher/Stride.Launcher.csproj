@@ -54,7 +54,6 @@
   <ItemGroup>
     <PackageReference Include="Stride.Metrics" Version="1.0.3" />
     <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Diagnostics.Debug" />
     <Reference Include="System.Management" />
     <Reference Include="System.Net.Http.Formatting">

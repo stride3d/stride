@@ -202,16 +202,5 @@ namespace Stride.Core.Assets.Tests
             }
             Assert.False(log.HasErrors);
         }
-
-        static void Main()
-        {
-            var clock = Stopwatch.StartNew();
-            for (int i = 0; i < 10; i++)
-            {
-                var session = PackageSession.Load(@"E:\Code\SengokuRun\SengokuRun\WindowsLauncher\GameAssets\Assets.sdpkg");
-            }
-            var elapsed = clock.ElapsedMilliseconds;
-            Console.WriteLine("{0}ms", elapsed);
-        }
     }
 }

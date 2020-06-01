@@ -54,7 +54,7 @@ namespace Stride.Scripts
 
         public override async Task Execute()
         {
-            // set the camera values
+            // Set the camera values
             var backBuffer = GraphicsDevice.Presenter.BackBuffer;
             if (backBuffer != null)
             {
@@ -164,7 +164,7 @@ namespace Stride.Scripts
                 desiredYaw = Yaw + deltaYaw;
 
                 desiredYaw = Yaw -= 1.333f * rotationDelta.X * RotationSpeed;
-                // we want to rotate faster Horizontally and Vertically
+                // We want to rotate faster Horizontally and Vertically
                 Pitch = MathUtil.Clamp(Pitch - rotationDelta.Y * RotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
             }
 
@@ -194,7 +194,7 @@ namespace Stride.Scripts
         {
             var camera = Component;
             if (camera == null) return;
-            ;
+
             var rotation = Quaternion.Invert(Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
             var viewMatrix = Matrix.Translation(-position) * Matrix.RotationQuaternion(rotation);
             camera.ViewMatrix = viewMatrix;

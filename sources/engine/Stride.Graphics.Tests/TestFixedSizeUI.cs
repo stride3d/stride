@@ -137,13 +137,6 @@ namespace Stride.Graphics.Tests
             SceneSystem.SceneInstance = new SceneInstance(Services, scene);
         }
 
-
-        internal static void Main()
-        {
-            using (var game = new TestFixedSizeUI())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

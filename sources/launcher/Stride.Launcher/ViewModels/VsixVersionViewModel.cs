@@ -18,12 +18,15 @@ namespace Stride.LauncherApp.ViewModels
 {
     internal sealed class VsixVersionViewModel : PackageVersionViewModel
     {
+        private readonly string packageId;
         private bool isLatestVersionInstalled;
-        private string status = Strings.ReportChecking;
+        private string status;
 
-        internal VsixVersionViewModel(LauncherViewModel launcher, NugetStore store)
+        internal VsixVersionViewModel(LauncherViewModel launcher, NugetStore store, string packageId)
             : base(launcher, store, null)
         {
+            this.packageId = packageId;
+            status = FormatStatus(Strings.ReportChecking);
             ExecuteActionCommand = new AnonymousCommand(ServiceProvider, ExecuteAction) { IsEnabled = false };
         }
 
@@ -57,7 +60,7 @@ namespace Stride.LauncherApp.ViewModels
 
         public async Task UpdateFromStore()
         {
-            Dispatcher.Invoke(() => Status = Strings.ReportChecking);
+            Dispatcher.Invoke(() => Status = FormatStatus(Strings.ReportChecking));
             await UpdateVersionsFromStore();
             Dispatcher.Invoke(UpdateStatus);
         }
@@ -73,7 +76,12 @@ namespace Stride.LauncherApp.ViewModels
                 IsLatestVersionInstalled = false;
             }
             ExecuteActionCommand.IsEnabled = true;
-            Status = newStatus;
+            Status = FormatStatus(newStatus);
+        }
+
+        private string FormatStatus(string status)
+        {
+            return $"{packageId.Split('.')[0]}: {status}";
         }
 
         /// <inheritdoc/>
@@ -96,8 +104,8 @@ namespace Stride.LauncherApp.ViewModels
         /// <inheritdoc/>
         protected override async Task UpdateVersionsFromStore()
         {
-            LocalPackage = await Launcher.RunLockTask(() => Store.GetLocalPackages(Store.VsixPluginId).OrderByDescending(p => p.Version).FirstOrDefault());
-            ServerPackage = await Launcher.RunLockTask(() => Store.FindSourcePackagesById(Store.VsixPluginId, CancellationToken.None).Result.OrderByDescending(p => p.Version).FirstOrDefault());
+            LocalPackage = await Launcher.RunLockTask(() => Store.GetLocalPackages(packageId).OrderByDescending(p => p.Version).FirstOrDefault());
+            ServerPackage = await Launcher.RunLockTask(() => Store.FindSourcePackagesById(packageId, CancellationToken.None).Result.OrderByDescending(p => p.Version).FirstOrDefault());
         }
 
         private void ExecuteAction()

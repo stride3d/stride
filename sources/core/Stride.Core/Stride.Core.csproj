@@ -2,8 +2,8 @@
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Stride.Core.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   
   <PropertyGroup>
     <Description>Core assembly for all Stride assemblies.</Description>
@@ -61,7 +61,7 @@
     <None Include="build\**\*.props" PackagePath="build\" Pack="true" />
     <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
     <None Include="build\**\*.props" PackagePath="buildTransitive\" Pack="true" />
-    <None Include="..\..\..\deps\AssemblyProcessor\*.*" PackagePath="tools\AssemblyProcessor\" Pack="true" />
+    <None Include="..\..\..\deps\AssemblyProcessor\**\*.*" Exclude="..\..\..\deps\AssemblyProcessor\.gitignore" PackagePath="tools\AssemblyProcessor\" Pack="true" />
   </ItemGroup>
   
   <ItemGroup>
@@ -121,6 +121,6 @@
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
   
-  <Import Project="$(StridePostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 </Project>

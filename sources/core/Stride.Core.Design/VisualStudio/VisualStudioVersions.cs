@@ -90,7 +90,15 @@ namespace Stride.Core.VisualStudio
 
         public static IDEInfo DefaultIDE = new IDEInfo(new Version("0.0"), "Default IDE", string.Empty);
 
-        public static IEnumerable<IDEInfo> AvailableVisualStudioInstances => IDEInfos.Value.Where(x => x.HasDevenv);
+        /// <summary>
+        /// Only lists VS2019+ (previous versions are not supported due to lack of buildTransitive targets).
+        /// </summary>
+        public static IEnumerable<IDEInfo> AvailableVisualStudioInstances => IDEInfos.Value.Where(x => x.Version.Major >= 16 && x.HasDevenv);
+
+        /// <summary>
+        /// List all versions of VS2017+ (might be needed by installer process).
+        /// </summary>
+        public static IEnumerable<IDEInfo> AllAvailableVisualStudioInstances => IDEInfos.Value.Where(x => x.Version.Major >= 16 && x.HasDevenv);
 
         public static IEnumerable<IDEInfo> AvailableBuildTools => IDEInfos.Value.Where(x => x.HasBuildTools);
 
@@ -126,7 +134,7 @@ namespace Stride.Core.VisualStudio
 
                         // Only deal with VS2019+
                         if (!Version.TryParse(inst2.GetInstallationVersion(), out var version)
-                            || version.Major < 16)
+                            || version.Major < 15)
                             continue;
 
                         var installationPath = inst2.GetInstallationPath();

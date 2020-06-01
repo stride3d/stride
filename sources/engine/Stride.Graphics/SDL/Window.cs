@@ -37,6 +37,8 @@ namespace Stride.Graphics.SDL
 #endif
 
 #endif
+            // Pass first mouse event when user clicked on window 
+            SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
         }
 
         /// <summary>
@@ -104,11 +106,7 @@ namespace Stride.Graphics.SDL
         /// </summary>
         public virtual void SendToBack()
         {
-                // FIXME: This is not yet implemented on SDL. We are using SDL_SetWindowPosition in
-                // FIXME: the hope that it will apply the new hint.
-            Point loc = Location;
-            SDL.SDL_SetHint(SDL.SDL_HINT_ALLOW_TOPMOST, "0");
-            SDL.SDL_SetWindowPosition(SdlHandle, loc.X, loc.Y);
+            //no op
         }
 
         /// <summary>
@@ -116,11 +114,7 @@ namespace Stride.Graphics.SDL
         /// </summary>
         public virtual void BringToFront()
         {
-                // FIXME: This is not yet implemented on SDL. We are using SDL_SetWindowPosition in
-                // FIXME: the hope that it will apply the new hint.
-            Point loc = Location;
-            SDL.SDL_SetHint(SDL.SDL_HINT_ALLOW_TOPMOST, "1");
-            SDL.SDL_SetWindowPosition(SdlHandle, loc.X, loc.Y);
+            SDL.SDL_RaiseWindow(SdlHandle);
         }
 
         /// <summary>
@@ -310,8 +304,10 @@ namespace Stride.Graphics.SDL
             }
             set
             {
-                    // FIXME: We need to adapt the ClientSize to an actual Size to take into account borders.
-                    // FIXME: On Windows you do this by using AdjustWindowRect.
+                // FIXME: We need to adapt the ClientSize to an actual Size to take into account borders.
+                // FIXME: On Windows you do this by using AdjustWindowRect.
+                // SDL.SDL_GetWindowBordersSize(SdlHandle, out var top, out var left, out var bottom, out var right);
+                // From SDL documentaion: Use this function to set the size of a window's client area.
                 SDL.SDL_SetWindowSize(SdlHandle, value.Width, value.Height);
             }
         }
@@ -334,8 +330,7 @@ namespace Stride.Graphics.SDL
             }
             set
             {
-                // FIXME: We need to adapt the ClientRectangle to an actual Size to take into account borders.
-                // FIXME: On Windows you do this by using AdjustWindowRect.
+                // From SDL documentaion: Use this function to set the size of a window's client area.
                 SDL.SDL_SetWindowSize(SdlHandle, value.Width, value.Height);
                 SDL.SDL_SetWindowPosition(SdlHandle, value.X, value.Y);
             }
@@ -375,17 +370,20 @@ namespace Stride.Graphics.SDL
             get
             {
                 uint flags = SDL.SDL_GetWindowFlags(SdlHandle);
-                if ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE) != 0)
+                var isResizeable = (flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE) != 0;
+                var isBorderless = (flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS) != 0;
+                if (isBorderless)
                 {
-                    return FormBorderStyle.Sizable;
+                    return FormBorderStyle.None;
                 }
                 else
                 {
-                    return FormBorderStyle.FixedSingle;
+                    return isResizeable ? FormBorderStyle.Sizable : FormBorderStyle.FixedSingle;
                 }
             }
             set
             {
+                SDL.SDL_SetWindowBordered(SdlHandle, value == FormBorderStyle.None ? SDL.SDL_bool.SDL_FALSE : SDL.SDL_bool.SDL_TRUE);
                 SDL.SDL_SetWindowResizable(SdlHandle, value == FormBorderStyle.Sizable ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
             }
         }

@@ -71,27 +71,15 @@ namespace Stride.Graphics.Regression
                         return false;
 
                     var swapBGR = buffer.Format.IsBGRAOrder() != referenceBuffer.Format.IsBGRAOrder();
-                    // For now, we handle only this specific case
-                    if (buffer.Format != PixelFormat.R8G8B8A8_UNorm_SRgb || referenceBuffer.Format != PixelFormat.B8G8R8A8_UNorm)
+                    // For now, we handle only those specific cases
+                    if ((buffer.Format != PixelFormat.R8G8B8A8_UNorm_SRgb && buffer.Format != PixelFormat.B8G8R8A8_UNorm_SRgb)
+                        || referenceBuffer.Format != PixelFormat.B8G8R8A8_UNorm)
                     {
                         // TODO: support more formats
                         return false;
                     }
 
-                    bool checkAlpha;
-                    switch (buffer.Format)
-                    {
-                        case PixelFormat.B8G8R8X8_UNorm:
-                        case PixelFormat.B8G8R8X8_UNorm_SRgb:
-                            checkAlpha = false;
-                            break;
-                        case PixelFormat.R8G8B8A8_UNorm:
-                        case PixelFormat.R8G8B8A8_UNorm_SRgb:
-                            checkAlpha = true;
-                            break;
-                        default:
-                            throw new NotSupportedException($"Format {buffer.Format} not supported when comparing images");
-                    }
+                    bool checkAlpha = buffer.Format.AlphaSizeInBits() > 0;
 
                     // Compare remaining bytes.
                     int allowedDiff = 2;

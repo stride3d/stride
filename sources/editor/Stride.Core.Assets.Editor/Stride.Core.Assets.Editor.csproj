@@ -1,29 +1,23 @@
 <Project>
-  <Import Project="..\..\targets\Stride.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Stride.Core.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StrideLocalized>true</StrideLocalized>
+    <UseWPF>true</UseWPF>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
     <PackageReference Include="Dirkster.AvalonDock" Version="4.10.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.6.0" />
-    <Reference Include="System.ComponentModel.Composition" />
     <PackageReference Include="System.Diagnostics.Tracing" Version="4.3.0" />
-    <Reference Include="System.Management" />
+    <PackageReference Include="System.Management" Version="4.7.0" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
     <PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.10.0" />
-    <Reference Include="System.Xaml">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
@@ -75,8 +69,8 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="..\..\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
-  <Import Project="$(StridePostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>

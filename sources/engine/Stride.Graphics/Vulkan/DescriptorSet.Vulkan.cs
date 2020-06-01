@@ -3,17 +3,18 @@
 #if STRIDE_GRAPHICS_API_VULKAN && !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES
 using System;
 using System.Collections.Generic;
-using SharpVulkan;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 using Stride.Shaders;
 
 namespace Stride.Graphics
 {
     public partial struct DescriptorSet
     {
-        internal readonly SharpVulkan.DescriptorSet NativeDescriptorSet;
+        internal readonly VkDescriptorSet NativeDescriptorSet;
         internal readonly GraphicsDevice GraphicsDevice;
         
-        public bool IsValid => NativeDescriptorSet != SharpVulkan.DescriptorSet.Null;
+        public bool IsValid => NativeDescriptorSet != VkDescriptorSet.Null;
 
         private DescriptorSet(GraphicsDevice graphicsDevice, DescriptorPool pool, DescriptorSetLayout desc)
         {
@@ -52,7 +53,7 @@ namespace Stride.Graphics
         {
             var write = new WriteDescriptorSet
             {
-                StructureType = StructureType.WriteDescriptorSet,
+                sType = VkStructureType.WriteDescriptorSet,
                 DescriptorCount = 1,
                 DestinationSet = NativeDescriptorSet,
                 DestinationBinding = (uint)slot,
@@ -62,9 +63,9 @@ namespace Stride.Graphics
             var texture = shaderResourceView as Texture;
             if (texture != null)
             {
-                var imageInfo = new DescriptorImageInfo { ImageView = texture.NativeImageView, ImageLayout = ImageLayout.ShaderReadOnlyOptimal };
+                var imageInfo = new DescriptorImageInfo { VkImageView = texture.NativeImageView, ImageLayout = VkImageLayout.ShaderReadOnlyOptimal };
 
-                write.DescriptorType = DescriptorType.SampledImage;
+                write.VkDescriptorType = VkDescriptorType.SampledImage;
                 write.ImageInfo = new IntPtr(&imageInfo);
 
                 GraphicsDevice.NativeDevice.UpdateDescriptorSets(1, &write, 0, null);
@@ -76,7 +77,7 @@ namespace Stride.Graphics
                 {
                     var bufferViewCopy = buffer.NativeBufferView;
 
-                    write.DescriptorType = DescriptorType.UniformTexelBuffer;
+                    write.VkDescriptorType = VkDescriptorType.UniformTexelBuffer;
                     write.TexelBufferView = new IntPtr(&bufferViewCopy);
 
                     GraphicsDevice.NativeDevice.UpdateDescriptorSets(1, &write, 0, null);
@@ -99,12 +100,12 @@ namespace Stride.Graphics
 
             var write = new WriteDescriptorSet
             {
-                StructureType = StructureType.WriteDescriptorSet,
+                sType = VkStructureType.WriteDescriptorSet,
                 DescriptorCount = 1,
                 DestinationSet = NativeDescriptorSet,
                 DestinationBinding = (uint)slot,
                 DestinationArrayElement = 0,
-                DescriptorType = DescriptorType.Sampler,
+                VkDescriptorType = VkDescriptorType.Sampler,
                 ImageInfo = new IntPtr(&imageInfo),
             };
 
@@ -124,12 +125,12 @@ namespace Stride.Graphics
 
             var write = new WriteDescriptorSet
             {
-                StructureType = StructureType.WriteDescriptorSet,
+                sType = VkStructureType.WriteDescriptorSet,
                 DescriptorCount = 1,
                 DestinationSet = NativeDescriptorSet,
                 DestinationBinding = (uint)slot,
                 DestinationArrayElement = 0,
-                DescriptorType = DescriptorType.UniformBuffer,
+                VkDescriptorType = VkDescriptorType.UniformBuffer,
                 BufferInfo = new IntPtr(&bufferInfo)
             };
             

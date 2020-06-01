@@ -127,12 +127,6 @@ namespace Stride.Graphics.Tests
             geometry.Draw(GraphicsContext, simpleEffect);
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestRenderToTexture())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

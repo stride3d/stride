@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'iOS' or '$(StridePlatform)' == 'macOS'" 
-                          Include="$(StrideDependenciesDir)\NativePath\iOS\libDetour.a;$(StrideDependenciesDir)\NativePath\iOS\libRecast.a" />
+                          Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libDetour.a;$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libRecast.a" />
     <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Android'" Include="libDetour.a;libRecast.a" />
   </ItemGroup>
 </Project>

@@ -78,15 +78,13 @@ namespace Stride.Graphics.Tests
         [Fact]
         public void MaterialDiffuseColor()
         {
-            TestName = nameof(MaterialDiffuseColor);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseColor")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseColor")) { TestName = nameof(MaterialDiffuseColor) });
         }
 
         [Fact]
         public void MaterialDiffuseFloat4()
         {
-            TestName = nameof(MaterialDiffuseFloat4);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseFloat4")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseFloat4")) { TestName = nameof(MaterialDiffuseFloat4) });
         }
         #endregion
 
@@ -94,48 +92,42 @@ namespace Stride.Graphics.Tests
         [Fact]
         public void MaterialDiffuseTexture()
         {
-            TestName = nameof(MaterialDiffuseTexture);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTexture")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTexture")) { TestName = nameof(MaterialDiffuseTexture) });
         }
 
         // Test ComputeTextureColor.Fallback
         [Fact]
         public void MaterialDiffuseTextureFallback()
         {
-            TestName = nameof(MaterialDiffuseTextureFallback);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureFallback")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureFallback")) { TestName = nameof(MaterialDiffuseTextureFallback) });
         }
 
         // Test texcoord offsets
         [Fact]
         public void MaterialDiffuseTextureOffset()
         {
-            TestName = nameof(MaterialDiffuseTextureOffset);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureOffset")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureOffset")) { TestName = nameof(MaterialDiffuseTextureOffset) });
         }
 
         // Test texcoord scaling
         [Fact]
         public void MaterialDiffuseTextureScaled()
         {
-            TestName = nameof(MaterialDiffuseTextureScaled);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureScaled")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureScaled")) { TestName = nameof(MaterialDiffuseTextureScaled) });
         }
 
         // Test texcoord1
         [Fact]
         public void MaterialDiffuseTextureCoord1()
         {
-            TestName = nameof(MaterialDiffuseTextureCoord1);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureCoord1")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureCoord1")) { TestName = nameof(MaterialDiffuseTextureCoord1) });
         }
 
         // Test uv address modes
         [Fact]
         public void MaterialDiffuseTextureClampMirror()
         {
-            TestName = nameof(MaterialDiffuseTextureClampMirror);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureClampMirror")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureClampMirror")) { TestName = nameof(MaterialDiffuseTextureClampMirror) });
         }
         #endregion
 
@@ -143,15 +135,13 @@ namespace Stride.Graphics.Tests
         [Fact]
         public void MaterialBinaryOperatorMultiply()
         {
-            TestName = nameof(MaterialBinaryOperatorMultiply);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorMultiply")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorMultiply")) { TestName = nameof(MaterialBinaryOperatorMultiply) });
         }
 
         [Fact]
         public void MaterialBinaryOperatorAdd()
         {
-            TestName = nameof(MaterialBinaryOperatorAdd);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorAdd")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorAdd")) { TestName = nameof(MaterialBinaryOperatorAdd) });
         }
         #endregion
 
@@ -159,8 +149,7 @@ namespace Stride.Graphics.Tests
         [Fact]
         public void MaterialDiffuseComputeColorFixed()
         {
-            TestName = nameof(MaterialDiffuseComputeColorFixed);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/ComputeColors/MaterialDiffuseComputeColorFixed")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/ComputeColors/MaterialDiffuseComputeColorFixed")) { TestName = nameof(MaterialDiffuseComputeColorFixed) });
         }
         #endregion
 
@@ -168,43 +157,37 @@ namespace Stride.Graphics.Tests
         [Fact]
         public void MaterialMetalness()
         {
-            TestName = nameof(MaterialMetalness);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialMetalness")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialMetalness")) { TestName = nameof(MaterialMetalness) });
         }
 
         [Fact]
         public void MaterialSpecular()
         {
-            TestName = nameof(MaterialSpecular);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialSpecular")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialSpecular")) { TestName = nameof(MaterialSpecular) });
         }
 
         [Fact]
         public void MaterialNormalMap()
         {
-            TestName = nameof(MaterialNormalMap);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMap")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMap")) { TestName = nameof(MaterialNormalMap) });
         }
 
         [Fact]
         public void MaterialNormalMapCompressed()
         {
-            TestName = nameof(MaterialNormalMapCompressed);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMapCompressed")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMapCompressed")) { TestName = nameof(MaterialNormalMapCompressed) });
         }
 
         [Fact]
         public void MaterialEmissive()
         {
-            TestName = nameof(MaterialEmissive);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialEmissive")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialEmissive")) { TestName = nameof(MaterialEmissive) });
         }
 
         [Fact]
         public void MaterialCavity()
         {
-            TestName = nameof(MaterialCavity);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialCavity")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialCavity")) { TestName = nameof(MaterialCavity) });
         }
         #endregion
 
@@ -213,50 +196,43 @@ namespace Stride.Graphics.Tests
         [Fact]
         public void MaterialLayerAAA()
         {
-            TestName = nameof(MaterialLayerAAA);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerAAA")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerAAA")) { TestName = nameof(MaterialLayerAAA) });
         }
 
         [Fact(Skip = "Disabled until XK-3123 is fixed (material blending SM flush results in layer masks applied improperly)")]
         public void MaterialLayerABB()
         {
-            TestName = nameof(MaterialLayerABB);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABB")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABB")) { TestName = nameof(MaterialLayerABB) });
         }
 
         [Fact]
         public void MaterialLayerABA()
         {
-            TestName = nameof(MaterialLayerABA);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABA")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABA")) { TestName = nameof(MaterialLayerABA) });
         }
 
         [Fact]
         public void MaterialLayerABC()
         {
-            TestName = nameof(MaterialLayerABC);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABC")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABC")) { TestName = nameof(MaterialLayerABC) });
         }
 
         [Fact(Skip = "Disabled until XK-3123 is fixed (material blending SM flush results in layer masks applied improperly)")]
         public void MaterialLayerBAA()
         {
-            TestName = nameof(MaterialLayerBAA);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBAA")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBAA")) { TestName = nameof(MaterialLayerBAA) });
         }
 
         [Fact]
         public void MaterialLayerBBB()
         {
-            TestName = nameof(MaterialLayerBBB);
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBBB")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBBB")) { TestName = nameof(MaterialLayerBBB) });
         }
 
         [Fact(Skip = "Similar to MaterialLayerABB but using API for easier debugging")]
         public void MaterialLayerABBWithAPI()
         {
-            TestName = nameof(MaterialLayerABBWithAPI);
-            //RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABB")));
+            //RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABB")) { TestName = nameof(MaterialLayerABBWithAPI) });
             RunGameTest(new MaterialTests(game =>
             {
                 // Use same gold as MaterialLayerABB
@@ -313,7 +289,10 @@ namespace Stride.Graphics.Tests
                 };
 
                 return CreateMaterial(materialDesc, context);
-            }));
+            })
+            {
+                TestName = nameof(MaterialLayerABBWithAPI)
+            });
         }
 
         #endregion
