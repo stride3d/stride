@@ -51,6 +51,8 @@ namespace Stride.Graphics.Regression
 
         protected GameTestBase()
         {
+            ConsoleLogMode = ConsoleLogMode.Always;
+
             // Override the default graphic device manager
             GraphicsDeviceManager.Dispose();
             GraphicsDeviceManager = new TestGraphicsDeviceManager(this)
