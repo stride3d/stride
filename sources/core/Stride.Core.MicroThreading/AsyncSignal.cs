@@ -3,10 +3,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-#if NET45
-using TaskEx = System.Threading.Tasks.Task;
-#endif
-
 namespace Stride.Core.MicroThreading
 {
     public class AsyncSignal

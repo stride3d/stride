@@ -36,7 +36,7 @@
     <StrideRuntimeTargetFramework>net461</StrideRuntimeTargetFramework>
     <StrideEditorTargetFramework>net472</StrideEditorTargetFramework>
     <StrideEditorTargetFrameworks>net472</StrideEditorTargetFrameworks>
-    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP;NET45</StridePlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</StridePlatformDefines>
 
     <!-- Note: ideally we would split using ItemGroup but then PropertyGroup are not properly evaluated if they contain ItemGroup (unless using Targets) -->
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
@@ -176,13 +176,13 @@
 
   <PropertyGroup Condition=" '$(StridePlatform)' == 'Windows' ">
     <!-- Limited version used by tools but that doesn't require installation of .NET on most computers (4.5.1 is default of many OS, 4.5.2/4.6 isn't) -->
-    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP;NET45</StridePlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</StridePlatformDefines>
     <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(StridePlatform)' == 'UWP' ">
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_UWP;NET45;NETFX_CORE;WINDOWS_UAP</StridePlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_UWP</StridePlatformDefines>
     <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-win10\</NUnitLiteBinDir>
     <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
     <TargetPlatformVersion>10.0.17134.0</TargetPlatformVersion>
@@ -191,17 +191,17 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(StridePlatform)' == 'Linux' ">
-    <StridePlatformDefines>STRIDE_PLATFORM_LINUX;STRIDE_PLATFORM_UNIX;NET45</StridePlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_LINUX;STRIDE_PLATFORM_UNIX</StridePlatformDefines>
     <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(StridePlatform)' == 'macOS' ">
-    <StridePlatformDefines>STRIDE_PLATFORM_MACOS;STRIDE_PLATFORM_UNIX;NET45</StridePlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_MACOS;STRIDE_PLATFORM_UNIX</StridePlatformDefines>
     <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' ">
-    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID;NET45</StridePlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_ANDROID</StridePlatformDefines>
     <AndroidStoreUncompressedFileExtensions />
     <MandroidI18n />
     <!-- Avoid Xamarin.Android.Common.targets(519,3): error MSB4044: The "FilterAssemblies" task was not given a value for the required parameter "DesignTimeBuild". -->
@@ -233,7 +233,7 @@
 
   <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
     <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
-    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS;NET45</StridePlatformDefines>
+    <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS</StridePlatformDefines>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
   </PropertyGroup>
 
