@@ -90,7 +90,7 @@ namespace Stride.UI.Tests.Regression
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Non-deterministic and UI in scene needs review anyway")]
         public void RunInSceneUITest()
         {
             RunGameTest(new InSceneUITest());
