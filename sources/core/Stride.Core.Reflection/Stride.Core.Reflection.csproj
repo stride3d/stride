@@ -9,12 +9,6 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
-    <!-- 
-    <StridePlatformDependent>true</StridePlatformDependent>
-    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
-    <StrideProjectPlatformDependentWindows>true</StrideProjectPlatformDependentWindows>
-    <StrideBuildTags>*</StrideBuildTags>
- -->
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup>

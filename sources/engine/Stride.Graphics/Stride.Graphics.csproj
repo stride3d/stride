@@ -10,7 +10,6 @@
     <SchemaVersion>2.0</SchemaVersion>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePlatformDependent>true</StridePlatformDependent>
-    <StrideProjectPlatformDependentWindows>true</StrideProjectPlatformDependentWindows>
     <StrideBuildTags>*</StrideBuildTags>
     <StridePackAssets>true</StridePackAssets>
     <DefineConstants>$(DefineConstants);STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES</DefineConstants>

@@ -28,6 +28,14 @@
       </ProjectReferenceWithConfiguration>
     </ItemGroup>
   </Target>
+  <!-- Workaround: GetPackagingOutputs from UWP (uap) try to build ProjectReference with current TFM, and that's the only way I could find to skip it -->
+  <Target Name="_StrideRemoveTargetFrameworkBeforeGetPackagingOutputs" BeforeTargets="GetPackagingOutputs">
+    <ItemGroup>
+      <ProjectReferenceWithConfiguration>
+        <UndefineProperties>%(ProjectReferenceWithConfiguration.UndefineProperties);TargetFramework</UndefineProperties>
+      </ProjectReferenceWithConfiguration>
+    </ItemGroup>
+  </Target>
 
   <!-- Include platform dependent assembly when specified -->
   <Choose>

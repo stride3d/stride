@@ -185,6 +185,9 @@
     <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_UWP;NET45;NETFX_CORE;WINDOWS_UAP</StridePlatformDefines>
     <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-win10\</NUnitLiteBinDir>
     <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
+    <TargetPlatformVersion>10.0.17134.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
+    <GenerateLibraryLayout>false</GenerateLibraryLayout>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(StridePlatform)' == 'Linux' ">
@@ -231,6 +234,7 @@
   <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
     <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
     <StridePlatformDefines>STRIDE_PLATFORM_MONO_MOBILE;STRIDE_PLATFORM_IOS;NET45</StridePlatformDefines>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
   </PropertyGroup>
 
   <Choose>
