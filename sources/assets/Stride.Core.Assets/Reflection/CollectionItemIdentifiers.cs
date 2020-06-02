@@ -134,7 +134,12 @@ namespace Stride.Core.Reflection
         public object GetKey(ItemId itemId)
         {
             // TODO: add indexing by guid to avoid O(n)
-            return keyToIdMap.SingleOrDefault(x => x.Value == itemId).Key;
+            foreach( var kvp in keyToIdMap )
+            {
+                if( kvp.Value == itemId )
+                    return kvp.Key;
+            }
+            return null;
         }
 
         public void CloneInto(CollectionItemIdentifiers target, IReadOnlyDictionary<object, object> referenceTypeClonedKeys)
