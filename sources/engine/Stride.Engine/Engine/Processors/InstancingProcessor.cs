@@ -1,8 +1,11 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ServiceWire.TcpIp;
 using Stride.Core.Annotations;
+using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Games;
@@ -12,22 +15,99 @@ namespace Stride.Engine.Processors
 {
     public class InstancingProcessor : EntityProcessor<InstancingComponent, InstancingProcessor.InstancingData>
     {
+        public enum InstancingType
+        {
+            EntityTyransform,
+            UserArray,
+            UserBuffer
+        }
+
         public class InstancingData
         {
+            public InstancingType Type;
+            public bool IsSingleWithModelComponent;
             public TransformComponent TransformComponent;
             public ModelComponent ModelComponent;
         }
 
+        public class InstancingGroupInfo
+        {
+            public ModelComponent ModelComponent;
+            public KeyValuePair<InstancingComponent, InstancingData> MasterInstancing;
+            public List<KeyValuePair<InstancingComponent, InstancingData>> Components = new List<KeyValuePair<InstancingComponent, InstancingData>>();
+        }
+
         public InstancingProcessor() 
-            : base (typeof(TransformComponent), typeof(ModelComponent)) // Requires TransformComponent and ModelComponent
+            : base (typeof(TransformComponent)) // Requires TransformComponent
         {
             // After TransformProcessor but before ModelRenderProcessor
             Order = -100;
         }
 
+        ArrayPool<Matrix> ArrayPool = ArrayPool<Matrix>.Create();
+        Dictionary<ModelComponent, InstancingGroupInfo> SingleInstanceGroups = new Dictionary<ModelComponent, InstancingGroupInfo>();
+        List<KeyValuePair<InstancingComponent, InstancingData>> ManyInstancing = new List<KeyValuePair<InstancingComponent, InstancingData>>();
+
         public override void Draw(RenderContext context)
         {
-            Dispatcher.ForEach(ComponentDatas, entity =>
+            // Return array memory
+            foreach (var group in SingleInstanceGroups)
+            {
+                ArrayPool.Return(((InstancingEntityTransform)group.Value.MasterInstancing.Key.Type).WorldMatrices);
+            }
+
+            // Reset instancing collections
+            SingleInstanceGroups.Clear();
+            ManyInstancing.Clear();
+
+            // Build groups by model component and instancing type
+            foreach (var componentData in ComponentDatas)
+            {
+                var data = componentData.Value;
+
+                if (data.ModelComponent == null)
+                    continue;
+
+                if (data.Type == InstancingType.EntityTyransform)
+                {
+                    if (SingleInstanceGroups.TryGetValue(data.ModelComponent, out var groupInfo))
+                    {
+                        groupInfo.Components.Add(componentData);
+                        if (data.IsSingleWithModelComponent)
+                            groupInfo.MasterInstancing = componentData;
+                    }
+                    else // FIXME: should be allocation free
+                    {
+                        var newGroupInfo = new InstancingGroupInfo();
+                        newGroupInfo.Components.Add(componentData);
+                        if (data.IsSingleWithModelComponent)
+                            newGroupInfo.MasterInstancing = componentData;
+                        SingleInstanceGroups[data.ModelComponent] = newGroupInfo;
+                    }
+                }
+                else // UserArray or UserBuffer
+                {
+                    ManyInstancing.Add(componentData);
+                }
+            }
+
+            // Build matrix array
+            foreach (var group in SingleInstanceGroups)
+            {
+                var groupCount = group.Value.Components.Count;
+                var matrices = ArrayPool.Rent(groupCount);
+                for (int i = 0; i < groupCount; i++)
+                {
+                    matrices[i] = group.Value.Components[i].Value.TransformComponent.WorldMatrix;
+                }
+
+                // Assign matrix array
+                ((InstancingEntityTransform)group.Value.MasterInstancing.Key.Type).UpdateWorldMatrices(matrices, groupCount);
+                ManyInstancing.Add(group.Value.MasterInstancing);
+            }
+
+            // Process the components
+            Dispatcher.ForEach(ManyInstancing, entity =>
             {
                 var instancingComponent = entity.Key;
                 var instancingData = entity.Value;
@@ -41,6 +121,7 @@ namespace Stride.Engine.Processors
         {
             if (instancingComponent.Enabled && instancingMany.InstanceCount > 0)
             {
+                // Calculate inverse world and bounding box
                 instancingMany.Update();
 
                 if (instancingData.TransformComponent != null && instancingData.ModelComponent != null)
@@ -60,8 +141,38 @@ namespace Stride.Engine.Processors
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] InstancingComponent component, [NotNull] InstancingData data)
         {
-            data.TransformComponent = component.Entity.Get<TransformComponent>();
-            data.ModelComponent = component.Entity.Get<ModelComponent>();
+            var type = InstancingType.UserArray;
+            if (component.Type is InstancingEntityTransform)
+                type = InstancingType.EntityTyransform;
+            else if (component.Type is InstancingUserBuffer)
+                type = InstancingType.UserBuffer;
+
+            data.Type = type;
+
+            if (type == InstancingType.EntityTyransform)
+            {
+                var entityModelComponent = component.Entity.Get<ModelComponent>();
+                var linkedModelComponent = (component.Type as InstancingEntityTransform)?.Master ?? entityModelComponent;
+                data.IsSingleWithModelComponent = entityModelComponent != null && linkedModelComponent == entityModelComponent;
+                data.TransformComponent = component.Entity.Get<TransformComponent>();
+                data.ModelComponent = linkedModelComponent;
+            }
+            else
+            {
+                data.TransformComponent = component.Entity.Get<TransformComponent>();
+                data.ModelComponent = component.Entity.Get<ModelComponent>();
+            }
+
+        }
+
+        protected override void OnEntityComponentRemoved(Entity entity, [NotNull] InstancingComponent component, [NotNull] InstancingData data)
+        {
+            if (data.IsSingleWithModelComponent)
+            {
+                var matrices = ((InstancingEntityTransform)component.Type)?.WorldMatrices;
+                if (matrices != null)
+                    ArrayPool.Return(matrices);
+            }
         }
 
         // Instancing data per InstancingComponent

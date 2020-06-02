@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Graphics;
@@ -62,7 +63,6 @@ namespace Stride.Engine.Rendering
 
                 ref var instancingData = ref renderObjectInstancingData[renderMesh.StaticObjectNode];
 
-
                 if (instancingComponent.Type is InstancingManyBase instancingManyBase)
                 {
                     // Instancing data
@@ -76,7 +76,7 @@ namespace Stride.Engine.Rendering
                             instancingData.InstanceWorldInverseBuffer = instancingUserBuffer.InstanceWorldInverseBuffer;
                             instancingData.BuffersManagedByUser = true;
                         }
-                        else if (instancingManyBase is InstancingMany instancingMany)
+                        else if (instancingManyBase is InstancingUserArray instancingMany)
                         {
                             instancingData.WorldMatrices = instancingMany.WorldMatrices;
                             instancingData.WorldInverseMatrices = instancingMany.WorldInverseMatrices;
@@ -107,6 +107,12 @@ namespace Stride.Engine.Rendering
         private static Buffer<Matrix> CreateMatrixBuffer(GraphicsDevice graphicsDevice, int elementCount)
         {
             return Buffer.New<Matrix>(graphicsDevice, elementCount, BufferFlags.ShaderResource | BufferFlags.StructuredBuffer, GraphicsResourceUsage.Dynamic);
+        }
+
+        private static unsafe void SetBufferData<TData>(CommandList commandList, Buffer buffer, TData[] fromData, int elementCount) where TData : struct
+        {
+            var dataPointer = new DataPointer(Interop.Fixed(fromData), Math.Min(elementCount, fromData.Length) * Utilities.SizeOf<TData>());
+            buffer.SetData(commandList, dataPointer);
         }
 
         public override void PrepareEffectPermutations(RenderDrawContext context)
@@ -157,8 +163,8 @@ namespace Stride.Engine.Rendering
                 {
                     if (!instancingData.BuffersManagedByUser)
                     {
-                        instancingData.InstanceWorldBuffer.SetData(context.CommandList, instancingData.WorldMatrices);
-                        instancingData.InstanceWorldInverseBuffer.SetData(context.CommandList, instancingData.WorldInverseMatrices);
+                        SetBufferData(context.CommandList, instancingData.InstanceWorldBuffer, instancingData.WorldMatrices, instancingData.InstanceCount);
+                        SetBufferData(context.CommandList, instancingData.InstanceWorldInverseBuffer, instancingData.WorldInverseMatrices, instancingData.InstanceCount);
                     }
                 }
             }

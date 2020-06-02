@@ -10,8 +10,11 @@ using Stride.Graphics;
 
 namespace Stride.Engine
 {
+    [DataContract("InstancingComponent")]
+    [Display("Instancing", Expand = ExpandRule.Once)]
+    [ComponentCategory("Model")]
     [DefaultEntityComponentProcessor(typeof(InstancingProcessor))]
-    public class InstancingComponent : ActivableEntityComponent
+    public sealed class InstancingComponent : ActivableEntityComponent
     {
         /// <summary>
         /// Gets or sets the type of the instancing.

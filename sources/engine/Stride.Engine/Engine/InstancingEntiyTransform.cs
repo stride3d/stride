@@ -12,7 +12,7 @@ namespace Stride.Engine
 {
     [DataContract("InstancingEntityTransform")]
     [Display("EntityTransform")]
-    public class InstancingEntityTransform : InstancingManyBase
+    public class InstancingEntityTransform : InstancingUserArray
     {
         /// <summary>
         /// Gets or sets the referenced <see cref="ModelComponent"/> to instance.
@@ -21,7 +21,7 @@ namespace Stride.Engine
         /// <userdoc>The "Master" <see cref="ModelComponent"/> to instance.</userdoc>
         [DataMember(10)]
         [NotNull]
-        [Display("Instancing Type", Expand = ExpandRule.Always)]
+        [Display("Master Model", Expand = ExpandRule.Always)]
         public ModelComponent Master { get; set; }
 
         public override void Update()

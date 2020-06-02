@@ -12,7 +12,7 @@ namespace Stride.Engine
 {
     [DataContract("InstancingMany")]
     [Display("Many")]
-    public class InstancingMany : InstancingManyBase
+    public class InstancingUserArray : InstancingManyBase
     {
         /// <summary>
         /// The instance transformation matrices.
