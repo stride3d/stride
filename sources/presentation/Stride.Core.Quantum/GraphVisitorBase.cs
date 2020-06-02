@@ -95,7 +95,7 @@ namespace Stride.Core.Quantum
                     CurrentPath.Pop();
                 }
             }
-            else if(members is Dictionary<string, IMemberNode>.ValueCollection asVCol)
+            else if (members is Dictionary<string, IMemberNode>.ValueCollection asVCol)
             {
                 foreach (var child in asVCol)
                 {

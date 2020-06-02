@@ -134,9 +134,9 @@ namespace Stride.Core.Reflection
         public object GetKey(ItemId itemId)
         {
             // TODO: add indexing by guid to avoid O(n)
-            foreach( var kvp in keyToIdMap )
+            foreach (var kvp in keyToIdMap)
             {
-                if( kvp.Value == itemId )
+                if (kvp.Value == itemId)
                     return kvp.Key;
             }
             return null;
