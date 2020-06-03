@@ -199,7 +199,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Initializes a new instance of the <see cref="Color"/> struct.
         /// </summary>
-        /// <param name="values">The values to assign to the alpha, red, green, and blue components of the color. This must be an array with four elements.</param>
+        /// <param name="values">The values to assign to the red, green, blue, or alpha components of the color. This must be an array with four elements.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than four elements.</exception>
         public Color(byte[] values)
@@ -218,7 +218,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Gets or sets the component at the specified index.
         /// </summary>
-        /// <value>The value of the alpha, red, green, or blue component, depending on the index.</value>
+        /// <value>The value of the red, green, blue, or alpha component, depending on the index.</value>
         /// <param name="index">The index of the component to access. Use 0 for the red(R) component, 1 for the green(G) component, 2 for the blue(B) component, and 3 for the alpha(A) component.</param>
         /// <returns>The value of the component at the specified index.</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when the <paramref name="index"/> is out of the range [0, 3].</exception>
