@@ -64,14 +64,14 @@ namespace Stride.Core.Quantum
             {
                 Visiting?.Invoke(node, CurrentPath);
             }
-            var objectNode = node as IObjectNode;
-            if (objectNode != null)
+
+            if (node is IObjectNode objectNode)
             {
                 VisitChildren(objectNode);
                 VisitItemTargets(objectNode);
             }
-            var memberNode = node as IMemberNode;
-            if (memberNode != null)
+
+            if (node is IMemberNode memberNode)
             {
                 VisitMemberTarget(memberNode);
             }
@@ -85,11 +85,33 @@ namespace Stride.Core.Quantum
         protected virtual void VisitChildren([NotNull] IObjectNode node)
         {
             if (node == null) throw new ArgumentNullException(nameof(node));
-            foreach (var child in node.Members)
+            var members = node.Members;
+            if (members is List<IMemberNode> asList)
             {
-                CurrentPath.PushMember(child.Name);
-                VisitNode(child);
-                CurrentPath.Pop();
+                foreach (var child in asList)
+                {
+                    CurrentPath.PushMember(child.Name);
+                    VisitNode(child);
+                    CurrentPath.Pop();
+                }
+            }
+            else if (members is Dictionary<string, IMemberNode>.ValueCollection asVCol)
+            {
+                foreach (var child in asVCol)
+                {
+                    CurrentPath.PushMember(child.Name);
+                    VisitNode(child);
+                    CurrentPath.Pop();
+                }
+            }
+            else
+            {
+                foreach (var child in members)
+                {
+                    CurrentPath.PushMember(child.Name);
+                    VisitNode(child);
+                    CurrentPath.Pop();
+                }
             }
         }
 

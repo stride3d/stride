@@ -71,8 +71,7 @@ namespace Stride.Core.Assets
         /// <inheritdoc/>
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            return obj is AssetId && Equals((AssetId)obj);
+            return obj is AssetId id && Equals(id);
         }
 
         /// <inheritdoc/>
