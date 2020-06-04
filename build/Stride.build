@@ -376,8 +376,8 @@ Example of use:
       <AssembliesToTestDefault Include="@(AssembliesToTest)" Condition="'%(AssembliesToTest.PlatformTarget)' != 'x86'"/>
       <AssembliesToTestX86 Include="@(AssembliesToTest)" Condition="'%(AssembliesToTest.PlatformTarget)' == 'x86'"/>
     </ItemGroup>
-    <Exec Condition="'@(AssembliesToTestDefault)' != ''" Command="&quot;$(XunitRunnerConsolePathDefault)&quot; @(AssembliesToTestDefault->'%(Identity)', ' ')"/>
-    <Exec Condition="'@(AssembliesToTestX86)' != ''" Command="&quot;$(XunitRunnerConsolePathX86)&quot; @(AssembliesToTestX86->'%(Identity)', ' ')"/>
+    <Exec Condition="'@(AssembliesToTestDefault)' != ''" Command="&quot;$(XunitRunnerConsolePathDefault)&quot; @(AssembliesToTestDefault->'%(Identity)', ' ')" IgnoreStandardErrorWarningFormat="true"/>
+    <Exec Condition="'@(AssembliesToTestX86)' != ''" Command="&quot;$(XunitRunnerConsolePathX86)&quot; @(AssembliesToTestX86->'%(Identity)', ' ')" IgnoreStandardErrorWarningFormat="true"/>
   </Target>
   
   <ItemGroup>
