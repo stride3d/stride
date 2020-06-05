@@ -81,19 +81,20 @@ namespace Stride.Graphics
             PrimitiveQuad = new PrimitiveQuad(this);
         }
 
-        public void Recreate(GraphicsAdapter adapter, GraphicsProfile[] profile, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
+        public void Recreate(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
         {
             if (adapter == null) throw new ArgumentNullException("adapter");
-            if (profile == null) throw new ArgumentNullException("profile");
+            if (graphicsProfiles == null) throw new ArgumentNullException("graphicsProfiles");
 
             Adapter = adapter;
             IsDebugMode = (deviceCreationFlags & DeviceCreationFlags.Debug) != 0;
 
             // Default fallback
-            profile = profile ?? new[] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 };
+            if (graphicsProfiles.Length == 0)
+                graphicsProfiles = new[] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 };
 
             // Initialize this instance
-            InitializePlatformDevice(profile, deviceCreationFlags, windowHandle);
+            InitializePlatformDevice(graphicsProfiles, deviceCreationFlags, windowHandle);
 
             // Create a new graphics device
             Features = new GraphicsDeviceFeatures(this);
