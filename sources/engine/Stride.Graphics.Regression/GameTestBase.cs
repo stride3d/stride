@@ -26,7 +26,7 @@ namespace Stride.Graphics.Regression
     {
         public static bool ForceInteractiveMode;
         // Note: it might cause OOM on 32-bit processes
-        public static bool CaptureRenderDocOnError = Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR") != null;
+        public static bool CaptureRenderDocOnError = string.Compare(Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR"), "true", StringComparison.OrdinalIgnoreCase) == 0;
 
         public static readonly Logger TestGameLogger = GlobalLogger.GetLogger("TestGameLogger");
 
