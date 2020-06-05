@@ -59,8 +59,19 @@ namespace Stride.Graphics
                 compareOp = VulkanConvertExtensions.ConvertComparisonFunction(Description.CompareFunction),
                 minLod = Description.MinMipLevel,
                 maxLod = Description.MaxMipLevel,
-                borderColor = VkBorderColor.FloatOpaqueBlack // TODO VULKAN: How to handle BorderColor
             };
+
+            if (Description.AddressU == TextureAddressMode.Border ||
+                Description.AddressV == TextureAddressMode.Border ||
+                Description.AddressW == TextureAddressMode.Border)
+            {
+                if (Description.BorderColor == Color4.White)
+                    createInfo.borderColor = VkBorderColor.FloatOpaqueWhite;
+                else if (Description.BorderColor == Color4.Black)
+                    createInfo.borderColor = VkBorderColor.FloatOpaqueBlack;
+                else
+                    throw new NotImplementedException("Vulkan: only simple BorderColor are supported");
+            }
 
             ConvertMinFilter(Description.Filter, out createInfo.minFilter, out createInfo.magFilter, out createInfo.mipmapMode, out createInfo.compareEnable, out createInfo.anisotropyEnable);
 
