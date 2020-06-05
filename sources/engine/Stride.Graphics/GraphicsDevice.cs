@@ -89,6 +89,9 @@ namespace Stride.Graphics
             Adapter = adapter;
             IsDebugMode = (deviceCreationFlags & DeviceCreationFlags.Debug) != 0;
 
+            // Default fallback
+            profile = profile ?? new[] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 };
+
             // Initialize this instance
             InitializePlatformDevice(profile, deviceCreationFlags, windowHandle);
 

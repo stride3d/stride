@@ -260,7 +260,7 @@ namespace Stride.Graphics
             ConstantBufferDataPlacementAlignment = (int)physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
             TimestampFrequency = (long)(1.0e9 / physicalDeviceProperties.limits.timestampPeriod); // Resolution in nanoseconds
 
-            RequestedProfile = graphicsProfiles.Last();
+            RequestedProfile = graphicsProfiles.First();
 
             var queueProperties = vkGetPhysicalDeviceQueueFamilyProperties(NativePhysicalDevice);
             //IsProfilingSupported = queueProperties[0].TimestampValidBits > 0;
