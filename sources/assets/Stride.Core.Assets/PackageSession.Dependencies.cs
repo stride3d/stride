@@ -98,7 +98,9 @@ namespace Stride.Core.Assets
             // Load some informations about the project
             try
             {
-                var msProject = VSProjectHelper.LoadProject(project.FullPath, loadParameters.BuildConfiguration, extraProperties: new Dictionary<string, string> { { "SkipInvalidConfigurations", "true" } });
+                var extraProperties = new Dictionary<string, string>(loadParameters.ExtraCompileProperties);
+                extraProperties.Add("SkipInvalidConfigurations", "true");
+                var msProject = VSProjectHelper.LoadProject(project.FullPath, loadParameters.BuildConfiguration, extraProperties: extraProperties);
                 try
                 {
                     var packageVersion = msProject.GetPropertyValue("PackageVersion");
