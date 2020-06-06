@@ -7,7 +7,6 @@ shader TransformationWAndVPInstanced : TransformationWAndVP, TransformationInsta
 {
     stage override void PreTransformPosition()
     {
-        float4 posWS = mul(streams.Position, GetInstanceWorld());
-        streams.PositionWS = mul(posWS, Transformation.World);
+        streams.PositionWS = mul(streams.Position, GetInstanceWorld());
     }
 };

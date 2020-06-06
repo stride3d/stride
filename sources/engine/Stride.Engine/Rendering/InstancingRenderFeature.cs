@@ -25,6 +25,9 @@ namespace Stride.Engine.Rendering
 
     public class InstancingRenderFeature : SubRenderFeature
     {
+        [DataMemberIgnore]
+        public static readonly PropertyKey<Dictionary<ModelComponent, InstancingComponent>> ModelToInstancingMap = new PropertyKey<Dictionary<ModelComponent, InstancingComponent>>("InstancingRenderFeature.ModelToInstancingMap", typeof(InstancingRenderFeature));
+
         private StaticObjectPropertyKey<InstancingData> renderObjectInstancingDataInfoKey;
 
         private StaticObjectPropertyKey<RenderEffect> renderEffectKey;
@@ -41,6 +44,7 @@ namespace Stride.Engine.Rendering
         /// <inheritdoc/>
         public override void Extract()
         {
+            var mapFound = Context.VisibilityGroup.Tags.TryGetValue(ModelToInstancingMap, out var modelToInstancingMap);
             var renderObjectInstancingData = RootRenderFeature.RenderData.GetData(renderObjectInstancingDataInfoKey);
 
             foreach (var objectNodeReference in RootRenderFeature.ObjectNodeReferences)
@@ -54,6 +58,8 @@ namespace Stride.Engine.Rendering
                 if (modelComponent == null)
                     continue;
 
+                // Better:
+                // modelToInstancingMap.TryGetValue(modelComponent, out var instancingComponent);
                 var instancingComponent = modelComponent.Entity.Get<InstancingComponent>();
                 if (instancingComponent == null)
                 {

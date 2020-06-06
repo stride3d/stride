@@ -478,6 +478,13 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                         {
                             var entityPicked = Pick();
                             entityUnderMouse = entityPicked.Entity;
+
+                            // Check for instancing
+                            var instancingComponent = entityUnderMouse?.Get<InstancingComponent>();
+                            if (instancingComponent != null && instancingComponent.Type is InstancingEntityTransform instancing)
+                            {
+                                entityUnderMouse = instancing.GetInstanceEntity(entityPicked.InstanceId) ?? entityUnderMouse;
+                            }
                         }
 
                         // Ctrl + click on an empty area: do nothing

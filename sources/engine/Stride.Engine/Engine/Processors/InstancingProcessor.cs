@@ -92,18 +92,24 @@ namespace Stride.Engine.Processors
             }
 
             // Build matrix array
-            foreach (var group in SingleInstanceGroups)
+            foreach (var item in SingleInstanceGroups)
             {
-                var groupCount = group.Value.Components.Count;
+                var group = item.Value;
+                var groupCount = group.Components.Count;
+                var instancing = (InstancingEntityTransform)group.MasterInstancing.Key.Type;
+                instancing.ClearEntities();
+
                 var matrices = ArrayPool.Rent(groupCount);
                 for (int i = 0; i < groupCount; i++)
                 {
-                    matrices[i] = group.Value.Components[i].Value.TransformComponent.WorldMatrix;
+                    var data = group.Components[i].Value.TransformComponent;
+                    matrices[i] = data.WorldMatrix;
+                    instancing.AddInstanceEntity(data.Entity);
                 }
 
                 // Assign matrix array
-                ((InstancingEntityTransform)group.Value.MasterInstancing.Key.Type).UpdateWorldMatrices(matrices, groupCount);
-                ManyInstancing.Add(group.Value.MasterInstancing);
+                instancing.UpdateWorldMatrices(matrices, groupCount);
+                ManyInstancing.Add(group.MasterInstancing);
             }
 
             // Process the components

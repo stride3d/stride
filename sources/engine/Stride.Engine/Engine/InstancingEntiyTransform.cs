@@ -28,5 +28,22 @@ namespace Stride.Engine
         {
             base.Update();
         }
+
+        List<Entity> instanceEntities = new List<Entity>();
+
+        internal Entity GetInstanceEntity(int instanceId)
+        {
+            return instanceEntities[instanceId];
+        }
+
+        internal void ClearEntities()
+        {        
+            instanceEntities.Clear();
+        }
+
+        internal void AddInstanceEntity(Entity entity)
+        {
+            instanceEntities.Add(entity);
+        }
     }
 }
