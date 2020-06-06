@@ -14,7 +14,7 @@ namespace Stride.Input.Tests
         {
             EnableSimulatedInputSource();
         }
-        
+
         /// <summary>
         /// Checks keyboard press/release
         /// </summary>
@@ -25,7 +25,7 @@ namespace Stride.Input.Tests
 
             keyboard.SimulateDown(Keys.A);
             Input.Update(DrawTime);
-            
+
             // Test press
             Assert.Equal(1, events.Count);
             Assert.True(events[0] is KeyEvent);
@@ -72,7 +72,7 @@ namespace Stride.Input.Tests
             Input.Update(DrawTime);
             keyboard.SimulateDown(Keys.A);
             Input.Update(DrawTime);
-            
+
             // Test press with release
             Assert.Equal(1, events.Count);
             Assert.True(events[0] is KeyEvent);
@@ -114,7 +114,7 @@ namespace Stride.Input.Tests
             mouse.SetPosition(targetPosition = new Vector2(0.6f, 0.5f));
             mouse.SimulateMouseDown(MouseButton.Left);
             Input.Update(DrawTime);
-            
+
             // Check for pointer events (2, 1 move, 1 down)
             Assert.Equal(2, Input.PointerEvents.Count);
             Assert.Equal(PointerEventType.Moved, Input.PointerEvents[0].EventType);
@@ -132,7 +132,7 @@ namespace Stride.Input.Tests
             Assert.Equal(1, mouse.PressedPointers.Count);
             Assert.Equal(0, mouse.ReleasedPointers.Count);
             Assert.Equal(1, mouse.DownPointers.Count);
-            
+
             // Check delta
             Assert.Equal(new Vector2(0.1f, 0.0f), Input.PointerEvents[0].DeltaPosition);
             Assert.Equal(new Vector2(0.0f, 0.0f), Input.PointerEvents[1].DeltaPosition);
@@ -175,7 +175,7 @@ namespace Stride.Input.Tests
             Assert.True(Input.IsKeyPressed(Keys.Space));
             Assert.True(Input.IsKeyReleased(Keys.Space));
             Assert.False(Input.IsKeyDown(Keys.Space));
-            
+
             var mouse = MouseSimulated;
 
             mouse.SimulateMouseDown(MouseButton.Extended2);
@@ -185,7 +185,7 @@ namespace Stride.Input.Tests
             Assert.True(Input.IsMouseButtonPressed(MouseButton.Extended2));
             Assert.True(Input.IsMouseButtonReleased(MouseButton.Extended2));
             Assert.False(Input.IsMouseButtonDown(MouseButton.Extended2));
-            
+
             mouse.SimulateMouseDown(MouseButton.Left);
             mouse.SimulateMouseUp(MouseButton.Left);
             mouse.SimulateMouseDown(MouseButton.Left);
@@ -198,7 +198,7 @@ namespace Stride.Input.Tests
             mouse.SimulateMouseUp(MouseButton.Left);
             Input.Update(DrawTime);
         }
-        
+
         /// <summary>
         /// Checks adding/removal of keyboard and mouse
         /// </summary>
@@ -261,7 +261,7 @@ namespace Stride.Input.Tests
             var mouse = MouseSimulated;
             mouse.LockPosition(true);
             Input.Update(DrawTime);
-            
+
             Assert.Equal(new Vector2(0.5f), mouse.Position);
             Input.Update(DrawTime);
 
@@ -276,7 +276,7 @@ namespace Stride.Input.Tests
             Assert.Equal(new Vector2(0.5f, 0.5f), mouse.Position);
 
             mouse.UnlockPosition();
-            
+
             // Validate mouse delta with unlocked position
             mouse.SetPosition(new Vector2(0.6f, 0.5f));
             Input.Update(DrawTime);
@@ -292,9 +292,9 @@ namespace Stride.Input.Tests
             Assert.Equal(0, InputSourceSimulated.GamePads.Count);
             Assert.False(Input.HasGamePad);
             Assert.Null(Input.DefaultGamePad);
-            
+
             var gamePad0 = InputSourceSimulated.AddGamePad();
-            
+
             Assert.Equal(1, Input.GamePadCount);
             Assert.True(Input.HasGamePad);
             Assert.NotNull(Input.DefaultGamePad);
@@ -334,11 +334,27 @@ namespace Stride.Input.Tests
             Assert.False(gamePad0.IsButtonPressed(GamePadButton.A));
             Assert.True(gamePad0.IsButtonReleased(GamePadButton.A));
             Assert.False(gamePad0.IsButtonDown(GamePadButton.A));
-            
+
             InputSourceSimulated.RemoveGamePad(gamePad0);
             InputSourceSimulated.RemoveGamePad(gamePad1);
 
             Assert.Equal(0, Input.GamePadCount);
+        }
+
+        void TestVirtualButtonFind()
+        {
+            Assert.Equal(VirtualButton.Keyboard.A, VirtualButton.Find("Keyboard.a"));
+            Assert.Equal(VirtualButton.Keyboard.Z, VirtualButton.Find("Keyboard.z"));
+            Assert.Equal(VirtualButton.Keyboard.LeftCtrl, VirtualButton.Find("Keyboard.leftctrl"));
+            Assert.Equal(VirtualButton.Keyboard.LeftShift, VirtualButton.Find("Keyboard.leftshift"));
+
+            Assert.Equal(VirtualButton.Mouse.Left, VirtualButton.Find("Mouse.Left"));
+            Assert.Equal(VirtualButton.Mouse.PositionX, VirtualButton.Find("Mouse.PositionX"));
+            Assert.Equal(VirtualButton.Mouse.DeltaY, VirtualButton.Find("Mouse.DeltaY"));
+
+            Assert.Equal(VirtualButton.GamePad.LeftThumbAxisX, VirtualButton.Find("GamePad.LeftThumbAxisX"));
+            Assert.Equal(VirtualButton.GamePad.RightThumb, VirtualButton.Find("GamePad.RightThumb"));
+            Assert.Equal(VirtualButton.GamePad.A, VirtualButton.Find("GamePad.A"));
         }
 
         protected override void RegisterTests()
@@ -352,6 +368,7 @@ namespace Stride.Input.Tests
             FrameGameSystem.Update(TestLockedMousePosition);
             FrameGameSystem.Update(TestSingleFrameStates);
             FrameGameSystem.Update(TestGamePad);
+            FrameGameSystem.Update(TestVirtualButtonFind);
         }
 
         [Fact]
