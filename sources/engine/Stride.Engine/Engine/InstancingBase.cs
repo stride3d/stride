@@ -11,7 +11,7 @@ using Stride.Graphics;
 namespace Stride.Engine
 {
     [DataContract]
-    public abstract class InstancingManyBase : IInstancingMany
+    public abstract class InstancingBase : IInstancing
     {
         /// <summary>
         /// The instance count

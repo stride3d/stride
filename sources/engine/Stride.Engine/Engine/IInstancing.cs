@@ -7,13 +7,8 @@ namespace Stride.Engine
 {
     public interface IInstancing
     {
-        void Update();
-    }
-
-    public interface IInstancingMany : IInstancing
-    {
         int InstanceCount { get; }
-
         BoundingBox BoundingBox { get; }
+        void Update();
     }
 }

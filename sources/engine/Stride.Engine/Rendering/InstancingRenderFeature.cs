@@ -14,10 +14,11 @@ namespace Stride.Engine.Rendering
     {
         public int InstanceCount;
 
+        // Data
         public Matrix[] WorldMatrices;
         public Matrix[] WorldInverseMatrices;
 
-        // GPU buffers, managed by the render feature
+        // GPU buffers
         public bool BuffersManagedByUser;
         public Buffer<Matrix> InstanceWorldBuffer;
         public Buffer<Matrix> InstanceWorldInverseBuffer;
@@ -45,6 +46,10 @@ namespace Stride.Engine.Rendering
         public override void Extract()
         {
             var mapFound = Context.VisibilityGroup.Tags.TryGetValue(ModelToInstancingMap, out var modelToInstancingMap);
+
+            if (!mapFound)
+                return;
+
             var renderObjectInstancingData = RootRenderFeature.RenderData.GetData(renderObjectInstancingDataInfoKey);
 
             foreach (var objectNodeReference in RootRenderFeature.ObjectNodeReferences)
@@ -59,8 +64,7 @@ namespace Stride.Engine.Rendering
                     continue;
 
                 // Better:
-                // modelToInstancingMap.TryGetValue(modelComponent, out var instancingComponent);
-                var instancingComponent = modelComponent.Entity.Get<InstancingComponent>();
+                modelToInstancingMap.TryGetValue(modelComponent, out var instancingComponent);
                 if (instancingComponent == null)
                 {
                     renderMesh.InstanceCount = 0;
@@ -69,31 +73,31 @@ namespace Stride.Engine.Rendering
 
                 ref var instancingData = ref renderObjectInstancingData[renderMesh.StaticObjectNode];
 
-                if (instancingComponent.Type is InstancingManyBase instancingManyBase)
+                if (instancingComponent.Type is InstancingBase instancingBase)
                 {
                     // Instancing data
-                    if (instancingComponent.Enabled && instancingManyBase.InstanceCount > 0)
+                    if (instancingComponent.Enabled && instancingBase.InstanceCount > 0)
                     {
-                        instancingData.InstanceCount = instancingManyBase.InstanceCount;
+                        instancingData.InstanceCount = instancingBase.InstanceCount;
 
-                        if (instancingManyBase is InstancingUserBuffer instancingUserBuffer)
+                        if (instancingBase is InstancingUserBuffer instancingUserBuffer)
                         {
                             instancingData.InstanceWorldBuffer = instancingUserBuffer.InstanceWorldBuffer;
                             instancingData.InstanceWorldInverseBuffer = instancingUserBuffer.InstanceWorldInverseBuffer;
                             instancingData.BuffersManagedByUser = true;
                         }
-                        else if (instancingManyBase is InstancingUserArray instancingMany)
+                        else if (instancingBase is InstancingUserArray instancingMany)
                         {
                             instancingData.WorldMatrices = instancingMany.WorldMatrices;
                             instancingData.WorldInverseMatrices = instancingMany.WorldInverseMatrices;
 
-                            if (instancingData.InstanceWorldBuffer == null || instancingData.InstanceWorldBuffer.ElementCount < instancingManyBase.InstanceCount)
+                            if (instancingData.InstanceWorldBuffer == null || instancingData.InstanceWorldBuffer.ElementCount < instancingBase.InstanceCount)
                             {
                                 instancingData.InstanceWorldBuffer?.Dispose();
                                 instancingData.InstanceWorldInverseBuffer?.Dispose();
 
-                                instancingData.InstanceWorldBuffer = CreateMatrixBuffer(Context.GraphicsDevice, instancingManyBase.InstanceCount);
-                                instancingData.InstanceWorldInverseBuffer = CreateMatrixBuffer(Context.GraphicsDevice, instancingManyBase.InstanceCount);
+                                instancingData.InstanceWorldBuffer = CreateMatrixBuffer(Context.GraphicsDevice, instancingBase.InstanceCount);
+                                instancingData.InstanceWorldInverseBuffer = CreateMatrixBuffer(Context.GraphicsDevice, instancingBase.InstanceCount);
                             }
 
                             instancingData.BuffersManagedByUser = false;

@@ -10,9 +10,9 @@ using Stride.Graphics;
 
 namespace Stride.Engine
 {
-    [DataContract("InstancingMany")]
-    [Display("Many")]
-    public class InstancingUserArray : InstancingManyBase
+    [DataContract("InstancingUserArray")]
+    [Display("UserArray")]
+    public class InstancingUserArray : InstancingBase
     {
         /// <summary>
         /// The instance transformation matrices.

@@ -76,8 +76,6 @@ namespace Stride.Rendering.Materials
 
             public bool HasNormalMap;
 
-            public bool HasInstancing;
-
             /// <summary>
             /// Indicates that material requries using pixel shader stage during depth-only pass (Z prepass or shadow map rendering).
             /// Used by transparent and cut off materials.

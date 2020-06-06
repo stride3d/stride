@@ -13,7 +13,7 @@ namespace Stride.Engine
     [DataContract("InstancingComponent")]
     [Display("Instancing", Expand = ExpandRule.Once)]
     [ComponentCategory("Model")]
-    [DefaultEntityComponentProcessor(typeof(InstancingProcessor))]
+    [DefaultEntityComponentRenderer(typeof(InstancingProcessor))]
     public sealed class InstancingComponent : ActivableEntityComponent
     {
         /// <summary>

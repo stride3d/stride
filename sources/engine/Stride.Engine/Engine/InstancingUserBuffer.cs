@@ -12,7 +12,7 @@ namespace Stride.Engine
 {
     [DataContract("InstancingUserBuffer")]
     [Display("UserBuffer")]
-    public class InstancingUserBuffer : InstancingManyBase
+    public class InstancingUserBuffer : InstancingBase
     {
         [DataMemberIgnore]
         public Buffer<Matrix> InstanceWorldBuffer;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Stride.Core;
 using Stride.Core.Annotations;
@@ -14,36 +15,70 @@ namespace Stride.Engine
     [Display("EntityTransform")]
     public class InstancingEntityTransform : InstancingUserArray
     {
-        /// <summary>
-        /// Gets or sets the referenced <see cref="ModelComponent"/> to instance.
-        /// </summary>
-        /// <value>The referenced <see cref="ModelComponent"/> to instance.</value>
-        /// <userdoc>The "Master" <see cref="ModelComponent"/> to instance.</userdoc>
-        [DataMember(10)]
-        [NotNull]
-        [Display("Master Model", Expand = ExpandRule.Always)]
-        public ModelComponent Master { get; set; }
+        private readonly List<InstanceComponent> instances = new List<InstanceComponent>();
+
+        internal InstanceComponent GetInstanceAt(int instanceId)
+        {
+            return instances[instanceId];
+        }
+
+        internal void ClearInstances()
+        {
+            instances.Clear();
+        }
+
+        internal void AddInstance(InstanceComponent instance)
+        {
+            instances.Add(instance);
+        }
+
+        internal void RemoveInstance(InstanceComponent instance)
+        {
+            instances.Remove(instance);
+        }
 
         public override void Update()
         {
+            // Manage array
+            var maxInstanceCount = instances.Count;
+            var matrices = WorldMatrices;
+            if (matrices == null || matrices.Length < maxInstanceCount)
+            {
+                matrices = new Matrix[maxInstanceCount];
+            }
+
+            // Gather instance transforms
+            var instanceCount = 0;
+            for (int i = 0; i < maxInstanceCount; i++)
+            {
+                var instance = instances[i];
+                if (instance.Enabled)
+                {
+                    matrices[instanceCount++] = instance.Entity.Transform.WorldMatrix;
+                }
+            }
+
+            // Set array back
+            UpdateWorldMatrices(matrices, instanceCount);
+
+            // Do base work
             base.Update();
         }
+    }
 
-        List<Entity> instanceEntities = new List<Entity>();
-
-        internal Entity GetInstanceEntity(int instanceId)
+    public static class InstancingExtensions
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsEntityTransform(this InstancingComponent component, out InstancingEntityTransform instancing)
         {
-            return instanceEntities[instanceId];
-        }
+            if (component != null && component.Type is InstancingEntityTransform type)
+            {
+                instancing = type;
+                return true;
+            }
 
-        internal void ClearEntities()
-        {        
-            instanceEntities.Clear();
-        }
-
-        internal void AddInstanceEntity(Entity entity)
-        {
-            instanceEntities.Add(entity);
+            instancing = null;
+            return false;
         }
     }
 }

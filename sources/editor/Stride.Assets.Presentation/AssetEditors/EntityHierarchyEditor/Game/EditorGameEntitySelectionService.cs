@@ -483,7 +483,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                             var instancingComponent = entityUnderMouse?.Get<InstancingComponent>();
                             if (instancingComponent != null && instancingComponent.Type is InstancingEntityTransform instancing)
                             {
-                                entityUnderMouse = instancing.GetInstanceEntity(entityPicked.InstanceId) ?? entityUnderMouse;
+                                entityUnderMouse = instancing.GetInstanceAt(entityPicked.InstanceId)?.Entity ?? entityUnderMouse;
                             }
                         }
 
