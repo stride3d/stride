@@ -341,17 +341,23 @@ namespace Stride.Input.Tests
             Assert.Equal(0, Input.GamePadCount);
         }
 
+        /// <summary>
+        /// Checks whether VirtualButton.Find works for Keyboard, Mouse and GamePad.
+        /// </summary>
         void TestVirtualButtonFind()
         {
+            // Test Keyboard Keys
             Assert.Equal(VirtualButton.Keyboard.A, VirtualButton.Find("Keyboard.a"));
             Assert.Equal(VirtualButton.Keyboard.Z, VirtualButton.Find("Keyboard.z"));
             Assert.Equal(VirtualButton.Keyboard.LeftCtrl, VirtualButton.Find("Keyboard.leftctrl"));
             Assert.Equal(VirtualButton.Keyboard.LeftShift, VirtualButton.Find("Keyboard.leftshift"));
 
+            // Test Mouse Buttons
             Assert.Equal(VirtualButton.Mouse.Left, VirtualButton.Find("Mouse.Left"));
             Assert.Equal(VirtualButton.Mouse.PositionX, VirtualButton.Find("Mouse.PositionX"));
             Assert.Equal(VirtualButton.Mouse.DeltaY, VirtualButton.Find("Mouse.DeltaY"));
 
+            // Test GamePad Buttons
             Assert.Equal(VirtualButton.GamePad.LeftThumbAxisX, VirtualButton.Find("GamePad.LeftThumbAxisX"));
             Assert.Equal(VirtualButton.GamePad.RightThumb, VirtualButton.Find("GamePad.RightThumb"));
             Assert.Equal(VirtualButton.GamePad.A, VirtualButton.Find("GamePad.A"));
