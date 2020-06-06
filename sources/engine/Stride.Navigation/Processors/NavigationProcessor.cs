@@ -48,7 +48,7 @@ namespace Stride.Navigation.Processors
         {
             if (gameSystemCollection != null)
             {
-                gameSystemCollection.CollectionChanged += GameSystemsOnCollectionChanged;
+                gameSystemCollection.CollectionChanged -= GameSystemsOnCollectionChanged;
             }
 
             if (dynamicNavigationMeshSystem != null)
