@@ -98,7 +98,12 @@ namespace Stride.Core.Assets
             // Load some informations about the project
             try
             {
-                var extraProperties = new Dictionary<string, string>(loadParameters.ExtraCompileProperties);
+                var extraProperties = new Dictionary<string, string>();
+                if (loadParameters.ExtraCompileProperties != null)
+                {
+                    foreach (var extraProperty in loadParameters.ExtraCompileProperties)
+                        extraProperties.Add(extraProperty.Key, extraProperty.Value);
+                }
                 extraProperties.Add("SkipInvalidConfigurations", "true");
                 var msProject = VSProjectHelper.LoadProject(project.FullPath, loadParameters.BuildConfiguration, extraProperties: extraProperties);
                 try
