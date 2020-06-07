@@ -38,13 +38,13 @@ namespace Stride.Engine.Processors
             // Process the components
             Dispatcher.ForEach(ComponentDatas, entity =>
             {
-                UpdateInstancingDataMany(entity.Key, entity.Value);
+                UpdateInstancing(entity.Key, entity.Value);
             });
         }
 
-        private void UpdateInstancingDataMany(InstancingComponent instancingComponent, InstancingData instancingData)
+        private void UpdateInstancing(InstancingComponent instancingComponent, InstancingData instancingData)
         {
-            if (instancingComponent.Enabled)
+            if (instancingComponent.Enabled && instancingComponent.Type != null)
             {
                 var instancing = instancingComponent.Type;
 
