@@ -15,4 +15,9 @@ shader TransformationInstancing : TransformationBase
     {
         return InstanceWorld[streams.InstanceID].Matrix;
     }
+
+    float4x4 GetInstanceWorldInverse()
+    {
+        return InstanceWorldInverse[streams.InstanceID].Matrix;
+    }
 };

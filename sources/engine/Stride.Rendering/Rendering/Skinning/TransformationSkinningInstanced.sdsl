@@ -13,6 +13,11 @@ shader TransformationSkinningInstanced : TransformationSkinning, TransformationI
 
         float4 blendPos = mul(float4(streams.Position.xyz, 1), streams.skinningBlendMatrix);
         blendPos /= blendPos.w;
+
+        // Put back to object space
+        blendPos = mul(blendPos, Transformation.WorldInverse);
+
+        // Apply instance transformation
         streams.PositionWS = mul(blendPos, GetInstanceWorld());
     }
 };

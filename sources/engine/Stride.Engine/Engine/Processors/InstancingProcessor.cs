@@ -54,12 +54,26 @@ namespace Stride.Engine.Processors
                 if (instancingData.TransformComponent != null && instancingData.ModelComponent != null)
                 {
                     // Bounding box
-                    foreach (var meshInfo in instancingData.ModelComponent.MeshInfos)
+                    var meshCount = instancingData.ModelComponent.MeshInfos.Count;
+                    for (int i = 0; i < meshCount; i++)
                     {
+                        var mesh = instancingData.ModelComponent.Model.Meshes[i];
+                        var meshInfo = instancingData.ModelComponent.MeshInfos[i];
+
+                        // This must reflect the transformations in the shaders
                         var ibb = new BoundingBoxExt(instancing.BoundingBox);
-                        ibb.Transform(instancingData.TransformComponent.WorldMatrix);
-                        var center = meshInfo.BoundingBox.Center + ibb.Center - instancingData.TransformComponent.WorldMatrix.TranslationVector;
-                        var extend = meshInfo.BoundingBox.Extent + ibb.Extent;
+                        var mbb = new BoundingBoxExt(meshInfo.BoundingBox);
+
+                        // We need to remove the world transformation component
+                        //if (mesh.Skinning != null && instancingData.ModelComponent.Skeleton != null)
+                        {
+                            Matrix.Invert(ref instancingData.ModelComponent.Skeleton.NodeTransformations[0].LocalMatrix, out var invWorld);
+                            mbb.Transform(invWorld);
+                        }
+
+                        // ibb.Transform(instancingData.TransformComponent.WorldMatrix);
+                        var center = ibb.Center;// - instancingData.TransformComponent.WorldMatrix.TranslationVector;
+                        var extend = mbb.Extent + ibb.Extent;
                         meshInfo.BoundingBox = new BoundingBox(center - extend, center + extend);
                     } 
                 }

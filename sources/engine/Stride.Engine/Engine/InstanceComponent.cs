@@ -37,6 +37,9 @@ namespace Stride.Engine
             {
                 if (value != master)
                 {
+                    if (value != null && value.Type == null)
+                        return;
+
                     RemoveFromMaster();
                     master = value;
                     AddToMaster();
