@@ -23,6 +23,14 @@ namespace Stride.Engine.Processors
             Order = -110;
         }
 
+        protected override void OnEntityComponentAdding(Entity entity, [NotNull] InstanceComponent component, [NotNull] InstanceComponent data)
+        {
+            if (component.Master == null)
+            {
+                component.Master = FindMasterInParents(component.Entity);
+            }
+        }
+
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] InstanceComponent component, [NotNull] InstanceComponent data)
         {
             var master = component.Master;
