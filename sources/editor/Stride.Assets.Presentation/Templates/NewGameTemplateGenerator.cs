@@ -112,6 +112,7 @@ namespace Stride.Assets.Presentation.Templates
             var logger = parameters.Logger;
             var platforms = parameters.GetTag(PlatformsKey);
             var name = parameters.Name;
+            var nameSpace = parameters.Namespace ?? parameters.Name;
             var outputDirectory = parameters.OutputDirectory;
             var orientation = parameters.GetTag(OrientationKey);
 
@@ -121,7 +122,7 @@ namespace Stride.Assets.Presentation.Templates
             // Generate projects for this package
             var session = parameters.Session;
 
-            var projectGameName = Utilities.BuildValidNamespaceName(name);
+            var projectGameName = Utilities.BuildValidNamespaceName(nameSpace);
 
             var stepIndex = 0;
             var stepCount = platforms.Count + 1;
