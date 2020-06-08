@@ -407,13 +407,19 @@ namespace Stride.Core.Assets
                                 // Build list of assemblies
                                 foreach (var a in targetLibrary.RuntimeAssemblies)
                                 {
-                                    var assemblyFile = Path.Combine(libraryPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
-                                    projectDependency.Assemblies.Add(assemblyFile);
+                                    if (!a.Path.EndsWith("_._"))
+                                    {
+                                        var assemblyFile = Path.Combine(libraryPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+                                        projectDependency.Assemblies.Add(assemblyFile);
+                                    }
                                 }
                                 foreach (var a in targetLibrary.RuntimeTargets)
                                 {
-                                    var assemblyFile = Path.Combine(libraryPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
-                                    projectDependency.Assemblies.Add(assemblyFile);
+                                    if (!a.Path.EndsWith("_._"))
+                                    {
+                                        var assemblyFile = Path.Combine(libraryPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+                                        projectDependency.Assemblies.Add(assemblyFile);
+                                    }
                                 }
                             }
                         }
@@ -519,7 +525,7 @@ namespace Stride.Core.Assets
             else
             {
                 // External references were passed, but the top level project wasn't found.
-                // This is always due to an internal issue and typically caused by errors 
+                // This is always due to an internal issue and typically caused by errors
                 // building the project closure.
                 throw new InvalidOperationException($"Missing external reference metadata for {_request.Project.Name}");
             }
