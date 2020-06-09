@@ -100,8 +100,8 @@ namespace Stride.Engine.Processors
                         // This is currently not entirely correct, it ignores cases with extreme scalings
                         switch (instancing.ModelTransformUsage)
                         {
-                            case ModelTransformUsage.Replace:
-                                BoundingBoxReplaceWorld(instancingData, instancing, meshInfo, mesh);
+                            case ModelTransformUsage.Ignore:
+                                BoundingBoxIgnoreWorld(instancingData, instancing, meshInfo, mesh);
                                 break;
                             case ModelTransformUsage.PreMultiply:
                                 BoundingBoxPreMultiplyWorld(instancingData, instancing, meshInfo, mesh);
@@ -117,7 +117,7 @@ namespace Stride.Engine.Processors
             }
         }
 
-        private static void BoundingBoxReplaceWorld(InstancingData instancingData, IInstancing instancing, ModelComponent.MeshInfo meshInfo, Mesh mesh)
+        private static void BoundingBoxIgnoreWorld(InstancingData instancingData, IInstancing instancing, ModelComponent.MeshInfo meshInfo, Mesh mesh)
         {
             // We need to remove the world transformation component
             if (instancingData.ModelComponent.Skeleton != null)

@@ -16,6 +16,7 @@ namespace Stride.Engine
     public sealed class InstanceComponent : ActivableEntityComponent
     {
         private InstancingComponent master;
+        private InstancingEntityTransform connectedInstancing;
 
         /// <summary>
         /// Gets or sets the referenced <see cref="InstancingComponent"/> to instance.
@@ -32,30 +33,44 @@ namespace Stride.Engine
             {
                 if (value != master)
                 {
-                    // Reject instancing that isn't set
-                    if (value != null && value.Type == null)
-                        return;
+                    DisconnectInstancing();
 
-                    RemoveFromMaster();
+                    // Remove previous event handler
+                    if (master != null)
+                        master.InstancingChanged -= Master_InstancingChanged;
+
                     master = value;
-                    AddToMaster();
+
+                    if (master != null)
+                    {
+                        master.InstancingChanged += Master_InstancingChanged;
+                        ConnectInstancing();
+                    }
                 }
             }
         }
 
-        private void AddToMaster()
+        private void Master_InstancingChanged(object sender, IInstancing e)
+        {
+            DisconnectInstancing();
+            ConnectInstancing();
+        }
+
+        private void ConnectInstancing()
         {
             if (master != null && master.Type is InstancingEntityTransform instancing)
             {
                 instancing.AddInstance(this);
+                connectedInstancing = instancing;
             }
         }
 
-        private void RemoveFromMaster()
+        public void DisconnectInstancing()
         {
-            if (master != null && master.Type is InstancingEntityTransform instancing)
+            if (connectedInstancing != null)
             {
-                instancing.RemoveInstance(this);
+                connectedInstancing.RemoveInstance(this);
+                connectedInstancing = null;
             }
         }
     }

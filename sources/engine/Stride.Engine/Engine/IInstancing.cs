@@ -7,7 +7,7 @@ namespace Stride.Engine
 {
     public enum ModelTransformUsage
     {
-        Replace,
+        Ignore,
         PreMultiply,
         PostMultiply
     }

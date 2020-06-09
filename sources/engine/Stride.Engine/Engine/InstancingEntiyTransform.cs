@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -12,7 +13,7 @@ namespace Stride.Engine
         [DataMemberIgnore]
         public override ModelTransformUsage ModelTransformUsage 
         { 
-            get => ModelTransformUsage.Replace;
+            get => ModelTransformUsage.Ignore;
         }
 
         private readonly List<InstanceComponent> instances = new List<InstanceComponent>();
@@ -30,11 +31,13 @@ namespace Stride.Engine
         internal void AddInstance(InstanceComponent instance)
         {
             instances.Add(instance);
+            //Debug.WriteLine("Instance Added: " + instance.Entity?.Name + " Instance Count: " + instances.Count);
         }
 
         internal void RemoveInstance(InstanceComponent instance)
         {
             instances.Remove(instance);
+            //Debug.WriteLine("Instance Removed: " + instance.Entity?.Name + " Instance Count: " + instances.Count);
         }
 
         public override void Update()

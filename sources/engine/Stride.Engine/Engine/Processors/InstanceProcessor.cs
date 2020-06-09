@@ -21,11 +21,7 @@ namespace Stride.Engine.Processors
 
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] InstanceComponent component, [NotNull] InstanceComponent data)
         {
-            var master = component.Master;
-            if (master != null && master.Type is InstancingEntityTransform instancing)
-            {
-                instancing.RemoveInstance(component);
-            }
+            component.DisconnectInstancing();
         }
 
         private InstancingComponent FindMasterInParents(Entity entity)

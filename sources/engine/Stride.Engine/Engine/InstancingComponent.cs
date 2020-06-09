@@ -1,3 +1,5 @@
+using System;
+using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Engine.Design;
@@ -11,6 +13,8 @@ namespace Stride.Engine
     [DefaultEntityComponentRenderer(typeof(InstancingProcessor))]
     public sealed class InstancingComponent : ActivableEntityComponent
     {
+        private IInstancing type = new InstancingEntityTransform();
+
         /// <summary>
         /// Gets or sets the type of the instancing.
         /// </summary>
@@ -19,6 +23,22 @@ namespace Stride.Engine
         [DataMember(10)]
         [NotNull]
         [Display("Instancing Type", Expand = ExpandRule.Always)]
-        public IInstancing Type { get; set; } = new InstancingEntityTransform();
+        public IInstancing Type
+        {
+            get => type;
+            set
+            {
+                if (value != type)
+                {
+                    type = value;
+                    InstancingChanged?.Invoke(this, type);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Occurs when the instancing changed. Used to notify instances to change their
+        /// </summary>
+        public event EventHandler<IInstancing> InstancingChanged;
     }
 }
