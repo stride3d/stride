@@ -1,18 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Graphics;
-using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
 
-namespace Stride.Engine.Rendering
+namespace Stride.Rendering
 {
     public struct InstancingData 
     {
         public int InstanceCount;
+        public int ModelTransformUsage;
 
         // Data
         public Matrix[] WorldMatrices;
@@ -22,13 +21,12 @@ namespace Stride.Engine.Rendering
         public bool BuffersManagedByUser;
         public Buffer<Matrix> InstanceWorldBuffer;
         public Buffer<Matrix> InstanceWorldInverseBuffer;
-        public int ModelTransformUsage;
     }
 
     public class InstancingRenderFeature : SubRenderFeature
     {
         [DataMemberIgnore]
-        public static readonly PropertyKey<Dictionary<ModelComponent, InstancingComponent>> ModelToInstancingMap = new PropertyKey<Dictionary<ModelComponent, InstancingComponent>>("InstancingRenderFeature.ModelToInstancingMap", typeof(InstancingRenderFeature));
+        public static readonly PropertyKey<Dictionary<RenderModel, RenderInstancing>> ModelToInstancingMap = new PropertyKey<Dictionary<RenderModel, RenderInstancing>>("InstancingRenderFeature.ModelToInstancingMap", typeof(InstancingRenderFeature));
 
         private StaticObjectPropertyKey<InstancingData> renderObjectInstancingDataInfoKey;
 
@@ -46,9 +44,7 @@ namespace Stride.Engine.Rendering
         /// <inheritdoc/>
         public override void Extract()
         {
-            var mapFound = Context.VisibilityGroup.Tags.TryGetValue(ModelToInstancingMap, out var modelToInstancingMap);
-
-            if (!mapFound)
+            if (!Context.VisibilityGroup.Tags.TryGetValue(ModelToInstancingMap, out var modelToInstancingMap))
                 return;
 
             var renderObjectInstancingData = RootRenderFeature.RenderData.GetData(renderObjectInstancingDataInfoKey);
@@ -60,13 +56,11 @@ namespace Stride.Engine.Rendering
                 if (renderMesh == null)
                     continue;
 
-                var modelComponent = renderMesh.Source as ModelComponent;
-                if (modelComponent == null)
+                var renderModel = renderMesh.RenderModel;
+                if (renderModel == null)
                     continue;
 
-                // Better:
-                modelToInstancingMap.TryGetValue(modelComponent, out var instancingComponent);
-                if (instancingComponent == null)
+                if (!modelToInstancingMap.TryGetValue(renderModel, out var renderInstancing))
                 {
                     renderMesh.InstanceCount = 0;
                     continue;
@@ -74,51 +68,25 @@ namespace Stride.Engine.Rendering
 
                 ref var instancingData = ref renderObjectInstancingData[renderMesh.StaticObjectNode];
 
-                if (instancingComponent.Type is InstancingBase instancingBase)
+                // Instancing data
+                if (renderInstancing.InstanceCount > 0)
                 {
-                    // Instancing data
-                    if (instancingComponent.Enabled && instancingBase.InstanceCount > 0)
-                    {
-                        instancingData.InstanceCount = instancingBase.InstanceCount;
-                        instancingData.ModelTransformUsage = (int)instancingBase.ModelTransformUsage;
-
-                        if (instancingBase is InstancingUserBuffer instancingUserBuffer)
-                        {
-                            instancingData.InstanceWorldBuffer = instancingUserBuffer.InstanceWorldBuffer;
-                            instancingData.InstanceWorldInverseBuffer = instancingUserBuffer.InstanceWorldInverseBuffer;
-                            instancingData.BuffersManagedByUser = true;
-                        }
-                        else if (instancingBase is InstancingUserArray instancingMany)
-                        {
-                            instancingData.WorldMatrices = instancingMany.WorldMatrices;
-                            instancingData.WorldInverseMatrices = instancingMany.WorldInverseMatrices;
-
-                            if (instancingData.InstanceWorldBuffer == null || instancingData.InstanceWorldBuffer.ElementCount < instancingBase.InstanceCount)
-                            {
-                                instancingData.InstanceWorldBuffer?.Dispose();
-                                instancingData.InstanceWorldInverseBuffer?.Dispose();
-
-                                instancingData.InstanceWorldBuffer = CreateMatrixBuffer(Context.GraphicsDevice, instancingBase.InstanceCount);
-                                instancingData.InstanceWorldInverseBuffer = CreateMatrixBuffer(Context.GraphicsDevice, instancingBase.InstanceCount);
-                            }
-
-                            instancingData.BuffersManagedByUser = false;
-                        }
-                    }
-                    else
-                    {
-                        instancingData.InstanceCount = 0;
-                    } 
+                    instancingData.InstanceCount = renderInstancing.InstanceCount;
+                    instancingData.ModelTransformUsage = renderInstancing.ModelTransformUsage;
+                    instancingData.BuffersManagedByUser = renderInstancing.BuffersManagedByUser;
+                    instancingData.WorldMatrices = renderInstancing.WorldMatrices;
+                    instancingData.WorldInverseMatrices = renderInstancing.WorldInverseMatrices;
+                    instancingData.InstanceWorldBuffer = renderInstancing.InstanceWorldBuffer;
+                    instancingData.InstanceWorldInverseBuffer = renderInstancing.InstanceWorldInverseBuffer;
                 }
-
+                else
+                {
+                    instancingData.InstanceCount = 0;
+                } 
+                
                 // Update instance count on mesh
                 renderMesh.InstanceCount = instancingData.InstanceCount;
             }
-        }
-
-        private static Buffer<Matrix> CreateMatrixBuffer(GraphicsDevice graphicsDevice, int elementCount)
-        {
-            return Buffer.New<Matrix>(graphicsDevice, elementCount, BufferFlags.ShaderResource | BufferFlags.StructuredBuffer, GraphicsResourceUsage.Dynamic);
         }
 
         private static unsafe void SetBufferData<TData>(CommandList commandList, Buffer buffer, TData[] fromData, int elementCount) where TData : struct

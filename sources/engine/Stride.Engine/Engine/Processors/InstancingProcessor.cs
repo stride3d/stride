@@ -1,28 +1,24 @@
-using System;
-using System.Buffers;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ServiceWire.TcpIp;
 using Stride.Core.Annotations;
-using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
-using Stride.Engine.Rendering;
-using Stride.Games;
+using Stride.Graphics;
 using Stride.Rendering;
+using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Engine.Processors
 {
     public class InstancingProcessor : EntityProcessor<InstancingComponent, InstancingProcessor.InstancingData>, IEntityComponentRenderProcessor
     {
-        private readonly Dictionary<ModelComponent, InstancingComponent> modelInstancingMap = new Dictionary<ModelComponent, InstancingComponent>();
-        private ModelRenderProcessor ModelRenderProcessor;
+        private readonly Dictionary<RenderModel, RenderInstancing> modelInstancingMap = new Dictionary<RenderModel, RenderInstancing>();
+        private ModelRenderProcessor modelRenderProcessor;
 
         public class InstancingData
         {
             public TransformComponent TransformComponent;
             public ModelComponent ModelComponent;
+            public RenderModel RenderModel;
+            public RenderInstancing RenderInstancing = new RenderInstancing();
         }
 
         public InstancingProcessor() 
@@ -37,10 +33,49 @@ namespace Stride.Engine.Processors
         public override void Draw(RenderContext context)
         {
             // Process the components
-            Dispatcher.ForEach(ComponentDatas, entity =>
+            Dispatcher.ForEach(ComponentDatas, item =>
             {
-                UpdateInstancing(entity.Key, entity.Value);
+                UpdateInstancing(item.Key, item.Value);
+                TransferData(context, item.Key, item.Value.RenderInstancing);
             });
+        }
+
+        private static void TransferData(RenderContext context, InstancingComponent instancingComponent, RenderInstancing renderInstancing)
+        {
+            var instancing = instancingComponent.Type;
+            renderInstancing.InstanceCount = instancingComponent.Enabled ? instancing.InstanceCount : 0;
+            renderInstancing.ModelTransformUsage = (int)instancing.ModelTransformUsage;
+
+            if (renderInstancing.InstanceCount > 0)
+            {
+                if (instancing is InstancingUserArray instancingUserArray)
+                {
+                    renderInstancing.BuffersManagedByUser = false;
+                    renderInstancing.WorldMatrices = instancingUserArray.WorldMatrices;
+                    renderInstancing.WorldInverseMatrices = instancingUserArray.WorldInverseMatrices;
+
+                    if ((renderInstancing.InstanceWorldBuffer == null || renderInstancing.InstanceWorldBuffer.ElementCount < instancing.InstanceCount))
+                    {
+                        renderInstancing.InstanceWorldBuffer?.Dispose();
+                        renderInstancing.InstanceWorldInverseBuffer?.Dispose();
+
+                        renderInstancing.InstanceWorldBuffer = CreateMatrixBuffer(context.GraphicsDevice, instancing.InstanceCount);
+                        renderInstancing.InstanceWorldInverseBuffer = CreateMatrixBuffer(context.GraphicsDevice, instancing.InstanceCount);
+                    }
+
+                }
+                else if (instancing is InstancingUserBuffer instancingUserBuffer)
+                {
+                    renderInstancing.BuffersManagedByUser = true;
+                    renderInstancing.InstanceWorldBuffer = instancingUserBuffer.InstanceWorldBuffer;
+                    renderInstancing.InstanceWorldInverseBuffer = instancingUserBuffer.InstanceWorldInverseBuffer;
+                } 
+            }
+        }
+
+        private static Buffer<Matrix> CreateMatrixBuffer(GraphicsDevice graphicsDevice, int elementCount)
+        {
+            return Buffer.New<Matrix>(graphicsDevice, elementCount, BufferFlags.ShaderResource | BufferFlags.StructuredBuffer, GraphicsResourceUsage.Dynamic);
         }
 
         private void UpdateInstancing(InstancingComponent instancingComponent, InstancingData instancingData)
@@ -131,14 +166,16 @@ namespace Stride.Engine.Processors
             data.TransformComponent = component.Entity.Get<TransformComponent>();
             data.ModelComponent = component.Entity.Get<ModelComponent>();
 
-            if (data.ModelComponent != null)
-                modelInstancingMap[data.ModelComponent] = component;
+            if (data.ModelComponent != null && modelRenderProcessor.RenderModels.TryGetValue(data.ModelComponent, out var renderModel))
+            {
+                modelInstancingMap[renderModel] = data.RenderInstancing;
+                data.RenderModel = renderModel;
+            }
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] InstancingComponent component, [NotNull] InstancingData data)
         {
-            if (data.ModelComponent != null)
-                modelInstancingMap.Remove(data.ModelComponent);
+            modelInstancingMap.Remove(data.RenderModel);
         }
 
         // Instancing data per InstancingComponent
@@ -157,7 +194,7 @@ namespace Stride.Engine.Processors
             base.OnSystemAdd();
             VisibilityGroup.Tags.Set(InstancingRenderFeature.ModelToInstancingMap, modelInstancingMap);
 
-            ModelRenderProcessor = EntityManager.GetProcessor<ModelRenderProcessor>();
+            modelRenderProcessor = EntityManager.GetProcessor<ModelRenderProcessor>();
         }
 
         protected internal override void OnSystemRemove()
