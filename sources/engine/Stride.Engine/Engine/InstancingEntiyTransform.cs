@@ -15,6 +15,12 @@ namespace Stride.Engine
     [Display("EntityTransform")]
     public class InstancingEntityTransform : InstancingUserArray
     {
+        [DataMemberIgnore]
+        public override ModelTransformUsage ModelTransformUsage 
+        { 
+            get => ModelTransformUsage.Replace;
+        }
+
         private readonly List<InstanceComponent> instances = new List<InstanceComponent>();
 
         internal InstanceComponent GetInstanceAt(int instanceId)

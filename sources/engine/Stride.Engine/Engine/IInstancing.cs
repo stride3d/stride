@@ -5,10 +5,21 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Engine
 {
+    public enum ModelTransformUsage
+    {
+        Replace,
+        PreMultiply,
+        PostMultiply
+    }
+
     public interface IInstancing
     {
         int InstanceCount { get; }
+
         BoundingBox BoundingBox { get; }
+
+        ModelTransformUsage ModelTransformUsage { get; }
+
         void Update();
     }
 }

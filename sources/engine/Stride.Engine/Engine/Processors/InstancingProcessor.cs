@@ -17,6 +17,7 @@ namespace Stride.Engine.Processors
     public class InstancingProcessor : EntityProcessor<InstancingComponent, InstancingProcessor.InstancingData>, IEntityComponentRenderProcessor
     {
         private readonly Dictionary<ModelComponent, InstancingComponent> modelInstancingMap = new Dictionary<ModelComponent, InstancingComponent>();
+        private ModelRenderProcessor ModelRenderProcessor;
 
         public class InstancingData
         {
@@ -61,23 +62,68 @@ namespace Stride.Engine.Processors
                         var meshInfo = instancingData.ModelComponent.MeshInfos[i];
 
                         // This must reflect the transformations in the shaders
-                        var ibb = new BoundingBoxExt(instancing.BoundingBox);
-                        var mbb = new BoundingBoxExt(meshInfo.BoundingBox);
-
-                        // We need to remove the world transformation component
-                        //if (mesh.Skinning != null && instancingData.ModelComponent.Skeleton != null)
+                        // This is currently not entirely correct, it ignores cases with extreme scalings
+                        switch (instancing.ModelTransformUsage)
                         {
-                            Matrix.Invert(ref instancingData.ModelComponent.Skeleton.NodeTransformations[0].LocalMatrix, out var invWorld);
-                            mbb.Transform(invWorld);
+                            case ModelTransformUsage.Replace:
+                                BoundingBoxReplaceWorld(instancingData, instancing, meshInfo, mesh);
+                                break;
+                            case ModelTransformUsage.PreMultiply:
+                                BoundingBoxPreMultiplyWorld(instancingData, instancing, meshInfo, mesh);
+                                break;
+                            case ModelTransformUsage.PostMultiply:
+                                BoundingBoxPostMultiplyWorld(instancingData, instancing, meshInfo, mesh);
+                                break;
+                            default:
+                                break;
                         }
-
-                        // ibb.Transform(instancingData.TransformComponent.WorldMatrix);
-                        var center = ibb.Center;// - instancingData.TransformComponent.WorldMatrix.TranslationVector;
-                        var extend = mbb.Extent + ibb.Extent;
-                        meshInfo.BoundingBox = new BoundingBox(center - extend, center + extend);
-                    } 
+                    }
                 }
             }
+        }
+
+        private static void BoundingBoxReplaceWorld(InstancingData instancingData, IInstancing instancing, ModelComponent.MeshInfo meshInfo, Mesh mesh)
+        {
+            // We need to remove the world transformation component
+            if (instancingData.ModelComponent.Skeleton != null)
+            {
+                var ibb = instancing.BoundingBox;
+                var mbb = new BoundingBoxExt(meshInfo.BoundingBox);
+
+                Matrix.Invert(ref instancingData.ModelComponent.Skeleton.NodeTransformations[0].LocalMatrix, out var invWorld);
+                mbb.Transform(invWorld);
+
+                var center = ibb.Center;
+                var extend = ibb.Extent + mbb.Extent;
+                meshInfo.BoundingBox = new BoundingBox(center - extend, center + extend);
+            }
+            else // Just take the original mesh one
+            {
+                var ibb = instancing.BoundingBox;
+
+                var center = ibb.Center;
+                var extend = ibb.Extent + mesh.BoundingBox.Extent;
+                meshInfo.BoundingBox = new BoundingBox(center - extend, center + extend);
+            }
+        }
+
+        private static void BoundingBoxPreMultiplyWorld(InstancingData instancingData, IInstancing instancing, ModelComponent.MeshInfo meshInfo, Mesh mesh)
+        {
+            
+            var ibb = instancing.BoundingBox;
+
+            var center = meshInfo.BoundingBox.Center;
+            var extend = ibb.Extent + meshInfo.BoundingBox.Extent;
+            meshInfo.BoundingBox = new BoundingBox(center - extend, center + extend);
+        }
+
+        private static void BoundingBoxPostMultiplyWorld(InstancingData instancingData, IInstancing instancing, ModelComponent.MeshInfo meshInfo, Mesh mesh)
+        {
+            var ibb = new BoundingBoxExt(instancing.BoundingBox);
+            ibb.Transform(instancingData.TransformComponent.WorldMatrix);
+            var center = meshInfo.BoundingBox.Center + ibb.Center - instancingData.TransformComponent.WorldMatrix.TranslationVector; // World translation was applied twice now
+            var extend = meshInfo.BoundingBox.Extent + ibb.Extent;
+            meshInfo.BoundingBox = new BoundingBox(center - extend, center + extend);
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] InstancingComponent component, [NotNull] InstancingData data)
@@ -110,6 +156,8 @@ namespace Stride.Engine.Processors
         {
             base.OnSystemAdd();
             VisibilityGroup.Tags.Set(InstancingRenderFeature.ModelToInstancingMap, modelInstancingMap);
+
+            ModelRenderProcessor = EntityManager.GetProcessor<ModelRenderProcessor>();
         }
 
         protected internal override void OnSystemRemove()

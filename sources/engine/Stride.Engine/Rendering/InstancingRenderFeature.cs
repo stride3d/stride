@@ -22,6 +22,7 @@ namespace Stride.Engine.Rendering
         public bool BuffersManagedByUser;
         public Buffer<Matrix> InstanceWorldBuffer;
         public Buffer<Matrix> InstanceWorldInverseBuffer;
+        public int ModelTransformUsage;
     }
 
     public class InstancingRenderFeature : SubRenderFeature
@@ -79,6 +80,7 @@ namespace Stride.Engine.Rendering
                     if (instancingComponent.Enabled && instancingBase.InstanceCount > 0)
                     {
                         instancingData.InstanceCount = instancingBase.InstanceCount;
+                        instancingData.ModelTransformUsage = (int)instancingBase.ModelTransformUsage;
 
                         if (instancingBase is InstancingUserBuffer instancingUserBuffer)
                         {
@@ -146,6 +148,7 @@ namespace Stride.Engine.Rendering
 
                     if (renderEffect != null)
                     {
+                        renderEffect.EffectValidator.ValidateParameter(StrideEffectBaseKeys.ModelTransformUsage, instancingData.ModelTransformUsage);
                         renderEffect.EffectValidator.ValidateParameter(StrideEffectBaseKeys.HasInstancing, instancingData.InstanceCount > 0);
                     }
                 }

@@ -51,6 +51,7 @@ namespace Stride.Rendering
                 context.Mixin(mixin, "NormalStream");
                 if (context.GetParam(StrideEffectBaseKeys.HasInstancing))
                 {
+                    mixin.AddMacro("ModelTransformUsage", context.GetParam(StrideEffectBaseKeys.ModelTransformUsage));
                     context.Mixin(mixin, "TransformationWAndVPInstanced");
                 }
                 else

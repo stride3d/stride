@@ -32,11 +32,12 @@ namespace Stride.Engine
         [Display("Instancing", Expand = ExpandRule.Always)]
         public InstancingComponent Master
         {
-            get => master; 
+            get => master;
             set
             {
                 if (value != master)
                 {
+                    // Reject instancing that isn't set
                     if (value != null && value.Type == null)
                         return;
 

@@ -61,7 +61,7 @@ namespace Stride.Engine
             {
                 if (WorldMatrices != null)
                 {
-                    // Make sure inverse matrices are big enough
+                    // Make sure inverse matrices array is big enough
                     if (WorldInverseMatrices.Length < InstanceCount)
                     {
                         WorldInverseMatrices = new Matrix[InstanceCount];

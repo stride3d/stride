@@ -25,6 +25,10 @@ namespace Stride.Engine
         [DataMemberIgnore]
         public virtual BoundingBox BoundingBox { get; set; } = BoundingBox.Empty;
 
+        [DataMember(10)]
+        [Display("Model Transformation Usage")]
+        public virtual ModelTransformUsage ModelTransformUsage { get; set; }
+
         public virtual void Update()
         {
             

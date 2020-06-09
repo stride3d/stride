@@ -24,6 +24,6 @@ namespace Stride.Engine
         [DataMember(10)]
         [NotNull]
         [Display("Instancing Type", Expand = ExpandRule.Always)]
-        public IInstancing Type { get; set; }
+        public IInstancing Type { get; set; } = new InstancingEntityTransform();
     }
 }

@@ -1,4 +1,8 @@
-shader TransformationInstancing : TransformationBase
+#ifndef ModelTransformUsage
+# define ModelTransformUsage 0
+#endif
+
+shader TransformationInstancing : TransformationBase, Transformation
 {
     struct InstanceTransform
     {
@@ -13,11 +17,23 @@ shader TransformationInstancing : TransformationBase
 
     float4x4 GetInstanceWorld()
     {
+#if ModelTransformUsage == 0
         return InstanceWorld[streams.InstanceID].Matrix;
+#elif ModelTransformUsage == 1
+        return mul(Transformation.World, InstanceWorld[streams.InstanceID].Matrix);
+#else
+        return mul(InstanceWorld[streams.InstanceID].Matrix, Transformation.World);
+#endif
     }
 
     float4x4 GetInstanceWorldInverse()
     {
+#if ModelTransformUsage == 0
         return InstanceWorldInverse[streams.InstanceID].Matrix;
+#elif ModelTransformUsage == 1
+        return mul(InstanceWorldInverse[streams.InstanceID].Matrix, Transformation.WorldInverse);
+#else
+        return mul(Transformation.WorldInverse, InstanceWorldInverse[streams.InstanceID].Matrix);
+#endif
     }
 };
