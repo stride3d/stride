@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
-using Stride.Engine.Design;
-using Stride.Engine.Processors;
 using Stride.Graphics;
 
 namespace Stride.Engine
