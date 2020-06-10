@@ -481,7 +481,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
                             // Check for instancing
                             var instancingComponent = entityUnderMouse?.Get<InstancingComponent>();
-                            if (instancingComponent != null && instancingComponent.Type is InstancingEntityTransform instancing)
+                            if (instancingComponent != null && instancingComponent.Enabled && instancingComponent.Type is InstancingEntityTransform instancing)
                             {
                                 entityUnderMouse = instancing.GetInstanceAt(entityPicked.InstanceId)?.Entity ?? entityUnderMouse;
                             }
