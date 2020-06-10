@@ -10,14 +10,16 @@ shader TransformationSkinningInstanced : TransformationSkinning, TransformationI
                                     + GetBlendMatrix(streams.BlendIndices[1]) * streams.BlendWeights[1]
                                     + GetBlendMatrix(streams.BlendIndices[2]) * streams.BlendWeights[2]
                                     + GetBlendMatrix(streams.BlendIndices[3]) * streams.BlendWeights[3];
-
-        float4 blendPos = mul(float4(streams.Position.xyz, 1), streams.skinningBlendMatrix);
-        blendPos /= blendPos.w;
-
+        
         // Put back to object space
-        blendPos = mul(blendPos, Transformation.WorldInverse);
+        streams.skinningBlendMatrix = mul(streams.skinningBlendMatrix, Transformation.WorldInverse);
 
         // Apply instance transformation
-        streams.PositionWS = mul(blendPos, GetInstanceWorld());
+        streams.skinningBlendMatrix = mul(streams.skinningBlendMatrix, GetInstanceWorld());
+
+        // Transform position
+        float4 blendPos = mul(streams.Position, streams.skinningBlendMatrix);
+
+        streams.PositionWS = blendPos;
     }
 };

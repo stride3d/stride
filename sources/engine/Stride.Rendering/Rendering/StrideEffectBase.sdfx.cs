@@ -53,18 +53,26 @@ namespace Stride.Rendering
                 {
                     mixin.AddMacro("ModelTransformUsage", context.GetParam(StrideEffectBaseKeys.ModelTransformUsage));
                     context.Mixin(mixin, "TransformationWAndVPInstanced");
+                    if (context.GetParam(MaterialKeys.HasNormalMap))
+                    {
+                        context.Mixin(mixin, "NormalFromNormalMappingInstanced");
+                    }
+                    else
+                    {
+                        context.Mixin(mixin, "NormalFromMeshInstanced");
+                    }
                 }
                 else
                 {
                     context.Mixin(mixin, "TransformationWAndVP");
-                }
-                if (context.GetParam(MaterialKeys.HasNormalMap))
-                {
-                    context.Mixin(mixin, "NormalFromNormalMapping");
-                }
-                else
-                {
-                    context.Mixin(mixin, "NormalFromMesh");
+                    if (context.GetParam(MaterialKeys.HasNormalMap))
+                    {
+                        context.Mixin(mixin, "NormalFromNormalMapping");
+                    }
+                    else
+                    {
+                        context.Mixin(mixin, "NormalFromMesh");
+                    }
                 }
                 if (context.GetParam(MaterialKeys.HasSkinningPosition))
                 {

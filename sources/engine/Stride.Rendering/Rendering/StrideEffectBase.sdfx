@@ -42,23 +42,36 @@ namespace Stride.Rendering
         {
             mixin macro StrideEffectBaseKeys.ModelTransformUsage;
             mixin TransformationWAndVPInstanced;
+
+            // -----------------------------------------------
+            // Performs normal mapping (in case of no-skinning, otherwise it is overloaded below)
+            // -----------------------------------------------
+            if (MaterialKeys.HasNormalMap)
+            {
+                mixin NormalFromNormalMappingInstanced;
+            }
+            else
+            {
+                mixin NormalFromMeshInstanced;
+            }
         }
         else
         {
             mixin TransformationWAndVP;
+
+            // -----------------------------------------------
+            // Performs normal mapping (in case of no-skinning, otherwise it is overloaded below)
+            // -----------------------------------------------
+            if (MaterialKeys.HasNormalMap)
+            {
+                mixin NormalFromNormalMapping;
+            }
+            else
+            {
+                mixin NormalFromMesh;
+            }
         }
 
-        // -----------------------------------------------
-        // Performs normal mapping (in case of no-skinning, otherwise it is overloaded below)
-        // -----------------------------------------------
-        if (MaterialKeys.HasNormalMap)
-        {
-            mixin NormalFromNormalMapping;
-        }
-        else
-        {
-            mixin NormalFromMesh;
-        }
 
         // -----------------------------------------------
         // Performs animation skinning (position, normal and tangent)
