@@ -33,6 +33,8 @@ namespace Stride.Rendering
         private StaticObjectPropertyKey<RenderEffect> renderEffectKey;
         private LogicalGroupReference instancingResourceGroupKey;
 
+        private Dictionary<Buffer, bool> bufferUploaded = new Dictionary<Buffer, bool>();
+
         /// <inheritdoc/>
         protected override void InitializeCore()
         {
@@ -48,6 +50,7 @@ namespace Stride.Rendering
                 return;
 
             var renderObjectInstancingData = RootRenderFeature.RenderData.GetData(renderObjectInstancingDataInfoKey);
+            bufferUploaded.Clear();
 
             foreach (var objectNodeReference in RootRenderFeature.ObjectNodeReferences)
             {
@@ -78,6 +81,8 @@ namespace Stride.Rendering
                     instancingData.WorldInverseMatrices = renderInstancing.WorldInverseMatrices;
                     instancingData.InstanceWorldBuffer = renderInstancing.InstanceWorldBuffer;
                     instancingData.InstanceWorldInverseBuffer = renderInstancing.InstanceWorldInverseBuffer;
+
+                    bufferUploaded[renderInstancing.InstanceWorldBuffer] = renderInstancing.BuffersManagedByUser;
                 }
                 else
                 {
@@ -138,16 +143,15 @@ namespace Stride.Rendering
                 if (renderMesh == null)
                     continue;
 
-                var instancingData = renderObjectInstancingData[renderMesh.StaticObjectNode];
+                ref var instancingData = ref renderObjectInstancingData[renderMesh.StaticObjectNode];
 
-                if (instancingData.InstanceCount > 0)
-                {
-                    if (!instancingData.BuffersManagedByUser)
-                    {
-                        SetBufferData(context.CommandList, instancingData.InstanceWorldBuffer, instancingData.WorldMatrices, instancingData.InstanceCount);
-                        SetBufferData(context.CommandList, instancingData.InstanceWorldInverseBuffer, instancingData.WorldInverseMatrices, instancingData.InstanceCount);
-                    }
-                }
+                if (instancingData.InstanceCount <= 0 || instancingData.BuffersManagedByUser || !bufferUploaded.TryGetValue(instancingData.InstanceWorldBuffer, out var uploaded) || uploaded)
+                    continue;
+
+                SetBufferData(context.CommandList, instancingData.InstanceWorldBuffer, instancingData.WorldMatrices, instancingData.InstanceCount);
+                SetBufferData(context.CommandList, instancingData.InstanceWorldInverseBuffer, instancingData.WorldInverseMatrices, instancingData.InstanceCount);
+
+                bufferUploaded[instancingData.InstanceWorldBuffer] = true;
             }
 
             // Assign buffers to render node
@@ -168,7 +172,7 @@ namespace Stride.Rendering
                 if (renderMesh == null)
                     continue;
 
-                var instancingData = renderObjectInstancingData[renderMesh.StaticObjectNode];
+                ref var instancingData = ref renderObjectInstancingData[renderMesh.StaticObjectNode];
 
                 if (instancingData.InstanceCount > 0)
                 { 
