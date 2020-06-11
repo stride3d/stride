@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Stride.Core;
 using Stride.Engine;
+using Stride.Engine.Design;
 using Stride.Games;
 
 namespace Stride.Physics
@@ -37,7 +38,8 @@ namespace Stride.Physics
 
         public override void Initialize()
         {
-            physicsConfiguration = Game?.Settings != null ? Game.Settings.Configurations.Get<PhysicsSettings>() : new PhysicsSettings();
+            var gameSettings = Services.GetService<IGameSettingsService>()?.Settings;
+            physicsConfiguration = gameSettings?.Configurations?.Get<PhysicsSettings>() ?? new PhysicsSettings();
         }
 
         protected override void Destroy()
@@ -88,7 +90,7 @@ namespace Stride.Physics
 
                     //read skinned meshes bone positions and write them to the physics engine
                     physicsScene.Processor.UpdateBones();
-                    
+
                     //simulate physics
                     physicsScene.Simulation.Simulate((float)gameTime.Elapsed.TotalSeconds);
 
@@ -97,7 +99,7 @@ namespace Stride.Physics
 
                     //Perform clean ups before test contacts in this frame
                     physicsScene.Simulation.BeginContactTesting();
-                   
+
                     //handle frame contacts
                     physicsScene.Processor.UpdateContacts();
 
@@ -105,7 +107,7 @@ namespace Stride.Physics
                     physicsScene.Simulation.EndContactTesting();
 
                     //send contact events
-                    physicsScene.Simulation.SendEvents();                   
+                    physicsScene.Simulation.SendEvents();
                 }
             }
         }
