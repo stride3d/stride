@@ -27,9 +27,15 @@ namespace Stride.Engine.Processors
         private InstancingComponent FindMasterInParents(Entity entity)
         {
             var parent = entity?.GetParent();
-            if (parent != null)
+
+            while (parent != null)
             {
-                return parent.Get<InstancingComponent>() ?? FindMasterInParents(parent);
+                var ic = parent.Get<InstancingComponent>();
+
+                if (ic != null)
+                    return ic;
+
+                parent = parent.GetParent();
             }
 
             return null;
