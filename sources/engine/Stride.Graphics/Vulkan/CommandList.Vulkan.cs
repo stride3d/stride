@@ -816,6 +816,13 @@ namespace Stride.Graphics
 
             if (source is Texture sourceTexture && destination is Texture destinationTexture)
             {
+                if (sourceTexture.Width != destinationTexture.Width ||
+                    sourceTexture.Height != destinationTexture.Height ||
+                    sourceTexture.Depth != destinationTexture.Depth ||
+                    sourceTexture.ArraySize != destinationTexture.ArraySize ||
+                    sourceTexture.MipLevels != destinationTexture.MipLevels)
+                    throw new InvalidOperationException($"{nameof(source)} and {nameof(destination)} textures don't match");
+
                 CleanupRenderPass();
 
                 var imageBarriers = stackalloc VkImageMemoryBarrier[2];
@@ -848,56 +855,70 @@ namespace Stride.Graphics
 
                 vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
 
-                // Copy
-                if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
+                for (var subresource = 0; subresource < sourceTexture.MipLevels * sourceTexture.ArraySize; ++subresource)
                 {
-                    if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
+                    var arraySlice = subresource / sourceTexture.MipLevels;
+                    var mipLevel = subresource % sourceTexture.MipLevels;
+
+                    var sourceOffset = sourceTexture.ComputeBufferOffset(subresource, 0);
+                    var destinationOffset = destinationTexture.ComputeBufferOffset(subresource, 0);
+                    var size = sourceTexture.ComputeSubresourceSize(subresource);
+
+                    var width = Texture.CalculateMipSize(sourceTexture.Width, mipLevel);
+                    var height = Texture.CalculateMipSize(sourceTexture.Height, mipLevel);
+                    var depth = Texture.CalculateMipSize(sourceTexture.Depth, mipLevel);
+
+                    // Copy
+                    if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
                     {
-                        var copy = new VkBufferCopy
+                        if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                         {
-                            srcOffset = 0,
-                            dstOffset = 0,
-                            size = (uint)(sourceParent.ViewWidth * sourceParent.ViewHeight * sourceParent.ViewDepth * sourceParent.ViewFormat.SizeInBytes())
-                        };
-                        vkCmdCopyBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeBuffer, destinationParent.NativeBuffer, 1, &copy);
+                            var copy = new VkBufferCopy
+                            {
+                                srcOffset = (ulong)sourceOffset,
+                                dstOffset = (ulong)destinationOffset,
+                                size = (ulong)size,
+                            };
+                            vkCmdCopyBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeBuffer, destinationParent.NativeBuffer, 1, &copy);
+                        }
+                        else
+                        {
+                            var copy = new VkBufferImageCopy
+                            {
+                                imageSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)mipLevel, (uint)arraySlice, (uint)sourceTexture.ArraySize),
+                                imageExtent = new Vortice.Mathematics.Size3(width, height, depth),
+                            };
+                            vkCmdCopyImageToBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeBuffer, 1, &copy);
+                        }
+
+                        // VkFence for host access
+                        destinationParent.StagingFenceValue = null;
+                        destinationParent.StagingBuilder = this;
+                        currentCommandList.StagingResources.Add(destinationParent);
                     }
                     else
                     {
-                        var copy = new VkBufferImageCopy
-                        {
-                            imageSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)sourceTexture.MipLevel, (uint)sourceTexture.ArraySlice, (uint)sourceTexture.ArraySize),
-                            imageExtent = new Vortice.Mathematics.Size3(destinationTexture.Width, destinationTexture.Height, destinationTexture.Depth)
-                        };
-                        vkCmdCopyImageToBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeBuffer, 1, &copy);
-                    }
+                        var destinationSubresource = new VkImageSubresourceLayers(destinationParent.NativeImageAspect, (uint)mipLevel, (uint)arraySlice, (uint)destinationTexture.ArraySize);
 
-                    // VkFence for host access
-                    destinationParent.StagingFenceValue = null;
-                    destinationParent.StagingBuilder = this;
-                    currentCommandList.StagingResources.Add(destinationParent);
-                }
-                else
-                {
-                    var destinationSubresource = new VkImageSubresourceLayers(destinationParent.NativeImageAspect, (uint)destinationTexture.MipLevel, (uint)destinationTexture.ArraySlice, (uint)destinationTexture.ArraySize);
-
-                    if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
-                    {
-                        var copy = new VkBufferImageCopy
+                        if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                         {
-                            imageSubresource = destinationSubresource,
-                            imageExtent = new Vortice.Mathematics.Size3(destinationTexture.Width, destinationTexture.Height, destinationTexture.Depth)
-                        };
-                        vkCmdCopyBufferToImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeBuffer, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, 1, &copy);
-                    }
-                    else
-                    {
-                        var copy = new VkImageCopy
+                            var copy = new VkBufferImageCopy
+                            {
+                                imageSubresource = destinationSubresource,
+                                imageExtent = new Vortice.Mathematics.Size3(width, height, depth),
+                            };
+                            vkCmdCopyBufferToImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeBuffer, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, 1, &copy);
+                        }
+                        else
                         {
-                            srcSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)sourceTexture.MipLevel, (uint)sourceTexture.ArraySlice, (uint)sourceTexture.ArraySize),
-                            dstSubresource = destinationSubresource,
-                            extent = new Vortice.Mathematics.Size3(sourceTexture.ViewWidth, sourceTexture.ViewHeight, sourceTexture.ViewDepth),
-                        };
-                        vkCmdCopyImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, 1, &copy);
+                            var copy = new VkImageCopy
+                            {
+                                srcSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)mipLevel, (uint)arraySlice, (uint)sourceTexture.ArraySize),
+                                dstSubresource = destinationSubresource,
+                                extent = new Vortice.Mathematics.Size3(width, height, depth),
+                            };
+                            vkCmdCopyImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, 1, &copy);
+                        }
                     }
                 }
 
@@ -1122,7 +1143,13 @@ namespace Stride.Graphics
             var texture = resource as Texture;
             if (texture != null)
             {
-                UpdateSubresource(resource, subResourceIndex, databox, new ResourceRegion(0, 0, 0, texture.Width, texture.Height, texture.Depth));
+                var mipLevel = subResourceIndex % texture.MipLevels;
+
+                var width = Texture.CalculateMipSize(texture.Width, mipLevel);
+                var height = Texture.CalculateMipSize(texture.Height, mipLevel);
+                var depth = Texture.CalculateMipSize(texture.Depth, mipLevel);
+
+                UpdateSubresource(resource, subResourceIndex, databox, new ResourceRegion(0, 0, 0, width, height, depth));
             }
             else
             {
