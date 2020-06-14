@@ -814,10 +814,7 @@ namespace Stride.Graphics
         {
             // TODO VULKAN: One copy per mip level
 
-            var sourceTexture = source as Texture;
-            var destinationTexture = destination as Texture;
-
-            if (sourceTexture != null && destinationTexture != null)
+            if (source is Texture sourceTexture && destination is Texture destinationTexture)
             {
                 CleanupRenderPass();
 
@@ -940,34 +937,28 @@ namespace Stride.Graphics
 
                 vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, VkDependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
             }
+            else if (source is Buffer sourceBuffer && destination is Buffer destinationBuffer)
+            {
+                var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
+                bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, sourceBuffer.NativeAccessMask, VkAccessFlags.TransferRead);
+                bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, destinationBuffer.NativeAccessMask, VkAccessFlags.TransferWrite);
+                vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceBuffer.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 2, bufferBarriers, 0, null);
+
+                var copy = new VkBufferCopy
+                {
+                    srcOffset = 0,
+                    dstOffset = 0,
+                    size = (uint)sourceBuffer.SizeInBytes
+                };
+                vkCmdCopyBuffer(currentCommandList.NativeCommandBuffer, sourceBuffer.NativeBuffer, destinationBuffer.NativeBuffer, 1, &copy);
+
+                bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, VkAccessFlags.TransferRead, sourceBuffer.NativeAccessMask);
+                bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, VkAccessFlags.TransferWrite, destinationBuffer.NativeAccessMask);
+                vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, sourceBuffer.NativePipelineStageMask, VkDependencyFlags.None, 0, null, 2, bufferBarriers, 0, null);
+            }
             else
             {
-                var sourceBuffer = source as Buffer;
-                var destinationBuffer = destination as Buffer;
-
-                if (sourceBuffer != null && destinationBuffer != null)
-                {
-                    var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
-                    bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, sourceBuffer.NativeAccessMask, VkAccessFlags.TransferRead);
-                    bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, destinationBuffer.NativeAccessMask, VkAccessFlags.TransferWrite);
-                    vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceBuffer.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 2, bufferBarriers, 0, null);
-
-                    var copy = new VkBufferCopy
-                    {
-                        srcOffset = 0,
-                        dstOffset = 0,
-                        size = (uint)sourceBuffer.SizeInBytes
-                    };
-                    vkCmdCopyBuffer(currentCommandList.NativeCommandBuffer, sourceBuffer.NativeBuffer, destinationBuffer.NativeBuffer, 1, &copy);
-
-                    bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, VkAccessFlags.TransferRead, sourceBuffer.NativeAccessMask);
-                    bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, VkAccessFlags.TransferWrite, destinationBuffer.NativeAccessMask);
-                    vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, sourceBuffer.NativePipelineStageMask, VkDependencyFlags.None, 0, null, 2, bufferBarriers, 0, null);
-                }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
+                throw new InvalidOperationException();
             }
         }
 
