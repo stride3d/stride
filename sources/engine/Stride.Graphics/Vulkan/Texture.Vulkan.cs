@@ -22,6 +22,7 @@ namespace Stride.Graphics
         internal VkImageView NativeColorAttachmentView;
         internal VkImageView NativeDepthStencilView;
         internal VkImageView NativeImageView;
+        internal VkImageSubresourceRange NativeResourceRange;
 
         private bool isNotOwningResources;
         internal bool IsInitialized;
@@ -51,6 +52,7 @@ namespace Stride.Graphics
             Utilities.Swap(ref NativeColorAttachmentView, ref other.NativeColorAttachmentView);
             Utilities.Swap(ref NativeDepthStencilView, ref other.NativeDepthStencilView);
             Utilities.Swap(ref NativeImageView, ref other.NativeImageView);
+            Utilities.Swap(ref NativeResourceRange, ref other.NativeResourceRange);
             Utilities.Swap(ref isNotOwningResources, ref other.isNotOwningResources);
             Utilities.Swap(ref IsInitialized, ref other.IsInitialized);
             Utilities.Swap(ref NativeFormat, ref other.NativeFormat);
@@ -93,6 +95,13 @@ namespace Stride.Graphics
             if (HasStencil)
                 NativeImageAspect |= VkImageAspectFlags.Stencil;
 
+
+            var arraySlice = ArraySlice;
+            var mipLevel = MipLevel;
+            GetViewSliceBounds(ViewType, ref arraySlice, ref mipLevel, out var arrayOrDepthCount, out var mipCount);
+            var arrayCount = Dimension == TextureDimension.Texture3D ? 1 : arrayOrDepthCount;
+            NativeResourceRange = new VkImageSubresourceRange(NativeImageAspect, (uint)mipLevel, (uint)mipCount, (uint)arraySlice, (uint)arrayCount);
+
             // For depth-stencil formats, automatically fall back to a supported one
             if (IsDepthStencil && HasStencil)
             {
@@ -122,7 +131,9 @@ namespace Stride.Graphics
                     CreateBuffer();
 
                     if (dataBoxes != null && dataBoxes.Length > 0)
-                        throw new InvalidOperationException();
+                    {
+                        InitializeData(dataBoxes);
+                    }
                 }
             }
             else
@@ -166,7 +177,7 @@ namespace Stride.Graphics
                     {
                         CreateImage();
 
-                        InitializeImage(dataBoxes);
+                        InitializeData(dataBoxes);
                     }
                 }
 
@@ -187,11 +198,7 @@ namespace Stride.Graphics
                 flags = VkBufferCreateFlags.None
             };
 
-            for (int i = 0; i < MipLevels; i++)
-            { 
-                var mipmap = GetMipMapDescription(i);
-                createInfo.size += (uint)(mipmap.DepthStride * mipmap.Depth * ArraySize);
-            }
+            createInfo.size = (ulong)ComputeBufferTotalSize();
 
             createInfo.usage = VkBufferUsageFlags.TransferSrc | VkBufferUsageFlags.TransferDst;
 
@@ -271,7 +278,7 @@ namespace Stride.Graphics
             }
         }
 
-        private unsafe void InitializeImage(DataBox[] dataBoxes)
+        private unsafe void InitializeData(DataBox[] dataBoxes)
         {
             // Begin copy command buffer
             var commandBufferAllocateInfo = new VkCommandBufferAllocateInfo
@@ -308,15 +315,23 @@ namespace Stride.Graphics
                 var uploadMemory = GraphicsDevice.AllocateUploadBuffer(totalSize, out uploadResource, out uploadOffset);
 
                 // Upload buffer barrier
-                var bufferMemoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong)uploadOffset, (ulong)totalSize);
+                var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
+                bufferBarriers[0] = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong)uploadOffset, (ulong)totalSize);
 
-                // Image barrier
-                var initialBarrier = new VkImageMemoryBarrier(NativeImage, new VkImageSubresourceRange(NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), VkAccessFlags.None, VkAccessFlags.TransferWrite, VkImageLayout.Undefined, VkImageLayout.TransferDstOptimal);
-                vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 1, &bufferMemoryBarrier, 1, &initialBarrier);
+                if (Usage == GraphicsResourceUsage.Staging)
+                {
+                    bufferBarriers[1] = new VkBufferMemoryBarrier(NativeBuffer, NativeAccessMask, VkAccessFlags.TransferWrite);
+                    vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 2, bufferBarriers, 0, null);
+                }
+                else
+                {
+                    // Image barrier
+                    var initialBarrier = new VkImageMemoryBarrier(NativeImage, new VkImageSubresourceRange(NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), VkAccessFlags.None, VkAccessFlags.TransferWrite, VkImageLayout.Undefined, VkImageLayout.TransferDstOptimal);
+                    vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 1, bufferBarriers, 1, &initialBarrier);
+                }
 
                 // Copy data boxes to upload buffer
-                var copies = new VkBufferImageCopy[dataBoxes.Length];
-                for (int i = 0; i < copies.Length; i++)
+                for (int i = 0; i < dataBoxes.Length; i++)
                 {
                     var slicePitch = dataBoxes[i].SlicePitch;
 
@@ -330,36 +345,56 @@ namespace Stride.Graphics
 
                     Utilities.CopyMemory(uploadMemory, dataBoxes[i].DataPointer, slicePitch);
 
-                    // TODO VULKAN: Check if pitches are valid
-                    copies[i] = new VkBufferImageCopy
+                    if (Usage == GraphicsResourceUsage.Staging)
                     {
-                        bufferOffset = (ulong)uploadOffset,
-                        imageSubresource = new VkImageSubresourceLayers(VkImageAspectFlags.Color, (uint)mipSlice, (uint)arraySlice, 1),
-                        bufferRowLength = 0, //(uint)(dataBoxes[i].RowPitch / pixelSize),
-                        bufferImageHeight = 0, //(uint)(dataBoxes[i].SlicePitch / dataBoxes[i].RowPitch),
-                        imageOffset = new Vortice.Mathematics.Point3(0, 0, 0),
-                        imageExtent = new Vortice.Mathematics.Size3(mipMapDescription.Width, mipMapDescription.Height, mipMapDescription.Depth)
-                    };
+                        var copy = new VkBufferCopy
+                        {
+                            srcOffset = (ulong)uploadOffset,
+                            dstOffset = (ulong)ComputeBufferOffset(i, 0),
+                            size = (uint)ComputeSubresourceSize(i),
+                        };
+
+                        vkCmdCopyBuffer(commandBuffer, uploadResource, NativeBuffer, 1, &copy);
+                    }
+                    else
+                    {
+                        // TODO VULKAN: Check if pitches are valid
+                        var copy = new VkBufferImageCopy
+                        {
+                            bufferOffset = (ulong)uploadOffset,
+                            imageSubresource = new VkImageSubresourceLayers(VkImageAspectFlags.Color, (uint)mipSlice, (uint)arraySlice, 1),
+                            bufferRowLength = (uint)(dataBoxes[i].RowPitch / blockSize),
+                            bufferImageHeight = (uint)(dataBoxes[i].SlicePitch / dataBoxes[i].RowPitch),
+                            imageOffset = new Vortice.Mathematics.Point3(0, 0, 0),
+                            imageExtent = new Vortice.Mathematics.Size3(mipMapDescription.Width, mipMapDescription.Height, mipMapDescription.Depth)
+                        };
+
+                        // Copy from upload buffer to image
+                        vkCmdCopyBufferToImage(commandBuffer, uploadResource, NativeImage, VkImageLayout.TransferDstOptimal, 1, &copy);
+                    }
 
                     uploadMemory += slicePitch;
                     uploadOffset += slicePitch;
                 }
 
-                // Copy from upload buffer to image
-                fixed (VkBufferImageCopy* copiesPointer = &copies[0])
+                if (Usage == GraphicsResourceUsage.Staging)
                 {
-                    vkCmdCopyBufferToImage(commandBuffer, uploadResource, NativeImage, VkImageLayout.TransferDstOptimal, (uint)copies.Length, copiesPointer);
+                    bufferBarriers[0] = new VkBufferMemoryBarrier(NativeBuffer, VkAccessFlags.TransferWrite, NativeAccessMask);
+                    vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 1, bufferBarriers, 0, null);
                 }
 
                 IsInitialized = true;
             }
 
-            // Transition to default layout
-            var imageMemoryBarrier = new VkImageMemoryBarrier(NativeImage,
-                new VkImageSubresourceRange(NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue),
-                dataBoxes == null || dataBoxes.Length == 0 ? VkAccessFlags.None : VkAccessFlags.TransferWrite, NativeAccessMask,
-                dataBoxes == null || dataBoxes.Length == 0 ? VkImageLayout.Undefined : VkImageLayout.TransferDstOptimal, NativeLayout);
-            vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 0, null, 1, &imageMemoryBarrier);
+            if (Usage != GraphicsResourceUsage.Staging)
+            {
+                // Transition to default layout
+                var imageMemoryBarrier = new VkImageMemoryBarrier(NativeImage,
+                    new VkImageSubresourceRange(NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue),
+                    dataBoxes == null || dataBoxes.Length == 0 ? VkAccessFlags.None : VkAccessFlags.TransferWrite, NativeAccessMask,
+                    dataBoxes == null || dataBoxes.Length == 0 ? VkImageLayout.Undefined : VkImageLayout.TransferDstOptimal, NativeLayout);
+                vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 0, null, 1, &imageMemoryBarrier);
+            }
 
             // Close and submit
             vkEndCommandBuffer(commandBuffer);

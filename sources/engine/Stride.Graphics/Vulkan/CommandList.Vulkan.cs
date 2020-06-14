@@ -691,9 +691,11 @@ namespace Stride.Graphics
             // Barriers need to be global to command buffer
             CleanupRenderPass();
 
-            var clearRange = new VkImageSubresourceRange(VkImageAspectFlags.None, (uint)depthStencilBuffer.MipLevel, (uint)depthStencilBuffer.MipLevels, (uint)depthStencilBuffer.ArraySlice, (uint)depthStencilBuffer.ArraySize);
-            var barrierRange = clearRange;
-            barrierRange.aspectMask = depthStencilBuffer.NativeImageAspect;
+            var barrierRange = depthStencilBuffer.NativeResourceRange;
+
+            // Adjust aspectMask to clear only the specified part (depth or stencil)
+            var clearRange = depthStencilBuffer.NativeResourceRange;
+            clearRange.aspectMask = VkImageAspectFlags.None;
 
             if ((options & DepthStencilClearOptions.DepthBuffer) != 0)
                 clearRange.aspectMask |= VkImageAspectFlags.Depth & depthStencilBuffer.NativeImageAspect;
@@ -725,7 +727,7 @@ namespace Stride.Graphics
             // Barriers need to be global to command buffer
             CleanupRenderPass();
 
-            var clearRange = new VkImageSubresourceRange(VkImageAspectFlags.Color, (uint)renderTarget.MipLevel, (uint)renderTarget.MipLevels, (uint)renderTarget.ArraySlice, (uint)renderTarget.ArraySize);
+            var clearRange = renderTarget.NativeResourceRange;
 
             var memoryBarrier = new VkImageMemoryBarrier(renderTarget.NativeImage, clearRange, renderTarget.NativeAccessMask, VkAccessFlags.TransferWrite, renderTarget.NativeLayout, VkImageLayout.TransferDstOptimal);
             vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, renderTarget.NativePipelineStageMask, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
@@ -885,8 +887,9 @@ namespace Stride.Graphics
                         {
                             var copy = new VkBufferImageCopy
                             {
-                                imageSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)mipLevel, (uint)arraySlice, (uint)sourceTexture.ArraySize),
+                                imageSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)mipLevel, (uint)arraySlice, 1),
                                 imageExtent = new Vortice.Mathematics.Size3(width, height, depth),
+                                bufferOffset = (ulong)destinationOffset,
                             };
                             vkCmdCopyImageToBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeBuffer, 1, &copy);
                         }
@@ -906,6 +909,7 @@ namespace Stride.Graphics
                             {
                                 imageSubresource = destinationSubresource,
                                 imageExtent = new Vortice.Mathematics.Size3(width, height, depth),
+                                bufferOffset = (ulong)sourceOffset,
                             };
                             vkCmdCopyBufferToImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeBuffer, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, 1, &copy);
                         }
@@ -1277,8 +1281,10 @@ namespace Stride.Graphics
             {
                 usage = texture.Usage;
                 if (lengthInBytes == 0)
-                    lengthInBytes = texture.ViewWidth * texture.ViewHeight * texture.ViewDepth * texture.ViewFormat.SizeInBytes();
-                rowPitch = texture.RowStride;
+                    lengthInBytes = texture.ComputeSubresourceSize(subResourceIndex);
+                rowPitch = texture.ComputeRowPitch(subResourceIndex % texture.MipLevels);
+
+                offsetInBytes += texture.ComputeBufferOffset(subResourceIndex, 0);
             }
             else
             {
@@ -1312,27 +1318,18 @@ namespace Stride.Graphics
                         return new MappedResource(resource, subResourceIndex, new DataBox(IntPtr.Zero, 0, 0));
                     }
 
-                    // Need to flush (part of current command list)
-                    if (resource.StagingBuilder == this)
-                        FlushInternal(false);
+                    // This will be set only if need to flush (due to a previous Copy)
+                    if (resource.StagingBuilder != null)
+                    {
+                        // Need to flush; check if part of current command list
+                        if (resource.StagingBuilder == this)
+                            FlushInternal(false);
 
-                    if (!resource.StagingFenceValue.HasValue)
-                        throw new InvalidOperationException("CommandList updating the staging resource has not been submitted");
+                        if (!resource.StagingFenceValue.HasValue)
+                            throw new InvalidOperationException("CommandList updating the staging resource has not been submitted");
 
-                    GraphicsDevice.WaitForFenceInternal(resource.StagingFenceValue.Value);
-                }
-            }
-
-            if (texture != null)
-            {
-                var mipLevel = subResourceIndex % texture.MipLevels;
-                var arraySlice = subResourceIndex / texture.MipLevels;
-
-                for (int i = 0; i < texture.MipLevels; i++)
-                {
-                    var slices = i < mipLevel ? arraySlice + 1 : arraySlice;
-                    var mipmap = texture.GetMipMapDescription(i);
-                    offsetInBytes += mipmap.DepthStride * mipmap.Depth * arraySlice;
+                        GraphicsDevice.WaitForFenceInternal(resource.StagingFenceValue.Value);
+                    }
                 }
             }
 
