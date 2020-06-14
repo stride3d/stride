@@ -362,11 +362,6 @@ namespace Stride.Graphics
         A8_UNorm = unchecked((int)65),
 
         /// <summary>
-        /// <dd> <p>A single-component, 1-bit unsigned-normalized integer format that supports 1 bit for the red channel. 2.</p> </dd>
-        /// </summary>
-        R1_UNorm = unchecked((int)66),
-
-        /// <summary>
         /// <dd> <p>Three partial-precision floating-point numbers encoded into a single 32-bit value all sharing the same 5-bit exponent (variant of s10e5, which is sign bit, 10-bit mantissa, and 5-bit biased (15) exponent).  There is no sign bit, and there is a shared 5-bit biased (15) exponent and a 9-bit mantissa for each channel, as shown in the following illustration. 2.</p> <p></p> </dd>
         /// </summary>
         R9G9B9E5_Sharedexp = unchecked((int)67),

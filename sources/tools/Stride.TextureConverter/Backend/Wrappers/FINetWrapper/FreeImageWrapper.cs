@@ -2901,10 +2901,6 @@ namespace FreeImageAPI
                     type = FREE_IMAGE_TYPE.FIT_BITMAP;
                     bpp = 8;
                     break;
-                case StridePixelFormat.R1_UNorm:
-                    type = FREE_IMAGE_TYPE.FIT_BITMAP;
-                    bpp = 1;
-                    break;
                 default:
                     result = false;
                     break;

@@ -12,6 +12,7 @@ namespace Stride.Graphics
 {
     public partial class Texture
     {
+        // Note: block size for compressed formats
         internal int TexturePixelSize => Format.SizeInBytes();
 
         internal const int TextureSubresourceAlignment = 4;
@@ -301,7 +302,7 @@ namespace Stride.Graphics
             if (dataBoxes != null && dataBoxes.Length > 0)
             {
                 // Buffer-to-image copies need to be aligned to the pixel size and 4 (always a power of 2)
-                var blockSize = Format.IsCompressed() ? NativeFormat.BlockSizeInBytes() : TexturePixelSize;
+                var blockSize = Format.BlockSize();
                 var alignmentMask = (blockSize < 4 ? 4 : blockSize) - 1;
 
                 int totalSize = dataBoxes.Length * alignmentMask;
@@ -363,8 +364,8 @@ namespace Stride.Graphics
                         {
                             bufferOffset = (ulong)uploadOffset,
                             imageSubresource = new VkImageSubresourceLayers(VkImageAspectFlags.Color, (uint)mipSlice, (uint)arraySlice, 1),
-                            bufferRowLength = (uint)(dataBoxes[i].RowPitch / blockSize),
-                            bufferImageHeight = (uint)(dataBoxes[i].SlicePitch / dataBoxes[i].RowPitch),
+                            bufferRowLength = (uint)(dataBoxes[i].RowPitch * Format.BlockWidth() / Format.BlockSize()),
+                            bufferImageHeight = (uint)(dataBoxes[i].SlicePitch * Format.BlockHeight() / dataBoxes[i].RowPitch),
                             imageOffset = new Vortice.Mathematics.Point3(0, 0, 0),
                             imageExtent = new Vortice.Mathematics.Size3(mipMapDescription.Width, mipMapDescription.Height, mipMapDescription.Depth)
                         };

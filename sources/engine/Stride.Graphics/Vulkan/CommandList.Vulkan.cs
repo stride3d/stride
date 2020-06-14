@@ -1181,7 +1181,7 @@ namespace Stride.Graphics
             if (texture != null)
             {
                 lengthInBytes = databox.SlicePitch * (region.Back - region.Front);
-                blockSize = texture.Format.IsCompressed() ? texture.NativeFormat.BlockSizeInBytes() : texture.TexturePixelSize;
+                blockSize = texture.Format.BlockSize();
             }
             else
             {
@@ -1216,8 +1216,8 @@ namespace Stride.Graphics
                 {
                     bufferOffset = (ulong)(uploadOffset + alignment),
                     imageSubresource = new VkImageSubresourceLayers { aspectMask = VkImageAspectFlags.Color, baseArrayLayer = (uint)arraySlice, layerCount = 1, mipLevel = (uint)mipSlice },
-                    bufferRowLength = 0, //(uint)databox.RowPitch / ...,
-                    bufferImageHeight = 0, //(uint)databox.SlicePitch / ...,
+                    bufferRowLength = (uint)(databox.RowPitch * texture.Format.BlockWidth() / texture.Format.BlockSize()),
+                    bufferImageHeight = (uint)(databox.SlicePitch * texture.Format.BlockHeight() / databox.RowPitch),
                     imageOffset = new Vortice.Mathematics.Point3(region.Left, region.Top, region.Front),
                     imageExtent = new Vortice.Mathematics.Size3(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front),
                 };
