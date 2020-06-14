@@ -61,6 +61,7 @@ namespace Stride.Assets.Templates
                 OutputDirectory = package.FullPath.GetFullDirectory().GetParent(),
                 Session = package.Session,
                 Description = packageParameters.Description,
+                Namespace = packageParameters.Namespace
             };
 
             // Setup the ProjectGameGuid to be accessible from exec (in order to be able to link to the game project.
