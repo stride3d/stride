@@ -81,7 +81,7 @@ namespace Stride.Graphics
         public static int SizeInBytes(this PixelFormat format)
         {
             var sizeInfo = sizeInfos[GetIndex(format)];
-            return (int)sizeInfo.BlockSize / (int)sizeInfo.BlockWidth;
+            return (int)sizeInfo.BlockSize / ((int)sizeInfo.BlockWidth * (int)sizeInfo.BlockHeight);
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Stride.Graphics
         public static int SizeInBits(this PixelFormat format)
         {
             var sizeInfo = sizeInfos[GetIndex(format)];
-            return (int)sizeInfo.BlockSize * 8 / (int)sizeInfo.BlockWidth;
+            return (int)sizeInfo.BlockSize * 8 / ((int)sizeInfo.BlockWidth * (int)sizeInfo.BlockHeight); ;
         }
 
         /// <summary>
@@ -580,6 +580,11 @@ namespace Stride.Graphics
                 PixelFormat.R8G8_B8G8_UNorm,
                 PixelFormat.G8R8_G8B8_UNorm,
             }, 4, 2, 1);
+
+            InitBlockFormat(new[]
+            {
+                PixelFormat.R1_UNorm,
+            }, 1, 8, 1);
 
             // Init srgb formats
             InitDefaults(new[]
