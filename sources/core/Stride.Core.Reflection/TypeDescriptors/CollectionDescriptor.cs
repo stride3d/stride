@@ -35,13 +35,8 @@ namespace Stride.Core.Reflection
         public CollectionDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
             : base(factory, type, emitDefaultValues, namingConvention)
         {
-            if (!IsCollection(type))
-                throw new ArgumentException(@"Expecting a type inheriting from System.Collections.ICollection", nameof(type));
-
             // Gets the element type
-            var collectionType = type.GetInterface(typeof(IEnumerable<>));
-            ElementType = (collectionType != null) ? collectionType.GetGenericArguments()[0] : typeof(object);
-            var typeSupported = false;
+            ElementType = type.GetInterface(typeof(IEnumerable<>))?.GetGenericArguments()[0] ?? typeof(object);
 
             // implements IList
             if (typeof(IList).IsAssignableFrom(type))
@@ -55,25 +50,29 @@ namespace Stride.Core.Reflection
                 SetIndexedItem = (obj, index, value) => ((IList)obj)[index] = value;
                 IsReadOnlyFunction = obj => ((IList)obj).IsReadOnly;
                 HasIndexerAccessors = true;
-                typeSupported = true;
                 IsList = true;
             }
-            var itype = type.GetInterface(typeof(ICollection<>));
-
-            // implements ICollection<T>
-            if (!typeSupported && itype != null)
+            else if (type.GetInterface(typeof(ICollection<>)) is Type itype)// implements ICollection<T>
             {
+                var add = itype.GetMethod(nameof(ICollection<object>.Add), new[] { ElementType });
+                CollectionAddFunction = (obj, value) => add.Invoke(obj, new[] { value });
                 var remove = itype.GetMethod(nameof(ICollection<object>.Remove), new[] { ElementType });
                 CollectionRemoveFunction = (obj, value) => remove.Invoke(obj, new[] { value });
-                var add = itype.GetMethod(nameof(ICollection<object>.Add), new[] {ElementType});
-                CollectionAddFunction = (obj, value) => add.Invoke(obj, new[] {value});
-                var clear = itype.GetMethod(nameof(ICollection<object>.Clear), Type.EmptyTypes);
-                CollectionClearFunction = obj => clear.Invoke(obj, EmptyObjects);
-                var countMethod = itype.GetProperty(nameof(ICollection<object>.Count)).GetGetMethod();
-                GetCollectionCountFunction = o => (int)countMethod.Invoke(o, null);
-                var isReadOnly = itype.GetProperty(nameof(ICollection<object>.IsReadOnly)).GetGetMethod();
-                IsReadOnlyFunction = obj => (bool)isReadOnly.Invoke(obj, null);
-                typeSupported = true;
+                if (typeof(IDictionary).IsAssignableFrom(type))
+                {
+                    CollectionClearFunction = obj => ((IDictionary)obj).Clear();
+                    GetCollectionCountFunction = o => ((IDictionary)o).Count;
+                    IsReadOnlyFunction = obj => ((IDictionary)obj).IsReadOnly;
+                }
+                else
+                {
+                    var clear = itype.GetMethod(nameof(ICollection<object>.Clear), Type.EmptyTypes);
+                    CollectionClearFunction = obj => clear.Invoke(obj, EmptyObjects);
+                    var countMethod = itype.GetProperty(nameof(ICollection<object>.Count)).GetGetMethod();
+                    GetCollectionCountFunction = o => (int)countMethod.Invoke(o, null);
+                    var isReadOnly = itype.GetProperty(nameof(ICollection<object>.IsReadOnly)).GetGetMethod();
+                    IsReadOnlyFunction = obj => (bool)isReadOnly.Invoke(obj, null);
+                }
                 // implements IList<T>
                 itype = type.GetInterface(typeof(IList<>));
                 if (itype != null)
@@ -98,7 +97,7 @@ namespace Stride.Core.Reflection
 
                     var removeAt = type.GetMethod(nameof(IList<object>.RemoveAt), new[] { typeof(int) });
                     if (removeAt != null)
-                    CollectionRemoveAtFunction = (obj, index) => removeAt.Invoke(obj, new object[] { index });
+                        CollectionRemoveAtFunction = (obj, index) => removeAt.Invoke(obj, new object[] { index });
 
                     var getItem = type.GetMethod("get_Item", new[] { typeof(int) });
                     if (getItem != null)
@@ -111,8 +110,7 @@ namespace Stride.Core.Reflection
                     HasIndexerAccessors = getItem != null && setItem != null;
                 }
             }
-
-            if (!typeSupported)
+            else
             {
                 throw new ArgumentException($"Type [{(type)}] is not supported as a modifiable collection");
             }

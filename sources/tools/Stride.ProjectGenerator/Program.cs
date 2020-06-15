@@ -147,6 +147,7 @@ namespace Stride.ProjectGenerator
             templateGeneratorParameters.Logger = result;
             templateGeneratorParameters.Description = new TemplateDescription();
             templateGeneratorParameters.Id = assetId;
+            templateGeneratorParameters.Namespace = projectNamespace;
 
             if (!PackageUnitTestGenerator.Default.PrepareForRun(templateGeneratorParameters).Result)
             {

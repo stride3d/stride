@@ -207,10 +207,6 @@ namespace Stride.Graphics
             // Map GraphicsProfile to D3D11 FeatureLevel
             creationFlags = (SharpDX.Direct3D11.DeviceCreationFlags)deviceCreationFlags;
 
-            // Default fallback
-            if (graphicsProfiles.Length == 0)
-                graphicsProfiles = new[] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 };
-
             // Create Device D3D11 with feature Level based on profile
             for (int index = 0; index < graphicsProfiles.Length; index++)
             {

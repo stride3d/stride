@@ -148,7 +148,7 @@ namespace Stride.Core.Assets.CompilerApp
                 // Add runtime identifier (if any) to avoid clash when building multiple at the same time (this happens when using ExtrasBuildEachRuntimeIdentifier feature of MSBuild.Sdk.Extras)
                 if (builderOptions.Properties.TryGetValue("RuntimeIdentifier", out var runtimeIdentifier))
                     indexName += $".{runtimeIdentifier}";
-                if (builderOptions.Properties.TryGetValue("StrideGraphicsApi", out var graphicsApi))
+                if (builderOptions.ExtraCompileProperties != null && builderOptions.ExtraCompileProperties.TryGetValue("StrideGraphicsApi", out var graphicsApi))
                     indexName += $".{graphicsApi}";
 
                 // Create the builder

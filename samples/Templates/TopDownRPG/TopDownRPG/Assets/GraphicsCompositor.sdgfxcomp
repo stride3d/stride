@@ -126,6 +126,8 @@ SharedRenderers:
         TransparentRenderStage: ref!! 0fa30591-02ee-486d-9347-2b6aee83d035
         ShadowMapRenderStages:
             fc4d1e0de5c2b0bbc27bcf96e9a848fd: ref!! c0524e55-4061-464d-84dd-7c4c70f70e0e
+            87ff1d9cdd52418daf76385176a0e316: ref!! 3bb83710-3c46-4189-bc60-6a4e24765272
+            5e059d4cc2db4ee8a1f28a40f4ac3ae8: ref!! 8aff140a-5c35-4404-a34d-9e4ae1f4820d
         GBufferRenderStage: ref!! fdb004f3-e692-4a74-ac3a-e95b40e2a4dd
         PostEffects: !PostProcessingEffects ref!! 608bf04d-8640-469d-b710-1ecf6a46f794
         LightShafts: null
@@ -146,6 +148,8 @@ SharedRenderers:
         TransparentRenderStage: ref!! 0fa30591-02ee-486d-9347-2b6aee83d035
         ShadowMapRenderStages:
             2323a99a8a983e182f318e55604659b0: ref!! c0524e55-4061-464d-84dd-7c4c70f70e0e
+            61b557b74893400898c007d5ece5e87f: ref!! 3bb83710-3c46-4189-bc60-6a4e24765272
+            5c382f66ee524c498d26d9aaf19fc9c3: ref!! 8aff140a-5c35-4404-a34d-9e4ae1f4820d
         GBufferRenderStage: ref!! fdb004f3-e692-4a74-ac3a-e95b40e2a4dd
         PostEffects: null
         LightShafts: null

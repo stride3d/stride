@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="StrideGraphicsApis">
   <!--Import Unit Tests Local Settings for the solution being loaded -->
   <Import Project="$(SolutionDir)$(SolutionName).UnitTests.Build.targets" Condition="Exists('$(SolutionDir)$(SolutionName).UnitTests.Build.targets')" />
 
-  <!-- Setup GraphicsApi -->
-  <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
+  <!-- Setup GraphicsApi (we do it even if StrideGraphicsApiDependent is not set to true, so that ProjectReference works) -->
+  <PropertyGroup>
+    <!-- Check if we have override -->
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApisTest)' != ''">$(StrideGraphicsApisTest)</StrideGraphicsApis>
+    
     <!-- Build list of Graphics API for platform that supports multiple -->
     <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
     <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
+  
+    <!-- Setup default GraphicsApi-->
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideGraphicsApi>
   </PropertyGroup>
 

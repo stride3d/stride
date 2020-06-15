@@ -31,7 +31,6 @@ namespace Stride.Graphics
 
         private readonly List<IDisposable> sharedDataToDispose = new List<IDisposable>();
         private readonly Dictionary<object, IDisposable> sharedDataPerDevice;
-        private readonly Dictionary<object, IDisposable> sharedDataPerDeviceContext = new Dictionary<object, IDisposable>();
         private GraphicsPresenter presenter;
 
         internal PipelineState DefaultPipelineState;
@@ -81,16 +80,20 @@ namespace Stride.Graphics
             PrimitiveQuad = new PrimitiveQuad(this);
         }
 
-        public void Recreate(GraphicsAdapter adapter, GraphicsProfile[] profile, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
+        public void Recreate(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
         {
             if (adapter == null) throw new ArgumentNullException("adapter");
-            if (profile == null) throw new ArgumentNullException("profile");
+            if (graphicsProfiles == null) throw new ArgumentNullException("graphicsProfiles");
 
             Adapter = adapter;
             IsDebugMode = (deviceCreationFlags & DeviceCreationFlags.Debug) != 0;
 
+            // Default fallback
+            if (graphicsProfiles.Length == 0)
+                graphicsProfiles = new[] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 };
+
             // Initialize this instance
-            InitializePlatformDevice(profile, deviceCreationFlags, windowHandle);
+            InitializePlatformDevice(graphicsProfiles, deviceCreationFlags, windowHandle);
 
             // Create a new graphics device
             Features = new GraphicsDeviceFeatures(this);
@@ -111,7 +114,6 @@ namespace Stride.Graphics
             for (int index = sharedDataToDispose.Count - 1; index >= 0; index--)
                 sharedDataToDispose[index].Dispose();
             sharedDataPerDevice.Clear();
-            sharedDataPerDeviceContext.Clear();
 
             SamplerStates.Dispose();
             SamplerStates = null;
@@ -284,14 +286,12 @@ namespace Stride.Graphics
         /// <returns>
         ///     An instance of the shared data. The shared data will be disposed by this <see cref="GraphicsDevice" /> instance.
         /// </returns>
-        public T GetOrCreateSharedData<T>(GraphicsDeviceSharedDataType type, object key, CreateSharedData<T> sharedDataCreator) where T : class, IDisposable
+        public T GetOrCreateSharedData<T>(object key, CreateSharedData<T> sharedDataCreator) where T : class, IDisposable
         {
-            Dictionary<object, IDisposable> dictionary = (type == GraphicsDeviceSharedDataType.PerDevice) ? sharedDataPerDevice : sharedDataPerDeviceContext;
-
-            lock (dictionary)
+            lock (sharedDataPerDevice)
             {
                 IDisposable localValue;
-                if (!dictionary.TryGetValue(key, out localValue))
+                if (!sharedDataPerDevice.TryGetValue(key, out localValue))
                 {
                     localValue = sharedDataCreator(this);
                     if (localValue == null)
@@ -300,7 +300,7 @@ namespace Stride.Graphics
                     }
 
                     sharedDataToDispose.Add(localValue);
-                    dictionary.Add(key, localValue);
+                    sharedDataPerDevice.Add(key, localValue);
                 }
                 return (T)localValue;
             }

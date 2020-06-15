@@ -153,7 +153,9 @@ namespace Stride.Core.Quantum.References
         }
 
         /// <inheritdoc/>
-        public IEnumerator<ObjectReference> GetEnumerator()
+        public ReferenceEnumerator GetEnumerator() => new ReferenceEnumerator(this);
+        
+        IEnumerator<ObjectReference> IEnumerable<ObjectReference>.GetEnumerator()
         {
             return new ReferenceEnumerator(this);
         }
@@ -237,7 +239,7 @@ namespace Stride.Core.Quantum.References
         /// <summary>
         /// An enumerator for <see cref="ReferenceEnumerable"/> that enumerates in proper item order.
         /// </summary>
-        private class ReferenceEnumerator : IEnumerator<ObjectReference>
+        public struct ReferenceEnumerator : IEnumerator<ObjectReference>
         {
             private readonly IEnumerator<NodeIndex> indexEnumerator;
             private ReferenceEnumerable obj;

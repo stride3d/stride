@@ -133,8 +133,18 @@ namespace Stride.Core.Reflection
 
         public object GetKey(ItemId itemId)
         {
+            object output = null;
             // TODO: add indexing by guid to avoid O(n)
-            return keyToIdMap.SingleOrDefault(x => x.Value == itemId).Key;
+            foreach (var kvp in keyToIdMap)
+            {
+                if (kvp.Value == itemId)
+                {
+                    if(output != null)
+                        throw new InvalidOperationException("Two elements of the collection have the same id");
+                    output = kvp.Key;
+                }
+            }
+            return output;
         }
 
         public void CloneInto(CollectionItemIdentifiers target, IReadOnlyDictionary<object, object> referenceTypeClonedKeys)

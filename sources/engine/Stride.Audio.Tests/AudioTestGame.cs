@@ -2,8 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
-
+using Stride.Graphics;
 using Stride.Graphics.Regression;
+using Xunit;
 
 namespace Stride.Audio.Tests
 {

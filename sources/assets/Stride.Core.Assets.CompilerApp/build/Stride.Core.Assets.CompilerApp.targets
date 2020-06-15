@@ -105,9 +105,8 @@
       <UpToDateCheckOutput Include="@(StrideAssetOutput)" Set="StrideAssets" />-->
     </ItemGroup>
   </Target>
-
-  <!--Compile assets for all StridePackage items and only for an executable-->
-  <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true'" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
+  
+  <Target Name="_StridePrepareAssetCompiler">
     <PropertyGroup>
       <!-- First try NuGet layout, then git checkout -->
       <StrideCompileAssetCommandPath Condition="Exists('$(MSBuildThisFileDirectory)..\lib\')">$(MSBuildThisFileDirectory)..\lib</StrideCompileAssetCommandPath>
@@ -118,15 +117,20 @@
       <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net472\Stride.Core.Assets.CompilerApp.exe')">net472</StrideCompileAssetTargetFramework>
 
       <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == ''">$(StrideCompileAssetCommandPath)\$(StrideCompileAssetTargetFramework)\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
-
-      <StrideCompileAssetCommandProxy>&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
-
-      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --property:StrideGraphicsApi=$(StrideGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot; --log-pipe=&quot;$(StrideBuildEngineLogPipeUrl)&quot;</StrideCompileAssetCommandProxy>
-      <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
-      <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
     </PropertyGroup>
 
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
+  </Target>
+
+  <!--Compile assets for all StridePackage items and only for an executable-->
+  <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true'" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime;_StridePrepareAssetCompiler" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
+    <PropertyGroup>
+      <StrideCompileAssetCommandProxy>&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
+
+      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot; --log-pipe=&quot;$(StrideBuildEngineLogPipeUrl)&quot;</StrideCompileAssetCommandProxy>
+      <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
+      <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
+    </PropertyGroup>
 
     <!-- Ensure the output directory exists -->
     <MakeDir Directories="$(TargetDir)"/>
@@ -196,7 +200,7 @@
 
   <!-- Pack target -->
   <!--<UsingTask TaskName="Stride.Core.Tasks.PackAssets" AssemblyFile="$(StrideCompileAssetCommand)" />-->
-  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles">
+  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StridePrepareAssetCompiler">
     <!-- We use exec version rather than task version, otherwise file will be locked during rebuild -->
     <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
       <Output TaskParameter="GeneratedItems" ItemName="None"/>

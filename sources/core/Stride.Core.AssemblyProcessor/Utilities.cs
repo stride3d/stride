@@ -37,6 +37,10 @@ namespace Stride
         [NotNull]
         public static string BuildValidClassName([NotNull] string originalName, IEnumerable<string> additionalReservedWords, char replacementCharacter = '_')
         {
+            // C# identifiers must start with a letter or underscore
+            if (char.IsLetter(originalName[0]) == false && originalName[0] != '_')
+                originalName = "_" + originalName;
+            
             if (ReservedNames.Contains(originalName))
                 return originalName + replacementCharacter;
 
@@ -70,6 +74,10 @@ namespace Stride
         [NotNull]
         public static string BuildValidNamespaceName([NotNull] string originalName, IEnumerable<string> additionalReservedWords, char replacementCharacter = '_')
         {
+            // C# identifiers must start with a letter or underscore
+            if (char.IsLetter(originalName[0]) == false && originalName[0] != '_')
+                originalName = "_" + originalName;
+
             if (ReservedNames.Contains(originalName))
                 return originalName + replacementCharacter;
 
