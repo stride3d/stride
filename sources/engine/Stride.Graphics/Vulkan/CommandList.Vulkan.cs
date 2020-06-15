@@ -992,7 +992,7 @@ namespace Stride.Graphics
             throw new NotImplementedException();
         }
 
-        public unsafe void CopyRegion(GraphicsResource source, int sourceSubresource, ResourceRegion? sourecRegion, GraphicsResource destination, int destinationSubResource, int dstX = 0, int dstY = 0, int dstZ = 0)
+        public unsafe void CopyRegion(GraphicsResource source, int sourceSubresource, ResourceRegion? sourceRegion, GraphicsResource destination, int destinationSubResource, int dstX = 0, int dstY = 0, int dstZ = 0)
         {
             // TODO VULKAN: One copy per mip level
 
@@ -1003,7 +1003,9 @@ namespace Stride.Graphics
             {
                 CleanupRenderPass();
 
-                var region = sourecRegion ?? new ResourceRegion(0, 0, 0, sourceTexture.Width, sourceTexture.Height, sourceTexture.Depth);
+                var mipmapDescription = sourceTexture.GetMipMapDescription(sourceSubresource % sourceTexture.MipLevels);
+
+                var region = sourceRegion ?? new ResourceRegion(0, 0, 0, mipmapDescription.Width, mipmapDescription.Height, mipmapDescription.Depth);
 
                 var imageBarriers = stackalloc VkImageMemoryBarrier[2];
                 var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
@@ -1070,6 +1072,10 @@ namespace Stride.Graphics
 
                     if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                     {
+                        if (region.Left != 0 || region.Top != 0 || region.Front != 0
+                            && region.Right != mipmapDescription.Width || region.Bottom != mipmapDescription.Height || region.Back != mipmapDescription.Depth)
+                            throw new NotImplementedException("Copy from Staging doesn't support source region other than full texture");
+
                         var copy = new VkBufferImageCopy
                         {
                             imageSubresource = destinationSubresource,
@@ -1083,14 +1089,15 @@ namespace Stride.Graphics
                     }
                     else
                     {
-                        throw new NotImplementedException();
-                        //var copy = new ImageCopy
-                        //{
-                        //    SourceSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)sourceTexture.ArraySlice, (uint)sourceTexture.ArraySize, (uint)sourceTexture.MipLevel),
-                        //    DestinationSubresource = destinationSubresource,
-                        //    Extent = new Vortice.Mathematics.Size3(sourceTexture.ViewWidth, sourceTexture.ViewHeight, sourceTexture.ViewDepth),
-                        //};
-                        //currentCommandList.NativeCommandBuffer.CopyImage(sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, 1, &copy);
+                        var copy = new VkImageCopy
+                        {
+                            srcSubresource = new VkImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)sourceTexture.MipLevel, (uint)sourceTexture.ArraySlice, (uint)sourceTexture.ArraySize),
+                            srcOffset = new Vortice.Mathematics.Point3(region.Left, region.Top, region.Front),
+                            dstSubresource = destinationSubresource,
+                            dstOffset = new Vortice.Mathematics.Point3(dstX, dstY, dstZ),
+                            extent = new Vortice.Mathematics.Size3(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front),
+                        };
+                        vkCmdCopyImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, VkImageLayout.TransferSrcOptimal, destinationParent.NativeImage, VkImageLayout.TransferDstOptimal, 1, &copy);
                     }
                 }
 
