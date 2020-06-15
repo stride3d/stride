@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable 436 // The type 'type' in 'assembly' conflicts with the imported type 'type2' in 'assembly' (due to StrideVersion being duplicated)
 
+using System;
+using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
 using Stride.Metrics;
 
@@ -16,7 +18,7 @@ namespace Stride.GameStudio
         public static string CopyrightText2 => "© 2011-2018 Silicon Studio Corp.";
 
         [NotNull]
-        public static string EditorName => $"Stride Game Studio {EditorVersion}";
+        public static string EditorName => $"Stride Game Studio {EditorVersion} ({RuntimeInformation.FrameworkDescription})";
 
         [NotNull]
         public static string EditorVersion => StrideVersion.NuGetVersion;
