@@ -84,6 +84,7 @@ namespace Stride.Graphics.Tests
         public void RunImageLoad()
         {
             IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);
+            IgnoreGraphicPlatform(GraphicsPlatform.Vulkan);
 
             RunGameTest(new TestHammersley());
         }
