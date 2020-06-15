@@ -24,6 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Stride.Core;
 using Stride.Rendering;
 using Stride.Shaders;
@@ -71,8 +72,8 @@ namespace Stride.Graphics
             }
         }
 
-        // TODO: dispose vertex array when Effect is disposed
-        protected readonly DeviceResourceContext ResourceContext;
+        protected readonly ThreadLocal<DeviceResourceContext> ResourceContextPool;
+        protected DeviceResourceContext ResourceContext;
 
         protected MutablePipelineState mutablePipeline;
         protected GraphicsDevice graphicsDevice;
@@ -138,7 +139,13 @@ namespace Stride.Graphics
             vertexStructSize = vertexDeclaration.CalculateSize();
 
             // Creates the vertex buffer (shared by within a device context).
-            ResourceContext = graphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerContext, resourceBufferInfo.ResourceKey, d => new DeviceResourceContext(graphicsDevice, vertexDeclaration, resourceBufferInfo));
+            // TODO: find a better way to do that, and check resource disposal
+            ResourceContextPool = graphicsDevice.GetOrCreateSharedData(resourceBufferInfo.ResourceKey, d => new ThreadLocal<DeviceResourceContext>(() => new DeviceResourceContext(graphicsDevice, vertexDeclaration, resourceBufferInfo), true));
+        }
+
+        protected override void Destroy()
+        {
+            base.Destroy();
         }
 
         /// <summary>
@@ -164,6 +171,8 @@ namespace Stride.Graphics
         protected void Begin(GraphicsContext graphicsContext, EffectInstance effect, SpriteSortMode sessionSortMode, BlendStateDescription? sessionBlendState, SamplerState sessionSamplerState, DepthStencilStateDescription? sessionDepthStencilState, RasterizerStateDescription? sessionRasterizerState, int stencilValue)
         {
             CheckEndHasBeenCalled("begin");
+
+            ResourceContext = ResourceContextPool.Value;
 
             GraphicsContext = graphicsContext;
 
@@ -282,6 +291,8 @@ namespace Stride.Graphics
                 PrepareForRendering();
                 FlushBatch();
             }
+
+            ResourceContext = null;
 
             // We are with begin pair
             isBeginCalled = false;
