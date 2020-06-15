@@ -9,6 +9,8 @@
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCompileAssets>true</StrideCompileAssets>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+    <!-- Test this project only on D3D11 since it is graphics API independent -->
+    <StrideCompilerTargetsEnable Condition="'$(StrideGraphicsApi)' != 'Direct3D11'">false</StrideCompilerTargetsEnable>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
