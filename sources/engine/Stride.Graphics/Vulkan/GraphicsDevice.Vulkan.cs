@@ -31,8 +31,7 @@ namespace Stride.Graphics
         internal VkQueue NativeCommandQueue;
         internal object QueueLock = new object();
 
-        internal VkCommandPool NativeCopyCommandPool;
-        internal VkCommandBuffer NativeCopyCommandBuffer;
+        internal ThreadLocal<VkCommandPool> NativeCopyCommandPools;
         private NativeResourceCollector nativeResourceCollector;
         private GraphicsResourceLinkCollector graphicsResourceLinkCollector;
 
@@ -338,25 +337,19 @@ namespace Stride.Graphics
 
             vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 
-            //// Prepare copy command list (start it closed, so that every new use start with a Reset)
-            var commandPoolCreateInfo = new VkCommandPoolCreateInfo
+            NativeCopyCommandPools = new ThreadLocal<VkCommandPool>(() =>
             {
-                sType = VkStructureType.CommandPoolCreateInfo,
-                queueFamilyIndex = 0, //device.NativeCommandQueue.FamilyIndex
-                flags = VkCommandPoolCreateFlags.ResetCommandBuffer
-            };
-            vkCreateCommandPool(NativeDevice, &commandPoolCreateInfo, null, out NativeCopyCommandPool);
+                //// Prepare copy command list (start it closed, so that every new use start with a Reset)
+                var commandPoolCreateInfo = new VkCommandPoolCreateInfo
+                {
+                    sType = VkStructureType.CommandPoolCreateInfo,
+                    queueFamilyIndex = 0, //device.NativeCommandQueue.FamilyIndex
+                    flags = VkCommandPoolCreateFlags.ResetCommandBuffer
+                };
 
-            var commandBufferAllocationInfo = new VkCommandBufferAllocateInfo
-            {
-                sType = VkStructureType.CommandBufferAllocateInfo,
-                level = VkCommandBufferLevel.Primary,
-                commandPool = NativeCopyCommandPool,
-                commandBufferCount = 1
-            };
-            VkCommandBuffer nativeCommandBuffer;
-            vkAllocateCommandBuffers(NativeDevice, &commandBufferAllocationInfo, &nativeCommandBuffer);
-            NativeCopyCommandBuffer = nativeCommandBuffer;
+                vkCreateCommandPool(NativeDevice, &commandPoolCreateInfo, null, out var result);
+                return result;
+            }, true);
 
             DescriptorPools = new HeapPool(this);
 
@@ -483,7 +476,10 @@ namespace Stride.Graphics
             nativeResourceCollector.Dispose();
             DescriptorPools.Dispose();
 
-            vkDestroyCommandPool(nativeDevice, NativeCopyCommandPool, null);
+            foreach (var nativeCopyCommandPool in NativeCopyCommandPools.Values)
+                vkDestroyCommandPool(nativeDevice, nativeCopyCommandPool, null);
+            NativeCopyCommandPools.Dispose();
+            NativeCopyCommandPools = null;
             vkDestroyDevice(nativeDevice, null);
         }
 

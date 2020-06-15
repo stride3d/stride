@@ -415,7 +415,16 @@ namespace Stride.Graphics
                 dstAccessMask = VkAccessFlags.MemoryRead
             };
 
-            var commandBuffer = GraphicsDevice.NativeCopyCommandBuffer;
+            var commandBufferAllocationInfo = new VkCommandBufferAllocateInfo
+            {
+                sType = VkStructureType.CommandBufferAllocateInfo,
+                level = VkCommandBufferLevel.Primary,
+                commandPool = GraphicsDevice.NativeCopyCommandPools.Value,
+                commandBufferCount = 1
+            };
+            VkCommandBuffer commandBuffer;
+            vkAllocateCommandBuffers(GraphicsDevice.NativeDevice, &commandBufferAllocationInfo, &commandBuffer);
+
             var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo };
             vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
@@ -442,9 +451,14 @@ namespace Stride.Graphics
                 commandBufferCount = 1,
                 pCommandBuffers = &commandBuffer,
             };
-            vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null);
-            vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue);
-            vkResetCommandBuffer(commandBuffer, VkCommandBufferResetFlags.None);
+
+            lock (GraphicsDevice.QueueLock)
+            {
+                vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null);
+                vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue);
+            }
+
+            vkFreeCommandBuffers(GraphicsDevice.NativeDevice, GraphicsDevice.NativeCopyCommandPools.Value, 1, &commandBuffer);
 
             // Get next image
             vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), VkFence.Null, out currentBufferIndex);

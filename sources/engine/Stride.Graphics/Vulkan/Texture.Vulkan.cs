@@ -285,16 +285,13 @@ namespace Stride.Graphics
             var commandBufferAllocateInfo = new VkCommandBufferAllocateInfo
             {
                 sType = VkStructureType.CommandBufferAllocateInfo,
-                commandPool = GraphicsDevice.NativeCopyCommandPool,
+                commandPool = GraphicsDevice.NativeCopyCommandPools.Value,
                 commandBufferCount = 1,
                 level = VkCommandBufferLevel.Primary
             };
             VkCommandBuffer commandBuffer;
 
-            lock (GraphicsDevice.QueueLock)
-            {
-                vkAllocateCommandBuffers(GraphicsDevice.NativeDevice, &commandBufferAllocateInfo, &commandBuffer);
-            }
+            vkAllocateCommandBuffers(GraphicsDevice.NativeDevice, &commandBufferAllocateInfo, &commandBuffer);
 
             var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo, flags = VkCommandBufferUsageFlags.OneTimeSubmit };
             vkBeginCommandBuffer(commandBuffer, &beginInfo);
@@ -411,8 +408,9 @@ namespace Stride.Graphics
             {
                 vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null);
                 vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue);
-                vkFreeCommandBuffers(GraphicsDevice.NativeDevice, GraphicsDevice.NativeCopyCommandPool, 1, &commandBuffer);
             }
+
+            vkFreeCommandBuffers(GraphicsDevice.NativeDevice, GraphicsDevice.NativeCopyCommandPools.Value, 1, &commandBuffer);
         }
 
         /// <inheritdoc/>
