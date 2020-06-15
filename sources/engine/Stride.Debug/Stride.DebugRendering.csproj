@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
@@ -32,22 +32,22 @@
       <DesignTime>True</DesignTime>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
-      <DependentUpon>LinePrimitiveShader.xksl</DependentUpon>
+      <DependentUpon>LinePrimitiveShader.sdsl</DependentUpon>
     </Compile>
     <Compile Update="Shaders\PrimitiveShader.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitiveShader.xksl</DependentUpon>
+      <DependentUpon>PrimitiveShader.sdsl</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Shaders\LinePrimitiveShader.xksl">
+    <None Update="Shaders\LinePrimitiveShader.sdsl">
       <Generator>StrideShaderKeyGenerator</Generator>
       <LastGenOutput>LinePrimitiveShader.cs</LastGenOutput>
     </None>
-    <None Update="Shaders\PrimitiveShader.xksl">
+    <None Update="Shaders\PrimitiveShader.sdsl">
       <Generator>StrideShaderKeyGenerator</Generator>
       <LastGenOutput>PrimitiveShader.cs</LastGenOutput>
     </None>

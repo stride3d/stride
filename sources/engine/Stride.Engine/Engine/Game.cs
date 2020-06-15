@@ -11,6 +11,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Storage;
+using Stride.DebugRendering;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Games;
@@ -107,6 +108,11 @@ namespace Stride.Engine
         /// Gets the game profiler system.
         /// </summary>
         public DebugTextSystem DebugTextSystem { get; }
+
+        /// <summary>
+        /// Gets the debug rendering system.
+        /// </summary>
+        public DebugRenderSystem DebugRenderSystem { get; }
 
         /// <summary>
         /// Gets the game profiler system.
@@ -216,6 +222,9 @@ namespace Stride.Engine
 
             SpriteAnimation = new SpriteAnimationSystem(Services);
             Services.AddService(SpriteAnimation);
+
+            DebugRenderSystem = new DebugRenderSystem(Services);
+            Services.AddService(DebugRenderSystem);
 
             DebugTextSystem = new DebugTextSystem(Services);
             Services.AddService(DebugTextSystem);
@@ -359,6 +368,7 @@ namespace Stride.Engine
             //Add the sprite animation System
             GameSystems.Add(SpriteAnimation);
 
+            GameSystems.Add(DebugRenderSystem);
             GameSystems.Add(DebugTextSystem);
             GameSystems.Add(ProfilingSystem);
 

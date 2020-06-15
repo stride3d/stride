@@ -31,6 +31,7 @@
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.10.0" />
     <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />
+    <ProjectReference Include="..\Stride.Debug\Stride.DebugRendering.csproj" />
     <ProjectReference Include="..\Stride.Rendering\Stride.Rendering.csproj" />
     <ProjectReference Include="..\Stride.VirtualReality\Stride.VirtualReality.csproj" />
     <ProjectReference Include="..\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj" />
