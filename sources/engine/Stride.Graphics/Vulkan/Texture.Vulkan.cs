@@ -262,6 +262,9 @@ namespace Stride.Graphics
             if (IsShaderResource)
                 createInfo.usage |= VkImageUsageFlags.Sampled; // TODO VULKAN: Input attachments
 
+            if (IsUnorderedAccess)
+                createInfo.usage |= VkImageUsageFlags.Storage;
+
             var memoryProperties = VkMemoryPropertyFlags.DeviceLocal;
 
             // Create native image

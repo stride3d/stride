@@ -554,7 +554,24 @@ namespace Stride.Graphics
                             throw new NotImplementedException();
                     }
                 case EffectParameterClass.UnorderedAccessView:
-                    return VkDescriptorType.StorageBuffer;
+                    switch (type)
+                    {
+                        case EffectParameterType.Texture:
+                        case EffectParameterType.Texture1D:
+                        case EffectParameterType.Texture2D:
+                        case EffectParameterType.Texture3D:
+                        case EffectParameterType.TextureCube:
+                        case EffectParameterType.Texture1DArray:
+                        case EffectParameterType.Texture2DArray:
+                        case EffectParameterType.TextureCubeArray:
+                            return VkDescriptorType.StorageImage;
+
+                        case EffectParameterType.Buffer:
+                            return VkDescriptorType.StorageBuffer;
+
+                        default:
+                            throw new NotImplementedException();
+                    }
                 default:
                     throw new NotImplementedException();
             }
