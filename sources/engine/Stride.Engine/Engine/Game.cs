@@ -303,29 +303,22 @@ namespace Stride.Engine
             if (!AutoLoadDefaultSettings) return;
 
             var renderingSettings = Settings?.Configurations.Get<RenderingSettings>();
-            if (renderingSettings == null) return;
 
             var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
 
             if (gameCreation)
             {
-                //execute the following steps only when the game is still at creation stage
-
-                deviceManager.PreferredGraphicsProfile = Context.RequestedGraphicsProfile = new[] { renderingSettings.DefaultGraphicsProfile };
-
-                //if our device height is actually smaller then requested we use the device one
-                deviceManager.PreferredBackBufferHeight = Context.RequestedHeight = Math.Min(renderingSettings.DefaultBackBufferHeight, Window.ClientBounds.Height);
-                //if our device width is actually smaller then requested we use the device one
-                deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = Math.Min(renderingSettings.DefaultBackBufferWidth, Window.ClientBounds.Width);
+                //if our device width or height is actually smaller then requested we use the device one
+                deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = Math.Min(deviceManager.PreferredBackBufferWidth, Window.ClientBounds.Width);
+                deviceManager.PreferredBackBufferHeight = Context.RequestedHeight = Math.Min(deviceManager.PreferredBackBufferHeight, Window.ClientBounds.Height);
             }
 
             //these might get triggered even during game runtime, resize, orientation change
-
-            if (renderingSettings.AdaptBackBufferToScreen)
+            if (renderingSettings != null && renderingSettings.AdaptBackBufferToScreen)
             {
                 var deviceAr = Window.ClientBounds.Width / (float)Window.ClientBounds.Height;
 
-                if (renderingSettings.DefaultBackBufferHeight > renderingSettings.DefaultBackBufferWidth)
+                if (deviceManager.PreferredBackBufferHeight > deviceManager.PreferredBackBufferWidth)
                 {
                     deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = (int)(deviceManager.PreferredBackBufferHeight * deviceAr);
                 }
