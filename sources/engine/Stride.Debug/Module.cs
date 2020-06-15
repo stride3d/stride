@@ -1,11 +1,11 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Reflection;
-using Xenko.Core;
-using Xenko.Core.Reflection;
+using Stride.Core;
+using Stride.Core.Reflection;
 
-namespace Xenko.DebugRendering
+namespace Stride.DebugRendering
 {
     class Module
     {

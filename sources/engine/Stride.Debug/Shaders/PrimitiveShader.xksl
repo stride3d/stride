@@ -1,4 +1,4 @@
-namespace Xenko.DebugRendering
+namespace Stride.DebugRendering
 {
 
     shader PrimitiveShader : ShaderBase, ColorBase

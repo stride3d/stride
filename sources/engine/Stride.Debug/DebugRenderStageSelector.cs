@@ -1,12 +1,12 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
-using Xenko.Rendering;
+using Stride.Rendering;
 
-using static Xenko.DebugRendering.DebugRenderFeature;
+using static Stride.DebugRendering.DebugRenderFeature;
 
-namespace Xenko.DebugRendering
+namespace Stride.DebugRendering
 {
     public class DebugRenderStageSelector : RenderStageSelector
     {

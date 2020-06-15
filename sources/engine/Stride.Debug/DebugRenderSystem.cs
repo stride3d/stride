@@ -1,16 +1,16 @@
-// Copyright (c) Xenko contributors (https://xenko.com)
+// Copyright (c) Stride contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Runtime.InteropServices;
 
-using Xenko.Core;
-using Xenko.Core.Collections;
-using Xenko.Core.Mathematics;
-using Xenko.Games;
-using Xenko.Graphics;
-using Xenko.Rendering;
+using Stride.Core;
+using Stride.Core.Collections;
+using Stride.Core.Mathematics;
+using Stride.Games;
+using Stride.Graphics;
+using Stride.Rendering;
 
-namespace Xenko.DebugRendering
+namespace Stride.DebugRendering
 {
 
     public class DebugRenderSystem : GameSystemBase

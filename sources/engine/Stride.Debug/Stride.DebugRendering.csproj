@@ -1,19 +1,19 @@
 ﻿<Project>
 
   <PropertyGroup>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
-    <XenkoRuntime>true</XenkoRuntime>
-    <XenkoRuntimeNetStandard>true</XenkoRuntimeNetStandard>
+    <StrideAssemblySign>true</StrideAssemblySign>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideRuntimeNetStandard>true</StrideRuntimeNetStandard>
   </PropertyGroup>
   
-  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="..\..\targets\Stride.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
   
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <XenkoPackAssets>true</XenkoPackAssets>
-    <XenkoBuildTags>*</XenkoBuildTags>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StridePackAssets>true</StridePackAssets>
+    <StrideBuildTags>*</StrideBuildTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,9 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
-    <ProjectReference Include="..\Xenko.Rendering\Xenko.Rendering.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
+    <ProjectReference Include="..\Stride.Graphics\Stride.Graphics.csproj" />
+    <ProjectReference Include="..\Stride.Rendering\Stride.Rendering.csproj" />
   </ItemGroup>
   
   <ItemGroup>
@@ -45,16 +45,16 @@
 
   <ItemGroup>
     <None Update="Shaders\LinePrimitiveShader.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
+      <Generator>StrideShaderKeyGenerator</Generator>
       <LastGenOutput>LinePrimitiveShader.cs</LastGenOutput>
     </None>
     <None Update="Shaders\PrimitiveShader.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
+      <Generator>StrideShaderKeyGenerator</Generator>
       <LastGenOutput>PrimitiveShader.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
-  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="$(StridePostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
 
 </Project>
