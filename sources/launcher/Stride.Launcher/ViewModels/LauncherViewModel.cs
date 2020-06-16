@@ -499,8 +499,7 @@ namespace Stride.LauncherApp.ViewModels
             try
             {
                 Dispatcher.Invoke(() => StartStudioCommand.IsEnabled = false);
-                var packagePath = ActiveVersion.InstallPath;
-                var mainExecutable = store.LocateMainExecutable(packagePath);
+                var mainExecutable = ActiveVersion.LocateMainExecutable();
 
                 // If version is older than 1.2.0, than we need to log the usage of older version
                 var activeStoreVersion = ActiveVersion as StrideStoreVersionViewModel;

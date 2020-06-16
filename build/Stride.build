@@ -513,7 +513,7 @@ Example of use:
   </Target>
   
   <Target Name="BuildLauncher">
-    <Exec Command="dotnet publish &quot;..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj&quot; /p:PublishProfile=FolderProfile" />
+    <Exec Command="dotnet publish &quot;..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj&quot; /p:PublishProfile=FolderProfile /p:SolutionName=Stride.Launcher" />
   </Target>
 
 </Project>
