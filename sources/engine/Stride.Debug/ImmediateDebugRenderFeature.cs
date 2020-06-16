@@ -13,7 +13,7 @@ using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.DebugRendering
 {
-    public class DebugRenderFeature : RootRenderFeature
+    public class ImmediateDebugRenderFeature : RootRenderFeature
     {
 
         internal enum DebugRenderStage
@@ -22,7 +22,7 @@ namespace Stride.DebugRendering
             Transparent
         }
 
-        public override Type SupportedRenderObjectType => typeof(DebugRenderObject);
+        public override Type SupportedRenderObjectType => typeof(ImmediateDebugRenderObject);
 
         internal struct Primitives
         {
@@ -265,13 +265,13 @@ namespace Stride.DebugRendering
         private const int ConeTesselation = 16;
 
         /* mesh data we will use when stuffing things in vertex buffers */
-        private readonly (VertexPositionTexture[] Vertices, int[] Indices) circle = DebugPrimitives.GenerateCircle(DefaultCircleRadius, CircleTesselation);
-        private readonly (VertexPositionTexture[] Vertices, int[] Indices) plane = DebugPrimitives.GenerateQuad(DefaultPlaneSize, DefaultPlaneSize);
-        private readonly (VertexPositionTexture[] Vertices, int[] Indices) sphere = DebugPrimitives.GenerateSphere(DefaultSphereRadius, SphereTesselation, uvSplitOffsetVertical: 1);
-        private readonly (VertexPositionTexture[] Vertices, int[] Indices) cube = DebugPrimitives.GenerateCube(DefaultCubeSize);
-        private readonly (VertexPositionTexture[] Vertices, int[] Indices) capsule = DebugPrimitives.GenerateCapsule(DefaultCapsuleLength, DefaultCapsuleRadius, CapsuleTesselation);
-        private readonly (VertexPositionTexture[] Vertices, int[] Indices) cylinder = DebugPrimitives.GenerateCylinder(DefaultCylinderHeight, DefaultCylinderRadius, CylinderTesselation);
-        private readonly (VertexPositionTexture[] Vertices, int[] Indices) cone = DebugPrimitives.GenerateCone(DefaultConeHeight, DefaultConeRadius, ConeTesselation, uvSplits: 8);
+        private readonly (VertexPositionTexture[] Vertices, int[] Indices) circle = ImmediateDebugPrimitives.GenerateCircle(DefaultCircleRadius, CircleTesselation);
+        private readonly (VertexPositionTexture[] Vertices, int[] Indices) plane = ImmediateDebugPrimitives.GenerateQuad(DefaultPlaneSize, DefaultPlaneSize);
+        private readonly (VertexPositionTexture[] Vertices, int[] Indices) sphere = ImmediateDebugPrimitives.GenerateSphere(DefaultSphereRadius, SphereTesselation, uvSplitOffsetVertical: 1);
+        private readonly (VertexPositionTexture[] Vertices, int[] Indices) cube = ImmediateDebugPrimitives.GenerateCube(DefaultCubeSize);
+        private readonly (VertexPositionTexture[] Vertices, int[] Indices) capsule = ImmediateDebugPrimitives.GenerateCapsule(DefaultCapsuleLength, DefaultCapsuleRadius, CapsuleTesselation);
+        private readonly (VertexPositionTexture[] Vertices, int[] Indices) cylinder = ImmediateDebugPrimitives.GenerateCylinder(DefaultCylinderHeight, DefaultCylinderRadius, CylinderTesselation);
+        private readonly (VertexPositionTexture[] Vertices, int[] Indices) cone = ImmediateDebugPrimitives.GenerateCone(DefaultConeHeight, DefaultConeRadius, ConeTesselation, uvSplits: 8);
 
         /* vertex and index buffer for our primitive data */
         private Buffer vertexBuffer;
@@ -303,7 +303,7 @@ namespace Stride.DebugRendering
         /* data only for line rendering */
         private readonly FastList<LineVertex> lineVertices = new FastList<LineVertex>(1);
 
-        public DebugRenderFeature()
+        public ImmediateDebugRenderFeature()
         {
             SortKey = 0xFF; // render last! .. or things without depth testing in the opaque stage will have the background rendered over them
         }
@@ -329,103 +329,113 @@ namespace Stride.DebugRendering
             lineEffect.Initialize(Context.Services);
             lineEffect.UpdateEffect(device);
 
-            // create initial vertex and index buffers
-            var vertexData = new VertexPositionTexture[
-                circle.Vertices.Length +
-                plane.Vertices.Length +
-                sphere.Vertices.Length +
-                cube.Vertices.Length +
-                capsule.Vertices.Length +
-                cylinder.Vertices.Length +
-                cone.Vertices.Length
-            ];
-
-            /* set up vertex buffer data */
-
-            int vertexBufferOffset = 0;
-
-            Array.Copy(circle.Vertices, vertexData, circle.Vertices.Length);
-            primitiveVertexOffsets.Circles = vertexBufferOffset;
-            vertexBufferOffset += circle.Vertices.Length;
-
-            Array.Copy(plane.Vertices, 0, vertexData, vertexBufferOffset, plane.Vertices.Length);
-            primitiveVertexOffsets.Quads = vertexBufferOffset;
-            vertexBufferOffset += plane.Vertices.Length;
-
-            Array.Copy(sphere.Vertices, 0, vertexData, vertexBufferOffset, sphere.Vertices.Length);
-            primitiveVertexOffsets.Spheres = vertexBufferOffset;
-            primitiveVertexOffsets.HalfSpheres = vertexBufferOffset; // same as spheres
-            vertexBufferOffset += sphere.Vertices.Length;
-
-            Array.Copy(cube.Vertices, 0, vertexData, vertexBufferOffset, cube.Vertices.Length);
-            primitiveVertexOffsets.Cubes = vertexBufferOffset;
-            vertexBufferOffset += cube.Vertices.Length;
-
-            Array.Copy(capsule.Vertices, 0, vertexData, vertexBufferOffset, capsule.Vertices.Length);
-            primitiveVertexOffsets.Capsules = vertexBufferOffset;
-            vertexBufferOffset += capsule.Vertices.Length;
-
-            Array.Copy(cylinder.Vertices, 0, vertexData, vertexBufferOffset, cylinder.Vertices.Length);
-            primitiveVertexOffsets.Cylinders = vertexBufferOffset;
-            vertexBufferOffset += cylinder.Vertices.Length;
-
-            Array.Copy(cone.Vertices, 0, vertexData, vertexBufferOffset, cone.Vertices.Length);
-            primitiveVertexOffsets.Cones = vertexBufferOffset;
-            vertexBufferOffset += cone.Vertices.Length;
-
-            var newVertexBuffer = Buffer.Vertex.New<VertexPositionTexture>(device, vertexData);
-            vertexBuffer = newVertexBuffer;
-
-            /* set up index buffer data */
-
-            var indexData = new int[
-                circle.Indices.Length +
-                plane.Indices.Length +
-                sphere.Indices.Length +
-                cube.Indices.Length +
-                capsule.Indices.Length +
-                cylinder.Indices.Length +
-                cone.Indices.Length
-            ];
-
-            if (indexData.Length >= 0xFFFF && device.Features.CurrentProfile <= GraphicsProfile.Level_9_3)
             {
-                throw new InvalidOperationException("Cannot generate more than 65535 indices on feature level HW <= 9.3");
+
+                // create initial vertex and index buffers
+                var vertexData = new VertexPositionTexture[
+                    circle.Vertices.Length +
+                    plane.Vertices.Length +
+                    sphere.Vertices.Length +
+                    cube.Vertices.Length +
+                    capsule.Vertices.Length +
+                    cylinder.Vertices.Length +
+                    cone.Vertices.Length
+                ];
+
+                /* set up vertex buffer data */
+
+                int vertexBufferOffset = 0;
+
+                Array.Copy(circle.Vertices, vertexData, circle.Vertices.Length);
+                primitiveVertexOffsets.Circles = vertexBufferOffset;
+                vertexBufferOffset += circle.Vertices.Length;
+
+                Array.Copy(plane.Vertices, 0, vertexData, vertexBufferOffset, plane.Vertices.Length);
+                primitiveVertexOffsets.Quads = vertexBufferOffset;
+                vertexBufferOffset += plane.Vertices.Length;
+
+                Array.Copy(sphere.Vertices, 0, vertexData, vertexBufferOffset, sphere.Vertices.Length);
+                primitiveVertexOffsets.Spheres = vertexBufferOffset;
+                primitiveVertexOffsets.HalfSpheres = vertexBufferOffset; // same as spheres
+                vertexBufferOffset += sphere.Vertices.Length;
+
+                Array.Copy(cube.Vertices, 0, vertexData, vertexBufferOffset, cube.Vertices.Length);
+                primitiveVertexOffsets.Cubes = vertexBufferOffset;
+                vertexBufferOffset += cube.Vertices.Length;
+
+                Array.Copy(capsule.Vertices, 0, vertexData, vertexBufferOffset, capsule.Vertices.Length);
+                primitiveVertexOffsets.Capsules = vertexBufferOffset;
+                vertexBufferOffset += capsule.Vertices.Length;
+
+                Array.Copy(cylinder.Vertices, 0, vertexData, vertexBufferOffset, cylinder.Vertices.Length);
+                primitiveVertexOffsets.Cylinders = vertexBufferOffset;
+                vertexBufferOffset += cylinder.Vertices.Length;
+
+                Array.Copy(cone.Vertices, 0, vertexData, vertexBufferOffset, cone.Vertices.Length);
+                primitiveVertexOffsets.Cones = vertexBufferOffset;
+                vertexBufferOffset += cone.Vertices.Length;
+
+                var newVertexBuffer = Buffer.Vertex.New<VertexPositionTexture>(device, vertexData);
+                vertexBuffer = newVertexBuffer;
+
             }
 
-            int indexBufferOffset = 0;
+            {
 
-            Array.Copy(circle.Indices, indexData, circle.Indices.Length);
-            primitiveIndexOffsets.Circles = indexBufferOffset;
-            indexBufferOffset += circle.Indices.Length;
+                /* set up index buffer data */
 
-            Array.Copy(plane.Indices, 0, indexData, indexBufferOffset, plane.Indices.Length);
-            primitiveIndexOffsets.Quads = indexBufferOffset;
-            indexBufferOffset += plane.Indices.Length;
+                var indexData = new int[
+                    circle.Indices.Length +
+                    plane.Indices.Length +
+                    sphere.Indices.Length +
+                    cube.Indices.Length +
+                    capsule.Indices.Length +
+                    cylinder.Indices.Length +
+                    cone.Indices.Length
+                ];
 
-            Array.Copy(sphere.Indices, 0, indexData, indexBufferOffset, sphere.Indices.Length);
-            primitiveIndexOffsets.Spheres = indexBufferOffset;
-            primitiveIndexOffsets.HalfSpheres = indexBufferOffset; // same as spheres
-            indexBufferOffset += sphere.Indices.Length;
+                if (indexData.Length >= 0xFFFF && device.Features.CurrentProfile <= GraphicsProfile.Level_9_3)
+                {
+                    throw new InvalidOperationException("Cannot generate more than 65535 indices on feature level HW <= 9.3");
+                }
 
-            Array.Copy(cube.Indices, 0, indexData, indexBufferOffset, cube.Indices.Length);
-            primitiveIndexOffsets.Cubes = indexBufferOffset;
-            indexBufferOffset += cube.Indices.Length;
+                // copy all our primitive data into the buffers
 
-            Array.Copy(capsule.Indices, 0, indexData, indexBufferOffset, capsule.Indices.Length);
-            primitiveIndexOffsets.Capsules = indexBufferOffset;
-            indexBufferOffset += capsule.Indices.Length;
+                int indexBufferOffset = 0;
 
-            Array.Copy(cylinder.Indices, 0, indexData, indexBufferOffset, cylinder.Indices.Length);
-            primitiveIndexOffsets.Cylinders = indexBufferOffset;
-            indexBufferOffset += cylinder.Indices.Length;
+                Array.Copy(circle.Indices, indexData, circle.Indices.Length);
+                primitiveIndexOffsets.Circles = indexBufferOffset;
+                indexBufferOffset += circle.Indices.Length;
 
-            Array.Copy(cone.Indices, 0, indexData, indexBufferOffset, cone.Indices.Length);
-            primitiveIndexOffsets.Cones = indexBufferOffset;
-            indexBufferOffset += cone.Indices.Length;
+                Array.Copy(plane.Indices, 0, indexData, indexBufferOffset, plane.Indices.Length);
+                primitiveIndexOffsets.Quads = indexBufferOffset;
+                indexBufferOffset += plane.Indices.Length;
 
-            var newIndexBuffer = Buffer.Index.New<int>(device, indexData);
-            indexBuffer = newIndexBuffer;
+                Array.Copy(sphere.Indices, 0, indexData, indexBufferOffset, sphere.Indices.Length);
+                primitiveIndexOffsets.Spheres = indexBufferOffset;
+                primitiveIndexOffsets.HalfSpheres = indexBufferOffset; // same as spheres
+                indexBufferOffset += sphere.Indices.Length;
+
+                Array.Copy(cube.Indices, 0, indexData, indexBufferOffset, cube.Indices.Length);
+                primitiveIndexOffsets.Cubes = indexBufferOffset;
+                indexBufferOffset += cube.Indices.Length;
+
+                Array.Copy(capsule.Indices, 0, indexData, indexBufferOffset, capsule.Indices.Length);
+                primitiveIndexOffsets.Capsules = indexBufferOffset;
+                indexBufferOffset += capsule.Indices.Length;
+
+                Array.Copy(cylinder.Indices, 0, indexData, indexBufferOffset, cylinder.Indices.Length);
+                primitiveIndexOffsets.Cylinders = indexBufferOffset;
+                indexBufferOffset += cylinder.Indices.Length;
+
+                Array.Copy(cone.Indices, 0, indexData, indexBufferOffset, cone.Indices.Length);
+                primitiveIndexOffsets.Cones = indexBufferOffset;
+                indexBufferOffset += cone.Indices.Length;
+
+                var newIndexBuffer = Buffer.Index.New<int>(device, indexData);
+                indexBuffer = newIndexBuffer;
+
+            }
 
             // allocate our buffers with position/colour etc data
             var newTransformBuffer = Buffer.Structured.New<Matrix>(device, 1);
@@ -550,7 +560,7 @@ namespace Stride.DebugRendering
             foreach (RenderObject renderObject in RenderObjects)
             {
 
-                DebugRenderObject debugObject = (DebugRenderObject)renderObject;
+                ImmediateDebugRenderObject debugObject = (ImmediateDebugRenderObject)renderObject;
 
                 /* everything except lines is included here, as lines just get accumulated into a buffer directly */
                 int primitivesWithDepth = SumBasicPrimitives(ref debugObject.totalPrimitives);
@@ -855,7 +865,7 @@ namespace Stride.DebugRendering
             {
 
                 var renderNodeReference = renderViewStage.SortedRenderNodes[index].RenderNode;
-                var debugObject = (DebugRenderObject)(GetRenderNode(renderNodeReference).RenderObject);
+                var debugObject = (ImmediateDebugRenderObject)(GetRenderNode(renderNodeReference).RenderObject);
                 bool objectHasTransparency = debugObject.Stage == DebugRenderStage.Transparent;
 
                 // update pipeline state, render with depth test first

@@ -81,7 +81,7 @@ using Stride.Graphics;
 
 namespace Stride.DebugRendering
 {
-    public class DebugPrimitives
+    public class ImmediateDebugPrimitives
     {
 
         static private Vector2 noLineUv = new Vector2(0.5f);

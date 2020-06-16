@@ -13,7 +13,7 @@ using Stride.Rendering;
 namespace Stride.DebugRendering
 {
 
-    public class DebugRenderSystem : GameSystemBase
+    public class ImmediateDebugRenderSystem : GameSystemBase
     {
 
         internal enum DebugRenderableType : byte
@@ -217,10 +217,10 @@ namespace Stride.DebugRendering
         private readonly FastList<DebugRenderable> renderMessages = new FastList<DebugRenderable>();
         private readonly FastList<DebugRenderable> renderMessagesWithLifetime = new FastList<DebugRenderable>();
 
-        private DebugRenderObject solidPrimitiveRenderer;
-        private DebugRenderObject wireframePrimitiveRenderer;
-        private DebugRenderObject transparentSolidPrimitiveRenderer;
-        private DebugRenderObject transparentWireframePrimitiveRenderer;
+        private ImmediateDebugRenderObject solidPrimitiveRenderer;
+        private ImmediateDebugRenderObject wireframePrimitiveRenderer;
+        private ImmediateDebugRenderObject transparentSolidPrimitiveRenderer;
+        private ImmediateDebugRenderObject transparentWireframePrimitiveRenderer;
 
         public Color PrimitiveColor { get; set; } = Color.LightGreen;
 
@@ -229,7 +229,7 @@ namespace Stride.DebugRendering
 
         public RenderGroup RenderGroup { get; set; } = RenderGroup.Group31;
 
-        public DebugRenderSystem(IServiceRegistry registry) : base(registry)
+        public ImmediateDebugRenderSystem(IServiceRegistry registry) : base(registry)
         {
             Enabled = true;
             Visible = Platform.IsRunningDebugAssembly;
@@ -375,34 +375,34 @@ namespace Stride.DebugRendering
             if (visibilityGroup == null)
                 return false;
 
-            var newSolidRenderObject = new DebugRenderObject
+            var newSolidRenderObject = new ImmediateDebugRenderObject
             {
                 CurrentFillMode = FillMode.Solid,
-                Stage = DebugRenderFeature.DebugRenderStage.Opaque
+                Stage = ImmediateDebugRenderFeature.DebugRenderStage.Opaque
             };
             visibilityGroup.RenderObjects.Add(newSolidRenderObject);
             solidPrimitiveRenderer = newSolidRenderObject;
 
-            var newWireframeRenderObject = new DebugRenderObject
+            var newWireframeRenderObject = new ImmediateDebugRenderObject
             {
                 CurrentFillMode = FillMode.Wireframe,
-                Stage = DebugRenderFeature.DebugRenderStage.Opaque
+                Stage = ImmediateDebugRenderFeature.DebugRenderStage.Opaque
             };
             visibilityGroup.RenderObjects.Add(newWireframeRenderObject);
             wireframePrimitiveRenderer = newWireframeRenderObject;
 
-            var newTransparentSolidRenderObject = new DebugRenderObject
+            var newTransparentSolidRenderObject = new ImmediateDebugRenderObject
             {
                 CurrentFillMode = FillMode.Solid,
-                Stage = DebugRenderFeature.DebugRenderStage.Transparent
+                Stage = ImmediateDebugRenderFeature.DebugRenderStage.Transparent
             };
             visibilityGroup.RenderObjects.Add(newTransparentSolidRenderObject);
             transparentSolidPrimitiveRenderer = newTransparentSolidRenderObject;
 
-            var newTransparentWireframeRenderObject = new DebugRenderObject
+            var newTransparentWireframeRenderObject = new ImmediateDebugRenderObject
             {
                 CurrentFillMode = FillMode.Wireframe,
-                Stage = DebugRenderFeature.DebugRenderStage.Transparent
+                Stage = ImmediateDebugRenderFeature.DebugRenderStage.Transparent
             };
             visibilityGroup.RenderObjects.Add(newTransparentWireframeRenderObject);
             transparentWireframePrimitiveRenderer = newTransparentWireframeRenderObject;
@@ -451,7 +451,7 @@ namespace Stride.DebugRendering
         private void HandlePrimitives(GameTime gameTime, FastList<DebugRenderable> messages)
         {
 
-            DebugRenderObject ChooseRenderer(DebugRenderableFlags flags, byte alpha)
+            ImmediateDebugRenderObject ChooseRenderer(DebugRenderableFlags flags, byte alpha)
             {
                 if (alpha < 255)
                 {

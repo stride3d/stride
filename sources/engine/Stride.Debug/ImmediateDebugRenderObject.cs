@@ -6,11 +6,11 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
 
-using static Stride.DebugRendering.DebugRenderFeature;
+using static Stride.DebugRendering.ImmediateDebugRenderFeature;
 
 namespace Stride.DebugRendering
 {
-    public class DebugRenderObject : RenderObject
+    public class ImmediateDebugRenderObject : RenderObject
     {
 
         /* messages */

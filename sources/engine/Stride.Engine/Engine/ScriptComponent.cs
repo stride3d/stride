@@ -65,7 +65,7 @@ namespace Stride.Engine
             Audio = Services.GetSafeServiceAs<AudioSystem>();
             SpriteAnimation = Services.GetSafeServiceAs<SpriteAnimationSystem>();
             GameProfiler = Services.GetSafeServiceAs<GameProfilingSystem>();
-            DebugDraw = Services.GetSafeServiceAs<DebugRenderSystem>();
+            DebugDraw = Services.GetSafeServiceAs<ImmediateDebugRenderSystem>();
             DebugText = Services.GetSafeServiceAs<DebugTextSystem>();
             Streaming = Services.GetSafeServiceAs<StreamingManager>();
         }
@@ -129,7 +129,7 @@ namespace Stride.Engine
         public DebugTextSystem DebugText { get; private set; }
 
         [DataMemberIgnore]
-        public DebugRenderSystem DebugDraw { get; private set; }
+        public ImmediateDebugRenderSystem DebugDraw { get; private set; }
 
         /// <summary>
         /// Gets the streaming system.

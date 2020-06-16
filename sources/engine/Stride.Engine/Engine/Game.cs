@@ -112,7 +112,7 @@ namespace Stride.Engine
         /// <summary>
         /// Gets the debug rendering system.
         /// </summary>
-        public DebugRenderSystem DebugRenderSystem { get; }
+        public ImmediateDebugRenderSystem DebugRenderSystem { get; }
 
         /// <summary>
         /// Gets the game profiler system.
@@ -223,7 +223,7 @@ namespace Stride.Engine
             SpriteAnimation = new SpriteAnimationSystem(Services);
             Services.AddService(SpriteAnimation);
 
-            DebugRenderSystem = new DebugRenderSystem(Services);
+            DebugRenderSystem = new ImmediateDebugRenderSystem(Services);
             Services.AddService(DebugRenderSystem);
 
             DebugTextSystem = new DebugTextSystem(Services);

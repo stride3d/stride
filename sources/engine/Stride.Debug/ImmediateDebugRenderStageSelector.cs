@@ -4,11 +4,11 @@
 using System.ComponentModel;
 using Stride.Rendering;
 
-using static Stride.DebugRendering.DebugRenderFeature;
+using static Stride.DebugRendering.ImmediateDebugRenderFeature;
 
 namespace Stride.DebugRendering
 {
-    public class DebugRenderStageSelector : RenderStageSelector
+    public class ImmediateDebugRenderStageSelector : RenderStageSelector
     {
 
         [DefaultValue(RenderGroupMask.All)]
@@ -24,7 +24,7 @@ namespace Stride.DebugRendering
         {
             if (((RenderGroupMask)(1U << (int)renderObject.RenderGroup) & RenderGroup) != 0)
             {
-                var debugObject = (DebugRenderObject)renderObject;
+                var debugObject = (ImmediateDebugRenderObject)renderObject;
                 var renderStage = (debugObject.Stage == DebugRenderStage.Opaque) ? OpaqueRenderStage : TransparentRenderStage;
                 if (renderStage != null)
                 {
