@@ -439,7 +439,7 @@ Example of use:
     <Delete Files="@(FilesToDeleteLauncher)"/>
     
     <!-- Generate the nuget package for the launcher application -->
-    <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\launcher\Stride.LauncherApp\Stride.LauncherApp.nuspec" -BasePath "$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release" -OutputDirectory "$(StrideRoot)bin\launcher"' />
+    <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\launcher\Stride.Launcher\Stride.Launcher.nuspec" -BasePath "$(StrideRoot)sources\launcher\Stride.Launcher\bin\Release\publish" -OutputDirectory "$(StrideRoot)bin\launcher"' />
   </Target>
   
   <!--
@@ -513,8 +513,7 @@ Example of use:
   </Target>
   
   <Target Name="BuildLauncher">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StrideSolution=$(StrideSolutionLauncher)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolutionLauncher).sln" Properties="$(BuildProperties);Platform=Any CPU"/>
+    <Exec Command="dotnet publish &quot;..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj&quot; /p:PublishProfile=FolderProfile" />
   </Target>
 
 </Project>

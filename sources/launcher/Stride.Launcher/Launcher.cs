@@ -38,12 +38,12 @@ namespace Stride.LauncherApp
         /// </summary>
         /// <returns>The process error code to return.</returns>
         [STAThread]
-        public static int Main()
+        public static int Main(string[] args)
         {
             // For now, we force culture to invariant one because GNU.Gettext.GettextResourceManager.GetSatelliteAssembly crashes when Assembly.Location is null
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
-            var arguments = ProcessArguments();
+            var arguments = ProcessArguments(args);
             var result = ProcessAction(arguments);
             return (int)result;
         }
@@ -80,16 +80,13 @@ namespace Stride.LauncherApp
             MessageBox.Show(message, "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        private static LauncherArguments ProcessArguments()
+        private static LauncherArguments ProcessArguments(string[] args)
         {
             var result = new LauncherArguments
             {
                 // Default action is to run the server
                 Actions = new List<LauncherArguments.ActionType> { LauncherArguments.ActionType.Run }
             };
-
-            // Environment.GetCommandLineArgs correctly process arguments regarding the presence of '\' and '"'
-            var args = Environment.GetCommandLineArgs().Skip(1).ToArray();
 
             foreach (var arg in args)
             {

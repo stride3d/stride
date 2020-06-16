@@ -114,7 +114,7 @@ namespace Stride.LauncherApp.Services
 
                 // TODO: We should get list of previous files from nuspec (store it as a resource and open it with NuGet API maybe?)
                 // TODO: For now, we deal only with the App.config file since we won't be able to fix it afterward.
-                var exeLocation = Assembly.GetEntryAssembly().Location;
+                var exeLocation = Path.ChangeExtension(Assembly.GetEntryAssembly().Location, ".exe");
                 var exeDirectory = Path.GetDirectoryName(exeLocation);
                 const string directoryRoot = "tools/"; // Important!: this is matching where files are store in the nuspec
                 try
@@ -267,7 +267,8 @@ namespace Stride.LauncherApp.Services
         {
             var args = Environment.GetCommandLineArgs().ToList();
             args.Add("/UpdateTargets");
-            var startInfo = new ProcessStartInfo(Assembly.GetEntryAssembly().Location)
+            var exeLocation = Path.ChangeExtension(Assembly.GetEntryAssembly().Location, ".exe");
+            var startInfo = new ProcessStartInfo(exeLocation)
             {
                 Arguments = string.Join(" ", args.Skip(1)),
                 WorkingDirectory = Environment.CurrentDirectory,
