@@ -457,7 +457,7 @@ namespace Stride.Core.Assets.CompilerApp
             var startInfo = new ProcessStartInfo
             {
                 // Note: try to get exec server if it exists, otherwise use CompilerApp.exe
-                FileName = (string)AppDomain.CurrentDomain.GetData("RealEntryAssemblyFile") ?? typeof(PackageBuilder).Assembly.Location,
+                FileName = Path.ChangeExtension(typeof(PackageBuilder).Assembly.Location, ".exe"),
                 Arguments = arguments,
                 WorkingDirectory = Environment.CurrentDirectory,
                 CreateNoWindow = true,
