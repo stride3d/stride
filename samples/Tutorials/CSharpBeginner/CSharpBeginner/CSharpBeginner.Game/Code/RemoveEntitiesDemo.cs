@@ -11,9 +11,14 @@ namespace CSharpBeginner.Code
         public Entity EntityToClone;
 
         private Entity clonedEntity1;
-        private float cloneCounter = 0;
+        private Entity clonedEntity2;
         private float timer = 0;
-        private float createAndRemoveTime = 2;
+
+        private float currentTimer = 0;
+        private float existTime = 4;
+        private float goneTime = 2;
+
+        private bool entitiesExist = false;
 
         public override void Start()
         {
@@ -33,18 +38,18 @@ namespace CSharpBeginner.Code
         /// This method clones an entity, adds it to the scene root
         private void CloneEntityAndAddToScene()
         {
-            clonedEntity1 = EntityToClone.Clone();
-            clonedEntity1.Transform.Position += new Vector3(0, 0, -0.5f);
-            Entity.Scene.Entities.Add(clonedEntity1);
-            cloneCounter++;
+            clonedEntity2 = EntityToClone.Clone();
+            clonedEntity2.Transform.Position += new Vector3(0, 0, -0.5f);
+            Entity.Scene.Entities.Add(clonedEntity2);
         }
 
         public override void Update()
         {
             // We use a simple timer
             timer += (float)Game.UpdateTime.Elapsed.TotalSeconds;
-            if (timer > createAndRemoveTime)
+            if (timer > currentTimer)
             {
+                // If the entities exist, we remove them from the scene
                 if (entitiesExist)
                 {
                     // We remove the cloned entity from the scene 
@@ -57,13 +62,16 @@ namespace CSharpBeginner.Code
                     clonedEntity1 = null;
                     clonedEntity2 = null;
 
-                    entitiesExist = false;    
+                    entitiesExist = false;
+                    currentTimer = goneTime;
                 }
-                else
+                else // If the entities don't exist, we create new clones
                 {
                     CloneEntityAndAddToScene();
                     CloneEntityAndAddAsChild();
                     entitiesExist = true;
+
+                    currentTimer = existTime;
                 }
 
                 // Reset timer
