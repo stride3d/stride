@@ -240,12 +240,12 @@ namespace Stride.DebugRendering
         public static (VertexPositionTexture[] Vertices, int[] Indices) GenerateSphere(float radius = 0.5f, int tesselations = 16, int uvSplits = 4, int uvSplitOffsetVertical = 0)
         {
 
+            if (tesselations < 3) tesselations = 3;
+
             if (uvSplits != 0 && tesselations % uvSplits != 0) // FIXME: this can read a lot nicer i think?
             {
                 throw new ArgumentException("expected the desired number of uv splits to be a divisor of the number of tesselations");
             }
-
-            if (tesselations < 3) tesselations = 3;
 
             int verticalSegments = tesselations;
             int horizontalSegments = tesselations * 2;
@@ -430,7 +430,7 @@ namespace Stride.DebugRendering
         public static (VertexPositionTexture[] Vertices, int[] Indices) GenerateCylinder(float height = 1.0f, float radius = 0.5f, int tesselations = 16, int uvSplits = 4, int? uvSidesForCircle = null)
         {
 
-            const int uvOffset = 3;
+            const int uvOffset = 3; // FIXME: this magic constant here is to get the splits to appear aesthetically similar orientation wise for all the shapes
 
             if (tesselations < 3) tesselations = 3;
 
