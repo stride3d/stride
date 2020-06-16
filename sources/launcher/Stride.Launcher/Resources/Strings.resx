@@ -426,4 +426,11 @@
     <value>Install {0}</value>
     <comment>{0}: long version name</comment>
   </data>
+  <data name="NewVersionDownloadError" xml:space="preserve">
+    <value>Launcher needs to be updated download or installation failed due to the following reason:
+
+{0}
+
+Please go to Stride website and download a new version.</value>
+  </data>
 </root>

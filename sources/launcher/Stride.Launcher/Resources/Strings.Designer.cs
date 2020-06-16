@@ -340,6 +340,19 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Launcher needs to be updated download or installation failed due to the following reason:
+        ///
+        ///{0}
+        ///
+        ///Please go to Stride website and download a new version..
+        /// </summary>
+        public static string NewVersionDownloadError {
+            get {
+                return ResourceManager.GetString("NewVersionDownloadError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to fetch documentation.
         /// </summary>
         public static string NoDocumentation {
