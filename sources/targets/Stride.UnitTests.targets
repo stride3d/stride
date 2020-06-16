@@ -48,6 +48,9 @@
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(StridePlatform)-$(StrideGraphicsApi)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
+    <StartupObject>xunit.runner.stride.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup Condition="'$(StridePlatform)' == 'Windows'">
     <Compile Condition="'$(StrideGraphicsApiDependent)' != 'true'" Include="$(MSBuildThisFileDirectory)..\shared\tests\xunit\LauncherSimple.Windows.cs">
       <Link>LauncherSimple.Windows.cs</Link>

@@ -26,6 +26,8 @@
   <!--Import Local Pre Settings for the solution being loaded -->
   <Import Project="$(SolutionDir)$(SolutionName).Build.props" Condition="Exists('$(SolutionDir)$(SolutionName).Build.props')" />
   <Import Project="$(SolutionDir)Stride.Core.Build.props" Condition="Exists('$(SolutionDir)Stride.Core.Build.props')" />
+
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.TargetFrameworks.Editor.props" />
   
   <!-- 
     Settings StridePlatform specific
@@ -33,9 +35,6 @@
   <PropertyGroup>
     <!-- Using C# version 7.3 -->
     <LangVersion>7.3</LangVersion>
-    <StrideRuntimeTargetFramework>net461</StrideRuntimeTargetFramework>
-    <StrideEditorTargetFrameworks Condition="'$(StrideEditorTargetFrameworks)' == ''">net472</StrideEditorTargetFrameworks>
-    <StrideEditorTargetFramework>$(StrideEditorTargetFrameworks.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideEditorTargetFramework>
     <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</StridePlatformDefines>
 
     <!-- Note: ideally we would split using ItemGroup but then PropertyGroup are not properly evaluated if they contain ItemGroup (unless using Targets) -->

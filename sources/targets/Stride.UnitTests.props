@@ -6,6 +6,8 @@
 
   <Import Project="$(MSBuildThisDirectory)..\..\sources\core\Stride.Core\build\Stride.Core.props"/>
 
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.TargetFrameworks.Editor.props" />
+
   <PropertyGroup>
     <!-- Default fallback -->
     <StridePlatform Condition="'$(StridePlatform)' == ''">Windows</StridePlatform>

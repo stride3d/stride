@@ -2,8 +2,9 @@
   <Import Project="..\..\targets\Stride.props" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
-    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>net472</TargetFrameworks>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
+    <StrideCompilerTargetsEnable Condition="!$(StrideEditorTargetFrameworks.Contains('net4'))">false</StrideCompilerTargetsEnable>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
