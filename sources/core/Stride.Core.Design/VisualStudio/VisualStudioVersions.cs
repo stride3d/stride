@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Setup.Configuration;
-using Microsoft.Win32;
 
 namespace Stride.Core.VisualStudio
 {

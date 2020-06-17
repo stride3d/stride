@@ -3,7 +3,7 @@
 
 using System;
 
-namespace NShader
+namespace Stride.VisualStudio.Commands.Shaders
 {
     /// <summary>
     /// Defines a Span span in a file.

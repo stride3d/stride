@@ -3,7 +3,7 @@
 
 using System;
 
-namespace NShader
+namespace Stride.VisualStudio.Commands.Shaders
 {
     /// <summary>
     /// A log message for a particular line.

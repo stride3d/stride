@@ -8,22 +8,26 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using EnvDTE;
+using Microsoft.VisualStudio.Text.Editor;
 using NShader;
 using NuGet.Common;
 using NuGet.Frameworks;
 using NuGet.Versioning;
+using ServiceWire.NamedPipes;
 using Stride.Core;
 using Stride.Core.Assets;
-using Stride.Core.Packages;
+using Process = System.Diagnostics.Process;
+using Thread = System.Threading.Thread;
 
 namespace Stride.VisualStudio.Commands
 {
     /// <summary>
     /// Proxies commands to real <see cref="IStrideCommands"/> implementation.
     /// </summary>
-    public class StrideCommandsProxy : MarshalByRefObject
+    public static class StrideCommandsProxy
     {
-        public static readonly PackageVersion MinimumVersion = new PackageVersion(1, 4, 0, 0);
+        public static readonly PackageVersion MinimumVersion = new PackageVersion(4, 0, 0, 0);
 
         public struct PackageInfo
         {
@@ -34,253 +38,127 @@ namespace Stride.VisualStudio.Commands
             public PackageVersion LoadedVersion;
         }
 
-        private static readonly object computedPackageInfoLock = new object();
-        private static PackageInfo computedPackageInfo;
         private static string solution;
         private static bool solutionChanged;
 
         private static readonly object commandProxyLock = new object();
-        private static StrideCommandsProxy currentInstance;
-        private static AppDomain currentAppDomain;
 
-        private readonly IStrideCommands remote;
-        private readonly List<Tuple<string, DateTime>> assembliesLoaded = new List<Tuple<string, DateTime>>();
+        private static AttachedChildProcessJob strideCommandsProcessJob;
+        private static NpClient<IStrideCommands> strideCommands = null;
 
-        public static PackageInfo CurrentPackageInfo
-        {
-            get { lock (computedPackageInfoLock) { return computedPackageInfo; } }
-        }
+        public static PackageInfo CurrentPackageInfo { get; private set; }
 
         static StrideCommandsProxy()
         {
-            // This assembly resolve is only used to resolve the GetExecutingAssembly on the Default Domain
-            // when casting to StrideCommandsProxy in the StrideCommandsProxy.GetProxy method
-            AppDomain.CurrentDomain.AssemblyResolve += DefaultDomainAssemblyResolve;
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
         }
 
-        public StrideCommandsProxy()
-        {
-            AppDomain.CurrentDomain.AssemblyResolve += StrideDomainAssemblyResolve;
-
-            var assembly = Assembly.Load("Stride.VisualStudio.Commands");
-            remote = (IStrideCommands)assembly.CreateInstance("Stride.VisualStudio.Commands.StrideCommands");
-        }
-
-        /// <summary>
-        /// Set the solution to use, when resolving the package containing the remote commands.
-        /// </summary>
-        /// <param name="solutionPath">The full path to the solution file.</param>
-        /// <param name="domain">The AppDomain to set the solution on, or null the current AppDomain.</param>
-        public static void InitializeFromSolution(string solutionPath, PackageInfo stridePackageInfo, AppDomain domain = null)
-        {
-            if (domain == null)
-            {
-                lock (computedPackageInfoLock)
-                {
-                    // Set the new solution and clear the package info, so it will be recomputed
-                    solution = solutionPath;
-                    computedPackageInfo = stridePackageInfo;
-                }
-
-                lock (commandProxyLock)
-                {
-                    solutionChanged = true;
-                }
-            }
-            else
-            {
-                var initializationHelper = (InitializationHelper)domain.CreateInstanceFromAndUnwrap(typeof(InitializationHelper).Assembly.Location, typeof(InitializationHelper).FullName);
-                initializationHelper.Initialize(solutionPath, stridePackageInfo.SdkPaths, stridePackageInfo.ExpectedVersion?.ToString(), stridePackageInfo.LoadedVersion?.ToString());
-            }
-        }
-
-        private class InitializationHelper : MarshalByRefObject
-        {
-            public void Initialize(string solutionPath, List<string> sdkPaths, string expectedVersion, string loadedVersion)
-            {
-                InitializeFromSolution(solutionPath, new PackageInfo
-                {
-                    SdkPaths = sdkPaths,
-                    ExpectedVersion = expectedVersion != null ? new PackageVersion(expectedVersion) : null,
-                    LoadedVersion = loadedVersion != null ? new PackageVersion(loadedVersion) : null,
-                });
-            }
-        }
-
-        public override object InitializeLifetimeService()
-        {
-            // See http://stackoverflow.com/questions/5275839/inter-appdomain-communication-problem
-            // If this proxy is not used for 6 minutes, it is disconnected and calls to this proxy will fail
-            // We return null to allow the service to run for the full live of the appdomain.
-            return null;
-        }
-
-        /// <summary>
-        /// Gets the current proxy.
-        /// </summary>
-        /// <returns>StrideCommandsProxy.</returns>
-        public static StrideCommandsProxy GetProxy()
-        {
-            lock (commandProxyLock)
-            {
-                // New instance?
-                bool shouldReload = currentInstance == null || solutionChanged;
-                if (!shouldReload)
-                {
-                    // Assemblies changed?
-                    shouldReload = currentInstance.ShouldReload();
-                }
-
-                // If new instance or assemblies changed, reload
-                if (shouldReload)
-                {
-                    currentInstance = null;
-                    if (currentAppDomain != null)
-                    {
-                        try
-                        {
-                            AppDomain.Unload(currentAppDomain);
-                        }
-                        catch (Exception ex)
-                        {
-                            Trace.WriteLine($"Unexpected exception when unloading AppDomain for StrideCommandsProxy: {ex}");
-                        }
-                    }
-
-                    var stridePackageInfo = FindStrideSdkDir(solution).Result;
-                    if (stridePackageInfo.LoadedVersion == null)
-                        return null;
-
-                    currentAppDomain = CreateStrideDomain();
-                    InitializeFromSolution(solution, stridePackageInfo, currentAppDomain);
-                    currentInstance = CreateProxy(currentAppDomain);
-                    currentInstance.Initialize();
-                    solutionChanged = false;
-                }
-
-                return currentInstance;
-            }
-        }
-
-        /// <summary>
-        /// Creates the stride domain.
-        /// </summary>
-        /// <returns>AppDomain.</returns>
-        public static AppDomain CreateStrideDomain()
-        {
-            return AppDomain.CreateDomain("stride-domain");
-        }
-
-        /// <summary>
-        /// Gets the current proxy.
-        /// </summary>
-        /// <returns>StrideCommandsProxy.</returns>
-        public static StrideCommandsProxy CreateProxy(AppDomain domain)
-        {
-            if (domain == null) throw new ArgumentNullException(nameof(domain));
-            return (StrideCommandsProxy)domain.CreateInstanceFromAndUnwrap(typeof(StrideCommandsProxy).Assembly.Location, typeof(StrideCommandsProxy).FullName);
-        }
-
-        public void Initialize()
-        {
-            remote.Initialize(null);
-        }
-
-        public bool ShouldReload()
-        {
-            lock (assembliesLoaded)
-            {
-                // Check if any assemblies have changed since loaded
-                foreach (var assemblyItem in assembliesLoaded)
-                {
-                    var assemblyPath = assemblyItem.Item1;
-                    var lastAssemblyTime = assemblyItem.Item2;
-
-                    if (File.Exists(assemblyPath))
-                    {
-                        var fileDateTime = File.GetLastWriteTime(assemblyPath);
-                        if (fileDateTime != lastAssemblyTime)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-
-        public void StartRemoteBuildLogServer(BuildMonitorCallback buildMonitorCallback, string logPipeUrl)
-        {
-            remote.StartRemoteBuildLogServer(buildMonitorCallback, logPipeUrl);
-        }
-
-        public byte[] GenerateShaderKeys(string inputFileName, string inputFileContent)
-        {
-            return remote.GenerateShaderKeys(inputFileName, inputFileContent);
-        }
-
-        public RawShaderNavigationResult AnalyzeAndGoToDefinition(string projectPath, string sourceCode, RawSourceSpan span)
-        {
-
-            // TODO: We need to know which package is currently selected in order to query all valid shaders
-            if (remote is IStrideCommands2 remote2)
-                return remote2.AnalyzeAndGoToDefinition(projectPath, sourceCode, span);
-            return remote.AnalyzeAndGoToDefinition(sourceCode, span);
-        }
-
-        private static Assembly DefaultDomainAssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            // This assembly resolve is only used to resolve the GetExecutingAssembly on the Default Domain
-            // when casting to StrideCommandsProxy in the StrideCommandsProxy.GetProxy method
-            var executingAssembly = Assembly.GetExecutingAssembly();
-
-            // Redirect requests for earlier package versions to the current one
-            var assemblyName = new AssemblyName(args.Name);
-            if (assemblyName.Name == executingAssembly.GetName().Name)
-                return executingAssembly;
-
-            return null;
-        }
-
-        private Assembly StrideDomainAssemblyResolve(object sender, ResolveEventArgs args)
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             var assemblyName = new AssemblyName(args.Name);
 
             // Necessary to avoid conflicts with Visual Studio NuGet
             if (args.Name.StartsWith("NuGet", StringComparison.InvariantCultureIgnoreCase))
                 return Assembly.Load(assemblyName);
-
-            var assemblyPath = computedPackageInfo.SdkPaths.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x) == assemblyName.Name);
-            if (assemblyPath != null)
-            {
-                return LoadAssembly(assemblyPath);
-            }
-
-            // PCL System assemblies are using version 2.0.5.0 while we have a 4.0
-            // Redirect the PCL to use the 4.0 from the current app domain.
-            if (assemblyName.Name.StartsWith("System") && (assemblyName.Flags & AssemblyNameFlags.Retargetable) != 0)
-            {
-                var systemCoreAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.GetName().Name == assemblyName.Name);
-                return systemCoreAssembly;
-            }
+            if (args.Name.StartsWith("ServiceWire", StringComparison.InvariantCultureIgnoreCase))
+                return Assembly.Load(assemblyName);
+            if (args.Name.StartsWith("Stride.VisualStudio.Commands.Interfaces", StringComparison.InvariantCultureIgnoreCase))
+                return Assembly.Load(assemblyName);
 
             return null;
         }
 
-        private Assembly LoadAssembly(string assemblyFile)
+        /// <summary>
+        /// Gets the current proxy.
+        /// </summary>
+        /// <returns>StrideCommandsProxy.</returns>
+        public static IStrideCommands GetProxy()
         {
-            lock (assembliesLoaded)
+            lock (commandProxyLock)
             {
-                assembliesLoaded.Add(new Tuple<string, DateTime>(assemblyFile, File.GetLastWriteTime(assemblyFile)));
+                // New instance?
+                bool shouldReload = strideCommands == null || solutionChanged || ShouldReload();
+                if (!shouldReload)
+                {
+                    // TODO: Assemblies changed?
+                    //shouldReload = ShouldReload();
+                }
+
+                // If new instance or assemblies changed, reload
+                if (shouldReload)
+                {
+                    ClosePipeAndProcess();
+
+                    var address = "Stride/VSPackageCommands/" + Guid.NewGuid();
+
+                    var stridePackageInfo = FindStrideSdkDir(solution).Result;
+                    if (stridePackageInfo.LoadedVersion == null)
+                        return null;
+
+                    var commandAssembly = stridePackageInfo.SdkPaths.First(x => Path.GetFileNameWithoutExtension(x) == "Stride.VisualStudio.Commands");
+                    var commandExecutable = Path.ChangeExtension(commandAssembly, ".exe"); // .NET Core: .dll => .exe
+
+                    var startInfo = new ProcessStartInfo
+                    {
+                        // Note: try to get exec server if it exists, otherwise use CompilerApp.exe
+                        FileName = commandExecutable,
+                        Arguments = $"--pipe=\"{address}\"",
+                        WorkingDirectory = Environment.CurrentDirectory,
+                        UseShellExecute = false,
+                    };
+
+                    var strideCommandsProcess = new Process { StartInfo = startInfo };
+                    strideCommandsProcess.Start();
+
+                    strideCommandsProcessJob = new AttachedChildProcessJob(strideCommandsProcess);
+
+                    for (int i = 0; i < 10; ++i)
+                    {
+                        try
+                        {
+                            strideCommands = new NpClient<IStrideCommands>(new NpEndPoint(address + "/IStrideCommands"));
+                            break;
+                        }
+                        catch
+                        {
+                            // Last try, forward exception
+                            if (i == 9)
+                                throw;
+                            // Wait until process is ready to accept connections
+                            Thread.Sleep(100);
+                        }
+                    }
+
+                    solutionChanged = false;
+                }
+
+                return strideCommands?.Proxy;
+            }
+        }
+
+        private static void ClosePipeAndProcess()
+        {
+            if (strideCommands != null)
+            {
+                try
+                {
+                    strideCommands.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Unexpected exception when closing remote connection to VS Commands: {ex}");
+                }
+                strideCommands = null;
             }
 
-            // Check if .pdb exists as well
-            var pdbFile = Path.ChangeExtension(assemblyFile, "pdb");
-            if (File.Exists(pdbFile))
-                return Assembly.Load(File.ReadAllBytes(assemblyFile), File.ReadAllBytes(pdbFile));
+            strideCommandsProcessJob?.Dispose();
+            strideCommandsProcessJob = null;
+        }
 
-            // Otherwise load assembly without PDB
-            return Assembly.Load(File.ReadAllBytes(assemblyFile));
+        public static bool ShouldReload()
+        {
+            // TODO: Check if assemblies/packages were regenerated
+            return false;
         }
 
         /// <summary>
@@ -292,57 +170,28 @@ namespace Stride.VisualStudio.Commands
             // Resolve the sdk version to load from the solution's package
             var packageInfo = new PackageInfo { ExpectedVersion = await PackageSessionHelper.GetPackageVersion(solution), SdkPaths = new List<string>() };
 
-            // Check if we are in a root directory with store/packages facilities
-            var store = new NugetStore(null);
-            NugetLocalPackage stridePackage = null;
-
             // Try to find the package with the expected version
             if (packageInfo.ExpectedVersion != null && packageInfo.ExpectedVersion >= MinimumVersion)
             {
-                // Stride up to 3.0
-                if (packageInfo.ExpectedVersion < new PackageVersion(3, 1, 0, 0))
-                {
-                    stridePackage = store.GetPackagesInstalled(new[] { "Stride" }).FirstOrDefault(package => package.Version == packageInfo.ExpectedVersion);
-                    if (stridePackage != null)
-                    {
-                        var strideSdkDir = store.GetRealPath(stridePackage);
-
-                        packageInfo.LoadedVersion = stridePackage.Version;
-
-                        foreach (var path in new[]
-                        {
-                            // Stride 2.x and 3.0
-                            @"Bin\Windows\Direct3D11",
-                            @"Bin\Windows",
-                            // Stride 1.x
-                            @"Bin\Windows-Direct3D11"
-                        })
-                        {
-                            var fullPath = Path.Combine(strideSdkDir, path);
-                            if (Directory.Exists(fullPath))
-                            {
-                                packageInfo.SdkPaths.AddRange(Directory.EnumerateFiles(fullPath, "*.dll", SearchOption.TopDirectoryOnly));
-                                packageInfo.SdkPaths.AddRange(Directory.EnumerateFiles(fullPath, "*.exe", SearchOption.TopDirectoryOnly));
-                            }
-                        }
-                    }
-                }
-                // Stride 3.1+
-                else
+                // Try both netcoreapp3.1 and net472
+                var success = false;
+                foreach (var framework in new[] { ".NETCoreApp,Version=v3.1", ".NETFramework,Version=v4.7.2" })
                 {
                     var logger = new Logger();
-                    var (request, result) = await RestoreHelper.Restore(logger, NuGetFramework.ParseFrameworkName(".NETFramework,Version=v4.7.2", DefaultFrameworkNameProvider.Instance), "win", packageName, new VersionRange(packageInfo.ExpectedVersion.ToNuGetVersion()));
+                    var (request, result) = await Task.Run(() => RestoreHelper.Restore(logger, NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance), "win", packageName, new VersionRange(packageInfo.ExpectedVersion.ToNuGetVersion())));
                     if (result.Success)
                     {
                         packageInfo.SdkPaths.AddRange(RestoreHelper.ListAssemblies(result.LockFile));
                         packageInfo.LoadedVersion = packageInfo.ExpectedVersion;
+                        success = true;
+                        break;
                     }
-                    else
-                    {
-                        MessageBox.Show( $"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it."
-                                         + $"To fix this you can either build {packageName} or pull the right version from nugget manually" );
-                        throw new InvalidOperationException( $"Could not restore {packageName} {packageInfo.ExpectedVersion}." );
-                    }
+                }
+                if (!success)
+                {
+                    MessageBox.Show($"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it."
+                                        + $"To fix this you can either build {packageName} or pull the right version from nugget manually");
+                    throw new InvalidOperationException($"Could not restore {packageName} {packageInfo.ExpectedVersion}.");
                 }
             }
 
@@ -419,6 +268,30 @@ namespace Stride.VisualStudio.Commands
                 Log(message);
                 return Task.CompletedTask;
             }
+        }
+
+        /// <summary>
+        /// Converts a <see cref="PackageVersion"/> into a <see cref="NuGetVersion"/>.
+        /// </summary>
+        /// <param name="version">The source of conversion.</param>
+        /// <returns>A new instance of <see cref="NuGetVersion"/> corresponding to <paramref name="version"/>.</returns>
+        public static NuGetVersion ToNuGetVersion(this PackageVersion version)
+        {
+            if (version == null) throw new ArgumentNullException(nameof(version));
+
+            return new NuGetVersion(version.Version, version.SpecialVersion);
+        }
+
+
+        internal static void InitializeFromSolution(string solutionPath, PackageInfo stridePackageInfo)
+        {
+            solution = solutionPath;
+            CurrentPackageInfo = stridePackageInfo;
+        }
+
+        internal static void CloseSolution()
+        {
+            ClosePipeAndProcess();
         }
     }
 }
