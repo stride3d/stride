@@ -52,12 +52,12 @@ namespace CSharpBeginner.Code
                 // If the entities exist, we remove them from the scene
                 if (entitiesExist)
                 {
-                    // We remove the cloned entity from the scene 
-                    Entity.Scene.Entities.Remove(clonedEntity1);
-
                     // We remove the cloned entity that is a child of the current entity
                     Entity.RemoveChild(clonedEntity1); // Alternative: clonedEntity1.Transform.Parent = null;
 
+                    // We remove the cloned entity from the scene root
+                    Entity.Scene.Entities.Remove(clonedEntity2);
+                    
                     // We also need to set the clones to null, otherwise the clones still exist
                     clonedEntity1 = null;
                     clonedEntity2 = null;
