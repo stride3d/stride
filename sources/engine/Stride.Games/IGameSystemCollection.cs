@@ -7,7 +7,7 @@ namespace Stride.Games
     /// <summary>
     /// A list of game systems.
     /// </summary>
-    public interface IGameSystemCollection : IList<IGameSystemBase>
+    public interface IGameSystemCollection : IList<IGameSystemBase>, IReadOnlyList<IGameSystemBase>
     {
     }
 }

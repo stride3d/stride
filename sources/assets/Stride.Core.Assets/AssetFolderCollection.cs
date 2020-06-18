@@ -17,7 +17,7 @@ namespace Stride.Core.Assets
     [DataContract("AssetFolderCollection")]
     [DebuggerTypeProxy(typeof(CollectionDebugView))]
     [DebuggerDisplay("Count = {Count}")]
-    public sealed class AssetFolderCollection : IList<AssetFolder>
+    public sealed class AssetFolderCollection : IList<AssetFolder>, IReadOnlyList<AssetFolder>
     {
         private readonly List<AssetFolder> folders;
 
@@ -108,6 +108,8 @@ namespace Stride.Core.Assets
                 return false;
             }
         }
+
+        public AssetFolder this[int index] => folders[index];
 
         /// <inheritdoc/>
         public IEnumerator<AssetFolder> GetEnumerator()

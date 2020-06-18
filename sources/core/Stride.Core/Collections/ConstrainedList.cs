@@ -13,7 +13,7 @@ namespace Stride.Core.Collections
     /// If the test fails, the item can either be discarded, or an exception can be thrown. The desired behavior can be defined with <see cref="ThrowException"/>.
     /// </summary>
     [DataSerializer(typeof(ListAllSerializer<,>), Mode = DataSerializerGenericMode.TypeAndGenericArguments)]
-    public class ConstrainedList<T> : IList<T>
+    public class ConstrainedList<T> : IList<T>, IReadOnlyList<T>
     {
         private readonly List<T> innerList = new List<T>();
 

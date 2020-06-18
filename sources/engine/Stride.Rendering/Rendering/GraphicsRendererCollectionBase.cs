@@ -18,7 +18,7 @@ namespace Stride.Rendering
     /// </summary>
     /// <typeparam name="T">Type of the <see cref="IGraphicsRenderer"/></typeparam>.
     [DataSerializer(typeof(ListAllSerializer<,>), Mode = DataSerializerGenericMode.TypeAndGenericArguments)]
-    public abstract class GraphicsRendererCollectionBase<T> : RendererCoreBase, IGraphicsRenderer, IList<T> where T : class, IGraphicsRendererCore
+    public abstract class GraphicsRendererCollectionBase<T> : RendererCoreBase, IGraphicsRenderer, IList<T>, IReadOnlyList<T> where T : class, IGraphicsRendererCore
     {
         private readonly HashSet<T> tempRenderers;
 
