@@ -391,7 +391,6 @@ namespace Stride.GameStudio
                 var cpu = string.Empty; // Used only for Windows Phone so far, default to ARM (need to provide a selector or detection)
                 var extraProperties = new Dictionary<string, string>
                 {
-                    ["StrideBuildEngineLogPipeUrl"] = BuildLog.PipeName,
                     ["StrideBuildEngineLogVerbose"] = "true",
                 };
 
@@ -629,7 +628,6 @@ namespace Stride.GameStudio
                 var extraProperties = new Dictionary<string, string>
                 {
                     ["SolutionPlatform"] = "Any CPU",
-                    ["StrideBuildEngineLogPipeUrl"] = BuildLog.PipeName,
                     ["StrideBuildEngineLogVerbose"] = "true",
                 };
 
