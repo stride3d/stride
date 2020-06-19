@@ -93,14 +93,17 @@ namespace Stride.LauncherApp.ViewModels
             if (alternateVersions != null)
             {
                 Dispatcher.Invoke(() =>
+                {
                     UpdateAlternateVersions(alternateVersions, (alternateVersionViewModel, alternateVersion) =>
                     {
                         if (alternateVersion == null && alternateVersionViewModel.ServerPackage == null)
                             AlternateVersions.Remove(alternateVersionViewModel);
                         else
                             alternateVersionViewModel.UpdateLocalPackage(alternateVersion);
-                    }));
+                    });
+                });
             }
+            Dispatcher.Invoke(() => UpdateFrameworks());
         }
 
         /// <summary>
