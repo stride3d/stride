@@ -185,7 +185,7 @@
     <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_UWP</StridePlatformDefines>
     <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-win10\</NUnitLiteBinDir>
     <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
-    <TargetPlatformVersion>10.0.17134.0</TargetPlatformVersion>
+    <TargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
     <GenerateLibraryLayout>false</GenerateLibraryLayout>
   </PropertyGroup>

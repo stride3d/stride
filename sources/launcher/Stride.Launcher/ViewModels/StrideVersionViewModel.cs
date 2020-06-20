@@ -32,7 +32,11 @@ namespace Stride.LauncherApp.ViewModels
             SetAsActiveCommand = new AnonymousCommand(ServiceProvider, () => launcher.ActiveVersion = this);
             // Update status if the user changes whether to display beta versions.
             launcher.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(LauncherViewModel.ShowBetaVersions)) UpdateStatus(); };
+        }
 
+        protected void UpdateFrameworks()
+        {
+            Frameworks.Clear();
             if (LocalPackage != null && InstallPath != null)
             {
                 var libDirectory = Path.Combine(InstallPath, "lib");

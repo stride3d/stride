@@ -59,7 +59,7 @@ namespace Stride.LauncherApp
             if (prerequisitesFailedOnce)
             {
                 // If prerequisites failed at least once, we want to restart ourselves to run with proper .NET framework
-                var exeLocation = Path.ChangeExtension(Assembly.GetEntryAssembly().Location, ".exe");
+                var exeLocation = Launcher.GetExecutablePath();
                 if (File.Exists(exeLocation))
                 {
                     // Forward arguments

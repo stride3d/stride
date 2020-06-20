@@ -49,6 +49,9 @@ namespace Stride.Core.Assets
                 throw new InvalidOperationException("Could not find a MSBuild installation (expected 16.0 or later)");
 
             CheckMSBuildToolset();
+
+            // Reset MSBUILD_EXE_PATH once MSBuild is resolved, to not spook child process (had issues with ThisProcess(MSBuild)->CompilerApp(net472): CompilerApp couldn't load MSBuild project properly)
+            Environment.SetEnvironmentVariable("MSBUILD_EXE_PATH", null);
         }
 
         private static bool IsMSBuildAssembly(System.Reflection.Assembly assembly)

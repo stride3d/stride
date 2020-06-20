@@ -22,7 +22,7 @@ namespace Stride.Core.Assets
 {
     static class RestoreHelper
     {
-        public static List<string> ListAssemblies(LockFile lockFile)
+        public static List<string> ListAssemblies(LockFile lockFile, string graphicsApi = "Direct3D11")
         {
             var assemblies = new List<string>();
 
@@ -39,6 +39,25 @@ namespace Stride.Core.Assets
                     }
                 }
             }
+
+            bool TryCollectGraphicsApiDependentAssemblies(string assemblyFile)
+            {
+                var graphicsApiFolder = Path.Combine(Path.GetDirectoryName(assemblyFile), graphicsApi);
+                if (Directory.Exists(graphicsApiFolder))
+                {
+                    // We escape the loop as we already enumerated all files and we don't want to be called multiple times
+                    foreach (var graphicsApiDependentAssemblyFile in Directory.EnumerateFiles(graphicsApiFolder, "*.*"))
+                    {
+                        if (Path.GetExtension(graphicsApiDependentAssemblyFile).ToLowerInvariant() == ".exe" ||
+                            Path.GetExtension(graphicsApiDependentAssemblyFile).ToLowerInvariant() == ".dll")
+                            assemblies.Add(graphicsApiDependentAssemblyFile);
+                    }
+                    return true;
+                }
+
+                return false;
+            }
+
             var target = lockFile.Targets.Last();
             foreach (var lib in target.Libraries)
             {
@@ -47,11 +66,24 @@ namespace Stride.Core.Assets
                     foreach (var a in lib.RuntimeAssemblies)
                     {
                         var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+
+                        // Check if StrideGraphicsApi specific files exist
+                        if (ReferenceEquals(a, lib.RuntimeAssemblies[0]) // first iteration?
+                            && TryCollectGraphicsApiDependentAssemblies(assemblyFile))
+                            break;
+
                         assemblies.Add(assemblyFile);
+
                     }
                     foreach (var a in lib.RuntimeTargets)
                     {
                         var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+
+                        // Check if StrideGraphicsApi specific files exist
+                        if (ReferenceEquals(a, lib.RuntimeTargets[0]) // first iteration?
+                            && TryCollectGraphicsApiDependentAssemblies(assemblyFile))
+                            break;
+
                         assemblies.Add(assemblyFile);
                     }
                 }

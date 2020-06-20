@@ -20,6 +20,7 @@ using Stride.Metrics;
 using Dispatcher = System.Windows.Threading.Dispatcher;
 using Stride.Core.Packages;
 using MessageBox = System.Windows.MessageBox;
+using System.Diagnostics;
 
 namespace Stride.LauncherApp
 {
@@ -46,6 +47,15 @@ namespace Stride.LauncherApp
             var arguments = ProcessArguments(args);
             var result = ProcessAction(arguments);
             return (int)result;
+        }
+
+        /// <summary>
+        /// Returns path of Launcher (we can't use Assembly.GetEntryAssembly().Location in .NET Core, especially with self-publish).
+        /// </summary>
+        /// <returns></returns>
+        internal static string GetExecutablePath()
+        {
+            return Process.GetCurrentProcess().MainModule.FileName;
         }
 
         /// <summary>
