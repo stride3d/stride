@@ -300,7 +300,7 @@
     <ROW Action="AI_DATA_SETTER" Sequence="3997"/>
     <ROW Action="AI_EstimateExtractFiles" Sequence="3999" Builds="DefaultBuild"/>
     <ROW Action="AI_SETMIXINSTLOCATION" Sequence="746"/>
-    <ROW Action="Stride.exe" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1201"/>
+    <ROW Action="Stride.exe" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) AND NOT UPGRADINGPRODUCTCODE )" Sequence="1201"/>
     <ROW Action="AI_GetArpIconPath" Sequence="1401"/>
     <ROW Action="AI_RemoveExternalUIStub" Condition="(REMOVE=&quot;ALL&quot;) AND ((VersionNT &gt; 500) OR((VersionNT = 500) AND (ServicePackLevel &gt;= 4)))" Sequence="1501"/>
     <ROW Action="AI_EnableDebugLog" Sequence="51"/>
