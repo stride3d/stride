@@ -1,5 +1,5 @@
 <!-- Build file pre-included by all Stride projects -->
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="RuntimeIdentifier">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Setup this part according to your project if you want your .csproj to compile individually without going through the .sln file -->
   <PropertyGroup>
     <SolutionDir Condition=" '$(SolutionDir)' == '' ">$(MSBuildThisFileDirectory)..\..\build\</SolutionDir>
@@ -45,9 +45,7 @@
   </PropertyGroup>
   
   <PropertyGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
-    <!-- Reset runtime identifier by default (otherwise GetPackagingOutputs fail) -->
-    <RuntimeIdentifier></RuntimeIdentifier>
-    <RuntimeIdentifiers></RuntimeIdentifiers>
+    <!-- Fixes for GetPackagingOutputs (note: not sure if still necessary) -->
     <WindowsAppContainer>false</WindowsAppContainer>
     <AppxPackage>false</AppxPackage>
     <Platform>AnyCPU</Platform>
