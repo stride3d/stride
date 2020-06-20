@@ -484,6 +484,10 @@ namespace Stride.GameStudio
                     switch (projectViewModel.Platform)
                     {
                         case PlatformType.Windows:
+                            // .NET Core: use the .exe launcher
+                            if (Path.GetExtension(assemblyPath).ToLowerInvariant() == ".dll")
+                                assemblyPath = Path.ChangeExtension(assemblyPath, ".exe");
+
                             if (string.Equals(Path.GetExtension(assemblyPath), ".exe", StringComparison.InvariantCultureIgnoreCase))
                             {
                                 if (!File.Exists(assemblyPath))
