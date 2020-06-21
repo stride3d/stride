@@ -36,6 +36,41 @@ namespace Stride.Core.Mathematics
     public struct Half4 : IEquatable<Half4>
     {
         /// <summary>
+        /// The size of the <see cref="Stride.Core.Mathematics.Half4"/> type, in bytes.
+        /// </summary>
+        public static readonly int SizeInBytes = Utilities.SizeOf<Half4>();
+
+        /// <summary>
+        /// A <see cref="Stride.Core.Mathematics.Half4"/> with all of its components set to zero.
+        /// </summary>
+        public static readonly Half4 Zero = new Half4();
+
+        /// <summary>
+        /// The X unit <see cref="Stride.Core.Mathematics.Half4"/> (1, 0, 0, 0).
+        /// </summary>
+        public static readonly Half4 UnitX = new Half4(1.0f, 0.0f, 0.0f, 0.0f);
+
+        /// <summary>
+        /// The Y unit <see cref="Stride.Core.Mathematics.Half4"/> (0, 1, 0, 0).
+        /// </summary>
+        public static readonly Half4 UnitY = new Half4(0.0f, 1.0f, 0.0f, 0.0f);
+
+        /// <summary>
+        /// The Z unit <see cref="Stride.Core.Mathematics.Half4"/> (0, 0, 1, 0).
+        /// </summary>
+        public static readonly Half4 UnitZ = new Half4(0.0f, 0.0f, 1.0f, 0.0f);
+
+        /// <summary>
+        /// The W unit <see cref="Stride.Core.Mathematics.Half4"/> (0, 0, 0, 1).
+        /// </summary>
+        public static readonly Half4 UnitW = new Half4(0.0f, 0.0f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// A <see cref="Stride.Core.Mathematics.Half4"/> with all of its components set to one.
+        /// </summary>
+        public static readonly Half4 One = new Half4(1.0f, 1.0f, 1.0f, 1.0f);
+
+        /// <summary>
         /// Gets or sets the X component of the vector.
         /// </summary>
         /// <value>The X component of the vector.</value>
@@ -84,6 +119,52 @@ namespace Stride.Core.Mathematics
             this.Y = value;
             this.Z = value;
             this.W = value;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Half4"/> struct.
+        /// </summary>
+        /// <param name="values">The values to assign to the X, Y, Z, and W components of the vector. This must be an array with four elements.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than four elements.</exception>
+        public Half4(Half[] values)
+        {
+            if (values == null)
+                throw new ArgumentNullException("values");
+            if (values.Length != 4)
+                throw new ArgumentOutOfRangeException("values", "There must be four and only four input values for Half4.");
+
+            X = values[0];
+            Y = values[1];
+            Z = values[2];
+            W = values[3];
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Half4"/> structure.
+        /// </summary>
+        /// <param name="x">The X component.</param>
+        /// <param name="y">The Y component.</param>
+        /// <param name="z">The Z component.</param>
+        /// <param name="w">The W component.</param>
+        public Half4(float x, float y, float z, float w)
+        {
+            this.X = (Half)x;
+            this.Y = (Half)y;
+            this.Z = (Half)z;
+            this.W = (Half)w;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Half4"/> structure.
+        /// </summary>
+        /// <param name="value">The value to set for the X, Y, Z, and W components.</param>
+        public Half4(float value)
+        {
+            this.X = (Half)value;
+            this.Y = (Half)value;
+            this.Z = (Half)value;
+            this.W = (Half)value;
         }
 
         /// <summary>

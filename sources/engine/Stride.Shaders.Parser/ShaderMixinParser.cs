@@ -180,6 +180,10 @@ namespace Stride.Shaders.Parser
         /// <returns>The combined shader in AST form.</returns>
         public ShaderMixinParsingResult Parse(ShaderMixinSource shaderMixinSource, Stride.Shaders.ShaderMacro[] macros = null)
         {
+            // Make in-memory shader classes known to the source manager
+            foreach (var x in shaderMixinSource.Mixins.OfType<ShaderClassString>())
+                SourceManager.AddShaderSource(x.ClassName, x.ShaderSourceCode, x.ClassName);
+
             // Creates a parsing result
             HashSet<ModuleMixinInfo> mixinsToAnalyze;
             ShaderMixinParsingResult parsingResult;
