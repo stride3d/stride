@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Stride.VisualStudio.Package</id>
-    <version>4.0.1</version>
+    <version>4.0.2</version>
     <authors>Stride</authors>
     <owners>Stride</owners>
     <licenseUrl>https://github.com/stride3d/stride/blob/master/LICENSE.md</licenseUrl>
