@@ -24,9 +24,6 @@ Hierarchy:
                         Id: 5fcd6a69-60f9-4a7f-a871-cf0219d6650b
                         Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
                         Materials: {}
-                    4045262021e6e62289f01a5704d862b6: !CSharpBeginner.Code.LerpDemo,CSharpBeginner.Game
-                        Id: 300d7f8d-2f0f-4ee9-91fb-eeb2ca71bff4
-                        AnimationTimer: 5.0
         -   Entity:
                 Id: f0878308-3e3c-4539-9dcb-b810bd514a23
                 Name: Camera

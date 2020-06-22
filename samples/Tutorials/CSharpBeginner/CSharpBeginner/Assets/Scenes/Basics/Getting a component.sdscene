@@ -41,7 +41,7 @@ Hierarchy:
                         Id: d6bb0120-4c94-429e-add0-d7f238018dcb
                         Model: d3f4cbe1-353f-4367-9f44-df64df144f71:Models/MagazineModel
                         Materials: {}
-                    9daf0818bfaee33fec0ebdbdbc5aa2a6: !CSharpBeginner.Code.AmmoComponent,CSharpBeginner.Game
-                        Id: 104afc5f-d0af-40da-9e21-18337d8e5f04
-                    ef7188b718f01770f2389448d1a13c88: !CSharpBeginner.Code.GettingAComponentDemo,CSharpBeginner.Game
-                        Id: dcc8ad10-7ad3-4ddd-b5b0-db58e896de8f
+                    bb54b086d4b903d10332ad1ee446d74f: !CSharpBeginner.Code.GettingAComponentDemo,CSharpBeginner.Game
+                        Id: 90a6c833-6ef3-438d-a693-3470a6ac2b64
+                    f0ba3d5443e298ae0fc8dcb7c3f70bde: !CSharpBeginner.Code.AmmoComponent,CSharpBeginner.Game
+                        Id: c372991c-7ebe-466c-ac10-2b2e64b958ad

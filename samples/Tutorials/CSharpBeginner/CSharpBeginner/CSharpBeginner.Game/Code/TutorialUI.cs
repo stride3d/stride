@@ -49,9 +49,9 @@ namespace CSharpBeginner.Code
             tutorialScenes.Add("Properties", "Properties");
             tutorialScenes.Add("Getting a component", "Getting a component");
             tutorialScenes.Add("Adding a component", "Adding a component");
+            tutorialScenes.Add("Delta time", "DeltaTime");
             tutorialScenes.Add("Cloning entities", "Cloning entities");
             tutorialScenes.Add("Removing entities", "Removing entities");
-            tutorialScenes.Add("Delta time", "DeltaTime");
             tutorialScenes.Add("Keyboard input", "Keyboard input");
             tutorialScenes.Add("Mouse input", "Mouse input");
             tutorialScenes.Add("Virtual buttons", "Virtual buttons");

@@ -19,7 +19,7 @@ namespace CSharpBeginner.Code
             var ammoComponent1 = Entity.Get<AmmoComponent>();
 
             // We can now access public methods and properties of the retrieve component
-            ammoCount1 = ammoComponent1.GetTotalAmmo();
+            ammoCount1 = ammoComponent1.GetRemainingAmmo();
 
             // We now remove the AmmoComponent from our entity. If we try to retrieve it again, null will be returned
             Entity.Remove<AmmoComponent>();
@@ -29,7 +29,7 @@ namespace CSharpBeginner.Code
             if (ammoComponent2 != null)
             {
                 // This line will never happen
-                ammoCount2 = ammoComponent2.GetTotalAmmo();
+                ammoCount2 = ammoComponent2.GetRemainingAmmo();
             }
 
             // Add the component again so that it doesn't crash next run

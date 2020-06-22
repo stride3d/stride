@@ -56,5 +56,5 @@ Hierarchy:
                         Id: bb1a8336-df79-4dd5-91e9-097573df3de5
                         Model: 9428ef8e-2243-4558-b3ac-47bc3f0441bf:Models/BoxC
                         Materials: {}
-                    616eadece9618158b776b329a73e28b2: !CSharpBeginner.Code.TransformPositionDemo,CSharpBeginner.Game
-                        Id: 5461050b-4a07-4a49-80d1-9a6d617fe84e
+                    cc89e78c657fc242729555e86e9bd2b3: !CSharpBeginner.Code.TransformPositionDemo,CSharpBeginner.Game
+                        Id: acaef43d-edcd-4c42-b26e-6c15121b7ca0

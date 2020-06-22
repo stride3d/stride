@@ -19,7 +19,7 @@ Hierarchy:
                     53e58ce1c35e07b6d9f3c23aedfd4bad: !TransformComponent
                         Id: 7f3fb363-4d16-4b0c-a70d-d470c5a2f152
                         Position: {X: 0.0, Y: 0.223615482, Z: 1.0}
-                        Rotation: {X: 0.49999997, Y: 0.49999997, Z: -0.49999997, W: 0.49999997}
+                        Rotation: {X: 0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     d39c34acc25c776a05897e9accc31423: !ModelComponent
@@ -49,10 +49,10 @@ Hierarchy:
                 Components:
                     53e58ce1c35e07b6d9f3c23aedfd4bad: !TransformComponent
                         Id: 211f4814-ea05-4e32-81ea-a82f7b2a5327
-                        Position: {X: 0.0, Y: 0.0, Z: 1.0}
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    414c67464c2be14e49146097592d105a: !CSharpBeginner.Code.CloneEntityDemo,CSharpBeginner.Game
-                        Id: 6cb5ddc0-0094-416f-812f-41f4eb7d7240
+                    f4e64960c2e34b31c5a22436daf82bd1: !CSharpBeginner.Code.CloneEntityDemo,CSharpBeginner.Game
+                        Id: d58eeb64-6c7f-42be-8cb4-d4819aef6f57
                         MasterSword: ref!! 346b2666-8a52-49c2-8a90-53d3e1aeec69

@@ -39,8 +39,6 @@ Hierarchy:
                         Id: 553094b2-8ac6-460c-b96c-a40b03e4aa3a
                         Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:Models/MaterialModel
                         Materials: {}
-                    030397cc264be3084d8f2464a887bb2f: !CSharpBeginner.Code.GettingTheEntityDemo,CSharpBeginner.Game
-                        Id: 0854d776-b102-42d3-ae24-1207e8592251
         -   Entity:
                 Id: a2e2cfe6-97bd-4f96-9930-ef8dea168845
                 Name: Camera

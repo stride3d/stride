@@ -41,5 +41,5 @@ Hierarchy:
                         Id: 418bb6a9-91fd-4a9c-95f1-0d4f5b8a29e9
                         Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
                         Materials: {}
-                    e374f7b498051c200f190c1102c08b41: !CSharpBeginner.Code.AddingAComponentDemo,CSharpBeginner.Game
-                        Id: a8cdbb88-4224-4400-859d-3c522c3defaa
+                    6a6bc62754f2441b5aa298440f73ce46: !CSharpBeginner.Code.AddingAComponentDemo,CSharpBeginner.Game
+                        Id: 192d2435-4477-4a07-8354-91e07ac8e63f

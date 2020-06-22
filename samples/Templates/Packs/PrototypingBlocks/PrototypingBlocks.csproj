@@ -1,10 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Core" Version="4.0.0.1-beta04" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Engine" Version="4.0.0.1-beta04" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Physics" Version="4.0.0.1-beta04" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Core" Version="4.0.0.1-beta03-1036" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Engine" Version="4.0.0.1-beta03-1036" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Physics" Version="4.0.0.1-beta03-1036" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
 </Project>
