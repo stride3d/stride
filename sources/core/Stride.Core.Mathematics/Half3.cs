@@ -36,6 +36,36 @@ namespace Stride.Core.Mathematics
     public struct Half3 : IEquatable<Half3>
     {
         /// <summary>
+        /// The size of the <see cref="Stride.Core.Mathematics.Half3"/> type, in bytes.
+        /// </summary>
+        public static readonly int SizeInBytes = Utilities.SizeOf<Half3>();
+
+        /// <summary>
+        /// A <see cref="Stride.Core.Mathematics.Half3"/> with all of its components set to zero.
+        /// </summary>
+        public static readonly Half3 Zero = new Half3();
+
+        /// <summary>
+        /// The X unit <see cref="Stride.Core.Mathematics.Half3"/> (1, 0, 0).
+        /// </summary>
+        public static readonly Half3 UnitX = new Half3(1.0f, 0.0f, 0.0f);
+
+        /// <summary>
+        /// The Y unit <see cref="Stride.Core.Mathematics.Half3"/> (0, 1, 0).
+        /// </summary>
+        public static readonly Half3 UnitY = new Half3(0.0f, 1.0f, 0.0f);
+
+        /// <summary>
+        /// The Z unit <see cref="Stride.Core.Mathematics.Half3"/> (0, 0, 1).
+        /// </summary>
+        public static readonly Half3 UnitZ = new Half3(0.0f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// A <see cref="Stride.Core.Mathematics.Half3"/> with all of its components set to one.
+        /// </summary>
+        public static readonly Half3 One = new Half3(1.0f, 1.0f, 1.0f);
+
+        /// <summary>
         /// Gets or sets the X component of the vector.
         /// </summary>
         /// <value>The X component of the vector.</value>
@@ -75,6 +105,24 @@ namespace Stride.Core.Mathematics
             this.X = value;
             this.Y = value;
             this.Z = value;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Half3"/> struct.
+        /// </summary>
+        /// <param name="values">The values to assign to the X, Y, and Z components of the vector. This must be an array with three elements.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than three elements.</exception>
+        public Half3(Half[] values)
+        {
+            if (values == null)
+                throw new ArgumentNullException("values");
+            if (values.Length != 3)
+                throw new ArgumentOutOfRangeException("values", "There must be three and only three input values for Half3.");
+
+            X = values[0];
+            Y = values[1];
+            Z = values[2];
         }
 
         /// <summary>

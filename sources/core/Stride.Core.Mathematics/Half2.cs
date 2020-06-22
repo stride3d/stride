@@ -36,6 +36,32 @@ namespace Stride.Core.Mathematics
     public struct Half2 : IEquatable<Half2>
     {
         /// <summary>
+        /// The size of the <see cref="Stride.Core.Mathematics.Half2"/> type, in bytes.
+        /// </summary>
+        public static readonly int SizeInBytes = Utilities.SizeOf<Half2>();
+
+
+        /// <summary>
+        /// A <see cref="Stride.Core.Mathematics.Half2"/> with all of its components set to zero.
+        /// </summary>
+        public static readonly Half2 Zero = new Half2();
+
+        /// <summary>
+        /// The X unit <see cref="Stride.Core.Mathematics.Half2"/> (1, 0).
+        /// </summary>
+        public static readonly Half2 UnitX = new Half2(1.0f, 0.0f);
+
+        /// <summary>
+        /// The Y unit <see cref="Stride.Core.Mathematics.Half2"/> (0, 1).
+        /// </summary>
+        public static readonly Half2 UnitY = new Half2(0.0f, 1.0f);
+
+        /// <summary>
+        /// A <see cref="Stride.Core.Mathematics.Half2"/> with all of its components set to one.
+        /// </summary>
+        public static readonly Half2 One = new Half2(1.0f, 1.0f);
+
+        /// <summary>
         /// Gets or sets the X component of the vector.
         /// </summary>
         /// <value>The X component of the vector.</value>
@@ -66,6 +92,23 @@ namespace Stride.Core.Mathematics
         {
             this.X = value;
             this.Y = value;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Stride.Core.Mathematics.Half2"/> struct.
+        /// </summary>
+        /// <param name="values">The values to assign to the X and Y components of the vector. This must be an array with two elements.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than two elements.</exception>
+        public Half2(Half[] values)
+        {
+            if (values == null)
+                throw new ArgumentNullException("values");
+            if (values.Length != 2)
+                throw new ArgumentOutOfRangeException("values", "There must be two and only two input values for Half2.");
+
+            X = values[0];
+            Y = values[1];
         }
 
         /// <summary>

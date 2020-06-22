@@ -73,6 +73,21 @@ namespace Stride.Core.Shaders.Ast
         /// </summary>
         public static readonly VectorType Double4 = new VectorType(ScalarType.Double, 4);
 
+        /// <summary>
+        /// A Half2
+        /// </summary>
+        public static readonly VectorType Half2 = new VectorType(ScalarType.Half, 2);
+
+        /// <summary>
+        /// A Half3
+        /// </summary>
+        public static readonly VectorType Half3 = new VectorType(ScalarType.Half, 3);
+
+        /// <summary>
+        /// A Half4
+        /// </summary>
+        public static readonly VectorType Half4 = new VectorType(ScalarType.Half, 4);
+
 
         #endregion
 
