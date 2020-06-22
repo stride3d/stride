@@ -86,23 +86,12 @@ namespace Stride.Shaders.Tests
             Assert.False(byteCodeTask.Result.CompilationLog.HasErrors);
 
             var byteCode = byteCodeTask.Result.Bytecode;
-            using (var graphicsDevice = GraphicsDevice.New())
+            var members = byteCode.Reflection.ConstantBuffers[0].Members;
+            foreach (var v in variables)
             {
-                var effect = new Effect(graphicsDevice, byteCode);
-                var effectInstance = new EffectInstance(effect);
-                effectInstance.UpdateEffect(graphicsDevice);
-
-                var parameters = effectInstance.Parameters.Layout.LayoutParameterKeyInfos;
-                foreach (var v in variables)
-                {
-                    var key = parameters.FirstOrDefault(k => k.Key.Name == $"{shaderClassName}.{v.name}").Key;
-                    Assert.NotNull(key);
-
-                    var defaultValue = key.DefaultValueMetadata.GetDefaultValue();
-                    Assert.NotNull(defaultValue);
-
-                    Assert.Equal(v.clrValue, defaultValue);
-                }
+                var defaultValue = members.FirstOrDefault(k => k.KeyInfo.KeyName == $"{shaderClassName}.{v.name}").DefaultValue;
+                Assert.NotNull(defaultValue);
+                Assert.Equal(v.clrValue, defaultValue);
             }
 
             unsafe void AddVectorVariable<TVector, TComponent>(TypeBase type, TComponent scalarValue, TVector vectorValue)
@@ -171,19 +160,16 @@ namespace Stride.Shaders.Tests
                 var byteCode = byteCodeTask.Result.Bytecode;
                 using (var graphicsDevice = GraphicsDevice.New())
                 {
+                    // The effect constructor updates the effect reflection
                     var effect = new Effect(graphicsDevice, byteCode);
-                    var effectInstance = new EffectInstance(effect);
-                    effectInstance.UpdateEffect(graphicsDevice);
 
-                    var parameters = effectInstance.Parameters.Layout.LayoutParameterKeyInfos;
+                    var members = byteCode.Reflection.ConstantBuffers[0].Members;
                     foreach (var v in variables)
                     {
-                        var key = parameters.FirstOrDefault(k => k.Key.Name == $"{shaderClassName}.{v.name}").Key;
-                        Assert.NotNull(key);
-
-                        var defaultValue = key.DefaultValueMetadata.GetDefaultValue();
+                        // Fetch the default value via the key - the previous test already checked whether the default value is present in the value description
+                        var effectValueDescription = members.FirstOrDefault(k => k.KeyInfo.KeyName == $"{shaderClassName}.{v.name}");
+                        var defaultValue = effectValueDescription.KeyInfo.Key.DefaultValueMetadata.GetDefaultValue();
                         Assert.NotNull(defaultValue);
-
                         Assert.Equal(v.clrValue, defaultValue);
                     }
                 }
@@ -195,7 +181,11 @@ namespace Stride.Shaders.Tests
             return new ShaderClassString(className, @"
 shader " + className + @"
 {
+    // Use a logical group which prevents the variables from being optimized away by EffectCompiler
+    cbuffer Globals.Test
+    {
 " + initializer + @"
+    }
 
     // Declare Vertex shader main method
     stage void VSMain() {}
