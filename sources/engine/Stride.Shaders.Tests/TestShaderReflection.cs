@@ -51,12 +51,12 @@ namespace Stride.Shaders.Tests
 
             var shaderClassName = "DefaultValuesTest";
 
-            var variables = new List<(string name, TypeBase type, string value, object clrValue)>();
-            variables.Add((name: "floatVar", type: ScalarType.Float, value: "1", clrValue: 1f));
-            variables.Add((name: "doubleVar", type: ScalarType.Double, value: "1", clrValue: 1d));
-            variables.Add((name: "intVar", type: ScalarType.Int, value: "1", clrValue: 1));
-            variables.Add((name: "uintVar", type: ScalarType.UInt, value: "1", clrValue: 1u));
-            variables.Add((name: "boolVar", type: ScalarType.Bool, value: "true", clrValue: true));
+            var variables = new List<(string name, string type, string value, object clrValue)>();
+            variables.Add((name: "floatVar", type: "float", value: "1", clrValue: 1f));
+            variables.Add((name: "doubleVar", type: "double", value: "1", clrValue: 1d));
+            variables.Add((name: "intVar", type: "int", value: "1", clrValue: 1));
+            variables.Add((name: "uintVar", type: "uint", value: "1", clrValue: 1u));
+            variables.Add((name: "boolVar", type: "bool", value: "true", clrValue: true));
             AddVectorVariable(VectorType.Float2, 1f, Vector2.One);
             AddVectorVariable(VectorType.Float3, 1f, Vector3.One);
             AddVectorVariable(VectorType.Float4, 1f, Vector4.One);
@@ -103,21 +103,35 @@ namespace Stride.Shaders.Tests
                 var components = string.Join(", ", Enumerable.Repeat(scalarValue, dimension));
                 variables.Add((
                     name: name,
-                    type: type,
+                    type: type.ToString(),
                     value: $"{type}({components})",
                     clrValue: vectorValue));
 
                 variables.Add((
                     name: $"{name}_Promoted",
-                    type: type,
+                    type: type.ToString(),
                     value: $"{scalarValue}",
                     clrValue: vectorValue));
 
                 variables.Add((
                     name: $"{name}_Array",
-                    type: type,
+                    type: type.ToString(),
                     value: $"{{{components}}}",
                     clrValue: vectorValue));
+
+                var aliasType =
+                    type is MatrixType m ? $"{m.Type}{m.RowCount}x{m.ColumnCount}" :
+                    type is VectorType v ? $"{v.Type}{v.Dimension}" :
+                    default;
+                if (aliasType != null)
+                {
+                    // Check type alias like float4 for vector<float, 4>
+                    variables.Add((
+                        name: $"{name}_Alias",
+                        type: aliasType,
+                        value: $"{{{components}}}",
+                        clrValue: vectorValue));
+                }
             }
         }
 

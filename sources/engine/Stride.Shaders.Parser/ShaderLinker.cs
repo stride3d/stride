@@ -707,7 +707,7 @@ namespace Stride.Shaders.Parser
             if (initialValue is null)
                 return default;
 
-            var parameterType = variable.Type;
+            var parameterType = variable.Type.ResolveType();
             if (parameterType is ScalarType scalarType)
             {
                 if (scalarType == ScalarType.Bool)
