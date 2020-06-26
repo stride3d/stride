@@ -49,6 +49,7 @@ RenderFeatures:
                     5890e37af0e4bbc2cfdc1de648ff07d4: !Stride.Rendering.Lights.LightPointGroupRenderer,Stride.Rendering {}
                     2eda85523d76b3f9e1e7d3e55aab5280: !Stride.Rendering.Lights.LightSpotGroupRenderer,Stride.Rendering {}
                 ShadowMapRenderer: null
+            42be209952db58294c9f06c58809b8ca: !Stride.Rendering.InstancingRenderFeature,Stride.Rendering {}
     28e9bf54a5adbe063f59fb17acb2723e: !Stride.Rendering.Sprites.SpriteRenderFeature,Stride.Rendering
         RenderStageSelectors:
             d74665cff080638a2439c4422e542d85: !Stride.Rendering.Sprites.SpriteTransparentRenderStageSelector,Stride.Rendering
