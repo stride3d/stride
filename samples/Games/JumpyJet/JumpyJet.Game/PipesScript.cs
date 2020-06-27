@@ -28,6 +28,8 @@ namespace JumpyJet
         private readonly Random random = new Random();
 
         private float sceneWidth;
+
+        // The width of pipe prefab
         private float pipeOvervaluedWidth = 1f;
 
         public UrlReference<Prefab> PipePrefabUrl { get; set; }
@@ -38,7 +40,7 @@ namespace JumpyJet
 
             // Create PipeSets
             sceneWidth = GameGlobals.GamePixelToUnitScale * GraphicsDevice.Presenter.BackBuffer.Width;
-            var numberOfPipes = (int)Math.Ceiling(sceneWidth + 2 * pipeOvervaluedWidth / GapBetweenPipe);
+            var numberOfPipes = (int)Math.Ceiling((sceneWidth + 2 * pipeOvervaluedWidth) / GapBetweenPipe);
             for (int i = 0; i < numberOfPipes; i++)
             {
                 var pipeSet = pipeSetPrefab.Instantiate()[0];
