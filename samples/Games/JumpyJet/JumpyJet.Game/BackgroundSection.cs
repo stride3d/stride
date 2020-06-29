@@ -57,7 +57,7 @@ namespace JumpyJet
             if (IsUpdating)
             {
                 // Update Scroll position
-                if (ScrollPos > textureRegion.Width)
+                if (ScrollPos >= textureRegion.Width)
                     ScrollPos = 0;
 
                 ScrollPos += elapsedTime * ScrollSpeed;
@@ -107,7 +107,7 @@ namespace JumpyJet
             // Update second Quad
             // Calculate new X position and width of the second quad
             var secondQuadNewWidth = (ScrollPos + screenResolution.X) - textureRegion.Width;
-            var secondQuadNewXPosition = (screenResolution.X / 2 - secondQuadNewWidth) + secondQuadNewWidth / 2;
+            var secondQuadNewXPosition = (screenResolution.X - secondQuadNewWidth) / 2;
 
             secondQuadRegion.Width = secondQuadNewWidth;
             secondQuadPos.X = secondQuadNewXPosition;

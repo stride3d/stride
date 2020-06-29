@@ -82,7 +82,7 @@ namespace JumpyJet
                     // When a pipe is determined to be reset,
                     // get its next position by adding an offset to the position
                     // of a pipe which index is before itself.
-                    var prevPipeSetIndex = (i + pipeSets.Count - 1) % pipeSets.Count;
+                    var prevPipeSetIndex = (i - 1 + pipeSets.Count) % pipeSets.Count;
 
                     var nextPosX = pipeSets[prevPipeSetIndex].Transform.Position.X + GapBetweenPipe;
                     pipeSetTransform.Position = new Vector3(nextPosX, GetPipeRandomYPosition(), 0);
