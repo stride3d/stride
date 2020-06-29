@@ -74,7 +74,7 @@ namespace JumpyJet
 
             while (Game.IsRunning)
             {
-                var collision = await physicsComponent.CollisionEnded();
+                var collision = await physicsComponent.NewCollision();
 
                 if (collision.ColliderA.CollisionGroup == CollisionFilterGroups.CustomFilter1 || // use collision group 1 to distinguish pipe passed trigger from other colliders.
                     collision.ColliderB.CollisionGroup == CollisionFilterGroups.CustomFilter1)
