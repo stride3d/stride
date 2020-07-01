@@ -760,6 +760,17 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Rotates a Vector3 by the specified quaternion rotation.
+        /// </summary>
+        /// <param name="vector">The vector to rotate.</param>
+        public Vector3 Rotate(Vector3 vector)
+        {
+            Vector3 v = vector;
+            Rotate(ref v);
+            return v;
+        }
+
+        /// <summary>
         /// Creates a quaternion given a rotation and an axis.
         /// </summary>
         /// <param name="axis">The axis of rotation.</param>

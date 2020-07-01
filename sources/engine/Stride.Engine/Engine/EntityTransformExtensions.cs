@@ -242,5 +242,26 @@ namespace Stride.Engine
             Vector3.Transform(ref point, ref transformComponent.WorldMatrix, out result);
             return result;
         }
+
+        public static void Rotate(this TransformComponent transformComponent, Vector3 rotationEulerXYZ)
+        {
+            Quaternion rot = Quaternion.RotationYawPitchRoll(rotationEulerXYZ.Y, rotationEulerXYZ.X, rotationEulerXYZ.Z);
+            transformComponent.WorldRotation *= rot;
+        }
+
+        /// <summary>
+        /// Rotates the transform around a given point using an axis and an angle.
+        /// </summary>
+        /// <param name="transformComponent">The transform component.</param>
+        /// <param name="point">The point around which to rotate.</param>
+        /// <param name="axis">The axis about which to rotate.</param>
+        /// <param name="angle">The angle of the rotation.</param>
+        public static void RotateAround(this TransformComponent transformComponent, Vector3 point, Vector3 axis, float angle)
+        {
+            Quaternion rot = Quaternion.RotationAxis(axis, angle);
+            Vector3 offset = transformComponent.WorldMatrix.TranslationVector - point;
+            rot.Rotate(ref offset);
+            transformComponent.WorldMatrix.TranslationVector = point + offset;
+        }
     }
 }
