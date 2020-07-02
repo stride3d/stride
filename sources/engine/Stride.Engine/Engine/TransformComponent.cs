@@ -81,42 +81,6 @@ namespace Stride.Engine
         [DataMember(30)]
         public Vector3 Scale;
 
-        /// <summary>
-        /// The translation.
-        /// </summary>
-        /// <userdoc>The translation of the entity in world space</userdoc>
-        [DataMember(40)]
-        public Vector3 WorldPosition { get { return WorldMatrix.TranslationVector; } set { WorldMatrix.TranslationVector = value; } }
-
-        /// <summary>
-        /// The rotation.
-        /// </summary>
-        /// <userdoc>The rotation of the entity in world space</userdoc>
-        [DataMember(50)]
-        public Quaternion WorldRotation
-        {
-            get
-            {
-                Vector3 rotationEulerXYZ;
-                WorldMatrix.DecomposeXYZ(out rotationEulerXYZ);
-                return Quaternion.RotationYawPitchRoll(rotationEulerXYZ.Y, rotationEulerXYZ.X, rotationEulerXYZ.Z);
-            }
-            set
-            {
-                WorldRotation = value;
-                Vector3 rotationYawPitchRoll = WorldRotation.YawPitchRoll;
-                Vector3 rotationEulerXYZ = new Vector3(rotationYawPitchRoll.Y, rotationYawPitchRoll.X, rotationYawPitchRoll.Z);
-                WorldRotationEulerXYZ = rotationEulerXYZ;
-            }
-        }
-
-        /// <summary>
-        /// The scaling.
-        /// </summary>
-        /// <userdoc>The scale of the entity in world space</userdoc>
-        [DataMember(60)]
-        public Vector3 WorldScale { get { return WorldMatrix.ScaleVector; } set { WorldMatrix.ScaleVector = value; } }
-
         [DataMemberIgnore]
         public TransformLink TransformLink;
 
@@ -222,82 +186,6 @@ namespace Stride.Engine
                 Rotation.Y = fSinY * fCosX * fCosZ + fSinZ * fSinX * fCosY;
                 Rotation.Z = fSinZ * fCosXY - fSinXY * fCosZ;
                 Rotation.W = fCosZ * fCosXY + fSinXY * fSinZ;
-            }
-        }
-
-        public Vector3 WorldRotationEulerXYZ
-        {
-            // Unfortunately it is not possible to factorize the following code with Quaternion.RotationYawPitchRoll because Z axis direction is inversed
-            get
-            {
-                var rotation = WorldRotation;
-                Vector3 rotationEuler;
-
-                // Equivalent to:
-                //  Matrix rotationMatrix;
-                //  Matrix.Rotation(ref cachedRotation, out rotationMatrix);
-                //  rotationMatrix.DecomposeXYZ(out rotationEuler);
-
-                float xx = rotation.X * rotation.X;
-                float yy = rotation.Y * rotation.Y;
-                float zz = rotation.Z * rotation.Z;
-                float xy = rotation.X * rotation.Y;
-                float zw = rotation.Z * rotation.W;
-                float zx = rotation.Z * rotation.X;
-                float yw = rotation.Y * rotation.W;
-                float yz = rotation.Y * rotation.Z;
-                float xw = rotation.X * rotation.W;
-
-                rotationEuler.Y = (float)Math.Asin(2.0f * (yw - zx));
-                double test = Math.Cos(rotationEuler.Y);
-                if (test > 1e-6f)
-                {
-                    rotationEuler.Z = (float)Math.Atan2(2.0f * (xy + zw), 1.0f - (2.0f * (yy + zz)));
-                    rotationEuler.X = (float)Math.Atan2(2.0f * (yz + xw), 1.0f - (2.0f * (yy + xx)));
-                }
-                else
-                {
-                    rotationEuler.Z = (float)Math.Atan2(2.0f * (zw - xy), 2.0f * (zx + yw));
-                    rotationEuler.X = 0.0f;
-                }
-                return rotationEuler;
-            }
-            set
-            {
-                // Equilvalent to:
-                //  Quaternion quatX, quatY, quatZ;
-                //  
-                //  Quaternion.RotationX(value.X, out quatX);
-                //  Quaternion.RotationY(value.Y, out quatY);
-                //  Quaternion.RotationZ(value.Z, out quatZ);
-                //  
-                //  rotation = quatX * quatY * quatZ;
-
-                var halfAngles = value * 0.5f;
-
-                var fSinX = (float)Math.Sin(halfAngles.X);
-                var fCosX = (float)Math.Cos(halfAngles.X);
-                var fSinY = (float)Math.Sin(halfAngles.Y);
-                var fCosY = (float)Math.Cos(halfAngles.Y);
-                var fSinZ = (float)Math.Sin(halfAngles.Z);
-                var fCosZ = (float)Math.Cos(halfAngles.Z);
-
-                var fCosXY = fCosX * fCosY;
-                var fSinXY = fSinX * fSinY;
-
-                Quaternion rotation = Quaternion.Identity;
-
-                rotation.X = fSinX * fCosY * fCosZ - fSinZ * fSinY * fCosX;
-                rotation.Y = fSinY * fCosX * fCosZ + fSinZ * fSinX * fCosY;
-                rotation.Z = fSinZ * fCosXY - fSinXY * fCosZ;
-                rotation.W = fCosZ * fCosXY + fSinXY * fSinZ;
-
-                WorldRotation = rotation;
-
-                if (parent != null)
-                    RotationEulerXYZ = WorldRotationEulerXYZ - parent.WorldRotationEulerXYZ;
-                else
-                    RotationEulerXYZ = WorldRotationEulerXYZ;
             }
         }
 
