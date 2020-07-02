@@ -9,7 +9,9 @@
     <Import_RootNamespace>Stride.Editor.CrashReport</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)CrashReportForm.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CrashReportForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)CrashReportForm.Designer.cs">
       <DependentUpon>CrashReportForm.cs</DependentUpon>
     </Compile>
