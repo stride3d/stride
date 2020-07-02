@@ -11,7 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="EnvDTE" Version="8.0.1" Condition="$(TargetFramework.StartsWith('net4'))" />
-    <PackageReference Include="Stride.ServiceWire" Version="5.3.4" />
+    <PackageReference Include="Stride.ServiceWire" Version="5.3.3" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
