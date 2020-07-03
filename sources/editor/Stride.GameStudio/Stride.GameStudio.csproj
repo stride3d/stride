@@ -33,7 +33,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.ServiceWire" Version="5.3.4" />
+    <PackageReference Include="ServiceWire" Version="5.3.4" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="EnvDTE" Version="8.0.1" Condition="$(TargetFramework.StartsWith('net4'))" />
     <PackageReference Include="Stride.Metrics" Version="1.0.3" />
