@@ -57,12 +57,10 @@ namespace Stride.VisualStudio.Commands
         {
             var assemblyName = new AssemblyName(args.Name);
 
-            // Necessary to avoid conflicts with Visual Studio NuGet
-            if (args.Name.StartsWith("NuGet", StringComparison.InvariantCultureIgnoreCase))
+            // Non-signed assemblies need to be manually loaded
+            if (assemblyName.Name == "ServiceWire")
                 return Assembly.Load(assemblyName);
-            if (args.Name.StartsWith("ServiceWire", StringComparison.InvariantCultureIgnoreCase))
-                return Assembly.Load(assemblyName);
-            if (args.Name.StartsWith("Stride.VisualStudio.Commands.Interfaces", StringComparison.InvariantCultureIgnoreCase))
+            if (assemblyName.Name == "Stride.VisualStudio.Commands.Interfaces")
                 return Assembly.Load(assemblyName);
 
             return null;
