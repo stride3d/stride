@@ -208,6 +208,9 @@ namespace Stride.Assets.Presentation.AssetEditors
                 if (string.Equals(trackedAssembly.LoadedAssembly.Path, changedFile, StringComparison.OrdinalIgnoreCase))
                     return new AssemblyChangedEvent(trackedAssembly.LoadedAssembly, AssemblyChangeType.Binary, changedFile, trackedAssembly.Project);
 
+                if (trackedAssembly.Project == null)
+                    continue;
+
                 var needProjectReload = string.Equals(trackedAssembly.Project.FilePath, changedFile, StringComparison.OrdinalIgnoreCase);
 
                 // Also check for .cs file changes (DefaultItems auto import *.cs, with some excludes such as obj subfolder)
@@ -311,10 +314,11 @@ namespace Stride.Assets.Presentation.AssetEditors
                 directoryWatcher.Track(loadedAssembly.ProjectReference.Location);
 
                 var trackedAssembly = new TrackedAssembly { Package = package, LoadedAssembly = loadedAssembly };
-                
+
                 // Track project source code
-                if (await UpdateProject(trackedAssembly))
-                    trackedAssemblies.Add(trackedAssembly);
+                if (trackedAssembly.LoadedAssembly.ProjectReference.Location.GetFileExtension().Equals("csproj", StringComparison.InvariantCultureIgnoreCase))
+                    await UpdateProject(trackedAssembly);
+                trackedAssemblies.Add(trackedAssembly);
             }
 
             // TODO: Detect changes to loaded assemblies?
