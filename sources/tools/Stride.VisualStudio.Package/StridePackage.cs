@@ -330,60 +330,72 @@ namespace Stride.VisualStudio
             var dte = (DTE)GetService(typeof(DTE));
             var solutionPath = dte.Solution.FullName;
 
-            var stridePackageInfo = await StrideCommandsProxy.FindStrideSdkDir(solutionPath);
-            if (stridePackageInfo.LoadedVersion == null)
-                return;
-            StrideCommandsProxy.InitializeFromSolution(solutionPath, stridePackageInfo);
-
             // Get General Output pane (for error logging)
             var generalOutputPane = GetGeneralOutputPane();
 
-            // Enable UIContext depending on wheter it is a Stride project. This will show or hide Stride menus.
-            var isStrideSolution = stridePackageInfo.LoadedVersion != null;
-            UpdateCommandVisibilityContext(isStrideSolution);
-
-            // If a package is associated with the solution, check if the correct version was found
-            if (stridePackageInfo.ExpectedVersion != null && stridePackageInfo.ExpectedVersion != stridePackageInfo.LoadedVersion)
+            try
             {
-                if (stridePackageInfo.ExpectedVersion < StrideCommandsProxy.MinimumVersion)
-                {
-                    // The package version is deprecated
-                    generalOutputPane.OutputStringThreadSafe($"Could not initialize Stride extension for package with version {stridePackageInfo.ExpectedVersion}. Versions earlier than {StrideCommandsProxy.MinimumVersion} are not supported. Loading latest version {stridePackageInfo.LoadedVersion} instead.\r\n");
-                    generalOutputPane.Activate();
-                }
-                else if (stridePackageInfo.LoadedVersion == null)
-                {
-                    // No version found
-                    generalOutputPane.OutputStringThreadSafe("Could not find Stride SDK directory.");
-                    generalOutputPane.Activate();
-
-                    // Don't try to create any services
+                StrideCommandsProxy.SetSolution(solutionPath);
+                var stridePackageInfo = await StrideCommandsProxy.FindStrideSdkDir(solutionPath);
+                StrideCommandsProxy.SetPackageInfo(stridePackageInfo);
+                if (stridePackageInfo.LoadedVersion == null)
                     return;
-                }
-                else
-                {
-                    // The package version was not found
-                    generalOutputPane.OutputStringThreadSafe($"Could not find SDK directory for Stride version {stridePackageInfo.ExpectedVersion}. Loading latest version {stridePackageInfo.LoadedVersion} instead.\r\n");
-                    generalOutputPane.Activate();
-                }
-            }
 
-            // Preinitialize the parser in a separate thread
-            var thread = new System.Threading.Thread(
-                () =>
+                // Enable UIContext depending on wheter it is a Stride project. This will show or hide Stride menus.
+                var isStrideSolution = stridePackageInfo.LoadedVersion != null;
+                UpdateCommandVisibilityContext(isStrideSolution);
+
+                // If a package is associated with the solution, check if the correct version was found
+                if (stridePackageInfo.ExpectedVersion != null && stridePackageInfo.ExpectedVersion != stridePackageInfo.LoadedVersion)
                 {
-                    try
+                    if (stridePackageInfo.ExpectedVersion < StrideCommandsProxy.MinimumVersion)
                     {
-                        StrideCommandsProxy.GetProxy();
-                    }
-                    catch (Exception ex)
-                    {
-                        generalOutputPane.OutputStringThreadSafe($"Error Initializing Stride Language Service: {ex.InnerException ?? ex}\r\n");
+                        // The package version is deprecated
+                        generalOutputPane.OutputStringThreadSafe($"Could not initialize Stride extension for package with version {stridePackageInfo.ExpectedVersion}. Versions earlier than {StrideCommandsProxy.MinimumVersion} are not supported. Loading latest version {stridePackageInfo.LoadedVersion} instead.\r\n");
                         generalOutputPane.Activate();
-                        errorListProvider?.Tasks.Add(new ErrorTask(ex.InnerException ?? ex));
                     }
-                });
-            thread.Start();
+                    else if (stridePackageInfo.LoadedVersion == null)
+                    {
+                        // No version found
+                        generalOutputPane.OutputStringThreadSafe("Could not find Stride SDK directory.");
+                        generalOutputPane.Activate();
+
+                        // Don't try to create any services
+                        return;
+                    }
+                    else
+                    {
+                        // The package version was not found
+                        generalOutputPane.OutputStringThreadSafe($"Could not find SDK directory for Stride version {stridePackageInfo.ExpectedVersion}. Loading latest version {stridePackageInfo.LoadedVersion} instead.\r\n");
+                        generalOutputPane.Activate();
+                    }
+                }
+
+                // Preinitialize the parser in a separate thread
+                var thread = new System.Threading.Thread(
+                    () =>
+                    {
+                        try
+                        {
+                            StrideCommandsProxy.GetProxy();
+                        }
+                        catch (Exception ex)
+                        {
+                            generalOutputPane.OutputStringThreadSafe($"Error Initializing Stride Language Service: {ex.InnerException ?? ex}\r\n");
+                            generalOutputPane.Activate();
+                            errorListProvider?.Tasks.Add(new ErrorTask(ex.InnerException ?? ex));
+                        }
+                    });
+                thread.Start();
+            }
+            catch (Exception ex)
+            {
+                // Do not crash VS Plugin if something fails
+                generalOutputPane.OutputStringThreadSafe($"Error initializing Stride command proxy: {ex}\r\n");
+                generalOutputPane.Activate();
+
+                return;
+            }
         }
 
         private void UpdateCommandVisibilityContext(bool enabled)

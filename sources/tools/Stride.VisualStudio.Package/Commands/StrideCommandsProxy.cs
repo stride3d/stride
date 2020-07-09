@@ -187,9 +187,7 @@ namespace Stride.VisualStudio.Commands
                 }
                 if (!success)
                 {
-                    MessageBox.Show($"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it."
-                                        + $"To fix this you can either build {packageName} or pull the right version from nugget manually");
-                    throw new InvalidOperationException($"Could not restore {packageName} {packageInfo.ExpectedVersion}.");
+                    throw new InvalidOperationException($"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it. To fix this you can either build {packageName} or pull the right version from nugget manually");
                 }
             }
 
@@ -280,10 +278,14 @@ namespace Stride.VisualStudio.Commands
             return new NuGetVersion(version.Version, version.SpecialVersion);
         }
 
-
-        internal static void InitializeFromSolution(string solutionPath, PackageInfo stridePackageInfo)
+        internal static void SetSolution(string solutionPath)
         {
             solution = solutionPath;
+        }
+
+
+        internal static void SetPackageInfo(PackageInfo stridePackageInfo)
+        {
             CurrentPackageInfo = stridePackageInfo;
         }
 
