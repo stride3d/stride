@@ -15,6 +15,7 @@
   </ItemGroup>
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeNuGetResolverAssemblies</TargetsForTfmSpecificBuildOutput>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.config</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
   <Target Name="IncludeNuGetResolverAssemblies">
     <ItemGroup>

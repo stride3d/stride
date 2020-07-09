@@ -106,7 +106,6 @@
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.config</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
   <Target Name="IncludeExtraAssemblies">
     <ItemGroup>
