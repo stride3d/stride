@@ -383,7 +383,6 @@ namespace Stride.VisualStudio
                         {
                             generalOutputPane.OutputStringThreadSafe($"Error Initializing Stride Language Service: {ex.InnerException ?? ex}\r\n");
                             generalOutputPane.Activate();
-                            errorListProvider?.Tasks.Add(new ErrorTask(ex.InnerException ?? ex));
                         }
                     });
                 thread.Start();
