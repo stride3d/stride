@@ -176,7 +176,8 @@ namespace Stride.VisualStudio.Commands
                 foreach (var framework in new[] { ".NETCoreApp,Version=v3.1", ".NETFramework,Version=v4.7.2" })
                 {
                     var logger = new Logger();
-                    var (request, result) = await Task.Run(() => RestoreHelper.Restore(logger, NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance), "win", packageName, new VersionRange(packageInfo.ExpectedVersion.ToNuGetVersion())));
+                    var solutionRoot = Path.GetDirectoryName(solution);
+                    var (request, result) = await Task.Run(() => RestoreHelper.Restore(logger, NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance), "win", packageName, new VersionRange(packageInfo.ExpectedVersion.ToNuGetVersion()), solutionRoot));
                     if (result.Success)
                     {
                         packageInfo.SdkPaths.AddRange(RestoreHelper.ListAssemblies(result.LockFile));

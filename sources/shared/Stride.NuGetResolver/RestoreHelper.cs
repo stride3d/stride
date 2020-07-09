@@ -92,9 +92,9 @@ namespace Stride.Core.Assets
             return assemblies;
         }
 
-        public static (RestoreRequest, RestoreResult) Restore(ILogger logger, NuGetFramework nugetFramework, string runtimeIdentifier, string packageName, VersionRange versionRange)
+        public static (RestoreRequest, RestoreResult) Restore(ILogger logger, NuGetFramework nugetFramework, string runtimeIdentifier, string packageName, VersionRange versionRange, string settingsRoot = null)
         {
-            var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
+            var settings = NuGet.Configuration.Settings.LoadDefaultSettings(settingsRoot);
 
             var assemblies = new List<string>();
 
