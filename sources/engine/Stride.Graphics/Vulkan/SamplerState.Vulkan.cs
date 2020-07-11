@@ -69,6 +69,8 @@ namespace Stride.Graphics
                     createInfo.borderColor = VkBorderColor.FloatOpaqueWhite;
                 else if (Description.BorderColor == Color4.Black)
                     createInfo.borderColor = VkBorderColor.FloatOpaqueBlack;
+                else if (Description.BorderColor == Color.Transparent)
+                    createInfo.borderColor = VkBorderColor.FloatTransparentBlack;
                 else
                     throw new NotImplementedException("Vulkan: only simple BorderColor are supported");
             }

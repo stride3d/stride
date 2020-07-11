@@ -16,7 +16,6 @@ namespace Stride.LauncherApp
         private const string LauncherPrerequisites = @"Prerequisites\launcher-prerequisites.exe";
 
         [STAThread]
-        [LoaderOptimization(LoaderOptimization.MultiDomainHost)] // Optimize loading of AppDomain assemblies
         private static void Main(string[] args)
         {
             // Check prerequisites
@@ -60,7 +59,7 @@ namespace Stride.LauncherApp
             if (prerequisitesFailedOnce)
             {
                 // If prerequisites failed at least once, we want to restart ourselves to run with proper .NET framework
-                var exeLocation = Assembly.GetEntryAssembly().Location;
+                var exeLocation = Launcher.GetExecutablePath();
                 if (File.Exists(exeLocation))
                 {
                     // Forward arguments
@@ -78,13 +77,7 @@ namespace Stride.LauncherApp
                 return;
             }
 
-            // Loading assemblies as embedded resources
-            // see http://www.digitallycreated.net/Blog/61/combining-multiple-assemblies-into-a-single-exe-for-a-wpf-application
-            // NOTE: this class should not reference any of the embedded type to ensure the handler is registered before
-            // these types are loaded
-            // TODO: can we register this handler in the Module initializer?
-            AppDomain.CurrentDomain.AssemblyResolve += OnResolveAssembly;
-            AppDomain.CurrentDomain.ExecuteAssemblyByName("Stride.Launcher", null, args);
+            Launcher.Main(args);
         }
 
         private static bool CheckPrerequisites(StringBuilder prerequisiteLog)
@@ -118,63 +111,6 @@ namespace Stride.LauncherApp
             }
 
             return true;
-        }
-
-        private static Assembly OnResolveAssembly(object sender, ResolveEventArgs args)
-        {
-            Assembly executingAssembly = Assembly.GetExecutingAssembly();
-            var assemblyName = new AssemblyName(args.Name);
-
-            // PCL System assemblies are using version 2.0.5.0 while we have a 4.0
-            // Redirect the PCL to use the 4.0 from the current app domain.
-            if (assemblyName.Name.StartsWith("System") && (assemblyName.Flags & AssemblyNameFlags.Retargetable) != 0)
-            {
-                Assembly systemCoreAssembly = null;
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    if (assembly.GetName().Name == assemblyName.Name)
-                    {
-                        systemCoreAssembly = assembly;
-                        break;
-                    }
-                }
-                return systemCoreAssembly;
-            }
-
-            foreach (var extension in new string[] { ".dll", ".exe" })
-            {
-                var path = assemblyName.Name + extension;
-                if (assemblyName.CultureInfo != null && assemblyName.CultureInfo.Equals(CultureInfo.InvariantCulture) == false)
-                {
-                    path = $@"{assemblyName.CultureInfo}\{path}";
-                }
-
-                using (Stream stream = executingAssembly.GetManifestResourceStream(path))
-                {
-                    if (stream != null)
-                    {
-                        var assemblyRawBytes = new byte[stream.Length];
-                        stream.Read(assemblyRawBytes, 0, assemblyRawBytes.Length);
-#if DEBUG
-                        byte[] symbolsRawBytes = null;
-                        // Let's load the PDB if it exists
-                        using (Stream symbolsStream = executingAssembly.GetManifestResourceStream(assemblyName.Name + ".pdb"))
-                        {
-                            if (symbolsStream != null)
-                            {
-                                symbolsRawBytes = new byte[symbolsStream.Length];
-                                symbolsStream.Read(symbolsRawBytes, 0, symbolsRawBytes.Length);
-                            }
-                        }
-                        return Assembly.Load(assemblyRawBytes, symbolsRawBytes);
-#else
-                        return Assembly.Load(assemblyRawBytes);
-#endif
-                    }
-                }
-            }
-
-            return null;
         }
     }
 }

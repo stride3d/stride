@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">16.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -13,11 +13,13 @@
     <RootNamespace>Stride.VisualStudio</RootNamespace>
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
+    <StrideCompilerTargetsEnable Condition="!$(StrideEditorTargetFrameworks.Contains('net4'))">false</StrideCompilerTargetsEnable>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <VSSDKTargetPlatformRegRootSuffix>Stride</VSSDKTargetPlatformRegRootSuffix>
+    <DefineConstants>$(DefineConstants);STRIDE_VSPACKAGE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="NShader\Common\GLSLKeywords.map" />
@@ -33,6 +35,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="14.0.25023" />
     <PackageReference Include="VSLangProj" Version="7.0.3301" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.0.26201" />
+    <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.Commands" Version="5.5.1" />
 
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Design" />
@@ -47,16 +52,48 @@
     <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs">
       <Link>Assets\PackageSessionHelper.Solution.cs</Link>
     </Compile>
+    <Compile Include="..\..\core\Stride.Core.Design\Extensions\ExceptionExtensions.cs" Link="Assets\ExceptionExtensions.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\PackageVersion.cs" Link="Core\PackageVersion.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\KeyedCollectionExtensions.cs" Link="Core\VisualStudio\KeyedCollectionExtensions.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\KnownProjectTypeGuid.cs" Link="Core\VisualStudio\KnownProjectTypeGuid.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\Project.cs" Link="Core\VisualStudio\Project.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\ProjectCollection.cs" Link="Core\VisualStudio\ProjectCollection.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\PropertyItem.cs" Link="Core\VisualStudio\PropertyItem.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\PropertyItemCollection.cs" Link="Core\VisualStudio\PropertyItemCollection.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\Section.cs" Link="Core\VisualStudio\Section.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\SectionCollection.cs" Link="Core\VisualStudio\SectionCollection.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\Solution.cs" Link="Core\VisualStudio\Solution.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\SolutionFileException.cs" Link="Core\VisualStudio\SolutionFileException.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\SolutionReader.cs" Link="Core\VisualStudio\SolutionReader.cs" />
+    <Compile Include="..\..\core\Stride.Core.Design\VisualStudio\SolutionWriter.cs" Link="Core\VisualStudio\SolutionWriter.cs" />
+    <Compile Include="..\..\core\Stride.Core\ScalarStyle.cs" Link="Yaml\ScalarStyle.cs" />
+    <Compile Include="..\..\core\Stride.Core\DataStyle.cs" Link="Yaml\DataStyle.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\*.cs" Link="Yaml\%(Filename)%(Extension).cs" />
+    <!--<Compile Include="..\..\core\Stride.Core.Yaml\ILookAheadBuffer.cs" Link="Yaml\ILookAheadBuffer.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\LookAheadBuffer.cs" Link="Yaml\LookAheadBuffer.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\Mark.cs" Link="Yaml\Mark.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\Emitter.cs" Link="Yaml\Emitter.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\EmitterState.cs" Link="Yaml\EmitterState.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\IEmitter.cs" Link="Yaml\IEmitter.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\CharacterAnalyzer.cs" Link="Yaml\CharacterAnalyzer.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\SimpleKey.cs" Link="Yaml\SimpleKey.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\YamlException.cs" Link="Yaml\YamlException.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\SyntaxErrorException.cs" Link="Yaml\SyntaxErrorException.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\InsertionQueue.cs" Link="Yaml\InsertionQueue.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\TagDirectiveCollection.cs" Link="Yaml\TagDirectiveCollection.cs" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\Version.cs" Link="Yaml\Version.cs" />-->
+    <Compile Include="..\..\core\Stride.Core.Yaml\Schemas\*.cs" Link="Yaml\Schemas\%(Filename)%(Extension)" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\Tokens\*.cs" Link="Yaml\Tokens\%(Filename)%(Extension)" />
+    <Compile Include="..\..\core\Stride.Core.Yaml\Events\*.cs" Link="Yaml\Events\%(Filename)%(Extension)" />
+    <Compile Include="..\..\core\Stride.Core\Annotations\CanBeNullAttribute.cs" Link="Core\Annotations\CanBeNullAttribute.cs" />
+    <Compile Include="..\..\core\Stride.Core\Annotations\ItemNotNullAttribute.cs" Link="Core\Annotations\ItemNotNullAttribute.cs" />
+    <Compile Include="..\..\core\Stride.Core\Annotations\NotNullAttribute.cs" Link="Core\Annotations\NotNullAttribute.cs" />
+    <Compile Include="..\..\shared\AttachedChildProcessJob.cs" Link="Commands\AttachedChildProcessJob.cs" />
     <Compile Include="..\..\shared\Stride.NuGetResolver\RestoreHelper.cs" Link="NuGet\RestoreHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="MyControl.xaml.cs">
       <DependentUpon>MyControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="BuildEngine\OutputClassifier.Partial.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>OutputClassifier.Partial.tt</DependentUpon>
     </Compile>
     <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -76,10 +113,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="BuildEngine\OutputClassifier.Partial.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>OutputClassifier.Partial.cs</LastGenOutput>
-    </None>
     <EmbeddedResource Update="NShader\Common\GLSLKeywords.map" />
     <EmbeddedResource Update="NShader\Common\HLSLKeywords.map" />
     <EmbeddedResource Update="NShader\Common\StrideShaderKeywords.map" />
@@ -122,21 +155,14 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Note: we need to include those manually otherwise we run into this issue: https://stackoverflow.com/questions/41832161/missing-builtprojectoutputgroupdependencies-building-vsix-depending-on-new-sim -->
-    <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
-    <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
-    <ProjectReference Include="..\..\core\Stride.Core.IO\Stride.Core.IO.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
-    <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
-    <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
-    <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" AdditionalProperties="TargetFramework=$(TargetFramework)" />
-    <ProjectReference Include="..\..\buildengine\Stride.Core.BuildEngine.Common\Stride.Core.BuildEngine.Common.csproj" AdditionalProperties="TargetFramework=$(TargetFramework)" />
-    <ProjectReference Include="..\..\assets\Stride.Core.Packages\Stride.Core.Packages.csproj" AdditionalProperties="TargetFramework=$(TargetFramework)" />
-    <ProjectReference Include="..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" AdditionalProperties="TargetFramework=$(TargetFramework)" />
-  </ItemGroup>
-  <ItemGroup>
+    <Folder Include="Core\Annotations\" />
+    <Folder Include="Core\" />
+    <Folder Include="Yaml\" />
     <Folder Include="NuGet\" />
   </ItemGroup>
-  <Import Project="..\..\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems" Label="Shared" />
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj" />
+  </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeExtraAssemblies</GetVsixSourceItemsDependsOn>
@@ -145,6 +171,7 @@
     <ItemGroup>
       <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\NuGet.*.dll" />
       <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\ServiceWire.dll" />
+      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\Newtonsoft.Json.dll" />
     </ItemGroup>
   </Target>
   <Import Project="$(StrideSdkTargets)" />

@@ -39,7 +39,7 @@ namespace Stride.Rendering
         /// <summary>
         /// Gets the default value.
         /// </summary>
-        public readonly T DefaultValue;
+        public T DefaultValue { get; internal set; }
 
         public override unsafe bool WriteBuffer(IntPtr dest, int alignment = 1)
         {

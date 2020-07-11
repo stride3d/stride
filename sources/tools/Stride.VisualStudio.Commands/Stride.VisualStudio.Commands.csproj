@@ -1,12 +1,14 @@
 <Project>
+  <Import Project="..\..\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
   <Import Project="..\..\targets\Stride.props" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
     <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject />
+    <OutputType>WinExe</OutputType>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -14,14 +16,15 @@
     </Compile>    
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.ServiceWire" Version="5.3.3" />
+    <PackageReference Include="ServiceWire" Version="5.3.4" />
+    <PackageReference Include="Mono.Options" Version="5.3.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
     <ProjectReference Include="..\..\engine\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\..\engine\Stride.Shaders.Parser\Stride.Shaders.Parser.csproj" />
+    <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj" />
     <!-- Use PrivateReference="All" so that it is not a NuGet dependency, and to make sure we don't have any transitive reference of VS.Package being used (we should have explicit ProjectReference to everything we need) -->
-    <ProjectReference Include="..\Stride.VisualStudio.Package\Stride.VisualStudio.Package.csproj" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

@@ -1,5 +1,5 @@
 <!-- Build file pre-included by all Stride projects -->
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="RuntimeIdentifier">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Setup this part according to your project if you want your .csproj to compile individually without going through the .sln file -->
   <PropertyGroup>
     <SolutionDir Condition=" '$(SolutionDir)' == '' ">$(MSBuildThisFileDirectory)..\..\build\</SolutionDir>
@@ -26,6 +26,8 @@
   <!--Import Local Pre Settings for the solution being loaded -->
   <Import Project="$(SolutionDir)$(SolutionName).Build.props" Condition="Exists('$(SolutionDir)$(SolutionName).Build.props')" />
   <Import Project="$(SolutionDir)Stride.Core.Build.props" Condition="Exists('$(SolutionDir)Stride.Core.Build.props')" />
+
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.TargetFrameworks.Editor.props" />
   
   <!-- 
     Settings StridePlatform specific
@@ -33,9 +35,6 @@
   <PropertyGroup>
     <!-- Using C# version 7.3 -->
     <LangVersion>7.3</LangVersion>
-    <StrideRuntimeTargetFramework>net461</StrideRuntimeTargetFramework>
-    <StrideEditorTargetFramework>net472</StrideEditorTargetFramework>
-    <StrideEditorTargetFrameworks>net472</StrideEditorTargetFrameworks>
     <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</StridePlatformDefines>
 
     <!-- Note: ideally we would split using ItemGroup but then PropertyGroup are not properly evaluated if they contain ItemGroup (unless using Targets) -->
@@ -46,9 +45,7 @@
   </PropertyGroup>
   
   <PropertyGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
-    <!-- Reset runtime identifier by default (otherwise GetPackagingOutputs fail) -->
-    <RuntimeIdentifier></RuntimeIdentifier>
-    <RuntimeIdentifiers></RuntimeIdentifiers>
+    <!-- Fixes for GetPackagingOutputs (note: not sure if still necessary) -->
     <WindowsAppContainer>false</WindowsAppContainer>
     <AppxPackage>false</AppxPackage>
     <Platform>AnyCPU</Platform>
@@ -186,7 +183,7 @@
     <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_UWP</StridePlatformDefines>
     <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-win10\</NUnitLiteBinDir>
     <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
-    <TargetPlatformVersion>10.0.17134.0</TargetPlatformVersion>
+    <TargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
     <GenerateLibraryLayout>false</GenerateLibraryLayout>
   </PropertyGroup>

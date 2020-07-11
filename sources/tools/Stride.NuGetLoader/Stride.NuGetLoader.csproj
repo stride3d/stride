@@ -1,0 +1,31 @@
+<Project>
+  <Import Project="Sdk.props" Condition="'$(StrideNuGetLoaderWindowsDesktop)' != 'true'" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.props" Condition="'$(StrideNuGetLoaderWindowsDesktop)' == 'true'" Sdk="Microsoft.NET.Sdk.WindowsDesktop" />
+
+  <PropertyGroup>
+    <OutputType Condition="'$(OutputType)' == ''">Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWpf>true</UseWpf>
+    <UseWindowsForms>true</UseWindowsForms>
+    <IntermediateOutputPath>obj\$(Configuration)\$(StrideApplicationName)</IntermediateOutputPath>
+    <OutputPath>bin\$(Configuration)\$(StrideApplicationName)</OutputPath>
+
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <DefineConstants Condition="'$(StrideSTAThreadOnMain)' == 'true'">STRIDE_STA_THREAD_ATTRIBUTE_ON_MAIN;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Stride.NuGet.PackageManagement" Version="5.5.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs" Link="Properties\SharedAssemblyInfo.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\NuGetAssemblyResolver.cs" Link="NuGetAssemblyResolver.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\RestoreHelper.cs" Link="RestoreHelper.cs" />
+  </ItemGroup>
+
+  <Import Project="Sdk.targets" Condition="'$(StrideNuGetLoaderWindowsDesktop)' != 'true'" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.targets" Condition="'$(StrideNuGetLoaderWindowsDesktop)' == 'true'" Sdk="Microsoft.NET.Sdk.WindowsDesktop" />
+</Project>

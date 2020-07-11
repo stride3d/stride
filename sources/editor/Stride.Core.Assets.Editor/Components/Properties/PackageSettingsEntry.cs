@@ -7,16 +7,12 @@ namespace Stride.Core.Assets.Editor.Components.Properties
     public struct PackageSettingsEntry
     {
         public SettingsKey SettingsKey;
-        public object DefaultValue;
         public TargetPackage TargetPackage;
-        public TargetProfile TargetProfile;
 
-        public PackageSettingsEntry(SettingsKey key, TargetPackage targetPackage = TargetPackage.All, TargetProfile targetProfile = TargetProfile.All)
+        public PackageSettingsEntry(SettingsKey key, TargetPackage targetPackage = TargetPackage.All)
         {
             SettingsKey = key;
-            DefaultValue = null;
             TargetPackage = targetPackage;
-            TargetProfile = targetProfile;
         }
     }
 }

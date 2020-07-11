@@ -48,7 +48,7 @@
   </Choose>
   
   <ItemGroup>
-    <PackageReference Include="Stride.ServiceWire" Version="5.3.3" />
+    <PackageReference Include="ServiceWire" Version="5.3.4" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.2.3" />
   </ItemGroup>

@@ -9,11 +9,11 @@ ChildrenIds:
     - 0a019d87-d943-4543-9b51-a4016200dff9
     - ba8ed57d-74b9-4121-baf0-6a92463b600a
     - 678cb64e-9dcd-44ea-8cdd-947667bbcc5a
+    - 137dcdfa-bfc8-4805-92a3-dd48f2b79061
     - 52a557d6-1f2c-4983-a0bb-2c12d562d3bf
     - d8597439-175b-42b3-81ca-d6553655e38f
-    - 137dcdfa-bfc8-4805-92a3-dd48f2b79061
-    - ee2eb459-7847-42b5-bd69-fc43a6625fd5
     - c00aec52-d6b8-4eab-80c2-460ac8109da6
+    - ee2eb459-7847-42b5-bd69-fc43a6625fd5
     - 328aea72-1405-48be-bf32-2363a61870f7
     - d625592d-d7c2-4151-bd8e-09ff90120d9e
     - ca777fe9-5471-4137-a42d-fa87b6c20c91
@@ -1385,8 +1385,8 @@ Hierarchy:
                         Page: 5175f272-13da-45dd-9f7b-540e7121dd56:UI/LoadTutorialUI
                         Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
                         Size: {X: 1.0, Y: 1.0, Z: 1.0}
-                    a071ed0a8246a83ec97aadc7a70f4da8: !CSharpBeginner.Code.TutorialUI,CSharpBeginner.Game
-                        Id: 243d53f1-6acd-4a38-aee8-14bf536d1f0f
+                    c39e507eff9e95b1921762d65324d8a5: !CSharpBeginner.Code.TutorialUI,CSharpBeginner.Game
+                        Id: 7920ca63-c911-40bf-b358-7bcfab540966
                         Camera: ref!! 11c51eca-f227-48c5-afdb-199ed1d275cf
         -   Entity:
                 Id: d85c827e-72b6-48fd-8a88-97d01983bebb

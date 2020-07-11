@@ -3,45 +3,26 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using NShader;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Shaders.Ast;
 using Stride.Core.Shaders.Utility;
 using Stride.Shaders.Parser;
 using Stride.Shaders.Parser.Mixins;
-using Stride.VisualStudio.BuildEngine;
+using Stride.VisualStudio.Commands.Shaders;
 
 namespace Stride.VisualStudio.Commands
 {
-    public class StrideCommands : IStrideCommands, IStrideCommands2
+    public class StrideCommands : IStrideCommands
     {
-        public void Initialize(string strideSdkDir)
+        public StrideCommands()
         {
-            //DirectoryHelper.PackageDirectoryOverride = strideSdkDir;
-            // Don't necessarely initialize the shaders
-            //StrideShaderParser.Initialize();
-        }
-
-        public bool ShouldReload()
-        {
-            // This is implemented in the proxy only
-            throw new NotImplementedException();
-        }
-
-        public void StartRemoteBuildLogServer(IBuildMonitorCallback buildMonitorCallback, string logPipeUrl)
-        {
-            new PackageBuildMonitorRemote(buildMonitorCallback, logPipeUrl);
+            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
         }
 
         public byte[] GenerateShaderKeys(string inputFileName, string inputFileContent)
         {
             return ShaderKeyFileHelper.GenerateCode(inputFileName, inputFileContent);
-        }
-
-        public RawShaderNavigationResult AnalyzeAndGoToDefinition(string sourceCode, RawSourceSpan span)
-        {
-            return AnalyzeAndGoToDefinition(null, sourceCode, span);
         }
 
         public RawShaderNavigationResult AnalyzeAndGoToDefinition(string projectPath, string sourceCode, RawSourceSpan span)

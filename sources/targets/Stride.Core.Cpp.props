@@ -14,4 +14,8 @@
     <TargetFrameworkVersion></TargetFrameworkVersion>
     <CLRSupport>NetCore</CLRSupport>
   </PropertyGroup>
+  <!-- Bug: Restore with StrideEditorTargetFrameworks=netcoreapp3.1 fails because Platform is set to Mixed Platforms -->
+  <PropertyGroup Condition="'$(Platform)' == 'Mixed Platforms'">
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
 </Project>

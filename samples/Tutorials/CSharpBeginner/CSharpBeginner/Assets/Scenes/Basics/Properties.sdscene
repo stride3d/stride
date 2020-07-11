@@ -31,7 +31,9 @@ Hierarchy:
                         SomeVector3: {X: 1.0, Y: 2.0, Z: 3.0}
                         SomeVector4: {X: 1.0, Y: 2.0, Z: 3.0, W: 4.0}
                         SomeColor: {R: 255, G: 0, B: 0, A: 255}
-                        RangedFloat: 10.0
+                        RangedFloat: 56.711
+                        ASingleEntity: ref!! 636e4147-1c07-48ee-84a9-8eada7a402ea
+                        ASingleCameraComponent: ref!! f6b0b765-51b7-4e5a-a548-e8579bc60a9d
                         StringList:
                             d66098c323c01599e678936dc192de01: Stride
                             dc275836a690f9a8597d790971eb7cba: C#
@@ -41,6 +43,8 @@ Hierarchy:
                             f6a55668f0d169b3c12737267c43227b: ref!! 636e4147-1c07-48ee-84a9-8eada7a402ea
                         CameraList:
                             acd3414d700ee12b22ad8469f6a52672: ref!! f6b0b765-51b7-4e5a-a548-e8579bc60a9d
+                        aSimpleDictionary:
+                            e22f4e17e774dc80414b0fea04c2844e~Test: 25
                         Character: Warrior
                         Explanation: null
         -   Entity:

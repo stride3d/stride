@@ -15,14 +15,12 @@ namespace Stride.Particles.Tests
         [Fact]
         public void RunVisualTests10()
         {
-            Assert.False(GraphicsDevice.Platform == GraphicsPlatform.Vulkan, "Particle tests crash on Vulkan");
             RunGameTest(new VisualTestSoftEdge(GraphicsProfile.Level_10_0));
         }
 
         [Fact]
         public void RunVisualTests11()
         {
-            Assert.False(GraphicsDevice.Platform == GraphicsPlatform.Vulkan, "Particle tests crash on Vulkan");
             RunGameTest(new VisualTestSoftEdge(GraphicsProfile.Level_11_0));
         }
 

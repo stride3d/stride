@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Reflection;
 using Stride.Engine;
 using Stride.Engine.Design;
+using Stride.Engine.Processors;
 using Stride.Games;
 using Stride.Navigation.Processors;
 using Stride.Physics;
@@ -39,7 +40,7 @@ namespace Stride.Navigation
         /// </summary>
         [DataMember(20)]
         public NavigationMeshBuildSettings BuildSettings { get; set; }
-        
+
         /// <summary>
         /// Settings for agents used with the dynamic navigation mesh
         /// </summary>
@@ -54,6 +55,8 @@ namespace Stride.Navigation
 
         private CancellationTokenSource buildTaskCancellationTokenSource;
 
+        private SceneSystem sceneSystem;
+        private ScriptSystem scriptSystem;
         private StaticColliderProcessor processor;
 
         public DynamicNavigationMeshSystem(IServiceRegistry registry) : base(registry)
@@ -77,9 +80,10 @@ namespace Stride.Navigation
         {
             base.Initialize();
 
-            if (Game.Settings != null)
+            var gameSettings = Services.GetService<IGameSettingsService>()?.Settings;
+            if (gameSettings != null)
             {
-                InitializeSettingsFromGameSettings(Game.Settings);
+                InitializeSettingsFromGameSettings(gameSettings);
             }
             else
             {
@@ -91,6 +95,9 @@ namespace Stride.Navigation
                     ObjectFactoryRegistry.NewInstance<NavigationMeshGroup>(),
                 };
             }
+
+            sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
+            scriptSystem = Services.GetSafeServiceAs<ScriptSystem>();
         }
 
         /// <summary>
@@ -110,25 +117,25 @@ namespace Stride.Navigation
         /// <inheritdoc />
         public override void Update(GameTime gameTime)
         {
-            // This system should before becomming functional
+            // This system should load from settings before becoming functional
             if (!Enabled)
                 return;
-            
-            if (currentSceneInstance != Game.SceneSystem?.SceneInstance)
+
+            if (currentSceneInstance != sceneSystem?.SceneInstance)
             {
                 // ReSharper disable once PossibleNullReferenceException
-                UpdateScene(Game.SceneSystem.SceneInstance);
+                UpdateScene(sceneSystem.SceneInstance);
             }
 
             if (pendingRebuild && currentSceneInstance != null)
             {
-                Game.Script.AddTask(async () =>
+                scriptSystem.AddTask(async () =>
                 {
                     // TODO EntityProcessors
                     // Currently have to wait a frame for transformations to update
                     // for example when calling Rebuild from the event that a component was added to the scene, this component will not be in the correct location yet
                     // since the TransformProcessor runs the next frame
-                    await Game.Script.NextFrame();
+                    await scriptSystem.NextFrame();
                     await Rebuild();
                 });
                 pendingRebuild = false;
@@ -183,7 +190,7 @@ namespace Stride.Navigation
             IncludedCollisionGroups = navigationSettings.IncludedCollisionGroups;
             Groups = navigationSettings.Groups;
             Enabled = navigationSettings.EnableDynamicNavigationMesh;
-            
+
             pendingRebuild = true;
         }
 
@@ -253,7 +260,7 @@ namespace Stride.Navigation
         private void Cleanup()
         {
             UpdateScene(null);
-            
+
             CurrentNavigationMesh = null;
             NavigationMeshUpdated?.Invoke(this, null);
         }

@@ -33,8 +33,15 @@ namespace Stride.Graphics
     /// </summary>
     public static class PixelFormatExtensions
     {
-        private static readonly int[] sizeOfInBits = new int[256];
-        private static readonly bool[] compressedFormats = new bool[256];
+        private struct PixelFormatSizeInfo
+        {
+            public byte IsCompressed;
+            public byte BlockWidth;
+            public byte BlockHeight;
+            public byte BlockSize;
+        }
+
+        private static readonly PixelFormatSizeInfo[] sizeInfos = new PixelFormatSizeInfo[256];
         private static readonly bool[] srgbFormats = new bool[256];
         private static readonly bool[] hdrFormats = new bool[256];
         private static readonly bool[] alpha32Formats = new bool[256];
@@ -51,6 +58,21 @@ namespace Stride.Graphics
             return (int)format;
         }
 
+        public static int BlockSize(this PixelFormat format)
+        {
+            return sizeInfos[GetIndex(format)].BlockSize;
+        }
+
+        public static int BlockWidth(this PixelFormat format)
+        {
+            return sizeInfos[GetIndex(format)].BlockWidth;
+        }
+
+        public static int BlockHeight(this PixelFormat format)
+        {
+            return sizeInfos[GetIndex(format)].BlockHeight;
+        }
+
         /// <summary>
         /// Calculates the size of a <see cref="PixelFormat"/> in bytes.
         /// </summary>
@@ -58,7 +80,8 @@ namespace Stride.Graphics
         /// <returns>size of in bytes</returns>
         public static int SizeInBytes(this PixelFormat format)
         {
-            return SizeInBits(format) / 8;
+            var sizeInfo = sizeInfos[GetIndex(format)];
+            return (int)sizeInfo.BlockSize / ((int)sizeInfo.BlockWidth * (int)sizeInfo.BlockHeight);
         }
 
         /// <summary>
@@ -68,7 +91,8 @@ namespace Stride.Graphics
         /// <returns>The size in bits</returns>
         public static int SizeInBits(this PixelFormat format)
         {
-            return sizeOfInBits[GetIndex(format)];
+            var sizeInfo = sizeInfos[GetIndex(format)];
+            return (int)sizeInfo.BlockSize * 8 / ((int)sizeInfo.BlockWidth * (int)sizeInfo.BlockHeight); ;
         }
 
         /// <summary>
@@ -168,7 +192,7 @@ namespace Stride.Graphics
         /// <returns>True if the <see cref="PixelFormat"/> is a compressed format</returns>
         public static bool IsCompressed(this PixelFormat fmt)
         {
-            return compressedFormats[GetIndex(fmt)];
+            return sizeInfos[GetIndex(fmt)].IsCompressed == 1;
         }
 
         /// <summary>
@@ -271,54 +295,14 @@ namespace Stride.Graphics
             return typelessFormats[GetIndex(fmt)];
         }
 
-        /// <summary>
-        /// Computes the scanline count (number of scanlines).
-        /// </summary>
-        /// <param name="fmt">The <see cref="PixelFormat"/>.</param>
-        /// <param name="height">The height.</param>
-        /// <returns>The scanline count.</returns>
-        public static int ComputeScanlineCount(this PixelFormat fmt, int height)
+        public static void ComputePitch(this PixelFormat fmt, int width, int height, out int rowPitch, out int slicePitch)
         {
-            switch (fmt)
-            {
-                case PixelFormat.BC1_Typeless:
-                case PixelFormat.BC1_UNorm:
-                case PixelFormat.BC1_UNorm_SRgb:
-                case PixelFormat.BC2_Typeless:
-                case PixelFormat.BC2_UNorm:
-                case PixelFormat.BC2_UNorm_SRgb:
-                case PixelFormat.BC3_Typeless:
-                case PixelFormat.BC3_UNorm:
-                case PixelFormat.BC3_UNorm_SRgb:
-                case PixelFormat.BC4_Typeless:
-                case PixelFormat.BC4_UNorm:
-                case PixelFormat.BC4_SNorm:
-                case PixelFormat.BC5_Typeless:
-                case PixelFormat.BC5_UNorm:
-                case PixelFormat.BC5_SNorm:
-                case PixelFormat.BC6H_Typeless:
-                case PixelFormat.BC6H_Uf16:
-                case PixelFormat.BC6H_Sf16:
-                case PixelFormat.BC7_Typeless:
-                case PixelFormat.BC7_UNorm:
-                case PixelFormat.BC7_UNorm_SRgb:
-                case PixelFormat.ETC1:
-                case PixelFormat.ETC2_RGB:
-                case PixelFormat.ETC2_RGB_SRgb:
-                case PixelFormat.ETC2_RGBA:
-                case PixelFormat.ETC2_RGBA_SRgb:
-                case PixelFormat.ETC2_RGB_A1:
-                case PixelFormat.EAC_R11_Unsigned:
-                case PixelFormat.EAC_R11_Signed:
-                case PixelFormat.EAC_RG11_Unsigned:
-                case PixelFormat.EAC_RG11_Signed:
-                    return Math.Max(1, (height + 3) / 4);
+            var sizeInfo = sizeInfos[GetIndex(fmt)];
 
-                default:
-                    return height;
-            }
+            rowPitch = ((width + sizeInfo.BlockWidth - 1) / sizeInfo.BlockWidth) * sizeInfo.BlockSize;
+            slicePitch = rowPitch * ((height + sizeInfo.BlockHeight - 1) / sizeInfo.BlockHeight);
         }
-        
+
         /// <summary>
         /// Determine if the format has an equivalent sRGB format.
         /// </summary>
@@ -449,9 +433,15 @@ namespace Stride.Graphics
         /// </summary>
         static PixelFormatExtensions()
         {
-            InitFormat(new[] { PixelFormat.R1_UNorm }, 1);
-
-            InitFormat(new[] { PixelFormat.A8_UNorm, PixelFormat.R8_SInt, PixelFormat.R8_SNorm, PixelFormat.R8_Typeless, PixelFormat.R8_UInt, PixelFormat.R8_UNorm }, 8);
+            InitFormat(new[]
+            {
+                PixelFormat.A8_UNorm,
+                PixelFormat.R8_SInt,
+                PixelFormat.R8_SNorm,
+                PixelFormat.R8_Typeless,
+                PixelFormat.R8_UInt,
+                PixelFormat.R8_UNorm
+            }, 1);
 
             InitFormat(new[]
             { 
@@ -472,7 +462,7 @@ namespace Stride.Graphics
 #if DIRECTX11_1
                 PixelFormat.B4G4R4A4_UNorm,
 #endif
-            }, 16);
+            }, 2);
 
             InitFormat(new[]
             { 
@@ -482,7 +472,6 @@ namespace Stride.Graphics
                 PixelFormat.D24_UNorm_S8_UInt,
                 PixelFormat.D32_Float,
                 PixelFormat.D32_Float_S8X24_UInt,
-                PixelFormat.G8R8_G8B8_UNorm,
                 PixelFormat.R10G10B10_Xr_Bias_A2_UNorm,
                 PixelFormat.R10G10B10A2_Typeless,
                 PixelFormat.R10G10B10A2_UInt,
@@ -501,7 +490,6 @@ namespace Stride.Graphics
                 PixelFormat.R32_SInt,
                 PixelFormat.R32_Typeless,
                 PixelFormat.R32_UInt,
-                PixelFormat.R8G8_B8G8_UNorm,
                 PixelFormat.R8G8B8A8_SInt,
                 PixelFormat.R8G8B8A8_SNorm,
                 PixelFormat.R8G8B8A8_Typeless,
@@ -514,7 +502,7 @@ namespace Stride.Graphics
                 PixelFormat.R9G9B9E5_Sharedexp,
                 PixelFormat.X24_Typeless_G8_UInt,
                 PixelFormat.X32_Typeless_G8X24_UInt,
-            }, 32);
+            }, 4);
 
             InitFormat(new[]
             { 
@@ -529,7 +517,7 @@ namespace Stride.Graphics
                 PixelFormat.R32G32_Typeless,
                 PixelFormat.R32G32_UInt,
                 PixelFormat.R32G8X24_Typeless,
-            }, 64);
+            }, 8);
 
             InitFormat(new[]
             { 
@@ -537,7 +525,7 @@ namespace Stride.Graphics
                 PixelFormat.R32G32B32_SInt,
                 PixelFormat.R32G32B32_Typeless,
                 PixelFormat.R32G32B32_UInt,
-            }, 96);
+            }, 12);
 
             InitFormat(new[]
             { 
@@ -545,9 +533,10 @@ namespace Stride.Graphics
                 PixelFormat.R32G32B32A32_SInt,
                 PixelFormat.R32G32B32A32_Typeless,
                 PixelFormat.R32G32B32A32_UInt,
-            }, 128);
+            }, 16);
 
-            InitFormat(new[]
+            // Init compressed formats
+            InitBlockFormat(new[]
             { 
                 PixelFormat.BC1_Typeless,
                 PixelFormat.BC1_UNorm,
@@ -555,9 +544,15 @@ namespace Stride.Graphics
                 PixelFormat.BC4_SNorm,
                 PixelFormat.BC4_Typeless,
                 PixelFormat.BC4_UNorm,
-            }, 4);
+                PixelFormat.ETC1,
+                PixelFormat.ETC2_RGB,
+                PixelFormat.ETC2_RGB_SRgb,
+                PixelFormat.ETC2_RGB_A1,
+                PixelFormat.EAC_R11_Unsigned,
+                PixelFormat.EAC_R11_Signed,
+            }, 8, 4, 4);
 
-            InitFormat(new[]
+            InitBlockFormat(new[]
             { 
                 PixelFormat.BC2_Typeless,
                 PixelFormat.BC2_UNorm,
@@ -574,43 +569,22 @@ namespace Stride.Graphics
                 PixelFormat.BC7_Typeless,
                 PixelFormat.BC7_UNorm,
                 PixelFormat.BC7_UNorm_SRgb,
-            }, 8);
+                PixelFormat.ETC2_RGBA,
+                PixelFormat.EAC_RG11_Unsigned,
+                PixelFormat.EAC_RG11_Signed,
+                PixelFormat.ETC2_RGBA_SRgb,
+            }, 16, 4, 4);
 
-            // Init compressed formats
-            InitDefaults(new[]
-                {
-                    PixelFormat.BC1_Typeless,
-                    PixelFormat.BC1_UNorm,
-                    PixelFormat.BC1_UNorm_SRgb,
-                    PixelFormat.BC2_Typeless,
-                    PixelFormat.BC2_UNorm,
-                    PixelFormat.BC2_UNorm_SRgb,
-                    PixelFormat.BC3_Typeless,
-                    PixelFormat.BC3_UNorm,
-                    PixelFormat.BC3_UNorm_SRgb,
-                    PixelFormat.BC4_Typeless,
-                    PixelFormat.BC4_UNorm,
-                    PixelFormat.BC4_SNorm,
-                    PixelFormat.BC5_Typeless,
-                    PixelFormat.BC5_UNorm,
-                    PixelFormat.BC5_SNorm,
-                    PixelFormat.BC6H_Typeless,
-                    PixelFormat.BC6H_Uf16,
-                    PixelFormat.BC6H_Sf16,
-                    PixelFormat.BC7_Typeless,
-                    PixelFormat.BC7_UNorm,
-                    PixelFormat.BC7_UNorm_SRgb,
-                    PixelFormat.ETC1,
-                    PixelFormat.ETC2_RGB,
-                    PixelFormat.ETC2_RGB_SRgb,
-                    PixelFormat.ETC2_RGBA,
-                    PixelFormat.ETC2_RGBA_SRgb,
-                    PixelFormat.ETC2_RGB_A1,
-                    PixelFormat.EAC_R11_Unsigned,
-                    PixelFormat.EAC_R11_Signed,
-                    PixelFormat.EAC_RG11_Unsigned,
-                    PixelFormat.EAC_RG11_Signed,
-                }, compressedFormats);
+            InitBlockFormat(new[]
+            {
+                PixelFormat.R8G8_B8G8_UNorm,
+                PixelFormat.G8R8_G8B8_UNorm,
+            }, 4, 2, 1);
+
+            InitBlockFormat(new[]
+            {
+                PixelFormat.R1_UNorm,
+            }, 1, 8, 1);
 
             // Init srgb formats
             InitDefaults(new[]
@@ -700,10 +674,28 @@ namespace Stride.Graphics
             };
         }
 
-        private static void InitFormat(IEnumerable<PixelFormat> formats, int bitCount)
+        private static void InitBlockFormat(IEnumerable<PixelFormat> formats, byte blockSize, byte blockWidth, byte blockHeight)
         {
             foreach (var format in formats)
-                sizeOfInBits[GetIndex(format)] = bitCount;
+                sizeInfos[GetIndex(format)] = new PixelFormatSizeInfo
+                {
+                    BlockSize = blockSize,
+                    BlockWidth = blockWidth,
+                    BlockHeight = blockHeight,
+                    IsCompressed = 1,
+                };
+        }
+
+        private static void InitFormat(IEnumerable<PixelFormat> formats, byte pixelSize)
+        {
+            foreach (var format in formats)
+                sizeInfos[GetIndex(format)] = new PixelFormatSizeInfo
+                {
+                    BlockSize = pixelSize,
+                    BlockWidth = 1,
+                    BlockHeight = 1,
+                    IsCompressed = 0,
+                };
         }
 
         private static void InitDefaults(IEnumerable<PixelFormat> formats, bool[] outputArray)

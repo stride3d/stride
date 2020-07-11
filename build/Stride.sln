@@ -416,10 +416,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Voxels", "..\sources
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "xunit.runner.stride", "..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj", "{D5B023BE-010F-44A8-ABF1-DB6F3BCEA392}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.NuGetLoader", "..\sources\tools\Stride.NuGetLoader\Stride.NuGetLoader.csproj", "{7FA381C8-8EBE-4515-969D-01369CC47D0E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stride.VisualStudio.Commands.Interfaces", "..\sources\tools\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj", "{83E4E436-659A-4D82-90DD-0DC67BE38D17}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{00b72ed7-00e9-47f7-868d-8162027cd068}*SharedItemsImports = 13
-		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{0bd41add-2704-4a77-a9ab-15460a2abdc6}*SharedItemsImports = 5
 		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{2fc40214-a4aa-45dc-9c93-72ed800c40b0}*SharedItemsImports = 5
@@ -447,6 +450,7 @@ Global
 		..\sources\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems*{ab574f65-1402-4476-9314-74dcdaf19097}*SharedItemsImports = 13
 		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{b33e576f-2279-4bfc-a438-d9b84343b56b}*SharedItemsImports = 13
 		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{c121a566-555e-42b9-9b0a-1696529a9088}*SharedItemsImports = 5
+		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{e136b568-3e3f-498f-a8b4-2877b7768560}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{e25e7778-0b2f-4a0b-bcd6-1de95320b531}*SharedItemsImports = 5
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{e8b3553f-a79f-4e50-b75b-acee771c320c}*SharedItemsImports = 5
 		..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.projitems*{fb06c76a-6bb7-40be-9afa-fec13b045fb5}*SharedItemsImports = 5
@@ -1572,6 +1576,30 @@ Global
 		{D5B023BE-010F-44A8-ABF1-DB6F3BCEA392}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{D5B023BE-010F-44A8-ABF1-DB6F3BCEA392}.Release|Win32.ActiveCfg = Release|Any CPU
 		{D5B023BE-010F-44A8-ABF1-DB6F3BCEA392}.Release|Win32.Build.0 = Release|Any CPU
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Debug|Win32.Build.0 = Debug|Any CPU
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Release|Win32.ActiveCfg = Release|Any CPU
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E}.Release|Win32.Build.0 = Release|Any CPU
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Debug|Win32.Build.0 = Debug|Any CPU
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Release|Win32.ActiveCfg = Release|Any CPU
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1696,6 +1724,8 @@ Global
 		{AD4FDC24-B64D-4ED7-91AA-62C9EDA12FA4} = {4C142567-C42B-40F5-B092-798882190209}
 		{66BE41FC-FC52-48D0-9C04-BCE8CC393020} = {4C142567-C42B-40F5-B092-798882190209}
 		{D5B023BE-010F-44A8-ABF1-DB6F3BCEA392} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
+		{7FA381C8-8EBE-4515-969D-01369CC47D0E} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
+		{83E4E436-659A-4D82-90DD-0DC67BE38D17} = {E4508D15-6503-4A29-ADC4-27B3A5E99545}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}

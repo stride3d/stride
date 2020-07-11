@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Stride.Launcher</id>
+    <version>5.0.1</version>
+    <authors>Stride</authors>
+    <owners>Stride</owners>
+    <licenseUrl>https://stride3d.net/license.txt</licenseUrl>
+    <projectUrl>https://stride3d.net/</projectUrl>
+    <copyright>&#169; Stride contributors and Silicon Studio Corp.</copyright>
+    <description>Stride Launcher
+
+force-reinstall: 5.0.1 https://stride3d.net/files/StrideSetup.exe (note: used internally by launcher, please keep this line)
+</description>
+    <tags>internal</tags>
+  </metadata>
+  <files>
+    <!-- Note: we still have Stride.exe for backward compatibility -->
+    <file src="Stride.Launcher.exe" target="tools" />
+    <file src="..\..\..\..\Prerequisites\launcher-prerequisites.exe" target="tools\Prerequisites" />
+  </files>
+</package>

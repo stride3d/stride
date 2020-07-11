@@ -137,7 +137,7 @@ namespace Stride.Rendering
 
             // Store RenderContext shared into the GraphicsDevice
             var graphicsDevice = services.GetSafeServiceAs<IGraphicsDeviceService>().GraphicsDevice;
-            return graphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerDevice, SharedImageEffectContextKey, d => new RenderContext(services));
+            return graphicsDevice.GetOrCreateSharedData(SharedImageEffectContextKey, d => new RenderContext(services));
         }
 
         /// <summary>

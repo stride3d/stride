@@ -88,6 +88,10 @@
     <ItemGroup>
       <!-- Copy default StrideGraphicsApi (or no StrideGraphicsApi) to top folder -->
       <None Condition="'%(RidSpecificOutput.StrideGraphicsApi)' == '%(RidSpecificOutput.StrideDefaultGraphicsApi)'" Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="runtimes/%(RidSpecificOutput.Rid)/lib/%(RidSpecificOutput.TargetFramework)" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />
+      <!-- Also handle TfmSpecificPackageFile to top folder
+          (currently disabled as RestoreHelper or Stride.GraphicsApi.PackageReference.targets should do that; kept as starting point in case it is needed later) -->
+      <!--<None Condition="'%(_PackageFiles.StrideGraphicsApi)' != '' And '%(_PackageFiles.StrideGraphicsApi)' == '%(_PackageFiles.StrideDefaultGraphicsApi)'" Include="@(_PackageFiles->'$(MSBuildProjectDirectory)\%(Identity)')" PackagePath="$([System.String]::new('%(PackagePath)').Replace('\%(_PackageFiles.StrideGraphicsApi)', ''))" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />-->
+      
       <!-- Add StrideGraphicsApi to PackagePath if necessary -->
       <None Condition="'%(RidSpecificOutput.StrideGraphicsApi)' != ''" Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="runtimes/%(RidSpecificOutput.Rid)/lib/%(RidSpecificOutput.TargetFramework)/%(RidSpecificOutput.StrideGraphicsApi)" Pack="true" KeepMetadata="$(ExtrasNoneRidSpecificOutputKeepMetadata)" />
       <!-- Also handle the case when there is no RIDs -->

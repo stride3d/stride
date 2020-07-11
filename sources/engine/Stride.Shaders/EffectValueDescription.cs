@@ -41,7 +41,7 @@ namespace Stride.Shaders
         /// <summary>
         /// The default value.
         /// </summary>
-        public byte[] DefaultValue;
+        public object DefaultValue;
 
         /// <summary>
         /// Logical group, used to group related descriptors and variables together.

@@ -240,6 +240,7 @@ namespace Stride.Graphics.Tests
         public void RunTest()
         {
             IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);
+            IgnoreGraphicPlatform(GraphicsPlatform.Vulkan);
 
             RunGameTest(new TestRadiancePrefilteringGgx());
         }

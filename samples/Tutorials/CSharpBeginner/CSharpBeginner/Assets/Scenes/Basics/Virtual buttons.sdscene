@@ -38,9 +38,6 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    7b07303d94cfcc6f7d52ada9306e8358: !CSharpBeginner.Code.VirtualButtonsDemo,CSharpBeginner.Game
-                        Id: d633e0b7-9085-434b-acdf-5a7c690879fb
-                        BlueTeapot: ref!! 842c111f-8523-40b6-ac65-314d6167c8c9
         -   Entity:
                 Id: 842c111f-8523-40b6-ac65-314d6167c8c9
                 Name: Blue Teapot

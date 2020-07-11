@@ -391,7 +391,6 @@ namespace Stride.GameStudio
                 var cpu = string.Empty; // Used only for Windows Phone so far, default to ARM (need to provide a selector or detection)
                 var extraProperties = new Dictionary<string, string>
                 {
-                    ["StrideBuildEngineLogPipeUrl"] = BuildLog.PipeName,
                     ["StrideBuildEngineLogVerbose"] = "true",
                 };
 
@@ -485,6 +484,10 @@ namespace Stride.GameStudio
                     switch (projectViewModel.Platform)
                     {
                         case PlatformType.Windows:
+                            // .NET Core: use the .exe launcher
+                            if (Path.GetExtension(assemblyPath).ToLowerInvariant() == ".dll")
+                                assemblyPath = Path.ChangeExtension(assemblyPath, ".exe");
+
                             if (string.Equals(Path.GetExtension(assemblyPath), ".exe", StringComparison.InvariantCultureIgnoreCase))
                             {
                                 if (!File.Exists(assemblyPath))
@@ -629,7 +632,6 @@ namespace Stride.GameStudio
                 var extraProperties = new Dictionary<string, string>
                 {
                     ["SolutionPlatform"] = "Any CPU",
-                    ["StrideBuildEngineLogPipeUrl"] = BuildLog.PipeName,
                     ["StrideBuildEngineLogVerbose"] = "true",
                 };
 

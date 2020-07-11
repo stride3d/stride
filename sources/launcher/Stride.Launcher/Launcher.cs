@@ -20,6 +20,7 @@ using Stride.Metrics;
 using Dispatcher = System.Windows.Threading.Dispatcher;
 using Stride.Core.Packages;
 using MessageBox = System.Windows.MessageBox;
+using System.Diagnostics;
 
 namespace Stride.LauncherApp
 {
@@ -38,14 +39,23 @@ namespace Stride.LauncherApp
         /// </summary>
         /// <returns>The process error code to return.</returns>
         [STAThread]
-        public static int Main()
+        public static int Main(string[] args)
         {
             // For now, we force culture to invariant one because GNU.Gettext.GettextResourceManager.GetSatelliteAssembly crashes when Assembly.Location is null
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
-            var arguments = ProcessArguments();
+            var arguments = ProcessArguments(args);
             var result = ProcessAction(arguments);
             return (int)result;
+        }
+
+        /// <summary>
+        /// Returns path of Launcher (we can't use Assembly.GetEntryAssembly().Location in .NET Core, especially with self-publish).
+        /// </summary>
+        /// <returns></returns>
+        internal static string GetExecutablePath()
+        {
+            return Process.GetCurrentProcess().MainModule.FileName;
         }
 
         /// <summary>
@@ -80,16 +90,13 @@ namespace Stride.LauncherApp
             MessageBox.Show(message, "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        private static LauncherArguments ProcessArguments()
+        private static LauncherArguments ProcessArguments(string[] args)
         {
             var result = new LauncherArguments
             {
                 // Default action is to run the server
                 Actions = new List<LauncherArguments.ActionType> { LauncherArguments.ActionType.Run }
             };
-
-            // Environment.GetCommandLineArgs correctly process arguments regarding the presence of '\' and '"'
-            var args = Environment.GetCommandLineArgs().Skip(1).ToArray();
 
             foreach (var arg in args)
             {

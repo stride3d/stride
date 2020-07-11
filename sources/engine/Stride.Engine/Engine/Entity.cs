@@ -89,7 +89,8 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// The parent scene.
+        /// The scene this entity is in. <br/>
+        /// Setting this to null will remove the entity from the scene and detach it from its parent if it has one.
         /// </summary>
         [DataMemberIgnore]
         public Scene Scene
@@ -98,11 +99,17 @@ namespace Stride.Engine
             {
                 return this.FindRoot().SceneValue;
             }
-
             set
             {
-                if (this.GetParent() != null)
-                    throw new InvalidOperationException("This entity is another entity's child. Detach it before changing its scene.");
+                if (Transform.Parent != null)
+                {
+                    if (value != null)
+                        throw new InvalidOperationException("This entity is another entity's child. Detach it before changing its scene.");
+                    
+                    Transform.Parent = null;
+                    return;
+                }
+
 
                 var oldScene = SceneValue;
                 if (oldScene == value)

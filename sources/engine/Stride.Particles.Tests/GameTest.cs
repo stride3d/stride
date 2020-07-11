@@ -68,12 +68,6 @@ namespace Stride.Particles.Tests
             GraphicsDeviceManager.PreferredGraphicsProfile = new[] { overrideGraphicsProfile };
         }
 
-        protected override void Initialize()
-        {
-            base.Initialize();
-            GraphicsDeviceManager.PreferredGraphicsProfile = new[] { overrideGraphicsProfile };
-        }
-
         protected override async Task LoadContent()
         {
             await base.LoadContent();

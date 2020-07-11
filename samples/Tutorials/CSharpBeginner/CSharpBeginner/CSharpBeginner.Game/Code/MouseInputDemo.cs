@@ -39,7 +39,7 @@ namespace CSharpBeginner.Code
                 }
 
                 // 'IsMouseButtonReleased' is used for when you want to know when a mouse button is released after being either held down or pressed. 
-                DebugText.Print("Press and release the middle mousebutton/scrollwheel to rotate the green teapot", new Int2(400, 640));
+                DebugText.Print("Press and release the scrollwheel to rotate the green teapot", new Int2(400, 640));
                 if (Input.IsMouseButtonReleased(MouseButton.Middle))
                 {
                     GreenTeapot.Transform.Rotation *= Quaternion.RotationY(0.4f);
@@ -49,7 +49,7 @@ namespace CSharpBeginner.Code
                 // Scrolling forward gives a mousewheel delta of 1, and scrolling backwards gives a mousewheel delta of -1. 
                 // If in the next frame the mousewheel is not scrolled, the mouse wheel delta is 0 again.
                 currentScrollIndex += Input.MouseWheelDelta;
-                DebugText.Print("Scroll the mouse wheel to control the rotate the pink teapot. Scroll index: " + currentScrollIndex, new Int2(400, 660));
+                DebugText.Print("Scroll the mouse wheel to rotate the pink teapot. Scroll index: " + currentScrollIndex, new Int2(400, 660));
                 PinkTeapot.Transform.Rotation = Quaternion.RotationY(0.02f * currentScrollIndex);
 
                 // We can draw some text at the position of our mouse by getting the absolute mouse position

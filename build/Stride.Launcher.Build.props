@@ -5,5 +5,7 @@
     
     <!-- Defines the platform used by Stride - Values are Windows/Android/iOS...etc. -->
     <StridePlatform Condition=" '$(StridePlatform)' == '' ">Windows</StridePlatform>
+
+    <StrideEditorTargetFrameworks>netcoreapp3.1</StrideEditorTargetFrameworks>
   </PropertyGroup>
 </Project>

@@ -3,11 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.352
 MinimumVisualStudioVersion = 16.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.LauncherApp", "..\sources\launcher\Stride.LauncherApp\Stride.LauncherApp.csproj", "{055E8FDB-6C48-4ADB-B733-0CFCFDE76C0E}"
-	ProjectSection(ProjectDependencies) = postProject
-		{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2} = {0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Launcher", "..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj", "{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core", "..\sources\core\Stride.Core\Stride.Core.csproj", "{BAC8FB10-95ED-4FBB-9925-F6F0E15BD936}"
@@ -48,10 +43,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{055E8FDB-6C48-4ADB-B733-0CFCFDE76C0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{055E8FDB-6C48-4ADB-B733-0CFCFDE76C0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{055E8FDB-6C48-4ADB-B733-0CFCFDE76C0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{055E8FDB-6C48-4ADB-B733-0CFCFDE76C0E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}.Release|Any CPU.ActiveCfg = Release|Any CPU

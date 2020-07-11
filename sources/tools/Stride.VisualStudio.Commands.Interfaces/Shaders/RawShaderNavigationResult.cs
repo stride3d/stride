@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NShader
+namespace Stride.VisualStudio.Commands.Shaders
 {
     /// <summary>
     /// Result of shader navigation.

@@ -3,7 +3,8 @@
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
+    <StrideCompilerTargetsEnable Condition="!$(StrideEditorTargetFrameworks.Contains('net4'))">false</StrideCompilerTargetsEnable>
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StrideBuildTags>WindowsTools</StrideBuildTags>

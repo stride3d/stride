@@ -227,16 +227,19 @@ namespace Stride.Graphics
                     switch (binding.Type.Type)
                     {
                         case EffectParameterType.Bool:
-                            binding.KeyInfo.Key = FindOrCreateValueKey<bool>(binding);
+                            binding.KeyInfo.Key = FindOrCreateValueKey<bool>(ref binding);
                             break;
                         case EffectParameterType.Int:
-                            binding.KeyInfo.Key = FindOrCreateValueKey<int>(binding);
+                            binding.KeyInfo.Key = FindOrCreateValueKey<int>(ref binding);
                             break;
                         case EffectParameterType.UInt:
-                            binding.KeyInfo.Key = FindOrCreateValueKey<uint>(binding);
+                            binding.KeyInfo.Key = FindOrCreateValueKey<uint>(ref binding);
                             break;
                         case EffectParameterType.Float:
-                            binding.KeyInfo.Key = FindOrCreateValueKey<float>(binding);
+                            binding.KeyInfo.Key = FindOrCreateValueKey<float>(ref binding);
+                            break;
+                        case EffectParameterType.Double:
+                            binding.KeyInfo.Key = FindOrCreateValueKey<double>(ref binding);
                             break;
                     }
                     break;
@@ -246,9 +249,9 @@ namespace Stride.Graphics
                         switch (binding.Type.Type)
                         {
                             case EffectParameterType.Float:
-                                binding.KeyInfo.Key = componentCount == 4
-                                                        ? FindOrCreateValueKey<Color4>(binding)
-                                                        : (componentCount == 3 ? FindOrCreateValueKey<Color3>(binding) : null);
+                                binding.KeyInfo.Key = 
+                                    componentCount == 4 ? FindOrCreateValueKey<Color4>(ref binding) :
+                                    componentCount == 3 ? FindOrCreateValueKey<Color3>(ref binding) : null;
                                 break;
                         }
                     }
@@ -260,22 +263,33 @@ namespace Stride.Graphics
                         {
                             case EffectParameterType.Bool:
                             case EffectParameterType.Int:
-                                binding.KeyInfo.Key = componentCount == 4 ? (ParameterKey)FindOrCreateValueKey<Int4>(binding) : (componentCount == 3 ? FindOrCreateValueKey<Int3>(binding) : null);
+                                binding.KeyInfo.Key =
+                                    componentCount == 4 ? FindOrCreateValueKey<Int4>(ref binding) :
+                                    componentCount == 3 ? FindOrCreateValueKey<Int3>(ref binding) :
+                                    componentCount == 2 ? FindOrCreateValueKey<Int2>(ref binding) : null;
                                 break;
                             case EffectParameterType.UInt:
-                                binding.KeyInfo.Key = componentCount == 4 ? FindOrCreateValueKey<UInt4>(binding) : null;
+                                binding.KeyInfo.Key = 
+                                    componentCount == 4 ? FindOrCreateValueKey<UInt4>(ref binding) : null;
                                 break;
                             case EffectParameterType.Float:
-                                binding.KeyInfo.Key = componentCount == 4
-                                                        ? FindOrCreateValueKey<Vector4>(binding)
-                                                        : (componentCount == 3 ? (ParameterKey)FindOrCreateValueKey<Vector3>(binding) : (componentCount == 2 ? FindOrCreateValueKey<Vector2>(binding) : null));
+                                binding.KeyInfo.Key = 
+                                    componentCount == 4 ? FindOrCreateValueKey<Vector4>(ref binding) :
+                                    componentCount == 3 ? FindOrCreateValueKey<Vector3>(ref binding) : 
+                                    componentCount == 2 ? FindOrCreateValueKey<Vector2>(ref binding) : null;
+                                break;
+                            case EffectParameterType.Double:
+                                binding.KeyInfo.Key =
+                                    componentCount == 4 ? FindOrCreateValueKey<Double4>(ref binding) :
+                                    componentCount == 3 ? FindOrCreateValueKey<Double3>(ref binding) :
+                                    componentCount == 2 ? FindOrCreateValueKey<Double2>(ref binding) : null;
                                 break;
                         }
                     }
                     break;
                 case EffectParameterClass.MatrixRows:
                 case EffectParameterClass.MatrixColumns:
-                    binding.KeyInfo.Key = FindOrCreateValueKey<Matrix>(binding);
+                    binding.KeyInfo.Key = FindOrCreateValueKey<Matrix>(ref binding);
                     break;
                 case EffectParameterClass.Struct:
                     binding.KeyInfo.Key = ParameterKeys.FindByName(binding.KeyInfo.KeyName);
@@ -293,10 +307,14 @@ namespace Stride.Graphics
             return ParameterKeys.FindByName(name) ?? ParameterKeys.NewObject<T>(default(T), name);
         }
 
-        private static ParameterKey FindOrCreateValueKey<T>(EffectValueDescription binding) where T : struct
+        private static ParameterKey FindOrCreateValueKey<T>(ref EffectValueDescription binding) where T : struct
         {
             var name = binding.KeyInfo.KeyName;
-            return ParameterKeys.FindByName(name) ?? ParameterKeys.NewValue<T>(default(T), name);
+            var key = ParameterKeys.FindByName(name) as ValueParameterKey<T> ?? ParameterKeys.NewValue<T>(name: name);
+            // Update the default value with the one from the shader
+            if (binding.DefaultValue is T defaultValue)
+                key.DefaultValueMetadataT.DefaultValue = defaultValue;
+            return key;
         }
 
         private static void UpdateConstantBufferHashes(EffectReflection reflection)

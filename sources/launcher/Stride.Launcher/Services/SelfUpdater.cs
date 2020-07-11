@@ -18,6 +18,9 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
 using MessageBoxButton = Stride.Core.Presentation.Services.MessageBoxButton;
 using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
+using System.Net;
+using Stride.LauncherApp.Resources;
+using System.Text.RegularExpressions;
 
 namespace Stride.LauncherApp.Services
 {
@@ -41,7 +44,7 @@ namespace Stride.LauncherApp.Services
                 var dispatcher = services.Get<IDispatcherService>();
                 try
                 {
-                    await UpdateLauncherFiles(dispatcher, store, CancellationToken.None);
+                    await UpdateLauncherFiles(dispatcher, services.Get<IDialogService>(), store, CancellationToken.None);
                 }
                 catch (Exception e)
                 {
@@ -51,12 +54,34 @@ namespace Stride.LauncherApp.Services
             });
         }
 
-        private static async Task UpdateLauncherFiles(IDispatcherService dispatcher, NugetStore store, CancellationToken cancellationToken)
+        private static async Task UpdateLauncherFiles(IDispatcherService dispatcher, IDialogService dialogService, NugetStore store, CancellationToken cancellationToken)
         {
             var version = new PackageVersion(Version);
             var productAttribute = (typeof(SelfUpdater).Assembly).GetCustomAttribute<AssemblyProductAttribute>();
             var packageId = productAttribute.Product;
             var packages = (await store.GetUpdates(new PackageName(packageId, version), true, true, cancellationToken)).OrderBy(x => x.Version);
+
+            try
+            {
+                // First, check if there is a package forcing us to download new installer
+                const string ReinstallUrlPattern = @"force-reinstall:\s*(\S+)\s*(\S+)";
+                var reinstallPackage = packages.LastOrDefault(x => x.Version > version && Regex.IsMatch(x.Description, ReinstallUrlPattern));
+                if (reinstallPackage != null)
+                {
+                    var regexMatch = Regex.Match(reinstallPackage.Description, ReinstallUrlPattern);
+                    var minimumVersion = PackageVersion.Parse(regexMatch.Groups[1].Value);
+                    if (version < minimumVersion)
+                    {
+                        var installerDownloadUrl = regexMatch.Groups[2].Value;
+                        await DownloadAndInstallNewVersion(dispatcher, dialogService, installerDownloadUrl);
+                        return;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                await dialogService.MessageBox(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
+            }
 
             // If there is a mandatory intermediate upgrade, take it, otherwise update straight to latest version
             var package = (packages.FirstOrDefault(x => x.Version > version && x.Version.SpecialVersion == "req") ?? packages.LastOrDefault());
@@ -89,7 +114,7 @@ namespace Stride.LauncherApp.Services
 
                 // TODO: We should get list of previous files from nuspec (store it as a resource and open it with NuGet API maybe?)
                 // TODO: For now, we deal only with the App.config file since we won't be able to fix it afterward.
-                var exeLocation = Assembly.GetEntryAssembly().Location;
+                var exeLocation = Launcher.GetExecutablePath();
                 var exeDirectory = Path.GetDirectoryName(exeLocation);
                 const string directoryRoot = "tools/"; // Important!: this is matching where files are store in the nuspec
                 try
@@ -174,6 +199,51 @@ namespace Stride.LauncherApp.Services
             File.Move(oldPath, newPath);
         }
 
+        internal static async Task DownloadAndInstallNewVersion(IDispatcherService dispatcher, IDialogService dialogService, string strideInstallerUrl)
+        {
+            try
+            {
+                // Diplay progress window
+                var mainWindow = dispatcher.Invoke(() => Application.Current.MainWindow as LauncherWindow);
+                dispatcher.InvokeAsync(() =>
+                {
+                    selfUpdateWindow = new SelfUpdateWindow { Owner = mainWindow };
+                    selfUpdateWindow.LockWindow();
+                    selfUpdateWindow.ShowDialog();
+                }).Forget();
+
+
+                var strideInstaller = Path.Combine(Path.GetTempPath(), $"StrideSetup-{Guid.NewGuid()}.exe");
+                using (WebClient webClient = new WebClient())
+                {
+                    webClient.DownloadFile(strideInstallerUrl, strideInstaller);
+                }
+
+                var startInfo = new ProcessStartInfo(strideInstaller)
+                {
+                    UseShellExecute = true
+                };
+                // Release the mutex before starting the new process
+                Launcher.Mutex.Dispose();
+
+                Process.Start(startInfo);
+
+                Environment.Exit(0);
+            }
+            catch (Exception e)
+            {
+                await dispatcher.InvokeAsync(() =>
+                {
+                    if (selfUpdateWindow != null)
+                    {
+                        selfUpdateWindow.ForceClose();
+                    }
+                });
+
+                await dialogService.MessageBox(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private static void EnsureDirectory(string filePath)
         {
             // Create dest directory if it exists
@@ -197,7 +267,8 @@ namespace Stride.LauncherApp.Services
         {
             var args = Environment.GetCommandLineArgs().ToList();
             args.Add("/UpdateTargets");
-            var startInfo = new ProcessStartInfo(Assembly.GetEntryAssembly().Location)
+            var exeLocation = Launcher.GetExecutablePath();
+            var startInfo = new ProcessStartInfo(exeLocation)
             {
                 Arguments = string.Join(" ", args.Skip(1)),
                 WorkingDirectory = Environment.CurrentDirectory,

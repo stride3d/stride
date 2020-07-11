@@ -485,7 +485,14 @@
                       </i:Interaction.Behaviors>
                     </Button>
                   </Grid>
-                  <CheckBox Margin="0,5" DockPanel.Dock="Bottom" IsChecked="{Binding AutoCloseLauncher}"
+                  <ComboBox Margin="0,4" Name="FrameworkSelector" IsEnabled="{Binding ActiveVersion.Frameworks.Count, Converter={sskk:Chained {sskk:IsGreater}, Parameter1={sskk:Double 1}}}" ItemsSource="{Binding ActiveVersion.Frameworks}" SelectedItem="{Binding ActiveVersion.SelectedFramework}" SelectionChanged="FrameworkChanged">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Converter={vm:FrameworkConverter}}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <CheckBox Margin="0,2" DockPanel.Dock="Bottom" IsChecked="{Binding AutoCloseLauncher}"
                                       Content="{x:Static r:Strings.AutoCloseLauncher}"/>
                 </StackPanel>
               </Border>
