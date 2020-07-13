@@ -32,6 +32,7 @@ namespace Stride.Games
     {
         private TimeSpan accumulatedElapsedTime;
         private int accumulatedFrameCountPerSecond;
+        private double factor;
 
         #region Constructors and Destructors
 
@@ -41,6 +42,7 @@ namespace Stride.Games
         public GameTime()
         {
             accumulatedElapsedTime = TimeSpan.Zero;
+            factor = 1;
         }
 
         /// <summary>
@@ -53,6 +55,7 @@ namespace Stride.Games
             Total = totalTime;
             Elapsed = elapsedTime;
             accumulatedElapsedTime = TimeSpan.Zero;
+            factor = 1;
         }
 
         #endregion
@@ -94,10 +97,51 @@ namespace Stride.Games
         /// <value><c>true</c> if the <see cref="FramePerSecond"/> and <see cref="TimePerFrame"/> were updated for this frame; otherwise, <c>false</c>.</value>
         public bool FramePerSecondUpdated { get; private set; }
 
+
+        /// <summary>
+        /// Gets the amount of game time since the start of the game weighted with consideration to the warped time.
+        /// </summary>
+        /// <value>The total game time.</value>
+        public TimeSpan WarpTotal { get; private set; }
+
+        /// <summary>
+        /// Gets the amount of time elapsed multiplied by the time factor.
+        /// </summary>
+        /// <value>The warped elapsed time</value>
+        public TimeSpan WarpElapsed{ get; private set; }
+
+
+        /// <summary>
+        /// Gets or sets the time factor for the time factor.
+        /// </summary>
+        /// <value>The multiply factor.</value>
+        public double Factor
+        {
+            get
+            {
+                return this.factor;
+            }
+            set
+            {
+                if (value > 1)
+                    this.factor = 1;
+                else if (value < 0)
+                    this.factor = 0;
+                else
+                    this.factor = value;
+            }
+        };
+
+
         internal void Update(TimeSpan totalGameTime, TimeSpan elapsedGameTime, bool incrementFrameCount)
         {
             Total = totalGameTime;
             Elapsed = elapsedGameTime;
+
+            //TODO : When switching with .NET 5, use the multiply operator instead of this. elapsedGameTime * Factor
+            WarpElapsed = TimeSpan.FromSeconds(elapsedGameTime.TotalSeconds * Factor);
+            WarpTotal += WarpElapsed;
+
             FramePerSecondUpdated = false;
 
             if (incrementFrameCount)

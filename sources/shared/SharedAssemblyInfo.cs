@@ -54,7 +54,7 @@ namespace Stride
         /// <summary>
         /// The build metadata, usually +g[git_hash] during package. Automatically set by Stride.GitVersioning.GenerateVersionFile.
         /// </summary>
-        public const string BuildMetadata = "";
+        public const string BuildMetadata = "-slowmo";
 
         /// <summary>
         /// The informational assembly version, containing -beta01 or +g[git_hash] during package.
