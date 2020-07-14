@@ -1,4 +1,6 @@
-﻿shader VoxelFragmentPackFloat32 : VoxelFragmentPacker
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader VoxelFragmentPackFloat32 : VoxelFragmentPacker
 {
     override void Skip(inout uint address, float unpacked){address += 1;}
     override void Skip(inout uint address, float2 unpacked){address += 2;}

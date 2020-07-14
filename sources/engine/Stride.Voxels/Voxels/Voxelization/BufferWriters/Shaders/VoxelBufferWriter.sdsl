@@ -1,4 +1,6 @@
-﻿    shader VoxelBufferWriter
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+    shader VoxelBufferWriter
     {
         void Write_Internal(RWBuffer<uint> fragmentsBuffer, inout uint address, uint data){}
         void Write_Internal(RWBuffer<uint> fragmentsBuffer, inout uint address, uint2 data)

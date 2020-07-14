@@ -1,4 +1,6 @@
-﻿shader VoxelMarchMethod
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader VoxelMarchMethod
 {
     float4 March(float3 rayPos, float3 rayDir){ return float4(0, 0, 0, 0); }
     float StepSize(){ return 1.0; }

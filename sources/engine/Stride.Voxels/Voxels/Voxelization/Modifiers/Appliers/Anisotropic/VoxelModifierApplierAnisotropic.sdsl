@@ -1,4 +1,6 @@
-﻿shader VoxelModifierApplierAnisotropic
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader VoxelModifierApplierAnisotropic
 {
     void Apply(inout float4 XP, inout float4 XN, inout float4 YP, inout float4 YN, inout float4 ZP, inout float4 ZN){ }
     void Apply(inout float3 XP, inout float3 XN, inout float3 YP, inout float3 YN, inout float3 ZP, inout float3 ZN){ }

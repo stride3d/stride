@@ -1,4 +1,6 @@
-﻿shader VoxelMarchBeam<int steps, float stepScale, float beamDiameter> : VoxelMarchMethod, VoxelRadiusMarchMethod, MarchAttributes
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader VoxelMarchBeam<int steps, float stepScale, float beamDiameter> : VoxelMarchMethod, VoxelRadiusMarchMethod, MarchAttributes
 {
     #ifndef AttributeID
         #define AttributeID 0
