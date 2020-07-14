@@ -130,7 +130,7 @@ namespace Stride.Games
                 else
                     this.factor = value;
             }
-        };
+        }
 
 
         internal void Update(TimeSpan totalGameTime, TimeSpan elapsedGameTime, bool incrementFrameCount)
@@ -138,7 +138,7 @@ namespace Stride.Games
             Total = totalGameTime;
             Elapsed = elapsedGameTime;
 
-            //TODO : When switching with .NET 5, use the multiply operator instead of this. elapsedGameTime * Factor
+            // TODO: When switching with .NET 5, use the multiply operator instead of this. elapsedGameTime * Factor
             WarpElapsed = TimeSpan.FromSeconds(elapsedGameTime.TotalSeconds * Factor);
             WarpTotal += WarpElapsed;
 
