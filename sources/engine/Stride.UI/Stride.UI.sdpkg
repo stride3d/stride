@@ -1,0 +1,10 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+AssetFolders:
+    -   Path: !dir AssetPackage/Assets/Shared
+ResourceFolders:
+    - !dir AssetPackage/Resources
+RootAssets:
+    - c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
+    - FF02239B-3697-4EBB-9F37-FE880659E64B:StrideDebugSpriteFont
+    - 79af0b55-a70f-4c7a-8f5b-967d55661736:StrideUILibrary
