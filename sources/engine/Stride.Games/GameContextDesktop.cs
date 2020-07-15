@@ -14,9 +14,8 @@ namespace Stride.Games
     {
         /// <inheritDoc/>
         protected GameContextDesktop(TK control, int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
-            : base(control, requestedWidth, requestedHeight)
+            : base(control, requestedWidth, requestedHeight, isUserManagingRun)
         {
-            IsUserManagingRun = isUserManagingRun;
         }
     }
 }

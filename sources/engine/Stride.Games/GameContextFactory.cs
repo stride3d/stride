@@ -11,7 +11,7 @@ namespace Stride.Games
     public static class GameContextFactory
     {
         [Obsolete("Use NewGameContext with the proper AppContextType.")]
-        internal static GameContext NewDefaultGameContext()
+        internal static GameContext NewDefaultGameContext(int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
         {
             // Default context is Desktop
             AppContextType type = AppContextType.Desktop;
@@ -36,14 +36,14 @@ namespace Stride.Games
 #elif STRIDE_PLATFORM_IOS
             type = AppContextType.iOS;
 #endif
-            return NewGameContext(type);
+            return NewGameContext(type, requestedWidth, requestedHeight, isUserManagingRun);
         }
 
         /// <summary>
         /// Given a <paramref name="type"/> create the appropriate game Context for the current executing platform.
         /// </summary>
         /// <returns></returns>
-        public static GameContext NewGameContext(AppContextType type)
+        public static GameContext NewGameContext(AppContextType type, int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
         {
             GameContext res = null;
             switch (type)
@@ -52,22 +52,22 @@ namespace Stride.Games
                     res = NewGameContextAndroid();
                     break;
                 case AppContextType.Desktop:
-                    res = NewGameContextDesktop();
+                    res = NewGameContextDesktop(requestedWidth, requestedHeight, isUserManagingRun);
                     break;
                 case AppContextType.DesktopOpenTK:
-                    res = NewGameContextOpenTK();
+                    res = NewGameContextOpenTK(requestedWidth, requestedHeight, isUserManagingRun);
                     break;
                 case AppContextType.DesktopSDL:
-                    res = NewGameContextSDL();
+                    res = NewGameContextSDL(requestedWidth, requestedHeight, isUserManagingRun);
                     break;
                 case AppContextType.DesktopWpf:
-                    res = NewGameContextWpf();
+                    res = NewGameContextWpf(requestedWidth, requestedHeight, isUserManagingRun);
                     break;
                 case AppContextType.UWPXaml:
-                    res = NewGameContextUWPXaml();
+                    res = NewGameContextUWPXaml(requestedWidth, requestedHeight);
                     break;
                 case AppContextType.UWPCoreWindow:
-                    res = NewGameContextUWPCoreWindow();
+                    res = NewGameContextUWPCoreWindow(requestedWidth, requestedHeight);
                     break;
                 case AppContextType.iOS:
                     res = NewGameContextiOS();
@@ -100,16 +100,16 @@ namespace Stride.Games
 #endif
         }
 
-        public static GameContext NewGameContextDesktop()
+        public static GameContext NewGameContextDesktop(int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
         {
 #if STRIDE_PLATFORM_WINDOWS_DESKTOP
     #if STRIDE_UI_OPENTK
             return new GameContextOpenTK(null);
     #else
         #if STRIDE_UI_SDL && !STRIDE_UI_WINFORMS && !STRIDE_UI_WPF
-            return new GameContextSDL(null);
+            return new GameContextSDL(null, requestedWidth, requestedHeight, isUserManagingRun);
         #elif (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
-            return new GameContextWinforms(null);
+            return new GameContextWinforms(null, requestedWidth, requestedHeight, isUserManagingRun);
         #else
             return null;
         #endif
@@ -119,43 +119,43 @@ namespace Stride.Games
 #endif
         }
 
-        public static GameContext NewGameContextUWPXaml()
+        public static GameContext NewGameContextUWPXaml(int requestedWidth = 0, int requestedHeight = 0)
         {
 #if STRIDE_PLATFORM_UWP
-            return new GameContextUWPXaml(null);
+            return new GameContextUWPXaml(null, requestedWidth, requestedHeight);
 #else
             return null;
 #endif
         }
 
-        public static GameContext NewGameContextUWPCoreWindow()
+        public static GameContext NewGameContextUWPCoreWindow(int requestedWidth = 0, int requestedHeight = 0)
         {
 #if STRIDE_PLATFORM_UWP
-            return new GameContextUWPCoreWindow(null);
+            return new GameContextUWPCoreWindow(null, requestedWidth, requestedHeight);
 #else
             return null;
 #endif
         }
 
-        public static GameContext NewGameContextOpenTK()
+        public static GameContext NewGameContextOpenTK(int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
         {
 #if (STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX) && STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
-            return new GameContextOpenTK(null);
+            return new GameContextOpenTK(null, requestedWidth, requestedHeight, isUserManagingRun);
 #else
             return null;
 #endif
         }
 
-        public static GameContext NewGameContextSDL()
+        public static GameContext NewGameContextSDL(int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
         {
 #if STRIDE_UI_SDL
-            return new GameContextSDL(null);
+            return new GameContextSDL(null, requestedWidth, requestedHeight, isUserManagingRun);
 #else
             return null;
 #endif
         }
 
-        public static GameContext NewGameContextWpf()
+        public static GameContext NewGameContextWpf(int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
         {
             // Not supported for now.
             return null;
