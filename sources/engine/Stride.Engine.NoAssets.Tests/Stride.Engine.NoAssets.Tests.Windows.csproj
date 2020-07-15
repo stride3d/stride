@@ -1,0 +1,21 @@
+<Project>
+  <Import Project="..\..\targets\Stride.UnitTests.props" />
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <AssemblyName>Stride.Engine.NoAssets.Tests</AssemblyName>
+    <RootNamespace>Stride.Engine.Tests</RootNamespace>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCompileAssets>false</StrideCompileAssets>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>xunit.runner.stride.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
+  </ItemGroup>
+  <Import Project="..\..\targets\Stride.UnitTests.targets" />
+</Project>

@@ -235,6 +235,12 @@ namespace Stride.Games
 
         internal abstract void Resize(int width, int height);
 
+        public virtual IMessageLoop CreateUserManagedMessageLoop()
+        {
+            // Default: not implemented
+            throw new PlatformNotSupportedException();
+        }
+
         internal IServiceRegistry Services { get; set; }
 
         protected internal abstract void SetSupportedOrientations(DisplayOrientation orientations);
