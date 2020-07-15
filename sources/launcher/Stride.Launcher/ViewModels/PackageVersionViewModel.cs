@@ -41,7 +41,7 @@ namespace Stride.LauncherApp.ViewModels
             Launcher = launcher;
             Store = store;
             LocalPackage = localPackage;
-            DownloadCommand = new AnonymousCommand(ServiceProvider, () => Download(true));
+            DownloadCommand = new AnonymousTaskCommand(ServiceProvider, () => Download(true));
             DeleteCommand = new AnonymousTaskCommand(ServiceProvider, () => Delete(true, true)) { IsEnabled = CanDelete };
             UpdateStatusInternal();
         }
@@ -171,7 +171,7 @@ namespace Stride.LauncherApp.ViewModels
         /// if the download successfully completed without exception. In every case, it will also invoke <see cref="UpdateVersionsFromStore"/>
         /// before completing.
         /// </remarks>
-        protected Task Download(bool displayErrorMessage)
+        public Task Download(bool displayErrorMessage)
         {
             BeforeDownload();
 
