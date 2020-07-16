@@ -144,7 +144,7 @@ namespace Stride.Rendering
                 if (model != null)
                 {
                     // Number of meshes changed in the model?
-                    if (model.Meshes.Count != renderModel.Meshes.Length)
+                    if (model.Meshes.Count != renderModel.UniqueMeshCount)
                         goto RegenerateMeshes;
 
                     if (modelComponent.Enabled)
@@ -232,6 +232,7 @@ namespace Stride.Rendering
             }
 
             renderModel.Meshes = renderMeshes;
+            renderModel.UniqueMeshCount = model.Meshes.Count;
 
             // Update before first add so that RenderGroup is properly set
             UpdateRenderModel(modelComponent, renderModel);

@@ -36,5 +36,7 @@ namespace Stride.Rendering
         public Matrix World = Matrix.Identity;
 
         public Matrix[] BlendMatrices;
+
+        public int InstanceCount;
     }
 }

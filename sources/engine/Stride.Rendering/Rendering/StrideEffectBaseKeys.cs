@@ -13,5 +13,9 @@ namespace Stride.Rendering
         public static readonly PermutationParameterKey<ShaderSource> ComputeVelocityShader = ParameterKeys.NewPermutation<ShaderSource>();
 
         public static readonly PermutationParameterKey<ShaderSource> RenderTargetExtensions = ParameterKeys.NewPermutation<ShaderSource>();
+
+        public static readonly PermutationParameterKey<bool> HasInstancing = ParameterKeys.NewPermutation<bool>();
+
+        public static readonly PermutationParameterKey<int> ModelTransformUsage = ParameterKeys.NewPermutation<int>();
     }
 }

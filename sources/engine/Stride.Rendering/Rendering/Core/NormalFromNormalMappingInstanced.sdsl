@@ -1,0 +1,20 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Tebjan Halm
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Calculates the normal  the normals from a normal map.
+/// </summary>
+shader NormalFromNormalMappingInstanced : TransformationInstancing, NormalBase, NormalStream
+{
+    override stage void GenerateNormal_PS()
+    {
+        base.GenerateNormal_PS();
+        UpdateTangentToWorld();
+        // Transform meshNormal from object space to world space:
+        streams.meshNormalWS = mul((float3x3)GetInstanceWorldInverse(), streams.meshNormal);    // TODO: PERFORMANCE: Normalization required?
+    }
+
+    override float3x3 GetTangentWorldTransform()
+    {
+        return transpose((float3x3)GetInstanceWorldInverse());
+    }
+};

@@ -21,6 +21,7 @@ namespace Stride.Assets.Presentation.SceneEditor
     internal struct PickingObjectInfo
     {
         private const float MaxMaterialIndex = 1024;
+        private const float MaxInstancingId = 1024;
 
         public float ModelComponentId;
         public float MeshMaterialIndex;
@@ -28,19 +29,23 @@ namespace Stride.Assets.Presentation.SceneEditor
         public PickingObjectInfo(int componentId, int meshIndex, int materialIndex)
         {
             ModelComponentId = componentId;
-            MeshMaterialIndex = meshIndex + (materialIndex / MaxMaterialIndex); // Pack to: MeshIndex.MaterialIndex
+            MeshMaterialIndex = meshIndex + (Math.Min(materialIndex, MaxMaterialIndex - 1) / MaxMaterialIndex); // Pack to: MeshIndex.MaterialIndex
         }
 
         public EntityPickingResult GetResult(Dictionary<int, Entity> idToEntity)
         {
-            var fraction = MeshMaterialIndex - Math.Floor(MeshMaterialIndex);
-            var integral = MeshMaterialIndex - fraction;
+            var mcFraction = ModelComponentId - Math.Floor(ModelComponentId);
+            var mcIntegral = ModelComponentId - mcFraction;
+
+            var mmiFraction = MeshMaterialIndex - Math.Floor(MeshMaterialIndex);
+            var mmiIntegral = MeshMaterialIndex - mmiFraction;
 
             var result = new EntityPickingResult
             {
-                ComponentId = (int)Math.Round(ModelComponentId),
-                MeshNodeIndex = (int)Math.Round(integral),
-                MaterialIndex = (int)Math.Round(fraction * MaxMaterialIndex),
+                ComponentId = (int)Math.Round(mcIntegral),
+                InstanceId = (int)Math.Round(mcFraction * MaxInstancingId),
+                MeshNodeIndex = (int)Math.Round(mmiIntegral),
+                MaterialIndex = (int)Math.Round(mmiFraction * MaxMaterialIndex),
             };
             idToEntity.TryGetValue(result.ComponentId, out result.Entity);
             return result;

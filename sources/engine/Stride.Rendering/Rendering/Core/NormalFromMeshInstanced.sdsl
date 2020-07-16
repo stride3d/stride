@@ -1,0 +1,14 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Tebjan Halm
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Computes normals in view space.
+/// </summary>
+shader NormalFromMeshInstanced : NormalFromMesh, TransformationInstancing
+{
+    override stage void GenerateNormal_VS()
+    {
+        // Perform normal generation at the end in case meshNormal is modified
+        streams.meshNormalWS = mul((float3x3)GetInstanceWorldInverse(), streams.meshNormal);    // TODO: PERFORMANCE: Normalization required?
+        streams.normalWS = streams.meshNormalWS;
+    }
+};

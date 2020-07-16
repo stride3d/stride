@@ -1,0 +1,25 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Tebjan Halm
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader TransformationSkinningInstanced : TransformationSkinning, TransformationInstancing
+{
+    override stage void PreTransformPosition()
+    {
+        base.PreTransformPosition();
+
+        streams.skinningBlendMatrix = GetBlendMatrix(streams.BlendIndices[0]) * streams.BlendWeights[0]
+                                    + GetBlendMatrix(streams.BlendIndices[1]) * streams.BlendWeights[1]
+                                    + GetBlendMatrix(streams.BlendIndices[2]) * streams.BlendWeights[2]
+                                    + GetBlendMatrix(streams.BlendIndices[3]) * streams.BlendWeights[3];
+        
+        // Put back to object space
+        streams.skinningBlendMatrix = mul(streams.skinningBlendMatrix, Transformation.WorldInverse);
+
+        // Apply instance transformation
+        streams.skinningBlendMatrix = mul(streams.skinningBlendMatrix, GetInstanceWorld());
+
+        // Transform position
+        float4 blendPos = mul(streams.Position, streams.skinningBlendMatrix);
+
+        streams.PositionWS = blendPos;
+    }
+};

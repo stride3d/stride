@@ -40,29 +40,32 @@ namespace Stride.Rendering
 
             var hashBuilder = new ObjectIdBuilder();
 
-            for (int index = 0; index < ConstantBufferReflection.Members.Length; index++)
+            if (ConstantBufferReflection != null)
             {
-                var member = ConstantBufferReflection.Members[index];
-                if (member.LogicalGroup == name)
+                for (int index = 0; index < ConstantBufferReflection.Members.Length; index++)
                 {
-                    // First item?
-                    if (logicalGroup.ConstantBufferMemberStart == -1)
+                    var member = ConstantBufferReflection.Members[index];
+                    if (member.LogicalGroup == name)
                     {
-                        logicalGroup.ConstantBufferOffset = member.Offset;
-                        logicalGroup.ConstantBufferMemberStart = index;
+                        // First item?
+                        if (logicalGroup.ConstantBufferMemberStart == -1)
+                        {
+                            logicalGroup.ConstantBufferOffset = member.Offset;
+                            logicalGroup.ConstantBufferMemberStart = index;
+                        }
+
+                        // Update count
+                        logicalGroup.ConstantBufferMemberCount = index + 1 - logicalGroup.ConstantBufferMemberStart;
+                        logicalGroup.ConstantBufferSize = member.Offset + member.Size - logicalGroup.ConstantBufferOffset;
+
+                        // Hash
+                        Effect.HashConstantBufferMember(ref hashBuilder, ref member, logicalGroup.ConstantBufferOffset);
                     }
-
-                    // Update count
-                    logicalGroup.ConstantBufferMemberCount = index + 1 - logicalGroup.ConstantBufferMemberStart;
-                    logicalGroup.ConstantBufferSize = member.Offset + member.Size - logicalGroup.ConstantBufferOffset;
-
-                    // Hash
-                    Effect.HashConstantBufferMember(ref hashBuilder, ref member, logicalGroup.ConstantBufferOffset);
-                }
-                else if (logicalGroup.ConstantBufferMemberStart != -1)
-                {
-                    break; // group is finished, no need to scan the end
-                }
+                    else if (logicalGroup.ConstantBufferMemberStart != -1)
+                    {
+                        break; // group is finished, no need to scan the end
+                    }
+                } 
             }
 
             for (int index = 0, slot = 0; index < DescriptorSetLayoutBuilder.Entries.Count; index++)

@@ -1,0 +1,12 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Tebjan Halm
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Transforms the position of the vertex in world space first then in projection space
+/// </summary>
+shader TransformationWAndVPInstanced : TransformationWAndVP, TransformationInstancing, PositionStream4, PositionHStream4
+{
+    stage override void PreTransformPosition()
+    {
+        streams.PositionWS = mul(streams.Position, GetInstanceWorld());
+    }
+};
