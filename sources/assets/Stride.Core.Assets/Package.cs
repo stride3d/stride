@@ -1272,7 +1272,7 @@ namespace Stride.Core.Assets
             // Adjust extensions for Stride rename
             foreach (var loadingAsset in listFiles)
             {
-                var originalExt = loadingAsset.FilePath.GetFileExtension();
+                var originalExt = loadingAsset.FilePath.GetFileExtension() ?? "";
                 var ext = originalExt.Replace(".xk", ".sd");
                 if (ext != originalExt)
                 {
@@ -1301,7 +1301,7 @@ namespace Stride.Core.Assets
                 // Test both Stride and Xenko extensions
                 .Where(x =>
                     AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension())
-                    || AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension().Replace(".xk", ".sd")))
+                    || AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension()?.Replace(".xk", ".sd")))
                 // avoid duplicates otherwise it might save a single file as separte file with renaming
                 // had issues with case such as Effect.sdsl being registered twice (with glob pattern) and being saved as Effect.sdsl and Effect (2).sdsl
                 .Distinct()
