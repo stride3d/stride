@@ -178,6 +178,12 @@ namespace Stride.Engine.Processors
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] InstancingComponent component, [NotNull] InstancingData data)
         {
             modelInstancingMap.Remove(data.RenderModel);
+
+            if (component.Type is InstancingUserArray)
+            {
+                data.RenderInstancing?.InstanceWorldBuffer?.Dispose();
+                data.RenderInstancing?.InstanceWorldInverseBuffer?.Dispose();
+            }
         }
 
         // Instancing data per InstancingComponent
