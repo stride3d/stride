@@ -103,6 +103,12 @@ namespace Stride.Physics
 
         protected override void OnEntityComponentAdding(Entity entity, PhysicsComponent component, AssociatedData data)
         {
+            if (currentFrameRemovals.Contains(component))
+            {
+                currentFrameRemovals.Remove(component);
+                return;
+            }
+
             component.Attach(data);
 
             var character = component as CharacterComponent;
