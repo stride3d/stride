@@ -32,7 +32,7 @@ namespace Stride.Games
     {
         private TimeSpan accumulatedElapsedTime;
         private int accumulatedFrameCountPerSecond;
-        private double factor;
+        private static double factor;
 
         #region Constructors and Destructors
 
@@ -98,37 +98,34 @@ namespace Stride.Games
         public bool FramePerSecondUpdated { get; private set; }
 
 
-        /// <summary>
-        /// Gets the amount of game time since the start of the game weighted with consideration to the warped time.
-        /// </summary>
-        /// <value>The total game time.</value>
-        public TimeSpan WarpTotal { get; private set; }
 
         /// <summary>
         /// Gets the amount of time elapsed multiplied by the time factor.
         /// </summary>
         /// <value>The warped elapsed time</value>
-        public TimeSpan WarpElapsed{ get; private set; }
+        public TimeSpan WarpElapsed 
+        {
+            // TODO: When switching with .NET 5, use the multiply operator instead of this. elapsedGameTime * Factor
+            get => TimeSpan.FromSeconds(Elapsed.TotalSeconds * Factor);
+        }
 
 
         /// <summary>
         /// Gets or sets the time factor for the time factor.
         /// </summary>
-        /// <value>The multiply factor.</value>
-        public double Factor
+        /// <value>The multiply factor, a double between 0 and 1.</value>
+        public static double Factor
         {
-            get
+            get => factor; 
+            set 
             {
-                return this.factor;
-            }
-            set
-            {
+                // TODO: Use pattern matching for a clearer code
                 if (value > 1)
-                    this.factor = 1;
+                    factor = 1;
                 else if (value < 0)
-                    this.factor = 0;
+                    factor = 0;
                 else
-                    this.factor = value;
+                    factor = value;
             }
         }
 
@@ -136,11 +133,7 @@ namespace Stride.Games
         internal void Update(TimeSpan totalGameTime, TimeSpan elapsedGameTime, bool incrementFrameCount)
         {
             Total = totalGameTime;
-            Elapsed = elapsedGameTime;
-
-            // TODO: When switching with .NET 5, use the multiply operator instead of this. elapsedGameTime * Factor
-            WarpElapsed = TimeSpan.FromSeconds(elapsedGameTime.TotalSeconds * Factor);
-            WarpTotal += WarpElapsed;
+            Elapsed = elapsedGameTime;            
 
             FramePerSecondUpdated = false;
 

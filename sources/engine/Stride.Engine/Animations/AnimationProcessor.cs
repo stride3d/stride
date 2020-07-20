@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Stride.Core.Collections;
 using Stride.Core.Threading;
 using Stride.Engine;
+using Stride.Games;
 using Stride.Rendering;
 
 namespace Stride.Animations
@@ -83,7 +84,7 @@ namespace Stride.Animations
                         {
                             case AnimationRepeatMode.PlayOnceHold:
                             case AnimationRepeatMode.PlayOnce:
-                                playingAnimation.CurrentTime = TimeSpan.FromTicks(playingAnimation.CurrentTime.Ticks + (long)(time.Elapsed.Ticks * (double)playingAnimation.TimeFactor));
+                                playingAnimation.CurrentTime = TimeSpan.FromTicks(playingAnimation.CurrentTime.Ticks + (long)(time.Elapsed.Ticks * (double)playingAnimation.TimeFactor * GameTime.Factor));
                                 if (playingAnimation.CurrentTime > playingAnimation.Clip.Duration)
                                     playingAnimation.CurrentTime = playingAnimation.Clip.Duration;
                                 else if (playingAnimation.CurrentTime < TimeSpan.Zero)
@@ -93,7 +94,7 @@ namespace Stride.Animations
                                 playingAnimation.CurrentTime = playingAnimation.Clip.Duration == TimeSpan.Zero
                                     ? TimeSpan.Zero
                                     : TimeSpan.FromTicks((playingAnimation.CurrentTime.Ticks + playingAnimation.Clip.Duration.Ticks
-                                        + (long)(time.Elapsed.Ticks * (double)playingAnimation.TimeFactor)) % playingAnimation.Clip.Duration.Ticks);
+                                        + (long)(time.Elapsed.Ticks * (double)playingAnimation.TimeFactor * GameTime.Factor)) % playingAnimation.Clip.Duration.Ticks);
                                 break;
                             default:
                                 throw new ArgumentOutOfRangeException();

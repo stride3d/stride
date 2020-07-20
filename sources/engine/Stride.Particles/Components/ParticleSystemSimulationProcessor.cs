@@ -88,7 +88,7 @@ namespace Stride.Particles.Components
                 particleSystem.UniformScale = xScale;
             }
 
-            particleSystem.Update(deltaTime * speed);
+            particleSystem.Update(deltaTime * (float) GameTime.Factor * speed);
         }
 
         /// <inheritdoc />
