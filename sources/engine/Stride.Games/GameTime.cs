@@ -163,6 +163,11 @@ namespace Stride.Games
             FrameCount = 0;
         }
 
+        public static void ResetTimeFactor()
+        {
+            factor = 1;
+        }
+
         #endregion
     }
 }
