@@ -103,11 +103,9 @@ namespace Stride.Physics
 
         protected override void OnEntityComponentAdding(Entity entity, PhysicsComponent component, AssociatedData data)
         {
-            if (currentFrameRemovals.Contains(component))
-            {
-                currentFrameRemovals.Remove(component);
+            // Tagged for removal? If yes, cancel it
+            if (currentFrameRemovals.Remove(component))
                 return;
-            }
 
             component.Attach(data);
 
@@ -155,7 +153,7 @@ namespace Stride.Physics
             component.Detach();
         }
 
-        private readonly List<PhysicsComponent> currentFrameRemovals = new List<PhysicsComponent>();
+        private readonly HashSet<PhysicsComponent> currentFrameRemovals = new HashSet<PhysicsComponent>();
 
         protected override void OnEntityComponentRemoved(Entity entity, PhysicsComponent component, AssociatedData data)
         {
