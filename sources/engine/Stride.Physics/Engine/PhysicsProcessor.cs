@@ -40,6 +40,34 @@ namespace Stride.Physics
             Order = 0xFFFF;
         }
 
+        /// <summary>
+        /// Gets or sets the scene system. Assigned with default one on <see cref="OnSystemAdd"/>
+        /// </summary>
+        /// <value>
+        /// The scene system.
+        /// </value>
+        public SceneSystem SceneSystem
+        {
+            get => sceneSystem;
+            set
+            {
+                if (value != sceneSystem)
+                {
+                    if (sceneSystem != null && debugShapeRendering.Enabled)
+                    {
+                        // If debug rendering is running, disable it and re-enable for new scene system
+                        RenderColliderShapes(false);
+                        sceneSystem = value;
+                        RenderColliderShapes(true);
+                    }
+                    else
+                    {
+                        sceneSystem = value;
+                    }
+                }
+            }
+        }
+
         public Simulation Simulation { get; private set; }
 
         internal void RenderColliderShapes(bool enabled)
