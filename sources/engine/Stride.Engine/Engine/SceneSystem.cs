@@ -28,12 +28,6 @@ namespace Stride.Engine
         private int previousHeight;
 
         /// <summary>
-        /// Property key to access the current collection of <see cref="CameraComponent"/> from <see cref="RenderContext.Tags"/>.
-        /// </summary>
-        public static readonly PropertyKey<SceneSystem> Current = new PropertyKey<SceneSystem>("SceneSystem.Current", typeof(SceneSystem));
-
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="GameSystemBase" /> class.
         /// </summary>
         /// <param name="registry">The registry.</param>
@@ -195,114 +189,111 @@ namespace Stride.Engine
 
         public override void Draw(GameTime gameTime)
         {
-            using (renderDrawContext.RenderContext.PushTagAndRestore(Current, this))
+            // Reset the context
+            renderContext.Reset();
+
+            var renderTarget = renderDrawContext.CommandList.RenderTarget;
+
+            // If the width or height changed, we have to recycle all temporary allocated resources.
+            // NOTE: We assume that they are mostly resolution dependent.
+            if (previousWidth != renderTarget.ViewWidth || previousHeight != renderTarget.ViewHeight)
             {
-                // Reset the context
-                renderContext.Reset();
+                // Force a recycle of all allocated temporary textures
+                renderContext.Allocator.Recycle(link => true);
+            }
 
-                var renderTarget = renderDrawContext.CommandList.RenderTarget;
+            previousWidth = renderTarget.ViewWidth;
+            previousHeight = renderTarget.ViewHeight;
 
-                // If the width or height changed, we have to recycle all temporary allocated resources.
-                // NOTE: We assume that they are mostly resolution dependent.
-                if (previousWidth != renderTarget.ViewWidth || previousHeight != renderTarget.ViewHeight)
+            // Update the entities at draw time.
+            renderContext.Time = gameTime;
+
+            // Execute Draw step of SceneInstance
+            // This will run entity processors
+            SceneInstance?.Draw(renderContext);
+
+            // Render phase
+            // TODO GRAPHICS REFACTOR
+            //context.GraphicsDevice.Parameters.Set(GlobalKeys.Time, (float)gameTime.Total.TotalSeconds);
+            //context.GraphicsDevice.Parameters.Set(GlobalKeys.TimeStep, (float)gameTime.Elapsed.TotalSeconds);
+
+            renderDrawContext.ResourceGroupAllocator.Flush();
+            renderDrawContext.QueryManager.Flush();
+
+            // Push context (pop after using)
+            using (renderDrawContext.RenderContext.PushTagAndRestore(SceneInstance.Current, SceneInstance))
+            {
+                GraphicsCompositor?.Draw(renderDrawContext);
+            }
+
+            //do this here, make sure GCompositor and Scene are updated/rendered the next frame!
+            if (sceneTask != null && compositorTask != null)
+            {
+                switch (splashScreenState)
                 {
-                    // Force a recycle of all allocated temporary textures
-                    renderContext.Allocator.Recycle(link => true);
-                }
-
-                previousWidth = renderTarget.ViewWidth;
-                previousHeight = renderTarget.ViewHeight;
-
-                // Update the entities at draw time.
-                renderContext.Time = gameTime;
-
-                // Execute Draw step of SceneInstance
-                // This will run entity processors
-                SceneInstance?.Draw(renderContext);
-
-                // Render phase
-                // TODO GRAPHICS REFACTOR
-                //context.GraphicsDevice.Parameters.Set(GlobalKeys.Time, (float)gameTime.Total.TotalSeconds);
-                //context.GraphicsDevice.Parameters.Set(GlobalKeys.TimeStep, (float)gameTime.Elapsed.TotalSeconds);
-
-                renderDrawContext.ResourceGroupAllocator.Flush();
-                renderDrawContext.QueryManager.Flush();
-
-                // Push context (pop after using)
-                using (renderDrawContext.RenderContext.PushTagAndRestore(SceneInstance.Current, SceneInstance))
-                {
-                    GraphicsCompositor?.Draw(renderDrawContext);
-                }
-
-                //do this here, make sure GCompositor and Scene are updated/rendered the next frame!
-                if (sceneTask != null && compositorTask != null)
-                {
-                    switch (splashScreenState)
-                    {
-                        case SplashScreenState.Invalid:
+                    case SplashScreenState.Invalid:
+                        {
+                            if (sceneTask.IsCompleted && compositorTask.IsCompleted)
                             {
-                                if (sceneTask.IsCompleted && compositorTask.IsCompleted)
-                                {
-                                    SceneInstance = new SceneInstance(Services, sceneTask.Result);
-                                    GraphicsCompositor = compositorTask.Result;
-                                    sceneTask = null;
-                                    compositorTask = null;
-                                }
-                                break;
+                                SceneInstance = new SceneInstance(Services, sceneTask.Result);
+                                GraphicsCompositor = compositorTask.Result;
+                                sceneTask = null;
+                                compositorTask = null;
                             }
-                        case SplashScreenState.Intro:
+                            break;
+                        }
+                    case SplashScreenState.Intro:
+                        {
+                            Game.GraphicsContext.CommandList.Clear(Game.GraphicsContext.CommandList.RenderTarget, SplashScreenColor);
+
+                            if (gameTime.Total.TotalSeconds > SplashScreenFadeTime)
                             {
-                                Game.GraphicsContext.CommandList.Clear(Game.GraphicsContext.CommandList.RenderTarget, SplashScreenColor);
-
-                                if (gameTime.Total.TotalSeconds > SplashScreenFadeTime)
-                                {
-                                    splashScreenState = SplashScreenState.FadingIn;
-                                    fadeTime = 0.0f;
-                                }
-                                break;
+                                splashScreenState = SplashScreenState.FadingIn;
+                                fadeTime = 0.0f;
                             }
-                        case SplashScreenState.FadingIn:
+                            break;
+                        }
+                    case SplashScreenState.FadingIn:
+                        {
+                            var color = Color4.White;
+                            var factor = MathUtil.SmoothStep((float)fadeTime / SplashScreenFadeTime);
+                            color *= factor;
+                            if (factor >= 1.0f)
                             {
-                                var color = Color4.White;
-                                var factor = MathUtil.SmoothStep((float)fadeTime / SplashScreenFadeTime);
-                                color *= factor;
-                                if (factor >= 1.0f)
-                                {
-                                    splashScreenState = SplashScreenState.Showing;
-                                }
-
-                                fadeTime += gameTime.Elapsed.TotalSeconds;
-
-                                RenderSplashScreen(color, BlendStates.AlphaBlend);
-                                break;
+                                splashScreenState = SplashScreenState.Showing;
                             }
-                        case SplashScreenState.Showing:
+
+                            fadeTime += gameTime.Elapsed.TotalSeconds;
+
+                            RenderSplashScreen(color, BlendStates.AlphaBlend);
+                            break;
+                        }
+                    case SplashScreenState.Showing:
+                        {
+                            RenderSplashScreen(Color4.White, BlendStates.Default);
+
+                            if (gameTime.Total.TotalSeconds > MinSplashScreenTime && sceneTask.IsCompleted && compositorTask.IsCompleted)
                             {
-                                RenderSplashScreen(Color4.White, BlendStates.Default);
-
-                                if (gameTime.Total.TotalSeconds > MinSplashScreenTime && sceneTask.IsCompleted && compositorTask.IsCompleted)
-                                {
-                                    splashScreenState = SplashScreenState.FadingOut;
-                                    fadeTime = 0.0f;
-                                }
-                                break;
+                                splashScreenState = SplashScreenState.FadingOut;
+                                fadeTime = 0.0f;
                             }
-                        case SplashScreenState.FadingOut:
+                            break;
+                        }
+                    case SplashScreenState.FadingOut:
+                        {
+                            var color = Color4.White;
+                            var factor = (MathUtil.SmoothStep((float)fadeTime / SplashScreenFadeTime) * -1) + 1;
+                            color *= factor;
+                            if (factor <= 0.0f)
                             {
-                                var color = Color4.White;
-                                var factor = (MathUtil.SmoothStep((float)fadeTime / SplashScreenFadeTime) * -1) + 1;
-                                color *= factor;
-                                if (factor <= 0.0f)
-                                {
-                                    splashScreenState = SplashScreenState.Invalid;
-                                }
-
-                                fadeTime += gameTime.Elapsed.TotalSeconds;
-
-                                RenderSplashScreen(color, BlendStates.AlphaBlend);
-                                break;
+                                splashScreenState = SplashScreenState.Invalid;
                             }
-                    }
+
+                            fadeTime += gameTime.Elapsed.TotalSeconds;
+
+                            RenderSplashScreen(color, BlendStates.AlphaBlend);
+                            break;
+                        }
                 }
             }
         }
