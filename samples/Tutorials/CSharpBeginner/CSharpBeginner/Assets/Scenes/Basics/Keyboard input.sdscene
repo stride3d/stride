@@ -19,7 +19,7 @@ Hierarchy:
                 Components:
                     f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
                         Id: c6782912-86e4-4b95-a131-37275b5a8b31
-                        Position: {X: -2.05260038, Y: 0.214516684, Z: 0.0}
+                        Position: {X: -2.0526004, Y: 0.21451668, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -34,8 +34,8 @@ Hierarchy:
                 Components:
                     d5dd94550dc377d8b1703c74aae2cee5: !TransformComponent
                         Id: 854327f9-07d4-4bb6-9853-efed97edeaa4
-                        Position: {X: -1.3978529, Y: 1.55118775, Z: -2.76185822}
-                        Rotation: {X: -0.0304954071, Y: -0.969502568, Z: -0.170949474, W: 0.172948077}
+                        Position: {X: -1.3978529, Y: 1.5511878, Z: -2.7618582}
+                        Rotation: {X: -0.030495407, Y: -0.96950257, Z: -0.17094947, W: 0.17294808}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     f1cc2f84c67fbd3cc50a22dd0ef605a5: !CameraComponent
@@ -55,7 +55,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    4fe5a7fafcb74baba5cf8e60b39f71dc: !CSharpBeginner.Code.KeyboardInputDemo,CSharpBeginner.Game
+                    4f42dfdf90b016f8f4981c2121fb73b3: !CSharpBeginner.Code.KeyboardInputDemo,CSharpBeginner.Game
                         Id: ac3df878-785d-4a6d-a20f-3097a91634e9
                         BlueTeapot: ref!! 8cb12a7f-4d29-4a76-96f9-891bc5327ea6
                         YellowTeapot: ref!! c29e99d3-a22d-40cd-a186-47f86e45368f
@@ -66,7 +66,7 @@ Hierarchy:
                 Components:
                     f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
                         Id: 2e3cc2e8-f4ee-430f-b1b1-007e8656a529
-                        Position: {X: 1.94739974, Y: 0.214516684, Z: 0.0}
+                        Position: {X: 1.9473997, Y: 0.21451668, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -80,7 +80,7 @@ Hierarchy:
                 Components:
                     f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
                         Id: a9a26b2f-87ba-4560-807c-821feee82430
-                        Position: {X: -0.0526002645, Y: 0.214516684, Z: 0.0}
+                        Position: {X: -0.052600265, Y: 0.21451668, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}

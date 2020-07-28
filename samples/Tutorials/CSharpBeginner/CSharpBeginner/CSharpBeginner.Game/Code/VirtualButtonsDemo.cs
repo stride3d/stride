@@ -20,12 +20,16 @@ namespace CSharpBeginner.Code
             var forwardW = new VirtualButtonBinding("Forward", VirtualButton.Keyboard.W);
             var forwardUpArrow = new VirtualButtonBinding("Forward", VirtualButton.Keyboard.Up);
             var forwardLeftMouse = new VirtualButtonBinding("Forward", VirtualButton.Mouse.Left);
+            var forwardLeftTrigger = new VirtualButtonBinding("Forward", VirtualButton.GamePad.LeftTrigger);
 
             // Create a new virtual button configuration and add the virtual button bindings
-            var virtualButtonForward = new VirtualButtonConfig();
-            virtualButtonForward.Add(forwardW);
-            virtualButtonForward.Add(forwardUpArrow);
-            virtualButtonForward.Add(forwardLeftMouse);
+            var virtualButtonForward = new VirtualButtonConfig
+            {
+                forwardW,
+                forwardUpArrow,
+                forwardLeftMouse,
+                forwardLeftTrigger
+            };
 
             // Add the virtual button binding to the virtual button configuration
             Input.VirtualButtonConfigSet.Add(virtualButtonForward);
@@ -33,17 +37,20 @@ namespace CSharpBeginner.Code
 
         public override void Update()
         {
-            // We retrieve a float value from the virtual button. When the value is higher than 0, we know that we have at least one of the keys or mouse pressed
-            var movingForward = Input.GetVirtualButton(0, "Forward");
+            // We retrieve a float value from the virtual button. 
+            // When the value is higher than 0, we know that we have at least one of the keys or mouse pressed
+            // Keyboard and mouse return a value of 1 if they are being pressed.
+            // Gamepads can have a more accurate value depending on how far a trigger is being pressed
+            var forward = Input.GetVirtualButton(0, "Forward");
 
-            if (movingForward > 0)
+            if (forward > 0)
             {
                 var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
-                BlueTeapot.Transform.Rotation *= Quaternion.RotationY(0.6f * deltaTime);
+                BlueTeapot.Transform.Rotation *= Quaternion.RotationY(0.6f * forward * deltaTime);
             }
 
-            DebugText.Print("Hold down W, the Up arrow or the left mouse button, to rotate the blue teapot", new Int2(600, 200));
-            DebugText.Print("Virtual button 'Forward': " + movingForward, new Int2(600, 220));
+            DebugText.Print("Hold down W, the Up arrow the left mouse button or the Left trigger on a gamepad", new Int2(600, 200));
+            DebugText.Print("Virtual button 'Forward': " + forward, new Int2(600, 220));
         }
     }
 }
