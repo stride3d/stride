@@ -12,10 +12,10 @@ namespace CSharpBeginner.Code
         public override void Start()
         {
             // A prefab can be instantiated. Is does not give you a new prefab, but instead gives you a list of entities
-            var pileOfBoxesInstance1 = PileOfBoxesPrefab.Instantiate();
+            var pileOfBoxesInstance = PileOfBoxesPrefab.Instantiate();
 
             // An instantiated prefab does nothing and isn't visible untill we add it to the scene
-            Entity.Scene.Entities.AddRange(pileOfBoxesInstance1);
+            Entity.Scene.Entities.AddRange(pileOfBoxesInstance);
 
 
             // We can also load a prefab by using the Content.Load method
@@ -36,7 +36,7 @@ namespace CSharpBeginner.Code
         public override void Update()
         {
             DebugText.Print("The original prefab", new Int2(310, 320));
-            DebugText.Print("The prefab instance PileOfBoxes1", new Int2(560, 370));
+            DebugText.Print("The prefab instance PileOfBoxes", new Int2(560, 370));
             DebugText.Print("The prefab instance PileOfBoxes2 with custom parent", new Int2(565, 650));
         }
     }

@@ -16,7 +16,7 @@ Hierarchy:
                 Components:
                     2a1fffb9d6cd6e33cf1fccf1e5ded2fb: !TransformComponent
                         Id: 162b6b75-3f10-4699-ae3b-42b42559f053
-                        Position: {X: 0.0218823552, Y: 0.0, Z: -0.0419050753}
+                        Position: {X: 0.021882355, Y: 0.0, Z: -0.041905075}
                         Rotation: {X: 0.0, Y: 1.0, Z: 0.0, W: -4.371139E-08}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
@@ -31,7 +31,7 @@ Hierarchy:
                 Components:
                     2a1fffb9d6cd6e33cf1fccf1e5ded2fb: !TransformComponent
                         Id: 45c00818-e32a-42a2-b819-29235d975256
-                        Position: {X: 1.18740344, Y: 0.0, Z: -0.0419049747}
+                        Position: {X: 1.1874034, Y: 0.0, Z: -0.041904975}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 0.5, Y: 0.5, Z: 0.5}
                         Children: {}
@@ -39,14 +39,16 @@ Hierarchy:
                         Id: 553094b2-8ac6-460c-b96c-a40b03e4aa3a
                         Model: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd:Models/MaterialModel
                         Materials: {}
+                    bca68bb571b21f9a80c4d50838c04021: !CSharpBeginner.Code.GettingTheEntityDemo,CSharpBeginner.Game
+                        Id: e69c534f-d5c8-4606-9a18-e0e105494445
         -   Entity:
                 Id: a2e2cfe6-97bd-4f96-9930-ef8dea168845
                 Name: Camera
                 Components:
                     d5dd94550dc377d8b1703c74aae2cee5: !TransformComponent
                         Id: e33a8292-a713-482d-852a-3d3f83b51537
-                        Position: {X: 0.0127137, Y: 1.52712262, Z: -2.49302244}
-                        Rotation: {X: 5.70548142E-09, Y: 0.9914449, Z: 0.1305262, W: -4.33374332E-08}
+                        Position: {X: 0.0127137, Y: 1.5271226, Z: -2.4930224}
+                        Rotation: {X: 5.7054814E-09, Y: 0.9914449, Z: 0.1305262, W: -4.3337433E-08}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     f1cc2f84c67fbd3cc50a22dd0ef605a5: !CameraComponent

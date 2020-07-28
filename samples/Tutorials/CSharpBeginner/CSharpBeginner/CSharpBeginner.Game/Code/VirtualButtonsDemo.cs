@@ -40,15 +40,16 @@ namespace CSharpBeginner.Code
             // We retrieve a float value from the virtual button. 
             // When the value is higher than 0, we know that we have at least one of the keys or mouse pressed
             // Keyboard and mouse return a value of 1 if they are being pressed.
-            // Gamepads can have a more accurate value depending on how far a trigger is being pressed
+            // Gamepads can have a more accurate value between 0 and 1 depending on how far a trigger is being pressed
             var forward = Input.GetVirtualButton(0, "Forward");
 
+            // Note: Gamepad sticks can be a negative value. For this example we only check if the value is higher than 0
             if (forward > 0)
             {
                 var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
                 BlueTeapot.Transform.Rotation *= Quaternion.RotationY(0.6f * forward * deltaTime);
             }
-
+            
             DebugText.Print("Hold down W, the Up arrow the left mouse button or the Left trigger on a gamepad", new Int2(600, 200));
             DebugText.Print("Virtual button 'Forward': " + forward, new Int2(600, 220));
         }

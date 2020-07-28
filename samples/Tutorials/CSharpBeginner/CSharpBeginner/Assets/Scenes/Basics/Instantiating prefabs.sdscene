@@ -17,13 +17,14 @@ Hierarchy:
                 Components:
                     e240964d1b029eb2c580d343addd933c: !TransformComponent
                         Id: 4c85f530-9989-419b-8e3f-fe025f729435
-                        Position: {X: 0.005003929, Y: 0.0, Z: 2.9672484}
+                        Position: {X: 0.005003929, Y: 0.0, Z: 2.339822}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             5a4d9bf783863e8e4f74a2ff36d1190b: ref!! 165ef8f4-6f66-4695-9967-c9dabe174789
                             67969f06d690b43f1f5a1ca71194085d: ref!! 88b9e90a-de07-4695-a628-3d5bf50c46b9
                             e5ec290cc9e7bcdb62b7fbd3f5020956: ref!! 245d7d0c-f5b5-41ac-b2f7-f2c7eeb90dab
+                            8dbe26b129f571295fba4bf5e49ad08a: ref!! 542b4ef0-84b8-4f7d-883a-6f9a10459b38
         -   Entity:
                 Id: 148bdc13-37e7-4b3b-9bdd-7b19d6afe896
                 Name: Box1
@@ -73,7 +74,7 @@ Hierarchy:
                         Children: {}
                     c9eec379e64e59448c966648056579a1: !CSharpBeginner.Code.InstantiatingPrefabsDemo,CSharpBeginner.Game
                         Id: cb765d4d-e632-4564-bf8a-60419bf50a3c
-                        pileOfBoxesPrefab: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
+                        PileOfBoxesPrefab: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
         -   Entity:
                 Id: a07f23bb-242d-49b3-a40d-e155032f7b30
                 Name: Box2
@@ -110,6 +111,25 @@ Hierarchy:
                 BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
                 BasePartId: 1616b3e2-836f-443c-b07e-7b065c1bb4d2
                 InstanceId: 85feb828-e6b5-4a5d-b087-254226bbab50
+        -   Folder: null
+            Entity:
+                Id: b5f8dec0-6b2c-4b15-83a4-cb1712e640af
+                Name: Box3
+                Components:
+                    871611dfbf1309a5a1aacea7dbc0d8d0: !TransformComponent
+                        Id: 542b4ef0-84b8-4f7d-883a-6f9a10459b38
+                        Position: {X: 0.03315501, Y: 0.23164682, Z: -0.3597781}
+                        Rotation: {X: 0.0, Y: 0.08563991, Z: 0.0, W: -0.9963261}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
+                        Id: 5373e0a6-99b6-48af-8e4a-4aa98b6a7258
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
+                BasePartId: 1616b3e2-836f-443c-b07e-7b065c1bb4d2
+                InstanceId: 1b60b71e-1331-4ab0-bc02-1c54bf9914ad
         -   Entity:
                 Id: bc69ccc0-daa5-4172-821c-a6c7c737b918
                 Name: Child box 2
