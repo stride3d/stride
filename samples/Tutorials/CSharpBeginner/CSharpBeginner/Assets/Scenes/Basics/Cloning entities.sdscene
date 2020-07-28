@@ -18,8 +18,8 @@ Hierarchy:
                 Components:
                     53e58ce1c35e07b6d9f3c23aedfd4bad: !TransformComponent
                         Id: 7f3fb363-4d16-4b0c-a70d-d470c5a2f152
-                        Position: {X: 0.0, Y: 0.223615482, Z: 1.0}
-                        Rotation: {X: 0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Position: {X: 0.0, Y: 0.22361548, Z: 1.0}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     d39c34acc25c776a05897e9accc31423: !ModelComponent
@@ -32,8 +32,8 @@ Hierarchy:
                 Components:
                     d5dd94550dc377d8b1703c74aae2cee5: !TransformComponent
                         Id: d4916491-a028-4324-b557-2a3b44e2268e
-                        Position: {X: -1.44052744, Y: 1.71103644, Z: -0.810103238}
-                        Rotation: {X: -0.0301536918, Y: -0.969846249, Z: -0.171010062, W: 0.1710101}
+                        Position: {X: -1.4405274, Y: 1.7110364, Z: -0.81010324}
+                        Rotation: {X: -0.030153692, Y: -0.96984625, Z: -0.17101006, W: 0.1710101}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     f1cc2f84c67fbd3cc50a22dd0ef605a5: !CameraComponent
@@ -53,6 +53,6 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    f4e64960c2e34b31c5a22436daf82bd1: !CSharpBeginner.Code.CloneEntityDemo,CSharpBeginner.Game
+                    0a7f5c64d4d668cb4360838c0bb1f2af: !CSharpBeginner.Code.CloneEntityDemo,CSharpBeginner.Game
                         Id: d58eeb64-6c7f-42be-8cb4-d4819aef6f57
                         MasterSword: ref!! 346b2666-8a52-49c2-8a90-53d3e1aeec69
