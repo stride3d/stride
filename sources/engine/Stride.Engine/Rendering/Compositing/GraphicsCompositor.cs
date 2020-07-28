@@ -23,6 +23,11 @@ namespace Stride.Rendering.Compositing
     [DataSerializerGlobal(null, typeof(FastTrackingCollection<RootRenderFeature>))]
     public class GraphicsCompositor : RendererBase
     {
+        /// <summary>
+        /// A property key to get the current graphics compositor from the <see cref="RenderContext.Tags"/>.
+        /// </summary>
+        public static readonly PropertyKey<GraphicsCompositor> Current = new PropertyKey<GraphicsCompositor>("GraphicsCompositor.Current", typeof(GraphicsCompositor));
+
         private readonly List<SceneInstance> initializedSceneInstances = new List<SceneInstance>();
 
         /// <summary>
@@ -139,6 +144,7 @@ namespace Stride.Rendering.Compositing
                 using (context.RenderContext.PushTagAndRestore(SceneInstance.CurrentVisibilityGroup, visibilityGroup))
                 using (context.RenderContext.PushTagAndRestore(SceneInstance.CurrentRenderSystem, RenderSystem))
                 using (context.RenderContext.PushTagAndRestore(SceneCameraSlotCollection.Current, Cameras))
+                using (context.RenderContext.PushTagAndRestore(Current, this))
                 {
                     // Set render system
                     context.RenderContext.RenderSystem = RenderSystem;

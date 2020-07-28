@@ -23,7 +23,6 @@ namespace Stride.Engine.Tests
     {
         private CustomEntityManager entityManager;
         private GraphicsCompositor graphicsCompositor;
-        private SceneSystem sceneSystem;
         private RenderContext context;
 
         public TestCameraProcessor()
@@ -35,14 +34,12 @@ namespace Stride.Engine.Tests
 
             // Create graphics compositor
             graphicsCompositor = new GraphicsCompositor();
-            sceneSystem = new SceneSystem(services) { GraphicsCompositor = graphicsCompositor };
-            services.AddService(sceneSystem);
             var graphicsDevice = GraphicsDevice.New(DeviceCreationFlags.Debug);
             services.AddService<IGraphicsDeviceService>(new GraphicsDeviceServiceLocal(graphicsDevice));
             services.AddService(new EffectSystem(services));
             services.AddService(new GraphicsContext(graphicsDevice));
             context = RenderContext.GetShared(services);
-            context.PushTagAndRestore(SceneSystem.Current, sceneSystem);
+            context.PushTagAndRestore(GraphicsCompositor.Current, graphicsCompositor);
         }
 
         private CameraComponent AddCamera(bool enabled, SceneCameraSlotId slot)
@@ -189,7 +186,7 @@ namespace Stride.Engine.Tests
 
             // Change graphics compositor
             var newGraphicsCompositor = new GraphicsCompositor();
-            sceneSystem.GraphicsCompositor = newGraphicsCompositor;
+            context.PushTagAndRestore(GraphicsCompositor.Current, newGraphicsCompositor);
 
             cameraProcessor.Draw(context);
 

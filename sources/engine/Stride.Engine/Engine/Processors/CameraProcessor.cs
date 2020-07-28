@@ -27,7 +27,7 @@ namespace Stride.Engine.Processors
 
         public override void Draw(RenderContext context)
         {
-            var graphicsCompositor = context.Tags.Get(SceneSystem.Current)?.GraphicsCompositor;
+            var graphicsCompositor = context.Tags.Get(GraphicsCompositor.Current);
 
             // Monitor changes in the camera slots of the current compositor
             if (graphicsCompositor != currentCompositor)
