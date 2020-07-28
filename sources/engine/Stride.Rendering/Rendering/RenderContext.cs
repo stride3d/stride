@@ -73,10 +73,9 @@ namespace Stride.Rendering
         public IServiceRegistry Services { get; }
 
         /// <summary>
-        /// Gets the time.
+        /// Gets or sets the time.
         /// </summary>
-        /// <value>The time.</value>
-        public GameTime Time { get; internal set; }
+        public GameTime Time { get; set; }
 
         /// <summary>
         /// Gets the <see cref="GraphicsResource"/> allocator.
