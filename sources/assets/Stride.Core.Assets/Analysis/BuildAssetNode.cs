@@ -264,7 +264,7 @@ namespace Stride.Core.Assets.Analysis
 
             public override void VisitArray(Array array, ArrayDescriptor descriptor)
             {
-                if (!descriptor.ElementType.IsValueType)
+                if (!IsArrayOfPrimitveType(descriptor))
                 {
                     base.VisitArray(array, descriptor);
                 }

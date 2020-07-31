@@ -67,7 +67,7 @@ namespace Stride.Core.Assets
                 }
             }
 
-            if (!descriptor.ElementType.IsValueType)
+            if (!IsArrayOfPrimitveType(descriptor))
             {
                 base.VisitArray(array, descriptor);
             }

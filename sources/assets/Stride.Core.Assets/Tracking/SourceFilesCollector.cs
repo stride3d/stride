@@ -44,7 +44,7 @@ namespace Stride.Core.Assets.Tracking
 
         public override void VisitArray(Array array, ArrayDescriptor descriptor)
         {
-            if (!descriptor.ElementType.IsValueType)
+            if (!IsArrayOfPrimitveType(descriptor))
             {
                 base.VisitArray(array, descriptor);
             }

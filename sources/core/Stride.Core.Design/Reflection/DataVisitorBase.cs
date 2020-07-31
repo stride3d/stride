@@ -284,5 +284,13 @@ namespace Stride.Core.Reflection
             // true if not visited yet; otherwise, false
             return visitedObjects.Add(obj);
         }
+
+        /// <summary>
+        /// Check if an array is of primtive types, these can be skipped in most processors
+        /// </summary>
+        /// <param name="descriptor"></param>
+        /// <returns></returns>
+        protected bool IsArrayOfPrimitveType(ArrayDescriptor descriptor)
+            => descriptor.ElementType.IsPrimitive || descriptor.ElementType.IsEnum;
     }
 }
