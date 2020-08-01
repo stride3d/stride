@@ -290,7 +290,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        protected bool IsArrayOfPrimitveType(ArrayDescriptor descriptor)
-            => descriptor.ElementType.IsPrimitive || descriptor.ElementType.IsEnum;
+        protected bool IsArrayOfPrimitiveType(ArrayDescriptor descriptor)
+            => BlittableHelper.IsBlittable(descriptor.ElementType);
     }
 }
