@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single class
 using System;
+using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Updater;
