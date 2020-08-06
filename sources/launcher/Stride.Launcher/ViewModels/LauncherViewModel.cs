@@ -22,6 +22,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Metrics;
+using Stride.Core.VisualStudio;
 
 namespace Stride.LauncherApp.ViewModels
 {
@@ -177,8 +178,8 @@ namespace Stride.LauncherApp.ViewModels
 
                 await RetrieveServerStrideVersions();
                 await VsixPackage.UpdateFromStore();
-                await CheckForFirstInstall();
                 await VsixPackageXenko.UpdateFromStore();
+                await CheckForFirstInstall();
 
                 await newsTask;
             });
@@ -431,14 +432,14 @@ namespace Stride.LauncherApp.ViewModels
                     if (result == MessageBoxResult.Yes)
                     {
                         var versionToInstall = StrideVersions.First(x => x.CanBeDownloaded);
-                        versionToInstall.DownloadCommand.Execute();
+                        await versionToInstall.Download(true);
                     }
-                    if (VsixPackage != null && !VsixPackage.IsLatestVersionInstalled)
+                    if (!VsixPackage.IsLatestVersionInstalled && VisualStudioVersions.AvailableVisualStudioInstances.Any())
                     {
                         result = await ServiceProvider.Get<IDialogService>().MessageBox(Strings.AskInstallVSIX, MessageBoxButton.YesNo, MessageBoxImage.Question);
                         if (result == MessageBoxResult.Yes)
                         {
-                            VsixPackage.ExecuteActionCommand.Execute();
+                            await VsixPackage.ExecuteAction();
                         }
                     }
                 }

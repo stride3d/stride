@@ -37,19 +37,41 @@ namespace Stride.Rendering
         // Come after material surface per vertex
         mixin TransformationBase;
         mixin NormalStream;
-        mixin TransformationWAndVP;
 
-        // -----------------------------------------------
-        // Performs normal mapping (in case of no-skinning, otherwise it is overloaded below)
-        // -----------------------------------------------
-        if (MaterialKeys.HasNormalMap)
+        if (StrideEffectBaseKeys.HasInstancing)
         {
-            mixin NormalFromNormalMapping;
+            mixin macro StrideEffectBaseKeys.ModelTransformUsage;
+            mixin TransformationWAndVPInstanced;
+
+            // -----------------------------------------------
+            // Performs normal mapping (in case of no-skinning, otherwise it is overloaded below)
+            // -----------------------------------------------
+            if (MaterialKeys.HasNormalMap)
+            {
+                mixin NormalFromNormalMappingInstanced;
+            }
+            else
+            {
+                mixin NormalFromMeshInstanced;
+            }
         }
         else
         {
-            mixin NormalFromMesh;
+            mixin TransformationWAndVP;
+
+            // -----------------------------------------------
+            // Performs normal mapping (in case of no-skinning, otherwise it is overloaded below)
+            // -----------------------------------------------
+            if (MaterialKeys.HasNormalMap)
+            {
+                mixin NormalFromNormalMapping;
+            }
+            else
+            {
+                mixin NormalFromMesh;
+            }
         }
+
 
         // -----------------------------------------------
         // Performs animation skinning (position, normal and tangent)
@@ -57,7 +79,15 @@ namespace Stride.Rendering
         if (MaterialKeys.HasSkinningPosition)
         {
             mixin macro MaterialKeys.SkinningMaxBones;
-            mixin TransformationSkinning;
+
+            if (StrideEffectBaseKeys.HasInstancing)
+            {
+                mixin TransformationSkinningInstanced;
+            }
+            else
+            {
+                mixin TransformationSkinning;
+            }
 
             if (MaterialKeys.HasSkinningNormal)
             {

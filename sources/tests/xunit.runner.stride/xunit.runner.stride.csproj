@@ -1,7 +1,7 @@
 <Project Sdk="MSBuild.Sdk.Extras/2.0.87" ToolsVersion="Current">
   <Import Project="..\..\targets\Stride.Core.TargetFrameworks.Editor.props" />
   <PropertyGroup>
-    <TargetFrameworks>$(StrideEditorTargetFrameworks);net461</TargetFrameworks>
+    <TargetFrameworks>net461;$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideSkipAutoPack>false</StrideSkipAutoPack>
     <IsPackable>true</IsPackable>
   </PropertyGroup>

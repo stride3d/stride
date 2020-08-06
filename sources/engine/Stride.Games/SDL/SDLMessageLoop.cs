@@ -2,8 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_UI_SDL
 using System;
+using Stride.Graphics.SDL;
 
-namespace Stride.Graphics.SDL
+namespace Stride.Games
 {
         // Using is here otherwise it would conflict with the current namespace that also defines SDL.
     using SDL2;
@@ -26,7 +27,7 @@ namespace Stride.Graphics.SDL
     /// </code>
     /// Note that the main control can be changed at anytime inside the loop.
     /// </remarks>
-    internal class SDLMessageLoop : IDisposable
+    internal class SDLMessageLoop : IMessageLoop
     {
         private Window control;
         private bool isControlAlive;
@@ -71,12 +72,6 @@ namespace Stride.Graphics.SDL
                 switchControl = true;
             }
         }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [allow windowss keys].
-        /// </summary>
-        /// <value><c>true</c> if [allow windowss keys]; otherwise, <c>false</c>.</value>
-        public bool AllowWindowssKeys { get; set; }
 
         /// <summary>
         /// Calls this method on each frame.

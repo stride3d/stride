@@ -164,6 +164,16 @@ namespace Stride.Games
             base.Initialize();
         }
 
+        protected override void Destroy()
+        {
+            Presenter?.Dispose();
+            Presenter = null;
+            Window?.Dispose();
+            Window = null;
+
+            base.Destroy();
+        }
+
         private Vector2 GetRequestedSize(out PixelFormat format)
         {
             var bounds = Window.ClientBounds;

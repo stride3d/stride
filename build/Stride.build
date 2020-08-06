@@ -271,6 +271,7 @@ Example of use:
     
     <ItemGroup>
       <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Engine.Tests.Windows"/>
+      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Engine.NoAssets.Tests.Windows"/>
       <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.10_0.Windows"/>
       <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.Windows"/>
       <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Navigation.Tests.Windows"/>

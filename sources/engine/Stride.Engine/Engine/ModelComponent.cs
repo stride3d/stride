@@ -225,6 +225,10 @@ namespace Stride.Engine
             }
         }
 
+        /// <summary>
+        /// Updates the skeleton, skinning and bounding box with the associated transform component.
+        /// </summary>
+        /// <param name="transformComponent">The transform component.</param>
         internal void Update(TransformComponent transformComponent)
         {
             if (!Enabled || model == null)

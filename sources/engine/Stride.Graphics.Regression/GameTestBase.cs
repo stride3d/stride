@@ -301,7 +301,7 @@ namespace Stride.Graphics.Regression
                 SaveBackBuffer(testName);
         }
 
-        protected void PerformTest(Action<Game> testAction, GraphicsProfile? profileOverride = null, bool takeSnapshot = false)
+        protected void PerformTest(Action<GameTestBase> testAction, GraphicsProfile? profileOverride = null, bool takeSnapshot = false)
         {
             // create the game instance
             var typeGame = GetType();

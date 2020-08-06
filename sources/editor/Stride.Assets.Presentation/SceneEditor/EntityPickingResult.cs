@@ -34,6 +34,11 @@ namespace Stride.Assets.Presentation.SceneEditor
         public int MaterialIndex;
 
         /// <summary>
+        /// The instance index
+        /// </summary>
+        public int InstanceId;
+
+        /// <summary>
         /// Gets the component.
         /// </summary>
         public EntityComponent Component

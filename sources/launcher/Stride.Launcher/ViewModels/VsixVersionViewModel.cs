@@ -27,7 +27,7 @@ namespace Stride.LauncherApp.ViewModels
         {
             this.packageId = packageId;
             status = FormatStatus(Strings.ReportChecking);
-            ExecuteActionCommand = new AnonymousCommand(ServiceProvider, ExecuteAction) { IsEnabled = false };
+            ExecuteActionCommand = new AnonymousTaskCommand(ServiceProvider, ExecuteAction) { IsEnabled = false };
         }
 
         /// <inheritdoc/>
@@ -108,9 +108,9 @@ namespace Stride.LauncherApp.ViewModels
             ServerPackage = await Launcher.RunLockTask(() => Store.FindSourcePackagesById(packageId, CancellationToken.None).Result.OrderByDescending(p => p.Version).FirstOrDefault());
         }
 
-        private void ExecuteAction()
+        public async Task ExecuteAction()
         {
-            Task.Run(async () =>
+            await Task.Run(async () =>
             {
                 await Download(false);
 

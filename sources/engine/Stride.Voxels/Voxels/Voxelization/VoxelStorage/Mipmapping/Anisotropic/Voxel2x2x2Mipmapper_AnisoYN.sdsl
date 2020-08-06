@@ -1,4 +1,6 @@
-﻿namespace Stride.Rendering.Voxels
+﻿// Copyright (c) Stride contributors (https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Voxels
 {
     shader Voxel2x2x2Mipmapper_AnisoYN : Voxel2x2x2Mipmapper
     {

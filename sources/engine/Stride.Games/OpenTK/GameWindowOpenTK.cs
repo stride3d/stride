@@ -134,6 +134,11 @@ namespace Stride.Games
             }
         }
 
+        public override IMessageLoop CreateUserManagedMessageLoop()
+        {
+            return new OpenTKMessageLoop(gameForm);
+        }
+
         private void GameWindowForm_MouseEnter(object sender, System.EventArgs e)
         {
             if (!isMouseVisible && !isMouseCurrentlyHidden)

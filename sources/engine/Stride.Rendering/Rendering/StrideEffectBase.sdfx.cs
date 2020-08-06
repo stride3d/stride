@@ -49,19 +49,42 @@ namespace Stride.Rendering
                 }
                 context.Mixin(mixin, "TransformationBase");
                 context.Mixin(mixin, "NormalStream");
-                context.Mixin(mixin, "TransformationWAndVP");
-                if (context.GetParam(MaterialKeys.HasNormalMap))
+                if (context.GetParam(StrideEffectBaseKeys.HasInstancing))
                 {
-                    context.Mixin(mixin, "NormalFromNormalMapping");
+                    mixin.AddMacro("ModelTransformUsage", context.GetParam(StrideEffectBaseKeys.ModelTransformUsage));
+                    context.Mixin(mixin, "TransformationWAndVPInstanced");
+                    if (context.GetParam(MaterialKeys.HasNormalMap))
+                    {
+                        context.Mixin(mixin, "NormalFromNormalMappingInstanced");
+                    }
+                    else
+                    {
+                        context.Mixin(mixin, "NormalFromMeshInstanced");
+                    }
                 }
                 else
                 {
-                    context.Mixin(mixin, "NormalFromMesh");
+                    context.Mixin(mixin, "TransformationWAndVP");
+                    if (context.GetParam(MaterialKeys.HasNormalMap))
+                    {
+                        context.Mixin(mixin, "NormalFromNormalMapping");
+                    }
+                    else
+                    {
+                        context.Mixin(mixin, "NormalFromMesh");
+                    }
                 }
                 if (context.GetParam(MaterialKeys.HasSkinningPosition))
                 {
                     mixin.AddMacro("SkinningMaxBones", context.GetParam(MaterialKeys.SkinningMaxBones));
-                    context.Mixin(mixin, "TransformationSkinning");
+                    if (context.GetParam(StrideEffectBaseKeys.HasInstancing))
+                    {
+                        context.Mixin(mixin, "TransformationSkinningInstanced");
+                    }
+                    else
+                    {
+                        context.Mixin(mixin, "TransformationSkinning");
+                    }
                     if (context.GetParam(MaterialKeys.HasSkinningNormal))
                     {
                         context.Mixin(mixin, "NormalMeshSkinning");

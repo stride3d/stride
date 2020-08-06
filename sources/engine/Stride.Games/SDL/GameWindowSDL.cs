@@ -187,6 +187,11 @@ namespace Stride.Games
             }
         }
 
+        public override IMessageLoop CreateUserManagedMessageLoop()
+        {
+            return new SDLMessageLoop(window);
+        }
+
         private void WindowOnMouseEnterActions(SDL.SDL_WindowEvent sdlWindowEvent)
         {
             if (!isMouseVisible && !isMouseCurrentlyHidden)

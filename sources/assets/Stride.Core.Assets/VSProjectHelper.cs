@@ -227,6 +227,7 @@ namespace Stride.Core.Assets
             }
 
             // We need to go through them one by one (because a MSBuild Condition might depend on previous step)
+            // TODO: We should deduct TFM from referencing project(s) (if any) rather than default one.
             TryReloadWithFirstValue("TargetFramework", "TargetFrameworks");
             TryReloadWithFirstValue("RuntimeIdentifier", "RuntimeIdentifiers");
             TryReloadWithFirstValue("StrideGraphicsApi", "StrideGraphicsApis");

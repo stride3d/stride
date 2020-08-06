@@ -57,12 +57,10 @@ namespace Stride.VisualStudio.Commands
         {
             var assemblyName = new AssemblyName(args.Name);
 
-            // Necessary to avoid conflicts with Visual Studio NuGet
-            if (args.Name.StartsWith("NuGet", StringComparison.InvariantCultureIgnoreCase))
+            // Non-signed assemblies need to be manually loaded
+            if (assemblyName.Name == "ServiceWire")
                 return Assembly.Load(assemblyName);
-            if (args.Name.StartsWith("ServiceWire", StringComparison.InvariantCultureIgnoreCase))
-                return Assembly.Load(assemblyName);
-            if (args.Name.StartsWith("Stride.VisualStudio.Commands.Interfaces", StringComparison.InvariantCultureIgnoreCase))
+            if (assemblyName.Name == "Stride.VisualStudio.Commands.Interfaces")
                 return Assembly.Load(assemblyName);
 
             return null;
@@ -178,7 +176,8 @@ namespace Stride.VisualStudio.Commands
                 foreach (var framework in new[] { ".NETCoreApp,Version=v3.1", ".NETFramework,Version=v4.7.2" })
                 {
                     var logger = new Logger();
-                    var (request, result) = await Task.Run(() => RestoreHelper.Restore(logger, NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance), "win", packageName, new VersionRange(packageInfo.ExpectedVersion.ToNuGetVersion())));
+                    var solutionRoot = Path.GetDirectoryName(solution);
+                    var (request, result) = await Task.Run(() => RestoreHelper.Restore(logger, NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance), "win", packageName, new VersionRange(packageInfo.ExpectedVersion.ToNuGetVersion()), solutionRoot));
                     if (result.Success)
                     {
                         packageInfo.SdkPaths.AddRange(RestoreHelper.ListAssemblies(result.LockFile));
@@ -189,9 +188,7 @@ namespace Stride.VisualStudio.Commands
                 }
                 if (!success)
                 {
-                    MessageBox.Show($"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it."
-                                        + $"To fix this you can either build {packageName} or pull the right version from nugget manually");
-                    throw new InvalidOperationException($"Could not restore {packageName} {packageInfo.ExpectedVersion}.");
+                    throw new InvalidOperationException($"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it. To fix this you can either build {packageName} or pull the right version from nugget manually");
                 }
             }
 
@@ -282,10 +279,14 @@ namespace Stride.VisualStudio.Commands
             return new NuGetVersion(version.Version, version.SpecialVersion);
         }
 
-
-        internal static void InitializeFromSolution(string solutionPath, PackageInfo stridePackageInfo)
+        internal static void SetSolution(string solutionPath)
         {
             solution = solutionPath;
+        }
+
+
+        internal static void SetPackageInfo(PackageInfo stridePackageInfo)
+        {
             CurrentPackageInfo = stridePackageInfo;
         }
 
