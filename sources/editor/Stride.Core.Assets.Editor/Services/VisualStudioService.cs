@@ -8,6 +8,7 @@ using System.Management;
 using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Editor;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.VisualStudio;
@@ -61,22 +62,25 @@ namespace Stride.Core.Assets.Editor.Services
         {
             if (!await CheckCanOpenSolution(session))
                 return null;
+            
+            var editorInfo = ToEditorInfo(ideInfo);
 
             var startInfo = new ProcessStartInfo();
-            if (ideInfo == null)
+
+            if (editorInfo == null)
             {
                 var defaultIDEName = EditorSettings.DefaultIDE.GetValue();
 
                 if (!EditorSettings.DefaultIDE.GetAcceptableValues().Contains(defaultIDEName))
                     defaultIDEName = EditorSettings.DefaultIDE.DefaultValue;
 
-                ideInfo = VisualStudioVersions.AvailableVisualStudioInstances.FirstOrDefault(x => x.DisplayName == defaultIDEName) ?? VisualStudioVersions.DefaultIDE;
+                editorInfo = ExternalEditors.AvailableEditors.FirstOrDefault(x => x.DisplayName == defaultIDEName) ?? ExternalEditors.DefaultIDE;
             }
 
             // It will be null if either "Default", or if not available anymore (uninstalled?)
-            if (ideInfo.DevenvPath != null && File.Exists(ideInfo.DevenvPath))
+            if (editorInfo.Path != null && File.Exists(editorInfo.Path))
             {
-                startInfo.FileName = ideInfo.DevenvPath;
+                startInfo.FileName = editorInfo.Path;
                 startInfo.Arguments = $"\"{session.SolutionPath}\"";
             }
             else
@@ -92,6 +96,14 @@ namespace Stride.Core.Assets.Editor.Services
                 await session.Dialogs.MessageBox(Tr._p("Message", "An error occurred while starting Visual Studio."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return null;
             }
+        }
+
+        private static EditorInfo ToEditorInfo(IDEInfo ideInfo)
+        {
+            EditorInfo editorInfo = null;
+            if (ideInfo != null)
+                editorInfo = new EditorInfo(ideInfo.Version, ideInfo.DisplayName, ideInfo.DevenvPath);
+            return editorInfo;
         }
 
         private static async Task<bool> CheckCanOpenSolution(SessionViewModel session)
