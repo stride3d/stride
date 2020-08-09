@@ -59,6 +59,12 @@ namespace Stride.Core.Assets
             // Note: we perform nuget restore inside the assembly resolver rather than top level module ctor (otherwise it freezes)
             AppDomain.CurrentDomain.AssemblyResolve += (sender, eventArgs) =>
             {
+                // Check if already loaded.
+                // Somehow it happens for Microsoft.NET.Build.Tasks -> NuGet.ProjectModel, probably due to the specific way it's loaded.
+                var matchingAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.FullName == eventArgs.Name);
+                if (matchingAssembly != null)
+                    return matchingAssembly;
+
                 if (!assembliesResolved)
                 {
                     lock (assembliesLock)
