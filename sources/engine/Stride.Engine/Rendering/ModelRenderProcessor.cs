@@ -122,10 +122,14 @@ namespace Stride.Rendering
         {
             renderMesh.MaterialPass = materialPass;
 
-            renderMesh.IsShadowCaster = modelComponent.IsShadowCaster;
+            var isShadowCaster = modelComponent.IsShadowCaster;
             if (modelMaterialInstance != null)
+                isShadowCaster &= modelMaterialInstance.IsShadowCaster;
+
+            if (isShadowCaster != renderMesh.IsShadowCaster)
             {
-                renderMesh.IsShadowCaster = renderMesh.IsShadowCaster && modelMaterialInstance.IsShadowCaster;
+                renderMesh.IsShadowCaster = isShadowCaster;
+                VisibilityGroup.NeedActiveRenderStageReevaluation = true;
             }
         }
 
