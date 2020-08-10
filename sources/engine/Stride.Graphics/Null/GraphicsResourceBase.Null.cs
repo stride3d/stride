@@ -23,6 +23,7 @@ namespace Stride.Graphics
         /// </summary>
         protected internal virtual void OnDestroyed()
         {
+            Destroyed?.Invoke(this, EventArgs.Empty);
             NullHelper.ToImplement();
         }
 
