@@ -11,6 +11,7 @@ using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using PointUWP = Windows.Foundation.Point;
+using Windows.Devices.Input;
 
 namespace Stride.Input
 {
@@ -18,7 +19,7 @@ namespace Stride.Input
     {
         private MouseDeviceStateUWP mouseState;
         private bool isPositionLocked;
-        private PointUWP capturedPosition;
+        private CoreCursor previousCursor;
         
         public MouseUWP(InputSourceUWP source, CoreWindow uiControl)
             : base(source, uiControl)
@@ -64,17 +65,7 @@ namespace Stride.Input
 
         protected override void UIControlOnPointerMoved(CoreWindow o, PointerEventArgs args)
         {
-            if (isPositionLocked)
-            {
-                var position = args.CurrentPoint.Position;
-                position.X += UIControl.Bounds.Left;
-                position.Y += UIControl.Bounds.Top;
-                mouseState.HandleMouseDelta(new Vector2(
-                    (float)position.X - (float)capturedPosition.X, 
-                    (float)position.Y - (float)capturedPosition.Y));
-                UIControl.PointerPosition = capturedPosition;
-            }
-            else
+            if (!isPositionLocked)
             {
                 mouseState.HandlePointerMoved(args.CurrentPoint);
             }
@@ -90,19 +81,26 @@ namespace Stride.Input
             var position = normalizedPosition * SurfaceSize;
             UIControl.PointerPosition = new PointUWP(position.X, position.Y);
         }
+
+        private void OnRelativeMouseMoved(MouseDevice sender, MouseEventArgs args)
+        {
+            mouseState.HandleMouseDelta( new Vector2((float)args.MouseDelta.X, (float)args.MouseDelta.Y));
+        }
         
         public void LockPosition(bool forceCenter = false)
         {
             if (!isPositionLocked)
             {
-                capturedPosition = UIControl.PointerPosition;
+                MouseDevice.GetForCurrentView().MouseMoved += OnRelativeMouseMoved;
+                previousCursor = UIControl.PointerCursor;
+                UIControl.PointerCursor = null;
                 if (forceCenter)
                 {
-                    capturedPosition = new PointUWP(UIControl.Bounds.Left, UIControl.Bounds.Top);
+                    var capturedPosition = new PointUWP(UIControl.Bounds.Left, UIControl.Bounds.Top);
                     capturedPosition.X += UIControl.Bounds.Width / 2;
                     capturedPosition.Y += UIControl.Bounds.Height / 2;
+                    UIControl.PointerPosition = capturedPosition;
                 }
-                UIControl.PointerPosition = capturedPosition;
                 isPositionLocked = true;
             }
         }
@@ -111,6 +109,9 @@ namespace Stride.Input
         {
             if (isPositionLocked)
             {
+                MouseDevice.GetForCurrentView().MouseMoved -= OnRelativeMouseMoved;
+                UIControl.PointerCursor = previousCursor;
+                previousCursor = null;
                 isPositionLocked = false;
             }
         }

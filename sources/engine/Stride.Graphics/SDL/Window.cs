@@ -388,6 +388,11 @@ namespace Stride.Graphics.SDL
             }
         }
 
+        public void SetRelativeMouseMode(bool enabled)
+        {
+            SDL.SDL_SetRelativeMouseMode(enabled ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
+        }
+
         // Events that one can hook up.
         public delegate void MouseButtonDelegate(SDL.SDL_MouseButtonEvent e);
         public delegate void MouseMoveDelegate(SDL.SDL_MouseMotionEvent e);
