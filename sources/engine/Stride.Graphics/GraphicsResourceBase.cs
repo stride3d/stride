@@ -19,6 +19,12 @@ namespace Stride.Graphics
             get;
             private set;
         }
+
+        /// <summary>
+        /// Raised when the internal graphics resource gets destroyed. 
+        /// This event is useful when user allocated handles associated with the internal resource need to be released.
+        /// </summary>
+        public event EventHandler<EventArgs> Destroyed;
         
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphicsResourceBase"/> class.
