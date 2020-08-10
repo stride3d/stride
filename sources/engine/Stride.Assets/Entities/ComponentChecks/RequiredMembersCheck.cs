@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using Stride.Core.Annotations;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
+using Stride.Core.Reflection;
 using Stride.Engine;
 
 namespace Stride.Assets.Entities.ComponentChecks
@@ -21,35 +23,21 @@ namespace Stride.Assets.Entities.ComponentChecks
         /// <inheritdoc/>
         public void Check(EntityComponent component, Entity entity, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
         {
-            var type = component.GetType();
-            var componentName = type.Name; // QUESTION: Should we check attributes for another name?
+            var typeDescriptor = TypeDescriptorFactory.Default.Find(component.GetType());
+            var componentName = typeDescriptor.Type.Name; // Should we check attributes for another name?
 
-            var fields = type.GetFields(); // public fields, only those can be serialized?
-            var properties = type.GetRuntimeProperties(); // all properties may have a DataMember attribute
+            var members = typeDescriptor.Members;
 
-            foreach (var field in fields)
+            foreach (var member in members)
             {
-                if (field.FieldType.IsValueType)
+                if (member.Type.IsValueType)
                     continue; // value types cannot be null, and must always have a proper default value
 
                 MemberRequiredAttribute memberRequired;
-                if ((memberRequired = field.GetCustomAttribute<MemberRequiredAttribute>()) != null)
+                if ((memberRequired = member.GetCustomAttributes<MemberRequiredAttribute>(false).FirstOrDefault()) != null)
                 {
-                    if (field.GetValue(component) == null)
-                        WriteResult(result, componentName, targetUrlInStorage, entity.Name, field.Name, memberRequired.ReportAs);
-                }
-            }
-
-            foreach (var prop in properties)
-            {
-                if (prop.PropertyType.IsValueType)
-                    continue; // value types cannot be null, and must always have a proper default value
-
-                MemberRequiredAttribute memberRequired;
-                if ((memberRequired = prop.GetCustomAttribute<MemberRequiredAttribute>()) != null)
-                {
-                    if (prop.GetValue(component) == null)
-                        WriteResult(result, componentName, targetUrlInStorage, entity.Name, prop.Name, memberRequired.ReportAs);
+                    if (member.Get(component) == null)
+                        WriteResult(result, componentName, targetUrlInStorage, entity.Name, member.Name, memberRequired.ReportAs);
                 }
             }
         }

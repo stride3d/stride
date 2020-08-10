@@ -23,8 +23,10 @@ namespace Stride.Assets.Tests
             // that presence of the attribute gives a warning
             [MemberRequired] public object PublicField;
             [MemberRequired] public object PublicProp { get; set; }
-            [MemberRequired] private object PrivateProp { get; set; }
-            [MemberRequired] protected object ProtectedProp { get; set; }
+            [MemberRequired]
+            [DataMember] private object PrivateProp { get; set; }
+            [MemberRequired]
+            [DataMember] protected object ProtectedProp { get; set; }
             public MemberRequiredComponent(object privateData, object protectedData)
             {
                 PrivateProp = privateData;
