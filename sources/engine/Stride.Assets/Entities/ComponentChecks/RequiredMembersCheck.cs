@@ -34,7 +34,7 @@ namespace Stride.Assets.Entities.ComponentChecks
                     continue; // value types cannot be null, and must always have a proper default value
 
                 MemberRequiredAttribute memberRequired;
-                if ((memberRequired = member.GetCustomAttributes<MemberRequiredAttribute>(false).FirstOrDefault()) != null)
+                if ((memberRequired = member.GetCustomAttributes<MemberRequiredAttribute>(true).FirstOrDefault()) != null)
                 {
                     if (member.Get(component) == null)
                         WriteResult(result, componentName, targetUrlInStorage, entity.Name, member.Name, memberRequired.ReportAs);

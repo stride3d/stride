@@ -12,11 +12,17 @@ namespace Stride.Assets.Tests
     /// </summary>
     public class TestMemberRequiredComponentChecks
     {
+        [DataContract]
+        public abstract class VirtualBaseComponent : EntityComponent
+        {
+            [MemberRequired] public virtual object VirtualProp { get; set; }
+        }
+
         /// <summary>
         /// Test component that has <see cref="MemberRequiredAttribute"/> on serializable members.
         /// </summary>
         [DataContract]
-        public class MemberRequiredComponent : EntityComponent
+        public class MemberRequiredComponent : VirtualBaseComponent
         {
             // We won't test the (ReportAs = Error) case
             // it would duplicate tests and it's more important to assert
@@ -27,6 +33,7 @@ namespace Stride.Assets.Tests
             [DataMember] private object PrivateProp { get; set; }
             [MemberRequired]
             [DataMember] protected object ProtectedProp { get; set; }
+            public override object VirtualProp { get; set; } = new object();
             public MemberRequiredComponent(object privateData, object protectedData)
             {
                 PrivateProp = privateData;
@@ -118,6 +125,19 @@ namespace Stride.Assets.Tests
             Assert.True(check.AppliesTo(memberRequiredComponent.GetType()));
             check.Check(memberRequiredComponent, entity, null, "", result);
             Assert.Equal(4, result.Messages.Count);
+        }
+
+        [Fact]
+        void EntityIsMissingRequiredMember_VirtualProp()
+        {
+            var memberRequiredComponent = new MemberRequiredComponent(new object(), new object())
+            {
+                PublicProp = new object(),
+                PublicField = new object(),
+                VirtualProp = null,
+            };
+            var memberName = nameof(memberRequiredComponent.VirtualProp);
+            TestSingle(memberRequiredComponent, memberName);
         }
 
         private static void TestSingle(MemberRequiredComponent memberRequiredComponent, string memberName)
