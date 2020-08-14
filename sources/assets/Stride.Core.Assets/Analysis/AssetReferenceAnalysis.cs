@@ -98,6 +98,14 @@ namespace Stride.Core.Assets.Analysis
 
             public List<AssetReferenceLink> References { get; set; }
 
+            public override void VisitArray(Array array, ArrayDescriptor descriptor)
+            {
+                if (!IsArrayOfPrimitiveType(descriptor))
+                {
+                    base.VisitArray(array, descriptor);
+                }
+            }
+
             public override void VisitArrayItem(Array array, ArrayDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
             {
                 base.VisitArrayItem(array, descriptor, index, item, itemDescriptor);
