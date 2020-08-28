@@ -128,7 +128,7 @@ namespace Stride.Input.RawInput
             return RegisterDevice(device);
         }
 
-        public static unsafe RawInputData* GetRawInputData(IntPtr lParam)
+        public static unsafe RawInputData GetRawInputData(IntPtr lParam)
         {
             uint cbSize = 0;
             Win32.GetRawInputData(lParam, (uint)RawInputDataType.RID_INPUT, IntPtr.Zero, ref cbSize, (uint)sizeof(RawInputHeader));
@@ -138,7 +138,7 @@ namespace Stride.Input.RawInput
             }
             var buffer = stackalloc byte[(int)cbSize];
             var count = Win32.GetRawInputData(lParam, (uint)RawInputDataType.RID_INPUT, (IntPtr)buffer, ref cbSize, (uint)sizeof(RawInputHeader));
-            return (RawInputData*)buffer;
+            return *(RawInputData*)buffer;
         }
     }
 }
