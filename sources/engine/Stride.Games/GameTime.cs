@@ -120,9 +120,7 @@ namespace Stride.Games
             set 
             {
                 // TODO: Use pattern matching for a clearer code
-                if (value > 1)
-                    factor = 1;
-                else if (value < 0)
+                if (value < 0)
                     factor = 0;
                 else
                     factor = value;
