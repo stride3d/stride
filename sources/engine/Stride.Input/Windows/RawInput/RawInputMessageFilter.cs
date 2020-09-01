@@ -27,18 +27,27 @@ namespace Stride.Input.RawInput
         {
             if (m.Msg == WM_INPUT)
             {
-                var rawInput = RawInput.GetRawInputData(m.LParam);
-                switch (rawInput.header.dwType)
+                uint cbSize = 0;
+                Win32.GetRawInputData(m.LParam, (uint)RawInputDataType.RID_INPUT, IntPtr.Zero, ref cbSize, (uint)sizeof(RawInput.RawInputHeader));
+                if (cbSize == 0)
+                {
+                    return false;
+                }
+                var buffer = stackalloc byte[(int)cbSize];
+                var count = Win32.GetRawInputData(m.LParam, (uint)RawInputDataType.RID_INPUT, (IntPtr)buffer, ref cbSize, (uint)sizeof(RawInput.RawInputHeader));
+                var rawInput = (RawInput.RawInputData*)buffer;
+
+                switch (rawInput->header.dwType)
                 {
                     case 0: // Mouse
-                        mouseInputHandler?.Invoke(rawInput.data.Mouse);
+                        mouseInputHandler?.Invoke(rawInput->data.Mouse);
                         break;
                     case 1: // Keyboard
-                        keyboardInputHandler?.Invoke(rawInput.data.Keyboard);
+                        keyboardInputHandler?.Invoke(rawInput->data.Keyboard);
                         break;
                     case 2: // HID
-                        var byteData = RawInput.GetHIDRawData(ref rawInput.data.Hid);
-                        var data = (rawInput.data.Hid.dwCount, rawInput.data.Hid.dwSizeHid, byteData);
+                        var byteData = RawInput.GetHIDRawData(ref rawInput->data.Hid);
+                        var data = (rawInput->data.Hid.dwCount, rawInput->data.Hid.dwSizeHid, byteData);
                         hidInputHandler?.Invoke(data);
                         break;
                 }
