@@ -137,7 +137,7 @@ namespace Stride.Games
         {
         }
 
-        private void InitGraphicsDeviceService()
+        protected void InitGraphicsDeviceService()
         {
             if (graphicsDeviceService == null)
             {
