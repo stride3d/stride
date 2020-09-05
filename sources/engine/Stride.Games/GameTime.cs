@@ -111,9 +111,11 @@ namespace Stride.Games
 
 
         /// <summary>
-        /// Gets or sets the time factor for the time factor.
+        /// Gets or sets the time factor.<br/>
+        /// This value controls how much the warped time flows, this includes physics, animations and particles.
+        /// A value between 0 and 1 will slow time, a value above 1 will make it faster.
         /// </summary>
-        /// <value>The multiply factor, a double between 0 and 1.</value>
+        /// <value>The multiply factor, a double value higher or equal to 0</value>
         public static double Factor
         {
             get => factor; 
