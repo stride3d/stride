@@ -1,18 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\targets\Stride.props" />
 
   <PropertyGroup>
     <StridePackAssets>true</StridePackAssets>
     <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <EnableDefaultItems>false</EnableDefaultItems>
+    <DefineConstants Condition="'$(StridePackageBuild)' == 'true'">$(DefineConstants);STRIDE_PACKAGE_BUILD</DefineConstants>
     <!-- Extract PackageVersion from ThisPackageVersion.cs -->
-    <_StrideThisPackageVersionLines>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)ThisPackageVersion.cs'))</_StrideThisPackageVersionLines>
+    <_StrideThisPackageVersionFile Condition="'$(StridePackageBuild)' == 'true'">$(MSBuildThisFileDirectory)ThisPackageVersion.PackageBuild.cs</_StrideThisPackageVersionFile>
+    <_StrideThisPackageVersionFile Condition="'$(StridePackageBuild)' != 'true'">$(MSBuildThisFileDirectory)ThisPackageVersion.DevBuild.cs</_StrideThisPackageVersionFile>
+    <_StrideThisPackageVersionLines>$([System.IO.File]::ReadAllText('$(_StrideThisPackageVersionFile)'))</_StrideThisPackageVersionLines>
     <PackageVersion>$([System.Text.RegularExpressions.Regex]::Match($(_StrideThisPackageVersionLines), `.*Current = \"(.*)\";.*`).Groups[1].Value)</PackageVersion>
   </PropertyGroup>
 
   <Import Project="$(StrideSdkTargets)" />
 
   <ItemGroup>
-    <Compile Include="ThisPackageVersion.cs" />
+    <Compile Include="ThisPackageVersion.PackageBuild.cs" />
+    <Compile Include="ThisPackageVersion.DevBuild.cs" />
   </ItemGroup>
 </Project>
