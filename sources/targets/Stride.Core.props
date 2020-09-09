@@ -265,6 +265,7 @@
   <PropertyGroup>
     <DefineConstants>$(StridePlatformDefines);$(DefineConstants)</DefineConstants>
     <DefineConstants Condition="'$(StrideNETRuntimeDefines)' != ''">$(DefineConstants);$(StrideNETRuntimeDefines)</DefineConstants>
+    <DefineConstants Condition="'$(StridePackageBuild)' == 'true'">$(DefineConstants);STRIDE_PACKAGE_BUILD</DefineConstants>
   </PropertyGroup>
 
   <!-- SourceLink -->

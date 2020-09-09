@@ -5,7 +5,6 @@
     <StridePackAssets>true</StridePackAssets>
     <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <EnableDefaultItems>false</EnableDefaultItems>
-    <DefineConstants Condition="'$(StridePackageBuild)' == 'true'">$(DefineConstants);STRIDE_PACKAGE_BUILD</DefineConstants>
     <!-- Extract PackageVersion from ThisPackageVersion.cs -->
     <_StrideThisPackageVersionFile Condition="'$(StridePackageBuild)' == 'true'">$(MSBuildThisFileDirectory)ThisPackageVersion.PackageBuild.cs</_StrideThisPackageVersionFile>
     <_StrideThisPackageVersionFile Condition="'$(StridePackageBuild)' != 'true'">$(MSBuildThisFileDirectory)ThisPackageVersion.DevBuild.cs</_StrideThisPackageVersionFile>
