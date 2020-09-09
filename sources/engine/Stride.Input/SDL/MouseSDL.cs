@@ -16,7 +16,6 @@ namespace Stride.Input
         private readonly Window uiControl;
 
         private bool isMousePositionLocked;
-        private bool wasMouseVisibleBeforeCapture;
         private Point relativeCapturedPosition;
 
         public MouseSDL(InputSourceSDL source, GameBase game, Window uiControl)
@@ -54,19 +53,16 @@ namespace Stride.Input
         {
             if (!IsPositionLocked)
             {
-                wasMouseVisibleBeforeCapture = game.IsMouseVisible;
-                game.IsMouseVisible = false;
-
                 if (forceCenter)
                 {
-                    // Take the center of the client area as the captured position and move the cursor to that position
                     relativeCapturedPosition = new Point(uiControl.ClientSize.Width / 2, uiControl.ClientSize.Height / 2);
-                    uiControl.RelativeCursorPosition = relativeCapturedPosition;
                 }
                 else
                 {
                     relativeCapturedPosition = uiControl.RelativeCursorPosition;
                 }
+
+                uiControl.SetRelativeMouseMode(true);
 
                 isMousePositionLocked = true;
             }
@@ -76,9 +72,10 @@ namespace Stride.Input
         {
             if (IsPositionLocked)
             {
+                uiControl.SetRelativeMouseMode(false);
+                uiControl.RelativeCursorPosition = relativeCapturedPosition;
                 isMousePositionLocked = false;
                 relativeCapturedPosition = Point.Zero;
-                game.IsMouseVisible = wasMouseVisibleBeforeCapture;
             }
         }
 
@@ -117,11 +114,7 @@ namespace Stride.Input
         {
             if (IsPositionLocked)
             {
-                MouseState.HandleMouseDelta(new Vector2(e.x - relativeCapturedPosition.X, e.y - relativeCapturedPosition.Y));
-
-                // Restore position to prevent mouse from going out of the window where we would not get
-                // mouse move event.
-                uiControl.RelativeCursorPosition = relativeCapturedPosition;
+                MouseState.HandleMouseDelta(new Vector2(e.xrel, e.yrel));
             }
             else
             {

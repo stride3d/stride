@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideRuntimeWindowsDotNet>true</StrideRuntimeWindowsDotNet>
@@ -27,8 +27,8 @@
     <PackageReference Include="SharpDX.RawInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))" />
     <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
     <PackageReference Include="SharpDX.XInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.7.1" Condition="'$(StridePlatform)' == 'Windows'" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 </Project>
