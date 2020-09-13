@@ -216,17 +216,22 @@ namespace Stride.Rendering
 #if STRIDE_PLATFORM_WINDOWS_DESKTOP
                     foreach (var type in bytecode.HashSources.Keys)
                     {
-                        // TODO: the "/path" is hardcoded, used in ImportStreamCommand and ShaderSourceManager. Find a place to share this correctly.
-                        var pathUrl = EffectCompilerBase.GetStoragePathFromShaderType(type) + "/path";
-                        if (FileProvider.FileExists(pathUrl))
+                        var storagePath = EffectCompilerBase.GetStoragePathFromShaderType(type);
+                        if (!FileProvider.TryGetFileLocation(storagePath, out var filePath, out _, out _))
                         {
-                            using (var pathStream = FileProvider.OpenStream(pathUrl, VirtualFileMode.Open, VirtualFileAccess.Read))
-                            using (var reader = new StreamReader(pathStream))
+                            // TODO: the "/path" is hardcoded, used in ImportStreamCommand and ShaderSourceManager. Find a place to share this correctly.
+                            var pathUrl = storagePath + "/path";
+                            if (FileProvider.FileExists(pathUrl))
                             {
-                                var path = reader.ReadToEnd();
-                                directoryWatcher.Track(path);
-                            }
+                                using (var pathStream = FileProvider.OpenStream(pathUrl, VirtualFileMode.Open, VirtualFileAccess.Read))
+                                using (var reader = new StreamReader(pathStream))
+                                {
+                                    filePath = reader.ReadToEnd();
+                                }
+                            }                            
                         }
+                        if (filePath != null)
+                            directoryWatcher.Track(filePath);
                     }
 #endif
                 }
