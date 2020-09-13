@@ -217,11 +217,15 @@ namespace Stride.Rendering
                     foreach (var type in bytecode.HashSources.Keys)
                     {
                         // TODO: the "/path" is hardcoded, used in ImportStreamCommand and ShaderSourceManager. Find a place to share this correctly.
-                        using (var pathStream = FileProvider.OpenStream(EffectCompilerBase.GetStoragePathFromShaderType(type) + "/path", VirtualFileMode.Open, VirtualFileAccess.Read))
-                        using (var reader = new StreamReader(pathStream))
+                        var pathUrl = EffectCompilerBase.GetStoragePathFromShaderType(type) + "/path";
+                        if (FileProvider.FileExists(pathUrl))
                         {
-                            var path = reader.ReadToEnd();
-                            directoryWatcher.Track(path);
+                            using (var pathStream = FileProvider.OpenStream(pathUrl, VirtualFileMode.Open, VirtualFileAccess.Read))
+                            using (var reader = new StreamReader(pathStream))
+                            {
+                                var path = reader.ReadToEnd();
+                                directoryWatcher.Track(path);
+                            }
                         }
                     }
 #endif
