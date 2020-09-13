@@ -223,7 +223,7 @@ namespace Stride.Shaders.Tests
 
                 var compiler = new EffectCompiler(database);
                 compiler.SourceDirectories.Add("assets/shaders");
-                var compilerCache = new EffectCompilerCache(compiler);
+                var compilerCache = new EffectCompilerCache(compiler, database);
 
                 var compilerParameters = new CompilerParameters { EffectParameters = { Platform = GraphicsPlatform.Direct3D11 } };
 

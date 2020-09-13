@@ -12,7 +12,14 @@ namespace Stride.Shaders.Compiler
 {
     public static class EffectCompilerFactory
     {
-        public static IEffectCompiler CreateEffectCompiler(IVirtualFileProvider fileProvider, EffectSystem effectSystem = null, string packageName = null, EffectCompilationMode effectCompilationMode = EffectCompilationMode.Local, bool recordEffectRequested = false, TaskSchedulerSelector taskSchedulerSelector = null)
+        public static IEffectCompiler CreateEffectCompiler(
+            IVirtualFileProvider fileProvider, 
+            EffectSystem effectSystem = null, 
+            string packageName = null, 
+            EffectCompilationMode effectCompilationMode = EffectCompilationMode.Local, 
+            bool recordEffectRequested = false, 
+            TaskSchedulerSelector taskSchedulerSelector = null,
+            DatabaseFileProvider database = null)
         {
             EffectCompilerBase compiler = null;
 
@@ -24,6 +31,9 @@ namespace Stride.Shaders.Compiler
                     SourceDirectories = { EffectCompilerBase.DefaultSourceShaderFolder },
                 };
             }
+
+            // Select database - needed for caching
+            var selectedDatabase = database ?? fileProvider as DatabaseFileProvider;
 
             // Nothing to do remotely
             bool needRemoteCompiler = (compiler == null && (effectCompilationMode & EffectCompilationMode.Remote) != 0);
@@ -42,7 +52,7 @@ namespace Stride.Shaders.Compiler
                 if (needRemoteCompiler)
                 {
                     // Create a remote compiler
-                    compiler = new RemoteEffectCompiler(fileProvider, shaderCompilerTarget);
+                    compiler = new RemoteEffectCompiler(fileProvider, selectedDatabase, shaderCompilerTarget);
                 }
                 else
                 {
@@ -54,10 +64,10 @@ namespace Stride.Shaders.Compiler
             // Local not possible or allowed, and remote not allowed either => switch back to null compiler
             if (compiler == null)
             {
-                compiler = new NullEffectCompiler(fileProvider);
+                compiler = new NullEffectCompiler(fileProvider, selectedDatabase);
             }
 
-            return new EffectCompilerCache(compiler, taskSchedulerSelector);
+            return new EffectCompilerCache(compiler, selectedDatabase, taskSchedulerSelector);
         }
     }
 }
