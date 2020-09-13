@@ -688,7 +688,7 @@ namespace Stride.Physics
 
             SimulationProfiler = Profiler.Begin(PhysicsProfilingKeys.SimulationProfilingKey);
 
-            if (discreteDynamicsWorld != null) discreteDynamicsWorld.StepSimulation(deltaTime * (float) GameTime.Factor, MaxSubSteps, FixedTimeStep);
+            if (discreteDynamicsWorld != null) discreteDynamicsWorld.StepSimulation(deltaTime, MaxSubSteps, FixedTimeStep);
             else collisionWorld.PerformDiscreteCollisionDetection();
 
             SimulationProfiler.End("Alive rigidbodies: {0}", UpdatedRigidbodies);
