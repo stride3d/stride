@@ -88,13 +88,13 @@ namespace Stride.Particles.Components
                 particleSystem.UniformScale = xScale;
             }
 
-            particleSystem.Update(deltaTime * (float) GameTime.Factor * speed);
+            particleSystem.Update(deltaTime * speed);
         }
 
         /// <inheritdoc />
         public override void Draw(RenderContext context)
         {
-            float deltaTime = (float) context.Time.Elapsed.TotalSeconds;
+            float deltaTime = (float) context.Time.WarpElapsed.TotalSeconds;
 
             ParticleSystems.Clear();
             foreach (var particleSystemStateKeyPair in ComponentDatas)

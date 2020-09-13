@@ -32,7 +32,7 @@ namespace Stride.Games
     {
         private TimeSpan accumulatedElapsedTime;
         private int accumulatedFrameCountPerSecond;
-        private static double factor;
+        private double factor;
 
         #region Constructors and Destructors
 
@@ -105,8 +105,7 @@ namespace Stride.Games
         /// <value>The warped elapsed time</value>
         public TimeSpan WarpElapsed 
         {
-            // TODO: When switching with .NET 5, use the multiply operator instead of this. elapsedGameTime * Factor
-            get => TimeSpan.FromSeconds(Elapsed.TotalSeconds * Factor);
+            get => TimeSpan.FromTicks((long)(Elapsed.Ticks * Factor));
         }
 
 
@@ -116,17 +115,10 @@ namespace Stride.Games
         /// A value between 0 and 1 will slow time, a value above 1 will make it faster.
         /// </summary>
         /// <value>The multiply factor, a double value higher or equal to 0</value>
-        public static double Factor
+        public double Factor
         {
-            get => factor; 
-            set 
-            {
-                // TODO: Use pattern matching for a clearer code
-                if (value < 0)
-                    factor = 0;
-                else
-                    factor = value;
-            }
+            get => factor;
+            set => factor = value > 0 ? value : 0;
         }
 
 
@@ -163,7 +155,7 @@ namespace Stride.Games
             FrameCount = 0;
         }
 
-        public static void ResetTimeFactor()
+        public void ResetTimeFactor()
         {
             factor = 1;
         }
