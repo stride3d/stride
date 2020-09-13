@@ -32,6 +32,7 @@ namespace Stride.Games
     {
         private TimeSpan accumulatedElapsedTime;
         private int accumulatedFrameCountPerSecond;
+        private double factor;
 
         #region Constructors and Destructors
 
@@ -41,6 +42,7 @@ namespace Stride.Games
         public GameTime()
         {
             accumulatedElapsedTime = TimeSpan.Zero;
+            factor = 1;
         }
 
         /// <summary>
@@ -53,6 +55,7 @@ namespace Stride.Games
             Total = totalTime;
             Elapsed = elapsedTime;
             accumulatedElapsedTime = TimeSpan.Zero;
+            factor = 1;
         }
 
         #endregion
@@ -94,10 +97,36 @@ namespace Stride.Games
         /// <value><c>true</c> if the <see cref="FramePerSecond"/> and <see cref="TimePerFrame"/> were updated for this frame; otherwise, <c>false</c>.</value>
         public bool FramePerSecondUpdated { get; private set; }
 
+
+
+        /// <summary>
+        /// Gets the amount of time elapsed multiplied by the time factor.
+        /// </summary>
+        /// <value>The warped elapsed time</value>
+        public TimeSpan WarpElapsed 
+        {
+            get => TimeSpan.FromTicks((long)(Elapsed.Ticks * Factor));
+        }
+
+
+        /// <summary>
+        /// Gets or sets the time factor.<br/>
+        /// This value controls how much the warped time flows, this includes physics, animations and particles.
+        /// A value between 0 and 1 will slow time, a value above 1 will make it faster.
+        /// </summary>
+        /// <value>The multiply factor, a double value higher or equal to 0</value>
+        public double Factor
+        {
+            get => factor;
+            set => factor = value > 0 ? value : 0;
+        }
+
+
         internal void Update(TimeSpan totalGameTime, TimeSpan elapsedGameTime, bool incrementFrameCount)
         {
             Total = totalGameTime;
-            Elapsed = elapsedGameTime;
+            Elapsed = elapsedGameTime;            
+
             FramePerSecondUpdated = false;
 
             if (incrementFrameCount)
@@ -124,6 +153,11 @@ namespace Stride.Games
             accumulatedElapsedTime = TimeSpan.Zero;
             accumulatedFrameCountPerSecond = 0;
             FrameCount = 0;
+        }
+
+        public void ResetTimeFactor()
+        {
+            factor = 1;
         }
 
         #endregion

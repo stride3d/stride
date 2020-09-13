@@ -92,7 +92,7 @@ namespace Stride.Physics
                     physicsScene.Processor.UpdateBones();
 
                     //simulate physics
-                    physicsScene.Simulation.Simulate((float)gameTime.Elapsed.TotalSeconds);
+                    physicsScene.Simulation.Simulate((float)gameTime.WarpElapsed.TotalSeconds);
 
                     //update character bound entity's transforms from physics engine simulation
                     physicsScene.Processor.UpdateCharacters();

@@ -7,6 +7,7 @@ using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using Stride.Games;
 using Stride.Rendering;
 
 namespace Stride.Physics

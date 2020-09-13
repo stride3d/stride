@@ -94,7 +94,7 @@ namespace Stride.Particles.Components
         /// <inheritdoc />
         public override void Draw(RenderContext context)
         {
-            float deltaTime = (float) context.Time.Elapsed.TotalSeconds;
+            float deltaTime = (float) context.Time.WarpElapsed.TotalSeconds;
 
             ParticleSystems.Clear();
             foreach (var particleSystemStateKeyPair in ComponentDatas)
