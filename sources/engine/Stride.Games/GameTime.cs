@@ -103,10 +103,7 @@ namespace Stride.Games
         /// Gets the amount of time elapsed multiplied by the time factor.
         /// </summary>
         /// <value>The warped elapsed time</value>
-        public TimeSpan WarpElapsed 
-        {
-            get => TimeSpan.FromTicks((long)(Elapsed.Ticks * Factor));
-        }
+        public TimeSpan WarpElapsed { get; private set; }
 
 
         /// <summary>
@@ -125,7 +122,8 @@ namespace Stride.Games
         internal void Update(TimeSpan totalGameTime, TimeSpan elapsedGameTime, bool incrementFrameCount)
         {
             Total = totalGameTime;
-            Elapsed = elapsedGameTime;            
+            Elapsed = elapsedGameTime;
+            WarpElapsed = TimeSpan.FromTicks((long)(Elapsed.Ticks * Factor));
 
             FramePerSecondUpdated = false;
 

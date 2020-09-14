@@ -593,7 +593,7 @@ namespace Stride.Games
 
         /// <summary>
         /// Call this method within your overriden <see cref="RawTickProducer"/> to update and draw the game yourself. <br/>
-        /// As this version is manual, there are a lot of functionallity purposefully skipped: <br/>
+        /// As this version is manual, there are a lot of functionality purposefully skipped: <br/>
         /// clamping elapsed time to a maximum, skipping drawing when the window is minimized, <see cref="ResetElapsedTime"/>, <see cref="SuppressDraw"/>, <see cref="IsFixedTimeStep"/>, <br/>
         /// <see cref="IsDrawDesynchronized"/>, <see cref="MinimizedMinimumUpdateRate"/> / <see cref="WindowMinimumUpdateRate"/> / <see cref="TreatNotFocusedLikeMinimized"/>.
         /// </summary>
@@ -607,8 +607,8 @@ namespace Stride.Games
         /// <param name="drawInterpolationFactor">
         /// See <see cref="DrawInterpolationFactor"/>
         /// </param>
-        /// <param name="skipDrawFrame">
-        /// Do not draw for this tick.
+        /// <param name="drawFrame">
+        /// Draw a frame.
         /// </param>
         protected void RawTick(TimeSpan elapsedTimePerUpdate, int updateCount = 1, float drawInterpolationFactor = 0, bool drawFrame = true)
         {
@@ -632,6 +632,7 @@ namespace Stride.Games
                 if (drawFrame && !IsExiting && GameSystems.IsFirstUpdateDone)
                 {
                     DrawInterpolationFactor = drawInterpolationFactor;
+                    DrawTime.Factor = UpdateTime.Factor;
                     DrawTime.Update(DrawTime.Total + totalElapsedTime, totalElapsedTime, true);
 
                     var profilingDraw = Profiler.Begin(GameProfilingKeys.GameDrawFPS);
