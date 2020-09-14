@@ -129,15 +129,25 @@ namespace Stride.Engine
         public bool UseCustomAspectRatio { get; set; }
 
         /// <summary>
-        /// Gets or sets the aspect ratio.
+        /// Gets or sets the custom aspect ratio.
         /// </summary>
         /// <value>
-        /// The aspect ratio.
+        /// The custom aspect ratio.
         /// </value>
         /// <userdoc>The aspect ratio for the camera (when the Custom aspect ratio option is selected)</userdoc>
         [DataMember(40)]
         [DefaultValue(DefaultAspectRatio)]
-        public float AspectRatio { get; set; }
+        public float AspectRatio { get; set; }  // TODO: this should be called CustomAspectRatio
+
+        /// <summary>
+        /// Gets the last used aspect ratio.
+        /// </summary>        
+        /// <remarks>
+        /// This value is updated when calling <see cref="Update"/>. 
+        /// It either holds the aspect ratio of the window that called Update or the manually set aspect ratio <see cref="AspectRatio"/> if <see cref="UseCustomAspectRatio"/> is <c>true</c>.
+        /// </remarks>
+        [DataMemberIgnore]
+        public float ActuallyUsedAspectRatio { get; private set; } = 1; // TODO: this should be called AspectRatio
 
         /// <userdoc>The camera slot used in the graphics compositor)</userdoc>
         [DataMember(50)]
@@ -203,8 +213,13 @@ namespace Stride.Engine
         /// <param name="screenAspectRatio">The current screen aspect ratio. If null, use the <see cref="AspectRatio"/> even if <see cref="UseCustomAspectRatio"/> is false.</param>
         public void Update(float? screenAspectRatio)
         {
-            // Calculates the aspect ratio
-            var aspectRatio = (screenAspectRatio.HasValue && !UseCustomAspectRatio) ? screenAspectRatio.Value : AspectRatio;
+            // Calculates the aspect ratio. We only set a new aspect ratio when instructed to. Don't fall back on the custom value, if not instructed to.
+            // By caching the actually used aspect ratio we are now free to call Update(null) at any time. 
+            // A helper visualizing the state of the camera will not change it's state.
+            if (UseCustomAspectRatio)
+                ActuallyUsedAspectRatio = AspectRatio;
+            else if (screenAspectRatio.HasValue)
+                ActuallyUsedAspectRatio = screenAspectRatio.Value;
 
             // Calculates the View
             if (!UseCustomViewMatrix)
@@ -228,10 +243,10 @@ namespace Stride.Engine
             // TODO: Should we throw an error if Projection is not set?
             if (!UseCustomProjectionMatrix)
             {
-                // Calculates the aspect ratio
+                // Calculates the projection matrix
                 ProjectionMatrix = Projection == CameraProjectionMode.Perspective ?
-                    Matrix.PerspectiveFovRH(MathUtil.DegreesToRadians(VerticalFieldOfView), aspectRatio, NearClipPlane, FarClipPlane) :
-                    Matrix.OrthoRH(aspectRatio * OrthographicSize, OrthographicSize, NearClipPlane, FarClipPlane);
+                    Matrix.PerspectiveFovRH(MathUtil.DegreesToRadians(VerticalFieldOfView), ActuallyUsedAspectRatio, NearClipPlane, FarClipPlane) :
+                    Matrix.OrthoRH(ActuallyUsedAspectRatio * OrthographicSize, OrthographicSize, NearClipPlane, FarClipPlane);
             }
 
             // Update ViewProjectionMatrix
