@@ -39,6 +39,9 @@ namespace Stride.Graphics.SDL
 #endif
             // Pass first mouse event when user clicked on window 
             SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+
+            // Don't leave fullscreen on focus loss
+            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
         }
 
         /// <summary>
@@ -156,6 +159,15 @@ namespace Stride.Graphics.SDL
                 SDL.SDL_SetHint(SDL.SDL_HINT_ALLOW_TOPMOST, (value ? "1" : "0"));
                 SDL.SDL_SetWindowPosition(SdlHandle, loc.X, loc.Y);
             }
+        }
+
+        /// <summary>
+        /// Minimize the window when focus is lost in fullscreen, default is false.
+        /// </summary>
+        public bool MinimizeOnFocusLoss
+        {
+            get { return SDL.SDL_GetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS) == "1"; }
+            set { SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, (value ? "1" : "0")); }
         }
 
         /// <summary>
