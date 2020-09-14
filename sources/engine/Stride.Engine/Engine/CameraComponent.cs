@@ -218,8 +218,7 @@ namespace Stride.Engine
             // A helper visualizing the state of the camera will not change it's state.
             if (UseCustomAspectRatio)
                 ActuallyUsedAspectRatio = AspectRatio;
-            else
-            if (screenAspectRatio.HasValue)
+            else if (screenAspectRatio.HasValue)
                 ActuallyUsedAspectRatio = screenAspectRatio.Value;
 
             // Calculates the View
