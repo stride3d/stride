@@ -32,6 +32,7 @@ namespace Stride.Shaders.Compiler
         private const string CompiledShadersKey = "__shaders_bytecode__";
 
         private readonly Dictionary<ObjectId, Task<EffectBytecodeCompilerResult>> compilingShaders = new Dictionary<ObjectId, Task<EffectBytecodeCompilerResult>>();
+        private readonly DatabaseFileProvider database;
         private readonly TaskSchedulerSelector taskSchedulerSelector;
 
         private int effectCompileCount;
@@ -43,9 +44,10 @@ namespace Stride.Shaders.Compiler
         /// </summary>
         public EffectBytecodeCacheLoadSource CurrentCache { get; set; } = EffectBytecodeCacheLoadSource.DynamicCache;
 
-        public EffectCompilerCache(EffectCompilerBase compiler, TaskSchedulerSelector taskSchedulerSelector = null) : base(compiler)
+        public EffectCompilerCache(EffectCompilerBase compiler, DatabaseFileProvider database, TaskSchedulerSelector taskSchedulerSelector = null) : base(compiler)
         {
             CompileEffectAsynchronously = true;
+            this.database = database ?? throw new ArgumentNullException(nameof(database), "Using the cache requires a database.");
             this.taskSchedulerSelector = taskSchedulerSelector;
         }
 
@@ -61,8 +63,6 @@ namespace Stride.Shaders.Compiler
 
         public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixin, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters)
         {
-            var database = FileProvider as DatabaseFileProvider ?? throw new NotSupportedException("Using the cache requires to ContentManager.FileProvider to be valid.");
-
             var usedParameters = compilerParameters;
             var mixinObjectId = ShaderMixinObjectId.Compute(mixin, usedParameters.EffectParameters);
 

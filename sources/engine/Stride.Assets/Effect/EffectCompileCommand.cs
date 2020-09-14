@@ -142,7 +142,7 @@ namespace Stride.Assets.Effect
                     // Create compiler
                     var effectCompiler = new EffectCompiler(MicrothreadLocalDatabases.DatabaseFileProvider);
                     effectCompiler.SourceDirectories.Add(EffectCompilerBase.DefaultSourceShaderFolder);
-                    compiler = new EffectCompilerCache(effectCompiler) { CurrentCache = EffectBytecodeCacheLoadSource.StartupCache };
+                    compiler = new EffectCompilerCache(effectCompiler, MicrothreadLocalDatabases.DatabaseFileProvider) { CurrentCache = EffectBytecodeCacheLoadSource.StartupCache };
                     context.Properties.Set(CompilerKey, compiler);
 
                     var shaderLocations = context.Properties.Get(EffectShaderAssetCompiler.ShaderLocationsKey);
