@@ -57,14 +57,6 @@ namespace Stride.Core.Packages
         /// <param name="oldRootDirectory">The location of the Nuget store.</param>
         public NugetStore(string oldRootDirectory)
         {
-            // Workaround for https://github.com/NuGet/Home/issues/8120
-            //  set timeout to something much higher than 100 sec
-            var defaultRequestTimeoutField = typeof(HttpSourceRequest).GetField(nameof(HttpSourceRequest.DefaultRequestTimeout), BindingFlags.Static | BindingFlags.Public);
-            if (defaultRequestTimeoutField != null)
-            {
-                defaultRequestTimeoutField.SetValue(null, TimeSpan.FromMinutes(60));
-            }
-
             // Used only for versions before 3.0
             this.oldRootDirectory = oldRootDirectory;
 
@@ -91,6 +83,23 @@ namespace Stride.Core.Packages
 
             // Setup source provider as a V3 only.
             sourceRepositoryProvider = new NugetSourceRepositoryProvider(packageSourceProvider, this);
+        }
+
+        /// <summary>
+        /// Increase nuget HTTP timeout from 100 sec to something much higher (workaround for https://github.com/NuGet/Home/issues/8120).
+        /// </summary>
+        /// <remarks>
+        /// This needs to be called before any NuGet function is called, otherwise it will lead to a FieldAccessException (HttpSourceRequest already initialized).
+        /// </remarks>
+        public static void RemoveHttpTimeout()
+        {
+            // Workaround for https://github.com/NuGet/Home/issues/8120
+            //  set timeout to something much higher than 100 sec
+            var defaultRequestTimeoutField = typeof(HttpSourceRequest).GetField(nameof(HttpSourceRequest.DefaultRequestTimeout), BindingFlags.Static | BindingFlags.Public);
+            if (defaultRequestTimeoutField != null)
+            {
+                defaultRequestTimeoutField.SetValue(null, TimeSpan.FromMinutes(60));
+            }
         }
 
         private static void RemoveSources(ISettings settings, string prefixName)
