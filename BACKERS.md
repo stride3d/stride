@@ -9,41 +9,42 @@ Thank you everybody for your generous contributions!
 
 ## Gold Sponsor
 
-* [TurboPlay](http://www.turboplay.com/)
-* [vvvv.org](https://vvvv.org/)
+* David Jeske
 
 ## Super Backers
 
 * [Marshmallow Laser Feast](http://www.marshmallowlaserfeast.com/)
-* [Félix Dion-Robidoux](http://www.fdrobidoux.com)
-* Adisibio
+* [vvvv.org](https://vvvv.org/)
 
 ## Backers
 
 * Amin Delavar
-* Rasmus Søborg
 * Nicolas Musset
 * Ravn Ivarson
 * Guy Godin
 * Princess Peach
-* Wes Clyburn
-* [Empty Keys](http://emptykeys.com/)
-* Harald Mühleder
+* Adisibio
 * Philippe Monteil
 * Cobalt
 * Matthias Hölzl
-* Thomas Tang
-* Beliar
 * Marko Viitanen
-* [Sven-Bertil Blom](https://github.com/svenberra)
 * [Natan Sinigaglia](https://github.com/vvvv-dottore)
 * [Jarmo](https://github.com/devjarmo)
 * [Eideren](https://github.com/Eideren)
-* Berwyn
+* [profan](https://github.com/profan)
+* [Faerdan](https://github.com/Faerdan)
+* [sebllll](https://github.com/sebllll)
+* [SoulRider](https://github.com/SoulRider)
+* [tebjan](https://github.com/tebjan)
 * Boris Callens
-* Jarrett K Robertson
 * Daniel Keenan
 * Jorn Theunissen
+* Jeff Kesselman
+* Sean Connor
+* Regan Laitila
+* Albeoris
+* Артем Куприянов
+* Miles Johnson
 
 ## Mini Backers
 
