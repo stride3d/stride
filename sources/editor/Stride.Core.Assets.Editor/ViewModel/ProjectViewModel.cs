@@ -109,7 +109,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             DirectoryBaseViewModel result = Code;
             if (!string.IsNullOrEmpty(projectDirectory))
             {
-                var directories = projectDirectory.Split(new[] { DirectoryBaseViewModel.Separator }, StringSplitOptions.RemoveEmptyEntries).Skip(1);
+                var directories = projectDirectory.Split(new[] { DirectoryBaseViewModel.Separator }, StringSplitOptions.RemoveEmptyEntries);
                 result = directories.Aggregate(result, (current, next) => current.SubDirectories.FirstOrDefault(x => x.Name == next) ?? new DirectoryViewModel(next, current, canUndoRedoCreation));
             }
 
