@@ -472,7 +472,7 @@ private:
 		}
 
 		// Build the mesh data
-		auto vertexDeclaration = gcnew VertexDeclaration(vertexElements->ToArray());
+		auto vertexDeclaration = gcnew VertexDeclaration(vertexElements->ToArray(), 0, 0);
 		auto vertexBufferBinding = VertexBufferBinding(GraphicsSerializerExtensions::ToSerializableVersion(gcnew BufferData(BufferFlags::VertexBuffer, vertexBuffer)), vertexDeclaration, mesh->mNumVertices, vertexDeclaration->VertexStride, 0);
 		auto indexBufferBinding = gcnew IndexBufferBinding(GraphicsSerializerExtensions::ToSerializableVersion(gcnew BufferData(BufferFlags::IndexBuffer, indexBuffer)), is32BitIndex, nbIndices, 0);
 

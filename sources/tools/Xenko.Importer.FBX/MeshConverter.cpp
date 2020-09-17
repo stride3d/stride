@@ -612,7 +612,7 @@ public:
 				continue;
 
 			auto buffer = buildMesh->buffer;
-			auto vertexBufferBinding = VertexBufferBinding(GraphicsSerializerExtensions::ToSerializableVersion(gcnew BufferData(BufferFlags::VertexBuffer, buffer)), gcnew VertexDeclaration(vertexElements->ToArray()), buildMesh->polygonCount * 3, 0, 0);
+			auto vertexBufferBinding = VertexBufferBinding(GraphicsSerializerExtensions::ToSerializableVersion(gcnew BufferData(BufferFlags::VertexBuffer, buffer)), gcnew VertexDeclaration(vertexElements->ToArray(), 0, 0), buildMesh->polygonCount * 3, 0, 0);
 			
 			auto drawData = gcnew MeshDraw();
 			auto vbb = gcnew List<VertexBufferBinding>();
@@ -628,7 +628,7 @@ public:
 				if (element.SemanticName != "SMOOTHINGGROUP")
 					finalVertexElements->Add(element);
 			}
-			auto finalDeclaration = gcnew VertexDeclaration(finalVertexElements->ToArray());
+			auto finalDeclaration = gcnew VertexDeclaration(finalVertexElements->ToArray(), 0, 0);
 
 			// Generate index buffer
 			// For now, if user requests 16 bits indices but it doesn't fit, it
