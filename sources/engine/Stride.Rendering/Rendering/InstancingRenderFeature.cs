@@ -121,10 +121,14 @@ namespace Stride.Rendering
                     var staticEffectObjectNode = staticObjectNode * effectSlotCount + i;
                     var renderEffect = renderEffects[staticEffectObjectNode];
 
-                    if (renderEffect != null)
+                    // Skip effects not used during this frame
+                    if (renderEffect == null || !renderEffect.IsUsedDuringThisFrame(RenderSystem))
+                        continue;
+
+                    if (instancingData.InstanceCount > 0)
                     {
                         renderEffect.EffectValidator.ValidateParameter(StrideEffectBaseKeys.ModelTransformUsage, instancingData.ModelTransformUsage);
-                        renderEffect.EffectValidator.ValidateParameter(StrideEffectBaseKeys.HasInstancing, instancingData.InstanceCount > 0);
+                        renderEffect.EffectValidator.ValidateParameter(StrideEffectBaseKeys.HasInstancing, instancingData.InstanceCount > 0); 
                     }
                 }
             });
