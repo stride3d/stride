@@ -145,6 +145,9 @@ namespace Stride.Editor.EditorGame.Game
         /// <inheritdoc />
         protected override void Initialize()
         {
+            // Database is needed by effect compiler cache
+            MicrothreadLocalDatabases.MountCommonDatabase();
+
             base.Initialize();
 
             // TODO: the physics system should not be registered by default here!
