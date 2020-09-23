@@ -85,7 +85,7 @@ namespace Stride.Engine.Processors
                     var asyncScript = script as AsyncScript;
                     if (asyncScript != null)
                     {
-                        asyncScript.MicroThread = AddTask(asyncScript.Execute, asyncScript.Priority & UpdateBit);
+                        asyncScript.MicroThread = AddTask(asyncScript.Execute, asyncScript.Priority | UpdateBit);
                         asyncScript.MicroThread.ProfilingKey = asyncScript.ProfilingKey;
                     }
                 }
