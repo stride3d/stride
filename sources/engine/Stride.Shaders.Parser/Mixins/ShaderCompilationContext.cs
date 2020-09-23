@@ -107,6 +107,14 @@ namespace Stride.Shaders.Parser.Mixins
 
             lock (AnalysisLock)
             {
+                // reset error status of mixins so we get the same error messages for each compilation
+                foreach (var mixinInfo in mixinInfos)
+                {
+                    var mixin = mixinInfo.Mixin;
+                    if (mixin.DependenciesStatus == AnalysisStatus.Error || mixin.DependenciesStatus == AnalysisStatus.Cyclic)
+                        mixin.DependenciesStatus = AnalysisStatus.None;
+                }
+
                 foreach (var mixinInfo in mixinInfos)
                     BuildMixinDependencies(mixinInfo);
 
