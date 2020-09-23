@@ -115,6 +115,11 @@ namespace Stride.Shaders.Parser.Mixins
         /// the list of all the necessary MixinInfos to compile the shader
         /// </summary>
         public HashSet<ModuleMixinInfo> MinimalContext = new HashSet<ModuleMixinInfo>();
+
+        /// <summary>
+        /// The referenced shaders. Used to invalidate shaders.
+        /// </summary>
+        public HashSet<string> ReferencedShaders = new HashSet<string>();
         
         #endregion
 
