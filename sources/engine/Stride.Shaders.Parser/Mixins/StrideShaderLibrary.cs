@@ -185,13 +185,12 @@ namespace Stride.Shaders.Parser.Mixins
             if (mixinInfo == null)
             {
                 mixinInfo = BuildMixinInfo(shaderSource, macros);
+                mixinInfo.MinimalContext.Add(mixinInfo);
 
                 if (mixinInfo.Instanciated)
                 {
                     MixinInfos.Add(mixinInfo);
-                    mapMacrosToMixins[macrosString].Add(mixinInfo);
-
-                    mixinInfo.MinimalContext.Add(mixinInfo);
+                    context.Add(mixinInfo);
 
                     if (!mixinInfo.Log.HasErrors)
                     {
