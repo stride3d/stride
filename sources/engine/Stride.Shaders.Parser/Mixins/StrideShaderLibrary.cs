@@ -197,7 +197,6 @@ namespace Stride.Shaders.Parser.Mixins
                     {
                         LoadNecessaryShaders(mixinInfo, macros, macrosString);
                     }
-                    mixinInfo.MinimalContext = new HashSet<ModuleMixinInfo>(mixinInfo.MinimalContext.Distinct());
                 }
             }
 
