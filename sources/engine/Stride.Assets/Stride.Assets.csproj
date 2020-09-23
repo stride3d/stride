@@ -8,7 +8,6 @@
     <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition="('$(StridePlatform)' == 'Windows') and ('$(StrideNETRuntime)' != 'CoreCLR')">
     <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>

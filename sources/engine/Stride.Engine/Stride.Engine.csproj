@@ -14,7 +14,6 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
     <StrideBuildTags>*</StrideBuildTags>
-    <RestorePackages>true</RestorePackages>
     <RootNamespace>Stride</RootNamespace>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
     <StridePackAssets>true</StridePackAssets>

@@ -11,7 +11,6 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization --parameter-key</StrideAssemblyProcessorOptions>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
     <StrideRoslynPadTargetFramework Condition="$(TargetFramework.StartsWith('net4'))">net462</StrideRoslynPadTargetFramework>

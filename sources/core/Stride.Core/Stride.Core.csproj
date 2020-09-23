@@ -16,7 +16,6 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StrideBuildTags>*</StrideBuildTags>
-    <RestorePackages>true</RestorePackages>
     <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
   </PropertyGroup>
   
