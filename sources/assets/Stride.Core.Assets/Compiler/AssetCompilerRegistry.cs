@@ -181,26 +181,33 @@ namespace Stride.Core.Assets.Compiler
         private void RegisterCompilersFromAssembly(Assembly assembly)
         {
             // Process Asset types.
-            foreach (var type in assembly.GetTypes())
+            try
             {
-                // Only process Asset types
-                if (!typeof(IAssetCompiler).IsAssignableFrom(type) || !type.IsClass)
-                    continue;
-
-                // Asset compiler
-                var compilerAttribute = type.GetCustomAttribute<AssetCompilerAttribute>();
-
-                if (compilerAttribute == null) // no compiler attribute in this asset
-                    continue;
-
-                try
+                foreach (var type in assembly.GetTypes())
                 {
-                    ProcessAttribute(compilerAttribute, type);
+                    // Only process Asset types
+                    if (!typeof(IAssetCompiler).IsAssignableFrom(type) || !type.IsClass)
+                        continue;
+
+                    // Asset compiler
+                    var compilerAttribute = type.GetCustomAttribute<AssetCompilerAttribute>();
+
+                    if (compilerAttribute == null) // no compiler attribute in this asset
+                        continue;
+
+                    try
+                    {
+                        ProcessAttribute(compilerAttribute, type);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error($"Unable to instantiate compiler [{compilerAttribute.TypeName}]", ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    log.Error($"Unable to instantiate compiler [{compilerAttribute.TypeName}]", ex);
-                }
+            }
+            catch (Exception e)
+            {
+                log.Warning($"Unable to register asset compilers from assembly [{assembly}]", e);
             }
         }
 
