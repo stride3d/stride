@@ -233,6 +233,20 @@ namespace Stride.Games
 
         internal abstract void Run();
 
+        /// <summary>
+        /// Sets the size of the client area and triggers the <see cref="ClientSizeChanged"/> event.
+        /// This will trigger a backbuffer resize too.
+        /// </summary>
+        public void SetSize(Int2 size)
+        {
+            Resize(size.X, size.Y);
+            OnClientSizeChanged(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Only used internally by the device managers when they adapt the window size to the backbuffer size.
+        /// Resizes the window, without sending the resized event.
+        /// </summary>
         internal abstract void Resize(int width, int height);
 
         public virtual IMessageLoop CreateUserManagedMessageLoop()
