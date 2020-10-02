@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Stride.Networking
 {
-    class Messages
+    public class Messages
     {
         public enum MessageCodes
         {
