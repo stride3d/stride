@@ -30,7 +30,7 @@ namespace Stride.Engine
     {
         internal TransformComponent TransformValue;
         internal Scene SceneValue;
-
+        public Action RaycastHitEvent;
         /// <summary>
         /// Create a new <see cref="Entity"/> instance.
         /// </summary>

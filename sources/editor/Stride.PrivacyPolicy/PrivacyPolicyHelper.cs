@@ -29,7 +29,7 @@ namespace Stride.PrivacyPolicy
         }
 
         /// <summary>
-        /// Gets whether the Privacy Policy for Stride 3.0 has been accepted.
+        /// Gets whether the Privacy Policy for Stride 4.0 has been accepted.
         /// </summary>
         internal static bool Stride40Accepted { get; private set; }
 

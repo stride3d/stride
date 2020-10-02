@@ -662,5 +662,15 @@ namespace Stride.Core.Mathematics
         {
             return ((value % divisor) + divisor) % divisor;
         }
+        /// <summary>
+        /// gets a random Float within a range.
+        /// </summary>
+        /// <param name="RangeBegin">The beginning of the range</param>
+        /// <param name="RangeEnd">The end of the range.</param>
+        /// <returns>A value between RangeBegin and RangeEnd.</returns>
+        public static float Random(float RangeBegin, float RangeEnd)
+        {
+            return new Random().Next((int)RangeBegin, (int)RangeEnd);
+        }
     }
 }

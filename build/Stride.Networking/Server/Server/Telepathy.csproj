@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net471;netstandard2.0</TargetFrameworks>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Vis2K; Paul</Authors>
+    <Company>Telepathy</Company>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <AssemblyTitle>Telepathy</AssemblyTitle>
+    <Description>TCP based transport for use in Unity</Description>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+</Project>
