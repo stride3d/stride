@@ -3,7 +3,7 @@
 
 Welcome to the 3030Engine source code repository!
 
-3030Engine is a game engine built off of the stride came engine, mostly in c#. I am not accepting pull requests.
+3030Engine is a game engine built off of the stride game engine, mostly in c#. I am not accepting pull requests.
 
 
 
@@ -25,12 +25,8 @@ Find explanations and information about Stride:
 ## Community
 
 Ask for help or report issues:
-* [Chat with the community on Discord](https://discord.gg/f6aerfE) [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
-* [Discuss topics on our forums](http://forums.stride3d.net/)
-* [Report engine issues](https://github.com/stride3d/stride/issues)
-* [Donate to support the project](https://www.patreon.com/stride3d)
-* [List of Projects made by users](https://github.com/stride3d/stride-community-projects)
-* [Localization](docs/localization.md)
+* [Chat with the community on Discord](https://discord.gg/f6aerfE)
+
 
 ## Building from source
 
@@ -52,7 +48,7 @@ Ask for help or report issues:
 
 ### Build Stride
 
-1. Open a command prompt, point it to a directory and clone Stride to it: `git clone https://github.com/stride3d/stride.git`
+1. Open a command prompt, point it to a directory and clone 3030Engine to it: `git clone https://github.com/wholesomeisland/3030Engine.git`
 2. Open `<StrideDir>\build\Stride.sln` with Visual Studio 2019 and build `Stride.GameStudio` (it should be the default startup project) or run it from VS's toolbar.
 * Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
 
@@ -71,6 +67,7 @@ Please check our [Contributing Guidelines](docs/CONTRIBUTING.md).
 
 |Branch| **master** |
 |:--:|:--:|
+* This is results from the stride repo and may not reflect this one.
 |Windows D3D11|<a href="https://teamcity.stride3d.net/viewType.html?buildTypeId=Engine_BuildWindowsD3d11&branch=master&guest=1"><img src="https://teamcity.stride3d.net/app/rest/builds/buildType:(id:Engine_BuildWindowsD3d11),branch:master/statusIcon"/></a>
 |Windows D3D12|<a href="https://teamcity.stride3d.net/viewType.html?buildTypeId=Engine_BuildWindowsD3d12&branch=master&guest=1"><img src="https://teamcity.stride3d.net/app/rest/builds/buildType:(id:Engine_BuildWindowsD3d12),branch:master/statusIcon"/></a>
 |Windows Vulkan|<a href="https://teamcity.stride3d.net/viewType.html?buildTypeId=Engine_BuildWindowsVulkan&branch=master&guest=1"><img src="https://teamcity.stride3d.net/app/rest/builds/buildType:(id:Engine_BuildWindowsVulkan),branch:master/statusIcon"/></a>
