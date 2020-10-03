@@ -1,4 +1,4 @@
-![Stride](sources/data/images/Logo/stride-logo-readme.png)
+
 =======
 
 Welcome to the 3030Engine source code repository!
