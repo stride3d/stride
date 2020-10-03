@@ -56,6 +56,7 @@ namespace Stride.Networking
                 RecievedVec3.X = float.Parse(StV.GetValue(0).ToString());
                 RecievedVec3.Y = float.Parse(StV.GetValue(1).ToString());
                 RecievedVec3.Z = float.Parse(StV.GetValue(2).ToString());
+                HandleVector3();
             }
             catch (Exception)
             {
@@ -150,6 +151,13 @@ namespace Stride.Networking
         /// put code for connecting here
         /// </summary>
         public void Connected()
+        {
+
+        }
+        /// <summary>
+        /// Handle a vector 3 being sent. Override to add custom code.
+        /// </summary>
+        public void HandleVector3()
         {
 
         }
