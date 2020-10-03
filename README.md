@@ -25,7 +25,7 @@ Find explanations and information about Stride:
 ## Community
 
 Ask for help or report issues:
-* [Chat with the community on Discord](https://discord.gg/f6aerfE)
+* [Chat with the community on Discord](https://discord.gg/WTBJme)
 
 
 ## Building from source
