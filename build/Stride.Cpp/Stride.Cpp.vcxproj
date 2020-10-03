@@ -125,13 +125,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
+    <ClCompile Include="AsyncScriptCpp.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Stride.Cpp.cpp" />
+    <ClCompile Include="StartupScriptCpp.cpp" />
+    <ClCompile Include="SyncScriptCpp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />
@@ -140,8 +142,110 @@
     <Image Include="app.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\sources\core\Stride.Core.IO\Stride.Core.IO.csproj">
+      <Project>{1de01410-22c9-489b-9796-1addab1f64e5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj">
+      <Project>{1677b922-ccf0-44de-b57e-1cdd3d2b8e8a}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj">
+      <Project>{1320f627-ee43-4115-8e89-19d1753e51f2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\core\Stride.Core.Reflection\Stride.Core.Reflection.csproj">
+      <Project>{0be7189b-f04e-4c0c-bbe9-f347c0a59fee}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj">
+      <Project>{5210fb81-b807-49bb-af0d-31fb6a83a572}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\core\Stride.Core.Yaml\Stride.Core.Yaml.csproj">
+      <Project>{bf32de1b-6276-4341-b212-f8862adbba7a}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\core\Stride.Core\Stride.Core.csproj">
+      <Project>{0e916ab7-5a6c-4820-8ab1-aa492fe66d68}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Audio\Stride.Audio.csproj">
+      <Project>{de042125-c270-4d1d-9270-0759c167567a}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\sources\engine\Stride.Engine\Stride.Engine.csproj">
       <Project>{c121a566-555e-42b9-9b0a-1696529a9088}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Games.Testing\Stride.Games.Testing.csproj">
+      <Project>{b84ecb15-5e3f-4bd1-ab87-333bae9b70f9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Games\Stride.Games.csproj">
+      <Project>{42780cbd-3fe7-48e3-bd5b-59945ea20137}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj">
+      <Project>{d002feb1-00a6-4ab1-a83f-1f253465e64d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Graphics\Stride.Graphics.csproj">
+      <Project>{fb06c76a-6bb7-40be-9afa-fec13b045fb5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Input\Stride.Input.csproj">
+      <Project>{84deb606-77ed-49cd-9aed-d2b13c1f5a1e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Native\Stride.Native.csproj">
+      <Project>{1dbbc150-f085-43ef-b41d-27c72d133770}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Navigation\Stride.Navigation.csproj">
+      <Project>{fbe1fa7b-e699-4bb2-9c8f-41f4c9f3f088}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Particles\Stride.Particles.csproj">
+      <Project>{f32fda80-b6dd-47a8-8681-437e2c0d3f31}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Physics\Stride.Physics.csproj">
+      <Project>{dd592516-b341-40fe-9100-1b0fa784a060}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Rendering\Stride.Rendering.csproj">
+      <Project>{ad4fdc24-b64d-4ed7-91aa-62c9eda12fa4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj">
+      <Project>{e8b3553f-a79f-4e50-b75b-acee771c320c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Shaders.Parser\Stride.Shaders.Parser.csproj">
+      <Project>{14a47447-2a24-4ecd-b24d-6571499dcd4c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Shaders\Stride.Shaders.csproj">
+      <Project>{273bdd15-7392-4078-91f0-af23594a3d7b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj">
+      <Project>{9bc63bec-f305-451d-bb31-262938ea964d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.UI\Stride.UI.csproj">
+      <Project>{bb9deeef-f18c-40d8-b016-6434cc71b8c3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Video\Stride.Video.csproj">
+      <Project>{da355c86-866f-4843-9b4d-63a173c750fb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.VirtualReality\Stride.VirtualReality.csproj">
+      <Project>{53782603-3096-40c2-abd3-f8f311bae4be}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride.Voxels\Stride.Voxels.csproj">
+      <Project>{66be41fc-fc52-48d0-9c04-bce8cc393020}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\engine\Stride\Stride.csproj">
+      <Project>{72390339-b2a1-4f61-a800-31ed0975b515}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\shaders\Irony\Irony.csproj">
+      <Project>{d81f5c91-d7db-46e5-bc99-49488fb6814c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\shaders\Stride.Core.Shaders\Stride.Core.Shaders.csproj">
+      <Project>{f2d52edb-bc17-4243-b06d-33cd20f87a7f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj">
+      <Project>{fdf801d9-90cc-4cbd-9f53-7f32f7edf4f1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\tools\Stride.NuGetLoader\Stride.NuGetLoader.csproj">
+      <Project>{7fa381c8-8ebe-4515-969d-01369cc47d0e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\sources\tools\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj">
+      <Project>{83e4e436-659a-4d82-90dd-0dc67be38d17}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Stride.Networking\Server\Server\Stride.Networking.Server.csproj">
+      <Project>{4ce9b571-c162-46e9-9863-f38403cd1e8d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Stride.Networking\Stride.Networking.csproj">
+      <Project>{0963369a-ec2f-424b-ab74-2996874b7c25}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

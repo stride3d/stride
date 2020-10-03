@@ -1,13 +1,11 @@
 ![Stride](sources/data/images/Logo/stride-logo-readme.png)
 =======
 
-Welcome to the Stride source code repository!
+Welcome to the 3030Engine source code repository!
 
-Stride is an open-source C# game engine for realistic rendering and VR. 
-The engine is highly modular and aims at giving game makers more flexibility in their development.
-Stride comes with an editor that allows you to create and manage the content of your games or applications visually and intuitively.
+3030Engine is a game engine built off of the stride came engine, mostly in c#. I am not accepting pull requests.
 
-![Stride Editor](https://stride3d.net/images/external/script-editor.png)
+
 
 To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
@@ -16,8 +14,6 @@ To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
 
 You can find the list of third party projects [here](THIRD%20PARTY.md).
-
-Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
 
 ## Documentation
 
