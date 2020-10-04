@@ -11,27 +11,18 @@ namespace Stride.Rendering.Materials
 
         override float3 ComputeDirectLightContribution()
         {
-            float oldLightColorNdotL = streams.lightColorNdotL;
-            float3 celLight = float3(1, 1, 1);
-
+            float3 celLight = streams.NdotL * streams.lightAttenuation;
+            
             if (FakeNDotL > 0)
             {
-                // Fake - this gradient depends on light intensity as well
-                //streams.lightColorNdotL = celLightFunction.Compute(streams.lightColorNdotL).rgb;
-				celLight = celLightFunction.Compute(streams.lightColorNdotL * FakeNDotL);
+				celLight = celLightFunction.Compute(celLight * FakeNDotL);
             }
             else
             {
-				// Correct
-				celLight = celLightFunction.Compute(streams.NdotL);          
+				celLight = celLightFunction.Compute(celLight);
             }
             
-            // Point and spotlight include attenuation in their lightColor, remove it and re-apply it based on light function
-            float3 lc = streams.lightAttenuation;
-            lc = lc == 0 ? 0 : streams.lightColor / lc;
-            lc *= celLightFunction.Compute(streams.lightAttenuation);
-            
-			streams.lightColorNdotL = lc * streams.shadowColor * streams.lightDirectAmbientOcclusion;      
+			float3 lighting = celLight * streams.lightColor * streams.shadowColor * streams.lightDirectAmbientOcclusion;      
 
             var diffuseColor = streams.matDiffuseVisible;
             if (TIsEnergyConservative)
@@ -40,10 +31,8 @@ namespace Stride.Rendering.Materials
                 diffuseColor *= (1 - streams.matSpecularVisible);
             }
 
-            float3 result =  diffuseColor / PI * streams.lightColorNdotL * streams.matDiffuseSpecularAlphaBlend.x;
-
-            streams.lightColorNdotL = oldLightColorNdotL;
-            return result * celLight;
+            float3 result =  diffuseColor / PI * lighting * streams.matDiffuseSpecularAlphaBlend.x;
+            return result;
         }
 
         override float3 ComputeEnvironmentLightContribution()

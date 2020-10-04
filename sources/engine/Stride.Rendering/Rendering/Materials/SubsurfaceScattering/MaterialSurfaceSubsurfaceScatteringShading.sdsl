@@ -58,7 +58,7 @@ namespace Stride.Rendering.Materials
                                                               ScatteringWidth,
                                                               streams.meshNormalWS,
                                                               streams.lightDirectionWS,
-                                                              streams.lightColor,
+                                                              streams.lightColor * streams.lightAttenuation,
                                                               streams.matDiffuseVisible);
                                                               
             return scatteredLighting;

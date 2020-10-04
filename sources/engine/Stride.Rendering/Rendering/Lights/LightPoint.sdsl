@@ -29,7 +29,7 @@ namespace Stride.Rendering.Lights
             float attenuation = ComputeAttenuation(light, streams.PositionWS.xyz, lightVectorNorm);
 
             streams.lightPositionWS = light.PositionWS;
-            streams.lightColor = light.Color * attenuation;
+            streams.lightColor = light.Color;
             streams.lightAttenuation = attenuation;
             streams.lightDirectionWS = lightVectorNorm;
         }
