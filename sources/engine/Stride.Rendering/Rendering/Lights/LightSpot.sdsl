@@ -30,6 +30,7 @@ namespace Stride.Rendering.Lights
                                                    streams.PositionWS.xyz, lightVectorNorm);
 
             streams.lightColor = light.Color * attenuation;
+            streams.lightAttenuation = attenuation;
             streams.lightDirectionWS = lightVectorNorm;
         }
     };

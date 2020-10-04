@@ -25,8 +25,13 @@ namespace Stride.Rendering.Materials
 				// Correct
 				celLight = celLightFunction.Compute(streams.NdotL);          
             }
-
-			streams.lightColorNdotL = streams.lightColor * streams.shadowColor * streams.lightDirectAmbientOcclusion;      
+            
+            // Point and spotlight include attenuation in their lightColor, remove it and re-apply it based on light function
+            float3 lc = streams.lightAttenuation;
+            lc = lc == 0 ? 0 : streams.lightColor / lc;
+            lc *= celLightFunction.Compute(streams.lightAttenuation);
+            
+			streams.lightColorNdotL = lc * streams.shadowColor * streams.lightDirectAmbientOcclusion;      
 
             var diffuseColor = streams.matDiffuseVisible;
             if (TIsEnergyConservative)
