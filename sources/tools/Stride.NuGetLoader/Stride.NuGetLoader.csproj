@@ -9,6 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <IntermediateOutputPath>obj\$(Configuration)\$(StrideApplicationName)</IntermediateOutputPath>
     <OutputPath>bin\$(Configuration)\$(StrideApplicationName)</OutputPath>
+    <DefineConstants Condition="'$(StrideNuGetResolverUX)' == 'true'">STRIDE_NUGET_RESOLVER_UX;$(DefineConstants)</DefineConstants>
 
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
