@@ -9,7 +9,7 @@
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
-    <DefineConstants>STRIDE_NUGET_RESOLVER_UX;$(DefineConstants)</DefineConstants>
+    <StrideNuGetResolverUX>true</StrideNuGetResolverUX>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">

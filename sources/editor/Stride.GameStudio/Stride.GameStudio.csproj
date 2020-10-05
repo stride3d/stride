@@ -3,7 +3,6 @@
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="..\..\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems" Label="Shared" />
   <Import Project="..\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems" Label="Shared" />
-  <Import Project="..\..\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
   <Import Project="..\..\targets\Stride.props" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
@@ -19,8 +18,8 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideLocalized>true</StrideLocalized>
+    <StrideNuGetResolverUX>true</StrideNuGetResolverUX>
     <StrideSTAThreadOnMain>true</StrideSTAThreadOnMain>
-    <DefineConstants>STRIDE_NUGET_RESOLVER_UX;$(DefineConstants)</DefineConstants>
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
@@ -101,6 +100,7 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
+  <Import Project="..\..\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
 

@@ -249,6 +249,10 @@ namespace Stride.Core.Presentation.Windows
             {
                 windowInfo = new WindowInfo(hwnd);
 
+                // Ignore window created on separate UI threads
+                if (windowInfo.Window?.Dispatcher != dispatcher)
+                    return;
+
                 if (Debugger.IsAttached)
                 {
                     // Some external processes might attach a window to ours, we want to discard them.
@@ -260,6 +264,13 @@ namespace Stride.Core.Presentation.Windows
                             return;
                         }
                     }
+                }
+
+                // Make sure first window is activated (modal windows is not auto activated after splash screen)
+                if (AllWindowsList.Count == 0)
+                {
+                    windowInfo.Window?.Activate();
+                    windowInfo.Window?.Focus();
                 }
 
                 AllWindowsList.Add(windowInfo);
@@ -376,7 +387,12 @@ namespace Stride.Core.Presentation.Windows
                 return result;
 
             var window = WindowInfo.FromHwnd(hwnd);
-            return window != null ? AllWindowsList.FirstOrDefault(x => Equals(x.Window, window)) : null;
+
+            // Ignore window created on separate UI threads
+            if (window == null || window.Dispatcher != dispatcher)
+                return null;
+
+            return AllWindowsList.FirstOrDefault(x => Equals(x.Window, window));
         }
     }
 }
