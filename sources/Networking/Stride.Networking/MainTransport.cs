@@ -1,6 +1,7 @@
 using Telepathy;
 using Stride.Core.Mathematics;
 using System.Text;
+using LiteNetLib;
 namespace Stride.Networking
 {
     public enum TransportType
@@ -84,23 +85,5 @@ namespace Stride.Networking
             }
             return null;
         }
-    }
-    public static class MainTransportRUDP
-    {
-        public static RUDPClient CreateAndConnectClientRUDP(string ip, int port)
-        {
-            var connection = new RUDPClient(ip, port);
-            return connection;
-        }
-        public static void DestroyClient(RUDPClient client)
-        {
-            client.Disconnect();
-        }
-        public static RUDPServer CreateServer(string ip, int port)
-        {
-            var connection = new RUDPServer(ip, port);
-            return connection;
-        }
-
     }
 }
