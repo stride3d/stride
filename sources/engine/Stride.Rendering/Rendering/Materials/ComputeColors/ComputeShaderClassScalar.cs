@@ -6,7 +6,7 @@ using Stride.Core;
 namespace Stride.Rendering.Materials.ComputeColors
 {
     /// <summary>
-    /// A shader outputing a color/vector value.
+    /// A shader outputing a single scalar value.
     /// </summary>
     [DataContract("ComputeShaderClassScalar")]
     [Display("Shader")]
