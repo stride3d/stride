@@ -1,20 +1,15 @@
 using Telepathy;
 using Stride.Core.Mathematics;
 using System.Text;
-using LiteNetLib;
 namespace Stride.Networking
 {
-    public enum TransportType
-    {
-        RUDP,
-        TCP,
-    };
+
     /// <summary>
     /// Use This class As a wrapper for TCP and RUDP
     /// </summary>
     public static class MainTransportTCP
     {
-        public static Client ConnectAndCreateClientTCP(string ip, int port)
+        public static Client ConnectAndCreateClient(string ip, int port)
         {
 
             Client client = new Client();
