@@ -58,16 +58,16 @@ namespace Stride.Engine
             ConnectInstancing();
         }
 
-        private void ConnectInstancing()
+        internal void ConnectInstancing()
         {
-            if (master != null && master.Type is InstancingEntityTransform instancing)
+            if (connectedInstancing == null && master != null && master.Type is InstancingEntityTransform instancing)
             {
                 instancing.AddInstance(this);
                 connectedInstancing = instancing;
             }
         }
 
-        public void DisconnectInstancing()
+        internal void DisconnectInstancing()
         {
             if (connectedInstancing != null)
             {
