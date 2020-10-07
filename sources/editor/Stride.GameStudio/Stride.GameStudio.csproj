@@ -33,13 +33,15 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="ServiceWire" Version="5.3.4" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="EnvDTE" Version="8.0.1" Condition="$(TargetFramework.StartsWith('net4'))" />
     <PackageReference Include="Stride.Metrics" Version="1.0.3" />
     <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
     <PackageReference Include="Mono.Cecil" Version="0.11.2" />
-    <Reference Include="Stride.Core.AssemblyProcessor" >
+    <PackageReference Include="System.Text.Json" Version="4.7.2" />
+    <Reference Include="Stride.Core.AssemblyProcessor">
       <HintPath Condition="$(TargetFramework.StartsWith('net4'))">..\..\..\deps\AssemblyProcessor\net472\Stride.Core.AssemblyProcessor.exe</HintPath>
       <HintPath Condition="$(TargetFramework.StartsWith('netcoreapp'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
     </Reference>
