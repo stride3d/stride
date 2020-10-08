@@ -179,7 +179,10 @@ namespace Stride.Engine.Processors
 
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] InstancingComponent component, [NotNull] InstancingData data)
         {
-            modelInstancingMap.Remove(data.RenderModel);
+            if (data.RenderModel != null)
+            {
+                modelInstancingMap.Remove(data.RenderModel);
+            }
 
             if (component.Type is InstancingUserArray)
             {
