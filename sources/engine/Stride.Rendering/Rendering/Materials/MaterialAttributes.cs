@@ -138,12 +138,12 @@ namespace Stride.Rendering.Materials
         [DefaultValue(null)]
         [DataMember(100)]
         public IMaterialEmissiveFeature Emissive { get; set; }
-
+        
         [Display("Subsurface Scattering", "Shading")]
         [DefaultValue(null)]
         [DataMember(105)]
         public IMaterialSubsurfaceScatteringFeature SubsurfaceScattering { get; set; }
-
+        
         /// <summary>
         /// Gets or sets the transparency.
         /// </summary>
@@ -153,16 +153,6 @@ namespace Stride.Rendering.Materials
         [DefaultValue(null)]
         [DataMember(110)]
         public IMaterialTransparencyFeature Transparency { get; set; }
-
-        /// <summary>
-        /// Gets or sets fog.
-        /// </summary>
-        /// <value>The fog.</value>
-        /// <userdoc>The method used to determine the fog</userdoc>
-        [Display("Fog", "Misc")]
-        [DefaultValue(null)]
-        [DataMember(115)]
-        public IMaterialFogFeature FogFeature { get; set; }
 
         /// <summary>
         /// Gets or sets the overrides.
@@ -234,7 +224,6 @@ namespace Stride.Rendering.Materials
             context.Visit(Occlusion);
             context.Visit(Emissive);
             context.Visit(SubsurfaceScattering);
-            context.Visit(FogFeature);
 
             // If hair shading is enabled, ignore the transparency feature to avoid errors during shader compilation.
             // Allowing the transparency feature while hair shading is on makes no sense anyway.
