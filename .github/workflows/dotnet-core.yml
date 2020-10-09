@@ -18,7 +18,7 @@ jobs:
       with:
         dotnet-version: 3.1.301
     - name: Install dependencies
-      run:  dotnet restore \sources\editor\Stride.GameStudio\Stride.GameStudio.csproj
+      run:  dotnet restore sources\editor\Stride.GameStudio\Stride.GameStudio.csproj
     - name: Build
       run: dotnet build --configuration Release --no-restore /build/Stride.sln
     - name: Test
