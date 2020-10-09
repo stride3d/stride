@@ -18,7 +18,7 @@ jobs:
       with:
         dotnet-version: 3.1.301
     - name: Install dependencies
-      run: dotnet restore \build\Stride.sln
+      run: cd ../../../../../a/3030Engine/3030Engine/build & dotnet restore \build\Stride.sln
     - name: Build
       run: dotnet build --configuration Release --no-restore /build/Stride.sln
     - name: Test
