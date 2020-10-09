@@ -18,7 +18,7 @@ jobs:
       with:
         dotnet-version: 3.1.301
     - name: Install dependencies
-      run: cd ../../../../../a/3030Engine/3030Engine/build & dotnet restore Stride.sln
+      run: cd ../../../../../a/3030Engine/3030Engine/sources/editor/Stride.GameStudio & dotnet restore Stride.GameStidio.csproj
     - name: Build
       run: dotnet build --configuration Release --no-restore /build/Stride.sln
     - name: Test
