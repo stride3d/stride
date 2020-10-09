@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -18,6 +18,6 @@ jobs:
       with:
         dotnet-version: 3.1.301
     - name: Install dependencies
-      run:  cd build && dotnet restore Stride.sln
+      run:  dotnet restore build\Stride.sln
     - name: Build
       run: dotnet build --configuration Release --no-restore sources\editor\Stride.GameStudio\Stride.GameStudio.csproj
