@@ -20,6 +20,6 @@ jobs:
     - name: Install dependencies
       run:  dotnet restore sources\editor\Stride.GameStudio\Stride.GameStudio.csproj
     - name: Build
-      run: dotnet build --configuration Release --no-restore build/Stride.sln
+      run: dotnet build --configuration Release --no-restore sources\editor\Stride.GameStudio\Stride.GameStudio.csproj
     - name: Test
       run: dotnet test --no-restore --verbosity normal
