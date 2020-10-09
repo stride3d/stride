@@ -68,4 +68,5 @@ Please check our [Contributing Guidelines](docs/CONTRIBUTING.md).
 
 |Branch| **master** |
 |:--:|:--:|
+*Builds are faling because clang (at least the version on the repo) is not supported on windows server 2019, which is what Github actions is using.*
 ![.NET Core](https://github.com/3030Developers/3030Engine/workflows/.NET%20Core/badge.svg)
