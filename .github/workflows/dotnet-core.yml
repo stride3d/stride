@@ -20,4 +20,4 @@ jobs:
     - name: Install dependencies
       run:  dotnet restore build\Stride.sln
     - name: Build
-      run: dotnet build --configuration Release --no-restore build\Stride.sln
+      run: dotnet build --configuration Release --no-restore sources\editor\Stride.GameStudio\Stride.GameStudio.csproj
