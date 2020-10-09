@@ -8,6 +8,7 @@
     <Description>Networking for Stride game engine. part of fork in https://github.com/WholesomeIsland/3030Engine</Description>
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryUrl>https://github.com/WholesomeIsland/3030Engine</RepositoryUrl>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

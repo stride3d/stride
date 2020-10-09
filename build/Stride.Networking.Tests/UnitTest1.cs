@@ -15,7 +15,7 @@ namespace Stride.Networking.Tests
         [Test]
         public void Test1()
         {
-            string s = "T";
+            var s = "T";
             var server = MainTransportTCP.CreateServer(80);
             var client = MainTransportTCP.ConnectAndCreateClient("localhost", 80);
             client.Send(new UTF8Encoding(true).GetBytes(s));
