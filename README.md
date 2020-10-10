@@ -3,7 +3,7 @@
 
 Welcome to the 3030Engine source code repository!
 
-3030Engine is a game engine built off of the stride game engine, mostly in c#. I am not accepting pull requests. feel free to use this for your projects.
+3030Engine is a game engine built off of the stride game engine, mostly in c#. feel free to use this for your projects.
 
 *You will still see stride everywhere to keep everything Stable and working.*
 
