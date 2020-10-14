@@ -19,7 +19,7 @@ namespace Stride.Core.Yaml
 
         public static YamlSerializer Default { get; set; } = new YamlSerializer();
 
-        public T Load<T>([NotNull] string filePath, ILogger log = null)
+        public static T Load<T>([NotNull] string filePath, ILogger log = null)
         {
             if (filePath == null) throw new ArgumentNullException(nameof(filePath));
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))

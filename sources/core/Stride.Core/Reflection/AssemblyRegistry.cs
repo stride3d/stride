@@ -15,12 +15,20 @@ namespace Stride.Core.Reflection
     /// </summary>
     public static class AssemblyRegistry
     {
-        private static readonly Logger Log = GlobalLogger.GetLogger("AssemblyRegistry");
+        // Log has to be constructed lazily, because AssemblyRegistry is used in static Logger property used to construct GlobalLogger
+        public static Logger Log
+        { get { log = log ?? GlobalLogger.GetLogger("AssemblyRegistry"); return log; } }
+        private static Logger log;
         private static readonly object Lock = new object();
         private static readonly Dictionary<string, HashSet<Assembly>> MapCategoryToAssemblies = new Dictionary<string, HashSet<Assembly>>();
         private static readonly Dictionary<Assembly, HashSet<string>> MapAssemblyToCategories = new Dictionary<Assembly, HashSet<string>>();
         private static readonly Dictionary<Assembly, ScanTypes> AssemblyToScanTypes = new Dictionary<Assembly, ScanTypes>();
         private static readonly Dictionary<string, Assembly> AssemblyNameToAssembly = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
+
+        static AssemblyRegistry()
+        {
+            Register(typeof(AssemblyRegistry).Assembly, "core"); // to be included in FindAll()
+        }
 
         /// <summary>
         /// Occurs when an assembly is registered.

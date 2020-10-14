@@ -15,11 +15,6 @@ namespace Stride.Core.Diagnostics
         #region Constants and Fields
 
         /// <summary>
-        /// By default, the minimum level for a GlobalLogger is info.
-        /// </summary>
-        public const LogMessageType MinimumLevel = LogMessageType.Info;
-
-        /// <summary>
         /// Map for all instantiated loggers. Map a module name to a logger.
         /// </summary>
         private static readonly Dictionary<string, Logger> MapModuleNameToLogger = new Dictionary<string, Logger>();
@@ -132,7 +127,7 @@ namespace Stride.Core.Diagnostics
                 if (!MapModuleNameToLogger.TryGetValue(module, out logger))
                 {
                     logger = new GlobalLogger(module);
-                    logger.ActivateLog(MinimumLevel);
+                    logger.ActivateLog(MinimumLevelEnabled);
                     MapModuleNameToLogger.Add(module, logger);
                 }
             }

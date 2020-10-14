@@ -1172,7 +1172,7 @@ namespace Stride.Core.Assets
                             continue;
                         }
 
-                        var templateDescription = YamlSerializer.Default.Load<TemplateDescription>(file.FullName);
+                        var templateDescription = YamlSerializer.Load<TemplateDescription>(file.FullName);
                         templateDescription.FullPath = file.FullName;
                         Templates.Add(templateDescription);
                     }
