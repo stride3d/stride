@@ -2,5 +2,5 @@ version: 1.0.{build}
 before_build:
 - cmd: dotnet restore build\Stride.sln
 build:
-  project: build\Stride.sln
+  project: sources\editor\Stride.GameStudio\Stride.GameStudio.csproj
   verbosity: minimal
