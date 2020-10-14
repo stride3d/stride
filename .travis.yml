@@ -2,7 +2,7 @@ language: csharp
 solution: build/Stride.sln
 os: windows
 mono: none
-dotnet: latest
+dotnet: 3
 script:
  - dotnet restore build/Stride.sln
  - dotnet build build/Stride.sln
