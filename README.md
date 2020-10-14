@@ -67,4 +67,4 @@ Please check our [Contributing Guidelines](docs/CONTRIBUTING.md).
 ### Build Status
 |Branch| **master** |
 |:--:|:--:|
-|AppVeyor| ![.NET Core](https://ci.appveyor.com/api/projects/status/w80ld1t2e6vugyhn?svg=true)
+|master| ![.NET Core](https://ci.appveyor.com/api/projects/status/w80ld1t2e6vugyhn?svg=true)
