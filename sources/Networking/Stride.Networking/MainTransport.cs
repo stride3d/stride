@@ -42,10 +42,8 @@ namespace Stride.Networking
         /// </summary>
         /// <param name="port">the port to start on</param>
         /// <param name="action">Recieve event</param>
-        /// <param name="act2">connection request event</param>
-        /// <param name="act3">client connected event</param>
-        /// <param name="act4">client disconnected event</param>
-        public void CreateServer( int port, EventBasedNetListener.OnNetworkReceive action = null, EventBasedNetListener.OnConnectionRequest act2 = null, EventBasedNetListener.OnPeerConnected act3 = null, EventBasedNetListener.OnPeerDisconnected act4 = null)
+        /// <param name="act2">connection request event. Checing for the key is done here.</param>
+        public void CreateServer( int port, EventBasedNetListener.OnNetworkReceive action = null, EventBasedNetListener.OnConnectionRequest act2 = null)
         {
             switch (type)
             {
@@ -54,7 +52,7 @@ namespace Stride.Networking
                     clientTCP.Start(port);
                     break;
                 case TransportType.RUDP:
-                    clientRUDP = MaintransportRUDP.CreateServer(port, action, act2, act3, act4);
+                    clientRUDP = MaintransportRUDP.CreateServer(port, action, act2);
                     break;
             }
         }
@@ -82,7 +80,7 @@ namespace Stride.Networking
                         MainTransportTCP.SendMessageServer(cID, clientTCP, vector.ToStringNetworking());
                         break;
                     case TransportType.RUDP:
-                        MaintransportRUDP.SendMessageClient(clientRUDP, vector.ToStringNetworking());
+                        MaintransportRUDP.SendMessageServer(clientRUDP, vector.ToStringNetworking());
                         break;
                 }
             }
@@ -318,14 +316,14 @@ namespace Stride.Networking
         }
     }
     /// <summary>
-    /// TODO
+    /// Wrapper for LiteNetLib
     /// </summary>
     public class MaintransportRUDP
     {
         /// <summary>
         /// Create and connect a RUDP client
         /// </summary>
-        /// <param name="connectionKey">the string to validate that this client is part of the right program</param>
+        /// <param name="connectionKey">the string to validate that this client is part of the right program.</param>
         /// <param name="port">the port to listen on</param>
         /// <param name="ip">the ip address to connect to</param>
         /// <param name="action">the NetworkRecieve event</param>
@@ -350,15 +348,13 @@ namespace Stride.Networking
         /// <param name="act3">Client join request</param>
         /// <param name="act4">Client Disconnect Event</param>
         /// <returns>RUDP Server</returns>
-        public static NetManager CreateServer(int port, EventBasedNetListener.OnNetworkReceive action, EventBasedNetListener.OnConnectionRequest act2, EventBasedNetListener.OnPeerConnected act3, EventBasedNetListener.OnPeerDisconnected act4)
+        public static NetManager CreateServer(int port, EventBasedNetListener.OnNetworkReceive action, EventBasedNetListener.OnConnectionRequest act2)
         {
             EventBasedNetListener listener = new EventBasedNetListener();
             NetManager server = new NetManager(listener);
             server.Start(port);
             listener.NetworkReceiveEvent += action;
             listener.ConnectionRequestEvent += act2;
-            listener.PeerConnectedEvent += act3;
-            listener.PeerDisconnectedEvent += act4;
             PollEvents(server);
             return server;
         }
@@ -385,7 +381,7 @@ namespace Stride.Networking
         /// Client send message
         /// </summary>
         /// <param name="client">the client to send with</param>
-        /// <param name="message">the message to send. NOTE: to sens a vector3, use the ToStringNetworking to parse correctly.</param>
+        /// <param name="message">the message to send. NOTE: to send a vector3, use the ToStringNetworking to parse correctly.</param>
         public static void SendMessageClient(NetManager client,string message)
         {
             NetDataWriter writer = new NetDataWriter();
