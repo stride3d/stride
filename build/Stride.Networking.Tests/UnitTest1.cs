@@ -1,23 +1,28 @@
-using System;
 using System.Text;
 using Telepathy;
 using NUnit.Framework;
-using Stride.Networking;
+using System.IO;
+
 namespace Stride.Networking.Tests
 {
     public class Tests
     {
+        public int id = 0;
+        Server server;
+        Client client;
         [SetUp]
         public void Setup()
         {
+            server = MainTransportTCP.CreateServer(80);
+            client = MainTransportTCP.ConnectAndCreateClient("localhost", 80);
         }
 
         [Test]
         public void Test1()
         {
             var s = "T";
-            var server = MainTransportTCP.CreateServer(80);
-            var client = MainTransportTCP.ConnectAndCreateClient("localhost", 80);
+
+
             client.Send(new UTF8Encoding(true).GetBytes(s));
             Message message;
             while (true)
@@ -30,6 +35,7 @@ namespace Stride.Networking.Tests
                         case EventType.Connected:
                             break;
                         case EventType.Data:
+                            id = message.connectionId;
                             Assert.That(new UTF8Encoding(true).GetString(message.data), Is.EqualTo(s));
                             return;
                         case EventType.Disconnected:
@@ -38,5 +44,39 @@ namespace Stride.Networking.Tests
                 }
             }
         }
+        [Test]
+        public void Test2()
+        {
+            var s = "T";
+            
+            server.Send(id, new UTF8Encoding(true).GetBytes(s));
+            Message message;
+
+            while (true)
+            {
+                server.Send(id, new UTF8Encoding(true).GetBytes(s));
+                while (client.GetNextMessage(out message))
+                {
+                    switch (message.eventType)
+                    {
+                        case EventType.Connected:
+                            break;
+                        case EventType.Data:
+                            Assert.That(new UTF8Encoding(true).GetString(message.data), Is.EqualTo(s));
+                            return;
+                        case EventType.Disconnected:
+                            Assert.Fail();
+                            break;
+                    }
+                }
+            }
+        }
+        [OneTimeTearDown]
+        void End()
+        {
+            client.Disconnect();
+            server.Stop();
+        }
+
     }
 }

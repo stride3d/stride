@@ -8,10 +8,17 @@
     <Description>Networking for Stride game engine. part of fork in https://github.com/WholesomeIsland/3030Engine</Description>
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryUrl>https://github.com/WholesomeIsland/3030Engine</RepositoryUrl>
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Telepathy\Open.NAT\**" />
+    <EmbeddedResource Remove="Telepathy\Open.NAT\**" />
+    <None Remove="Telepathy\Open.NAT\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LiteNetLib" Version="0.9.3.2" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.2" />
     <PackageReference Include="Nancy" Version="2.0.0" />
   </ItemGroup>
