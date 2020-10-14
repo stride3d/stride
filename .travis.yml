@@ -1,5 +1,6 @@
 language: csharp
 solution: build/Stride.sln
+os: windows
 mono: none
 dotnet: 3.1
 script:
