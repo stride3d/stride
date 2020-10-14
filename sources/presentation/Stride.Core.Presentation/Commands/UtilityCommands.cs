@@ -34,7 +34,7 @@ namespace Stride.Core.Presentation.Commands
             // see https://support.microsoft.com/en-us/kb/305703
             try
             {
-                Process.Start(url);
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
             catch (System.ComponentModel.Win32Exception e)
             {
