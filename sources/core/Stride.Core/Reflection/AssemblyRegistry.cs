@@ -15,10 +15,7 @@ namespace Stride.Core.Reflection
     /// </summary>
     public static class AssemblyRegistry
     {
-        // Log has to be constructed lazily, because AssemblyRegistry is used in static Logger property used to construct GlobalLogger
-        public static Logger Log
-        { get { log = log ?? GlobalLogger.GetLogger("AssemblyRegistry"); return log; } }
-        private static Logger log;
+        private static readonly Lazy<Logger> Log = new Lazy<Logger>(() => GlobalLogger.GetLogger("AssemblyRegistry"));
         private static readonly object Lock = new object();
         private static readonly Dictionary<string, HashSet<Assembly>> MapCategoryToAssemblies = new Dictionary<string, HashSet<Assembly>>();
         private static readonly Dictionary<Assembly, HashSet<string>> MapAssemblyToCategories = new Dictionary<Assembly, HashSet<string>>();
@@ -211,7 +208,7 @@ namespace Stride.Core.Reflection
                 {
                     if (string.IsNullOrWhiteSpace(category))
                     {
-                        Log.Error($"Invalid empty category for assembly [{assembly}]");
+                        Log.Value.Error($"Invalid empty category for assembly [{assembly}]");
                         continue;
                     }
 
