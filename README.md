@@ -66,6 +66,7 @@ Please check our [Contributing Guidelines](docs/CONTRIBUTING.md).
 
 ### Build Status
 *Builds are faling because clang (at least the version on the repo) is not supported on windows server 2019, which is what Github actions is using.*
+*Travis Is using linux and it needs windows. Windows would hang, so it keeps saying canceled*
 |Branch| **master** |
 |:--:|:--:|
 _Github_ ![.NET Core](https://github.com/3030Developers/3030Engine/workflows/.NET%20Core/badge.svg)
