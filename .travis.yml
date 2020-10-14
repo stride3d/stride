@@ -3,4 +3,4 @@ solution: build\Stride.sln
 mono: none
 dotnet: 3.1
 script:
- - dotnet restore
+ - dotnet restore build\Stride.sln
