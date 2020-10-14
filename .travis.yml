@@ -1,8 +1,7 @@
 language: csharp
 solution: build/Stride.sln
-os: windows
 mono: none
 dotnet: 3
 script:
  - dotnet restore build/Stride.sln
- - dotnet build build/Stride.sln
+ - dotnet build sources/editor/Stride.GameStudio/Stride.GameStudio.csproj
