@@ -70,5 +70,5 @@ Please check our [Contributing Guidelines](docs/CONTRIBUTING.md).
 |Branch| **master** |
 |:--:|:--:|
 _Github_ ![.NET Core](https://github.com/3030Developers/3030Engine/workflows/.NET%20Core/badge.svg)
-_Travis CI_ ![.Net Core](https://api.travis-ci.org/3030Developers/3030Engine.svg)
+_Travis CI_ ![.Net Core](https://travis-ci.com/3030Developers/3030Engine.svg?branch=master)
 AppVeyor ![.NET Core](https://ci.appveyor.com/api/projects/status/w80ld1t2e6vugyhn?svg=true)
