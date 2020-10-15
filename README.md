@@ -29,7 +29,24 @@ using Stride.Networking;
                 }
             }
 ```
-
+Client: TCP
+```csharp
+MainTransportClient client = new MainTransportClient(TransportType.TCP);
+            client.CreateAndConnectClient("localhost", 80);
+            Message msg;
+            while (client.clientTCP.GetNextMessage(out msg))
+            {
+                switch (msg.eventType)
+                {
+                    case EventType.Connected:
+                        break;
+                    case EventType.Data:
+                        break;
+                    case EventType.Disconnected:
+                        break;
+                }
+            }
+```
 ## License
 
 Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).

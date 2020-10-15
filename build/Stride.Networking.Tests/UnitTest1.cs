@@ -47,10 +47,10 @@ namespace Stride.Networking.Tests
         [Test]
         public void Test2()
         {
-            MainTransportServer server = new MainTransportServer(TransportType.TCP);
-            server.CreateServer(80);
+            MainTransportClient client = new MainTransportClient(TransportType.TCP);
+            client.CreateAndConnectClient("localhost", 80);
             Message msg;
-            while (server.serverTCP.GetNextMessage(out msg))
+            while (client.clientTCP.GetNextMessage(out msg))
             {
                 switch (msg.eventType)
                 {
