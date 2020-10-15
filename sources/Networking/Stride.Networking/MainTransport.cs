@@ -42,7 +42,7 @@ namespace Stride.Networking
         /// </summary>
         /// <param name="port">the port to start on</param>
         /// <param name="action">Recieve event</param>
-        /// <param name="act2">connection request event. Checing for the key is done here.</param>
+        /// <param name="act2">connection request event. Checking for the key is done here.</param>
         public void CreateServer( int port, EventBasedNetListener.OnNetworkReceive action = null, EventBasedNetListener.OnConnectionRequest act2 = null)
         {
             switch (type)
