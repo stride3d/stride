@@ -4,6 +4,3 @@ before_build:
 build:
   project: sources\editor\Stride.GameStudio\Stride.GameStudio.csproj
   verbosity: minimal
-install:
-  - ps: (new-object net.webclient).DownloadFile('https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/2020-0-1/fbx202001_fbxsdk_vs2015_win.exe', 'fbx202001_fbxsdk_vs2015_win.exe')
-  - ps: msiexec /i fbx202001_fbxsdk_vs2015_win.exe /quiet /qn /norestart /log install.log
