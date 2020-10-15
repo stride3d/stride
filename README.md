@@ -7,8 +7,28 @@ Welcome to the 3030Engine source code repository!
 
 *You will still see stride everywhere to keep everything Stable and working.*
 
-
 To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
+## Networking Code
+Server: TCP
+```
+using Stride.Networking;
+
+            MainTransportServer server = new MainTransportServer(TransportType.TCP);
+            server.CreateServer(80);
+            Message msg;
+            while (server.serverTCP.GetNextMessage(out msg))
+            {
+                switch (msg.eventType)
+                {
+                    case EventType.Connected:
+                        break;
+                    case EventType.Data:
+                        break;
+                    case EventType.Disconnected:
+                        break;
+                }
+            }
+```
 
 ## License
 
