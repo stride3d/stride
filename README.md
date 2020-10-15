@@ -10,7 +10,7 @@ Welcome to the 3030Engine source code repository!
 To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 ## Networking Code
 Server: TCP
-```
+```csharp
 using Stride.Networking;
 
             MainTransportServer server = new MainTransportServer(TransportType.TCP);
