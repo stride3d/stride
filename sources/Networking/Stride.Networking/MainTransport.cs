@@ -24,11 +24,11 @@ namespace Stride.Networking
         /// <summary>
         /// Server for TCP
         /// </summary>
-        public Server clientTCP { get; private set; }
+        public Server serverTCP { get; private set; }
         /// <summary>
         /// Server for RUDP
         /// </summary>
-        public NetManager clientRUDP { get; private set; }
+        public NetManager serverRUDP { get; private set; }
         /// <summary>
         /// Creates a new MainTransportClient Object.
         /// </summary>
@@ -48,11 +48,11 @@ namespace Stride.Networking
             switch (type)
             {
                 case TransportType.TCP:
-                    clientTCP = new Server();
-                    clientTCP.Start(port);
+                    serverTCP = new Server();
+                    serverTCP.Start(port);
                     break;
                 case TransportType.RUDP:
-                    clientRUDP = MaintransportRUDP.CreateServer(port, action, act2);
+                    serverRUDP = MaintransportRUDP.CreateServer(port, action, act2);
                     break;
             }
         }
@@ -61,8 +61,8 @@ namespace Stride.Networking
         /// </summary>
         public void DestroyServer()
         {
-            clientRUDP.Stop();
-            clientTCP.Stop();
+            serverRUDP.Stop();
+            serverTCP.Stop();
         }
         /// <summary>
         /// Send a message.
@@ -77,10 +77,10 @@ namespace Stride.Networking
                 switch (type)
                 {
                     case TransportType.TCP:
-                        MainTransportTCP.SendMessageServer(cID, clientTCP, vector.ToStringNetworking());
+                        MainTransportTCP.SendMessageServer(cID, serverTCP, vector.ToStringNetworking());
                         break;
                     case TransportType.RUDP:
-                        MaintransportRUDP.SendMessageServer(clientRUDP, vector.ToStringNetworking());
+                        MaintransportRUDP.SendMessageServer(serverRUDP, vector.ToStringNetworking());
                         break;
                 }
             }
@@ -89,10 +89,10 @@ namespace Stride.Networking
                 switch (type)
                 {
                     case TransportType.TCP:
-                        MainTransportTCP.SendMessageServer(cID,clientTCP, message);
+                        MainTransportTCP.SendMessageServer(cID,serverTCP, message);
                         break;
                     case TransportType.RUDP:
-                        MaintransportRUDP.SendMessageClient(clientRUDP, message);
+                        MaintransportRUDP.SendMessageClient(serverRUDP, message);
                         break;
                 }
             }

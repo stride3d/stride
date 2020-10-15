@@ -47,27 +47,19 @@ namespace Stride.Networking.Tests
         [Test]
         public void Test2()
         {
-            var s = "T";
-            
-            server.Send(id, new UTF8Encoding(true).GetBytes(s));
-            Message message;
-
-            while (true)
+            MainTransportServer server = new MainTransportServer(TransportType.TCP);
+            server.CreateServer(80);
+            Message msg;
+            while (server.serverTCP.GetNextMessage(out msg))
             {
-                server.Send(id, new UTF8Encoding(true).GetBytes(s));
-                while (client.GetNextMessage(out message))
+                switch (msg.eventType)
                 {
-                    switch (message.eventType)
-                    {
-                        case EventType.Connected:
-                            break;
-                        case EventType.Data:
-                            Assert.That(new UTF8Encoding(true).GetString(message.data), Is.EqualTo(s));
-                            return;
-                        case EventType.Disconnected:
-                            Assert.Fail();
-                            break;
-                    }
+                    case EventType.Connected:
+                        break;
+                    case EventType.Data:
+                        break;
+                    case EventType.Disconnected:
+                        break;
                 }
             }
         }
