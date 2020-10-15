@@ -1,4 +1,7 @@
 version: 1.0.{build}
+install:
+  - ps: (new-object net.webclient).DownloadFile('https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/2020-1-1/fbx202011_fbxsdk_vs2017_win.exe', 'fbx202011_fbxsdk_vs2017_win.exe')
+  - ps: msiexec /i fbx202011_fbxsdk_vs2017_win.exe /quiet /qn /norestart /log install.log 
 before_build:
 - cmd: dotnet restore build\Stride.sln
 build:
