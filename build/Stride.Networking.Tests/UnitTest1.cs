@@ -1,7 +1,7 @@
 using System.Text;
 using Telepathy;
 using NUnit.Framework;
-using System.IO;
+using LiteNetLib;
 
 namespace Stride.Networking.Tests
 {
@@ -47,21 +47,16 @@ namespace Stride.Networking.Tests
         [Test]
         public void Test2()
         {
-            MainTransportClient client = new MainTransportClient(TransportType.TCP);
-            client.CreateAndConnectClient("localhost", 80);
-            Message msg;
-            while (client.clientTCP.GetNextMessage(out msg))
-            {
-                switch (msg.eventType)
-                {
-                    case EventType.Connected:
-                        break;
-                    case EventType.Data:
-                        break;
-                    case EventType.Disconnected:
-                        break;
-                }
-            }
+            MainTransportServer server = new MainTransportServer(TransportType.RUDP);
+            server.CreateServer(80, NetRec, new EventBasedNetListener.OnConnectionRequest(RequestJoin));
+        }
+        public void NetRec(NetPeer peer, NetPacketReader netPacketReader, DeliveryMethod method)
+        {
+
+        }
+        public void RequestJoin(ConnectionRequest request)
+        {
+            request.AcceptIfKey("KEY");
         }
         [OneTimeTearDown]
         void End()
