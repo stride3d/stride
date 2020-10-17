@@ -1,0 +1,14 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'VS2019-Win2019'
+
+variables:
+  solution: 'build/Stride.sln'
+
+steps:
+- task: MSBuild@1
+  inputs:
+    solution: '$(solution)'
+    msbuildArguments: '/t:BuildWindows /p:StrideSkipUnitTests=true /p:StrideEnableCodeAnalysis=true'
