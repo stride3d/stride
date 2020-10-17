@@ -14,7 +14,11 @@ namespace Stride.Core.Settings
         /// <inheritdoc/>
         public AppSettings LoadAppSettings()
         {
-            var execFilePath = Assembly.GetEntryAssembly().Location;
+            var execFilePath = Assembly.GetEntryAssembly()?.Location;
+
+            if (execFilePath == null)
+                return new AppSettings();
+
             var settingsFilePath = Path.ChangeExtension(execFilePath, SettingsExtension);
             try
             {
