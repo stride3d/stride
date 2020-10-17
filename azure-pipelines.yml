@@ -2,7 +2,7 @@ trigger:
 - master
 
 pool:
-  vmImage: 'VS2019-Win2016'
+  vmImage: 'Windows-2019'
 
 variables:
   solution: 'build/Stride.sln'
