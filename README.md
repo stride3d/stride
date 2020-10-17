@@ -68,6 +68,7 @@ Server: RUDP
         {
             request.AcceptIfKey("KEY");
         }
+```
 ## License
 
 Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
