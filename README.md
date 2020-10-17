@@ -47,6 +47,27 @@ MainTransportClient client = new MainTransportClient(TransportType.TCP);
                 }
             }
 ```
+Client: RUDP
+```csharp
+            MainTransportClient client = new MainTransportClient(TransportType.RUDP);
+            client.CreateAndConnectClient("localhost", 80, "KEY", new EventBasedNetListener.OnNetworkReceive(NetRec));
+            public void NetRec(NetPeer peer, NetPacketReader netPacketReader, DeliveryMethod method)
+            {
+
+            }
+```
+Server: RUDP
+```csharp
+             MainTransportServer server = new MainTransportServer(TransportType.RUDP);
+            server.CreateServer(80, NetRec, new EventBasedNetListener.OnConnectionRequest(RequestJoin));
+        public void NetRec(NetPeer peer, NetPacketReader netPacketReader, DeliveryMethod method)
+        {
+
+        }
+        public void RequestJoin(ConnectionRequest request)
+        {
+            request.AcceptIfKey("KEY");
+        }
 ## License
 
 Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
