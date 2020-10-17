@@ -8,6 +8,7 @@ variables:
   solution: 'build/Stride.sln'
 
 steps:
+- script: dotnet restore build/Stride.sln
 - task: MSBuild@1
   inputs:
     solution: '$(solution)'
