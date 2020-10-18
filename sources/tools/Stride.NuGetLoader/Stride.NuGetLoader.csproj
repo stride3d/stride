@@ -25,10 +25,10 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs" Link="Properties\SharedAssemblyInfo.cs" />
     <Compile Include="..\..\shared\Stride.NuGetResolver\NuGetAssemblyResolver.cs" Link="NuGetAssemblyResolver.cs" />
     <Compile Include="..\..\shared\Stride.NuGetResolver\RestoreHelper.cs" Link="RestoreHelper.cs" />
-    <Compile Include="..\..\shared\Stride.NuGetResolver\SplashScreenWindow.xaml.cs" Link="SplashScreenWindow.xaml.cs" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(StrideNuGetLoaderWindowsDesktop)' == 'true'">
+    <Compile Include="..\..\shared\Stride.NuGetResolver\SplashScreenWindow.xaml.cs" Link="SplashScreenWindow.xaml.cs" />
     <Page Include="..\..\shared\Stride.NuGetResolver\SplashScreenWindow.xaml" Link="SplashScreenWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
