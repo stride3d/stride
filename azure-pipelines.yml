@@ -1,0 +1,15 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'Windows-2019'
+
+variables:
+  solution: 'sources/editor/Stride.GameStudio/Stride.GameStudio.csproj'
+
+steps:
+- script: dotnet restore build/Stride.sln
+- task: MSBuild@1
+  inputs:
+    solution: '$(solution)'
+    msbuildArguments: '/p:StrideSkipUnitTests=true /p:StrideEnableCodeAnalysis=true'
