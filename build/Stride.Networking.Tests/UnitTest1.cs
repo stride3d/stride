@@ -10,7 +10,7 @@ namespace Stride.Networking.Tests
         public int id = 0;
         Server server;
         Client client;
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             server = MainTransportTCP.CreateServer(80);
@@ -43,20 +43,6 @@ namespace Stride.Networking.Tests
                     }
                 }
             }
-        }
-        [Test]
-        public void Test2()
-        {
-            MainTransportServer server = new MainTransportServer(TransportType.RUDP);
-            server.CreateServer(80, NetRec, new EventBasedNetListener.OnConnectionRequest(RequestJoin));
-        }
-        public void NetRec(NetPeer peer, NetPacketReader netPacketReader, DeliveryMethod method)
-        {
-
-        }
-        public void RequestJoin(ConnectionRequest request)
-        {
-            request.AcceptIfKey("KEY");
         }
         [OneTimeTearDown]
         void End()
