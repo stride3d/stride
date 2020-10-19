@@ -100,6 +100,11 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <None Update="global.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Import Project="..\..\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
@@ -111,6 +116,7 @@
     <ItemGroup>
       <BuildOutputInPackage Include="$(OutputPath)Mono.Cecil.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Core.AssemblyProcessor.*" />
+      <BuildOutputInPackage Include="$(OutputPath)global.json" />
     </ItemGroup>
   </Target>
 </Project>
