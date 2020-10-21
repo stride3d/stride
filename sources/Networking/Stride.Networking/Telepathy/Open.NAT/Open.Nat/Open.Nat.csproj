@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net35;net45;net472</TargetFrameworks>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <PackageId>Open.Nat</PackageId>
+    <Authors>Alan McGovern, Ben Motmans, Lucas Ontivero</Authors>
+    <Product>Open.Nat</Product>
+    <PackageTags>Networking</PackageTags>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <Description>.NET Library for automatic network address translation</Description>
+    <NeutralLanguage>en</NeutralLanguage>
+    <Copyright>Copyright Alan McGovern, Ben Motmans, Lucas Ontivero ©  2006-2014</Copyright>
+    <Version>2.1.0.0</Version>
+    <FileVersion>1.0.1.0</FileVersion>
+    <OutputType>Library</OutputType>
+    <StartupObject />
+    <InternalsVisibleTo>Open.Nat.UnitTests,PublicKey=00240000048000009400000006020000002400005253413100040000010001004de491ec95076f7054ac0562395232c4c351bce7037c7e266a5cc5dc6c60738fe649e06513ca1d58edec8e6a60e969887403a09ae158a007a592f650fe98912e7029e112e61494a47eff16138b62390241e1d8d45076ac3af77b47fa67d40ba1928a37ebe073415785a23ae87b6119f63f78f04cb3b8ea280dfbf3d6df437fbf</InternalsVisibleTo>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>Open.Nat.snk</AssemblyOriginatorKeyFile>
+    <RepositoryUrl>https://github.com/lontivero/Open.NAT</RepositoryUrl>
+    <RepositoryType>Github</RepositoryType>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)'!='netstandard2.0'">
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'!='net35' and '$(TargetFramework)'!='netstandard2.0'">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Upnp\Messages\Responses\AddPortMappingResponseMessage.cs" />
+    <Compile Remove="Upnp\Messages\Responses\DeletePortMappingResponseMessage.cs" />
+  </ItemGroup>
+   <ItemGroup>
+    <PackageReference Include="TaskParallelLibrary" Version="1.0.2856.0" Condition="'$(TargetFramework)'=='net35'" />
+  </ItemGroup>
+</Project>

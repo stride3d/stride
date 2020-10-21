@@ -1,0 +1,73 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2046
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Open.Nat", "Open.Nat\Open.Nat.csproj", "{F5D74163-145F-47BF-83DC-D0E07249C6CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Open.Nat.ConsoleTest", "Open.Nat.ConsoleTest\Open.Nat.ConsoleTest.csproj", "{E92CFA66-F518-4E66-B0BA-76A7808C939A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{87CD0D6D-64C8-4C38-9A75-2036C09BB763}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{94F0AE28-727F-497A-AC20-EB5B0C5EBA9A}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		AUTHORS = AUTHORS
+		CHANGELOG.md = CHANGELOG.md
+		LICENSE = LICENSE
+		Open.Nat\Open.Nat.nuspec = Open.Nat\Open.Nat.nuspec
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Open.Nat.UnitTests", "Open.Nat.UnitTests\Open.Nat.UnitTests.csproj", "{7A65D2F2-BFB5-4BE1-A54D-484A394DE745}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug 3.5|Any CPU = Debug 3.5|Any CPU
+		Debug 4.5|Any CPU = Debug 4.5|Any CPU
+		Release 3.5|Any CPU = Release 3.5|Any CPU
+		Release 4.5|Any CPU = Release 4.5|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F5D74163-145F-47BF-83DC-D0E07249C6CA}.Debug 3.5|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5D74163-145F-47BF-83DC-D0E07249C6CA}.Debug 3.5|Any CPU.Build.0 = Debug|Any CPU
+		{F5D74163-145F-47BF-83DC-D0E07249C6CA}.Debug 4.5|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5D74163-145F-47BF-83DC-D0E07249C6CA}.Debug 4.5|Any CPU.Build.0 = Debug|Any CPU
+		{F5D74163-145F-47BF-83DC-D0E07249C6CA}.Release 3.5|Any CPU.ActiveCfg = Release|Any CPU
+		{F5D74163-145F-47BF-83DC-D0E07249C6CA}.Release 3.5|Any CPU.Build.0 = Release|Any CPU
+		{F5D74163-145F-47BF-83DC-D0E07249C6CA}.Release 4.5|Any CPU.ActiveCfg = Release|Any CPU
+		{F5D74163-145F-47BF-83DC-D0E07249C6CA}.Release 4.5|Any CPU.Build.0 = Release|Any CPU
+		{E92CFA66-F518-4E66-B0BA-76A7808C939A}.Debug 3.5|Any CPU.ActiveCfg = Debug 3.5|Any CPU
+		{E92CFA66-F518-4E66-B0BA-76A7808C939A}.Debug 3.5|Any CPU.Build.0 = Debug 3.5|Any CPU
+		{E92CFA66-F518-4E66-B0BA-76A7808C939A}.Debug 4.5|Any CPU.ActiveCfg = Debug 4.5|Any CPU
+		{E92CFA66-F518-4E66-B0BA-76A7808C939A}.Debug 4.5|Any CPU.Build.0 = Debug 4.5|Any CPU
+		{E92CFA66-F518-4E66-B0BA-76A7808C939A}.Release 3.5|Any CPU.ActiveCfg = Release 3.5|Any CPU
+		{E92CFA66-F518-4E66-B0BA-76A7808C939A}.Release 3.5|Any CPU.Build.0 = Release 3.5|Any CPU
+		{E92CFA66-F518-4E66-B0BA-76A7808C939A}.Release 4.5|Any CPU.ActiveCfg = Release 4.5|Any CPU
+		{E92CFA66-F518-4E66-B0BA-76A7808C939A}.Release 4.5|Any CPU.Build.0 = Release 4.5|Any CPU
+		{7A65D2F2-BFB5-4BE1-A54D-484A394DE745}.Debug 3.5|Any CPU.ActiveCfg = Debug 3.5|Any CPU
+		{7A65D2F2-BFB5-4BE1-A54D-484A394DE745}.Debug 3.5|Any CPU.Build.0 = Debug 3.5|Any CPU
+		{7A65D2F2-BFB5-4BE1-A54D-484A394DE745}.Debug 4.5|Any CPU.ActiveCfg = Debug 4.5|Any CPU
+		{7A65D2F2-BFB5-4BE1-A54D-484A394DE745}.Debug 4.5|Any CPU.Build.0 = Debug 4.5|Any CPU
+		{7A65D2F2-BFB5-4BE1-A54D-484A394DE745}.Release 3.5|Any CPU.ActiveCfg = Release 3.5|Any CPU
+		{7A65D2F2-BFB5-4BE1-A54D-484A394DE745}.Release 3.5|Any CPU.Build.0 = Release 3.5|Any CPU
+		{7A65D2F2-BFB5-4BE1-A54D-484A394DE745}.Release 4.5|Any CPU.ActiveCfg = Release 4.5|Any CPU
+		{7A65D2F2-BFB5-4BE1-A54D-484A394DE745}.Release 4.5|Any CPU.Build.0 = Release 4.5|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {20A4267C-4AEC-43F6-9685-5EAEA5A59407}
+	EndGlobalSection
+	GlobalSection(OpenDevelopProperties) = preSolution
+		version = 0.1
+		StartupItem = Open.Nat\Open.Nat.csproj
+		name = Open.Nat
+	EndGlobalSection
+EndGlobal

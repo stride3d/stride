@@ -1,0 +1,73 @@
+﻿<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+<specVersion>
+<major>1</major>
+<minor>0</minor>
+</specVersion>
+<URLBase>http://127.0.0.1:5431/</URLBase>
+<device>
+<deviceType>urn:schemas-upnp-org:device:InternetGatewayDevice:1</deviceType>
+<presentationURL>http://127.0.0.1:80/</presentationURL>
+<friendlyName>Broadcom ADSL Router</friendlyName>
+<manufacturer>Broadcom</manufacturer>
+<manufacturerURL>http://www.broadcom.com/</manufacturerURL>
+<modelDescription>Broadcom single-chip ADSL router</modelDescription>
+<modelName>BRCM963xx</modelName>
+<modelNumber>1.0</modelNumber>
+<modelURL>http://www.broadcom.com/</modelURL>
+<UDN>uuid:0000e068-20a0-00e0-20a0-48a8000808e0</UDN>
+<serviceList>
+<service>
+<serviceType>urn:schemas-upnp-org:service:Layer3Forwarding:1</serviceType>
+<serviceId>urn:upnp-org:serviceId:Layer3Forwarding:11</serviceId>
+<controlURL>/uuid:0000e068-20a0-00e0-20a0-48a8000808e0/Layer3Forwarding:1</controlURL>
+<eventSubURL>/uuid:0000e068-20a0-00e0-20a0-48a8000808e0/Layer3Forwarding:1</eventSubURL>
+<SCPDURL>/dynsvc/Layer3Forwarding:1.xml</SCPDURL>
+</service>
+</serviceList>
+<deviceList>
+<device>
+<deviceType>urn:schemas-upnp-org:device:WANDevice:1</deviceType>
+<friendlyName>urn:schemas-upnp-org:device:WANDevice:1</friendlyName>
+<manufacturer>Broadcom</manufacturer>
+<manufacturerURL>http://www.broadcom.com/</manufacturerURL>
+<modelDescription>Broadcom single-chip ADSL router</modelDescription>
+<modelName>BRCM963xx</modelName>
+<modelNumber>1.0</modelNumber>
+<modelURL>http://www.broadcom.com/</modelURL>
+<UDN>uuid:0000e068-20a0-00e0-20a0-48a801082808</UDN>
+<serviceList>
+<service>
+<serviceType>urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1</serviceType>
+<serviceId>urn:upnp-org:serviceId:WANCommonIFC1</serviceId>
+<controlURL>/uuid:0000e068-20a0-00e0-20a0-48a801082808/WANCommonInterfaceConfig:1</controlURL>
+<eventSubURL>/uuid:0000e068-20a0-00e0-20a0-48a801082808/WANCommonInterfaceConfig:1</eventSubURL>
+<SCPDURL>/dynsvc/WANCommonInterfaceConfig:1.xml</SCPDURL>
+</service>
+</serviceList>
+<deviceList>
+<device>
+<deviceType>urn:schemas-upnp-org:device:WANConnectionDevice:1</deviceType>
+<friendlyName>urn:schemas-upnp-org:device:WANConnectionDevice:1</friendlyName>
+<manufacturer>Broadcom</manufacturer>
+<manufacturerURL>http://www.broadcom.com/</manufacturerURL>
+<modelDescription>Broadcom single-chip ADSL router</modelDescription>
+<modelName>BRCM963xx</modelName>
+<modelNumber>1.0</modelNumber>
+<modelURL>http://www.broadcom.com/</modelURL>
+<UDN>uuid:0000e068-20a0-00e0-20a0-48a802086048</UDN>
+<serviceList>
+<service>
+<serviceType>urn:schemas-upnp-org:service:WANPPPConnection:1</serviceType>
+<serviceId>urn:upnp-org:serviceId:WANPPPConn1</serviceId>
+<controlURL>/uuid:0000e068-20a0-00e0-20a0-48a802086048/WANPPPConnection:1</controlURL>
+<eventSubURL>/uuid:0000e068-20a0-00e0-20a0-48a802086048/WANPPPConnection:1</eventSubURL>
+<SCPDURL>/dynsvc/WANPPPConnection:1.xml</SCPDURL>
+</service>
+</serviceList>
+</device>
+</deviceList>
+</device>
+</deviceList>
+</device>
+</root>
