@@ -20,6 +20,6 @@ jobs:
     - name: Install dependencies
       run: dotnet restore build\Stride.sln
     - name: Build
-      run: dotnet build build\Stride.sln --configuration Release --no-restore
+      run: dotnet build build\Stride.sln --configuration Debug --no-restore
     - name: Test
       run: dotnet test --no-restore --verbosity normal
