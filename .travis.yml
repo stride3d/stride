@@ -1,0 +1,8 @@
+language: csharp
+solution: build/Stride.sln
+mono: none
+dotnet: 3.1
+os: windows
+script:
+ - dotnet restore build/Stride.sln
+ - dotnet build sources/editor/Stride.GameStudio/Stride.GameStudio.csproj
