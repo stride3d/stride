@@ -14,4 +14,26 @@
     <PackageDownload Include="GitVersion.Tool" Version="[5.1.1]" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\sources\Networking\Stride.Networking\Stride.Networking.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\..\..\..\..\Microsoft\Xamarin\NuGet\nunit\3.12.0\lib\netstandard2.0\nunit.framework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+	<ItemGroup>
+		<Content Remove="Stride.Networking.Tests\**" />
+		<Compile Remove="Stride.Networking.Tests\**" />
+		<EmbeddedResource Remove="Stride.Networking.Tests\**" />
+		<None Remove="Stride.Networking.Tests\**" />
+	</ItemGroup>
+	<ItemGroup>
+		<Content Remove="Stride.Cpp\**" />
+		<Compile Remove="Stride.Cpp\**" />
+		<EmbeddedResource Remove="Stride.Cpp\**" />
+		<None Remove="Stride.Cpp\**" />
+	</ItemGroup>
 </Project>
