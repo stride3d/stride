@@ -226,6 +226,9 @@
     <ProjectReference Include="..\..\sources\engine\Stride\Stride.csproj">
       <Project>{72390339-b2a1-4f61-a800-31ed0975b515}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\sources\Networking\Stride.Networking\Stride.Networking.csproj">
+      <Project>{0851d141-ffaa-4832-a747-f3f34c02f77f}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\sources\shaders\Irony\Irony.csproj">
       <Project>{d81f5c91-d7db-46e5-bc99-49488fb6814c}</Project>
     </ProjectReference>
@@ -234,9 +237,6 @@
     </ProjectReference>
     <ProjectReference Include="..\..\sources\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj">
       <Project>{fdf801d9-90cc-4cbd-9f53-7f32f7edf4f1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\sources\tools\Stride.NuGetLoader\Stride.NuGetLoader.csproj">
-      <Project>{7fa381c8-8ebe-4515-969d-01369cc47d0e}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\sources\tools\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj">
       <Project>{83e4e436-659a-4d82-90dd-0dc67be38d17}</Project>
