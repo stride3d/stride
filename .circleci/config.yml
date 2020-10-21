@@ -1,0 +1,14 @@
+ version: 2.1
+
+ orbs:
+  win: circleci/windows@2.2.0
+
+ jobs:
+   build:
+     executor: win/default     
+    
+     steps:
+       - checkout
+       - run: dotnet restore build\Stride.sln
+       - run: dotnet build sources\editor\Stride.GameStudio\Stride.GameStudio.csproj
+
