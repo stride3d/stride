@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Stride.Core.Annotations;
+using Stride.Core.Editor;
 using Stride.Core.IO;
 using Stride.Core.Settings;
 using Stride.Core.VisualStudio;
@@ -41,8 +42,8 @@ namespace Stride.Core.Assets.Editor.Settings
             {
                 GetAcceptableValues = () =>
                 {
-                    var names = new List<string> { VisualStudioVersions.DefaultIDE.DisplayName };
-                    names.AddRange(VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasDevenv).Select(x => x.DisplayName));
+                    var names = new List<string>( );
+                    names.AddRange(ExternalEditors.AvailableEditors.Select(x => x.DisplayName));
                     return names;
                 },
                 DisplayName = $"{ExternalTools}/{Tr._p("Settings", "Default IDE")}",
