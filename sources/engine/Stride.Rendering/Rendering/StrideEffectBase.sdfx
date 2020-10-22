@@ -38,6 +38,8 @@ namespace Stride.Rendering
         mixin TransformationBase;
         mixin NormalStream;
 
+        var extensionTessellationShader = MaterialKeys.TessellationShader;
+
         if (StrideEffectBaseKeys.HasInstancing)
         {
             mixin macro StrideEffectBaseKeys.ModelTransformUsage;
@@ -48,7 +50,14 @@ namespace Stride.Rendering
             // -----------------------------------------------
             if (MaterialKeys.HasNormalMap)
             {
-                mixin NormalFromNormalMappingInstanced;
+                if (extensionTessellationShader != null)
+                {
+                    mixin NormalFromNormalMappingTessellationInstanced;
+                }
+                else
+                {
+                    mixin NormalFromNormalMappingInstanced;
+                }
             }
             else
             {
@@ -64,7 +73,14 @@ namespace Stride.Rendering
             // -----------------------------------------------
             if (MaterialKeys.HasNormalMap)
             {
-                mixin NormalFromNormalMapping;
+                if (extensionTessellationShader != null)
+                {
+                    mixin NormalFromNormalMappingTessellation;
+                }
+                else
+                {
+                    mixin NormalFromNormalMapping;
+                }
             }
             else
             {
@@ -103,7 +119,14 @@ namespace Stride.Rendering
             {
                 if (MaterialKeys.HasNormalMap)
                 {
-                    mixin NormalVSSkinningNormalMapping;
+                    if (extensionTessellationShader != null)
+                    {
+                        mixin NormalVSSkinningNormalMappingTessellation;
+                    }
+                    else
+                    {
+                        mixin NormalVSSkinningNormalMapping;
+                    }
                 }
                 else
                 {
@@ -115,7 +138,6 @@ namespace Stride.Rendering
         // --------------------------------------------
         // Mix material tessellation for Domain effect
         //---------------------------------------------
-        var extensionTessellationShader = MaterialKeys.TessellationShader;
         if(extensionTessellationShader != null)
         {
             mixin (extensionTessellationShader);
