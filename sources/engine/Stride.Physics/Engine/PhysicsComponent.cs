@@ -33,12 +33,6 @@ namespace Stride.Engine
     {
         protected static Logger logger = GlobalLogger.GetLogger("PhysicsComponent");
 
-        static PhysicsComponent()
-        {
-            // Preload proper libbulletc native library (depending on CPU type)
-            NativeLibrary.PreloadLibrary("libbulletc.dll", typeof(PhysicsComponent));
-        }
-
         protected PhysicsComponent()
         {
             CanScaleShape = true;
