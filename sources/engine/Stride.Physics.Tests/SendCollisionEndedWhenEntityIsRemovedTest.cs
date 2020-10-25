@@ -32,9 +32,9 @@ namespace Stride.Physics.Tests
 
                 var collisionEndedTask = Task.Run(async () => {
                     var collision = await cubePhysics.CollisionEnded();
-                    // when we receive the collision it's actually destroyed already
-                    Assert.Null(collision.ColliderA);
-                    Assert.Null(collision.ColliderB);
+                    Assert.True(collision.HasEndedFromComponentRemoval);
+                    Assert.NotNull(collision.ColliderA);
+                    Assert.NotNull(collision.ColliderB);
                 });
 
                 await game.Script.NextFrame();
@@ -72,8 +72,9 @@ namespace Stride.Physics.Tests
 
                 var collisionEndedTask = Task.Run(async () => {
                     var collision = await cubePhysics.CollisionEnded();
-                    Assert.Null(collision.ColliderA);
-                    Assert.Null(collision.ColliderB);
+                    Assert.True(collision.HasEndedFromComponentRemoval);
+                    Assert.NotNull(collision.ColliderA);
+                    Assert.NotNull(collision.ColliderB);
                 });
 
                 await game.Script.NextFrame();

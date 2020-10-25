@@ -965,6 +965,7 @@ namespace Stride.Physics
 
             foreach (var collision in collisionsRemovedDueToComponentRemoval)
             {
+                collision.HasEndedFromComponentRemoval = true;
                 while (collision.ColliderA.PairEndedChannel.Balance < 0)
                 {
                     collision.ColliderA.PairEndedChannel.Send(collision);
