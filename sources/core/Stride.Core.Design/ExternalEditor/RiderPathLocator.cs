@@ -21,7 +21,7 @@ namespace Stride.Core.CodeEditor
     {
         private static Logger logger = Logger.Instance;
         
-        public static ExternalEditorInfo[] GetAllRiderPaths()
+        public static RiderInfo[] GetAllRiderPaths()
         {
             try
             { 
@@ -32,15 +32,15 @@ namespace Stride.Core.CodeEditor
                 logger.Warn("Failed to collect Rider infos", e);
             }
 
-            return new ExternalEditorInfo[0];
+            return new RiderInfo[0];
         }
         
-        private static ExternalEditorInfo[] CollectRiderInfosWindows()
+        private static RiderInfo[] CollectRiderInfosWindows()
         {
-            var installInfos = new List<ExternalEditorInfo>();
+            var installInfos = new List<RiderInfo>();
             var toolboxRiderRootPath = GetToolboxBaseDir();
             var installPathsToolbox = CollectPathsFromToolbox(toolboxRiderRootPath, "bin", "rider64.exe", false).ToList();
-            installInfos.AddRange(installPathsToolbox.Select(a => new ExternalEditorInfo(a, true)).ToList());
+            installInfos.AddRange(installPathsToolbox.Select(a => new RiderInfo(a, true)).ToList());
 
             var installPaths = new List<string>();
             const string registryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
@@ -48,7 +48,7 @@ namespace Stride.Core.CodeEditor
             const string wowRegistryKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
             CollectPathsFromRegistry(wowRegistryKey, installPaths);
 
-            installInfos.AddRange(installPaths.Select(a => new ExternalEditorInfo(a, false)).ToList());
+            installInfos.AddRange(installPaths.Select(a => new RiderInfo(a, false)).ToList());
 
             return installInfos.ToArray();
         }
@@ -99,11 +99,6 @@ namespace Stride.Core.CodeEditor
 
             var versionText = text.Substring(3);
             return Version.TryParse(versionText, out var v) ? v : null;
-        }
-
-        internal static bool IsToolbox(string path)
-        {
-            return path.StartsWith(GetToolboxBaseDir());
         }
 
         private static string GetRelativePathToBuildTxt()
@@ -312,14 +307,14 @@ namespace Stride.Core.CodeEditor
             public List<string> builds;
         }
         
-        public struct ExternalEditorInfo
+        public struct RiderInfo
         {
             public string Presentation;
             public Version BuildNumber;
             public ProductInfo ProductInfo;
             public string Path;
 
-            public ExternalEditorInfo(string path, bool isToolbox)
+            public RiderInfo(string path, bool isToolbox)
             {
                 BuildNumber = GetBuildNumber(path);
                 ProductInfo = GetBuildVersion(path);
