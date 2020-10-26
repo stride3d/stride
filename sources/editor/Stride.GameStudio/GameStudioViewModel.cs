@@ -20,7 +20,7 @@ using Stride.Core.Translation;
 using Stride.Core.VisualStudio;
 using Stride.Assets.Effect;
 using Stride.Assets.Presentation.ViewModel;
-using Stride.Core.Editor;
+using Stride.Core.CodeEditor;
 using Stride.GameStudio.Services;
 
 namespace Stride.GameStudio
@@ -30,14 +30,14 @@ namespace Stride.GameStudio
         private PreviewViewModel preview;
         private DebuggingViewModel debugging;
         private string restartArguments;
-        private readonly List<EditorInfo> availableIDEs;
+        private readonly List<CodeEditor> availableIDEs;
 
         public GameStudioViewModel([NotNull] IViewModelServiceProvider serviceProvider, MostRecentlyUsedFileCollection mru)
             : base(serviceProvider, mru, StrideGameStudio.EditorName, StrideGameStudio.EditorVersionMajor)
         {
             Panels = new EditionPanelViewModel(ServiceProvider);
-            availableIDEs = new List<EditorInfo>();
-            availableIDEs.AddRange(ExternalEditors.AvailableEditors);
+            availableIDEs = new List<CodeEditor>();
+            availableIDEs.AddRange(CodeEditors.AvailableCodeEditors);
             NewSessionCommand = new AnonymousCommand(serviceProvider, RestartAndCreateNewSession);
             OpenAboutPageCommand = new AnonymousCommand(serviceProvider, OpenAboutPage);
             OpenSessionCommand = new AnonymousTaskCommand<UFile>(serviceProvider, RestartAndOpenSession);
@@ -56,7 +56,7 @@ namespace Stride.GameStudio
         public DebuggingViewModel Debugging { get => debugging; set => SetValue(ref debugging, value); }
 
         [NotNull]
-        public IReadOnlyList<EditorInfo> AvailableIDEs => availableIDEs;
+        public IReadOnlyList<CodeEditor> AvailableIDEs => availableIDEs;
 
         [NotNull]
         public ICommandBase NewSessionCommand { get; }

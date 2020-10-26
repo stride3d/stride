@@ -1,3 +1,5 @@
+// Copyright (c) Stride contributors (https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,16 +14,13 @@ using Path = System.IO.Path;
 // ReSharper disable UnassignedField.Local
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnassignedField.Global
-// ReSharper disable MemberHidesStaticFromOuterClass
 
-namespace Stride.Core.Editor
+namespace Stride.Core.CodeEditor
 {
-    /// <summary>
-    /// This code is a modified version of the JetBrains resharper-unity plugin listed under Apache License 2.0 license:
-    /// https://github.com/JetBrains/resharper-unity/blob/net202/unity/EditorPlugin/RiderPathLocator.cs
-    /// </summary>
     public static class RiderPathLocator
     {
+        private static Logger logger = Logger.Instance;
+        
         public static ExternalEditorInfo[] GetAllRiderPaths()
         {
             try
@@ -30,7 +29,7 @@ namespace Stride.Core.Editor
             }
             catch (Exception e)
             {
-                Logger.Warn("Failed to collect Rider infos", e);
+                logger.Warn("Failed to collect Rider infos", e);
             }
 
             return new ExternalEditorInfo[0];
@@ -187,8 +186,7 @@ namespace Stride.Core.Editor
                   }
                   catch (Exception e)
                   {
-                      // do not write to Debug.Log, just log it.
-                      Logger.Warn($"Failed to get RiderPath from {channelDir}", e);
+                      logger.Warn($"Failed to get RiderPath from {channelDir}. " + e);
                   }
 
                   return new string[0];
@@ -210,16 +208,11 @@ namespace Stride.Core.Editor
               .Where(Directory.Exists).ToArray();
         }
 
-        // Disable the "field is never assigned" compiler warning. We never assign it, but Unity does.
-        // Note that Unity disable this warning in the generated C# projects
-#pragma warning disable 0649
-
         [Serializable]
         class SettingsJson
         {
             public string install_location;
-      
-            //[CanBeNull]
+            
             public static string GetInstallLocationFromJson(string json)
             {
                 try
@@ -228,7 +221,7 @@ namespace Stride.Core.Editor
                 }
                 catch (Exception)
                 {
-                    Logger.Warn($"Failed to get install_location from json {json}");
+                    logger.Warn($"Failed to get install_location from json {json}");
                 }
 
                 return null;
@@ -248,7 +241,7 @@ namespace Stride.Core.Editor
                 }
                 catch (Exception)
                 {
-                    Logger.Warn($"Failed to get latest build from json {json}");
+                    logger.Warn($"Failed to get latest build from json {json}");
                 }
 
                 return null;
@@ -272,8 +265,7 @@ namespace Stride.Core.Editor
         {
             public string version;
             public string versionSuffix;
-
-            //[CanBeNull]
+            
             internal static ProductInfo GetProductInfo(string json)
             {
                 try
@@ -283,21 +275,19 @@ namespace Stride.Core.Editor
                 }
                 catch (Exception)
                 {
-                    Logger.Warn($"Failed to get version from json {json}");
+                    logger.Warn($"Failed to get version from json {json}");
                 }
 
                 return null;
             }
         }
-
-        // ReSharper disable once ClassNeverInstantiated.Global
+        
         [Serializable]
         class ToolboxInstallData
         {
             // ReSharper disable once InconsistentNaming
             public ActiveApplication active_application;
-
-            //[CanBeNull]
+            
             public static string GetLatestBuildFromJson(string json)
             {
                 try
@@ -309,7 +299,7 @@ namespace Stride.Core.Editor
                 }
                 catch (Exception)
                 {
-                    Logger.Warn($"Failed to get latest build from json {json}");
+                    logger.Warn($"Failed to get latest build from json {json}");
                 }
 
                 return null;
@@ -321,13 +311,9 @@ namespace Stride.Core.Editor
         {
             public List<string> builds;
         }
-
-#pragma warning restore 0649
-
+        
         public struct ExternalEditorInfo
         {
-            // ReSharper disable once NotAccessedField.Global
-            public bool IsToolbox;
             public string Presentation;
             public Version BuildNumber;
             public ProductInfo ProductInfo;
@@ -350,15 +336,6 @@ namespace Stride.Core.Editor
                     presentation += " (JetBrains Toolbox)";
 
                 Presentation = presentation;
-                IsToolbox = isToolbox;
-            }
-        }
-
-        private static class Logger
-        {
-            internal static void Warn(string message, Exception e = null)
-            {
-                throw new Exception(message, e);
             }
         }
     }
