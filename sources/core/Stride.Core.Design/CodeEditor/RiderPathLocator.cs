@@ -181,7 +181,7 @@ namespace Stride.Core.CodeEditor
                   }
                   catch (Exception e)
                   {
-                      logger.Warn($"Failed to get RiderPath from {channelDir}. " + e);
+                      logger.Warn($"Failed to get RiderPath from {channelDir}", e);
                   }
 
                   return new string[0];
