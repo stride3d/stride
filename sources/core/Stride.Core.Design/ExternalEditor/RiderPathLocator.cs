@@ -75,7 +75,7 @@ namespace Stride.Core.CodeEditor
             return toolboxRiderRootPath;
         }
 
-        internal static ProductInfo GetBuildVersion(string path)
+        private static ProductInfo GetBuildVersion(string path)
         {
             var buildTxtFileInfo = new FileInfo(Path.Combine(path, GetRelativePathToBuildTxt()));
             var dir = buildTxtFileInfo.DirectoryName;
@@ -88,7 +88,7 @@ namespace Stride.Core.CodeEditor
             return ProductInfo.GetProductInfo(json);
         }
 
-        internal static Version GetBuildNumber(string path)
+        private static Version GetBuildNumber(string path)
         {
             var file = new FileInfo(Path.Combine(path, GetRelativePathToBuildTxt()));
             if (!file.Exists)
@@ -202,7 +202,8 @@ namespace Stride.Core.CodeEditor
             return folder.GetDirectories(searchPattern).Select(f => f.FullName)
               .Where(Directory.Exists).ToArray();
         }
-
+        
+#pragma warning disable 0649
         [Serializable]
         class SettingsJson
         {
@@ -307,24 +308,23 @@ namespace Stride.Core.CodeEditor
             public List<string> builds;
         }
         
-        public struct RiderInfo
+        public readonly struct RiderInfo
         {
-            public string Presentation;
-            public Version BuildNumber;
-            public ProductInfo ProductInfo;
-            public string Path;
+            public readonly string Presentation;
+            public readonly Version BuildNumber;
+            public readonly string Path;
 
             public RiderInfo(string path, bool isToolbox)
             {
                 BuildNumber = GetBuildNumber(path);
-                ProductInfo = GetBuildVersion(path);
+                var productInfo = GetBuildVersion(path);
                 Path = new FileInfo(path).FullName; // normalize separators
                 var presentation = $"Rider {BuildNumber}";
 
-                if (ProductInfo != null && !string.IsNullOrEmpty(ProductInfo.version))
+                if (productInfo != null && !string.IsNullOrEmpty(productInfo.version))
                 {
-                    var suffix = string.IsNullOrEmpty(ProductInfo.versionSuffix) ? "" : $" {ProductInfo.versionSuffix}";
-                    presentation = $"Rider {ProductInfo.version}{suffix}";
+                    var suffix = string.IsNullOrEmpty(productInfo.versionSuffix) ? "" : $" {productInfo.versionSuffix}";
+                    presentation = $"Rider {productInfo.version}{suffix}";
                 }
 
                 if (isToolbox)
@@ -333,5 +333,6 @@ namespace Stride.Core.CodeEditor
                 Presentation = presentation;
             }
         }
+#pragma warning restore 0649
     }
 }
