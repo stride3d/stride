@@ -15,7 +15,7 @@ shader TransformationSkinningInstanced : TransformationSkinning, TransformationI
         streams.skinningBlendMatrix = mul(streams.skinningBlendMatrix, Transformation.WorldInverse);
 
         // Apply instance transformation
-        streams.skinningBlendMatrix = mul(streams.skinningBlendMatrix, GetInstanceWorld());
+        streams.skinningBlendMatrix = mul(streams.skinningBlendMatrix, GetInstanceWorld(streams.InstanceID));
 
         // Transform position
         float4 blendPos = mul(streams.Position, streams.skinningBlendMatrix);

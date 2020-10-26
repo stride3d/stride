@@ -3,12 +3,12 @@
 /// <summary>
 /// Calculates the normal  the normals from a normal map.
 /// </summary>
-shader NormalFromNormalMappingTessellationInstanced : NormalFromNormalMappingInstanced
+shader NormalFromNormalMappingTessellationInstanced : NormalFromNormalMappingInstanced, TransformationInstancing
 {
     override stage void GenerateNormal_VS()
     {
         // Perform normal generation at the end in case meshNormal is modified
-        streams.meshNormalWS = mul((float3x3)GetInstanceWorldInverse(), streams.meshNormal);    // TODO: PERFORMANCE: Normalization required?
+        streams.meshNormalWS = mul((float3x3)GetInstanceWorldInverse(streams.InstanceID), streams.meshNormal);    // TODO: PERFORMANCE: Normalization required?
         streams.normalWS = streams.meshNormalWS;
     }
 };
