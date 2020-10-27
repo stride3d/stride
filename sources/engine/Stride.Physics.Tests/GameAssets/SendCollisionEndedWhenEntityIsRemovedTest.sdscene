@@ -1,0 +1,89 @@
+!SceneAsset
+Id: ad1acc09-3637-40e7-b185-3bfdfb77b885
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! b2be5192-5dfb-4fc1-9cb3-0690ea5171dd
+        - ref!! b5866a46-8ea6-49a9-a46e-a534ce3db87d
+        - ref!! fa2ec94d-e743-4b7f-9b0c-731af5efeac1
+    Parts:
+        -   Entity:
+                Id: b2be5192-5dfb-4fc1-9cb3-0690ea5171dd
+                Name: Camera
+                Components:
+                    54d2b97cfa75fa43958a4db8e83d054b: !TransformComponent
+                        Id: 7cb9d254-75fa-43fa-958a-4db8e83d054b
+                        Position: {X: 0.0, Y: 0.0, Z: 2.215951}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    ba901191469d00419a686d5db1a0d8c4: !CameraComponent
+                        Id: 911190ba-9d46-4100-9a68-6d5db1a0d8c4
+                        Name: null
+                        Projection: Perspective
+                        Slot: bdd308f1-d60d-4a59-b0e5-c63d138382bd
+        -   Entity:
+                Id: b5866a46-8ea6-49a9-a46e-a534ce3db87d
+                Name: Cube
+                Components:
+                    77cf0811d90e809e7fe874c63cfabc6c: !TransformComponent
+                        Id: fbfea5b2-8ccf-4939-a657-51c04b77384f
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    dfcee9635d5a45349276295027c425fa: !RigidbodyComponent
+                        Id: 52150ee0-6ba5-4042-82e5-50906aa9f11d
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            3c2d590bd2a5eb30a83488781de5f8a1: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+        -   Entity:
+                Id: fa2ec94d-e743-4b7f-9b0c-731af5efeac1
+                Name: Sphere
+                Components:
+                    8095f533a76933465bb4de38278eb96c: !TransformComponent
+                        Id: 424e9105-fa52-499d-bcda-20b1d5427868
+                        Position: {X: 0.0, Y: 0.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    ee6c3578de5e2e5b87f7062ebabe6d0e: !RigidbodyComponent
+                        Id: bfedf50e-2235-416f-85ff-767e11ee4ec2
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            3c36f2f4115fea563d5429c27f476257: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}

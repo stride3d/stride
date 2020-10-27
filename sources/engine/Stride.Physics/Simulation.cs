@@ -939,10 +939,12 @@ namespace Stride.Physics
         }
 
         private readonly FastList<ContactPoint> currentToRemove = new FastList<ContactPoint>();
+        private readonly HashSet<Collision> collisionsRemovedDueToComponentRemoval = new HashSet<Collision>();
 
         internal void CleanContacts(PhysicsComponent component)
         {
             currentToRemove.Clear(true);
+            collisionsRemovedDueToComponentRemoval.Clear();
 
             foreach (var currentFrameContact in currentFrameContacts)
             {
@@ -951,6 +953,7 @@ namespace Stride.Physics
                 if (component == component0 || component == component1)
                 {
                     currentToRemove.Add(currentFrameContact);
+                    collisionsRemovedDueToComponentRemoval.Add(contactToCollision[currentFrameContact]);
                     ContactRemoval(currentFrameContact, component0, component1);
                 }
             }
@@ -958,6 +961,20 @@ namespace Stride.Physics
             foreach (var contactPoint in currentToRemove)
             {
                 currentFrameContacts.Remove(contactPoint);
+            }
+
+            foreach (var collision in collisionsRemovedDueToComponentRemoval)
+            {
+                collision.HasEndedFromComponentRemoval = true;
+                while (collision.ColliderA.PairEndedChannel.Balance < 0)
+                {
+                    collision.ColliderA.PairEndedChannel.Send(collision);
+                }
+
+                while (collision.ColliderB.PairEndedChannel.Balance < 0)
+                {
+                    collision.ColliderB.PairEndedChannel.Send(collision);
+                }
             }
         }
 
