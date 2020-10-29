@@ -93,15 +93,15 @@ namespace Stride.Graphics
         public PixelFormat Format { get { return format; } }
 
         /// <summary>
-        /// Converts the format to srgb.
+        /// Converts the format to sRGB.
         /// </summary>
-        public void ToSRgb()
+        public void ConvertFormatToSRgb()
             => format = format.ToSRgb();
 
         /// <summary>
-        /// Converts the format to non srgb.
+        /// Converts the format to non sRGB.
         /// </summary>
-        public void ToNonSRgb()
+        public void ConvertFormatToNonSRgb()
             => format = format.ToNonSRgb();
 
         /// <summary>
