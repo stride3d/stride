@@ -136,6 +136,28 @@ namespace Stride.Graphics
         /// </summary>
         public ImageDescription Description;
 
+        /// <summary>
+        /// Converts the format of the description and the pixel buffers to SRgb.
+        /// </summary>
+        public void ToSRgb()
+        {
+            Description.Format = Description.Format.ToSRgb();
+            if (PixelBuffers != null)
+                foreach (var pixelBuffer in PixelBuffers)
+                    pixelBuffer.ToSRgb();
+        }
+
+        /// <summary>
+        /// Converts the format of the description and the pixel buffers to non SRgb.
+        /// </summary>
+        public void ToNonSRgb()
+        {
+            Description.Format = Description.Format.ToNonSRgb();
+            if (PixelBuffers != null)
+                foreach (var pixelBuffer in PixelBuffers)
+                    pixelBuffer.ToNonSRgb();
+        }
+
         internal Image()
         {
         }
@@ -664,7 +686,7 @@ namespace Stride.Graphics
                     if (image != null)
                     {
                         if (loadAsSRGB)
-                            image.Description.Format = image.Description.Format.ToSRgb();
+                            image.ToSRgb();                     
 
                         return image;
                     }

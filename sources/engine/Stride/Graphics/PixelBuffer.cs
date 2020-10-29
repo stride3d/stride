@@ -93,6 +93,18 @@ namespace Stride.Graphics
         public PixelFormat Format { get { return format; } }
 
         /// <summary>
+        /// Converts the format to srgb.
+        /// </summary>
+        public void ToSRgb()
+            => format = format.ToSRgb();
+
+        /// <summary>
+        /// Converts the format to non srgb.
+        /// </summary>
+        public void ToNonSRgb()
+            => format = format.ToNonSRgb();
+
+        /// <summary>
         /// Gets the pixel size in bytes.
         /// </summary>
         /// <value>The pixel size in bytes.</value>
