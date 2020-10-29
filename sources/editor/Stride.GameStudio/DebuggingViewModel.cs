@@ -29,7 +29,7 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Annotations;
 using Stride.Core.Translation;
 using Stride.Assets.Presentation.AssetEditors;
-using Stride.Core.CodeEditor;
+using Stride.Core.IDE;
 using Stride.GameStudio.Services;
 
 namespace Stride.GameStudio
@@ -59,7 +59,7 @@ namespace Stride.GameStudio
             outputTitle = outputTitleBase;
 
             BuildLog = new BuildLogViewModel(ServiceProvider);
-            BuildLog.AddLogger(CodeEditorsLogger.Instance);
+            BuildLog.AddLogger(IDELogger.Instance);
             LiveScriptingLog = new LoggerViewModel(ServiceProvider);
             LiveScriptingLog.AddLogger(assemblyReloadLogger);
             BuildProjectCommand = new AnonymousTaskCommand(ServiceProvider, () => BuildProject(false));

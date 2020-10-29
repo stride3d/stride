@@ -230,7 +230,7 @@ namespace Stride.PackageInstall
             }
         }
 
-        private static void UpdateVisualStudioToLatest(string vsInstallerPath, IDEInfo existingVisualStudioInstall)
+        private static void UpdateVisualStudioToLatest(string vsInstallerPath, VisualStudioInfo existingVisualStudioInstall)
         {
             try
             {

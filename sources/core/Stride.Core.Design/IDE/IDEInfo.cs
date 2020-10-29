@@ -3,9 +3,9 @@
 
 using System;
 
-namespace Stride.Core.CodeEditor
+namespace Stride.Core.IDE
 {
-    public class CodeEditor
+    public class IDEInfo
     {
         public Version BuildNumber { get; }
         public string DisplayName { get; }
@@ -16,7 +16,7 @@ namespace Stride.Core.CodeEditor
             return DisplayName;
         }
 
-        public CodeEditor(Version buildNumber, string displayName, string path)
+        public IDEInfo(Version buildNumber, string displayName, string path)
         {
             BuildNumber = buildNumber;
             DisplayName = displayName;

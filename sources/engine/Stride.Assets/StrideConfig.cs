@@ -274,29 +274,29 @@ namespace Stride.Assets
         /// <summary>
         /// Check if a particular component set for this IDE version
         /// </summary>
-        /// <param name="ideInfo">The IDE info to search for the components</param>
+        /// <param name="visualStudioInfo">The IDE info to search for the components</param>
         /// <param name="vsVersionToComponent">A dictionary of Visual Studio versions to their respective paths for a given component</param>
         /// <returns>true if the IDE has any of the component versions available, false otherwise</returns>
-        internal static bool IsVSComponentAvailableForIDE(IDEInfo ideInfo, IDictionary<Version, string> vsVersionToComponent)
+        internal static bool IsVSComponentAvailableForIDE(VisualStudioInfo visualStudioInfo, IDictionary<Version, string> vsVersionToComponent)
         {
-            if (ideInfo == null) { throw new ArgumentNullException("ideInfo"); }
+            if (visualStudioInfo == null) { throw new ArgumentNullException("visualStudioInfo"); }
             if (vsVersionToComponent == null) { throw new ArgumentNullException("vsVersionToComponent"); }
 
             string path = null;
-            if (vsVersionToComponent.TryGetValue(ideInfo.Version, out path))
+            if (vsVersionToComponent.TryGetValue(visualStudioInfo.Version, out path))
             {
-                if (ideInfo.Version == VS2015Version)
+                if (visualStudioInfo.Version == VS2015Version)
                 {
                     return IsFileInProgramFilesx86Exist(path);
                 }
                 else
                 {
-                    return ideInfo.PackageVersions.ContainsKey(path);
+                    return visualStudioInfo.PackageVersions.ContainsKey(path);
                 }
             }
             else if (vsVersionToComponent.TryGetValue(VSAnyVersion, out path))
             {
-                return ideInfo.PackageVersions.ContainsKey(path);
+                return visualStudioInfo.PackageVersions.ContainsKey(path);
             }
             return false;
         }

@@ -4,20 +4,20 @@
 using System;
 using Stride.Core.Diagnostics;
 
-namespace Stride.Core.CodeEditor
+namespace Stride.Core.IDE
 {
-    public class CodeEditorsLogger : Logger
+    public class IDELogger : Logger
     {
-        private static CodeEditorsLogger instance;
+        private static IDELogger instance;
 
-        public static CodeEditorsLogger Instance
+        public static IDELogger Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = new CodeEditorsLogger();
-                    instance.Module = "CodeEditors";
+                    instance = new IDELogger();
+                    instance.Module = "IDE";
                     instance.ActivateLog(MinimumLevelEnabled);
                 }
                 return instance;

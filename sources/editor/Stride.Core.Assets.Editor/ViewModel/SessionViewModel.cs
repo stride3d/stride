@@ -576,7 +576,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             NewProjectCommand = new AnonymousTaskCommand(ServiceProvider, NewProject);
             AddExistingProjectCommand = new AnonymousTaskCommand(ServiceProvider, AddExistingProject);
             ActivatePackagePropertiesCommand = new AnonymousTaskCommand(ServiceProvider, async () => { var directory = ActiveAssetView.GetSelectedDirectories(false).FirstOrDefault(); if (directory != null) await directory.Package.Properties.GenerateSelectionPropertiesAsync(directory.Package.Yield()); });
-            OpenInIDECommand = new AnonymousTaskCommand<IDEInfo>(ServiceProvider, OpenInIDE);
+            OpenInIDECommand = new AnonymousTaskCommand<VisualStudioInfo>(ServiceProvider, OpenInIDE);
             AddDependencyCommand = new AnonymousTaskCommand(ServiceProvider, AddDependency);
             NewDirectoryCommand = new AnonymousTaskCommand<IEnumerable<object>>(ServiceProvider, CreateNewFolderInDirectories);
             RenameDirectoryOrPackageCommand = new AnonymousCommand<IEnumerable>(ServiceProvider, x => RenameDirectoryOrPackage(x.Cast<object>().LastOrDefault()));
@@ -1769,9 +1769,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
             DeletedAssetsChanged?.Invoke(this, e);
         }
 
-        private Task OpenInIDE(IDEInfo ideInfo)
+        private Task OpenInIDE(VisualStudioInfo visualStudioInfo)
         {
-            return VisualStudioService.StartOrToggleVisualStudio(this, ideInfo);
+            return VisualStudioService.StartOrToggleVisualStudio(this, visualStudioInfo);
         }
 
         private void ToggleIsRootOnSelectedAsset()

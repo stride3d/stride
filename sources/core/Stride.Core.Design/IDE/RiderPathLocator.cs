@@ -15,11 +15,11 @@ using Path = System.IO.Path;
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnassignedField.Global
 
-namespace Stride.Core.CodeEditor
+namespace Stride.Core.IDE
 {
     public static class RiderPathLocator
     {
-        private static readonly CodeEditorsLogger logger = CodeEditorsLogger.Instance;
+        private static readonly IDELogger logger = IDELogger.Instance;
         
         public static RiderInfo[] GetAllRiderPaths()
         {

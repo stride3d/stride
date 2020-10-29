@@ -10,9 +10,9 @@ using Microsoft.VisualStudio.Setup.Configuration;
 
 namespace Stride.Core.VisualStudio
 {
-    public class IDEInfo
+    public class VisualStudioInfo
     {
-        public IDEInfo(Version version, string displayName, string installationPath, bool complete = true)
+        public VisualStudioInfo(Version version, string displayName, string installationPath, bool complete = true)
         {
             if (version == null) throw new ArgumentNullException(nameof(version));
 
@@ -85,30 +85,28 @@ namespace Stride.Core.VisualStudio
     {
         // ReSharper disable once InconsistentNaming
         private const int REGDB_E_CLASSNOTREG = unchecked((int)0x80040154);
-        private static Lazy<List<IDEInfo>> IDEInfos = new Lazy<List<IDEInfo>>(BuildIDEInfos);
-
-        public static IDEInfo DefaultIDE = new IDEInfo(new Version("0.0"), "Default IDE", string.Empty);
+        private static Lazy<List<VisualStudioInfo>> visualStudioInstancesList = new Lazy<List<VisualStudioInfo>>(BuildList);
 
         /// <summary>
         /// Only lists VS2019+ (previous versions are not supported due to lack of buildTransitive targets).
         /// </summary>
-        public static IEnumerable<IDEInfo> AvailableVisualStudioInstances => IDEInfos.Value.Where(x => x.Version.Major >= 16 && x.HasDevenv);
+        public static IEnumerable<VisualStudioInfo> AvailableVisualStudioInstances => visualStudioInstancesList.Value.Where(x => x.Version.Major >= 16 && x.HasDevenv);
 
         /// <summary>
         /// List all versions of VS2017+ (might be needed by installer process).
         /// </summary>
-        public static IEnumerable<IDEInfo> AllAvailableVisualStudioInstances => IDEInfos.Value.Where(x => x.Version.Major >= 16 && x.HasDevenv);
+        public static IEnumerable<VisualStudioInfo> AllAvailableVisualStudioInstances => visualStudioInstancesList.Value.Where(x => x.Version.Major >= 16 && x.HasDevenv);
 
-        public static IEnumerable<IDEInfo> AvailableBuildTools => IDEInfos.Value.Where(x => x.HasBuildTools);
+        public static IEnumerable<VisualStudioInfo> AvailableBuildTools => visualStudioInstancesList.Value.Where(x => x.HasBuildTools);
 
         public static void Refresh()
         {
-            IDEInfos = new Lazy<List<IDEInfo>>(BuildIDEInfos);
+            visualStudioInstancesList = new Lazy<List<VisualStudioInfo>>(BuildList);
         }
 
-        private static List<IDEInfo> BuildIDEInfos()
+        private static List<VisualStudioInfo> BuildList()
         {
-            var ideInfos = new List<IDEInfo>();
+            var ideInfos = new List<VisualStudioInfo>();
 
             // Visual Studio 15.0 (2017) and later
             try
@@ -182,7 +180,7 @@ namespace Stride.Core.VisualStudio
                             continue;
                         }
 
-                        var ideInfo = new IDEInfo(version, displayName, installationPath, inst2.IsComplete())
+                        var ideInfo = new VisualStudioInfo(version, displayName, installationPath, inst2.IsComplete())
                         {
                             BuildToolsPath = buildToolsPath,
                             DevenvPath = devenvPath,

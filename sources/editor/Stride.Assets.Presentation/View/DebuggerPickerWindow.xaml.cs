@@ -21,12 +21,12 @@ namespace Stride.Assets.Presentation.View
 
         public class Debugger : IPickedDebugger
         {
-            private readonly IDEInfo ideInfo;
+            private readonly VisualStudioInfo visualStudioInfo;
             private Process process;
 
-            public Debugger(IDEInfo ideInfo)
+            public Debugger(VisualStudioInfo visualStudioInfo)
             {
-                this.ideInfo = ideInfo;
+                this.visualStudioInfo = visualStudioInfo;
             }
 
             public Debugger(Process process)
@@ -34,13 +34,13 @@ namespace Stride.Assets.Presentation.View
                 this.process = process;
             }
 
-            public string Name => process?.MainWindowTitle ?? $"New instance of {ideInfo.DisplayName}";
+            public string Name => process?.MainWindowTitle ?? $"New instance of {visualStudioInfo.DisplayName}";
 
             public async Task<Process> Launch(SessionViewModel session)
             {
                 if (process == null)
                 {
-                    process = await VisualStudioService.StartVisualStudio(session, ideInfo);
+                    process = await VisualStudioService.StartVisualStudio(session, visualStudioInfo);
                     process?.WaitForInputIdle();
                 }
 

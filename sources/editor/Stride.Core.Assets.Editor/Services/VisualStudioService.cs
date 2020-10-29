@@ -8,7 +8,7 @@ using System.Management;
 using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.CodeEditor;
+using Stride.Core.IDE;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.VisualStudio;
@@ -20,12 +20,12 @@ namespace Stride.Core.Assets.Editor.Services
 {
     public static class VisualStudioService
     {
-        public static async Task<bool> StartOrToggleVisualStudio(SessionViewModel session, IDEInfo ideInfo)
+        public static async Task<bool> StartOrToggleVisualStudio(SessionViewModel session, VisualStudioInfo visualStudioInfo)
         {
             if (!await CheckCanOpenSolution(session))
                 return false;
 
-            var process = await GetVisualStudio(session, true) ?? await StartVisualStudio(session, ideInfo);
+            var process = await GetVisualStudio(session, true) ?? await StartVisualStudio(session, visualStudioInfo);
             return process != null;
         }
 
@@ -58,31 +58,31 @@ namespace Stride.Core.Assets.Editor.Services
             }
         }
 
-        public static async Task<Process> StartVisualStudio(SessionViewModel session, IDEInfo ideInfo)
+        public static async Task<Process> StartVisualStudio(SessionViewModel session, VisualStudioInfo visualStudioInfo)
         {
             if (!await CheckCanOpenSolution(session))
                 return null;
 
-            CodeEditor.CodeEditor codeEditor = null;
-            if (ideInfo != null)
-                codeEditor = new CodeEditor.CodeEditor(ideInfo.Version, ideInfo.DisplayName, ideInfo.DevenvPath);
+            IDEInfo ideInfo = null;
+            if (visualStudioInfo != null)
+                ideInfo = new IDEInfo(visualStudioInfo.Version, visualStudioInfo.DisplayName, visualStudioInfo.DevenvPath);
 
-            if (codeEditor == null)
+            if (ideInfo == null)
             {
                 var defaultIDEName = EditorSettings.DefaultIDE.GetValue();
 
                 if (!EditorSettings.DefaultIDE.GetAcceptableValues().Contains(defaultIDEName))
                     defaultIDEName = EditorSettings.DefaultIDE.DefaultValue;
 
-                codeEditor = CodeEditors.AvailableCodeEditors.FirstOrDefault(x => x.DisplayName == defaultIDEName) ?? CodeEditors.DefaultCodeEditor;
+                ideInfo = IDEInfos.AvailableIDEs.FirstOrDefault(x => x.DisplayName == defaultIDEName) ?? IDEInfos.DefaultIDE;
             }
 
             var startInfo = new ProcessStartInfo();
             
             // It will be null if either "Default", or if not available anymore (uninstalled?)
-            if (codeEditor.Path != null && File.Exists(codeEditor.Path))
+            if (ideInfo.Path != null && File.Exists(ideInfo.Path))
             {
-                startInfo.FileName = codeEditor.Path;
+                startInfo.FileName = ideInfo.Path;
                 startInfo.Arguments = $"\"{session.SolutionPath}\"";
             }
             else

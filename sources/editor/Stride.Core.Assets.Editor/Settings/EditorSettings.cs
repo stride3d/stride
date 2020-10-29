@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Stride.Core.Annotations;
-using Stride.Core.CodeEditor;
+using Stride.Core.IDE;
 using Stride.Core.IO;
 using Stride.Core.Settings;
 using Stride.Core.VisualStudio;
@@ -38,12 +38,12 @@ namespace Stride.Core.Assets.Editor.Settings
             {
                 DisplayName = $"{ExternalTools}/{Tr._p("Settings", "Shader editor")}",
             };
-            DefaultIDE = new SettingsKey<string>("ExternalTools/DefaultIDE", SettingsContainer, VisualStudioVersions.DefaultIDE.DisplayName)
+            DefaultIDE = new SettingsKey<string>("ExternalTools/DefaultIDE", SettingsContainer, IDEInfos.DefaultIDE.DisplayName)
             {
                 GetAcceptableValues = () =>
                 {
                     var names = new List<string>( );
-                    names.AddRange(CodeEditors.AvailableCodeEditors.Select(x => x.DisplayName));
+                    names.AddRange(IDEInfos.AvailableIDEs.Select(x => x.DisplayName));
                     return names;
                 },
                 DisplayName = $"{ExternalTools}/{Tr._p("Settings", "Default IDE")}",
