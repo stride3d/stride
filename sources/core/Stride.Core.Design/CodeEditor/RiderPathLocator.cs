@@ -19,7 +19,7 @@ namespace Stride.Core.CodeEditor
 {
     public static class RiderPathLocator
     {
-        private static Logger logger = Logger.Instance;
+        private static readonly CodeEditorsLogger logger = CodeEditorsLogger.Instance;
         
         public static RiderInfo[] GetAllRiderPaths()
         {
@@ -29,7 +29,7 @@ namespace Stride.Core.CodeEditor
             }
             catch (Exception e)
             {
-                logger.Warn("Failed to collect Rider infos", e);
+                logger.Warning("Failed to collect Rider infos", e);
             }
 
             return new RiderInfo[0];
@@ -146,7 +146,7 @@ namespace Stride.Core.CodeEditor
               {
                   try
                   {
-                      // use history.json - last entry stands for the active build https://jetbrains.slack.com/archives/C07KNP99D/p1547807024066500?thread_ts=1547731708.057700&cid=C07KNP99D
+                      // use history.json - last entry stands for the active build, recommended in https://jetbrains.slack.com/archives/C07KNP99D/p1547807024066500?thread_ts=1547731708.057700&cid=C07KNP99D
                       var historyFile = Path.Combine(channelDir, ".history.json");
                       if (File.Exists(historyFile))
                       {
@@ -181,7 +181,7 @@ namespace Stride.Core.CodeEditor
                   }
                   catch (Exception e)
                   {
-                      logger.Warn($"Failed to get RiderPath from {channelDir}", e);
+                      logger.Warning($"Failed to get RiderPath from {channelDir}", e);
                   }
 
                   return new string[0];
@@ -217,7 +217,7 @@ namespace Stride.Core.CodeEditor
                 }
                 catch (Exception)
                 {
-                    logger.Warn($"Failed to get install_location from json {json}");
+                    logger.Warning($"Failed to get install_location from json {json}");
                 }
 
                 return null;
@@ -237,7 +237,7 @@ namespace Stride.Core.CodeEditor
                 }
                 catch (Exception)
                 {
-                    logger.Warn($"Failed to get latest build from json {json}");
+                    logger.Warning($"Failed to get latest build from json {json}");
                 }
 
                 return null;
@@ -271,7 +271,7 @@ namespace Stride.Core.CodeEditor
                 }
                 catch (Exception)
                 {
-                    logger.Warn($"Failed to get version from json {json}");
+                    logger.Warning($"Failed to get version from json {json}");
                 }
 
                 return null;
@@ -295,7 +295,7 @@ namespace Stride.Core.CodeEditor
                 }
                 catch (Exception)
                 {
-                    logger.Warn($"Failed to get latest build from json {json}");
+                    logger.Warning($"Failed to get latest build from json {json}");
                 }
 
                 return null;
