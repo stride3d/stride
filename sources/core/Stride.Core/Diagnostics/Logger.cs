@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Stride.Core.Annotations;
+using Stride.Core.Settings;
 
 namespace Stride.Core.Diagnostics
 {
@@ -11,6 +12,7 @@ namespace Stride.Core.Diagnostics
     public abstract partial class Logger : ILogger
     {
         private static object _lock = new object();
+        private static LogMessageType? minimumLevelEnabled;
         protected readonly bool[] EnableTypes;
 
         /// <summary>
@@ -27,9 +29,21 @@ namespace Stride.Core.Diagnostics
         }
 
         /// <summary>
-        /// Gets the minimum level enabled from the config file.
+        /// Gets the minimum level enabled from the config file. Can be overridden by the user.
         /// </summary>
-        public static readonly LogMessageType MinimumLevelEnabled = LogMessageType.Info; // AppConfig.GetConfiguration<LoggerConfig>("Logger").Level;
+        public static LogMessageType MinimumLevelEnabled
+        {
+            get
+            {
+                if (minimumLevelEnabled.HasValue)
+                    return minimumLevelEnabled.Value;
+
+                var loggerConfig = AppSettingsManager.Settings.GetSettings<LoggerConfig>();
+                minimumLevelEnabled = loggerConfig?.Level ?? LogMessageType.Info; // default value
+                return minimumLevelEnabled.Value;
+            }
+            set => minimumLevelEnabled = value;
+        }
 
         /// <summary>
         /// True if the debug level is enabled at a global level

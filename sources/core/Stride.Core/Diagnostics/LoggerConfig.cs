@@ -5,6 +5,7 @@ namespace Stride.Core.Diagnostics
     /// <summary>
     /// Configuration for <see cref="GlobalLogger"/>.
     /// </summary>
+    [DataContract("GlobalLoggerConfig")]
     public class LoggerConfig
     {
         /// <summary>
