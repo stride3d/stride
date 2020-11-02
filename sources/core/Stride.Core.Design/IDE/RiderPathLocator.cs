@@ -24,7 +24,7 @@ namespace Stride.Core.IDE
         public static RiderInfo[] GetAllRiderPaths()
         {
             try
-            { 
+            {
                 return CollectRiderInfosWindows();
             }
             catch (Exception e)

@@ -6,7 +6,7 @@ using Stride.Core.Diagnostics;
 
 namespace Stride.Core.IDE
 {
-    public class IDELogger : Logger
+    public class IDELogger : TimestampLocalLogger
     {
         private static IDELogger instance;
 
@@ -16,17 +16,15 @@ namespace Stride.Core.IDE
             {
                 if (instance == null)
                 {
-                    instance = new IDELogger();
-                    instance.Module = "IDE";
+                    instance = new IDELogger(DateTime.Now, "IDE");
                     instance.ActivateLog(MinimumLevelEnabled);
                 }
                 return instance;
             }
         }
-        
-        protected override void LogRaw(ILogMessage logMessage)
+
+        public IDELogger(DateTime startTime, string moduleName = null) : base(startTime, moduleName)
         {
-            Log(logMessage);
         }
     }
 }

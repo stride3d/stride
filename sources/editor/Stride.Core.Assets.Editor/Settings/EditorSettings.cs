@@ -7,7 +7,6 @@ using Stride.Core.Annotations;
 using Stride.Core.IDE;
 using Stride.Core.IO;
 using Stride.Core.Settings;
-using Stride.Core.VisualStudio;
 using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.Settings
