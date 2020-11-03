@@ -36,15 +36,15 @@ namespace Stride.PackageInstall
                     case "/install":
                     case "/repair":
                     {
+                        // Make sure we have the proper VS2019/BuildTools prerequisites
+                        CheckVisualStudioAndBuildTools();
+
                         // Run prerequisites installer (if it exists)
                         var prerequisitesInstallerPath = @"install-prerequisites.exe";
                         if (File.Exists(prerequisitesInstallerPath))
                         {
                             RunProgramAndAskUntilSuccess("prerequisites", prerequisitesInstallerPath, string.Empty, DialogBoxTryAgain);
                         }
-
-                        // Make sure we have the proper VS2019/BuildTools prerequisites
-                        CheckVisualStudioAndBuildTools();
 
                         break;
                     }
