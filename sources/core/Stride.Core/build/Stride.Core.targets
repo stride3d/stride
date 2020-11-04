@@ -57,8 +57,12 @@
     <StrideAssemblyProcessorPath>$(StrideAssemblyProcessorBasePath)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorPath>
     <StrideAssemblyProcessorSerializationHashFile>$(IntermediateOutputPath)$(TargetName).sdserializationhash</StrideAssemblyProcessorSerializationHashFile>
 
+    <TempFolder>$(TEMP)</TempFolder>
+    <TempFolder Condition="'$(TempFolder)' == ''">$(TMPDIR)</TempFolder>
+    <TempFolder Condition="'$(TempFolder)' == ''">/tmp</TempFolder>
+    
     <StrideAssemblyProcessorHash>$([System.IO.File]::ReadAllText('$(StrideAssemblyProcessorPath).hash'))</StrideAssemblyProcessorHash>
-    <StrideAssemblyProcessorTempBasePath>$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
+    <StrideAssemblyProcessorTempBasePath>$(TempFolder)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorFramework)\$(StrideAssemblyProcessorHash)\</StrideAssemblyProcessorTempBasePath>
     <StrideAssemblyProcessorTempPath>$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
   <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(StrideAssemblyProcessorTempPath)" Condition=" '$(StrideAssemblyProcessorTempPath)' != '' And '$(StrideAssemblyProcessorDev)' != 'true' "/>
