@@ -8,8 +8,8 @@
   <Import Project="..\..\targets\Stride.props" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
   <PropertyGroup>
-    <UseWPF>true</UseWPF>
-    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF Condition="'$(StridePlatform)' == 'Windows'">true</UseWPF>
+    <UseWindowsForms Condition="'$(StridePlatform)' == 'Windows'">true</UseWindowsForms>
     <StridePlatformDependent>true</StridePlatformDependent>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideBuildTags>*</StrideBuildTags>
