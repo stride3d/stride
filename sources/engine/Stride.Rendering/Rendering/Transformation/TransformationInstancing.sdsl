@@ -13,29 +13,29 @@ shader TransformationInstancing : TransformationBase, Transformation
 
     rgroup PerDraw.Instancing
     {
-        StructuredBuffer<InstanceTransform> InstanceWorld;
-        StructuredBuffer<InstanceTransform> InstanceWorldInverse;
+        stage StructuredBuffer<InstanceTransform> InstanceWorld;
+        stage StructuredBuffer<InstanceTransform> InstanceWorldInverse;
     }
 
-    float4x4 GetInstanceWorld()
+    float4x4 GetInstanceWorld(uint instanceId)
     {
 #if ModelTransformUsage == 0
-        return InstanceWorld[streams.InstanceID].Matrix;
+        return InstanceWorld[instanceId].Matrix;
 #elif ModelTransformUsage == 1
-        return mul(Transformation.World, InstanceWorld[streams.InstanceID].Matrix);
+        return mul(Transformation.World, InstanceWorld[instanceId].Matrix);
 #else
-        return mul(InstanceWorld[streams.InstanceID].Matrix, Transformation.World);
+        return mul(InstanceWorld[instanceId].Matrix, Transformation.World);
 #endif
     }
 
-    float4x4 GetInstanceWorldInverse()
+    float4x4 GetInstanceWorldInverse(uint instanceId)
     {
 #if ModelTransformUsage == 0
-        return InstanceWorldInverse[streams.InstanceID].Matrix;
+        return InstanceWorldInverse[instanceId].Matrix;
 #elif ModelTransformUsage == 1
-        return mul(InstanceWorldInverse[streams.InstanceID].Matrix, Transformation.WorldInverse);
+        return mul(InstanceWorldInverse[instanceId].Matrix, Transformation.WorldInverse);
 #else
-        return mul(Transformation.WorldInverse, InstanceWorldInverse[streams.InstanceID].Matrix);
+        return mul(Transformation.WorldInverse, InstanceWorldInverse[instanceId].Matrix);
 #endif
     }
 };
