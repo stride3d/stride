@@ -1,6 +1,6 @@
 // Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 namespace Stride.Input.RawInput
 {
     internal enum UsagePage: ushort
@@ -11,3 +11,4 @@ namespace Stride.Input.RawInput
         HID_USAGE_PAGE_BUTTON = 0x09
     }
 }
+#endif

@@ -1,6 +1,6 @@
 // Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
 using System.Runtime.InteropServices;
 
@@ -18,3 +18,4 @@ namespace Stride.Input.RawInput
         public static extern void ClipCursor(IntPtr rect);
     }
 }
+#endif
