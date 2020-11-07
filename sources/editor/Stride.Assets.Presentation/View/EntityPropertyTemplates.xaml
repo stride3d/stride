@@ -246,5 +246,13 @@
       </DockPanel>
     </DataTemplate>
   </tp:GameSettingsFiltersTemplateProvider>
+
+  <tp:GameSettingAddConfigurationTemplateProvider x:Key="GameSettingAddConfigurationTemplateProvider" OverrideRule="All"
+   sd:PropertyViewHelper.TemplateCategory="PropertyHeader">
+    <DataTemplate>
+      <Border sd:PropertyViewHelper.Increment="0" sd:PropertyViewHelper.IsExpanded="True"
+          Visibility="{Binding IsVisible, Converter={sd:VisibleOrCollapsed}}" />
+    </DataTemplate>
+  </tp:GameSettingAddConfigurationTemplateProvider>
 </ResourceDictionary>
 
