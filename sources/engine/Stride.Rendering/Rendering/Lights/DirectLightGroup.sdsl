@@ -47,7 +47,7 @@ namespace Stride.Rendering.Lights
             streams.shadowColor = ComputeShadow(streams.PositionWS.xyz, lightIndex);
 
             // Compute the final color with NdotL
-            streams.lightColorNdotL = streams.lightColor * streams.shadowColor * streams.NdotL * streams.lightDirectAmbientOcclusion;
+            streams.lightColorNdotL = streams.lightColor * streams.lightAttenuation * streams.shadowColor * streams.NdotL * streams.lightDirectAmbientOcclusion;
             streams.lightSpecularColorNdotL = streams.lightColorNdotL;
 
             // Mask the light by the color of the projected texture:

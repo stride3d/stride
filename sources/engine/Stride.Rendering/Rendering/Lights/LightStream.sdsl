@@ -12,6 +12,7 @@ namespace Stride.Rendering.Lights
         stage stream float3 lightColor;
         stage stream float3 lightColorNdotL;
         stage stream float3 lightSpecularColorNdotL;
+        stage stream float lightAttenuation;
         stage stream float3 envLightDiffuseColor;
         stage stream float3 envLightSpecularColor;
 
@@ -27,6 +28,7 @@ namespace Stride.Rendering.Lights
             streams.lightColor = 0;
             streams.lightColorNdotL = 0;
             streams.lightSpecularColorNdotL = 0;
+            streams.lightAttenuation = 1.0f;
             streams.envLightDiffuseColor = 0;
             streams.envLightSpecularColor = 0;
             streams.lightDirectAmbientOcclusion = 1.0f;
