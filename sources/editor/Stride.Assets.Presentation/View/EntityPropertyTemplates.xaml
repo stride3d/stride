@@ -254,5 +254,30 @@
           Visibility="{Binding IsVisible, Converter={sd:VisibleOrCollapsed}}" />
     </DataTemplate>
   </tp:GameSettingAddConfigurationTemplateProvider>
+
+  <tp:GameSettingAddConfigurationTemplateProvider x:Key="" OverrideRule="All" sd:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="10"/>
+          <ColumnDefinition Width="125"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="1" Margin="0,2,5,2" VerticalAlignment="Center">
+          <DockPanel>
+            <Button DockPanel.Dock="Right" Style="{StaticResource AddNewItemButtonStyle}"/>
+            <ComboBox DockPanel.Dock="Right" x:Name="InstanceTypeSelectionComboBox" Style="{StaticResource AddItemComboBox}"
+                          ItemsSource="{Binding AbstractNodeMatchingEntries}" Margin="2,0">
+              <i:Interaction.Behaviors>
+                <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
+              </i:Interaction.Behaviors>
+            </ComboBox>
+            <TextBlock Text="{sd:Localize Add configuration}" TextTrimming="CharacterEllipsis" FontStyle="Italic"/>
+          </DockPanel>
+        </Grid>
+      </Grid>
+    </DataTemplate>
+  </tp:GameSettingAddConfigurationTemplateProvider>
 </ResourceDictionary>
 
