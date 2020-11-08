@@ -18,7 +18,7 @@ namespace Stride.Input
     /// </summary>
     internal class InputSourceAndroid : InputSourceBase
     {
-        private AndroidStrideGameView uiControl;
+        private readonly AndroidStrideGameView uiControl;
         
         private KeyboardAndroid keyboard;
         private PointerAndroid pointer;
@@ -39,11 +39,13 @@ namespace Stride.Input
         private float[] quaternionArray = new float[4];
         private float[] rotationVector = new float[3];
 
+        public InputSourceAndroid(AndroidStrideGameView uiControl)
+        {
+            this.uiControl = uiControl ?? throw new ArgumentNullException(nameof(uiControl));
+        }
+
         public override void Initialize(InputManager inputManager)
         {
-            var context = inputManager.Game.Context as GameContextAndroid;
-            uiControl = context.Control;
-
             // Create android pointer and keyboard
             keyboard = new KeyboardAndroid(this, uiControl);
             pointer = new PointerAndroid(this, uiControl);

@@ -241,9 +241,9 @@ namespace Stride.Input
 
                 if (value)
                 {
-                    if (rawInputSource == null)
+                    if (rawInputSource == null && Game.Context is GameContextWinforms gameContextWinforms)
                     {
-                        rawInputSource = new InputSourceWindowsRawInput();
+                        rawInputSource = new InputSourceWindowsRawInput(gameContextWinforms.Control);
                         Sources.Add(rawInputSource);
                     }
                 }
@@ -580,40 +580,41 @@ namespace Stride.Input
 
         private void AddSources()
         {
-            // Create input sources
-            switch (Game.Context.ContextType)
+            var context = Game.Context;
+
+            // Add window specific input source
+            var windowInputSource = InputSourceFactory.NewWindowInputSource(context);
+            Sources.Add(windowInputSource);
+
+            // Add platform specific input sources
+            switch (context.ContextType)
             {
 #if STRIDE_UI_SDL
                 case AppContextType.DesktopSDL:
-                    Sources.Add(new InputSourceSDL());
                     break;
 #endif
 #if STRIDE_PLATFORM_ANDROID
                 case AppContextType.Android:
-                    Sources.Add(new InputSourceAndroid());
                     break;
 #endif
 #if STRIDE_PLATFORM_IOS
                 case AppContextType.iOS:
-                    Sources.Add(new InputSourceiOS());
                     break;
 #endif
 #if STRIDE_PLATFORM_UWP
                 case AppContextType.UWPXaml:
                 case AppContextType.UWPCoreWindow:
-                    Sources.Add(new InputSourceUWP());
                     break;
 #endif
                 case AppContextType.Desktop:
 #if STRIDE_PLATFORM_WINDOWS && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
-                    Sources.Add(new InputSourceWinforms());
                     Sources.Add(new InputSourceWindowsDirectInput());
                     if (InputSourceWindowsXInput.IsSupported())
                         Sources.Add(new InputSourceWindowsXInput());
 #endif
 #if STRIDE_INPUT_RAWINPUT
-                    if (rawInputEnabled)
-                        Sources.Add(new InputSourceWindowsRawInput());
+                    if (rawInputEnabled && context is GameContextWinforms gameContextWinforms)
+                        Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));
 #endif
                     break;
                 default:
