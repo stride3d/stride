@@ -6,7 +6,7 @@ using Stride.Core.Presentation.Quantum.ViewModels;
 namespace Stride.Assets.Presentation.TemplateProviders
 {
     /// <summary>
-    /// Removes the standard collection header/expander of <see cref="GameSettingsAsset.Defaults"/>.
+    /// Removes the standard collection header/expander of <see cref="GameSettingsAsset.Defaults"/> and provides a custom footer.
     /// For XAML part see <see href="../View/EntityPropertyTemplates.xaml"/>.
     /// </summary>
     public class GameSettingAddConfigurationTemplateProvider : NodeViewModelTemplateProvider
@@ -15,7 +15,9 @@ namespace Stride.Assets.Presentation.TemplateProviders
 
         public override bool MatchNode(NodeViewModel node)
         {
-            return node.Type == typeof(List<Configuration>) && node.Name == nameof(GameSettingsAsset.Defaults);
+            return node.Parent?.Type == typeof(GameSettingsAsset)
+                && node.Type == typeof(List<Configuration>) 
+                && node.Name == nameof(GameSettingsAsset.Defaults);
         }
     }
 }
