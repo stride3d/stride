@@ -29,6 +29,8 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                 }
                 if (!node.Commands.Any(cmd => cmd.Name == AddNewItemCommand.CommandName))
                     node.Commands.Add(new AddNewItemCommand());
+                if (!node.Commands.Any(cmd => cmd.Name == RemoveItemCommand.CommandName))
+                    node.Commands.Add(new RemoveItemCommand());
             }
 
             if (typeof(Configuration).IsAssignableFrom(node.Type))

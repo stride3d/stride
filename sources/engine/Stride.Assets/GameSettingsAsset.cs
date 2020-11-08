@@ -78,7 +78,7 @@ namespace Stride.Assets
         public bool DoubleViewSplashScreen { get; set; } = false;
 
         [DataMember(2000)]
-        [MemberCollection(ReadOnly = true, NotNullItems = true)]
+        [MemberCollection(ReadOnly = false, NotNullItems = true)]
         public List<Configuration> Defaults { get; } = new List<Configuration>();
 
         [DataMember(3000)]
