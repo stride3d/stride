@@ -2,7 +2,7 @@
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideRuntimeWindowsDotNet>true</StrideRuntimeWindowsDotNet>
-    <StrideRuntimeWindowsNetCoreApp3>true</StrideRuntimeWindowsNetCoreApp3>
+    <StrideRuntimeWindowsNet5>true</StrideRuntimeWindowsNet5>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <UseWindowsForms Condition="$(StrideUI.Contains('WINFORMS')) OR $(StrideUI.Contains('WPF'))">true</UseWindowsForms>
   </PropertyGroup>

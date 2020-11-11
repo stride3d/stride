@@ -16,6 +16,7 @@
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
     <StrideRoslynPadTargetFramework Condition="$(TargetFramework.StartsWith('net4'))">net462</StrideRoslynPadTargetFramework>
     <StrideRoslynPadTargetFramework Condition="$(TargetFramework.StartsWith('netcoreapp'))">netcoreapp3.1</StrideRoslynPadTargetFramework>
+    <StrideRoslynPadTargetFramework Condition="$(TargetFramework.StartsWith('net5'))">netcoreapp3.1</StrideRoslynPadTargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />

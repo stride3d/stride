@@ -1,10 +1,10 @@
-<Project>
+﻿<Project>
   <Import Project="Sdk.props" Condition="'$(StrideNuGetLoaderWindowsDesktop)' != 'true'" Sdk="Microsoft.NET.Sdk" />
   <Import Project="Sdk.props" Condition="'$(StrideNuGetLoaderWindowsDesktop)' == 'true'" Sdk="Microsoft.NET.Sdk.WindowsDesktop" />
 
   <PropertyGroup>
     <OutputType Condition="'$(OutputType)' == ''">Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <UseWpf>true</UseWpf>
     <UseWindowsForms>true</UseWindowsForms>
     <IntermediateOutputPath>obj\$(Configuration)\$(StrideApplicationName)</IntermediateOutputPath>
@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Stride.NuGet.PackageManagement" Version="5.5.1" />
+    <PackageReference Include="Stride.NuGet.PackageManagement" Version="5.8.0" />
   </ItemGroup>
 
   <ItemGroup>

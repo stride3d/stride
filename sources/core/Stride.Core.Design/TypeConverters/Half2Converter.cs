@@ -52,6 +52,7 @@ using System.Globalization;
 using System.Reflection;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
+using Half = Stride.Core.Mathematics.Half;
 
 namespace Stride.Core.TypeConverters
 {

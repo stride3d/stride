@@ -102,7 +102,10 @@
   <Target Name="_StrideComputePackagePath">
     <PropertyGroup>
       <_StrideAppendRuntimeIdentifier Condition="'$(RuntimeIdentifier)' != '' and '$(_UsingDefaultRuntimeIdentifier)' != 'true'">true</_StrideAppendRuntimeIdentifier>
-      <_StridePackagePathLibrary Condition="'$(_StrideAppendRuntimeIdentifier)' != 'true'">lib\$(TargetFramework)</_StridePackagePathLibrary>
+      <_StridePackageLibraryTargetFramework>$(TargetFramework)</_StridePackageLibraryTargetFramework>
+      <!-- Not sure why, but .NET 5.0 PackTask transforms net5.0-windows to net5.0-windows7.0 behind our back for lib/ paths -->
+      <_StridePackageLibraryTargetFramework Condition="$(TargetFramework.EndsWith('-windows')) And '$(_StrideAppendRuntimeIdentifier)' != 'true'">$(_StridePackageLibraryTargetFramework)7.0</_StridePackageLibraryTargetFramework>
+      <_StridePackagePathLibrary Condition="'$(_StrideAppendRuntimeIdentifier)' != 'true'">lib\$(_StridePackageLibraryTargetFramework)</_StridePackagePathLibrary>
       <_StridePackagePathLibrary Condition="'$(_StrideAppendRuntimeIdentifier)' == 'true'">runtimes\$(RuntimeIdentifier)\lib\$(TargetFramework)</_StridePackagePathLibrary>
     </PropertyGroup>
   </Target>

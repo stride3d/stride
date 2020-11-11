@@ -8,8 +8,8 @@
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Protocol" Version="5.5.1" />
-    <PackageReference Include="Stride.NuGet.PackageManagement" Version="5.5.1" />
+    <PackageReference Include="NuGet.Protocol" Version="5.8.0" />
+    <PackageReference Include="Stride.NuGet.PackageManagement" Version="5.8.0" />
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
