@@ -9,12 +9,12 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <CLRSupport>true</CLRSupport>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('net5'))">
+    <TargetFramework>net5.0</TargetFramework>
     <TargetFrameworkVersion></TargetFrameworkVersion>
     <CLRSupport>NetCore</CLRSupport>
   </PropertyGroup>
-  <!-- Bug: Restore with StrideEditorTargetFrameworks=netcoreapp3.1 fails because Platform is set to Mixed Platforms -->
+  <!-- Bug: Restore with StrideEditorTargetFrameworks=net5.0 fails because Platform is set to Mixed Platforms -->
   <PropertyGroup Condition="'$(Platform)' == 'Mixed Platforms'">
     <OutputType>Library</OutputType>
   </PropertyGroup>

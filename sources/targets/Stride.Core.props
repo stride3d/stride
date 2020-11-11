@@ -55,19 +55,20 @@
     <!-- Add netstandard2.0 no matter what (needed for references) -->
     <StrideRuntimeTargetFrameworks>netstandard2.0</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsDotNet)' == 'true'">$(StrideRuntimeTargetFrameworks);net461</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsNetCoreApp3)' == 'true'">$(StrideRuntimeTargetFrameworks);netcoreapp3.0</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeNet5)' == 'true'">$(StrideRuntimeTargetFrameworks);net5.0</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsNet5)' == 'true'">$(StrideRuntimeTargetFrameworks);net5.0-windows</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);uap10.0.16299</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);monoandroid81</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);xamarinios10</StrideRuntimeTargetFrameworks>
 
-    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And ('$(TargetFramework)' == 'netstandard2.0' Or $(TargetFramework.StartsWith('net4')) Or $(TargetFramework.StartsWith('netcoreapp'))) And $(_StridePlatforms.Contains(';Windows;'))">$(StrideRuntimeIdentifiers);win</StrideRuntimeIdentifiers>
+    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And ('$(TargetFramework)' == 'netstandard2.0' Or $(TargetFramework.StartsWith('net4')) Or $(TargetFramework.StartsWith('net5'))) And $(_StridePlatforms.Contains(';Windows;'))">$(StrideRuntimeIdentifiers);win</StrideRuntimeIdentifiers>
     <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_StridePlatforms.Contains(';Linux;'))">$(StrideRuntimeIdentifiers);linux</StrideRuntimeIdentifiers>
     <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_StridePlatforms.Contains(';macOS;'))">$(StrideRuntimeIdentifiers);osx</StrideRuntimeIdentifiers>
     <!-- Default: at least win (used when compiling only a single platform such as UWP for netstandard assemblies) -->
     <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And '$(StrideRuntimeIdentifiers)' == ''">win</StrideRuntimeIdentifiers>
 
     <!-- Need to use a runtime identifier for all other platforms as a workaround https://github.com/NuGet/Home/issues/7661#issuecomment-450040204 -->
-    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' != 'netstandard2.0' And !$(TargetFramework.StartsWith('net4')) And !$(TargetFramework.StartsWith('netcoreapp'))">any</StrideRuntimeIdentifiers>
+    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' != 'netstandard2.0' And !$(TargetFramework.StartsWith('net4')) And !$(TargetFramework.StartsWith('net5')) And !$(TargetFramework.StartsWith('netcoreapp'))">any</StrideRuntimeIdentifiers>
     
     <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeIdentifiers)' != ''">;$(StrideRuntimeIdentifiers);</StrideRuntimeIdentifiers>
 
@@ -255,7 +256,7 @@
   <!-- 
     Settings StrideNETRuntime specific
   -->
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('netcoreapp'))">
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('netcoreapp')) Or $(TargetFramework.StartsWith('net5'))">
     <StrideNETRuntimeDefines>STRIDE_RUNTIME_CORECLR</StrideNETRuntimeDefines>
   </PropertyGroup>
   <PropertyGroup Condition="$(TargetFramework.StartsWith('net4'))">

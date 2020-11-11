@@ -65,8 +65,6 @@ namespace Stride.LauncherApp
         [NotNull]
         internal static NugetStore InitializeNugetStore()
         {
-            NugetStore.RemoveHttpTimeout();
-
             var thisExeDirectory = new UFile(Assembly.GetEntryAssembly().Location).GetFullDirectory().ToWindowsPath();
             var store = new NugetStore(thisExeDirectory);
             return store;

@@ -1,8 +1,8 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideRuntimeWindowsDotNet>true</StrideRuntimeWindowsDotNet>
-    <StrideRuntimeWindowsNetCoreApp3>true</StrideRuntimeWindowsNetCoreApp3>
+    <StrideRuntimeWindowsNet5>true</StrideRuntimeWindowsNet5>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />

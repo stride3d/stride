@@ -85,23 +85,6 @@ namespace Stride.Core.Packages
             sourceRepositoryProvider = new NugetSourceRepositoryProvider(packageSourceProvider, this);
         }
 
-        /// <summary>
-        /// Increase nuget HTTP timeout from 100 sec to something much higher (workaround for https://github.com/NuGet/Home/issues/8120).
-        /// </summary>
-        /// <remarks>
-        /// This needs to be called before any NuGet function is called, otherwise it will lead to a FieldAccessException (HttpSourceRequest already initialized).
-        /// </remarks>
-        public static void RemoveHttpTimeout()
-        {
-            // Workaround for https://github.com/NuGet/Home/issues/8120
-            //  set timeout to something much higher than 100 sec
-            var defaultRequestTimeoutField = typeof(HttpSourceRequest).GetField(nameof(HttpSourceRequest.DefaultRequestTimeout), BindingFlags.Static | BindingFlags.Public);
-            if (defaultRequestTimeoutField != null)
-            {
-                defaultRequestTimeoutField.SetValue(null, TimeSpan.FromMinutes(60));
-            }
-        }
-
         private static void RemoveSources(ISettings settings, string prefixName)
         {
             var packageSources = settings.GetSection("packageSources");

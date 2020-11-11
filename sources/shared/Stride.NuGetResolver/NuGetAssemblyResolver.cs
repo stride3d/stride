@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -127,6 +128,20 @@ namespace Stride.Core.Assets
                                 .GetCustomAttribute<TargetFrameworkAttribute>()?
                                 .FrameworkName ?? ".NETFramework,Version=v4.7.2";
                             var nugetFramework = NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance);
+
+#if NETCOREAPP
+                            // Add TargetPlatform to net5.0 TFM (i.e. net5.0 to net5.0-windows7.0)
+                            var platform = Assembly.GetEntryAssembly()?.GetCustomAttribute<TargetPlatformAttribute>()?.PlatformName ?? string.Empty;
+                            if (framework.StartsWith(FrameworkConstants.FrameworkIdentifiers.NetCoreApp) && platform != string.Empty)
+                            {
+                                var platformParseResult = Regex.Match(platform, @"([a-zA-Z]+)(\d+.*)");
+                                if (platformParseResult.Success && Version.TryParse(platformParseResult.Groups[2].Value, out var platformVersion))
+                                {
+                                    var platformName = platformParseResult.Groups[1].Value;
+                                    nugetFramework = new NuGetFramework(nugetFramework.Framework, nugetFramework.Version, platformName, platformVersion);
+                                }
+                            }
+#endif
 
                             // Only allow this specific version
                             var versionRange = new VersionRange(new NuGetVersion(packageVersion), true, new NuGetVersion(packageVersion), true);

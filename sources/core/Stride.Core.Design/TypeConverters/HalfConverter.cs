@@ -50,6 +50,7 @@ using System.ComponentModel.Design.Serialization;
 using System.Globalization;
 
 using Stride.Core.Mathematics;
+using Half = Stride.Core.Mathematics.Half;
 
 namespace Stride.Core.TypeConverters
 {

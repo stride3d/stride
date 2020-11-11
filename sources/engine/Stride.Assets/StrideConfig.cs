@@ -135,7 +135,7 @@ namespace Stride.Assets
             {
                 Name = PlatformType.Linux.ToString(),
                 IsAvailable = true,
-                TargetFramework = "netcoreapp2.1",
+                TargetFramework = "net5.0",
                 RuntimeIdentifier = "linux-x64",
                 Type = PlatformType.Linux,
             };
@@ -148,7 +148,7 @@ namespace Stride.Assets
             {
                 Name = PlatformType.macOS.ToString(),
                 IsAvailable = true,
-                TargetFramework = "netcoreapp2.1",
+                TargetFramework = "net5.0",
                 RuntimeIdentifier = "osx-x64",
                 Type = PlatformType.macOS,
             };
