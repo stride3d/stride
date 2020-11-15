@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <RootNamespace><#= Properties.Namespace #></RootNamespace>
