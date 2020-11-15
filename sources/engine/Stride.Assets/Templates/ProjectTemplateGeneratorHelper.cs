@@ -15,6 +15,7 @@ using Stride.Graphics;
 using Stride.Shaders.Parser.Mixins;
 using Stride.Core.VisualStudio;
 using Stride.Core.Extensions;
+using System.Runtime.InteropServices;
 
 namespace Stride.Assets.Templates
 {
@@ -117,6 +118,12 @@ namespace Stride.Assets.Templates
 
                     // We are going to regenerate this platform, so we are removing it before
                     package.Session.Projects.Remove(existingProject);
+                }
+
+                if (platform.Platform.Type == PlatformType.Windows)
+                {
+                    var isNETCore = RuntimeInformation.FrameworkDescription.StartsWith(".NET Core");
+                    AddOption(parameters, "TargetFramework", isNETCore ? "netcoreapp3.1" : "net461");
                 }
 
                 var projectDirectory = Path.GetDirectoryName(projectFullPath.ToWindowsPath());
@@ -273,6 +280,12 @@ namespace Stride.Assets.Templates
 
             AddOption(parameters, "ProjectType", projectType);
             AddOption(parameters, "Namespace", parameters.Namespace ?? Utilities.BuildValidNamespaceName(package.Meta.Name));
+
+            if (platformType == PlatformType.Windows)
+            {
+                var isNETCore = RuntimeInformation.FrameworkDescription.StartsWith(".NET Core");
+                AddOption(parameters, "TargetFramework", isNETCore ? "netcoreapp3.1" : "net461");
+            }
 
             return projectTemplate;
         }
