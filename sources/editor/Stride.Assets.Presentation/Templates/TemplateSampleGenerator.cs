@@ -108,6 +108,8 @@ namespace Stride.Assets.Presentation.Templates
             //write gitignore
             WriteGitIgnore(parameters);
 
+            WriteGlobalJson(parameters);
+
             UFile projectOutputFile = null;
             UFile projectInputFile = null;
 
