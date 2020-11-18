@@ -42,7 +42,7 @@ namespace Stride.Core.Threading
 
         public ThreadPool(int? threadCount = null)
         {
-            WorkerThreadsCount = threadCount ?? Environment.ProcessorCount;
+            WorkerThreadsCount = threadCount ?? (Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount - 1);
             for (int i = 0; i < WorkerThreadsCount; i++)
             {
                 NewWorker();
