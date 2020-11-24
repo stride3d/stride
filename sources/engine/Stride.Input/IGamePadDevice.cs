@@ -37,17 +37,17 @@ namespace Stride.Input
         /// <summary>
         /// The gamepad buttons that have been pressed since the last frame
         /// </summary>
-        IReadOnlySet<GamePadButton> PressedButtons { get; }
+        Core.Collections.IReadOnlySet<GamePadButton> PressedButtons { get; }
 
         /// <summary>
         /// The gamepad buttons that have been released since the last frame
         /// </summary>
-        IReadOnlySet<GamePadButton> ReleasedButtons { get; }
+        Core.Collections.IReadOnlySet<GamePadButton> ReleasedButtons { get; }
 
         /// <summary>
         /// The gamepad buttons that are down
         /// </summary>
-        IReadOnlySet<GamePadButton> DownButtons { get; }
+        Core.Collections.IReadOnlySet<GamePadButton> DownButtons { get; }
 
         /// <summary>
         /// Raised if the index assigned to this gamepad changed

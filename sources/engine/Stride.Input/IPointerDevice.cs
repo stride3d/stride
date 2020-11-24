@@ -26,17 +26,17 @@ namespace Stride.Input
         /// <summary>
         /// The index of the pointers that have been pressed since the last frame
         /// </summary>
-        IReadOnlySet<PointerPoint> PressedPointers { get; }
+        Core.Collections.IReadOnlySet<PointerPoint> PressedPointers { get; }
 
         /// <summary>
         /// The index of the pointers that have been released since the last frame
         /// </summary>
-        IReadOnlySet<PointerPoint> ReleasedPointers { get; }
+        Core.Collections.IReadOnlySet<PointerPoint> ReleasedPointers { get; }
 
         /// <summary>
         /// The index of the pointers that are down
         /// </summary>
-        IReadOnlySet<PointerPoint> DownPointers { get; }
+        Core.Collections.IReadOnlySet<PointerPoint> DownPointers { get; }
 
         /// <summary>
         /// Raised when the surface size of this pointer changed

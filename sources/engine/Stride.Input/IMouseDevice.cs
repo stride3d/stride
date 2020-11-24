@@ -24,17 +24,17 @@ namespace Stride.Input
         /// <summary>
         /// The mouse buttons that have been pressed since the last frame
         /// </summary>
-        IReadOnlySet<MouseButton> PressedButtons { get; }
+        Core.Collections.IReadOnlySet<MouseButton> PressedButtons { get; }
 
         /// <summary>
         /// The mouse buttons that have been released since the last frame
         /// </summary>
-        IReadOnlySet<MouseButton> ReleasedButtons { get; }
+        Core.Collections.IReadOnlySet<MouseButton> ReleasedButtons { get; }
 
         /// <summary>
         /// The mouse buttons that are down
         /// </summary>
-        IReadOnlySet<MouseButton> DownButtons { get; }
+        Core.Collections.IReadOnlySet<MouseButton> DownButtons { get; }
         
         /// <summary>
         /// Gets or sets if the mouse is locked to the screen
