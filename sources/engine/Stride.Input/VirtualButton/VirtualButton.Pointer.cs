@@ -121,7 +121,7 @@ namespace Stride.Input
                 return 0f;
             }
 
-            private bool AnyPointerInState(InputManager manager, Func<IPointerDevice, IReadOnlySet<PointerPoint>> stateGetter)
+            private bool AnyPointerInState(InputManager manager, Func<IPointerDevice, Core.Collections.IReadOnlySet<PointerPoint>> stateGetter)
             {
                 foreach (var pointerDevice in manager.Pointers)
                 {
@@ -134,17 +134,17 @@ namespace Stride.Input
                 return false;
             }
 
-            private IReadOnlySet<PointerPoint> GetDownPointers(IPointerDevice device)
+            private Core.Collections.IReadOnlySet<PointerPoint> GetDownPointers(IPointerDevice device)
             {
                 return device.DownPointers;
             }
 
-            private IReadOnlySet<PointerPoint> GetPressedPointers(IPointerDevice device)
+            private Core.Collections.IReadOnlySet<PointerPoint> GetPressedPointers(IPointerDevice device)
             {
                 return device.DownPointers;
             }
 
-            private IReadOnlySet<PointerPoint> GetReleasedPointers(IPointerDevice device)
+            private Core.Collections.IReadOnlySet<PointerPoint> GetReleasedPointers(IPointerDevice device)
             {
                 return device.DownPointers;
             }

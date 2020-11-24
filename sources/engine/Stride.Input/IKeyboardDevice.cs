@@ -14,16 +14,16 @@ namespace Stride.Input
         /// <summary>
         /// The keys that have been pressed since the last frame
         /// </summary>
-        IReadOnlySet<Keys> PressedKeys { get; }
+        Core.Collections.IReadOnlySet<Keys> PressedKeys { get; }
 
         /// <summary>
         /// The keys that have been released since the last frame
         /// </summary>
-        IReadOnlySet<Keys> ReleasedKeys { get; }
+        Core.Collections.IReadOnlySet<Keys> ReleasedKeys { get; }
 
         /// <summary>
         /// List of keys that are currently down on this keyboard
         /// </summary>
-        IReadOnlySet<Keys> DownKeys { get; }
+        Core.Collections.IReadOnlySet<Keys> DownKeys { get; }
     }
 }

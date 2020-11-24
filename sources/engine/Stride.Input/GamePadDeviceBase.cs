@@ -32,9 +32,9 @@ namespace Stride.Input
             }
         }
 
-        public IReadOnlySet<GamePadButton> PressedButtons { get; }
-        public IReadOnlySet<GamePadButton> ReleasedButtons { get; }
-        public IReadOnlySet<GamePadButton> DownButtons { get; }
+        public Core.Collections.IReadOnlySet<GamePadButton> PressedButtons { get; }
+        public Core.Collections.IReadOnlySet<GamePadButton> ReleasedButtons { get; }
+        public Core.Collections.IReadOnlySet<GamePadButton> DownButtons { get; }
 
         public abstract IInputSource Source { get; }
 
