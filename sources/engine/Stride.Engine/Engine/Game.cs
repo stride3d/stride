@@ -338,9 +338,10 @@ namespace Stride.Engine
 
             // Add the input manager
             // Add it first so that it can obtained by the UI system
-            Input = new InputManager(Services);
+            var inputSystem = new InputSystem(Services);
+            Input = inputSystem.Manager;
             Services.AddService(Input);
-            GameSystems.Add(Input);
+            GameSystems.Add(inputSystem);
 
             // Initialize the systems
             base.Initialize();
