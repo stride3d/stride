@@ -15,14 +15,16 @@ namespace Stride.Input
     /// </summary>
     internal class InputSourceWindowsRawInput : InputSourceBase
     {
+        private readonly Control uiControl;
         private KeyboardWindowsRawInput keyboard;
-        private Control uiControl;
+
+        public InputSourceWindowsRawInput(Control uiControl)
+        {
+            this.uiControl = uiControl ?? throw new ArgumentNullException(nameof(uiControl));
+        }
 
         public override void Initialize(InputManager inputManager)
         {
-            var gameContext = inputManager.Game.Context as GameContext<Control>;
-            uiControl = gameContext.Control;
-
             keyboard = new KeyboardWindowsRawInput(this);
             RegisterDevice(keyboard);
             BindRawInputKeyboard(uiControl);
