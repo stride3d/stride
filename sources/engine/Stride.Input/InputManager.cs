@@ -231,7 +231,7 @@ namespace Stride.Input
         /// </summary>
         public bool UseRawInput
         {
-#if STRIDE_INPUT_RAWINPUT
+#if STRIDE_PLATFORM_WINDOWS && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF) && STRIDE_INPUT_RAWINPUT
             get
             {
                 return rawInputEnabled;
@@ -613,10 +613,10 @@ namespace Stride.Input
                     Sources.Add(new InputSourceWindowsDirectInput());
                     if (InputSourceWindowsXInput.IsSupported())
                         Sources.Add(new InputSourceWindowsXInput());
-#endif
 #if STRIDE_INPUT_RAWINPUT
                     if (rawInputEnabled && context is GameContextWinforms gameContextWinforms)
                         Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));
+#endif
 #endif
                     break;
                 default:
