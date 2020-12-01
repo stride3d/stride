@@ -336,13 +336,8 @@ namespace Stride.Games
             if (game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
             {
                 graphicsDevice.Recreate(deviceInformation.Adapter, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags |= DeviceCreationFlags.BgraSupport, gameWindow.NativeWindow);
-                graphicsDevice.Presenter = new WindowsMixedRealityGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
             }
-            else
 #endif
-            {
-                graphicsDevice.Presenter = new SwapChainGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
-            }
 
             return graphicsDevice;
         }

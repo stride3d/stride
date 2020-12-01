@@ -60,9 +60,6 @@ namespace Stride.Graphics
 
         public void OnRecreate()
         {
-            // Recreate presenter
-            graphicsDevice.Presenter?.OnRecreated();
-
             bool wasSomethingRecreated = true;
             bool hasDestroyedObjects = true;
 
@@ -103,9 +100,6 @@ namespace Stride.Graphics
 
         public void OnDestroyed()
         {
-            // Destroy presenter first (so that its backbuffer and render target are destroyed properly before other resources)
-            graphicsDevice.Presenter?.OnDestroyed();
-
             foreach (var resource in graphicsDevice.Resources)
             {
                 resource.OnDestroyed();

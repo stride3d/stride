@@ -293,7 +293,7 @@ namespace Stride.Graphics.Regression
         protected virtual void OnWindowSizeChanged()
         {
             // TODO GRAPHICS REFACTOR Need to get aspect ratio using graphics compositor
-            Camera.AspectRatio = GraphicsDevice.Presenter.BackBuffer.Width / (float)GraphicsDevice.Presenter.BackBuffer.Height;
+            Camera.AspectRatio = Game.Presenter.BackBuffer.Width / (float)Game.Presenter.BackBuffer.Height;
         }
 
 

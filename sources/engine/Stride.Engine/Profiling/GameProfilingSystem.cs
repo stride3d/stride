@@ -372,7 +372,7 @@ namespace Stride.Profiling
             }
 
             // TODO GRAPHICS REFACTOR where to get command list from?
-            Game.GraphicsContext.CommandList.SetRenderTargetAndViewport(null, Game.GraphicsDevice.Presenter.BackBuffer);
+            Game.GraphicsContext.CommandList.SetRenderTargetAndViewport(null, Game.Presenter.BackBuffer);
             fastTextRenderer.Begin(Game.GraphicsContext);
             lock (stringLock)
             {
@@ -419,10 +419,10 @@ namespace Stride.Profiling
             }
 
             // Backup current PresentInterval state
-            userPresentInterval = GraphicsDevice.Presenter.PresentInterval;
+            userPresentInterval = Game.Presenter.PresentInterval;
 
             // Disable VSync (otherwise GPU results might be incorrect)
-            GraphicsDevice.Presenter.PresentInterval = PresentInterval.Immediate;
+            Game.Presenter.PresentInterval = PresentInterval.Immediate;
 
             if (keys.Length == 0)
             {
@@ -459,7 +459,7 @@ namespace Stride.Profiling
             Visible = false;
 
             // Restore previous PresentInterval state
-            GraphicsDevice.Presenter.PresentInterval = userPresentInterval;
+            Game.Presenter.PresentInterval = userPresentInterval;
             userPresentInterval = PresentInterval.Default;
             if (Game != null)
                 Game.TreatNotFocusedLikeMinimized = userMinimizedState;

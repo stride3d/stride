@@ -54,7 +54,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// <summary>
         /// Gets the gizmo default scale in ratio of screen height ( 1 => full screen vertically )
         /// </summary>
-        public float DefaultScale => GizmoDefaultSize / GraphicsDevice.Presenter.BackBuffer.Height;
+        public float DefaultScale => GizmoDefaultSize / Game.Presenter.BackBuffer.Height;
 
         /// <summary>
         /// The default material for the origin elements
@@ -371,7 +371,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             if (!transformationStarted)
             {
                 // ensure that the mouse cursor has been moved enough
-                var screenSize = new Vector2(GraphicsDevice.Presenter.BackBuffer.Width, GraphicsDevice.Presenter.BackBuffer.Height);
+                var screenSize = new Vector2(Game.Presenter.BackBuffer.Width, Game.Presenter.BackBuffer.Height);
                 var mouseDragPixel = mouseDrag * screenSize;
                 if (mouseDragPixel.Length() < TransformationStartPixelThreshold)
                     return;

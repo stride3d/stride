@@ -203,22 +203,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///     Gets or sets the current presenter used to display the frame.
-        /// </summary>
-        /// <value>The current presenter.</value>
-        public virtual GraphicsPresenter Presenter
-        {
-            get
-            {
-                return presenter;
-            }
-            set
-            {
-                presenter = value;
-            }
-        }
-
-        /// <summary>
         ///     Gets the <see cref="SamplerStateFactory" /> factory.
         /// </summary>
         /// <value>

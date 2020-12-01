@@ -117,7 +117,7 @@ namespace Stride.Graphics
 
                     Description.IsFullScreen = true;
 
-                    OnRecreated();
+                    OnRecreate();
                 }
                 else
                 {
@@ -186,10 +186,8 @@ namespace Stride.Graphics
             base.OnDestroyed();
         }
 
-        public override void OnRecreated()
+        protected internal override bool OnRecreate()
         {
-            base.OnRecreated();
-
             // Recreate swap chain
             swapChain = CreateSwapChain();
 
@@ -200,6 +198,7 @@ namespace Stride.Graphics
             // TODO: Update new size
             backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb());
             backBuffer.LifetimeState = GraphicsResourceLifetimeState.Active;
+            return true;
         }
 
         protected override void ResizeBackBuffer(int width, int height, PixelFormat format)

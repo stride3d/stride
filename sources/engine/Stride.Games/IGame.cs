@@ -82,6 +82,8 @@ namespace Stride.Games
         /// <value>The graphics context.</value>
         GraphicsContext GraphicsContext { get; }
 
+        GraphicsPresenter Presenter { get; }
+
         /// <summary>
         /// Gets or sets the inactive sleep time.
         /// </summary>

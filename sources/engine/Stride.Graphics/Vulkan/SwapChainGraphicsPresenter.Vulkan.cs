@@ -190,15 +190,14 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        public override void OnRecreated()
+        protected internal override bool OnRecreate()
         {
             // TODO VULKAN: Violent driver crashes when recreating device and swapchain
             throw new NotImplementedException();
 
-            base.OnRecreated();
-
             // Recreate swap chain
             CreateSwapChain();
+            return true;
         }
 
         protected override void ResizeBackBuffer(int width, int height, PixelFormat format)
