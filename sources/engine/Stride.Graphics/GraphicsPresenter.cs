@@ -35,6 +35,14 @@ namespace Stride.Graphics
     /// </remarks>
     public abstract class GraphicsPresenter : ComponentBase
     {
+        /// <summary>
+        /// If not null the given interval will be used during a <see cref="Present"/> operation. 
+        /// </summary>
+        /// <remarks>
+        /// This is currently only supported by the Direct3D graphics implementation.
+        /// </remarks>
+        internal static readonly PropertyKey<PresentInterval?> ForcedPresentInterval = new PropertyKey<PresentInterval?>(nameof(ForcedPresentInterval), typeof(GraphicsDevice));
+
         private Texture depthStencilBuffer;
 
         /// <summary>
