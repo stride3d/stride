@@ -6,14 +6,17 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Stride.Core;
+using System.Xml;
 using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
 using Stride.Core.Reflection;
 
 namespace Stride.Core.Assets.Editor.Services
 {
     public class UserDocumentationService
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(UserDocumentationService));
+
         private readonly Dictionary<string, string> cachedDocumentations = new Dictionary<string, string>();
         private readonly HashSet<string> undocumentedAssemblies = new HashSet<string>();
         private readonly HashSet<string> documentedAssemblies = new HashSet<string>();
@@ -73,6 +76,12 @@ namespace Stride.Core.Assets.Editor.Services
             }
         }
 
+        public void ClearCachedAssemblyDocumentation([NotNull] Assembly assembly)
+        {
+            var assemblyName = assembly.GetName().Name;
+            documentedAssemblies.Remove(assemblyName);
+        }
+
         private bool CacheAssemblyDocumentation([NotNull] Assembly assembly)
         {
             // Can't process dynamic assemblies (they don't have a location)
@@ -95,59 +104,142 @@ namespace Stride.Core.Assets.Editor.Services
                     if (ViewModel.SessionViewModel.Instance.CurrentProject?.Package != null)
                     {
                         var package = ViewModel.SessionViewModel.Instance.CurrentProject.Package;
-                        foreach (var asm in package.LoadedAssemblies)
+
+                        if (package.Container is SolutionProject solutionProject && solutionProject.Type == ProjectType.Executable)
                         {
-                            var name = asm.Assembly.GetName();
-                            if (name.Name == assemblyName)
+                            Log.Info($"Package {solutionProject.Name} is a solution project. Attempting to cache documentation for dependencies.");
+                            foreach (var dep in solutionProject.DirectDependencies)
                             {
-                                location = asm.Path;
-                                break;
+                                var docPath = Path.Combine(Path.GetDirectoryName(solutionProject.TargetPath) ?? "", dep.Name + ".xml");
+
+                                CacheAssemblyDocumentationFromPath(dep.Name, docPath);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var asm in package.LoadedAssemblies)
+                            {
+                                var name = asm.Assembly.GetName();
+                                if (name.Name == assemblyName)
+                                {
+                                    location = asm.Path;
+                                    break;
+                                }
                             }
                         }
                     }
                 }
 
-                if (string.IsNullOrEmpty(location))
-                {
-                    return false;
-                }
-
-                var basePath = Path.Combine(Path.GetDirectoryName(location) ?? "", Path.GetFileNameWithoutExtension(location));
-                var docFile = basePath + ".usrdoc";
-                if (!File.Exists(docFile))
-                {
-                    undocumentedAssemblies.Add(assemblyName);
-                    return false;
-                }
-                try
-                {
-                    using (var reader = new StreamReader(docFile))
-                    {
-                        while (!reader.EndOfStream)
-                        {
-                            var line = reader.ReadLine();
-                            if (string.IsNullOrWhiteSpace(line))
-                                continue;
-
-                            var separator = line.IndexOf('=');
-                            // TODO: Emit a warning here.
-                            if (separator < 0 || separator >= line.Length - 1)
-                                continue;
-
-                            var key = line.Substring(0, separator);
-                            var documentation = line.Substring(separator + 1);
-                            cachedDocumentations[key] = documentation;
-                        }
-                    }
-                    documentedAssemblies.Add(assemblyName);
-                }
-                catch
-                {
-                    undocumentedAssemblies.Add(assemblyName);
-                }
+                CacheAssemblyDocumentationFromPath(assemblyName, location);
             }
 
             return documentedAssemblies.Contains(assemblyName);
+        }
+
+        private void CacheAssemblyDocumentationFromPath(string assemblyName, string location)
+        {
+            if (string.IsNullOrEmpty(location) || documentedAssemblies.Contains(assemblyName))
+            {
+                return;
+            }
+
+            var basePath = Path.Combine(Path.GetDirectoryName(location) ?? "", Path.GetFileNameWithoutExtension(location));
+            if (!CacheCustomDocumentation(basePath + ".usrdoc"))
+            {
+                Log.Info($"Could not cache from {basePath + ".usrdoc"}. Attempting to read from {basePath + ".xml"}");
+                // Fallback to XML assembly.
+                if (!CacheXmlDocumentation(basePath + ".xml"))
+                {
+                    undocumentedAssemblies.Add(assemblyName);
+                    return;
+                }
+            }
+
+            documentedAssemblies.Add(assemblyName);
+        }
+
+        /// <summary>
+        /// Attempts to cache the contents of a file formatted in the style of the standard .xml documentation file.
+        /// </summary>
+        /// <param name="filePath">The file location.</param>
+        /// <returns>Returns true if the file was successfully cached or empty.</returns>
+        private bool CacheXmlDocumentation(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                return false;
+            }
+
+            try
+            {
+                using (var reader = new StreamReader(filePath))
+                {
+                    var doc = new XmlDocument();
+                    doc.Load(reader);
+
+                    foreach (XmlNode node in doc.GetElementsByTagName("userdoc"))
+                    {
+                        var key = node.ParentNode.Attributes["name"]?.Value;
+                        var documentation = node.InnerText.Trim();
+
+                        if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(documentation))
+                        {
+                            continue;
+                        }
+
+                        cachedDocumentations[key] = documentation;
+                    }
+                }
+            }
+            catch
+            {
+                Log.Error("Failed while caching from XML documentation.");
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to cache the contents of a file formatted in the .usrdoc style.
+        /// </summary>
+        /// <param name="filePath">The file location.</param>
+        /// <returns>Returns true if the file was successfully cached or empty.</returns>
+        private bool CacheCustomDocumentation(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                return false;
+            }
+
+            try
+            {
+                using (var reader = new StreamReader(filePath))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine();
+                        if (string.IsNullOrWhiteSpace(line))
+                            continue;
+
+                        var separator = line.IndexOf('=');
+                        // TODO: Emit a warning here.
+                        if (separator < 0 || separator >= line.Length - 1)
+                            continue;
+
+                        var key = line.Substring(0, separator);
+                        var documentation = line.Substring(separator + 1);
+                        cachedDocumentations[key] = documentation;
+                    }
+                }
+            }
+            catch
+            {
+                Log.Error("Failed while caching documentation.");
+                return false;
+            }
+
+            return true;
         }
     }
 }
