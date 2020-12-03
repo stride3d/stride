@@ -327,7 +327,7 @@ namespace Stride.Graphics
         /// <param name="spriteFont">The font used to draw the text.</param>
         /// <param name="text">The text to measure.</param>
         /// <param name="fontSize">The font size (in pixels) used to draw the text.</param>
-        /// <param name="targetSize">The size of the target to render in. If null, the size of the window back buffer is used.</param>
+        /// <param name="targetSize">The size of the target to render in. If null, the size of the render target is used.</param>
         /// <returns>The size of the text in virtual pixels.</returns>
         /// <exception cref="ArgumentNullException">The provided sprite font is null.</exception>
         public Vector2 MeasureString(SpriteFont spriteFont, string text, float fontSize, Vector2? targetSize = null)
@@ -337,7 +337,7 @@ namespace Stride.Graphics
             if (string.IsNullOrEmpty(text))
                 return Vector2.Zero;
 
-            var targetSizeValue = targetSize ?? new Vector2(graphicsDevice.Presenter.BackBuffer.Width, graphicsDevice.Presenter.BackBuffer.Height);
+            var targetSizeValue = targetSize ?? new Vector2(GraphicsContext.CommandList.RenderTarget.Width, GraphicsContext.CommandList.RenderTarget.Height);
 
             // calculate the size of the text that will be used to draw
             var virtualResolution = VirtualResolution ?? new Vector3(targetSizeValue, DefaultDepth);

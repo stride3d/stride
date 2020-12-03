@@ -293,7 +293,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
         protected virtual void UpdateCamera()
         {
             // Update camera ratio
-            var backBuffer = Game.GraphicsDevice.Presenter.BackBuffer;
+            var backBuffer = Game.Presenter.BackBuffer;
             if (backBuffer != null)
             {
                 Component.AspectRatio = backBuffer.Width / (float)backBuffer.Height;

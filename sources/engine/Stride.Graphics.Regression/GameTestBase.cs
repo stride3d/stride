@@ -130,7 +130,7 @@ namespace Stride.Graphics.Regression
         {
             TestGameLogger.Info(@"Saving the backbuffer");
             // TODO GRAPHICS REFACTOR switched to presenter backbuffer, need to check if it's good
-            SaveImage(GraphicsDevice.Presenter.BackBuffer, testName);
+            SaveImage(Presenter.BackBuffer, testName);
         }
 
         /// <summary>

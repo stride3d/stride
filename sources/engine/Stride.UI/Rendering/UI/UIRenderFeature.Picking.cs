@@ -94,8 +94,8 @@ namespace Stride.Rendering.UI
             if (graphicsDevice == null)
                 return new Ray(new Vector3(float.NegativeInfinity), new Vector3(0, 1, 0));
 
-            screenPos.X *= graphicsDevice.Presenter.BackBuffer.Width;
-            screenPos.Y *= graphicsDevice.Presenter.BackBuffer.Height;
+            screenPos.X *= viewport.Width;
+            screenPos.Y *= viewport.Height;
 
             var unprojectedNear = viewport.Unproject(new Vector3(screenPos, 0.0f), ref worldViewProj);
 

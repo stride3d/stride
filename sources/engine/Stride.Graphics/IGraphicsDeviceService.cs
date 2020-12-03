@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 
 namespace Stride.Graphics
 {
@@ -55,5 +56,11 @@ namespace Stride.Graphics
         /// </summary>
         /// <value>The graphics device.</value>
         GraphicsDevice GraphicsDevice { get; }
+
+        // TODO: Not really happy with this. Should it be kept in the GamePlatform through IGraphicsDeviceFactory? It needs access to the game context (windows mixed reality).
+        GraphicsPresenter CreatePresenter(PresentationParameters presentationParameters);
+
+        // TODO: Not happy about this either. Seems like it could be an extension method?
+        List<PresentationParameters> FindBestScreenModes(PresentationParameters preferredParameter);
     }
 }

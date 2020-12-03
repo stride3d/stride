@@ -617,7 +617,7 @@ namespace Stride.Graphics
         /// <exception cref="System.InvalidOperationException"></exception>
         public void Clear(Texture depthStencilBuffer, DepthStencilClearOptions options, float depth = 1, byte stencil = 0)
         {
-            ResourceBarrierTransition(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsResourceState.DepthWrite);
+            ResourceBarrierTransition(depthStencilBuffer, GraphicsResourceState.DepthWrite);
             FlushResourceBarriers();
             currentCommandList.NativeCommandList.ClearDepthStencilView(depthStencilBuffer.NativeDepthStencilView, (ClearFlags)options, depth, stencil);
         }

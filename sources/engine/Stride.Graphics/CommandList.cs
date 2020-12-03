@@ -78,10 +78,8 @@ namespace Stride.Graphics
             for (int i = 0; i < scissors.Length; i++)
                 scissors[i] = new Rectangle();
 
-            // Setup the default render target
-            var deviceDepthStencilBuffer = GraphicsDevice.Presenter?.DepthStencilBuffer;
-            var deviceBackBuffer = GraphicsDevice.Presenter?.BackBuffer;
-            SetRenderTargetAndViewport(deviceDepthStencilBuffer, deviceBackBuffer);
+            // Clear the render targets
+            SetRenderTargetAndViewport(null, null);
         }
 
         /// <summary>

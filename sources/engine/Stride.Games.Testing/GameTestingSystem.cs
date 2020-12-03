@@ -83,7 +83,7 @@ namespace Stride.Games.Testing
             {
                 drawActions.Enqueue(() =>
                 {
-                    SaveTexture(game.GraphicsDevice.Presenter.BackBuffer, request.Filename);
+                    SaveTexture(game.Presenter.BackBuffer, request.Filename);
                 });
             });
 

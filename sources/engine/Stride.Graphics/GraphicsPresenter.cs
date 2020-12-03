@@ -33,8 +33,10 @@ namespace Stride.Graphics
     /// <remarks>
     /// In order to create a new <see cref="GraphicsPresenter"/>, a <see cref="GraphicsDevice"/> should have been initialized first.
     /// </remarks>
-    public abstract class GraphicsPresenter : ComponentBase
+    public abstract class GraphicsPresenter : GraphicsResourceBase
     {
+        public static readonly PropertyKey<GraphicsPresenter> Current = new PropertyKey<GraphicsPresenter>("CurrentPresenter", typeof(GraphicsPresenter));
+
         private Texture depthStencilBuffer;
 
         /// <summary>
@@ -43,8 +45,8 @@ namespace Stride.Graphics
         /// <param name="device">The device.</param>
         /// <param name="presentationParameters"> </param>
         protected GraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters)
+            : base(device)
         {
-            GraphicsDevice = device;
             var description = presentationParameters.Clone();
 
             // If we are creating a GraphicsPresenter with 
@@ -80,12 +82,6 @@ namespace Stride.Graphics
             // Creates a default DepthStencilBuffer.
             CreateDepthStencilBuffer();
         }
-
-        /// <summary>
-        /// Gets the graphics device.
-        /// </summary>
-        /// <value>The graphics device.</value>
-        public GraphicsDevice GraphicsDevice { get; private set; }
 
         /// <summary>
         /// Gets the description of this presenter.
@@ -185,26 +181,6 @@ namespace Stride.Graphics
             {
                 depthStencilBuffer.RemoveDisposeBy(this);
             }
-        }
-
-        protected override void Destroy()
-        {
-            OnDestroyed();
-            base.Destroy();
-        }
-        
-        /// <summary>
-        /// Called when [destroyed].
-        /// </summary>
-        protected internal virtual void OnDestroyed()
-        {
-        }
-
-        /// <summary>
-        /// Called when [recreated].
-        /// </summary>
-        public virtual void OnRecreated()
-        {
         }
 
         protected virtual void ProcessPresentationParameters()

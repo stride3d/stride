@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
@@ -34,61 +35,58 @@ namespace Stride.Games
     /// </summary>
     public class GraphicsDeviceManager : ComponentBase, IGraphicsDeviceManager, IGraphicsDeviceService
     {
+        public GraphicsPresenter CreatePresenter(PresentationParameters presentationParameters)
+        {
+#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
+            if (game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
+            {
+                return new WindowsMixedRealityGraphicsPresenter(GraphicsDevice, presentationParameters);
+            }
+            else
+#endif
+            {
+                return new SwapChainGraphicsPresenter(GraphicsDevice, presentationParameters);
+            }
+        }
+
+        public List<PresentationParameters> FindBestScreenModes(PresentationParameters preferredParameter)
+        {
+            var preferredParameters = new GameGraphicsParameters
+            {
+                PreferredBackBufferWidth = preferredParameter.BackBufferWidth,
+                PreferredBackBufferHeight = preferredParameter.BackBufferHeight,
+                PreferredBackBufferFormat = preferredParameter.BackBufferFormat,
+                PreferredDepthStencilFormat = preferredParameter.DepthStencilFormat,
+                PreferredRefreshRate = preferredParameter.RefreshRate,
+                PreferredFullScreenOutputIndex = preferredParameter.PreferredFullScreenOutputIndex,
+                IsFullScreen = preferredParameter.IsFullScreen,
+                PreferredMultisampleCount = preferredParameter.MultisampleCount,
+                SynchronizeWithVerticalRetrace = preferredParameter.PresentationInterval != PresentInterval.Immediate,
+                PreferredGraphicsProfile = (GraphicsProfile[])PreferredGraphicsProfile.Clone(),
+                ColorSpace = preferredParameter.ColorSpace,
+                RequiredAdapterUid = RequiredAdapterUid,
+            };
+            var devices = graphicsDeviceFactory.FindBestDevices(preferredParameters);
+            return devices.Select(device => device.PresentationParameters).ToList();
+        }
+
         #region Fields
-
-        /// <summary>
-        /// Default width for the back buffer.
-        /// </summary>
-        public static readonly int DefaultBackBufferWidth = 1280;
-
-        /// <summary>
-        /// Default height for the back buffer.
-        /// </summary>
-        public static readonly int DefaultBackBufferHeight = 720;
 
         private readonly object lockDeviceCreation;
 
-        private GameBase game;
+        private readonly GameBase game;
+
+        private readonly GameWindowManager windowManager;
 
         private bool deviceSettingsChanged;
 
-        private bool isFullScreen;
-
-        private MultisampleCount preferredMultisampleCount;
-
-        private PixelFormat preferredBackBufferFormat;
-
-        private int preferredBackBufferHeight;
-
-        private int preferredBackBufferWidth;
-
-        private Rational preferredRefreshRate;
-
-        private PixelFormat preferredDepthStencilFormat;
-
-        private DisplayOrientation supportedOrientations;
-
-        private bool synchronizeWithVerticalRetrace;
-
-        private int preferredFullScreenOutputIndex;
-
-        private bool isChangingDevice;
-
-        private int resizedBackBufferWidth;
-
-        private int resizedBackBufferHeight;
-
-        private bool isBackBufferToResize = false;
-
-        private DisplayOrientation currentWindowOrientation;
-
         private bool beginDrawOk;
 
-        private IGraphicsDeviceFactory graphicsDeviceFactory;
+        private readonly IGraphicsDeviceFactory graphicsDeviceFactory;
 
-        private bool isReallyFullScreen;
+        private string requiredAdapterUid;
 
-        private ColorSpace preferredColorSpace;
+        private DeviceCreationFlags deviceCreationFlags;
 
         #endregion
 
@@ -101,23 +99,13 @@ namespace Stride.Games
         /// <exception cref="System.ArgumentNullException">The game instance cannot be null.</exception>
         internal GraphicsDeviceManager(GameBase game)
         {
-            this.game = game;
-            if (this.game == null)
-            {
-                throw new ArgumentNullException("game");
-            }
+            this.game = game ?? throw new ArgumentNullException(nameof(game));
+
+            windowManager = new GameWindowManager();
 
             lockDeviceCreation = new object();
 
             // Defines all default values
-            SynchronizeWithVerticalRetrace = true;
-            PreferredColorSpace = ColorSpace.Linear;
-            PreferredBackBufferFormat = PixelFormat.R8G8B8A8_UNorm;
-            PreferredDepthStencilFormat = PixelFormat.D24_UNorm_S8_UInt;
-            preferredBackBufferWidth = DefaultBackBufferWidth;
-            preferredBackBufferHeight = DefaultBackBufferHeight;
-            preferredRefreshRate = new Rational(60, 1);
-            PreferredMultisampleCount = MultisampleCount.None;
             PreferredGraphicsProfile = new[]
                 {
                     GraphicsProfile.Level_11_1, 
@@ -140,9 +128,7 @@ namespace Stride.Games
 
         private void GameOnWindowCreated(object sender, EventArgs eventArgs)
         {
-            game.Window.ClientSizeChanged += Window_ClientSizeChanged;
-            game.Window.OrientationChanged += Window_OrientationChanged;
-            game.Window.FullscreenChanged += Window_FullscreenChanged;
+            windowManager.Initialize(game.Window);
         }
 
         #endregion
@@ -164,6 +150,8 @@ namespace Stride.Games
         #region Public Properties
 
         public GraphicsDevice GraphicsDevice { get; internal set; }
+
+        public GraphicsPresenter Presenter => windowManager.Presenter;
 
         /// <summary>
         /// Gets or sets the list of graphics profile to select from the best feature to the lower feature. See remarks.
@@ -192,12 +180,34 @@ namespace Stride.Games
         /// Gets or sets the device creation flags that will be used to create the <see cref="GraphicsDevice"/>
         /// </summary>
         /// <value>The device creation flags.</value>
-        public DeviceCreationFlags DeviceCreationFlags { get; set; }
+        public DeviceCreationFlags DeviceCreationFlags
+        {
+            get => deviceCreationFlags;
+            set
+            {
+                if (value != deviceCreationFlags)
+                {
+                    deviceCreationFlags = value;
+                    deviceSettingsChanged = true;
+                }
+            }
+        }
 
         /// <summary>
         /// If populated the engine will try to initialize the device with the same unique id
         /// </summary>
-        public string RequiredAdapterUid { get; set; }
+        public string RequiredAdapterUid
+        {
+            get => requiredAdapterUid;
+            set
+            {
+                if (value != requiredAdapterUid)
+                {
+                    requiredAdapterUid = value;
+                    deviceSettingsChanged = true;
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the default color space.
@@ -205,18 +215,8 @@ namespace Stride.Games
         /// <value>The default color space.</value>
         public ColorSpace PreferredColorSpace
         {
-            get
-            {
-                return preferredColorSpace;
-            }
-            set
-            {
-                if (preferredColorSpace != value)
-                {
-                    preferredColorSpace = value;
-                    deviceSettingsChanged = true;
-                }
-            }
+            get => windowManager.PreferredColorSpace;
+            set => windowManager.PreferredColorSpace = value;
         }
 
         /// <summary>
@@ -235,18 +235,8 @@ namespace Stride.Games
         /// <value><c>true</c> if this instance is full screen; otherwise, <c>false</c>.</value>
         public bool IsFullScreen
         {
-            get
-            {
-                return isFullScreen;
-            }
-
-            set
-            {
-                if (isFullScreen == value) return;
-
-                isFullScreen = value;
-                deviceSettingsChanged = true;
-            }
+            get => windowManager.IsFullScreen;
+            set => windowManager.IsFullScreen = value;
         }
 
         /// <summary>
@@ -255,19 +245,8 @@ namespace Stride.Games
         /// <value><c>true</c> if [prefer multi sampling]; otherwise, <c>false</c>.</value>
         public MultisampleCount PreferredMultisampleCount
         {
-            get
-            {
-                return preferredMultisampleCount;
-            }
-
-            set
-            {
-                if (preferredMultisampleCount != value)
-                {
-                    preferredMultisampleCount = value;
-                    deviceSettingsChanged = true;
-                }
-            }
+            get => windowManager.PreferredMultisampleCount;
+            set => windowManager.PreferredMultisampleCount = value;
         }
 
         /// <summary>
@@ -276,19 +255,8 @@ namespace Stride.Games
         /// <value>The preferred back buffer format.</value>
         public PixelFormat PreferredBackBufferFormat
         {
-            get
-            {
-                return preferredBackBufferFormat;
-            }
-
-            set
-            {
-                if (preferredBackBufferFormat != value)
-                {
-                    preferredBackBufferFormat = value;
-                    deviceSettingsChanged = true;
-                }
-            }
+            get => windowManager.PreferredBackBufferFormat;
+            set => windowManager.PreferredBackBufferFormat = value;
         }
 
         /// <summary>
@@ -297,20 +265,8 @@ namespace Stride.Games
         /// <value>The height of the preferred back buffer.</value>
         public int PreferredBackBufferHeight
         {
-            get
-            {
-                return preferredBackBufferHeight;
-            }
-
-            set
-            {
-                if (preferredBackBufferHeight != value)
-                {
-                    preferredBackBufferHeight = value;
-                    isBackBufferToResize = false;
-                    deviceSettingsChanged = true;
-                }
-            }
+            get => windowManager.PreferredBackBufferHeight;
+            set => windowManager.PreferredBackBufferHeight = value;
         }
 
         /// <summary>
@@ -319,20 +275,8 @@ namespace Stride.Games
         /// <value>The width of the preferred back buffer.</value>
         public int PreferredBackBufferWidth
         {
-            get
-            {
-                return preferredBackBufferWidth;
-            }
-
-            set
-            {
-                if (preferredBackBufferWidth != value)
-                {
-                    preferredBackBufferWidth = value;
-                    isBackBufferToResize = false;
-                    deviceSettingsChanged = true;
-                }
-            }
+            get => windowManager.PreferredBackBufferWidth;
+            set => windowManager.PreferredBackBufferWidth = value;
         }
 
         /// <summary>
@@ -341,19 +285,8 @@ namespace Stride.Games
         /// <value>The preferred depth stencil format.</value>
         public PixelFormat PreferredDepthStencilFormat
         {
-            get
-            {
-                return preferredDepthStencilFormat;
-            }
-
-            set
-            {
-                if (preferredDepthStencilFormat != value)
-                {
-                    preferredDepthStencilFormat = value;
-                    deviceSettingsChanged = true;
-                }
-            }
+            get => windowManager.PreferredDepthStencilFormat;
+            set => windowManager.PreferredDepthStencilFormat = value;
         }
 
         /// <summary>
@@ -362,19 +295,8 @@ namespace Stride.Games
         /// <value>The preferred refresh rate.</value>
         public Rational PreferredRefreshRate
         {
-            get
-            {
-                return preferredRefreshRate;
-            }
-
-            set
-            {
-                if (preferredRefreshRate != value)
-                {
-                    preferredRefreshRate = value;
-                    deviceSettingsChanged = true;
-                }
-            }
+            get => windowManager.PreferredRefreshRate;
+            set => windowManager.PreferredRefreshRate = value;
         }
 
         /// <summary>
@@ -382,19 +304,8 @@ namespace Stride.Games
         /// </summary>
         public int PreferredFullScreenOutputIndex
         {
-            get
-            {
-                return preferredFullScreenOutputIndex;
-            }
-
-            set
-            {
-                if (preferredFullScreenOutputIndex != value)
-                {
-                    preferredFullScreenOutputIndex = value;
-                    deviceSettingsChanged = true;
-                }
-            }
+            get => windowManager.PreferredFullScreenOutputIndex;
+            set => windowManager.PreferredFullScreenOutputIndex = value;
         }
 
         /// <summary>
@@ -403,19 +314,8 @@ namespace Stride.Games
         /// <value>The supported orientations.</value>
         public DisplayOrientation SupportedOrientations
         {
-            get
-            {
-                return supportedOrientations;
-            }
-
-            set
-            {
-                if (supportedOrientations != value)
-                {
-                    supportedOrientations = value;
-                    deviceSettingsChanged = true;
-                }
-            }
+            get => windowManager.SupportedOrientations;
+            set => windowManager.SupportedOrientations = value;
         }
 
         /// <summary>
@@ -424,18 +324,8 @@ namespace Stride.Games
         /// <value><c>true</c> if [synchronize with vertical retrace]; otherwise, <c>false</c>.</value>
         public bool SynchronizeWithVerticalRetrace
         {
-            get
-            {
-                return synchronizeWithVerticalRetrace;
-            }
-            set
-            {
-                if (synchronizeWithVerticalRetrace != value)
-                {
-                    synchronizeWithVerticalRetrace = value;
-                    deviceSettingsChanged = true;
-                }
-            }
+            get => windowManager.SynchronizeWithVerticalRetrace;
+            set => windowManager.SynchronizeWithVerticalRetrace = value;
         }
 
         #endregion
@@ -447,9 +337,12 @@ namespace Stride.Games
         /// </summary>
         public void ApplyChanges()
         {
-            if (GraphicsDevice != null && deviceSettingsChanged)
+            if (GraphicsDevice != null)
             {
-                ChangeOrCreateDevice(false);
+                if (deviceSettingsChanged)
+                    ChangeOrCreateDevice(false);
+
+                windowManager.ApplyChanges();
             }
         }
 
@@ -509,17 +402,19 @@ namespace Stride.Games
         {
             // Force the creation of the device
             ChangeOrCreateDevice(true);
+
+            windowManager.ApplyChanges();
         }
 
         void IGraphicsDeviceManager.EndDraw(bool present)
         {
             if (beginDrawOk && GraphicsDevice != null)
             {
-                if (present && GraphicsDevice.Presenter != null)
+                if (present && windowManager.Presenter != null)
                 {
                     try
                     {
-                        GraphicsDevice.Presenter.Present();
+                        windowManager.Presenter.Present();
                     }
                     catch (GraphicsException ex)
                     {
@@ -545,26 +440,6 @@ namespace Stride.Games
 
         #endregion
 
-        protected static DisplayOrientation SelectOrientation(DisplayOrientation orientation, int width, int height, bool allowLandscapeLeftAndRight)
-        {
-            if (orientation != DisplayOrientation.Default)
-            {
-                return orientation;
-            }
-
-            if (width <= height)
-            {
-                return DisplayOrientation.Portrait;
-            }
-
-            if (allowLandscapeLeftAndRight)
-            {
-                return DisplayOrientation.LandscapeRight | DisplayOrientation.LandscapeLeft;
-            }
-
-            return DisplayOrientation.LandscapeRight;
-        }
-
         protected override void Destroy()
         {
             if (game != null)
@@ -579,24 +454,15 @@ namespace Stride.Games
                 }
 
                 game.WindowCreated -= GameOnWindowCreated;
-                if (game.Window != null)
-                {
-                    game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
-                    game.Window.OrientationChanged -= Window_OrientationChanged;
-                }
+            }
+
+            if (windowManager != null)
+            {
+                windowManager.Dispose();
             }
 
             if (GraphicsDevice != null)
             {
-                if (GraphicsDevice.Presenter != null)
-                {
-                    // Make sure that the Presenter is reverted to window before shuting down
-                    // otherwise the Direct3D11.Device will generate an exception on Dispose()
-                    GraphicsDevice.Presenter.IsFullScreen = false;
-                    GraphicsDevice.Presenter.Dispose();
-                    GraphicsDevice.Presenter = null;
-                }
-
                 //GraphicsDevice.DeviceResetting -= GraphicsDevice_DeviceResetting;
                 //GraphicsDevice.DeviceReset -= GraphicsDevice_DeviceReset;
                 //GraphicsDevice.DeviceLost -= GraphicsDevice_DeviceLost;
@@ -623,25 +489,26 @@ namespace Stride.Games
         /// <summary>
         /// Finds the best device that is compatible with the preferences defined in this instance.
         /// </summary>
-        /// <param name="anySuitableDevice">if set to <c>true</c> a device can be selected from any existing adapters, otherwise, it will select only from default adapter.</param>
         /// <returns>The graphics device information.</returns>
-        protected virtual GraphicsDeviceInformation FindBestDevice(bool anySuitableDevice)
+        protected virtual GraphicsDeviceInformation FindBestDevice()
         {
+            // TODO: Nearly same code as in GameWindowManager
+
             // Setup preferred parameters before passing them to the factory
             var preferredParameters = new GameGraphicsParameters
-                {
-                    PreferredBackBufferWidth = PreferredBackBufferWidth,
-                    PreferredBackBufferHeight = PreferredBackBufferHeight,
-                    PreferredBackBufferFormat = PreferredBackBufferFormat,
-                    PreferredDepthStencilFormat = PreferredDepthStencilFormat,
-                    PreferredRefreshRate = PreferredRefreshRate,
-                    PreferredFullScreenOutputIndex = PreferredFullScreenOutputIndex,
-                    IsFullScreen = IsFullScreen,
-                    PreferredMultisampleCount = PreferredMultisampleCount,
-                    SynchronizeWithVerticalRetrace = SynchronizeWithVerticalRetrace,
-                    PreferredGraphicsProfile = (GraphicsProfile[])PreferredGraphicsProfile.Clone(),
-                    ColorSpace = PreferredColorSpace,
-                    RequiredAdapterUid = RequiredAdapterUid,
+            {
+                PreferredBackBufferWidth = PreferredBackBufferWidth,
+                PreferredBackBufferHeight = PreferredBackBufferHeight,
+                PreferredBackBufferFormat = PreferredBackBufferFormat,
+                PreferredDepthStencilFormat = PreferredDepthStencilFormat,
+                PreferredRefreshRate = PreferredRefreshRate,
+                PreferredFullScreenOutputIndex = PreferredFullScreenOutputIndex,
+                IsFullScreen = IsFullScreen,
+                PreferredMultisampleCount = PreferredMultisampleCount,
+                SynchronizeWithVerticalRetrace = SynchronizeWithVerticalRetrace,
+                PreferredGraphicsProfile = (GraphicsProfile[])PreferredGraphicsProfile.Clone(),
+                ColorSpace = PreferredColorSpace,
+                RequiredAdapterUid = RequiredAdapterUid,
             };
 
             // Remap to Srgb backbuffer if necessary
@@ -668,13 +535,6 @@ namespace Stride.Games
                 {
                     preferredParameters.PreferredBackBufferFormat = PixelFormat.B8G8R8A8_UNorm;
                 }
-            }
-
-            // Setup resized value if there is a resize pending
-            if (!IsFullScreen && isBackBufferToResize)
-            {
-                preferredParameters.PreferredBackBufferWidth = resizedBackBufferWidth;
-                preferredParameters.PreferredBackBufferHeight = resizedBackBufferHeight;
             }
 
             var devices = graphicsDeviceFactory.FindBestDevices(preferredParameters);
@@ -749,7 +609,7 @@ namespace Stride.Games
                         }
 
                         // Sort by AspectRatio
-                        var targetAspectRatio = (PreferredBackBufferWidth == 0) || (PreferredBackBufferHeight == 0) ? (float)DefaultBackBufferWidth / DefaultBackBufferHeight : (float)PreferredBackBufferWidth / PreferredBackBufferHeight;
+                        var targetAspectRatio = (PreferredBackBufferWidth == 0) || (PreferredBackBufferHeight == 0) ? (float)GameWindowManager.DefaultBackBufferWidth / GameWindowManager.DefaultBackBufferHeight : (float)PreferredBackBufferWidth / PreferredBackBufferHeight;
                         var leftDiffRatio = Math.Abs(((float)leftParams.BackBufferWidth / leftParams.BackBufferHeight) - targetAspectRatio);
                         var rightDiffRatio = Math.Abs(((float)rightParams.BackBufferWidth / rightParams.BackBufferHeight) - targetAspectRatio);
                         if (Math.Abs(leftDiffRatio - rightDiffRatio) > 0.2f)
@@ -780,7 +640,7 @@ namespace Stride.Games
                         }
                         else if ((PreferredBackBufferWidth == 0) || (PreferredBackBufferHeight == 0))
                         {
-                            leftPixelCount = rightPixelCount = DefaultBackBufferWidth * DefaultBackBufferHeight;
+                            leftPixelCount = rightPixelCount = GameWindowManager.DefaultBackBufferWidth * GameWindowManager.DefaultBackBufferHeight;
                         }
                         else
                         {
@@ -896,61 +756,8 @@ namespace Stride.Games
             PreparingDeviceSettings?.Invoke(sender, args);
         }
 
-        private void Window_ClientSizeChanged(object sender, EventArgs e)
-        {
-            if (!isChangingDevice && ((game.Window.ClientBounds.Height != 0) || (game.Window.ClientBounds.Width != 0)))
-            {
-                resizedBackBufferWidth = game.Window.ClientBounds.Width;
-                resizedBackBufferHeight = game.Window.ClientBounds.Height;
-                isBackBufferToResize = true;
-                if (GraphicsDevice != null)
-                {
-                    ChangeOrCreateDevice(false);
-                }
-            }
-        }
-
-        private void Window_OrientationChanged(object sender, EventArgs e)
-        {
-            if ((!isChangingDevice && ((game.Window.ClientBounds.Height != 0) || (game.Window.ClientBounds.Width != 0))) && (game.Window.CurrentOrientation != currentWindowOrientation))
-            {
-                if ((game.Window.ClientBounds.Height > game.Window.ClientBounds.Width && preferredBackBufferWidth > preferredBackBufferHeight) ||
-                    (game.Window.ClientBounds.Width > game.Window.ClientBounds.Height && preferredBackBufferHeight > preferredBackBufferWidth))
-                {
-                    //Client size and Back Buffer size are different things
-                    //in this case all we care is if orientation changed, if so we swap width and height
-                    var w = PreferredBackBufferWidth;
-                    PreferredBackBufferWidth = PreferredBackBufferHeight;
-                    PreferredBackBufferHeight = w;
-                    ApplyChanges();
-                }
-            }
-        }
-
-        private void Window_FullscreenChanged(object sender, EventArgs eventArgs)
-        {
-            if (sender is GameWindow window)
-            {
-                IsFullScreen = window.IsFullscreen;
-                if (IsFullScreen)
-                {
-                    PreferredBackBufferWidth = window.PreferredFullscreenSize.X;
-                    PreferredBackBufferHeight = window.PreferredFullscreenSize.Y;
-                }
-                else
-                {
-                    PreferredBackBufferWidth = window.PreferredWindowedSize.X;
-                    PreferredBackBufferHeight = window.PreferredWindowedSize.Y;
-                }
-
-                ApplyChanges();
-            }
-        }
-
         private void CreateDevice(GraphicsDeviceInformation newInfo)
         {
-            newInfo.PresentationParameters.IsFullScreen = isFullScreen;
-            newInfo.PresentationParameters.PresentationInterval = SynchronizeWithVerticalRetrace ? PresentInterval.One : PresentInterval.Immediate;
             newInfo.DeviceCreationFlags = DeviceCreationFlags;
 
             // this.ValidateGraphicsDeviceInformation(newInfo);
@@ -1010,108 +817,22 @@ namespace Stride.Games
                 {
                     game.ConfirmRenderingSettings(GraphicsDevice == null); //if Device is null we assume we are still at game creation phase
 
-                    isChangingDevice = true;
-                    var width = game.Window.ClientBounds.Width;
-                    var height = game.Window.ClientBounds.Height;
+                    var graphicsDeviceInformation = FindBestDevice();
 
-                    //If the orientation is free to be changed from portrait to landscape we actually need this check now, 
-                    //it is mostly useful only at initialization actually tho because Window_OrientationChanged does the same logic on runtime change
-                    if (game.Window.CurrentOrientation != currentWindowOrientation)
+                    OnPreparingDeviceSettings(this, new PreparingDeviceSettingsEventArgs(graphicsDeviceInformation));
+
+                    // If we are not forced to create a new device and this is already an existing GraphicsDevice try to reset it.
+                    if (forceCreate || GraphicsDevice is null || !CanResetDevice(graphicsDeviceInformation))
                     {
-                        if ((game.Window.ClientBounds.Height > game.Window.ClientBounds.Width && preferredBackBufferWidth > preferredBackBufferHeight) ||
-                            (game.Window.ClientBounds.Width > game.Window.ClientBounds.Height && preferredBackBufferHeight > preferredBackBufferWidth))
-                        {
-                            //Client size and Back Buffer size are different things
-                            //in this case all we care is if orientation changed, if so we swap width and height
-                            var w = preferredBackBufferWidth;
-                            preferredBackBufferWidth = preferredBackBufferHeight;
-                            preferredBackBufferHeight = w;
-                        }
+                        CreateDevice(graphicsDeviceInformation);
                     }
 
-                    var isBeginScreenDeviceChange = false;
-                    try
+                    if (GraphicsDevice == null)
                     {
-                        // Notifies the game window for the new orientation
-                        var orientation = SelectOrientation(supportedOrientations, PreferredBackBufferWidth, PreferredBackBufferHeight, true);
-                        game.Window.SetSupportedOrientations(orientation);
-
-                        var graphicsDeviceInformation = FindBestDevice(forceCreate);
-
-                        OnPreparingDeviceSettings(this, new PreparingDeviceSettingsEventArgs(graphicsDeviceInformation));
-
-                        isFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
-                        game.Window.BeginScreenDeviceChange(graphicsDeviceInformation.PresentationParameters.IsFullScreen);
-                        isBeginScreenDeviceChange = true;
-                        bool needToCreateNewDevice = true;
-
-                        // If we are not forced to create a new device and this is already an existing GraphicsDevice
-                        // try to reset and resize it.
-                        if (!forceCreate && GraphicsDevice != null)
-                        {
-                            if (CanResetDevice(graphicsDeviceInformation))
-                            {
-                                try
-                                {
-                                    var newWidth = graphicsDeviceInformation.PresentationParameters.BackBufferWidth;
-                                    var newHeight = graphicsDeviceInformation.PresentationParameters.BackBufferHeight;
-                                    var newFormat = graphicsDeviceInformation.PresentationParameters.BackBufferFormat;
-                                    var newOutputIndex = graphicsDeviceInformation.PresentationParameters.PreferredFullScreenOutputIndex;
-
-                                    GraphicsDevice.Presenter.Description.PreferredFullScreenOutputIndex = newOutputIndex;
-                                    GraphicsDevice.Presenter.Description.RefreshRate = graphicsDeviceInformation.PresentationParameters.RefreshRate;
-                                    GraphicsDevice.Presenter.Resize(newWidth, newHeight, newFormat);
-
-                                    // Change full screen if needed
-                                    GraphicsDevice.Presenter.IsFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
-
-                                    needToCreateNewDevice = false;
-                                }
-                                catch
-                                {
-                                    // ignored
-                                }
-                            }
-                        }
-
-                        // If we still need to create a device, then we need to create it
-                        if (needToCreateNewDevice)
-                        {
-                            CreateDevice(graphicsDeviceInformation);
-                        }
-
-                        if (GraphicsDevice == null)
-                        {
-                            throw new InvalidOperationException("Unexpected null GraphicsDevice");
-                        }
-
-                        // Make sure to copy back coolor space to GraphicsDevice
-                        GraphicsDevice.ColorSpace = graphicsDeviceInformation.PresentationParameters.ColorSpace;
-
-                        var presentationParameters = GraphicsDevice.Presenter.Description;
-                        isReallyFullScreen = presentationParameters.IsFullScreen;
-                        if (presentationParameters.BackBufferWidth != 0)
-                        {
-                            width = presentationParameters.BackBufferWidth;
-                        }
-
-                        if (presentationParameters.BackBufferHeight != 0)
-                        {
-                            height = presentationParameters.BackBufferHeight;
-                        }
-                        deviceSettingsChanged = false;
+                        throw new InvalidOperationException("Unexpected null GraphicsDevice");
                     }
-                    finally
-                    {
-                        if (isBeginScreenDeviceChange)
-                        {
-                            game.Window.EndScreenDeviceChange(width, height);
-                            game.Window.SetIsReallyFullscreen(isReallyFullScreen);
-                        }
 
-                        currentWindowOrientation = game.Window.CurrentOrientation;
-                        isChangingDevice = false;
-                    }
+                    deviceSettingsChanged = false;
                 }
             }
         }

@@ -457,7 +457,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 {
                     // TODO: code largely duplicated in EditorGameMaterialHighlightService. Factorize!
 
-                    var screenSize = new Vector2(game.GraphicsDevice.Presenter.BackBuffer.Width, game.GraphicsDevice.Presenter.BackBuffer.Height);
+                    var screenSize = new Vector2(game.Presenter.BackBuffer.Width, game.Presenter.BackBuffer.Height);
 
                     if (game.Input.IsMouseButtonPressed(MouseButton.Left))
                     {

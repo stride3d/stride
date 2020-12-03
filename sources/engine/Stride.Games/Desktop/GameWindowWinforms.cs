@@ -133,13 +133,13 @@ namespace Stride.Games
             var width = gameContext.RequestedWidth;
             if (width == 0)
             {
-                width = Control is Form ? GraphicsDeviceManager.DefaultBackBufferWidth : Control.ClientSize.Width;
+                width = Control is Form ? GameWindowManager.DefaultBackBufferWidth : Control.ClientSize.Width;
             }
 
             var height = gameContext.RequestedHeight;
             if (height == 0)
             {
-                height = Control is Form ? GraphicsDeviceManager.DefaultBackBufferHeight : Control.ClientSize.Height;
+                height = Control is Form ? GameWindowManager.DefaultBackBufferHeight : Control.ClientSize.Height;
             }
 
             windowHandle = new WindowHandle(AppContextType.Desktop, Control, Control.Handle);

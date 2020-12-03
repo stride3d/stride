@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-
+using System.Collections.Generic;
 using Stride.Core;
 
 namespace Stride.Graphics
@@ -38,5 +38,15 @@ namespace Stride.Graphics
         public event EventHandler<EventArgs> DeviceResetting { add { } remove { } }
 
         public GraphicsDevice GraphicsDevice { get; private set; }
+
+        public GraphicsPresenter CreatePresenter(PresentationParameters presentationParameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<PresentationParameters> FindBestScreenModes(PresentationParameters preferredParameter)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

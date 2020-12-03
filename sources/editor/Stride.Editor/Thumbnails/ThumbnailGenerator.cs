@@ -190,12 +190,9 @@ namespace Stride.Editor.Thumbnails
 
                         try
                         {
-                            // Fake presenter
-                            // TODO GRAPHICS REFACTOR: Try to remove that
-                            GraphicsDevice.Presenter = new RenderTargetGraphicsPresenter(GraphicsDevice, renderTarget, depthStencil.ViewFormat);
-
                             // Always clear the state of the GraphicsDevice to make sure a scene doesn't start with a wrong setup 
                             GraphicsCommandList.ClearState();
+                            GraphicsCommandList.SetRenderTargetAndViewport(depthStencil, renderTarget);
 
                             // Setup the color space when rendering a thumbnail
                             GraphicsDevice.ColorSpace = request.ColorSpace;

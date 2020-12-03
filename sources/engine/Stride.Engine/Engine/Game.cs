@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Stride.Audio;
+using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
@@ -184,6 +185,11 @@ namespace Stride.Engine
         /// Automatically initializes game settings like default scene, resolution, graphics profile.
         /// </summary>
         public bool AutoLoadDefaultSettings { get; set; }
+
+        public override GraphicsPresenter Presenter
+        {
+            get => (graphicsDeviceManager as GraphicsDeviceManager)?.Presenter;
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Game"/> class.
@@ -419,6 +425,18 @@ namespace Stride.Engine
             }
         }
 
+        protected override void Draw(GameTime gameTime)
+        {
+            var renderContext = RenderContext.GetShared(Services);
+            using (renderContext.PushTagAndRestore(GraphicsPresenter.Current, Presenter))
+            {
+                var renderDrawContext = renderContext.GetThreadContext();
+                renderDrawContext.CommandList.ClearState();
+                renderDrawContext.CommandList.SetRenderTargetAndViewport(Presenter.DepthStencilBuffer, Presenter.BackBuffer);
+                base.Draw(gameTime);
+            }
+        }
+
         protected override void EndDraw(bool present)
         {
             // Allow to make a screenshot using CTRL+c+F12 (on release of F12)
@@ -438,7 +456,7 @@ namespace Stride.Engine
 
                     using (var stream = System.IO.File.Create(newFileName))
                     {
-                        GraphicsDevice.Presenter.BackBuffer.Save(GraphicsContext.CommandList, stream, ImageFileType.Png);
+                        Presenter.BackBuffer.Save(GraphicsContext.CommandList, stream, ImageFileType.Png);
                     }
                 }
             }

@@ -306,6 +306,8 @@ namespace Stride.Games
             }
         }
 
+        public abstract GraphicsPresenter Presenter { get; }
+
         public abstract void ConfirmRenderingSettings(bool gameCreation);
 
         /// <summary>
@@ -758,12 +760,12 @@ namespace Stride.Games
             GraphicsContext.CommandList.ClearState();
 
             // Perform begin of frame presenter operations
-            if (GraphicsDevice.Presenter != null)
+            if (Presenter != null)
             {
-                GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsResourceState.DepthWrite);
-                GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, GraphicsResourceState.RenderTarget);
+                GraphicsContext.CommandList.ResourceBarrierTransition(Presenter.DepthStencilBuffer, GraphicsResourceState.DepthWrite);
+                GraphicsContext.CommandList.ResourceBarrierTransition(Presenter.BackBuffer, GraphicsResourceState.RenderTarget);
 
-                GraphicsDevice.Presenter.BeginDraw(GraphicsContext.CommandList);
+                Presenter.BeginDraw(GraphicsContext.CommandList);
             }
 
             return true;
@@ -785,9 +787,9 @@ namespace Stride.Games
             // but due to the fact that a GameSystem can modify the state of GraphicsDevice
             // we need to restore the default render targets
             // TODO: Check how we can handle this more cleanly
-            if (GraphicsDevice != null && GraphicsDevice.Presenter.BackBuffer != null)
+            if (GraphicsDevice != null && Presenter.BackBuffer != null)
             {
-                GraphicsContext.CommandList.SetRenderTargetAndViewport(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsDevice.Presenter.BackBuffer);
+                GraphicsContext.CommandList.SetRenderTargetAndViewport(Presenter.DepthStencilBuffer, Presenter.BackBuffer);
             }
         }
 
@@ -796,12 +798,12 @@ namespace Stride.Games
         {
             if (beginDrawOk)
             {
-                if (GraphicsDevice.Presenter != null)
+                if (Presenter != null)
                 {
                     // Perform end of frame presenter operations
-                    GraphicsDevice.Presenter.EndDraw(GraphicsContext.CommandList, present);
+                    Presenter.EndDraw(GraphicsContext.CommandList, present);
 
-                    GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, GraphicsResourceState.Present);
+                    GraphicsContext.CommandList.ResourceBarrierTransition(Presenter.BackBuffer, GraphicsResourceState.Present);
                 }
 
                 GraphicsContext.ResourceGroupAllocator.Flush();

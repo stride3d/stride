@@ -173,9 +173,10 @@ namespace Stride.Rendering.Compositing
                     }
                     vrSystem.PreferredScalings = preferredScalings;
 
+                    var presenter = Context.Tags.Get(GraphicsPresenter.Current);
                     vrSystem.RequireMirror = VRSettings.CopyMirror;
-                    vrSystem.MirrorWidth = GraphicsDevice.Presenter.BackBuffer.Width;
-                    vrSystem.MirrorHeight = GraphicsDevice.Presenter.BackBuffer.Height;
+                    vrSystem.MirrorWidth = presenter.BackBuffer.Width;
+                    vrSystem.MirrorHeight = presenter.BackBuffer.Height;
 
                     vrSystem.Enabled = true; //careful this will trigger the whole chain of initialization!
                     vrSystem.Visible = true;
@@ -651,7 +652,7 @@ namespace Stride.Rendering.Compositing
                             for (var i = 0; i < 2; i++)
                             {
                                 // For VR GraphicsPresenter such as WindowsMixedRealityGraphicsPresenter
-                                var graphicsPresenter = drawContext.GraphicsDevice.Presenter;
+                                var graphicsPresenter = context.Tags.Get(GraphicsPresenter.Current);
                                 if (graphicsPresenter.LeftEyeBuffer != null)
                                 {
                                     isWindowsMixedReality = true;
