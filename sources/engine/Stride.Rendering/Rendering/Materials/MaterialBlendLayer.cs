@@ -87,7 +87,7 @@ namespace Stride.Rendering.Materials
             }
 
             // Find the material from the reference
-            var material = context.FindAsset(Material) as IMaterialDescriptor;
+            var material = Material.Descriptor ?? context.FindAsset(Material) as IMaterialDescriptor;
             if (material == null)
             {
                 context.Log.Error($"Unable to find material [{Material}]");
