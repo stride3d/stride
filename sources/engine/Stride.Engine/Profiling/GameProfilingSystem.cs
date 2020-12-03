@@ -49,7 +49,7 @@ namespace Stride.Profiling
 
         private Color4 textColor = Color.LightGreen;
 
-        private PresentInterval userPresentInterval = PresentInterval.Default;
+        private PresentInterval? userPresentInterval;
         private bool userMinimizedState = true;
 
         private int lastFrame = -1;
@@ -419,10 +419,10 @@ namespace Stride.Profiling
             }
 
             // Backup current PresentInterval state
-            userPresentInterval = GraphicsDevice.Presenter.PresentInterval;
+            userPresentInterval = GraphicsDevice.Tags.Get(GraphicsPresenter.ForcedPresentInterval);
 
             // Disable VSync (otherwise GPU results might be incorrect)
-            GraphicsDevice.Presenter.PresentInterval = PresentInterval.Immediate;
+            GraphicsDevice.Tags.Set(GraphicsPresenter.ForcedPresentInterval, PresentInterval.Immediate);
 
             if (keys.Length == 0)
             {
@@ -459,8 +459,9 @@ namespace Stride.Profiling
             Visible = false;
 
             // Restore previous PresentInterval state
-            GraphicsDevice.Presenter.PresentInterval = userPresentInterval;
-            userPresentInterval = PresentInterval.Default;
+            GraphicsDevice.Tags.Set(GraphicsPresenter.ForcedPresentInterval, userPresentInterval);
+
+            userPresentInterval = default;
             if (Game != null)
                 Game.TreatNotFocusedLikeMinimized = userMinimizedState;
 

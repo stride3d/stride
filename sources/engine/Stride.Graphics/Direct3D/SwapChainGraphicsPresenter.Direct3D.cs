@@ -151,7 +151,8 @@ namespace Stride.Graphics
         {
             try
             {
-                swapChain.Present((int)PresentInterval, PresentFlags.None);
+                var presentInterval = GraphicsDevice.Tags.Get(ForcedPresentInterval) ?? PresentInterval;
+                swapChain.Present((int)presentInterval, PresentFlags.None);
 #if STRIDE_GRAPHICS_API_DIRECT3D12
                 // Manually swap back buffer
                 backBuffer.NativeResource.Dispose();
