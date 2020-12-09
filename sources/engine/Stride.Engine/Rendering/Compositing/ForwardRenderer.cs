@@ -797,7 +797,13 @@ namespace Stride.Rendering.Compositing
 
             context.CommandList.SetRenderTargets(null, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
 
-            depthStencilROCached = context.Resolver.GetDepthStencilAsRenderTarget(depthStencil, depthStencilROCached);
+            var depthStencilROCached = context.Resolver.GetDepthStencilAsRenderTarget(depthStencil, this.depthStencilROCached);
+            if (depthStencilROCached != this.depthStencilROCached)
+            {
+                // Dispose cached view
+                this.depthStencilROCached?.Dispose();
+                this.depthStencilROCached = depthStencilROCached;
+            }
             context.CommandList.SetRenderTargets(depthStencilROCached, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
 
             return depthStencilSRV;
@@ -876,6 +882,7 @@ namespace Stride.Rendering.Compositing
         protected override void Destroy()
         {
             PostEffects?.Dispose();
+            depthStencilROCached?.Dispose();
         }
 
         [StructLayout(LayoutKind.Sequential)]
