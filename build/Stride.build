@@ -10,7 +10,7 @@ Example of use:
     <StrideSolution>$(StrideRoot)build\Stride</StrideSolution>
     <StrideSolutionLauncher>$(StrideRoot)build\Stride.Launcher</StrideSolutionLauncher>
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
-    <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApisDependentBuildAll=$(StrideGraphicsApisDependentBuildAll)</BuildProperties>
+    <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)</BuildProperties>
     <StrideSign Condition="'$(StrideSign)' == ''">true</StrideSign>
     <BuildProperties Condition="'$(StrideSign)' != ''">$(BuildProperties);StrideSign=$(StrideSign)</BuildProperties>
     <BuildProperties Condition="'$(StrideOfficialBuild)' != ''">$(BuildProperties);StrideOfficialBuild=$(StrideOfficialBuild)</BuildProperties>
@@ -128,7 +128,7 @@ Example of use:
   <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;VSIXPlugin"/>
 
   <Target Name="RestoreInternal">
-    <MSBuild Targets="Restore" Projects="$(StrideSolution).sln" Properties="StrideGraphicsApisDependentBuildAll=$(StrideGraphicsApisDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
+    <MSBuild Targets="Restore" Projects="$(StrideSolution).sln" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
   </Target>
   
   <Target Name="Restore">
@@ -136,7 +136,7 @@ Example of use:
   </Target>
 
   <Target Name="Build">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApisDependentBuildAll=$(StrideGraphicsApisDependentBuildAll)"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
   </Target>
 
@@ -149,8 +149,8 @@ Example of use:
   </Target>
   
   <Target Name="BuildWindows">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApisDependentBuildAll=$(StrideGraphicsApisDependentBuildAll)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApisDependentBuildAll=$(StrideGraphicsApisDependentBuildAll)"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
   </Target>
 
   <Target Name="BuildWindowsDirect3D11">
@@ -214,8 +214,8 @@ Example of use:
       <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
       <StridePlatforms>Linux</StridePlatforms>
     </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApisDependentBuildAll=$(StrideGraphicsApisDependentBuildAll)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApisDependentBuildAll=$(StrideGraphicsApisDependentBuildAll)"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
   </Target> 
 
   <Target Name="BuildLinuxVulkan">

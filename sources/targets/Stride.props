@@ -14,8 +14,8 @@
   <PropertyGroup>
     <StrideGraphicsApisWindows Condition="'$(StrideGraphicsApisWindows)' == ''">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApisWindows>
     <StrideGraphicsApisLinux Condition="'$(StrideGraphicsApisLinux)' == ''">Vulkan;OpenGL</StrideGraphicsApisLinux>
-    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApisDependentBuildAll)' == 'true') And '$(StridePlatform)' == 'Windows'">$(StrideGraphicsApisWindows)</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApisDependentBuildAll)' == 'true') And '$(StridePlatform)' == 'Linux'">$(StrideGraphicsApisLinux)</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And '$(StridePlatform)' == 'Windows'">$(StrideGraphicsApisWindows)</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And '$(StridePlatform)' == 'Linux'">$(StrideGraphicsApisLinux)</StrideGraphicsApis>
 
     <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
     <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'UWP'">Direct3D11</StrideDefaultGraphicsApi>
