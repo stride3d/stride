@@ -30,7 +30,7 @@
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
-  <Target Name="IncludeExtraAssemblies">
+  <Target Name="IncludeExtraAssemblies" AfterTargets="_StrideComputePackagePath">
     <ItemGroup>
       <!-- Needed by .NET Core runtime to be able to load C++/CLI assemblies -->
       <BuildOutputInPackage Include="$(OutputPath)ijwhost.dll" Condition="Exists('$(OutputPath)ijwhost.dll')" />
@@ -41,8 +41,8 @@
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.FBX.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.FBX.ssdeps" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Common.dll" />
-      <TfmSpecificPackageFile Include="$(OutputPath)x64\assimp-vc140-mt.dll" PackagePath="lib\$(TargetFramework)\x64" />
-      <TfmSpecificPackageFile Include="$(OutputPath)x64\libfbxsdk.dll" PackagePath="lib\$(TargetFramework)\x64" />
+      <TfmSpecificPackageFile Include="$(OutputPath)x64\assimp-vc140-mt.dll" PackagePath="$(_StridePackagePathLibrary)\x64" />
+      <TfmSpecificPackageFile Include="$(OutputPath)x64\libfbxsdk.dll" PackagePath="$(_StridePackagePathLibrary)\x64" />
     </ItemGroup>
   </Target>
 </Project>
