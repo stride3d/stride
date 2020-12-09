@@ -9,7 +9,7 @@
     <StrideGraphicsApis Condition="'$(StrideGraphicsApisTest)' != ''">$(StrideGraphicsApisTest)</StrideGraphicsApis>
     
     <!-- Build list of Graphics API for platform that supports multiple -->
-    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApisDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApis>
     <StrideGraphicsApis Condition="'$(StridePlatform)' == 'Windows' And '$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
   
     <!-- Setup default GraphicsApi-->
@@ -77,7 +77,7 @@
     <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
   </ItemGroup>
 
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <Import Condition="'$(IsCrossTargetingBuild)' == 'true'" Project="$(MSBuildThisFileDirectory)Stride.UnitTests.CrossTargeting.targets"/>
 
   <!-- Add Default targets used by Msbuild for undefined Platforms / or when skipping compilation under a platform -->

@@ -22,5 +22,5 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 </Project>

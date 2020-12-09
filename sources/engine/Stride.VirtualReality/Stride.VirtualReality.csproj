@@ -5,7 +5,7 @@
     <StrideNativeOutputName>libstridevr</StrideNativeOutputName>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -66,7 +66,7 @@
     <None Include="Fove\Fove.cpp" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>

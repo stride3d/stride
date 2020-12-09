@@ -6,7 +6,7 @@
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
     <UseWPF Condition="'$(StridePlatform)' == 'Windows'">true</UseWPF>
     <UseWindowsForms Condition="'$(StridePlatform)' == 'Windows'">true</UseWindowsForms>
@@ -30,5 +30,5 @@
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.7.1" Condition="'$(StridePlatform)' == 'Windows'" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 </Project>

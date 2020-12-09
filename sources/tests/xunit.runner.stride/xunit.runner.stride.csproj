@@ -1,4 +1,4 @@
-<Project Sdk="MSBuild.Sdk.Extras/2.1.6" ToolsVersion="Current">
+<Project Sdk="MSBuild.Sdk.Extras/3.0.22" ToolsVersion="Current">
   <Import Project="..\..\targets\Stride.Core.TargetFrameworks.Editor.props" />
   <PropertyGroup>
     <TargetFrameworks>net461;net5.0</TargetFrameworks>

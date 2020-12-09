@@ -70,7 +70,7 @@
   </Target>
 
   <!-- ==================================================================
-       Target to generate Package with proper layout (built on top of MSBuild.Sdk.Extras 2.1.6)
+       Target to generate Package with proper layout (built on top of MSBuild.Sdk.Extras 3.0.22)
   -->
   <Target Name="_StrideBuildOutputInPackImpl" Condition="'$(ExtrasIncludeDefaultProjectBuildOutputInPack)' != 'false'">
 
