@@ -171,7 +171,7 @@ namespace Stride.Core.Assets
                         var mainResult = results.First();
                         return (mainResult.SummaryRequest.Request, mainResult.Result);
                     }
-                    catch (Exception e) when (e is UnauthorizedAccessException || e is IOException)
+                    catch (Exception e) when (e is UnauthorizedAccessException || e is IOException || ((e is AggregateException ae) && ae.InnerExceptions.Any(e2 => e2 is UnauthorizedAccessException || e2 is IOException)))
                     {
                         // If we have an unauthorized access exception, it means assemblies are locked by running Stride process
                         // During first try, kill some known harmless processes, and try again
