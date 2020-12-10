@@ -510,7 +510,7 @@ namespace Stride.Rendering
         /// </summary>
         public void Clear()
         {
-            DataValues = null;
+            DataValues = EmptyData;
             ObjectValues = null;
             layout = null;
             parameterKeyInfos.Clear();
