@@ -101,8 +101,7 @@
   -->
   <Target Name="_StrideComputePackagePath">
     <PropertyGroup>
-      <!-- Match Microsoft.NET.RuntimeIdentifierInference.targets -->
-      <_StrideAppendRuntimeIdentifier Condition="'$(AppendRuntimeIdentifierToOutputPath)' == 'true' and '$(RuntimeIdentifier)' != '' and '$(_UsingDefaultRuntimeIdentifier)' != 'true'">true</_StrideAppendRuntimeIdentifier>
+      <_StrideAppendRuntimeIdentifier Condition="'$(RuntimeIdentifier)' != '' and '$(_UsingDefaultRuntimeIdentifier)' != 'true'">true</_StrideAppendRuntimeIdentifier>
       <_StridePackageLibraryTargetFramework>$(TargetFramework)</_StridePackageLibraryTargetFramework>
       <!-- Not sure why, but .NET 5.0 PackTask transforms net5.0-windows to net5.0-windows7.0 behind our back for lib/ paths
            Maybe some additional details: https://nicksnettravels.builttoroam.com/net-5-tfms/ -->
