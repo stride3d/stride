@@ -45,7 +45,7 @@
     <!--asset OutputPath for other platforms. Note: this is overridden for UnitTests projects. -->
     <StrideCompileAssetOutputPath Condition="'$(StrideCompileAssetOutputPath)' == ''">$(TargetDir)data</StrideCompileAssetOutputPath>
 
-    <StrideCompileAssetUpToDateCheckFileBase>$(ProjectDir)$(IntermediateOutputPath)stride\assetcompiler-uptodatecheck</StrideCompileAssetUpToDateCheckFileBase>
+    <StrideCompileAssetUpToDateCheckFileBase>$(IntermediateOutputPath)stride\assetcompiler-uptodatecheck</StrideCompileAssetUpToDateCheckFileBase>
   </PropertyGroup>
 
   <!-- Prepare path to be able to copy Task dll to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
