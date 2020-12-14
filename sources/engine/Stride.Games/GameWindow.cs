@@ -178,6 +178,12 @@ namespace Stride.Games
         public Int2 PreferredFullscreenSize { get; set; } = new Int2(1920, 1080);
 
         /// <summary>
+        /// Whether the fullscreen mode should be a borderless window matching the desktop size.
+        /// </summary>
+        /// <remarks>This flag is currently ignored on all game platforms other than SDL.</remarks>
+        public bool FullscreenIsBorderlessWindow { get; set; } = false;
+
+        /// <summary>
         /// Switches between fullscreen and windowed mode.
         /// </summary>
         public bool IsFullscreen
