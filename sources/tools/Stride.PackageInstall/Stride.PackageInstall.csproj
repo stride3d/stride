@@ -20,6 +20,7 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </PackageReference>
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
