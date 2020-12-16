@@ -303,6 +303,10 @@ namespace Stride.Core.Assets
             // 1. Load store package
             foreach (var projectDependency in project.FlattenedDependencies)
             {
+                // Make all the assemblies known to the container to ensure that later assembly loads succeed
+                foreach (var assembly in projectDependency.Assemblies)
+                    AssemblyContainer.RegisterDependency(assembly);
+
                 var loadedPackage = packages.Find(projectDependency);
                 if (loadedPackage == null)
                 {

@@ -35,6 +35,7 @@ namespace Stride.Core.Reflection
         [ItemNotNull, NotNull]
         private readonly List<LoadedAssembly> loadedAssemblies = new List<LoadedAssembly>();
         private readonly Dictionary<string, LoadedAssembly> loadedAssembliesByName = new Dictionary<string, LoadedAssembly>(StringComparer.InvariantCultureIgnoreCase);
+        private readonly HashSet<string> dependencies = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
         private static readonly string[] KnownAssemblyExtensions = { ".dll", ".exe" };
         [ThreadStatic]
         private static AssemblyContainer currentContainer;
@@ -118,6 +119,16 @@ namespace Stride.Core.Reflection
             }
         }
 
+        public void RegisterDependency([NotNull] string assemblyFullPath)
+        {
+            if (assemblyFullPath == null) throw new ArgumentNullException(nameof(assemblyFullPath));
+
+            lock (dependencies)
+            {
+                dependencies.Add(assemblyFullPath);
+            }
+        }
+
         [CanBeNull]
         private Assembly LoadAssemblyByName([NotNull] AssemblyName assemblyName, [NotNull] string searchDirectory)
         {
@@ -152,6 +163,29 @@ namespace Stride.Core.Reflection
                 if (dependencies.TryGetValue(assemblyName.Name, out var fullPath))
                 {
                     return LoadAssemblyFromPathInternal(fullPath);
+                }
+            }
+
+            // See if it was registered
+            lock (dependencies)
+            {
+                foreach (var dependency in dependencies)
+                {
+                    // Check by simple name first
+                    var otherName = Path.GetFileNameWithoutExtension(dependency);
+                    if (string.Equals(assemblyName.Name, otherName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        try
+                        {
+                            var otherAssemblyName = AssemblyName.GetAssemblyName(dependency);
+                            if (otherAssemblyName.FullName == assemblyName.FullName)
+                                return LoadAssemblyFromPathInternal(dependency);
+                        }
+                        catch (Exception)
+                        {
+                            // Ignore
+                        }
+                    }
                 }
             }
 
