@@ -42,6 +42,8 @@ namespace Stride.Input
             wndProcDelegate = WndProc;
             var windowProc = Marshal.GetFunctionPointerForDelegate(wndProcDelegate);
             oldWndProc = Win32Native.SetWindowLong(richTextBox.Handle, Win32Native.WindowLongType.WndProc, windowProc);
+
+            Id = InputDeviceUtils.DeviceNameToGuid(uiControl.Handle.ToString() + Name);
         }
 
         public void Dispose()
@@ -51,7 +53,7 @@ namespace Stride.Input
          
         public override string Name => "Windows Keyboard";
 
-        public override Guid Id => new Guid("027cf994-681f-4ed5-b38f-ce34fc295b8f");
+        public override Guid Id { get; }
 
         public override IInputSource Source { get; }
 
