@@ -20,18 +20,20 @@ namespace Stride.Input
         {
             Source = source;
             this.uiControl = uiControl;
-            
+
             uiControl.MouseMoveActions += OnMouseMoveEvent;
             uiControl.PointerButtonPressActions += OnMouseInputEvent;
             uiControl.PointerButtonReleaseActions += OnMouseInputEvent;
             uiControl.MouseWheelActions += OnMouseWheelEvent;
             uiControl.ResizeEndActions += OnSizeChanged;
             OnSizeChanged(new SDL.SDL_WindowEvent());
+
+            Id = InputDeviceUtils.DeviceNameToGuid(uiControl.SdlHandle.ToString() + Name);
         }
         
         public override string Name => "SDL Mouse";
 
-        public override Guid Id => new Guid("0ccaf48e-e371-4b34-b6bb-a3720f6742a8");
+        public override Guid Id { get; }
 
         public override bool IsPositionLocked => isMousePositionLocked;
 
