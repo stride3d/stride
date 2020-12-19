@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
+using Stride.Core.MicroThreading;
 using Stride.Core.ReferenceCounting;
 using Stride.Core.Reflection;
 using Stride.Engine.Design;
@@ -24,6 +26,13 @@ namespace Stride.Engine
     public abstract class EntityManager : ComponentBase, IReadOnlySet<Entity>
     {
         // TODO: Make this class threadsafe (current locks aren't sufficients)
+        private const long UpdateBit = 1L << 32;
+
+        /// <summary>
+        /// Gets the scheduler.
+        /// </summary>
+        /// <value>The scheduler.</value>
+        public Scheduler Scheduler { get; private set; }
 
         public ExecutionMode ExecutionMode { get; protected set; } = ExecutionMode.Runtime;
 
@@ -34,7 +43,7 @@ namespace Stride.Engine
         private readonly TrackingEntityProcessorCollection processors;
 
         // use an ordered list to make sure processor are added in the correct order as much as possible
-        private readonly EntityProcessorCollection pendingProcessors; 
+        private readonly EntityProcessorCollection pendingProcessors;
 
         // List of processors per EntityComponent final type
         internal readonly Dictionary<TypeInfo, EntityProcessorCollectionPerComponentType> MapComponentTypeToProcessors;
@@ -115,10 +124,33 @@ namespace Stride.Engine
                 {
                     using (processor.UpdateProfilingState = Profiler.Begin(processor.UpdateProfilingKey, "Entities: {0}", entities.Count))
                     {
-                        processor.Update(gameTime);
+                        var asyncProcessor = processor as AsyncEntityProcessor;
+                        if (asyncProcessor is object)
+                        {
+                            asyncProcessor.MicroThread = AddTask(asyncProcessor.Execute, asyncProcessor.Priority | UpdateBit);
+                            asyncProcessor.MicroThread.ProfilingKey = asyncProcessor.ProfilingKey;
+                        }
+                        else
+                        {
+                            // Execute synchronously.
+                            processor.Update(gameTime);
+                        }
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Adds the specified micro thread function.
+        /// </summary>
+        /// <param name="microThreadFunction">The micro thread function.</param>
+        /// <returns>MicroThread.</returns>
+        public MicroThread AddTask(Func<Task> microThreadFunction, long priority = 0)
+        {
+            var microThread = Scheduler.Create();
+            microThread.Priority = priority;
+            microThread.Start(microThreadFunction);
+            return microThread;
         }
 
         /// <summary>
@@ -341,7 +373,7 @@ namespace Stride.Engine
                                 break;
                             }
                         }
-                        
+
                         // If not found, we can add this processor
                         if (addNewProcessor)
                         {
@@ -430,7 +462,7 @@ namespace Stride.Engine
             }
 
             // Remove previous component from processors
-            currentDependentProcessors.Clear(); 
+            currentDependentProcessors.Clear();
             if (oldComponent != null)
             {
                 CheckEntityComponentWithProcessors(entity, oldComponent, true, currentDependentProcessors);
@@ -612,7 +644,7 @@ namespace Stride.Engine
                 if (manager == null) throw new ArgumentNullException(nameof(manager));
                 this.manager = manager;
             }
-            
+
             protected override void ClearItems()
             {
                 for (int i = 0; i < Count; i++)
