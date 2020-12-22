@@ -82,7 +82,7 @@
   <PropertyGroup>
     <StrideUI Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS'">SDL</StrideUI>
     <StrideUI Condition="'$(StrideGraphicsApi)' == 'OpenGL'">$(StrideUI);OPENTK</StrideUI>
-    <StrideUI Condition="'$(StridePlatform)' == 'Windows' AND ($(TargetFramework.StartsWith('net4')) OR $(TargetFramework.StartsWith('net5'))) AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
+    <StrideUI Condition="($(TargetFramework.StartsWith('net4')) OR $(TargetFramework.EndsWith('-windows'))) AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
 
     <DefineConstants Condition="$(StrideUI.Contains('SDL'))">$(DefineConstants);STRIDE_UI_SDL</DefineConstants>
     <DefineConstants Condition="$(StrideUI.Contains('OPENTK'))">$(DefineConstants);STRIDE_UI_OPENTK</DefineConstants>

@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using Stride.Core.Annotations;
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
 using System;
 using System.Runtime.InteropServices;
 

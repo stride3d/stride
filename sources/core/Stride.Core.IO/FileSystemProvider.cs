@@ -3,6 +3,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 
 namespace Stride.Core.IO
 {
@@ -122,6 +123,53 @@ namespace Stride.Core.IO
                 }
                 File.Delete(sourceUrl);
             }
+        }
+
+        public override string GetAbsolutePath(string path)
+        {
+            return ConvertUrlToFullPath(path);
+        }
+
+        /// <inheritdoc/>
+        public override bool TryGetFileLocation(string path, out string filePath, out long start, out long end)
+        {
+            filePath = ConvertUrlToFullPath(path);
+            start = 0;
+            end = -1;
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public override string[] ListFiles(string url, string searchPattern, VirtualSearchOption searchOption)
+        {
+            return Directory.GetFiles(ConvertUrlToFullPath(url), searchPattern, (SearchOption)searchOption).Select(ConvertFullPathToUrl).ToArray();
+        }
+
+#if STRIDE_PLATFORM_IOS
+        public bool AutoSetSkipBackupAttribute { get; set; }
+#endif
+
+        /// <inheritdoc/>
+        public override Stream OpenStream(string url, VirtualFileMode mode, VirtualFileAccess access, VirtualFileShare share = VirtualFileShare.Read, StreamFlags streamType = StreamFlags.None)
+        {
+            if (localBasePath != null && url.Split(VirtualFileSystem.DirectorySeparatorChar, VirtualFileSystem.AltDirectorySeparatorChar).Contains(".."))
+                throw new InvalidOperationException("Relative path is not allowed in FileSystemProvider.");
+            var filename = ConvertUrlToFullPath(url);
+            var result = new FileStream(filename, (FileMode)mode, (FileAccess)access, (FileShare)share);
+
+#if STRIDE_PLATFORM_IOS
+            if (AutoSetSkipBackupAttribute && (mode == VirtualFileMode.CreateNew || mode == VirtualFileMode.Create || mode == VirtualFileMode.OpenOrCreate))
+            {
+                Foundation.NSFileManager.SetSkipBackupAttribute(filename, true);
+            }
+#endif
+
+            return result;
+        }
+
+        public override DateTime GetLastWriteTime(string url)
+        {
+            return File.GetLastWriteTime(ConvertUrlToFullPath(url));
         }
     }
 }

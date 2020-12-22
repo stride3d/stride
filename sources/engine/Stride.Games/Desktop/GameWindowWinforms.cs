@@ -1,6 +1,6 @@
 // Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP && (STRIDE_GRAPHICS_API_DIRECT3D || STRIDE_GRAPHICS_API_VULKAN) && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
+#if (STRIDE_GRAPHICS_API_DIRECT3D || STRIDE_GRAPHICS_API_VULKAN) && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
 using System.Diagnostics;
 using System.Drawing;

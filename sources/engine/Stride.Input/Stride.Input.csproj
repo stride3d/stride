@@ -14,7 +14,7 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
-    <DefineConstants Condition="'$(StridePlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))">$(DefineConstants);STRIDE_INPUT_RAWINPUT</DefineConstants>
+    <DefineConstants Condition="$(TargetFramework.StartsWith('net4')) OR $(TargetFramework.EndsWith('-windows'))">$(DefineConstants);STRIDE_INPUT_RAWINPUT</DefineConstants>
   </PropertyGroup>
   <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
   <ItemGroup>
@@ -24,10 +24,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Games\Stride.Games.csproj" />
-    <PackageReference Include="SharpDX.RawInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))" />
-    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
-    <PackageReference Include="SharpDX.XInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" Condition="'$(StridePlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.RawInput" Version="4.2.0" Condition="$(TargetFramework.StartsWith('net4')) OR $(TargetFramework.EndsWith('-windows'))" />
+    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" Condition="$(TargetFramework.StartsWith('net4')) OR $(TargetFramework.EndsWith('-windows'))" />
+    <PackageReference Include="SharpDX.XInput" Version="4.2.0" Condition="$(TargetFramework.StartsWith('net4')) OR $(TargetFramework.EndsWith('-windows'))" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />

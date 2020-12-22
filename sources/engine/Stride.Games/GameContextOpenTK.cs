@@ -20,7 +20,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-#if (STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX) && STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
+#if STRIDE_PLATFORM_DESKTOP && STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
 using System;
 using OpenTK;
 using OpenTK.Graphics;
@@ -31,7 +31,7 @@ namespace Stride.Games
     /// <summary>
     /// A <see cref="GameContext"/> to use for rendering to an existing OpenTK Window.
     /// </summary>
-    public class GameContextOpenTK : GameContextDesktop<OpenTK.GameWindow>
+    public class GameContextOpenTK : GameContext<OpenTK.GameWindow>
     {
         /// <inheritDoc/>
         public GameContextOpenTK(OpenTK.GameWindow control, int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)

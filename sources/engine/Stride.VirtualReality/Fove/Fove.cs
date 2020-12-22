@@ -13,9 +13,7 @@ namespace Stride.VirtualReality
     {
         static Fove()
         {
-#if STRIDE_PLATFORM_WINDOWS
-            NativeLibrary.PreloadLibrary(NativeInvoke.Library + ".dll", typeof(Fove));
-#endif
+            NativeLibrary.PreloadLibrary(NativeInvoke.Library, typeof(Fove));
         }
 
         [SuppressUnmanagedCodeSecurity]

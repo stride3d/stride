@@ -8,7 +8,7 @@ namespace Stride.Games
     /// <summary>
     /// A <see cref="GameContext"/> to use for rendering to an existing SDL Window.
     /// </summary>
-    public class GameContextSDL : GameContextDesktop<Window>
+    public class GameContextSDL : GameContext<Window>
     {
         static GameContextSDL()
         {

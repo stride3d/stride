@@ -14,7 +14,7 @@ namespace Stride.Core
     {
         private static readonly Dictionary<string, IntPtr> LoadedLibraries = new Dictionary<string, IntPtr>();
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
         [DllImport("kernel32", EntryPoint = "LoadLibrary", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern IntPtr LoadLibrary(string lpFileName);
 
@@ -32,7 +32,9 @@ namespace Stride.Core
         /// <exception cref="System.InvalidOperationException">Library could not be loaded.</exception>
         public static void PreloadLibrary(string libraryName, Type owner)
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+            if (Platform.Type != PlatformType.Windows)
+                return;
+#if STRIDE_PLATFORM_DESKTOP
             NormalizeLibName(ref libraryName);
             lock (LoadedLibraries)
             {
@@ -98,7 +100,7 @@ namespace Stride.Core
         /// <param name="libraryName">Name of the library to unload.</param>
         public static void UnLoad(string libraryName)
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
             NormalizeLibName(ref libraryName);
             lock (LoadedLibraries)
             {
@@ -117,7 +119,7 @@ namespace Stride.Core
         /// </summary>
         public static void UnLoadAll()
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
             lock (LoadedLibraries)
             {
                 foreach (var libraryItem in LoadedLibraries)
@@ -129,7 +131,7 @@ namespace Stride.Core
 #endif
         }
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
         private static void NormalizeLibName(ref string libName)
         {
             libName = libName.ToLowerInvariant();
@@ -140,7 +142,7 @@ namespace Stride.Core
         }
 #endif
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
         private const string SYSINFO_FILE = "kernel32.dll";
 
         [DllImport(SYSINFO_FILE)]

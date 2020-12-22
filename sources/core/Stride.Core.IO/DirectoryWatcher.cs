@@ -92,7 +92,7 @@ namespace Stride.Core.IO
             Modified?.Invoke(sender, e);
         }
 
-#if !STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if !STRIDE_PLATFORM_DESKTOP
         // Doesn't throw any exceptions on other platforms
 
         private void InitializeInternal()

@@ -447,12 +447,10 @@ namespace Stride.Graphics.Regression
 
         private string GetPlatformSpecificFolder()
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-            return $"Windows.{GraphicsDevice.Platform}\\{GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ')}";
-#else
-            var platformSpecific = string.Empty;
-            throw new NotImplementedException();
-#endif
+            if (Platform.Type == PlatformType.Windows)
+                return $"Windows.{GraphicsDevice.Platform}\\{GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ')}";
+            else
+                throw new NotImplementedException();
         }
 
         private string GenerateTestArtifactFileName(string testArtifactPath, string frame, string platformSpecific, string extension)
@@ -477,15 +475,16 @@ namespace Stride.Graphics.Regression
 
         protected void SaveTexture(Texture texture, string filename)
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-            using (var image = texture.GetDataAsImage(GraphicsContext.CommandList))
+            if (Platform.Type == PlatformType.Windows)
             {
-                using (var resultFileStream = File.OpenWrite(filename))
+                using (var image = texture.GetDataAsImage(GraphicsContext.CommandList))
                 {
-                    image.Save(resultFileStream, ImageFileType.Png);
+                    using (var resultFileStream = File.OpenWrite(filename))
+                    {
+                        image.Save(resultFileStream, ImageFileType.Png);
+                    }
                 }
             }
-#endif
         }
 
         /// <summary>
