@@ -22,39 +22,79 @@ namespace Stride.Core.Assets
 {
     static class RestoreHelper
     {
-        public static List<string> ListAssemblies(RestoreRequest request, RestoreResult result)
+        public static List<string> ListAssemblies(LockFile lockFile, string graphicsApi = "Direct3D11")
         {
             var assemblies = new List<string>();
 
-            var lockFile = result.LockFile;
-            var packageFolder = lockFile.PackageFolders[0].Path;
-            var libPaths = new Dictionary<string, string>();
+            var libPaths = new Dictionary<ValueTuple<string, NuGet.Versioning.NuGetVersion>, string>();
             foreach (var lib in lockFile.Libraries)
             {
-                libPaths.Add(lib.Name, Path.Combine(packageFolder, lib.Path.Replace('/', Path.DirectorySeparatorChar)));
+                foreach (var packageFolder in lockFile.PackageFolders)
+                {
+                    var libraryPath = Path.Combine(packageFolder.Path, lib.Path.Replace('/', Path.DirectorySeparatorChar));
+                    if (Directory.Exists(libraryPath))
+                    {
+                        libPaths.Add(ValueTuple.Create(lib.Name, lib.Version), libraryPath);
+                        break;
+                    }
+                }
             }
+
+            bool TryCollectGraphicsApiDependentAssemblies(string assemblyFile)
+            {
+                var graphicsApiFolder = Path.Combine(Path.GetDirectoryName(assemblyFile), graphicsApi);
+                if (Directory.Exists(graphicsApiFolder))
+                {
+                    // We escape the loop as we already enumerated all files and we don't want to be called multiple times
+                    foreach (var graphicsApiDependentAssemblyFile in Directory.EnumerateFiles(graphicsApiFolder, "*.*"))
+                    {
+                        if (Path.GetExtension(graphicsApiDependentAssemblyFile).ToLowerInvariant() == ".exe" ||
+                            Path.GetExtension(graphicsApiDependentAssemblyFile).ToLowerInvariant() == ".dll")
+                            assemblies.Add(graphicsApiDependentAssemblyFile);
+                    }
+                    return true;
+                }
+
+                return false;
+            }
+
             var target = lockFile.Targets.Last();
             foreach (var lib in target.Libraries)
             {
-                var libPath = libPaths[lib.Name];
-                foreach (var a in lib.RuntimeAssemblies)
+                if (libPaths.TryGetValue(ValueTuple.Create(lib.Name, lib.Version), out var libPath))
                 {
-                    var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
-                    assemblies.Add(assemblyFile);
-                }
-                foreach (var a in lib.RuntimeTargets)
-                {
-                    var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
-                    assemblies.Add(assemblyFile);
+                    foreach (var a in lib.RuntimeAssemblies)
+                    {
+                        var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+
+                        // Check if StrideGraphicsApi specific files exist
+                        if (ReferenceEquals(a, lib.RuntimeAssemblies[0]) // first iteration?
+                            && TryCollectGraphicsApiDependentAssemblies(assemblyFile))
+                            break;
+
+                        assemblies.Add(assemblyFile);
+
+                    }
+                    foreach (var a in lib.RuntimeTargets)
+                    {
+                        var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+
+                        // Check if StrideGraphicsApi specific files exist
+                        if (ReferenceEquals(a, lib.RuntimeTargets[0]) // first iteration?
+                            && TryCollectGraphicsApiDependentAssemblies(assemblyFile))
+                            break;
+
+                        assemblies.Add(assemblyFile);
+                    }
                 }
             }
 
             return assemblies;
         }
 
-        public static async Task<(RestoreRequest, RestoreResult)> Restore(ILogger logger, NuGetFramework nugetFramework, string runtimeIdentifier, string packageName, VersionRange versionRange)
+        public static (RestoreRequest, RestoreResult) Restore(ILogger logger, NuGetFramework nugetFramework, string runtimeIdentifier, string packageName, VersionRange versionRange, string settingsRoot = null)
         {
-            var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
+            var settings = NuGet.Configuration.Settings.LoadDefaultSettings(settingsRoot);
 
             var assemblies = new List<string>();
 
@@ -121,17 +161,17 @@ namespace Stride.Core.Assets
                 {
                     try
                     {
-                        var results = await RestoreRunner.RunWithoutCommit(requests, restoreArgs);
+                        var results = RestoreRunner.RunWithoutCommit(requests, restoreArgs).Result;
 
                         // Commit results so that noop cache works next time
                         foreach (var result in results)
                         {
-                            await result.Result.CommitAsync(logger, CancellationToken.None);
+                            result.Result.CommitAsync(logger, CancellationToken.None).Wait();
                         }
                         var mainResult = results.First();
                         return (mainResult.SummaryRequest.Request, mainResult.Result);
                     }
-                    catch (Exception e) when (e is UnauthorizedAccessException || e is IOException)
+                    catch (Exception e) when (e is UnauthorizedAccessException || e is IOException || ((e is AggregateException ae) && ae.InnerExceptions.Any(e2 => e2 is UnauthorizedAccessException || e2 is IOException)))
                     {
                         // If we have an unauthorized access exception, it means assemblies are locked by running Stride process
                         // During first try, kill some known harmless processes, and try again

@@ -1,0 +1,41 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Tebjan Halm
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#ifndef ModelTransformUsage
+# define ModelTransformUsage 0
+#endif
+
+shader TransformationInstancing : TransformationBase, Transformation
+{
+    struct InstanceTransform
+    {
+        float4x4 Matrix;
+    };
+
+    rgroup PerDraw.Instancing
+    {
+        stage StructuredBuffer<InstanceTransform> InstanceWorld;
+        stage StructuredBuffer<InstanceTransform> InstanceWorldInverse;
+    }
+
+    float4x4 GetInstanceWorld(uint instanceId)
+    {
+#if ModelTransformUsage == 0
+        return InstanceWorld[instanceId].Matrix;
+#elif ModelTransformUsage == 1
+        return mul(Transformation.World, InstanceWorld[instanceId].Matrix);
+#else
+        return mul(InstanceWorld[instanceId].Matrix, Transformation.World);
+#endif
+    }
+
+    float4x4 GetInstanceWorldInverse(uint instanceId)
+    {
+#if ModelTransformUsage == 0
+        return InstanceWorldInverse[instanceId].Matrix;
+#elif ModelTransformUsage == 1
+        return mul(InstanceWorldInverse[instanceId].Matrix, Transformation.WorldInverse);
+#else
+        return mul(Transformation.WorldInverse, InstanceWorldInverse[instanceId].Matrix);
+#endif
+    }
+};

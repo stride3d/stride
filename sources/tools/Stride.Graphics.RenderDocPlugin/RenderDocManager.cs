@@ -25,10 +25,8 @@ namespace Stride.Graphics
 
         // Matching https://github.com/baldurk/renderdoc/blob/master/renderdoc/api/app/renderdoc_app.h
 
-        public unsafe RenderDocManager(string logFilePath = null)
+        public unsafe RenderDocManager()
         {
-            var finalLogFilePath = FindAvailablePath((logFilePath ?? "RenderDoc" + Assembly.GetEntryAssembly().Location));
-
             var reg = Registry.ClassesRoot.OpenSubKey("CLSID\\" + RenderdocClsid + "\\InprocServer32");
             if (reg == null)
             {
@@ -54,11 +52,15 @@ namespace Stride.Graphics
             // Get main entry point to get other function pointers
             var getAPI = Marshal.GetDelegateForFunctionPointer<RENDERDOC_GetAPI>(getAPIAddress);
 
-            // API version 10101 has 23 function pointers
+            // API version 10400 has 25 function pointers
             if (!getAPI(RENDERDOC_API_VERSION, ref apiPointers))
                 return;
+        }
 
-            GetMethod<RENDERDOC_SetLogFilePathTemplate>(RenderDocAPIFunction.SetLogFilePathTemplate)(finalLogFilePath);
+        public unsafe void Initialize(string captureFilePath = null)
+        {
+            var finalLogFilePath = captureFilePath ?? FindAvailablePath("RenderDoc" + Assembly.GetEntryAssembly().Location);
+            GetMethod<RENDERDOC_SetCaptureFilePathTemplate>(RenderDocAPIFunction.SetCaptureFilePathTemplate)(finalLogFilePath);
 
             var focusToggleKey = KeyButton.eRENDERDOC_Key_F11;
             GetMethod<RENDERDOC_SetFocusToggleKeys>(RenderDocAPIFunction.SetFocusToggleKeys)(ref focusToggleKey, 1);
@@ -66,15 +68,15 @@ namespace Stride.Graphics
             GetMethod<RENDERDOC_SetCaptureKeys>(RenderDocAPIFunction.SetCaptureKeys)(ref captureKey, 1);
         }
 
-        public void Shutdown()
+        public void RemoveHooks()
         {
             if (IsInitialized)
             {
-                GetMethod<RENDERDOC_Shutdown>(RenderDocAPIFunction.Shutdown)();
+                GetMethod<RENDERDOC_RemoveHooks>(RenderDocAPIFunction.RemoveHooks)();
             }
         }
 
-        public void StartCapture(GraphicsDevice graphicsDevice, IntPtr hwndPtr)
+        public void StartFrameCapture(GraphicsDevice graphicsDevice, IntPtr hwndPtr)
         {
             GetMethod<RENDERDOC_StartFrameCapture>(RenderDocAPIFunction.StartFrameCapture)(GetDevicePointer(graphicsDevice), hwndPtr);
             isCaptureStarted = true;
@@ -86,6 +88,15 @@ namespace Stride.Graphics
                 return;
 
             GetMethod<RENDERDOC_EndFrameCapture>(RenderDocAPIFunction.EndFrameCapture)(GetDevicePointer(graphicsDevice), hwndPtr);
+            isCaptureStarted = false;
+        }
+
+        public void DiscardFrameCapture(GraphicsDevice graphicsDevice, IntPtr hwndPtr)
+        {
+            if (!isCaptureStarted)
+                return;
+
+            GetMethod<RENDERDOC_DiscardFrameCapture>(RenderDocAPIFunction.DiscardFrameCapture)(GetDevicePointer(graphicsDevice), hwndPtr);
             isCaptureStarted = false;
         }
 
@@ -118,10 +129,10 @@ namespace Stride.Graphics
 
                 if (!File.Exists(path))
                 {
-                    return path;
+                    return Path.Combine(Path.GetDirectoryName(logFilePath), path);
                 }
             }
-            return filePath + ".rdc";
+            return logFilePath;
         }
 
         private enum KeyButton : uint
@@ -218,7 +229,7 @@ namespace Stride.Graphics
 
         // API breaking change history:
         // Version 1 -> 2 - strings changed from wchar_t* to char* (UTF-8)
-        private const int RENDERDOC_API_VERSION = 10101;
+        private const int RENDERDOC_API_VERSION = 10400;
 
         private enum RenderDocAPIFunction
         {
@@ -236,11 +247,11 @@ namespace Stride.Graphics
             GetOverlayBits,
             MaskOverlayBits,
 
-            Shutdown,
+            RemoveHooks,
             UnloadCrashHandler,
 
-            SetLogFilePathTemplate,
-            GetLogFilePathTemplate,
+            SetCaptureFilePathTemplate,
+            GetCaptureFilePathTemplate,
 
             GetNumCaptures,
             GetCapture,
@@ -257,6 +268,8 @@ namespace Stride.Graphics
             EndFrameCapture,
 
             TriggerMultiFrameCapture,
+            SetCaptureFileComments,
+            DiscardFrameCapture,
         }
 
         //////////////////////////////////////////////////////////////////////////
@@ -266,10 +279,10 @@ namespace Stride.Graphics
         private unsafe delegate bool RENDERDOC_GetAPI(int version, ref IntPtr* apiPointers);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private delegate void RENDERDOC_Shutdown();
+        private delegate void RENDERDOC_RemoveHooks();
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private delegate void RENDERDOC_SetLogFilePathTemplate([MarshalAs(UnmanagedType.LPStr)] string logfile);
+        private delegate void RENDERDOC_SetCaptureFilePathTemplate([MarshalAs(UnmanagedType.LPStr)] string logfile);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private delegate string RENDERDOC_GetLogFilePathTemplate();
@@ -303,6 +316,9 @@ namespace Stride.Graphics
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private delegate void RENDERDOC_UnloadCrashHandler();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private delegate bool RENDERDOC_DiscardFrameCapture(IntPtr devicePointer, IntPtr wndHandle);
 
         [DllImport("kernel32", EntryPoint = "LoadLibrary", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern IntPtr LoadLibrary(string lpFileName);

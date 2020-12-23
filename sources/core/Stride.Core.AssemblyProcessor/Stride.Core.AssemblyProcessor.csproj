@@ -2,9 +2,11 @@
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net472</TargetFramework>
+    <OutputType Condition="'$(TargetFramework)' == 'net472'">Exe</OutputType>
+    <OutputType Condition="'$(TargetFramework)' == 'netstandard2.0'">Library</OutputType>
+    <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -24,11 +26,6 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Mono.Cecil" Version="0.10.4" />
-    <PackageReference Include="Mono.Options" Version="5.3.0.1" />
-    <Reference Include="System.ComponentModel.Composition" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\Stride.Core\DataMemberMode.cs">
       <Link>Core\DataMemberMode.cs</Link>
     </Compile>
@@ -41,6 +38,7 @@
     <Compile Include="..\Stride.Core\Serialization\ArchiveMode.cs">
       <Link>Core\ArchiveMode.cs</Link>
     </Compile>
+    <Compile Include="..\Stride.Core\Serialization\DataSerializer.BinaryFormatVersion.cs" Link="Core\DataSerializer.BinaryFormatVersion.cs" />
     <Compile Include="..\Stride.Core\Serialization\DataSerializerGenericMode.cs">
       <Link>Core\DataSerializerGenericMode.cs</Link>
     </Compile>
@@ -73,13 +71,40 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ILRepack" Version="2.0.15" />
+    <PackageReference Include="ILRepack" Version="2.0.15" PrivateAssets="All" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.2" />
+    <PackageReference Include="Mono.Options" Version="5.3.0.1" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
-    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
-  <PropertyGroup>
-    <PostBuildEvent>xcopy /d /y $(TargetDir)*.* $(SolutionDir)..\deps\AssemblyProcessor
-cd $(SolutionDir)..\deps\AssemblyProcessor
-$(ILRepack) Stride.Core.AssemblyProcessor.exe Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll System.ValueTuple.dll /out:Stride.Core.AssemblyProcessor.Packed2.exe</PostBuildEvent>
-  </PropertyGroup>
+  <!-- Generate hash file for assembly -->
+  <UsingTask
+  TaskName="WriteAllText"
+  TaskFactory="RoslynCodeTaskFactory"
+  AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
+    <ParameterGroup>
+      <Path ParameterType="System.String" />
+      <Contents ParameterType="System.String" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System"/>
+      <Using Namespace="System.IO"/>
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+File.WriteAllText(Path, Contents);
+]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="GenerateHash" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /y $(TargetDir)*.* $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)
+cd $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)
+$(ILRepack) Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)"/>
+    <GetFileHash Files="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt)">
+      <Output
+          TaskParameter="Hash"
+          PropertyName="PackedAssemblyHash" />
+    </GetFileHash>
+    <WriteAllText Path="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt).hash" Contents="$(PackedAssemblyHash)"/>
+  </Target>
 </Project>

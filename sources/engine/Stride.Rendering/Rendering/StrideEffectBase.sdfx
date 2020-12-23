@@ -37,19 +37,57 @@ namespace Stride.Rendering
         // Come after material surface per vertex
         mixin TransformationBase;
         mixin NormalStream;
-        mixin TransformationWAndVP;
 
-        // -----------------------------------------------
-        // Performs normal mapping (in case of no-skinning, otherwise it is overloaded below)
-        // -----------------------------------------------
-        if (MaterialKeys.HasNormalMap)
+        var extensionTessellationShader = MaterialKeys.TessellationShader;
+
+        if (StrideEffectBaseKeys.HasInstancing)
         {
-            mixin NormalFromNormalMapping;
+            mixin macro StrideEffectBaseKeys.ModelTransformUsage;
+            mixin TransformationWAndVPInstanced;
+
+            // -----------------------------------------------
+            // Performs normal mapping (in case of no-skinning, otherwise it is overloaded below)
+            // -----------------------------------------------
+            if (MaterialKeys.HasNormalMap)
+            {
+                if (extensionTessellationShader != null)
+                {
+                    mixin NormalFromNormalMappingTessellationInstanced;
+                }
+                else
+                {
+                    mixin NormalFromNormalMappingInstanced;
+                }
+            }
+            else
+            {
+                mixin NormalFromMeshInstanced;
+            }
         }
         else
         {
-            mixin NormalFromMesh;
+            mixin TransformationWAndVP;
+
+            // -----------------------------------------------
+            // Performs normal mapping (in case of no-skinning, otherwise it is overloaded below)
+            // -----------------------------------------------
+            if (MaterialKeys.HasNormalMap)
+            {
+                if (extensionTessellationShader != null)
+                {
+                    mixin NormalFromNormalMappingTessellation;
+                }
+                else
+                {
+                    mixin NormalFromNormalMapping;
+                }
+            }
+            else
+            {
+                mixin NormalFromMesh;
+            }
         }
+
 
         // -----------------------------------------------
         // Performs animation skinning (position, normal and tangent)
@@ -57,7 +95,15 @@ namespace Stride.Rendering
         if (MaterialKeys.HasSkinningPosition)
         {
             mixin macro MaterialKeys.SkinningMaxBones;
-            mixin TransformationSkinning;
+
+            if (StrideEffectBaseKeys.HasInstancing)
+            {
+                mixin TransformationSkinningInstanced;
+            }
+            else
+            {
+                mixin TransformationSkinning;
+            }
 
             if (MaterialKeys.HasSkinningNormal)
             {
@@ -73,7 +119,14 @@ namespace Stride.Rendering
             {
                 if (MaterialKeys.HasNormalMap)
                 {
-                    mixin NormalVSSkinningNormalMapping;
+                    if (extensionTessellationShader != null)
+                    {
+                        mixin NormalVSSkinningNormalMappingTessellation;
+                    }
+                    else
+                    {
+                        mixin NormalVSSkinningNormalMapping;
+                    }
                 }
                 else
                 {
@@ -85,7 +138,6 @@ namespace Stride.Rendering
         // --------------------------------------------
         // Mix material tessellation for Domain effect
         //---------------------------------------------
-        var extensionTessellationShader = MaterialKeys.TessellationShader;
         if(extensionTessellationShader != null)
         {
             mixin (extensionTessellationShader);

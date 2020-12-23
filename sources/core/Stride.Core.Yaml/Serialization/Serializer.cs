@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 SharpYaml - Alexandre Mutel
+// Copyright (c) 2015 SharpYaml - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -527,7 +527,7 @@ namespace Stride.Core.Yaml.Serialization
                 catch (Exception ex)
                 {
                     ex = ex.Unwrap();
-                    throw new YamlException(node.Start, node.End, $"Error while deserializing node [{node}]:\n{ex.Message}", ex);
+                    throw new YamlException(node, ex);
                 }
             }
 

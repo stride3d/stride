@@ -90,11 +90,5 @@ namespace Stride.Engine.Tests
         {
             RunGameTest(new SpriteRotationTests());
         }
-
-        internal static void Main()
-        {
-            using (var game = new SpriteRotationTests())
-                game.Run();
-        }
     }
 }

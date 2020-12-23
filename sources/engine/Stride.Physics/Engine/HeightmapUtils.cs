@@ -76,6 +76,9 @@ namespace Stride.Physics
 
         public static T[] Resize<T>(T[] pixels, Int2 originalSize, Int2 newSize)
         {
+            if (originalSize.X < 1 || originalSize.Y < 1) throw new ArgumentException($"{ nameof(originalSize) }.{ nameof(originalSize.X) } and { nameof(originalSize.Y) } should be greater than 0.");
+            if (newSize.X < 1 || newSize.Y < 1) throw new ArgumentException($"{ nameof(newSize) }.{ nameof(newSize.X) } and { nameof(newSize.Y) } should be greater than 0.");
+
             if (originalSize.Equals(newSize))
             {
                 return pixels.ToArray();
@@ -86,9 +89,12 @@ namespace Stride.Physics
             var newWidth = newSize.X;
             var newLength = newSize.Y;
 
+            var scaleX = (newWidth - 1) == 0 ? 0d : ((double)(originalWidth - 1)) / (newWidth - 1);
+            var scaleY = (newLength - 1) == 0 ? 0d : ((double)(originalLength - 1)) / (newLength - 1);
+
             int GetOriginalIndex(int x, int y) =>
-                (int)Math.Round(MathUtil.Lerp(0, originalLength, MathUtil.InverseLerp(0, newLength, y)), MidpointRounding.AwayFromZero) * originalWidth +
-                (int)Math.Round(MathUtil.Lerp(0, originalWidth, MathUtil.InverseLerp(0, newWidth, x)), MidpointRounding.AwayFromZero);
+                (int)Math.Round(y * scaleY, MidpointRounding.AwayFromZero) * originalWidth +
+                (int)Math.Round(x * scaleX, MidpointRounding.AwayFromZero);
 
             T[] newPixels = new T[newWidth * newLength];
             for (int y = 0; y < newLength; ++y)

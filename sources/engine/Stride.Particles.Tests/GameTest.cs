@@ -68,12 +68,6 @@ namespace Stride.Particles.Tests
             GraphicsDeviceManager.PreferredGraphicsProfile = new[] { overrideGraphicsProfile };
         }
 
-        protected override void Initialize()
-        {
-            base.Initialize();
-            GraphicsDeviceManager.PreferredGraphicsProfile = new[] { overrideGraphicsProfile };
-        }
-
         protected override async Task LoadContent()
         {
             await base.LoadContent();
@@ -130,36 +124,6 @@ namespace Stride.Particles.Tests
                 return;
 
             ScreenshotRequested = false;
-        }
-
-        /// <summary>
-        /// This is useful if you want to run all the tests on your own machine and compare images
-        /// </summary>
-        public static void Main()
-        {
-            //using (var game = new GameTest("GameTest")) { game.Run(); }
-
-            using (var game = new VisualTestInitializers()) { game.Run(); }
-
-            using (var game = new VisualTestSpawners()) { game.Run(); }
-
-            using (var game = new VisualTestGeneral()) { game.Run(); }
-
-            using (var game = new VisualTestUpdaters()) { game.Run(); }
-
-            using (var game = new VisualTestMaterials()) { game.Run(); }
-
-            using (var game = new VisualTestCurves()) { game.Run(); }
-
-            using (var game = new VisualTestRibbons()) { game.Run(); }
-
-            using (var game = new VisualTestChildren()) { game.Run(); }
-
-            // using (var game = new VisualTestSoftEdge(GraphicsProfile.Level_9_3)) { game.Run(); } // This is not implemented yet and may not be
-
-            using (var game = new GameTest("VisualTestSoftEdge", GraphicsProfile.Level_10_0)) { game.Run(); }
-
-            using (var game = new GameTest("VisualTestSoftEdge", GraphicsProfile.Level_11_0)) { game.Run(); }
         }
     }
 }

@@ -43,6 +43,18 @@ namespace Stride.Games
         /// </summary>
         public bool IsUserManagingRun { get; protected set; }
 
+        /// <summary>
+        /// Gets the main loop callback to be called when <see cref="IsUserManagingRun"/> is true.
+        /// </summary>
+        /// <value>The run loop.</value>
+        public Action RunCallback { get; internal set; }
+
+        /// <summary>
+        /// Gets the exit callback to be called when <see cref="IsUserManagingRun"/> is true when exiting the game.
+        /// </summary>
+        /// <value>The run loop.</value>
+        public Action ExitCallback { get; internal set; }
+
         // TODO: remove these requested values.
 
         /// <summary>
@@ -163,11 +175,12 @@ namespace Stride.Games
         /// <param name="control">The control.</param>
         /// <param name="requestedWidth">Width of the requested.</param>
         /// <param name="requestedHeight">Height of the requested.</param>
-        protected GameContext(TK control, int requestedWidth = 0, int requestedHeight = 0)
+        protected GameContext(TK control, int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
         {
             Control = control;
             RequestedWidth = requestedWidth;
             RequestedHeight = requestedHeight;
+            IsUserManagingRun = isUserManagingRun;
         }
     }
 }

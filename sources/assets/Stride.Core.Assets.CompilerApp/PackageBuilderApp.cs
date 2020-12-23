@@ -25,6 +25,7 @@ using Stride.Rendering.Materials;
 using Stride.Rendering.ProceduralModels;
 using Stride.SpriteStudio.Offline;
 using Stride.Core.Assets.CompilerApp.Tasks;
+using Stride.Core.IO;
 
 namespace Stride.Core.Assets.CompilerApp
 {
@@ -40,10 +41,6 @@ namespace Stride.Core.Assets.CompilerApp
 
         public int Run(string[] args)
         {
-            // This is used by ExecServer to retrieve the logs directly without using the console redirect (which is not working well
-            // in a multi-domain scenario)
-            var redirectLogToAppDomainAction = AppDomain.CurrentDomain.GetData("AppDomainLogToAction") as Action<string, ConsoleColor>;
-
             clock = Stopwatch.StartNew();
 
             // TODO this is hardcoded. Check how to make this dynamic instead.
@@ -66,6 +63,7 @@ namespace Stride.Core.Assets.CompilerApp
             var exeName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var showHelp = false;
             var packMode = false;
+            var updateGeneratedFilesMode = false;
             var buildEngineLogger = GlobalLogger.GetLogger("BuildEngine");
             var options = new PackageBuilderOptions(new ForwardingLoggerResult(buildEngineLogger));
 
@@ -93,17 +91,13 @@ namespace Stride.Core.Assets.CompilerApp
                 { "solution-file=", "Solution File Name", v => options.SolutionFile = v },
                 { "package-id=", "Package Id from the solution file", v => options.PackageId = Guid.Parse(v) },
                 { "package-file=", "Input Package File Name", v => options.PackageFile = v },
+                { "msbuild-uptodatecheck-filebase=", "BuildUpToDate File base for MSBuild; it will create one .inputs and one .outputs files", v => options.MSBuildUpToDateCheckFileBase = v },
                 { "o|output-path=", "Output path", v => options.OutputDirectory = v },
                 { "b|build-path=", "Build path", v => options.BuildDirectory = v },
                 { "log-file=", "Log build in a custom file.", v =>
                 {
                     options.EnableFileLogging = v != null;
                     options.CustomLogFileName = v;
-                } },
-                { "log-pipe=", "Log pipe.", v =>
-                {
-                    if (!string.IsNullOrEmpty(v))
-                        options.LogPipeNames.Add(v);
                 } },
                 { "monitor-pipe=", "Monitor pipe.", v =>
                 {
@@ -113,6 +107,7 @@ namespace Stride.Core.Assets.CompilerApp
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
                 { "server=", "This Compiler is launched as a server", v => { } },
                 { "pack", "Special mode to copy assets and resources in a folder for NuGet packaging", v => packMode = true },
+                { "updated-generated-files", "Special mode to update generated files (such as .sdsl.cs)", v => updateGeneratedFilesMode = true },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
                 { "test=", "Run a test session.", v => options.TestName = v },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
@@ -125,7 +120,10 @@ namespace Stride.Core.Assets.CompilerApp
                             if (equalIndex == -1)
                                 throw new OptionException("Expect name1=value1;name2=value2 format.", "property");
 
-                            options.Properties.Add(nameValue.Substring(0, equalIndex), nameValue.Substring(equalIndex + 1));
+                            var name = nameValue.Substring(0, equalIndex);
+                            var value = nameValue.Substring(equalIndex + 1);
+                            if (value != string.Empty)
+                                options.Properties.Add(name, value);
                         }
                     }
                 }
@@ -170,32 +168,55 @@ namespace Stride.Core.Assets.CompilerApp
 
             BuildResultCode exitCode;
 
-            RemoteLogForwarder assetLogger = null;
-
             try
             {
                 var unexpectedArgs = p.Parse(args);
-
-                // Set remote logger
-                assetLogger = new RemoteLogForwarder(options.Logger, options.LogPipeNames);
-                GlobalLogger.GlobalMessageLogged += assetLogger;
 
                 // Activate proper log level
                 buildEngineLogger.ActivateLog(options.LoggerType);
 
                 // Output logs to the console with colored messages
-                if (options.SlavePipe == null && !options.LogPipeNames.Any())
+                if (options.SlavePipe == null)
                 {
-                    if (redirectLogToAppDomainAction != null)
-                    {
-                        globalLoggerOnGlobalMessageLogged = new LogListenerRedirectToAction(redirectLogToAppDomainAction);
-                    }
-                    else
-                    {
-                        globalLoggerOnGlobalMessageLogged = new ConsoleLogListener { LogMode = ConsoleLogMode.Always };
-                    }
+                    globalLoggerOnGlobalMessageLogged = new ConsoleLogListener { LogMode = ConsoleLogMode.Always };
                     globalLoggerOnGlobalMessageLogged.TextFormatter = FormatLog;
                     GlobalLogger.GlobalMessageLogged += globalLoggerOnGlobalMessageLogged;
+                }
+
+                if (updateGeneratedFilesMode)
+                {
+                    PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+
+                    var csprojFile = options.PackageFile;
+
+                    var logger = new LoggerResult();
+                    var projectDirectory = new UDirectory(Path.GetDirectoryName(csprojFile));
+                    var package = Package.Load(logger, csprojFile, new PackageLoadParameters()
+                    {
+                        LoadMissingDependencies = false,
+                        AutoCompileProjects = false,
+                        LoadAssemblyReferences = false,
+                        AutoLoadTemporaryAssets = true,
+                        TemporaryAssetFilter = assetFile => AssetRegistry.IsProjectCodeGeneratorAssetFileExtension(assetFile.FilePath.GetFileExtension().ToLowerInvariant())
+                    });
+
+                    foreach (var assetItem in package.TemporaryAssets)
+                    {
+                        if (assetItem.Asset is IProjectFileGeneratorAsset projectGeneratorAsset)
+                        {
+                            try
+                            {
+                                options.Logger.Info($"Processing: {assetItem}");
+                                projectGeneratorAsset.SaveGeneratedAsset(assetItem);
+                            }
+                            catch (Exception e)
+                            {
+                                options.Logger.Error($"Unhandled exception while updating generated files for {assetItem}", e);
+                            }
+                        }
+                    }
+
+                    return (int)BuildResultCode.Successful;
                 }
 
                 if (unexpectedArgs.Any())
@@ -276,7 +297,7 @@ namespace Stride.Core.Assets.CompilerApp
                 else
                 {
                     builder = new PackageBuilder(options);
-                    if (!IsSlave && redirectLogToAppDomainAction == null)
+                    if (!IsSlave)
                     {
                         Console.CancelKeyPress += OnConsoleOnCancelKeyPress;
                     }
@@ -295,13 +316,6 @@ namespace Stride.Core.Assets.CompilerApp
             }
             finally
             {
-                // Flush and close remote logger
-                if (assetLogger != null)
-                {
-                    GlobalLogger.GlobalMessageLogged -= assetLogger;
-                    assetLogger.Dispose();
-                }
-
                 if (fileLogListener != null)
                 {
                     GlobalLogger.GlobalMessageLogged -= fileLogListener;
@@ -313,7 +327,7 @@ namespace Stride.Core.Assets.CompilerApp
                 {
                     GlobalLogger.GlobalMessageLogged -= globalLoggerOnGlobalMessageLogged;
                 }
-                if (builder != null && !IsSlave && redirectLogToAppDomainAction == null)
+                if (builder != null && !IsSlave)
                 {
                     Console.CancelKeyPress -= OnConsoleOnCancelKeyPress;
                 }

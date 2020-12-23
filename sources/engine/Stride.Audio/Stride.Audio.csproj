@@ -4,8 +4,8 @@
     <StrideNativeOutputName>libstrideaudio</StrideNativeOutputName>
     <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -18,10 +18,6 @@
     <!-- <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants> -->
     <DefineConstants>STRIDE_VIDEO_MEDIACODEC;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
-  <Choose>
-    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-    </When>
-  </Choose>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
@@ -51,6 +47,6 @@
     <None Include="Native\XAudio2.cpp" />
   </ItemGroup>
   <ItemGroup />
-  <Import Project="$(StridePostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 </Project>

@@ -147,10 +147,11 @@ namespace Stride.Rendering.Compositing
                     logger.Warning("Multisample count of " + (int)MSAALevel + " samples not supported. Falling back to highest supported sample count of " + (int)actualMultisampleCount + " samples.");
                 }
 
-#if STRIDE_PLATFORM_IOS
-                // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
-                actualMultisampleCount = MultisampleCount.None;
-#endif
+                if (Platform.Type == PlatformType.iOS)
+                {
+                    // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
+                    actualMultisampleCount = MultisampleCount.None;
+                }
             }
 
             var camera = Context.GetCurrentCamera();
@@ -241,11 +242,9 @@ namespace Stride.Rendering.Compositing
             {
                 if (PostEffects.RequiresNormalBuffer)
                 {
-#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
-                    renderOutputValidator.Add<NormalTargetSemantic>(PixelFormat.R16G16B16A16_Float);
-#else
-                    renderOutputValidator.Add<NormalTargetSemantic>(PixelFormat.R10G10B10A2_UNorm);
-#endif
+                    renderOutputValidator.Add<NormalTargetSemantic>(Platform.Type == PlatformType.Android || Platform.Type == PlatformType.iOS
+                        ? PixelFormat.R16G16B16A16_Float
+                        : PixelFormat.R10G10B10A2_UNorm);
                 }
 
                 if (PostEffects.RequiresSpecularRoughnessBuffer)
@@ -651,8 +650,9 @@ namespace Stride.Rendering.Compositing
 
                             for (var i = 0; i < 2; i++)
                             {
-#if STRIDE_PLATFORM_UWP
-                                if (GraphicsDevice.Platform == GraphicsPlatform.Direct3D11 && drawContext.GraphicsDevice.Presenter is WindowsMixedRealityGraphicsPresenter graphicsPresenter)
+                                // For VR GraphicsPresenter such as WindowsMixedRealityGraphicsPresenter
+                                var graphicsPresenter = drawContext.GraphicsDevice.Presenter;
+                                if (graphicsPresenter.LeftEyeBuffer != null)
                                 {
                                     isWindowsMixedReality = true;
 
@@ -668,7 +668,6 @@ namespace Stride.Rendering.Compositing
                                         currentRenderTargets.Add(graphicsPresenter.RightEyeBuffer);
                                     }
                                 }
-#endif
 
                                 drawContext.CommandList.SetRenderTargets(currentDepthStencil, currentRenderTargets.Count, currentRenderTargets.Items);
 
@@ -798,7 +797,13 @@ namespace Stride.Rendering.Compositing
 
             context.CommandList.SetRenderTargets(null, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
 
-            depthStencilROCached = context.Resolver.GetDepthStencilAsRenderTarget(depthStencil, depthStencilROCached);
+            var depthStencilROCached = context.Resolver.GetDepthStencilAsRenderTarget(depthStencil, this.depthStencilROCached);
+            if (depthStencilROCached != this.depthStencilROCached)
+            {
+                // Dispose cached view
+                this.depthStencilROCached?.Dispose();
+                this.depthStencilROCached = depthStencilROCached;
+            }
             context.CommandList.SetRenderTargets(depthStencilROCached, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
 
             return depthStencilSRV;
@@ -877,6 +882,7 @@ namespace Stride.Rendering.Compositing
         protected override void Destroy()
         {
             PostEffects?.Dispose();
+            depthStencilROCached?.Dispose();
         }
 
         [StructLayout(LayoutKind.Sequential)]

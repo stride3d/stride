@@ -137,11 +137,10 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
         [CanBeNull]
         public override IEditorGamePartViewModel FindPartViewModel(AbsoluteId id)
         {
-            var item = RootPart as IEditorGamePartViewModel;
-            if (item != null && id == item.Id)
+            if (RootPart is IEditorGamePartViewModel item && id == item.Id)
                 return item;
-
-            return RootPart?.EnumerateChildren().BreadthFirst(x => x.EnumerateChildren()).OfType<IEditorGamePartViewModel>().FirstOrDefault(part => part.Id == id);
+            
+            return RootPart?.EnumerateChildren().BreadthFirst(x => x.EnumerateChildren()).FirstOrDefault(part => part is IEditorGamePartViewModel viewModel && viewModel.Id == id) as IEditorGamePartViewModel;
         }
 
         /// <summary>

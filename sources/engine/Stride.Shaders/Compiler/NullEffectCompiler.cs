@@ -11,16 +11,19 @@ namespace Stride.Shaders.Compiler
 {
     public class NullEffectCompiler : EffectCompilerBase
     {
-        public NullEffectCompiler(IVirtualFileProvider fileProvider)
+        private readonly DatabaseFileProvider database;
+
+        public NullEffectCompiler(IVirtualFileProvider fileProvider, DatabaseFileProvider database)
         {
             FileProvider = fileProvider;
+            this.database = database;
         }
 
         public override ObjectId GetShaderSourceHash(string type)
         {
             var url = GetStoragePathFromShaderType(type);
             var shaderSourceId = ObjectId.Empty;
-            (FileProvider as DatabaseFileProvider)?.ContentIndexMap.TryGetValue(url, out shaderSourceId);
+            database?.ContentIndexMap.TryGetValue(url, out shaderSourceId);
             return shaderSourceId;
         }
 

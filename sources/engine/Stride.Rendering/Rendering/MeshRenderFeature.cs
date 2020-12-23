@@ -213,15 +213,21 @@ namespace Stride.Rendering
 
                 commandList.SetPipelineState(renderEffect.PipelineState);
                 commandList.SetDescriptorSets(0, descriptorSetsLocal);
-
+                
                 // Draw
                 if (drawData.IndexBuffer == null)
                 {
-                    commandList.Draw(drawData.DrawCount, drawData.StartLocation);
+                    if (renderMesh.InstanceCount > 0)
+                        commandList.DrawInstanced(drawData.DrawCount, renderMesh.InstanceCount, drawData.StartLocation);
+                    else
+                        commandList.Draw(drawData.DrawCount, drawData.StartLocation);
                 }
                 else
                 {
-                    commandList.DrawIndexed(drawData.DrawCount, drawData.StartLocation);
+                    if (renderMesh.InstanceCount > 0)
+                        commandList.DrawIndexedInstanced(drawData.DrawCount, renderMesh.InstanceCount, drawData.StartLocation);
+                    else
+                        commandList.DrawIndexed(drawData.DrawCount, drawData.StartLocation);
                 }
             }
         }

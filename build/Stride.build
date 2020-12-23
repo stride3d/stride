@@ -126,17 +126,13 @@ Example of use:
     <_StridePackageTargetPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == 'true'">PrerequisitesInstaller</_StridePackageTargetPrerequisitesInstaller>
   </PropertyGroup>
   <Target Name="Package" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build;VSIXPlugin"/>
+
+  <Target Name="RestoreInternal">
+    <MSBuild Targets="Restore" Projects="$(StrideSolution).sln" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
+  </Target>
   
   <Target Name="Restore">
-    <PropertyGroup>
-      <RestoreExec><![CDATA[
-        set StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)
-        set StrideGraphicsApi=$(StrideGraphicsApi)
-        set StridePlatforms=$(StridePlatforms)
-        "$(NuGetPath)" restore "$(StrideSolution).sln"
-      ]]></RestoreExec>
-    </PropertyGroup>
-    <Exec Command="$(RestoreExec)" />
+    <CallTarget Targets="RestoreInternal" />
   </Target>
 
   <Target Name="Build">
@@ -159,31 +155,31 @@ Example of use:
 
   <Target Name="BuildWindowsDirect3D11">
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=Direct3D11;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
   
   <Target Name="BuildWindowsDirect3D12">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApi=Direct3D12"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApi=Direct3D12;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApis=Direct3D12"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=Direct3D12;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
   <Target Name="BuildWindowsOpenGL">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApi=OpenGL"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApi=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApis=OpenGL"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
   <Target Name="BuildWindowsOpenGLES">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApi=OpenGLES"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApi=OpenGLES;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApis=OpenGLES"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=OpenGLES;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
   <Target Name="BuildAndroid">
-    <Exec Command='"$(NuGetPath)" restore "$(StrideSolution).Android.sln"' />
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Android;StrideSolution=$(StrideSolution).Android"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).Android.sln" Properties="$(BuildProperties);StridePlatforms=Android;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
 
   <Target Name="BuildiOS">
-    <Exec Command='"$(NuGetPath)" restore "$(StrideSolution).iOS.sln"' />
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=iOS;StrideSolution=$(StrideSolution).iOS"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).iOS.sln" Properties="$(BuildProperties);StridePlatforms=iOS;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
   
@@ -209,8 +205,8 @@ Example of use:
   </Target>
   
   <Target Name="BuildWindowsVulkan">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApi=Vulkan"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApi=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution).Runtime;StrideGraphicsApis=Vulkan"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).Runtime.sln" Properties="$(BuildProperties);StrideGraphicsApis=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target>
   
   <Target Name="BuildLinux">
@@ -219,7 +215,7 @@ Example of use:
       <StridePlatforms>Linux</StridePlatforms>
     </PropertyGroup>
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=OpenGL;StrideSkipAutoPack=true;StrideSkipUnitTests=true;StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
   </Target> 
 
   <Target Name="BuildLinuxVulkan">
@@ -227,20 +223,20 @@ Example of use:
       <StrideSolution>$(StrideSolution).Runtime</StrideSolution>
       <StridePlatforms>Linux</StridePlatforms>
     </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApi=Vulkan"/>
-    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApi=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApis=Vulkan"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution).sln" Properties="$(BuildProperties);StridePlatforms=$(StridePlatforms);StrideGraphicsApis=Vulkan;StrideSkipAutoPack=true;StrideSkipUnitTests=true"/>
   </Target> 
   
   <Target Name="BuildmacOS">
-    <Exec Command='"$(NuGetPath)" restore "$(StrideSolution).macOS.sln"' />
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StrideSolution=$(StrideSolution).macOS"/>
     <MSBuild Targets="Build" Projects="$(StrideSolution).macOS.sln" Properties="$(BuildProperties);Platform=macOS"/>
   </Target> 
 
   <Target Name="DownloadXunitRunnerConsole">
     <MakeDir Directories="$(MSBuildThisFileDirectory)packages"/>
     <PropertyGroup>
-      <XunitRunnerConsolePathDefault>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net461\xunit.console.exe</XunitRunnerConsolePathDefault>
-      <XunitRunnerConsolePathX86>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net461\xunit.console.x86.exe</XunitRunnerConsolePathX86>
+      <XunitRunnerConsolePathDefault>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net472\xunit.console.exe</XunitRunnerConsolePathDefault>
+      <XunitRunnerConsolePathX86>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net472\xunit.console.x86.exe</XunitRunnerConsolePathX86>
     </PropertyGroup>
     <Exec Command='"$(NuGetPath)" install xunit.runner.console -Version $(XunitRunnerConsoleVersion)' Condition="!Exists('$(XunitRunnerConsolePathDefault)')" WorkingDirectory="$(MSBuildThisFileDirectory)packages" />
     <Error Text="Could not find xunit.runner at expected location [$(XunitRunnerConsolePathDefault)]" Condition="!Exists('$(XunitRunnerConsolePathDefault)')"/>
@@ -275,6 +271,7 @@ Example of use:
     
     <ItemGroup>
       <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Engine.Tests.Windows"/>
+      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Engine.NoAssets.Tests.Windows"/>
       <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.10_0.Windows"/>
       <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.Windows"/>
       <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Navigation.Tests.Windows"/>
@@ -311,31 +308,31 @@ Example of use:
     <!-- Direct3D12 unit tests -->
     <ItemGroup Condition="$(StrideTestCategories.Contains(';GameDirect3D12;'))">
       <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).Direct3D12.sln</Solution></UnitTest>
+      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).Direct3D12</Solution></UnitTest>
     </ItemGroup>
 
     <!-- OpenGL unit tests -->
     <ItemGroup Condition="$(StrideTestCategories.Contains(';GameOpenGL;'))">
       <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).OpenGL.sln</Solution></UnitTest>
+      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).OpenGL</Solution></UnitTest>
     </ItemGroup>
 
     <!-- OpenGLES unit tests -->
     <ItemGroup Condition="$(StrideTestCategories.Contains(';GameOpenGLES;'))">
       <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).OpenGLES.sln</Solution></UnitTest>
+      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).OpenGLES</Solution></UnitTest>
     </ItemGroup>
     
     <!-- Vulkan unit tests -->
     <ItemGroup Condition="$(StrideTestCategories.Contains(';GameVulkan;'))">
       <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).Vulkan.sln</Solution></UnitTest>
+      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).Vulkan</Solution></UnitTest>
     </ItemGroup>
     
     <!-- Android unit tests -->
     <ItemGroup Condition="$(StrideTestCategories.Contains(';GameAndroid;'))">
       <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGameAndroid)"><Solution>$(StrideSolution).Android.sln</Solution></UnitTest> 
+      <UnitTest Include="@(UnitTestGameAndroid)"><Solution>$(StrideSolution).Android</Solution></UnitTest> 
     </ItemGroup>
     
     <!-- Samples unit tests -->
@@ -349,28 +346,31 @@ Example of use:
         <!-- Replace . into _ (needed for .sln targets) -->
         <TargetName>$([System.String]::Copy('%(Identity)').Replace('.','_'))</TargetName>
         <!-- Default solution -->
-        <Solution Condition="'%(UnitTestPrerequisites.Solution)' == ''">$(StrideSolution).sln</Solution>
+        <Solution Condition="'%(UnitTestPrerequisites.Solution)' == ''">$(StrideSolution)</Solution>
       </UnitTestPrerequisites>
       <UnitTest>
         <!-- Replace . into _ (needed for .sln targets) -->
         <TargetName>$([System.String]::Copy('%(Identity)').Replace('.','_'))</TargetName>
         <!-- Default solution -->
-        <Solution Condition="'%(UnitTest.Solution)' == ''">$(StrideSolution).sln</Solution>
+        <Solution Condition="'%(UnitTest.Solution)' == ''">$(StrideSolution)</Solution>
       </UnitTest>
     </ItemGroup>
+
+    <!-- Remove artifacts generated during previous run -->
+    <Delete Files="$(MSBuildThisFileDirectory)..\tests\local\**\*.*" />
     
     <!-- Restore NuGet packages -->
     <Message Importance="High" Text="Restoring NuGet packages"/>
-    <Exec Condition="'%(UnitTestPrerequisites.Solution)' != ''" Command='"$(NuGetPath)" restore "%(UnitTestPrerequisites.Solution)"' />
-    <Exec Condition="'%(UnitTest.Solution)' != ''" Command='"$(NuGetPath)" restore "%(UnitTest.Solution)"' />
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Condition="'%(UnitTestPrerequisites.Solution)' != ''" Properties="StrideSolution=%(UnitTestPrerequisites.Solution)"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Condition="'%(UnitTest.Solution)' != ''" Properties="StrideSolution=%(UnitTest.Solution)"/>
     
     <!-- First, build prerequisites -->
-    <Message Importance="High" Text="Building unit test prerequisites from solution %(Solution): @(UnitTestPrerequisites->'%(TargetName)')"/>
-    <MSBuild Targets="@(UnitTestPrerequisites->'%(TargetName)')" Projects="%(Solution)" Properties="$(BuildProperties);Platform=Mixed Platforms;DeployExtension=true"/>
+    <Message Condition="'%(UnitTestPrerequisites.Solution)' != ''" Importance="High" Text="Building unit test prerequisites from solution %(UnitTestPrerequisites.Solution).sln: @(UnitTestPrerequisites->'%(TargetName)')"/>
+    <MSBuild Condition="'%(UnitTestPrerequisites.Solution)' != ''" Targets="@(UnitTestPrerequisites->'%(TargetName)')" Projects="%(UnitTestPrerequisites.Solution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms;DeployExtension=true"/>
 
     <!-- Build unit tests -->
-    <Message Importance="High" Text="Building unit test from solution %(Solution): @(UnitTest->'%(TargetName)')"/>
-    <MSBuild Targets="@(UnitTest->'%(TargetName)');$(StrideTestExtraTargets)" Projects="%(Solution)" Properties="$(BuildProperties);DeployExtension=true">
+    <Message Condition="'%(UnitTest.Solution)' != ''" Importance="High" Text="Building unit test from solution %(UnitTest.Solution).sln: @(UnitTest->'%(TargetName)')"/>
+    <MSBuild Condition="'%(UnitTest.Solution)' != ''" Targets="@(UnitTest->'%(TargetName)');$(StrideTestExtraTargets)" Projects="%(Solution).sln" Properties="$(BuildProperties);DeployExtension=true">
       <Output TaskParameter="TargetOutputs" ItemName="AssembliesToTest" />
     </MSBuild>
 
@@ -380,8 +380,8 @@ Example of use:
       <AssembliesToTestDefault Include="@(AssembliesToTest)" Condition="'%(AssembliesToTest.PlatformTarget)' != 'x86'"/>
       <AssembliesToTestX86 Include="@(AssembliesToTest)" Condition="'%(AssembliesToTest.PlatformTarget)' == 'x86'"/>
     </ItemGroup>
-    <Exec Condition="'@(AssembliesToTestDefault)' != ''" Command="&quot;$(XunitRunnerConsolePathDefault)&quot; @(AssembliesToTestDefault->'%(Identity)', ' ')"/>
-    <Exec Condition="'@(AssembliesToTestX86)' != ''" Command="&quot;$(XunitRunnerConsolePathX86)&quot; @(AssembliesToTestX86->'%(Identity)', ' ')"/>
+    <Exec Condition="'@(AssembliesToTestDefault)' != ''" Command="&quot;$(XunitRunnerConsolePathDefault)&quot; @(AssembliesToTestDefault->'%(Identity)', ' ')" IgnoreStandardErrorWarningFormat="true"/>
+    <Exec Condition="'@(AssembliesToTestX86)' != ''" Command="&quot;$(XunitRunnerConsolePathX86)&quot; @(AssembliesToTestX86->'%(Identity)', ' ')" IgnoreStandardErrorWarningFormat="true"/>
   </Target>
   
   <ItemGroup>
@@ -440,7 +440,7 @@ Example of use:
     <Delete Files="@(FilesToDeleteLauncher)"/>
     
     <!-- Generate the nuget package for the launcher application -->
-    <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\launcher\Stride.LauncherApp\Stride.LauncherApp.nuspec" -BasePath "$(StrideRoot)sources\launcher\Stride.LauncherApp\bin\Release" -OutputDirectory "$(StrideRoot)bin\launcher"' />
+    <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\launcher\Stride.Launcher\Stride.Launcher.nuspec" -BasePath "$(StrideRoot)sources\launcher\Stride.Launcher\bin\Release\publish" -OutputDirectory "$(StrideRoot)bin\launcher"' />
   </Target>
   
   <!--
@@ -514,8 +514,11 @@ Example of use:
   </Target>
   
   <Target Name="BuildLauncher">
-    <Exec Command='"$(NuGetPath)" restore "$(StrideSolutionLauncher).sln"' />
-    <MSBuild Targets="Build" Projects="$(StrideSolutionLauncher).sln" Properties="$(BuildProperties);Platform=Any CPU"/>
+    <PropertyGroup>
+      <StrideSolution>Stride.Launcher</StrideSolution>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Windows;StrideSolution=$(StrideSolution)"/>
+    <MSBuild Projects="..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj" Targets="Publish" Properties="$(BuildProperties);PublishProfile=FolderProfile;SolutionName=Stride.Launcher" />
   </Target>
 
 </Project>

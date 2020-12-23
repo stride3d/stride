@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Build.Locator;
 
@@ -31,7 +32,11 @@ namespace Stride.Core.Assets
             // Note: this should be called only once
             if (MSBuildInstance == null && Interlocked.Increment(ref MSBuildLocatorCount) == 1)
             {
-                MSBuildInstance = MSBuildLocator.QueryVisualStudioInstances().FirstOrDefault(x => x.Version.Major >= 16);
+                // Detect either .NET Core SDK or Visual Studio depending on current runtime
+                var isNETCore = !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework");
+                MSBuildInstance = MSBuildLocator.QueryVisualStudioInstances().FirstOrDefault(x => isNETCore
+                    ? x.DiscoveryType == DiscoveryType.DotNetSdk && x.Version.Major >= 3
+                    : (x.DiscoveryType == DiscoveryType.VisualStudioSetup || x.DiscoveryType == DiscoveryType.DeveloperConsole) && x.Version.Major >= 16);
 
                 // Make sure it is not already loaded (otherwise MSBuildLocator.RegisterDefaults() throws an exception)
                 if (MSBuildInstance != null && !AppDomain.CurrentDomain.GetAssemblies().Any(IsMSBuildAssembly))
@@ -44,6 +49,9 @@ namespace Stride.Core.Assets
                 throw new InvalidOperationException("Could not find a MSBuild installation (expected 16.0 or later)");
 
             CheckMSBuildToolset();
+
+            // Reset MSBUILD_EXE_PATH once MSBuild is resolved, to not spook child process (had issues with ThisProcess(MSBuild)->CompilerApp(net472): CompilerApp couldn't load MSBuild project properly)
+            Environment.SetEnvironmentVariable("MSBUILD_EXE_PATH", null);
         }
 
         private static bool IsMSBuildAssembly(System.Reflection.Assembly assembly)

@@ -28,10 +28,10 @@
     <ROW Property="BuildExeName" Value="StrideSetup"/>
     <ROW Property="CTRLS" Value="2"/>
     <ROW Property="Manufacturer" Value="Stride"/>
-    <ROW Property="ProductCode" Value="1033:{E517712C-0380-4DC9-B802-33A3936AC07A} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{FB06242C-984D-45E5-AC09-E9188AA4E20F} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="Stride"/>
-    <ROW Property="ProductVersion" Value="4.0.1" Type="32"/>
+    <ROW Property="ProductVersion" Value="5.0.1" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
     <ROW Property="UpgradeCode" Value="{B48CDC88-F979-46BC-B73C-E65080AE8F3A}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -59,7 +59,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="AIShRegAnswer" ComponentId="{BD0931F0-C2B5-4E23-BFF6-77123283DBF9}" Directory_="APPDIR" Attributes="4" KeyPath="AIShRegAnswer"/>
-    <ROW Component="AI_CustomARPName" ComponentId="{1499EFE6-0915-4AF4-ABB9-902E0C1CEEA6}" Directory_="APPDIR" Attributes="260" KeyPath="DisplayName" Options="1"/>
+    <ROW Component="AI_CustomARPName" ComponentId="{29882926-543A-4B6F-925C-FFA455547825}" Directory_="APPDIR" Attributes="260" KeyPath="DisplayName" Options="1"/>
     <ROW Component="AI_DisableModify" ComponentId="{20B0BFF5-527E-4A4C-B788-20F10784D27D}" Directory_="APPDIR" Attributes="260" KeyPath="NoModify" Options="1"/>
     <ROW Component="AI_ExePath" ComponentId="{ECECCEFA-4B57-4B3B-B44A-B440929CD009}" Directory_="APPDIR" Attributes="4" KeyPath="AI_ExePath"/>
     <ROW Component="APPDIR" ComponentId="{995F059F-2BC1-4BA2-8A1E-F504C47564D9}" Directory_="APPDIR" Attributes="0"/>
@@ -73,17 +73,14 @@
     <ROW Component="Targets" ComponentId="{FD7FA82A-7C57-4C7D-BF3A-6A77FE7B7640}" Directory_="Targets_Dir" Attributes="0"/>
     <ROW Component="UserInstall" ComponentId="{C2DAD2F4-F15C-4BD0-B7AC-505DD4A0A46B}" Directory_="APPDIR" Attributes="4" Condition="AdminUser &lt;&gt; 1" KeyPath="Temp"/>
     <ROW Component="launcherprerequisites.exe" ComponentId="{148823E1-3AEC-46C3-A8B7-F9BA6EE2BAB7}" Directory_="Prerequisites_Dir" Attributes="0" KeyPath="launcherprerequisites.exe"/>
-    <ROW Component="store.config" ComponentId="{D628FBE9-4C57-4F71-AB43-D376796DA617}" Directory_="APPDIR" Attributes="0" KeyPath="store.config" Type="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
-    <ROW Feature="Stride" Title="Stride" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="16" Components="AIShRegAnswer AI_CustomARPName AI_DisableModify AI_ExePath APPDIR AdminInstall Cache GamePackages Prerequisites ProductInformation SHORTCUTDIR Stride.exe Targets UserInstall launcherprerequisites.exe store.config"/>
+    <ROW Feature="Stride" Title="Stride" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="16" Components="AIShRegAnswer AI_CustomARPName AI_DisableModify AI_ExePath APPDIR AdminInstall Cache GamePackages Prerequisites ProductInformation SHORTCUTDIR Stride.exe Targets UserInstall launcherprerequisites.exe"/>
     <ATTRIBUTE name="CurrentFeature" value="Stride"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
-    <ROW File="Stride.exe" Component_="Stride.exe" FileName="Stride.exe" Attributes="0" SourcePath="..\Stride.LauncherApp\bin\Release\Stride.exe" SelfReg="false" NextFile="store.config"/>
-    <ROW File="Stride.exe.config" Component_="store.config" FileName="STRIDE~1.CON|Stride.exe.config" Attributes="0" SourcePath="..\Stride.LauncherApp\bin\Release\Stride.exe.config" SelfReg="false" NextFile="launcherprerequisites.exe"/>
+    <ROW File="Stride.exe" Component_="Stride.exe" FileName="STRIDE~1.EXE|Stride.Launcher.exe" Attributes="0" SourcePath="..\Stride.Launcher\bin\Release\publish\Stride.Launcher.exe" SelfReg="false" NextFile="launcherprerequisites.exe"/>
     <ROW File="launcherprerequisites.exe" Component_="launcherprerequisites.exe" FileName="LAUNCH~1.EXE|launcher-prerequisites.exe" Attributes="0" SourcePath="..\Prerequisites\launcher-prerequisites.exe" SelfReg="false"/>
-    <ROW File="store.config" Component_="store.config" FileName="STORE~1.CON|store.config" Attributes="0" SourcePath="..\Stride.LauncherApp\bin\Release\store.config" SelfReg="false" NextFile="Stride.exe.config"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AiRemoveFileComponent">
     <ROW RemoveFile="__1" Condition="(AI_CLEAN_RESOURCES_UNINSTALL = &quot;1&quot;) AND (NOT UPGRADINGPRODUCTCODE)" Options="3"/>
@@ -98,7 +95,7 @@
     <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
-    <ROW TimeStampUrl="http://timestamp.verisign.com/scripts/timstamp.dll" SignerDescription="[|ProductName]" SignOptions="7" SignTool="0" Thumbprint="edad2b260091eacffbc42859d0339c74b263bfec Subject: vvvv - Dießl &amp; Gregor GbR&#10;Issuer: Sectigo RSA Code Signing CA&#10;Valid from 08/10/2019 to 07/25/2020"/>
+    <ROW TimeStampUrl="http://timestamp.verisign.com/scripts/timstamp.dll" SignerDescription="[|ProductName]" SignOptions="7" SignTool="0" Thumbprint="c3dd2388073e8c038a62dc57865bd0994a784c76 Subject: vvvv - Dießl &amp; Gregor GbR&#10;Issuer: Sectigo RSA Code Signing CA&#10;Valid from 08/28/2020 to 07/02/2021"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
     <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
@@ -303,7 +300,7 @@
     <ROW Action="AI_DATA_SETTER" Sequence="3997"/>
     <ROW Action="AI_EstimateExtractFiles" Sequence="3999" Builds="DefaultBuild"/>
     <ROW Action="AI_SETMIXINSTLOCATION" Sequence="746"/>
-    <ROW Action="Stride.exe" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1201"/>
+    <ROW Action="Stride.exe" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) AND NOT UPGRADINGPRODUCTCODE )" Sequence="1201"/>
     <ROW Action="AI_GetArpIconPath" Sequence="1401"/>
     <ROW Action="AI_RemoveExternalUIStub" Condition="(REMOVE=&quot;ALL&quot;) AND ((VersionNT &gt; 500) OR((VersionNT = 500) AND (ServicePackLevel &gt;= 4)))" Sequence="1501"/>
     <ROW Action="AI_EnableDebugLog" Sequence="51"/>

@@ -80,7 +80,7 @@ namespace Stride.Editor.Build
                 foreach (var asset in package.Assets)
                 {
                     if (typeof(EffectShaderAsset).IsAssignableFrom(asset.AssetType))
-                        mapPackage.Assets.Add(new AssetItem(asset.Url, asset.Asset) { SourceFolder = asset.AssetItem.SourceFolder });
+                        mapPackage.Assets.Add(new AssetItem(asset.Url, asset.Asset) { SourceFolder = asset.AssetItem.SourceFolder, AlternativePath = asset.AssetItem.AlternativePath });
                 }
 
                 importShadersProjectSession.Projects.Add(new StandalonePackage(mapPackage));
@@ -116,7 +116,7 @@ namespace Stride.Editor.Build
                 {
                     if (typeof(EffectShaderAsset).IsAssignableFrom(asset.AssetType))
                     {
-                        mapPackage.Assets.Add(new AssetItem(asset.Url, asset.Asset) { SourceFolder = asset.AssetItem.SourceFolder });
+                        mapPackage.Assets.Add(new AssetItem(asset.Url, asset.Asset) { SourceFolder = asset.AssetItem.SourceFolder, AlternativePath = asset.AssetItem.AlternativePath });
                     }
                 }
 

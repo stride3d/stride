@@ -1,4 +1,4 @@
-﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.ComponentModel;
@@ -16,6 +16,7 @@ using Stride.Core.Presentation.Dialogs;
 using Stride.Core.Presentation.Extensions;
 using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.ViewModel;
+using NuGet.Frameworks;
 
 namespace Stride.LauncherApp.Views
 {
@@ -86,6 +87,16 @@ namespace Stride.LauncherApp.Views
         private void SelectedTabChanged(object sender, SelectionChangedEventArgs e)
         {
             LauncherSettings.CurrentTab = TabControl.SelectedIndex;
+        }
+
+        private void FrameworkChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var framework = (string)FrameworkSelector.SelectedItem;
+            if (framework != null && LauncherSettings.PreferredFramework != framework)
+            {
+                LauncherSettings.PreferredFramework = framework;
+                LauncherSettings.Save();
+            }
         }
 
         private void OpenWithClicked(object sender, RoutedEventArgs e)

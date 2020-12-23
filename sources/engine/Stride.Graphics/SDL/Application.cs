@@ -7,7 +7,8 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Graphics.SDL
 {
-        // Using is here otherwise it would conflict with the current namespace that also defines SDL.
+    using System.Diagnostics;
+    // Using is here otherwise it would conflict with the current namespace that also defines SDL.
     using SDL2;
 
     public static class Application
@@ -116,9 +117,12 @@ namespace Stride.Graphics.SDL
         public static void ProcessEvents()
         {
             SDL.SDL_Event e;
-            SDL.SDL_PumpEvents();
             while (SDL.SDL_PollEvent(out e) > 0)
             {
+                // Handy for debugging
+                //if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT)
+                //    Debug.WriteLine(e.window.windowEvent);
+
                 Application.ProcessEvent(e);
             }
         }
@@ -186,6 +190,11 @@ namespace Stride.Graphics.SDL
                     // Send these events to all the windows
                     Windows.ForEach(x => x.ProcessEvent(e));
                     break;
+                
+                case SDL.SDL_EventType.SDL_DROPTEXT:
+                case SDL.SDL_EventType.SDL_DROPFILE:
+                    ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.drop.windowID));
+                    break;
             }
             ctrl?.ProcessEvent(e);
         }
@@ -226,6 +235,12 @@ namespace Stride.Graphics.SDL
         /// Backup storage for windows of current application.
         /// </summary>
         private static readonly Dictionary<IntPtr, WeakReference<Window>> InternalWindows;
+    
+        public static string Clipboard
+        {
+            get => SDL.SDL_GetClipboardText();
+            set => SDL.SDL_SetClipboardText( value );
+        }
     }
 }
 #endif

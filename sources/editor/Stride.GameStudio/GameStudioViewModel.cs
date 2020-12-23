@@ -133,7 +133,8 @@ namespace Stride.GameStudio
                 {
                     StartInfo =
                     {
-                        FileName = Assembly.GetExecutingAssembly().Location,
+                        // Make sure to use .exe rather than .dll (.NET Core)
+                        FileName = Path.ChangeExtension(Assembly.GetExecutingAssembly().Location, ".exe"),
                         Arguments = restartArguments,
                     }
                 };

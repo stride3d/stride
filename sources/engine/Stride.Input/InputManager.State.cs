@@ -106,7 +106,7 @@ namespace Stride.Input
         /// <summary>
         /// The keys that have been pressed since the last frame
         /// </summary>
-        public IReadOnlySet<Keys> PressedKeys
+        public Core.Collections.IReadOnlySet<Keys> PressedKeys
         {
             get
             {
@@ -118,7 +118,7 @@ namespace Stride.Input
         /// <summary>
         /// The keys that have been released since the last frame
         /// </summary>
-        public IReadOnlySet<Keys> ReleasedKeys
+        public Core.Collections.IReadOnlySet<Keys> ReleasedKeys
         {
             get
             {
@@ -130,7 +130,7 @@ namespace Stride.Input
         /// <summary>
         /// The keys that are down
         /// </summary>
-        public IReadOnlySet<Keys> DownKeys
+        public Core.Collections.IReadOnlySet<Keys> DownKeys
         {
             get
             {
@@ -142,7 +142,7 @@ namespace Stride.Input
         /// <summary>
         /// The mouse buttons that have been pressed since the last frame
         /// </summary>
-        public IReadOnlySet<MouseButton> PressedButtons
+        public Core.Collections.IReadOnlySet<MouseButton> PressedButtons
         {
             get
             {
@@ -154,7 +154,7 @@ namespace Stride.Input
         /// <summary>
         /// The mouse buttons that have been released since the last frame
         /// </summary>
-        public IReadOnlySet<MouseButton> ReleasedButtons
+        public Core.Collections.IReadOnlySet<MouseButton> ReleasedButtons
         {
             get
             {
@@ -166,7 +166,7 @@ namespace Stride.Input
         /// <summary>
         /// The mouse buttons that are down
         /// </summary>
-        public IReadOnlySet<MouseButton> DownButtons
+        public Core.Collections.IReadOnlySet<MouseButton> DownButtons
         {
             get
             {

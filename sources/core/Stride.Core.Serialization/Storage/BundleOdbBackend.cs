@@ -174,19 +174,8 @@ namespace Stride.Core.Storage
 
         public async Task LoadBundleFromUrl(string bundleName, ObjectDatabaseContentIndexMap objectDatabaseContentIndexMap, string bundleUrl, bool ignoreDependencies = false)
         {
-            BundleDescription bundle = null;
-
-            // If there is a .bundle, add incremental id before it
-            var currentBundleExtensionUrl = bundleUrl.Length - (bundleUrl.EndsWith(BundleExtension) ? BundleExtension.Length : 0);
-
-            // Process incremental bundles one by one
-            using (var packStream = VirtualFileSystem.OpenStream(bundleUrl, VirtualFileMode.Open, VirtualFileAccess.Read))
-            {
-                bundle = ReadBundleDescription(packStream);
-            }
-
-            var files = new List<string> { bundleUrl };
-            files.AddRange(bundle.IncrementalBundles.Select(x => bundleUrl.Insert(currentBundleExtensionUrl, "." + x)));
+            List<string> files;
+            var bundle = ReadBundleHeader(bundleUrl, out files);
 
             if (bundle == null)
                 throw new FileNotFoundException("Could not find bundle", bundleUrl);
@@ -247,6 +236,25 @@ namespace Stride.Core.Storage
 
             // Merge with global object database map
             objectDatabaseContentIndexMap.Merge(bundle.Assets);
+        }
+
+        public static BundleDescription ReadBundleHeader(string bundleUrl, out List<string> bundleUrls)
+        {
+            BundleDescription bundle;
+
+            // If there is a .bundle, add incremental id before it
+            var currentBundleExtensionUrl = bundleUrl.Length - (bundleUrl.EndsWith(BundleExtension) ? BundleExtension.Length : 0);
+
+            // Process incremental bundles one by one
+            using (var packStream = VirtualFileSystem.OpenStream(bundleUrl, VirtualFileMode.Open, VirtualFileAccess.Read))
+            {
+                bundle = ReadBundleDescription(packStream);
+            }
+
+            bundleUrls = new List<string> { bundleUrl };
+            bundleUrls.AddRange(bundle.IncrementalBundles.Select(x => bundleUrl.Insert(currentBundleExtensionUrl, "." + x)));
+
+            return bundle;
         }
 
         /// <summary>

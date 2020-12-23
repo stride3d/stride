@@ -4,7 +4,8 @@
 using System;
 using System.Diagnostics;
 
-using SharpVulkan;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -23,6 +24,7 @@ namespace Stride.Graphics
         /// </summary>
         protected internal virtual void OnDestroyed()
         {
+            Destroyed?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>

@@ -135,11 +135,5 @@ namespace Stride.Shaders.Tests
             //TestMacros();
             TestMacrosArray();
         }
-
-        internal static void Main()
-        {
-            var test = new TestMixinMacros();
-            test.Run();
-        }
     }
 }

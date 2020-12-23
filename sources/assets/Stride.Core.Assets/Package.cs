@@ -396,6 +396,7 @@ namespace Stride.Core.Assets
                 var assetItem = new AssetItem(asset.Location, newAsset)
                 {
                     SourceFolder = asset.SourceFolder,
+                    AlternativePath = asset.AlternativePath,
                 };
                 package.Assets.Add(assetItem);
             }
@@ -948,6 +949,7 @@ namespace Stride.Core.Assets
                 {
                     IsDirty = assetContent != null || aliasOccurred,
                     SourceFolder = sourceFolder.MakeRelative(RootDirectory),
+                    AlternativePath = assetFile.Link != null ? assetFullPath : null,
                 };
                 yamlMetadata.CopyInto(assetItem.YamlMetadata);
 
@@ -1023,31 +1025,50 @@ namespace Stride.Core.Assets
             if (loadParameters == null) throw new ArgumentNullException(nameof(loadParameters));
             var assemblyContainer = loadParameters.AssemblyContainer ?? AssemblyContainer.Default;
 
-            // TODO: Add support for loading from packages
-            var project = Container as SolutionProject;
-            if (project == null || project.FullPath == null || project.Type != ProjectType.Library)
-                return;
+            // Load from package
+            if (Container is StandalonePackage standalonePackage)
+            {
+                foreach (var assemblyPath in standalonePackage.Assemblies)
+                {
+                    LoadAssemblyReferenceInternal(log, loadParameters, assemblyContainer, null, assemblyPath);
+                }
+            }
 
-            // Check if already loaded
-            // TODO: More advanced cases: unload removed references, etc...
-            var projectReference = new ProjectReference(project.Id, project.FullPath, Core.Assets.ProjectType.Library);
-            if (LoadedAssemblies.Any(x => x.ProjectReference == projectReference))
-                return;
+            // Load from csproj
+            if (Container is SolutionProject project && project.FullPath != null && project.Type == ProjectType.Library)
+            {
+                // Check if already loaded
+                // TODO: More advanced cases: unload removed references, etc...
+                var projectReference = new ProjectReference(project.Id, project.FullPath, Core.Assets.ProjectType.Library);
 
-            string assemblyPath = project.TargetPath;
-            var fullProjectLocation = project.FullPath.ToWindowsPath();
+                LoadAssemblyReferenceInternal(log, loadParameters, assemblyContainer, projectReference, project.TargetPath);
+            }
+        }
 
+        private void LoadAssemblyReferenceInternal(ILogger log, PackageLoadParameters loadParameters, AssemblyContainer assemblyContainer, ProjectReference projectReference, string assemblyPath)
+        {
             try
             {
+                // Check if already loaded
+                if (projectReference != null && LoadedAssemblies.Any(x => x.ProjectReference == projectReference))
+                    return;
+                else if (LoadedAssemblies.Any(x => string.Compare(x.Path, assemblyPath, true) == 0))
+                    return;
+
                 var forwardingLogger = new ForwardingLoggerResult(log);
 
-                if (loadParameters.AutoCompileProjects || string.IsNullOrWhiteSpace(assemblyPath))
+                // If csproj, we might need to compile it
+                if (projectReference != null)
                 {
-                    assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(Session?.SolutionPath, fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);
-                    if (string.IsNullOrWhiteSpace(assemblyPath))
+                    var fullProjectLocation = projectReference.Location.ToWindowsPath();
+                    if (loadParameters.AutoCompileProjects || string.IsNullOrWhiteSpace(assemblyPath))
                     {
-                        log.Error($"Unable to locate assembly reference for project [{fullProjectLocation}]");
-                        return;
+                        assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(Session?.SolutionPath, fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);
+                        if (string.IsNullOrWhiteSpace(assemblyPath))
+                        {
+                            log.Error($"Unable to locate assembly reference for project [{fullProjectLocation}]");
+                            return;
+                        }
                     }
                 }
 
@@ -1085,7 +1106,7 @@ namespace Stride.Core.Assets
             }
             catch (Exception ex)
             {
-                log.Error($"Unexpected error while loading project [{fullProjectLocation}] or assembly reference [{assemblyPath}]", ex);
+                log.Error($"Unexpected error while loading assembly reference [{assemblyPath}]", ex);
             }
         }
 
@@ -1151,7 +1172,7 @@ namespace Stride.Core.Assets
                             continue;
                         }
 
-                        var templateDescription = YamlSerializer.Default.Load<TemplateDescription>(file.FullName);
+                        var templateDescription = YamlSerializer.Load<TemplateDescription>(file.FullName);
                         templateDescription.FullPath = file.FullName;
                         Templates.Add(templateDescription);
                     }
@@ -1251,7 +1272,7 @@ namespace Stride.Core.Assets
             // Adjust extensions for Stride rename
             foreach (var loadingAsset in listFiles)
             {
-                var originalExt = loadingAsset.FilePath.GetFileExtension();
+                var originalExt = loadingAsset.FilePath.GetFileExtension() ?? "";
                 var ext = originalExt.Replace(".xk", ".sd");
                 if (ext != originalExt)
                 {
@@ -1262,7 +1283,7 @@ namespace Stride.Core.Assets
             return listFiles;
         }
 
-        public static List<UFile> FindAssetsInProject(string projectFullPath, out string nameSpace)
+        public static List<(UFile FilePath, UFile Link)> FindAssetsInProject(string projectFullPath, out string nameSpace)
         {
             var realFullPath = new UFile(projectFullPath);
             var project = VSProjectHelper.LoadProject(realFullPath);
@@ -1273,11 +1294,14 @@ namespace Stride.Core.Assets
                 nameSpace = null;
 
             var result = project.Items.Where(x => (x.ItemType == "Compile" || x.ItemType == "None") && string.IsNullOrEmpty(x.GetMetadataValue("AutoGen")))
+                // Build full path for Include and Link
+                .Select(x => (FilePath: UPath.Combine(dir, new UFile(x.EvaluatedInclude)), Link: x.HasMetadata("Link") ? UPath.Combine(dir, new UFile(x.GetMetadataValue("Link"))) : null))
+                // For items outside project, let's pretend they are link
+                .Select(x => (FilePath: x.FilePath, Link: x.Link ?? (!dir.Contains(x.FilePath) ? x.FilePath.GetFileName() : null)))
                 // Test both Stride and Xenko extensions
-                .Select(x => new UFile(x.EvaluatedInclude)).Where(x =>
-                    AssetRegistry.IsProjectAssetFileExtension(x.GetFileExtension())
-                    || AssetRegistry.IsProjectAssetFileExtension(x.GetFileExtension().Replace(".xk", ".sd")))
-                .Select(projectItem => UPath.Combine(dir, projectItem))
+                .Where(x =>
+                    AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension())
+                    || AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension()?.Replace(".xk", ".sd")))
                 // avoid duplicates otherwise it might save a single file as separte file with renaming
                 // had issues with case such as Effect.sdsl being registered twice (with glob pattern) and being saved as Effect.sdsl and Effect (2).sdsl
                 .Distinct()
@@ -1294,17 +1318,17 @@ namespace Stride.Core.Assets
             if (package.IsSystem) return;
 
             var project = package.Container as SolutionProject;
-            if (project == null || project.FullPath == null || project.Type != ProjectType.Library)
+            if (project == null || project.FullPath == null)
                 return;
 
             string defaultNamespace;
-            var codePaths = FindAssetsInProject(project.FullPath, out defaultNamespace);
+            var projectAssets = FindAssetsInProject(project.FullPath, out defaultNamespace);
             package.RootNamespace = defaultNamespace;
-            var dir = new UDirectory(project.FullPath.GetFullDirectory());
+            var projectDirectory = new UDirectory(project.FullPath.GetFullDirectory());
 
-            foreach (var codePath in codePaths)
+            foreach (var projectAsset in projectAssets)
             {
-                list.Add(new PackageLoadingAssetFile(codePath, dir));
+                list.Add(new PackageLoadingAssetFile(projectAsset.FilePath, projectDirectory) { Link = projectAsset.Link });
             }
         }
 

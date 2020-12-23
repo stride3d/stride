@@ -124,16 +124,9 @@ namespace Stride.Graphics.Tests
         public void RunTestPass2()
         {
             IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);
+            IgnoreGraphicPlatform(GraphicsPlatform.Vulkan);
 
             RunGameTest(new TestLambertPrefilteringSHPass2());
-        }
-
-        internal static void Main()
-        {
-            using (var game = new TestLambertPrefilteringSHPass2(false))
-            {
-                game.Run();
-            }
         }
     }
 }

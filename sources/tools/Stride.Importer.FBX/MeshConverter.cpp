@@ -176,6 +176,8 @@ public:
 
 		FbxVector4* controlPoints = pMesh->GetControlPoints();
 		FbxGeometryElementNormal* normalElement = pMesh->GetElementNormal();
+		FbxGeometryElementTangent* tangentElement = pMesh->GetElementTangent();
+		FbxGeometryElementBinormal* binormalElement = pMesh->GetElementBinormal();
 		FbxGeometryElementSmoothing* smoothingElement = pMesh->GetElementSmoothing();
 
 		// UV set name mapping
@@ -312,6 +314,15 @@ public:
 			vertexStride += 12;
 
 			needEdgeIndexing |= IsGroupMappingModeByEdge(normalElement);
+		}
+
+		int tangentOffset = vertexStride;
+		if (tangentElement != NULL)
+		{
+			vertexElements->Add(VertexElement::Tangent<Vector4>(0, vertexStride));
+			vertexStride += 16;
+
+			needEdgeIndexing |= IsGroupMappingModeByEdge(tangentElement);
 		}
 
 		// TEXCOORD
@@ -526,17 +537,17 @@ public:
 					*(Vector3*)(vbPointer + positionOffset) = controlPoint;
 
 					// NORMAL
+					Vector3 normal = Vector3(1, 0, 0);
 					if (normalElement != NULL)
 					{
 						int normalIndex = GetGroupIndexForLayerElementTemplate(normalElement, controlPointIndex, vertexIndex, edgeIndex, i, meshName, layerIndexFirstTimeError);
 						auto src_normal = normalElement->GetDirectArray().GetAt(normalIndex);
 						auto normalPointer = ((Vector3*)(vbPointer + normalOffset));
-						Vector3 normal = sceneMapping->ConvertNormalFromFbx(src_normal);
+						normal = sceneMapping->ConvertNormalFromFbx(src_normal);
 						if (isnan(normal.X) || isnan(normal.Y) || isnan(normal.Z))
-							*normalPointer = Vector3(1, 0, 0);
-						else
-							*normalPointer = normal;
-						normalPointer->Normalize();
+							normal = Vector3(1, 0, 0);
+						normal = Vector3::Normalize(normal);
+						*normalPointer = normal;
 					}
 
 					// UV
@@ -548,6 +559,29 @@ public:
 
 						((float*)(vbPointer + uvOffsets[uvGroupIndex]))[0] = (float)uv[0];
 						((float*)(vbPointer + uvOffsets[uvGroupIndex]))[1] = 1.0f - (float)uv[1];
+					}
+
+					// TANGENT
+					if (tangentElement != NULL)
+					{
+						int tangentIndex = GetGroupIndexForLayerElementTemplate(tangentElement, controlPointIndex, vertexIndex, edgeIndex, i, meshName, layerIndexFirstTimeError);
+						auto src_tangent = tangentElement->GetDirectArray().GetAt(tangentIndex);
+						auto tangentPointer = ((Vector4*)(vbPointer + tangentOffset));
+						Vector3 tangent = sceneMapping->ConvertNormalFromFbx(src_tangent);
+						if (isnan(tangent.X) || isnan(tangent.Y) || isnan(tangent.Z))
+						{
+							*tangentPointer = Vector4(1, 0, 0, 1);
+						}
+						else
+						{
+							tangent = Vector3::Normalize(tangent);
+
+							int binormalIndex = GetGroupIndexForLayerElementTemplate(binormalElement, controlPointIndex, vertexIndex, edgeIndex, i, meshName, layerIndexFirstTimeError);
+							auto src_binormal = binormalElement->GetDirectArray().GetAt(binormalIndex);
+							Vector3 binormal = sceneMapping->ConvertNormalFromFbx(src_tangent);
+							// See GenerateTangentBinormal()
+							*tangentPointer = Vector4(tangent.X, tangent.Y, tangent.Z, Vector3::Dot(Vector3::Cross(normal, tangent), binormal) < 0.0f ? -1.0f : 1.0f);
+						}
 					}
 
 					// BLENDINDICES and BLENDWEIGHT
@@ -646,7 +680,7 @@ public:
 			auto lMaterial = pMesh->GetNode()->GetMaterial(i);
 		
 			// Generate TNB
-			if (normalElement != NULL && uvElements.size() > 0)
+			if (tangentElement == NULL && normalElement != NULL && uvElements.size() > 0)
 				TNBExtensions::GenerateTangentBinormal(drawData);
 
 			auto meshData = gcnew Mesh();

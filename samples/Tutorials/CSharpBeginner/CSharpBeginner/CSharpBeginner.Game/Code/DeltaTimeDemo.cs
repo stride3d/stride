@@ -35,7 +35,7 @@ namespace CSharpBeginner.Code
             // Since we have a countdown timer, we subtract the delta time from the count down time
             countdownTime -= deltaTime;
 
-            // If the repeatTimer, reaches 0, we reset the countDownTime back to the count down start time
+            // If the repeatTimer, reaches 0, we reset the countdownTime back to the count down start time
             if (countdownTime < 0)
             {
                 countdownTime = countdownStartTime;

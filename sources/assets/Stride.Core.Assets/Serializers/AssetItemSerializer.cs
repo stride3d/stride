@@ -44,6 +44,7 @@ namespace Stride.Core.Assets.Serializers
                 Location = item.Location;
                 SourceFolder = item.SourceFolder;
                 Asset = item.Asset;
+                AlternativePath = item.AlternativePath;
             }
 
             [DataMember(0)]
@@ -56,9 +57,12 @@ namespace Stride.Core.Assets.Serializers
             [DataMember(2)]
             public Asset Asset;
 
+            [DataMember(3)]
+            public UFile AlternativePath;
+
             public AssetItem ToAssetItem()
             {
-                return new AssetItem(Location, Asset) { SourceFolder = SourceFolder };
+                return new AssetItem(Location, Asset) { SourceFolder = SourceFolder, AlternativePath = AlternativePath };
             }
         }
 

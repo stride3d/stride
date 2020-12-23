@@ -96,8 +96,14 @@ namespace JumpyJet
 
             var startButton = new Button
             {
-                Content = new TextBlock {Font = Font, Text = "Touch to Start", TextColor = Color.Black, 
-                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center},
+                Content = new TextBlock
+                {
+                    Font = Font,
+                    Text = "Touch to Start",
+                    TextColor = Color.Black,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                },
                 NotPressedImage = buttonImage,
                 PressedImage = buttonImage,
                 MouseOverImage = buttonImage,
@@ -109,7 +115,7 @@ namespace JumpyJet
             startButton.SetCanvasRelativePosition(new Vector3(0.5f, 0.7f, 0f));
             startButton.Click += (sender, args) =>
             {
-                GameGlobals.GameStartedventKey.Broadcast();
+                GameGlobals.GameStartedEventKey.Broadcast();
                 StartGameMode();
             };
 
@@ -129,7 +135,9 @@ namespace JumpyJet
         {
             scoreTextBlock = new TextBlock
             {
-                Font = Font, TextColor = Color.Black, VerticalAlignment = VerticalAlignment.Center
+                Font = Font,
+                TextColor = Color.Black,
+                VerticalAlignment = VerticalAlignment.Center
             };
             scoreTextBlock.SetCanvasPinOrigin(new Vector3(0.5f, 0.5f, 1f));
             scoreTextBlock.SetCanvasRelativePosition(new Vector3(0.2f, 0.05f, 0f));
@@ -150,8 +158,14 @@ namespace JumpyJet
         {
             var menuButton = new Button
             {
-                Content = new TextBlock { Font = Font, Text = "Menu", TextColor = Color.Black, 
-                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center},
+                Content = new TextBlock
+                {
+                    Font = Font,
+                    Text = "Menu",
+                    TextColor = Color.Black,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                },
                 PressedImage = buttonImage,
                 NotPressedImage = buttonImage,
                 MouseOverImage = buttonImage,
@@ -169,8 +183,14 @@ namespace JumpyJet
 
             var retryButton = new Button
             {
-                Content = new TextBlock { Font = Font, Text = "Retry", TextColor = Color.Black, 
-                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center},
+                Content = new TextBlock
+                {
+                    Font = Font,
+                    Text = "Retry",
+                    TextColor = Color.Black,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                },
                 Padding = new Thickness(74, 30, 25, 30),
                 MinimumWidth = 190f,
                 PressedImage = buttonImage,
@@ -183,14 +203,14 @@ namespace JumpyJet
             retryButton.Click += (sender, args) =>
             {
                 GameGlobals.GameResetEventKey.Broadcast();
-                GameGlobals.GameStartedventKey.Broadcast();
+                GameGlobals.GameStartedEventKey.Broadcast();
                 StartGameMode();
             };
 
             var gameOverCanvas = new Canvas();
             gameOverCanvas.Children.Add(menuButton);
             gameOverCanvas.Children.Add(retryButton);
-            
+
             gameOverRoot = new ModalElement
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,

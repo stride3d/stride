@@ -49,7 +49,11 @@ namespace Stride.Rendering
         public static Material New(GraphicsDevice device, MaterialDescriptor descriptor)
         {
             if (descriptor == null) throw new ArgumentNullException("descriptor");
-            var context = new MaterialGeneratorContext(new Material())
+
+            // The descriptor is not assigned to the material because
+            // 1) we don't know whether it will mutate and be used to generate another material
+            // 2) we don't wanna hold on to memory we actually don't need
+            var context = new MaterialGeneratorContext(new Material(), device)
             {
                 GraphicsProfile = device.Features.RequestedProfile,
             };

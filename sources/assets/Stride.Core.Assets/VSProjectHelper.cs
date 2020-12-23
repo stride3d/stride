@@ -205,22 +205,32 @@ namespace Stride.Core.Assets
             projectCollection.LoadProject(fullProjectLocation);
             var project = projectCollection.LoadedProjects.First();
 
-            // Support for cross-targeting (TargetFrameworks)
-            var assemblyPath = project.GetPropertyValue("TargetPath");
-            var targetFramework = project.GetPropertyValue("TargetFramework");
-            var targetFrameworks = project.GetPropertyValue("TargetFrameworks");
-            if (string.IsNullOrWhiteSpace(assemblyPath) && string.IsNullOrWhiteSpace(targetFramework) && !string.IsNullOrWhiteSpace(targetFrameworks))
+            // Support for cross-targeting (TargetFrameworks and RuntimeIdentifiers)
+            // Reload project with first TargetFramework and/or RuntimeIdentifier
+            void TryReloadWithFirstValue(string valuePropertyName, string valuesPropertyName)
             {
-                // We might be in a cross-targeting scenario
-                // Reload project with first target framework
-                project.ProjectCollection.UnloadAllProjects();
-                project.ProjectCollection.Dispose();
+                if (globalProperties.ContainsKey(valuePropertyName))
+                    return;
 
-                globalProperties.Add("TargetFramework", targetFrameworks.Split(';').First());
-                projectCollection = new Microsoft.Build.Evaluation.ProjectCollection(globalProperties);
-                projectCollection.LoadProject(fullProjectLocation);
-                project = projectCollection.LoadedProjects.First();
+                var propertyValue = project.GetPropertyValue(valuePropertyName);
+                var propertyValues = project.GetPropertyValue(valuesPropertyName);
+                if (string.IsNullOrWhiteSpace(propertyValue) && !string.IsNullOrWhiteSpace(propertyValues))
+                {
+                    project.ProjectCollection.UnloadAllProjects();
+                    project.ProjectCollection.Dispose();
+
+                    globalProperties.Add(valuePropertyName, propertyValues.Split(';').First());
+                    projectCollection = new Microsoft.Build.Evaluation.ProjectCollection(globalProperties);
+                    projectCollection.LoadProject(fullProjectLocation);
+                    project = projectCollection.LoadedProjects.First();
+                }
             }
+
+            // We need to go through them one by one (because a MSBuild Condition might depend on previous step)
+            // TODO: We should deduct TFM from referencing project(s) (if any) rather than default one.
+            TryReloadWithFirstValue("TargetFramework", "TargetFrameworks");
+            TryReloadWithFirstValue("RuntimeIdentifier", "RuntimeIdentifiers");
+            TryReloadWithFirstValue("StrideGraphicsApi", "StrideGraphicsApis");
 
             return project;
         }

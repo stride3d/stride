@@ -524,6 +524,36 @@ namespace Stride.Core.Shaders.Writer
         }
 
         /// <inheritdoc />
+        public override void Visit(VectorType vectorType)
+        {
+            Write(vectorType.Name).Write("<");
+            for (int i = 0; i < vectorType.Parameters.Count; i++)
+            {
+                var parameter = vectorType.Parameters[i];
+                if (i > 0) Write(",").WriteSpace();
+
+                VisitDynamic(parameter);
+            }
+
+            Write(">");
+        }
+
+        /// <inheritdoc />
+        public override void Visit(MatrixType vectorType)
+        {
+            Write(vectorType.Name).Write("<");
+            for (int i = 0; i < vectorType.Parameters.Count; i++)
+            {
+                var parameter = vectorType.Parameters[i];
+                if (i > 0) Write(",").WriteSpace();
+
+                VisitDynamic(parameter);
+            }
+
+            Write(">");
+        }
+
+        /// <inheritdoc />
         public override void Visit(Literal literal)
         {
             if (literal == null)

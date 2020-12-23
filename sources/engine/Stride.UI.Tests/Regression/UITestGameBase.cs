@@ -89,7 +89,7 @@ namespace Stride.UI.Tests.Regression
 
             UIRoot = new Entity("Root entity of camera UI") { new UIComponent() };
             UIComponent.IsFullScreen = true;
-            UIComponent.Resolution = new Vector3(1000, 500, 500);
+            UIComponent.Resolution = new Vector3(1000, 600, 500);
             UIComponent.ResolutionStretch = ResolutionStretch.FixedWidthFixedHeight;
             Scene.Entities.Add(UIRoot);
 

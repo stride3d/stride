@@ -117,10 +117,11 @@ namespace Stride.Rendering.Images
                 var texture = GetInput(i);
                 if (i < TexturingKeys.DefaultTextures.Count)
                 {
-                    var texturingKeys = texture.ViewDimension == TextureDimension.TextureCube ? TexturingKeys.TextureCubes : TexturingKeys.DefaultTextures;
+                    var texturingKeys = texture != null && texture.ViewDimension == TextureDimension.TextureCube ? TexturingKeys.TextureCubes : TexturingKeys.DefaultTextures;
+                    var texelSize = texture != null ? new Vector2(1.0f / texture.ViewWidth, 1.0f / texture.ViewHeight) : default;
                     // TODO GRAPHICS REFACTOR Do not use slow version
                     Parameters.Set(texturingKeys[i], texture);
-                    Parameters.Set(TexturingKeys.TexturesTexelSize[i], new Vector2(1.0f / texture.ViewWidth, 1.0f / texture.ViewHeight));
+                    Parameters.Set(TexturingKeys.TexturesTexelSize[i], texelSize);
                 }
                 else
                 {

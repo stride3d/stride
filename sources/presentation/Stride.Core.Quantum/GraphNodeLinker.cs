@@ -46,10 +46,28 @@ namespace Stride.Core.Quantum
             {
                 if (VisitedLinks.TryGetValue(node, out IGraphNode targetNodeParent))
                 {
-                    foreach (var child in node.Members)
+                    var objNode = targetNodeParent as IObjectNode;
+                    var members = node.Members;
+                    if (members is List<IMemberNode> asList)
                     {
-                        string name = child.Name;
-                        VisitedLinks.Add(child, ((IObjectNode)targetNodeParent)?.TryGetChild(name));
+                        foreach (var child in asList)
+                        {
+                            VisitedLinks.Add(child, objNode?.TryGetChild(child.Name));
+                        }
+                    }
+                    else if(members is Dictionary<string, IMemberNode>.ValueCollection asVCol)
+                    {
+                        foreach (var child in asVCol)
+                        {
+                            VisitedLinks.Add(child, objNode?.TryGetChild(child.Name));
+                        }
+                    }
+                    else
+                    {
+                        foreach (var child in members)
+                        {
+                            VisitedLinks.Add(child, objNode?.TryGetChild(child.Name));
+                        }
                     }
                 }
                 base.VisitChildren(node);

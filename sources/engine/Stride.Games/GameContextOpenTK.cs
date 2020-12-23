@@ -31,11 +31,11 @@ namespace Stride.Games
     /// <summary>
     /// A <see cref="GameContext"/> to use for rendering to an existing OpenTK Window.
     /// </summary>
-    public class GameContextOpenTK : GameContextWindows<OpenTK.GameWindow>
+    public class GameContextOpenTK : GameContextDesktop<OpenTK.GameWindow>
     {
         /// <inheritDoc/>
-        public GameContextOpenTK(OpenTK.GameWindow control, int requestedWidth = 0, int requestedHeight = 0)
-            : base(control, requestedWidth, requestedHeight)
+        public GameContextOpenTK(OpenTK.GameWindow control, int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
+            : base(control, requestedWidth, requestedHeight, isUserManagingRun)
         {
             ContextType = AppContextType.DesktopOpenTK;
             if (requestedWidth == 0 || requestedHeight == 0)

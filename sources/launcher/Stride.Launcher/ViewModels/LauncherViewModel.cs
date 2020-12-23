@@ -22,6 +22,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Metrics;
+using Stride.Core.VisualStudio;
 
 namespace Stride.LauncherApp.ViewModels
 {
@@ -57,7 +58,8 @@ namespace Stride.LauncherApp.ViewModels
 
             DisplayReleaseAnnouncement();
 
-            VsixPackage = new VsixVersionViewModel(this, store);
+            VsixPackage = new VsixVersionViewModel(this, store, store.VsixPluginId);
+            VsixPackageXenko = new VsixVersionViewModel(this, store, store.VsixPluginId.Replace("Stride", "Xenko"));
             // Commands
             InstallLatestVersionCommand = new AnonymousTaskCommand(ServiceProvider, InstallLatestVersion) { IsEnabled = false };
             OpenUrlCommand = new AnonymousTaskCommand<string>(ServiceProvider, OpenUrl);
@@ -92,6 +94,8 @@ namespace Stride.LauncherApp.ViewModels
         public bool ShowBetaVersions { get { return showBetaVersions; } set { SetValue(ref showBetaVersions, value); } }
 
         public VsixVersionViewModel VsixPackage { get; }
+
+        public VsixVersionViewModel VsixPackageXenko { get; }
 
         public StrideVersionViewModel ActiveVersion { get { return activeVersion; } set { SetValue(ref activeVersion, value); Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = (value != null) && value.CanStart); } }
 
@@ -174,6 +178,7 @@ namespace Stride.LauncherApp.ViewModels
 
                 await RetrieveServerStrideVersions();
                 await VsixPackage.UpdateFromStore();
+                await VsixPackageXenko.UpdateFromStore();
                 await CheckForFirstInstall();
 
                 await newsTask;
@@ -427,14 +432,14 @@ namespace Stride.LauncherApp.ViewModels
                     if (result == MessageBoxResult.Yes)
                     {
                         var versionToInstall = StrideVersions.First(x => x.CanBeDownloaded);
-                        versionToInstall.DownloadCommand.Execute();
+                        await versionToInstall.Download(true);
                     }
-                    if (VsixPackage != null && !VsixPackage.IsLatestVersionInstalled)
+                    if (!VsixPackage.IsLatestVersionInstalled && VisualStudioVersions.AvailableVisualStudioInstances.Any())
                     {
                         result = await ServiceProvider.Get<IDialogService>().MessageBox(Strings.AskInstallVSIX, MessageBoxButton.YesNo, MessageBoxImage.Question);
                         if (result == MessageBoxResult.Yes)
                         {
-                            VsixPackage.ExecuteActionCommand.Execute();
+                            await VsixPackage.ExecuteAction();
                         }
                     }
                 }
@@ -495,8 +500,7 @@ namespace Stride.LauncherApp.ViewModels
             try
             {
                 Dispatcher.Invoke(() => StartStudioCommand.IsEnabled = false);
-                var packagePath = ActiveVersion.InstallPath;
-                var mainExecutable = store.LocateMainExecutable(packagePath);
+                var mainExecutable = ActiveVersion.LocateMainExecutable();
 
                 // If version is older than 1.2.0, than we need to log the usage of older version
                 var activeStoreVersion = ActiveVersion as StrideStoreVersionViewModel;
@@ -505,7 +509,8 @@ namespace Stride.LauncherApp.ViewModels
                     metricsForEditorBefore120 = new MetricsClient(CommonApps.StrideEditorAppId, versionOverride: activeStoreVersion.Version.ToString());
                 }
 
-                Process.Start(mainExecutable, argument);
+                // We set the WorkingDirectory so that global.json is properly resolved
+                Process.Start(new ProcessStartInfo(mainExecutable, argument) { WorkingDirectory = Path.GetDirectoryName(mainExecutable) } );
             }
             catch (Exception e)
             {
@@ -546,7 +551,7 @@ namespace Stride.LauncherApp.ViewModels
         {
             try
             {
-                Process.Start(url);
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
             // FIXME: catch only specific exceptions?
             catch (Exception)

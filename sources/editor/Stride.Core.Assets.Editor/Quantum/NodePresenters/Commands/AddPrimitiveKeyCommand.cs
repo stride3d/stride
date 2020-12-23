@@ -52,7 +52,14 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
             var assetNodePresenter = nodePresenter as IAssetNodePresenter;
             var dictionaryDescriptor = (DictionaryDescriptor)nodePresenter.Descriptor;
             var value = nodePresenter.Value;
-            var newKey = dictionaryDescriptor.KeyType != typeof(string) ? new NodeIndex(Activator.CreateInstance(dictionaryDescriptor.KeyType)) : GenerateStringKey(value, dictionaryDescriptor, parameter as string);
+
+            NodeIndex newKey;
+            if(dictionaryDescriptor.KeyType == typeof(string))
+                newKey = GenerateStringKey(value, dictionaryDescriptor, parameter as string);
+            else if (dictionaryDescriptor.KeyType.IsEnum)
+                newKey = new NodeIndex(parameter);
+            else
+                newKey = new NodeIndex(Activator.CreateInstance(dictionaryDescriptor.KeyType));
 
             var newItem = dictionaryDescriptor.ValueType.Default();
             var instance = CreateInstance(dictionaryDescriptor.ValueType);

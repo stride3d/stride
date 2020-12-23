@@ -1,13 +1,16 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
+  <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
     <TargetFrameworks>net461</TargetFrameworks>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <AssemblyName>Stride.Audio.Tests</AssemblyName>
     <RootNamespace>Stride.Audio.Tests</RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCompileAssets>true</StrideCompileAssets>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+    <!-- Test this project only on D3D11 since it is graphics API independent -->
+    <StrideCompilerTargetsEnable Condition="'$(StrideGraphicsApi)' != 'Direct3D11'">false</StrideCompilerTargetsEnable>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
@@ -26,10 +29,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="AudioTestGame.cs" />
     <Compile Include="BasicTest.cs" />
@@ -43,7 +42,6 @@
     <Compile Include="Engine\TestController.cs" />
     <Compile Include="Engine\TestGame.cs" />
     <Compile Include="Engine\TestUtilities.cs" />
-    <Compile Include="LaunchProgram.cs" />
     <Compile Include="PauseResumeTests.cs" />
     <Compile Include="SoundGenerator.cs" />
     <Compile Include="TestAudioEmitter.cs" />

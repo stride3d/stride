@@ -180,7 +180,11 @@ namespace Stride.Engine
             processors.Clear();
         }
 
-        internal virtual void Draw(RenderContext context)
+        /// <summary>
+        /// Calls <see cref="EntityProcessor.Draw(RenderContext)"/> on all enabled entity processors.
+        /// </summary>
+        /// <param name="context">The render context.</param>
+        public virtual void Draw(RenderContext context)
         {
             foreach (var processor in processors)
             {

@@ -57,7 +57,7 @@ namespace Stride.Particles.Materials
 
             foreach (var particle in sorter)
             {
-                var normalizedTimeline = 1f - *(float*)(particle[lifeField]); ;
+                var normalizedTimeline = 1f - *(float*)(particle[lifeField]);
 
                 Vector4 uvTransform = Vector4.Lerp(StartFrame, EndFrame, normalizedTimeline);
                 uvTransform.Z -= uvTransform.X;

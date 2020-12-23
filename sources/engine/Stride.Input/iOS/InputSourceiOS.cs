@@ -16,6 +16,7 @@ namespace Stride.Input
     /// </summary>
     internal class InputSourceiOS : InputSourceBase
     {
+        private readonly iOSWindow uiControl;
         private CMMotionManager motionManager;
         private CLLocationManager locationManager;
         private bool locationManagerActivated;
@@ -28,12 +29,15 @@ namespace Stride.Input
         private OrientationSensor orientationSensor;
         private GravitySensor gravitySensor;
         private CompassSensor compassSensor;
+
+        public InputSourceiOS(iOSWindow uiControl)
+        {
+            this.uiControl = uiControl;
+        }
         
         public override void Initialize(InputManager inputManager)
         {
-            var context = inputManager.Game.Context as GameContextiOS;
-            var uiControl = context.Control;
-            var gameController = context.Control.GameViewController;
+            var gameController = uiControl.GameViewController;
 
             pointer = new PointeriOS(this, uiControl, gameController);
             RegisterDevice(pointer);

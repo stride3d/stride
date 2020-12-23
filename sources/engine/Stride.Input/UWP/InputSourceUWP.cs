@@ -26,6 +26,7 @@ namespace Stride.Input
 
         private readonly Dictionary<Gamepad, GamePadUWP> gamePads = new Dictionary<Gamepad, GamePadUWP>();
 
+        private readonly CoreWindow coreWindow;
         private WindowsAccelerometer windowsAccelerometer;
         private WindowsCompass windowsCompass;
         private WindowsGyroscope windowsGyroscope;
@@ -41,18 +42,13 @@ namespace Stride.Input
         private PointerUWP pointer;
         private KeyboardUWP keyboard;
 
+        public InputSourceUWP(CoreWindow coreWindow)
+        {
+            this.coreWindow = coreWindow ?? throw new ArgumentNullException(nameof(coreWindow));
+        }
+
         public override void Initialize(InputManager inputManager)
         {
-            var nativeWindow = inputManager.Game.Window.NativeWindow;
-            
-            CoreWindow coreWindow;
-            if (nativeWindow.Context == AppContextType.UWPCoreWindow)
-                coreWindow = (CoreWindow)nativeWindow.NativeWindow;
-            else if (nativeWindow.Context == AppContextType.UWPXaml)
-                coreWindow = Window.Current.CoreWindow;
-            else
-                throw new ArgumentException(string.Format("WindowContext [{0}] not supported", nativeWindow.Context));
-
             var mouseCapabilities = new MouseCapabilities();
             if (mouseCapabilities.MousePresent > 0)
             {

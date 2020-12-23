@@ -311,7 +311,7 @@ struct aiString
             return *this;
         }
 
-        length = rOther.length;;
+        length = rOther.length;
         memcpy( data, rOther.data, length);
         data[length] = '\0';
         return *this;

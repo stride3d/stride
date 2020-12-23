@@ -1,3 +1,4 @@
+
 // Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
@@ -23,6 +24,9 @@ using Stride.Assets;
 using Stride.Graphics;
 using Stride.Core.VisualStudio;
 using ServiceWire.NamedPipes;
+using System.IO;
+using Stride.Core.Storage;
+using System.Text;
 
 namespace Stride.Core.Assets.CompilerApp
 {
@@ -95,8 +99,9 @@ namespace Stride.Core.Assets.CompilerApp
 
                 // Find loaded package (either sdpkg or csproj) -- otherwise fallback to first one
                 var packageFile = (UFile)builderOptions.PackageFile;
-                var package = projectSession.LocalPackages.FirstOrDefault(x => x.FullPath == packageFile || (x.Container is SolutionProject project && project.FullPath == packageFile))
-                    ?? projectSession.LocalPackages.First();
+                var package = projectSession.Packages.FirstOrDefault(x => x.FullPath == packageFile || (x.Container is SolutionProject project && project.FullPath == packageFile))
+                    ?? projectSession.LocalPackages.FirstOrDefault()
+                    ?? projectSession.Packages.FirstOrDefault();
 
                 // Setup variables
                 var buildDirectory = builderOptions.BuildDirectory;
@@ -139,10 +144,12 @@ namespace Stride.Core.Assets.CompilerApp
                 // Setup the remote process build
                 var remoteBuilderHelper = new PackageBuilderRemoteHelper(projectSession.AssemblyContainer, builderOptions);
 
-                var indexName = "index." + package.Meta.Name;
+                var indexName = $"index.{package.Meta.Name}.{builderOptions.Platform}";
                 // Add runtime identifier (if any) to avoid clash when building multiple at the same time (this happens when using ExtrasBuildEachRuntimeIdentifier feature of MSBuild.Sdk.Extras)
                 if (builderOptions.Properties.TryGetValue("RuntimeIdentifier", out var runtimeIdentifier))
                     indexName += $".{runtimeIdentifier}";
+                if (builderOptions.ExtraCompileProperties != null && builderOptions.ExtraCompileProperties.TryGetValue("StrideGraphicsApi", out var graphicsApi))
+                    indexName += $".{graphicsApi}";
 
                 // Create the builder
                 builder = new Builder(builderOptions.Logger, buildDirectory, indexName) { ThreadCount = builderOptions.ThreadCount, TryExecuteRemote = remoteBuilderHelper.TryExecuteRemote };
@@ -158,7 +165,11 @@ namespace Stride.Core.Assets.CompilerApp
 
                 // Fill list of bundles
                 var bundlePacker = new BundlePacker();
-                bundlePacker.Build(builderOptions.Logger, projectSession, indexName, outputDirectory, builder.DisableCompressionIds, context.GetCompilationMode() != CompilationMode.AppStore);
+                var bundleFiles = new List<string>();
+                bundlePacker.Build(builderOptions.Logger, projectSession, package, indexName, outputDirectory, builder.DisableCompressionIds, context.GetCompilationMode() != CompilationMode.AppStore, bundleFiles);
+
+                if (builderOptions.MSBuildUpToDateCheckFileBase != null)
+                    SaveBuildUpToDateFile(builderOptions.MSBuildUpToDateCheckFileBase, builderOptions.PackageFile, package, bundleFiles);
 
                 return result;
             }
@@ -171,6 +182,75 @@ namespace Stride.Core.Assets.CompilerApp
 
                 // Make sure that MSBuild doesn't hold anything else
                 VSProjectHelper.Reset();
+            }
+        }
+
+        private void SaveBuildUpToDateFile(string msbuildUpToDateCheckFileBase, string packageFile, Package rootPackage, List<string> bundleFiles)
+        {
+            var inputs = new List<string>();
+            var outputs = new List<string>();
+
+            // List asset folders from projects
+            foreach (var package in rootPackage.Session.Packages)
+            {
+                // Note: check if file exists (since it could be an "implicit package" from csproj)
+                if (File.Exists(package.FullPath))
+                    inputs.Add(package.FullPath.ToWindowsPath());
+
+                // TODO: optimization: for nuget packages, directly use sha512 file rather than individual assets for faster checking
+
+                // List assets
+                foreach (var assetFolder in package.AssetFolders)
+                {
+                    if (Directory.Exists(assetFolder.Path))
+                        inputs.Add(assetFolder.Path.ToWindowsPath() + @"\**\*.*");
+                }
+
+                // List project assets
+                foreach (var assetItem in package.Assets)
+                {
+                    // Note: we skip .cs files, only serialization code hash should hopefully be enough (otherwise it would skip fast path at each code change)
+                    // Let's see if it's robust enough or if some more data need to be hashed or files added
+                    if (assetItem.Asset is IProjectAsset && !(assetItem.Asset is Stride.Assets.Scripts.ScriptSourceFileAsset))
+                    {
+                        // Make sure it is not already covered by one of the previously registered asset folders
+                        if (!package.AssetFolders.Any(assetFolder => assetFolder.Path.Contains(assetItem.FullPath)))
+                            inputs.Add(assetItem.FullPath.ToWindowsPath());
+                    }
+                }
+
+                // Hash serialization code
+                if (package.Container is SolutionProject project
+                    && project.AssemblyProcessorSerializationHashFile != null
+                    && File.Exists(project.AssemblyProcessorSerializationHashFile))
+                {
+                    inputs.Add(project.AssemblyProcessorSerializationHashFile);
+                }
+            }
+
+            // List input files
+            foreach (var inputObject in builder.Root.InputObjects)
+            {
+                if (inputObject.Key.Type == UrlType.File)
+                {
+                    inputs.Add(new UFile(inputObject.Key.Path).ToWindowsPath());
+                }
+            }
+
+            foreach (var bundleFile in bundleFiles)
+            {
+                outputs.Add(bundleFile);
+            }
+
+            // Generate MSBuild up-to-date check property files
+            File.WriteAllLines(msbuildUpToDateCheckFileBase + ".inputs", inputs, Encoding.UTF8);
+            File.WriteAllLines(msbuildUpToDateCheckFileBase + ".outputs", outputs, Encoding.UTF8);
+
+            // Touch bundle files so that up-to-date check can work
+            // We do that after touching the msbuildUpToDateCheckFile
+            foreach (var bundleFile in bundleFiles)
+            {
+                File.SetLastWriteTimeUtc(bundleFile, DateTime.UtcNow);
             }
         }
 
@@ -377,7 +457,7 @@ namespace Stride.Core.Assets.CompilerApp
             var startInfo = new ProcessStartInfo
             {
                 // Note: try to get exec server if it exists, otherwise use CompilerApp.exe
-                FileName = (string)AppDomain.CurrentDomain.GetData("RealEntryAssemblyFile") ?? typeof(PackageBuilder).Assembly.Location,
+                FileName = Path.ChangeExtension(typeof(PackageBuilder).Assembly.Location, ".exe"),
                 Arguments = arguments,
                 WorkingDirectory = Environment.CurrentDirectory,
                 CreateNoWindow = true,

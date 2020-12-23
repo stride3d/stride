@@ -27,9 +27,9 @@ namespace Stride.Input
             DownKeys = new ReadOnlySet<Keys>(downKeys);
         }
 
-        public IReadOnlySet<Keys> PressedKeys { get; }
-        public IReadOnlySet<Keys> ReleasedKeys { get; }
-        public IReadOnlySet<Keys> DownKeys { get; }
+        public Core.Collections.IReadOnlySet<Keys> PressedKeys { get; }
+        public Core.Collections.IReadOnlySet<Keys> ReleasedKeys { get; }
+        public Core.Collections.IReadOnlySet<Keys> DownKeys { get; }
 
         public abstract string Name { get; }
 

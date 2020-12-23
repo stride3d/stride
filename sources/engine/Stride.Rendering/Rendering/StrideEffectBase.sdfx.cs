@@ -49,19 +49,57 @@ namespace Stride.Rendering
                 }
                 context.Mixin(mixin, "TransformationBase");
                 context.Mixin(mixin, "NormalStream");
-                context.Mixin(mixin, "TransformationWAndVP");
-                if (context.GetParam(MaterialKeys.HasNormalMap))
+                var extensionTessellationShader = context.GetParam(MaterialKeys.TessellationShader);
+                if (context.GetParam(StrideEffectBaseKeys.HasInstancing))
                 {
-                    context.Mixin(mixin, "NormalFromNormalMapping");
+                    mixin.AddMacro("ModelTransformUsage", context.GetParam(StrideEffectBaseKeys.ModelTransformUsage));
+                    context.Mixin(mixin, "TransformationWAndVPInstanced");
+                    if (context.GetParam(MaterialKeys.HasNormalMap))
+                    {
+                        if (extensionTessellationShader != null)
+                        {
+                            context.Mixin(mixin, "NormalFromNormalMappingTessellationInstanced");
+                        }
+                        else
+                        {
+                            context.Mixin(mixin, "NormalFromNormalMappingInstanced");
+                        }
+                    }
+                    else
+                    {
+                        context.Mixin(mixin, "NormalFromMeshInstanced");
+                    }
                 }
                 else
                 {
-                    context.Mixin(mixin, "NormalFromMesh");
+                    context.Mixin(mixin, "TransformationWAndVP");
+                    if (context.GetParam(MaterialKeys.HasNormalMap))
+                    {
+                        if (extensionTessellationShader != null)
+                        {
+                            context.Mixin(mixin, "NormalFromNormalMappingTessellation");
+                        }
+                        else
+                        {
+                            context.Mixin(mixin, "NormalFromNormalMapping");
+                        }
+                    }
+                    else
+                    {
+                        context.Mixin(mixin, "NormalFromMesh");
+                    }
                 }
                 if (context.GetParam(MaterialKeys.HasSkinningPosition))
                 {
                     mixin.AddMacro("SkinningMaxBones", context.GetParam(MaterialKeys.SkinningMaxBones));
-                    context.Mixin(mixin, "TransformationSkinning");
+                    if (context.GetParam(StrideEffectBaseKeys.HasInstancing))
+                    {
+                        context.Mixin(mixin, "TransformationSkinningInstanced");
+                    }
+                    else
+                    {
+                        context.Mixin(mixin, "TransformationSkinning");
+                    }
                     if (context.GetParam(MaterialKeys.HasSkinningNormal))
                     {
                         context.Mixin(mixin, "NormalMeshSkinning");
@@ -74,7 +112,14 @@ namespace Stride.Rendering
                     {
                         if (context.GetParam(MaterialKeys.HasNormalMap))
                         {
-                            context.Mixin(mixin, "NormalVSSkinningNormalMapping");
+                            if (extensionTessellationShader != null)
+                            {
+                                context.Mixin(mixin, "NormalVSSkinningNormalMappingTessellation");
+                            }
+                            else
+                            {
+                                context.Mixin(mixin, "NormalVSSkinningNormalMapping");
+                            }
                         }
                         else
                         {
@@ -82,7 +127,6 @@ namespace Stride.Rendering
                         }
                     }
                 }
-                var extensionTessellationShader = context.GetParam(MaterialKeys.TessellationShader);
                 if (extensionTessellationShader != null)
                 {
                     context.Mixin(mixin, (extensionTessellationShader));

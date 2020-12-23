@@ -48,7 +48,13 @@ namespace Stride.Core.Assets.Quantum
             var targetIds = CollectionItemIdHelper.GetCollectionItemIds(targetNode.Retrieve());
             var itemId = sourceIds[sourceReference.Index.Value];
             var targetKey = targetIds.GetKey(itemId);
-            return targetReference.FirstOrDefault(x => Equals(x.Index.Value, targetKey));
+            foreach (var targetRef in targetReference)
+            {
+                if (Equals(targetRef.Index.Value, targetKey))
+                    return targetRef;
+            }
+
+            return null;
         }
     }
 }

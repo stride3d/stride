@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="_CheckForUnsupportedTargetFramework" />
+  <Target Name="_ComputeTargetFrameworkItems" Returns="@(InnerOutput)">
+    <ItemGroup>
+      <_TargetFramework Include="$(TargetFrameworks)" />
+      <_TargetFrameworkNormalized Include="@(_TargetFramework->Trim()->Distinct())" />
+      <_InnerBuildProjects Include="$(MSBuildProjectFile)">
+        <AdditionalProperties>TargetFramework=%(_TargetFrameworkNormalized.Identity)</AdditionalProperties>
+      </_InnerBuildProjects>
+    </ItemGroup>
+  </Target>
+  <Target Name="Build" DependsOnTargets="_ComputeTargetFrameworkItems">
+    <MSBuild Projects="@(_InnerBuildProjects)"
+             Condition="'@(_InnerBuildProjects)' != '' "
+             Targets="Build"
+             BuildInParallel="$(BuildInParallel)">
+      <Output ItemName="InnerOutput" TaskParameter="TargetOutputs" />
+    </MSBuild>
+  </Target>
+  <Target Name="Clean" DependsOnTargets="_ComputeTargetFrameworkItems">
+    <MSBuild Projects="@(_InnerBuildProjects)"
+             Condition="'@(_InnerBuildProjects)' != '' "
+             Targets="Clean"
+             BuildInParallel="$(BuildInParallel)" />
+  </Target>
+</Project>

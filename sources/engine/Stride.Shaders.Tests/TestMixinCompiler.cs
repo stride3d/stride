@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 
 using Xunit;
 
@@ -30,10 +29,6 @@ namespace Stride.Shaders.Tests
     /// </summary>
     public partial class TestMixinCompiler
     {
-        internal static void Main()
-        {
-            new TestMixinCompiler().TestMaterial();
-        }
         /// <summary>
         /// Tests mixin and compose keys with compilation.
         /// </summary>
@@ -228,7 +223,7 @@ namespace Stride.Shaders.Tests
 
                 var compiler = new EffectCompiler(database);
                 compiler.SourceDirectories.Add("assets/shaders");
-                var compilerCache = new EffectCompilerCache(compiler);
+                var compilerCache = new EffectCompilerCache(compiler, database);
 
                 var compilerParameters = new CompilerParameters { EffectParameters = { Platform = GraphicsPlatform.Direct3D11 } };
 

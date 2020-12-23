@@ -99,7 +99,19 @@
   Dependencies generation (to .ssdeps)
   *****************************************************************************************************************************
   -->
-  <Target Name="_StrideGenerateDependencies">
+  <Target Name="_StrideComputePackagePath">
+    <PropertyGroup>
+      <!-- Match MSBuild.Sdk.Extras (target _SdkGetRidsPerTargetFramework) -->
+      <_StridePackageAppendRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != '' and '$(ExtrasBuildEachRuntimeIdentifier)' == 'true'">true</_StridePackageAppendRuntimeIdentifier>
+      <_StridePackageLibraryTargetFramework>$(TargetFramework)</_StridePackageLibraryTargetFramework>
+      <!-- Not sure why, but .NET 5.0 PackTask transforms net5.0-windows to net5.0-windows7.0 behind our back for lib/ paths
+           Maybe some additional details: https://nicksnettravels.builttoroam.com/net-5-tfms/ -->
+      <_StridePackageLibraryTargetFramework Condition="$(TargetFramework.EndsWith('-windows')) And '$(_StridePackageAppendRuntimeIdentifier)' != 'true'">$(_StridePackageLibraryTargetFramework)7.0</_StridePackageLibraryTargetFramework>
+      <_StridePackagePathLibrary Condition="'$(_StridePackageAppendRuntimeIdentifier)' != 'true'">lib\$(_StridePackageLibraryTargetFramework)</_StridePackagePathLibrary>
+      <_StridePackagePathLibrary Condition="'$(_StridePackageAppendRuntimeIdentifier)' == 'true'">runtimes\$(RuntimeIdentifier)\lib\$(TargetFramework)</_StridePackagePathLibrary>
+    </PropertyGroup>
+  </Target>
+  <Target Name="_StrideGenerateDependencies" DependsOnTargets="_StrideComputePackagePath">
     <!-- Set TargetPath on StrideContent and StrideNativeLib -->
     <AssignTargetPath RootFolder="$(MSBuildProjectDirectory)" Files="@(StrideContent)">
       <Output TaskParameter="AssignedFiles" ItemName="_StrideContentAssigned"/>
@@ -107,10 +119,6 @@
     <AssignTargetPath RootFolder="$(MSBuildProjectDirectory)" Files="@(StrideNativeLib)">
       <Output TaskParameter="AssignedFiles" ItemName="_StrideNativeLibAssigned"/>
     </AssignTargetPath>
-
-    <PropertyGroup>
-      <_StrideAppendRuntimeIdentifier Condition="'$(AppendRuntimeIdentifierToOutputPath)' == 'true' and '$(RuntimeIdentifier)' != '' and '$(_UsingDefaultRuntimeIdentifier)' != 'true'">true</_StrideAppendRuntimeIdentifier>
-    </PropertyGroup>
 
     <!-- Combine into _StrideDependencyToCopy (and add RelativePath and Type) -->
     <ItemGroup>
@@ -129,8 +137,7 @@
       <_StrideDependencyToCopy Remove="@(_StrideNativeLibAssigned)" Condition=" '$(StridePackageBuild)' == 'true' And '%(_StrideNativeLibAssigned.Extension)' == '.pdb' "/>
 
       <_StrideDependencyToCopy>
-        <PackagePath Condition="'$(_StrideAppendRuntimeIdentifier)' != 'true'">lib\$(TargetFramework)\$([System.IO.Path]::GetDirectoryName('%(TargetPath)'))</PackagePath>
-        <PackagePath Condition="'$(_StrideAppendRuntimeIdentifier)' == 'true'">runtimes\$(RuntimeIdentifier)\lib\$(TargetFramework)\$([System.IO.Path]::GetDirectoryName('%(TargetPath)'))</PackagePath>
+        <PackagePath>$(_StridePackagePathLibrary)\$([System.IO.Path]::GetDirectoryName('%(TargetPath)'))</PackagePath>
       </_StrideDependencyToCopy>
     </ItemGroup>
 
@@ -155,8 +162,7 @@
   <!-- Packaging -->
   <Target Name="_StrideRegisterDependenciesOutputs" Condition="'$(TargetFramework)' != ''" DependsOnTargets="_StrideGenerateDependencies">
     <ItemGroup Condition="'@(_StrideDependencyToCopy)' != ''">
-      <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).ssdeps" Condition="'$(_StrideAppendRuntimeIdentifier)' != 'true'" PackagePath="lib\$(TargetFramework)" />
-      <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).ssdeps" Condition="'$(_StrideAppendRuntimeIdentifier)' == 'true'" PackagePath="runtimes\$(RuntimeIdentifier)\lib\$(TargetFramework)" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).ssdeps" PackagePath="$(_StridePackagePathLibrary)" />
       <TfmSpecificPackageFile Include="@(_StrideDependencyToCopy)" />
     </ItemGroup>
   </Target>

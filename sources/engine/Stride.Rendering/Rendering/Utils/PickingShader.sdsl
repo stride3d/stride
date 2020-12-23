@@ -15,7 +15,9 @@ namespace Stride.Rendering
 
         stage override void PSMain()
         {
-            streams.ColorTarget = PickingData;
+            float modelComponentId = PickingData.x + (min(streams.InstanceID, 1023.0) / 1024.0);
+            float meshMaterialIndex = PickingData.y;
+            streams.ColorTarget = float4(modelComponentId, meshMaterialIndex, 1, 1);
         }
     };
 }

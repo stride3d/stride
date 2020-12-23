@@ -1,0 +1,14 @@
+﻿<!-- Build file pre-included by all Stride projects -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <StridePackageStride Condition="'$(StridePackageStride)' == ''">$(MSBuildThisFileDirectory)..</StridePackageStride>
+
+    <StridePlatformFullName>$(StridePlatform)</StridePlatformFullName>
+    <StridePlatformFullName Condition="'$(StrideBuildDirExtension)' != ''">$(StridePlatformFullName)-$(StrideBuildDirExtension)</StridePlatformFullName>
+    
+    <!-- Resolve path (remove ".." elements), for better support on Xamarin iOS -->
+    <StridePackageStride>$([System.IO.Path]::GetFullPath('$(StridePackageStride)'))</StridePackageStride>
+    <StridePackageStrideBin Condition="'$(StridePackageStrideBin)' == ''">$(StridePackageStride)\Bin</StridePackageStrideBin>
+    <StridePackageStridePlatformBin Condition="'$(StridePackageStridePlatformBin)' == ''">$(StridePackageStrideBin)\$(StridePlatformFullName)</StridePackageStridePlatformBin>
+  </PropertyGroup>
+</Project>

@@ -162,10 +162,5 @@ namespace Stride.Core.Assets.Tests
             }
             return assetItems;
         }
-
-        static void Main()
-        {
-            new TestSerializing().TestMyAssetObject();
-        }
     }
 }

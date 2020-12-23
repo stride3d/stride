@@ -31,6 +31,7 @@ namespace Stride.Rendering.Images
         private bool isAnamorphic;
 
         private Vector2[] tapOffsetsWeights;
+        private Vector3[] anamorphicOffsetsWeights;
 
         private readonly List<string> lightStreakDebugStrings = new List<string>();
 
@@ -217,7 +218,22 @@ namespace Stride.Rendering.Images
         /// offset of the original streak, with a certain weight.
         /// </summary>
         [DataMemberIgnore]
-        public Vector3[] AnamorphicOffsetsWeights { get; set; }
+        public Vector3[] AnamorphicOffsetsWeights
+        {
+            get => anamorphicOffsetsWeights;
+            set
+            {
+                if (value != anamorphicOffsetsWeights)
+                {
+                    // Ensure the allocated effect parameters have the same length.
+                    if (value != null && anamorphicOffsetsWeights != null && value.Length != anamorphicOffsetsWeights.Length)
+                    {
+                        lightStreakEffect?.Parameters.Clear();
+                    }
+                    anamorphicOffsetsWeights = value;
+                }
+            }
+        }
 
         protected override void DrawCore(RenderDrawContext contextParameters)
         {

@@ -63,6 +63,8 @@ namespace Stride.Rendering.Materials
             if (context.MaterialPass.BlendState == null)
                 context.MaterialPass.BlendState = BlendStates.AlphaBlend;
             context.MaterialPass.HasTransparency = true;
+            // Disable alpha-to-coverage. We wanna do alpha blending, not alpha testing.
+            context.MaterialPass.AlphaToCoverage = false;
             // TODO GRAPHICS REFACTOR
             //context.Parameters.SetResourceSlow(Effect.BlendStateKey, BlendState.NewFake(blendDesc));
 

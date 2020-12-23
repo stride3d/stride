@@ -16,7 +16,7 @@ namespace CSharpBeginner.Code
             Vector3 localPosition = Entity.Transform.Position;
             Vector3 worldPosition = Entity.Transform.WorldMatrix.TranslationVector;
 
-            // We disaply the entity's name and its local and world position on screen
+            // We display the entity's name and its local and world position on screen
             DebugText.Print(Entity.Name + " - local position: " + localPosition, new Int2(400, 450));
             DebugText.Print(Entity.Name + " - world position: " + worldPosition, new Int2(400, 470));
         }

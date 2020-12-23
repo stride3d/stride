@@ -348,7 +348,7 @@ namespace Stride.Rendering.Materials
             //specular *= saturate(NdotLUnsaturated * 0.5 + 0.5);   // This could be used in combination with hair SSS.
             specular *= HairSpecularAttenuation(NdotLUnsaturated);
             specular *= hairLightAttenuationFunction.Compute();
-            specular *= streams.lightColor * streams.matDiffuseSpecularAlphaBlend.y; // Distance-attenuated light color.
+            specular *= streams.lightColor * streams.lightAttenuation * streams.matDiffuseSpecularAlphaBlend.y;
             //specular *= streams.lightDirectAmbientOcclusion;
             
             // TODO: Multiply by alpha or not?

@@ -125,13 +125,5 @@ namespace Stride.Engine.Tests
         {
             RunGameTest(new AnimatedModelTests());
         }
-
-        internal static void Main()
-        {
-            using (var game = new AnimatedModelTests())
-            {
-                game.Run();
-            }
-        }
     }
 }

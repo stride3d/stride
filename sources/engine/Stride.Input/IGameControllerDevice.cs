@@ -35,17 +35,17 @@ namespace Stride.Input
         /// <summary>
         /// The buttons that have been pressed since the last frame
         /// </summary>
-        IReadOnlySet<int> PressedButtons { get; }
+        Core.Collections.IReadOnlySet<int> PressedButtons { get; }
 
         /// <summary>
         /// The buttons that have been released since the last frame
         /// </summary>
-        IReadOnlySet<int> ReleasedButtons { get; }
+        Core.Collections.IReadOnlySet<int> ReleasedButtons { get; }
 
         /// <summary>
         /// The buttons that are down
         /// </summary>
-        IReadOnlySet<int> DownButtons { get; }
+        Core.Collections.IReadOnlySet<int> DownButtons { get; }
         
         /// <summary>
         /// Retrieves the state of a single axis

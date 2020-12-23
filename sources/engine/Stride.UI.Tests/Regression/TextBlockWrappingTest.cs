@@ -190,14 +190,5 @@ Does it work with kanjis too? let's see that in the following line. Here we goes
         {
             RunGameTest(new TextBlockWrappingTest());
         }
-
-        /// <summary>
-        /// Launch the Image test.
-        /// </summary>
-        internal static void Main()
-        {
-            using (var game = new TextBlockWrappingTest())
-                game.Run();
-        }
     }
 }

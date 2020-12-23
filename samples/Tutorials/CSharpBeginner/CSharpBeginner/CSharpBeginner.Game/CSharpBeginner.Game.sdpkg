@@ -27,6 +27,9 @@ RootAssets:
     - 9e1b53ff-dc0c-410a-8972-14f949f83a01:Scenes/Basics/Child entities
     - ba8ed57d-74b9-4121-baf0-6a92463b600a:Scenes/Basics/Getting a component
     - c00aec52-d6b8-4eab-80c2-460ac8109da6:Scenes/Basics/Mouse input
+    - ca777fe9-5471-4137-a42d-fa87b6c20c91:Scenes/Basics/Loading content
+    - d625592d-d7c2-4151-bd8e-09ff90120d9e:Scenes/Basics/Linear Interpolation
     - d8597439-175b-42b3-81ca-d6553655e38f:Scenes/Basics/Removing entities
     - dbb3b809-4ff0-41da-b125-78a5ea1ec89c:Scenes/Basics/TransformPosition
+    - deb8b6f8-1da6-4ad7-8499-ebd34e1d423b:Scenes/Basics/Instantiating prefabs
     - ee2eb459-7847-42b5-bd69-fc43a6625fd5:Scenes/Basics/Keyboard input

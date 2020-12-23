@@ -17,22 +17,24 @@ namespace Stride.Input
     {
         private readonly HashSet<Guid> devicesToRemove = new HashSet<Guid>();
         private readonly Dictionary<int, Guid> joystickInstanceIdToDeviceId = new Dictionary<int, Guid>();
-        private GameContext<Window> context;
-        private Window uiControl;
+        private readonly Window uiControl;
         private MouseSDL mouse;
         private KeyboardSDL keyboard;
         private PointerSDL pointer; // Touch
         private InputManager inputManager;
 
+        public InputSourceSDL(Window uiControl)
+        {
+            this.uiControl = uiControl ?? throw new ArgumentNullException(nameof(uiControl));
+        }
+
         public override void Initialize(InputManager inputManager)
         {
             this.inputManager = inputManager;
-            context = inputManager.Game.Context as GameContext<Window>;
-            uiControl = context.Control;
 
             SDL.SDL_InitSubSystem(SDL.SDL_INIT_JOYSTICK);
 
-            mouse = new MouseSDL(this, inputManager.Game, uiControl);
+            mouse = new MouseSDL(this, uiControl);
             keyboard = new KeyboardSDL(this, uiControl);
             pointer = new PointerSDL(this, uiControl);
 

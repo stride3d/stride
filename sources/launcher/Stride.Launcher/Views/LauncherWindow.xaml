@@ -205,7 +205,7 @@
       </DataTemplate>
 
       <DataTemplate DataType="{x:Type vm:VsixVersionViewModel}">
-        <Grid Height="32" SnapsToDevicePixels="True">
+        <Grid Height="32" SnapsToDevicePixels="True" Background="{StaticResource TileAlphaBackgroundBrush}">
           <ProgressBar x:Name="ProgressBar" Minimum="0" Maximum="100" Value="{Binding CurrentProgress, Mode=OneWay}"
                        BorderThickness="0" Background="{StaticResource ControlBackgroundBrush}" Visibility="{Binding IsProcessing, Converter={sskk:VisibleOrCollapsed}}"
                        IsIndeterminate="{Binding CurrentProgress, Mode=OneWay, Converter={l:ProgressToIndeterminatedConverter}}"/>
@@ -485,7 +485,14 @@
                       </i:Interaction.Behaviors>
                     </Button>
                   </Grid>
-                  <CheckBox Margin="0,5" DockPanel.Dock="Bottom" IsChecked="{Binding AutoCloseLauncher}"
+                  <ComboBox Margin="0,4" Name="FrameworkSelector" IsEnabled="{Binding ActiveVersion.Frameworks.Count, Converter={sskk:Chained {sskk:IsGreater}, Parameter1={sskk:Double 1}}}" ItemsSource="{Binding ActiveVersion.Frameworks}" SelectedItem="{Binding ActiveVersion.SelectedFramework}" SelectionChanged="FrameworkChanged">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Converter={vm:FrameworkConverter}}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <CheckBox Margin="0,2" DockPanel.Dock="Bottom" IsChecked="{Binding AutoCloseLauncher}"
                                       Content="{x:Static r:Strings.AutoCloseLauncher}"/>
                 </StackPanel>
               </Border>
@@ -495,9 +502,11 @@
                   <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.SwitchOrUpdateVersion}" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
                 </DockPanel>
               </Border>
-              <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}"
-                                Background="{StaticResource TileAlphaBackgroundBrush}" DockPanel.Dock="Bottom">
-                <ContentControl Content="{Binding VsixPackage}"/>
+              <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Bottom">
+                <UniformGrid Columns="2">
+                  <ContentControl Grid.Column="0" Margin="0,0,2,0" Content="{Binding VsixPackage}"/>
+                  <ContentControl Grid.Column="1" Margin="2,0,0,0" Content="{Binding VsixPackageXenko}"/>
+                </UniformGrid>
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Bottom">
                 <DockPanel Height="32" Margin="10,0">

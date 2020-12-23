@@ -181,7 +181,7 @@ namespace Stride.Core.Collections
                     this.table = newTable;
                 }
 #if NET_1_0
-				else if (current > defaultCapacity && value < current) {
+                else if (current > defaultCapacity && value < current) {
                                         KeyValuePair<TKey, TValue> [] newTable = new KeyValuePair<TKey, TValue> [defaultCapacity];
                                         Array.Copy (table, newTable, inUse);
                                         this.table = newTable;
@@ -941,7 +941,7 @@ namespace Stride.Core.Collections
             object IEnumerator.Current => Current;
         }
 
-        private class ListKeys : IList<TKey>, ICollection, IEnumerable
+        private class ListKeys : IList<TKey>, IReadOnlyList<TKey>, ICollection, IEnumerable
         {
 
             private readonly SortedList<TKey, TValue> host;
@@ -1062,7 +1062,7 @@ namespace Stride.Core.Collections
             }
         }
 
-        private class ListValues : IList<TValue>, ICollection, IEnumerable
+        private class ListValues : IList<TValue>, IReadOnlyList<TValue>, ICollection, IEnumerable
         {
 
             private readonly SortedList<TKey, TValue> host;

@@ -258,14 +258,5 @@ namespace Stride.UI.Tests.Regression
         {
             RunGameTest(new ClippingTest());
         }
-
-        /// <summary>
-        /// Launch the Image test.
-        /// </summary>
-        internal static void Main()
-        {
-            using (var game = new ClippingTest())
-                game.Run();
-        }
     }
 }

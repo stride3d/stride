@@ -73,10 +73,9 @@ namespace Stride.Rendering
         public IServiceRegistry Services { get; }
 
         /// <summary>
-        /// Gets the time.
+        /// Gets or sets the time.
         /// </summary>
-        /// <value>The time.</value>
-        public GameTime Time { get; internal set; }
+        public GameTime Time { get; set; }
 
         /// <summary>
         /// Gets the <see cref="GraphicsResource"/> allocator.
@@ -137,7 +136,7 @@ namespace Stride.Rendering
 
             // Store RenderContext shared into the GraphicsDevice
             var graphicsDevice = services.GetSafeServiceAs<IGraphicsDeviceService>().GraphicsDevice;
-            return graphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerDevice, SharedImageEffectContextKey, d => new RenderContext(services));
+            return graphicsDevice.GetOrCreateSharedData(SharedImageEffectContextKey, d => new RenderContext(services));
         }
 
         /// <summary>

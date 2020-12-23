@@ -1,0 +1,46 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- ==================================================================
+       Target for PackageReference to properly select .dll from appropriate StrideGraphicsApi
+  -->
+  <Target Name="_StridePackageReferenceResolveGraphicsApi" AfterTargets="ResolvePackageAssets">
+    <PropertyGroup>
+      <!-- Transmit current graphics API. This is useful in case we have transitions such as: Direct3D12->ProjectWithoutGraphicsApi->Direct3D12
+           otherwise it would try to build 3rd project twice (due to the reference from ProjectWithoutGraphicsApi). -->
+      <_StrideGraphicsApiCurrent>$(StrideGraphicsApi)</_StrideGraphicsApiCurrent>
+      <!-- We use a fallback in case the project without graphics API is the project initiating the build. -->
+      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == '' And '$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</_StrideGraphicsApiCurrent>
+      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">$(StrideDefaultGraphicsApi)</_StrideGraphicsApiCurrent>
+      <_StrideGraphicsApiCurrent Condition="'$(_StrideGraphicsApiCurrent)' == ''">Direct3D11</_StrideGraphicsApiCurrent>
+    </PropertyGroup>
+    <ItemGroup>
+      <_StrideGraphicsRuntimeCopyLocalFodlers Include="@(RuntimeCopyLocalItems->'%(RootDir)%(Directory)$(_StrideGraphicsApiCurrent)')" Condition="'%(NuGetPackageId)' != '' And Exists('%(RootDir)%(Directory)$(_StrideGraphicsApiCurrent)')">
+      </_StrideGraphicsRuntimeCopyLocalFodlers>
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition="'%(NuGetPackageId)' != '' And Exists('%(RootDir)%(Directory)$(_StrideGraphicsApiCurrent)\')">
+      </RuntimeCopyLocalItems>
+    </ItemGroup>
+
+    <!-- There might have been multiple RuntimeCopyLocalItems in the same folder, resulting in multiple identical _StrideGraphicsRuntimeCopyLocalFodlers -->
+    <RemoveDuplicates Inputs="@(_StrideGraphicsRuntimeCopyLocalFodlers)">
+      <Output TaskParameter="Filtered" ItemName="_StrideGraphicsRuntimeCopyLocalFodlersFiltered" />
+    </RemoveDuplicates>
+    
+    <!-- Expand .dll/.exe specific to this Graphics API -->
+    <CreateItem Include="@(_StrideGraphicsRuntimeCopyLocalFodlersFiltered->'%(Identity)\*.dll')" AdditionalMetadata="CopyLocal=true;AssetType=runtime" PreserveExistingMetadata="false">
+      <Output TaskParameter="Include" ItemName="_StrideGraphicsRuntimeCopyLocal" />
+    </CreateItem>
+    <CreateItem Include="@(_StrideGraphicsRuntimeCopyLocalFodlersFiltered->'%(Identity)\*.exe')" AdditionalMetadata="CopyLocal=true;AssetType=runtime" PreserveExistingMetadata="false">
+      <Output TaskParameter="Include" ItemName="_StrideGraphicsRuntimeCopyLocal" />
+    </CreateItem>
+
+    <ItemGroup>
+      <_StrideGraphicsRuntimeCopyLocal Update="@(_StrideGraphicsRuntimeCopyLocal)">
+        <DestinationSubPath>%(Filename)%(Extension)</DestinationSubPath>
+        <PathInPackage>$([System.Text.RegularExpressions.Regex]::Match('%(PathInPackage)', `(.*)/[^/]*`).get_Groups().get_Item(1).ToString())/$(_StrideGraphicsApiCurrent)/%(Filename)%(Extension)</PathInPackage>
+      </_StrideGraphicsRuntimeCopyLocal>
+
+      <RuntimeCopyLocalItems Include="@(_StrideGraphicsRuntimeCopyLocal)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

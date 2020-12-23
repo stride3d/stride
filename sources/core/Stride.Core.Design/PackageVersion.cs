@@ -14,7 +14,6 @@
 using System;
 using System.Text.RegularExpressions;
 using Stride.Core.Annotations;
-using Stride.Core.Serialization;
 
 namespace Stride.Core
 {
@@ -22,9 +21,7 @@ namespace Stride.Core
     /// A hybrid implementation of SemVer that supports semantic versioning as described at http://semver.org while not strictly enforcing it to
     /// allow older 4-digit versioning schemes to continue working.
     /// </summary>
-    [DataContract("PackageVersion")]
-    [DataSerializer(typeof(PackageVersionDataSerializer))]
-    public sealed class PackageVersion : IComparable, IComparable<PackageVersion>, IEquatable<PackageVersion>
+    public sealed partial class PackageVersion : IComparable, IComparable<PackageVersion>, IEquatable<PackageVersion>
     {
         private const RegexOptions Flags = RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture;
         private static readonly Regex SemanticVersionRegex = new Regex(@"^(?<Version>\d+(\s*\.\s*\d+){0,3})(?<Release>-[a-z][0-9a-z-]*)?$", Flags);
@@ -350,28 +347,6 @@ namespace Stride.Core
                 }
 
                 return hashCode;
-            }
-        }
-
-        internal class PackageVersionDataSerializer : DataSerializer<PackageVersion>
-        {
-            /// <inheritdoc/>
-            public override bool IsBlittable => true;
-
-            /// <inheritdoc/>
-            public override void Serialize(ref PackageVersion obj, ArchiveMode mode, SerializationStream stream)
-            {
-                if (mode == ArchiveMode.Deserialize)
-                {
-                    string version = null;
-                    stream.Serialize(ref version);
-                    obj = Parse(version);
-                }
-                else
-                {
-                    string version = obj.ToString();
-                    stream.Serialize(ref version);
-                }
             }
         }
     }

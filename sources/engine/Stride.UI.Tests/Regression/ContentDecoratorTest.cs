@@ -88,14 +88,5 @@ namespace Stride.UI.Tests.Regression
         {
             RunGameTest(new ContentDecoratorTest());
         }
-
-        /// <summary>
-        /// Launch the Image test.
-        /// </summary>
-        internal static void Main()
-        {
-            using (var game = new ContentDecoratorTest())
-                game.Run();
-        }
     }
 }

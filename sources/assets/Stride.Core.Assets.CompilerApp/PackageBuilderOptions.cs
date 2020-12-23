@@ -24,7 +24,7 @@ namespace Stride.Core.Assets.CompilerApp
         public Guid PackageId { get; set; }
         public PlatformType Platform { get; set; }
         public string PackageFile { get; set; }
-        public List<string> LogPipeNames = new List<string>();
+        public string MSBuildUpToDateCheckFileBase { get; set; }
         public List<string> MonitorPipeNames = new List<string>();
         public bool EnableFileLogging;
         public string CustomLogFileName;

@@ -513,7 +513,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 package.Assets.Remove(AssetItem);
                 package = newPackage;
 
-                var newAssetItem = new AssetItem(newUrl, AssetItem.Asset) { SourceFolder = AssetItem.SourceFolder };
+                var newAssetItem = new AssetItem(newUrl, AssetItem.Asset) { SourceFolder = AssetItem.SourceFolder, AlternativePath = AssetItem.AlternativePath };
                 AssetItem = newAssetItem;
                 package.Assets.Add(AssetItem);
             }

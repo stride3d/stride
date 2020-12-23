@@ -36,13 +36,11 @@ namespace Stride.Core
         /// </summary>
         public Guid ObjectId { get; }
 
-        /// <inheritdoc />
         public static bool operator ==(AbsoluteId left, AbsoluteId right)
         {
             return left.Equals(right);
         }
 
-        /// <inheritdoc />
         public static bool operator !=(AbsoluteId left, AbsoluteId right)
         {
             return !left.Equals(right);
@@ -57,8 +55,7 @@ namespace Stride.Core
         /// <inheritdoc />
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            return obj is AbsoluteId && Equals((AbsoluteId)obj);
+            return obj is AbsoluteId id && Equals(id);
         }
 
         /// <inheritdoc />

@@ -78,7 +78,7 @@ namespace Stride.Rendering.Materials
             }
 
             float3 diffuseLighting = diffuseColor / PI;
-            diffuseLighting *= streams.lightColor;  // Distance-attenuated light color. //diffuseLighting *= streams.lightColorNdotL;  // Distance- & normal-attenuated light color.
+            diffuseLighting *= streams.lightColor * streams.lightAttenuation; //diffuseLighting *= streams.lightColorNdotL;  // Distance- & normal-attenuated light color.
             diffuseLighting *= streams.matDiffuseSpecularAlphaBlend.x;
             diffuseLighting *= hairShadowingFunction.Compute(); // Apply shadowing/scattering.
             diffuseLighting *= streams.lightDirectAmbientOcclusion;

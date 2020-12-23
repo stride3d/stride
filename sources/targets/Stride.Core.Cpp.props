@@ -1,0 +1,21 @@
+<Project>
+  <!-- Somehow we need to define a TargetFramework for ProjectReference to be properly resolved by VisualStudio
+       (otherwise nuget restore within VS won't work: project.assets.json won't have C++ projects and the project referencing them are not copying the proper libraries) -->
+  <PropertyGroup Condition="'$(DesignTimeBuild)' == 'true' And '$(TargetFrameworks)' != '' And '$(TargetFramework)' == ''">
+    <TargetFramework>$(TargetFrameworks.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
+    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <CLRSupport>true</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('net5'))">
+    <TargetFramework>net5.0</TargetFramework>
+    <TargetFrameworkVersion></TargetFrameworkVersion>
+    <CLRSupport>NetCore</CLRSupport>
+  </PropertyGroup>
+  <!-- Bug: Restore with StrideEditorTargetFrameworks=net5.0 fails because Platform is set to Mixed Platforms -->
+  <PropertyGroup Condition="'$(Platform)' == 'Mixed Platforms'">
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+</Project>

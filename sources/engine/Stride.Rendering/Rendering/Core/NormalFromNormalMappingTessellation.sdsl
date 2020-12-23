@@ -1,0 +1,14 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Calculates the normal  the normals from a normal map.
+/// </summary>
+shader NormalFromNormalMappingTessellation : NormalFromNormalMapping
+{
+    override stage void GenerateNormal_VS()
+    {
+        // Perform normal generation at the end in case meshNormal is modified
+        streams.meshNormalWS = mul(streams.meshNormal, (float3x3)WorldInverseTranspose);    // TODO: PERFORMANCE: Normalization required?
+        streams.normalWS = streams.meshNormalWS;
+    }
+};

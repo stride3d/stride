@@ -45,18 +45,95 @@
     <!--asset OutputPath for other platforms. Note: this is overridden for UnitTests projects. -->
     <StrideCompileAssetOutputPath Condition="'$(StrideCompileAssetOutputPath)' == ''">$(TargetDir)data</StrideCompileAssetOutputPath>
 
-    <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net472\Stride.Core.Assets.CompilerApp.exe')">$(MSBuildThisFileDirectory)..\lib\net472\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
-    <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net472\Stride.Core.Assets.CompilerApp.exe')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net472\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
-
-    <!--<StrideCompileAssetCommandProxy Condition="'$(DisableAssetCompilerExecServerProxy)' == 'true' Or '$(StrideDisableAssetCompilerExecServerProxy)' == 'true'">&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
-    <StrideCompileAssetCommandProxy Condition="'$(StrideCompileAssetCommandProxy)' == ''">&quot;$(StridePackageStrideSdkBin)\Stride.Core.Assets.CompilerClient.exe&quot;</StrideCompileAssetCommandProxy>-->
-    <StrideCompileAssetCommandProxy>&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
+    <StrideCompileAssetUpToDateCheckFileBase>$(ProjectDir)$(IntermediateOutputPath)stride\assetcompiler-uptodatecheck</StrideCompileAssetUpToDateCheckFileBase>
   </PropertyGroup>
 
-  <!--Compile assets for all StridePackage items and only for an executable-->
-  <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true'">
+  <!-- Prepare path to be able to copy Task dll to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
+  <PropertyGroup>
+    <StrideMSBuildTaskTargetFramework Condition="'$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</StrideMSBuildTaskTargetFramework>
+    <StrideMSBuildTaskTargetFramework Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</StrideMSBuildTaskTargetFramework>
+    <!-- First try NuGet layout, then git checkout -->
+    <StrideMSBuildTaskSourcePath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll')">$(MSBuildThisFileDirectory)..\tools\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll</StrideMSBuildTaskSourcePath>
+    <StrideMSBuildTaskSourcePath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\Stride.MSBuild.Tasks\bin\Release\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll')">$(MSBuildThisFileDirectory)..\..\..\..\deps\Stride.MSBuild.Tasks\bin\Release\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll</StrideMSBuildTaskSourcePath>
+    <StrideMSBuildTaskAssemblyHash Condition="Exists('$(StrideMSBuildTaskSourcePath)')">$([System.IO.File]::ReadAllText('$(StrideMSBuildTaskSourcePath).hash'))</StrideMSBuildTaskAssemblyHash>
+    <StrideMSBuildTaskTempPath>$(TEMP)\Stride\MSBuildTasks\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks-$(StrideMSBuildTaskAssemblyHash).dll</StrideMSBuildTaskTempPath>
+  </PropertyGroup>
+
+  <UsingTask AssemblyFile="$(StrideMSBuildTaskTempPath)" TaskName="Stride.MSBuild.Tasks.SortItems"/>
+  <!-- Import up-to-date check file to skip asset build altogether if everything is still up to date
+       Details: https://github.com/dotnet/project-system/blob/16.3.1/docs/up-to-date-check.md -->
+  <Target Name="_StrideCollectUpToDateCheckInputDesignTime" Condition="'$(StrideIsExecutable)' == 'true'">
+    <ReadLinesFromFile File="$(StrideCompileAssetUpToDateCheckFileBase).inputs" Condition="Exists('$(StrideCompileAssetUpToDateCheckFileBase).inputs')">
+      <Output TaskParameter="Lines" ItemName="StrideAssetInputRaw"/>
+    </ReadLinesFromFile>
+    <!-- Use CreateItem to force wildcard expansion -->
+    <CreateItem Include="@(StrideAssetInputRaw)">
+      <Output TaskParameter="Include" ItemName="StrideAssetInputUnsorted" />
+    </CreateItem>
+    <!-- Copy task to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
+    <Copy SourceFiles="$(StrideMSBuildTaskSourcePath)" DestinationFiles="$(StrideMSBuildTaskTempPath)" Condition="!Exists('$(StrideMSBuildTaskTempPath)')" />
+    <!-- We need to sort to make sure expanded list is written to only if there's an actual change (rather than simply non-deterministic file enumeration order) -->
+    <SortItems InputItems="@(StrideAssetInputUnsorted)">
+      <Output TaskParameter="OutputItems" ItemName="StrideAssetInput" />
+    </SortItems>
+      
+    <!-- Write expanded list (use WriteOnlyWhenDifferent to keep timestamp if no changes) -->
+    <WriteLinesToFile File="$(StrideCompileAssetUpToDateCheckFileBase).inputs.expanded" Overwrite="true" Lines="@(StrideAssetInput)" WriteOnlyWhenDifferent="true"/>
+
+    <ItemGroup>
+      <!-- If not input (yet), make sure build doesn't skip by adding a fake input file -->
+      <StrideAssetInput Condition="'@(StrideAssetInput)' == ''" Include="FakeInputForceBuild.file" />
+      <!-- Also include expanded list -->
+      <StrideAssetInput Include="$(StrideCompileAssetUpToDateCheckFileBase).inputs.expanded" Condition="Exists('$(StrideCompileAssetUpToDateCheckFileBase).inputs')" />
+      <!-- Currently disabled, it doesn't work well with wildcards
+      <UpToDateCheckInput Include="@(StrideAssetInput)" Set="StrideAssets" />-->
+    </ItemGroup>
+  </Target>
+  <Target Name="_StrideCollectUpToDateCheckOutputDesignTime" Condition="'$(StrideIsExecutable)' == 'true'">
+    <ReadLinesFromFile File="$(StrideCompileAssetUpToDateCheckFileBase).outputs" Condition="Exists('$(StrideCompileAssetUpToDateCheckFileBase).outputs')">
+      <Output TaskParameter="Lines" ItemName="StrideAssetOutputRaw" />
+    </ReadLinesFromFile>
+    <!-- Use CreateItem to force wildcard expansion -->
+    <CreateItem Include="@(StrideAssetOutputRaw)">
+      <Output TaskParameter="Include" ItemName="StrideAssetOutput" />
+    </CreateItem>
+
+    <ItemGroup>
+      <!-- If not output (yet), make sure build doesn't skip by adding a fake output file -->
+      <StrideAssetOutput Condition="'@(StrideAssetOutput)' == ''" Include="FakeBundleForceBuild.bundle" />
+      <!-- Currently disabled, it doesn't work well with wildcards
+      <UpToDateCheckOutput Include="@(StrideAssetOutput)" Set="StrideAssets" />-->
+    </ItemGroup>
+  </Target>
+  
+  <Target Name="_StridePrepareAssetCompiler">
     <PropertyGroup>
-      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --property:RuntimeIdentifier=$(RuntimeIdentifier) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --log-pipe=&quot;$(StrideBuildEngineLogPipeUrl)&quot;</StrideCompileAssetCommandProxy>
+      <!-- First try NuGet layout, then git checkout -->
+      <StrideCompileAssetCommandPath Condition="Exists('$(MSBuildThisFileDirectory)..\lib\')">$(MSBuildThisFileDirectory)..\lib</StrideCompileAssetCommandPath>
+      <StrideCompileAssetCommandPath Condition="Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)</StrideCompileAssetCommandPath>
+
+      <!-- Try to guess correct which version of asset compiler to use depending on user TargetFramework -->
+      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net5.0-windows7.0\Stride.Core.Assets.CompilerApp.exe') And $(TargetFramework.StartsWith('net5'))">net5.0-windows7.0</StrideCompileAssetTargetFramework>
+      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net5.0-windows7.0\Stride.Core.Assets.CompilerApp.exe') And $(TargetFramework.StartsWith('netcoreapp'))">net5.0-windows7.0</StrideCompileAssetTargetFramework>
+      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net472\Stride.Core.Assets.CompilerApp.exe') And $(TargetFramework.StartsWith('net4'))">net472</StrideCompileAssetTargetFramework>
+
+      <!-- Otherwise, fallback to whichever framework is available -->
+      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net472\Stride.Core.Assets.CompilerApp.exe')">net472</StrideCompileAssetTargetFramework>
+      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net5.0-windows7.0\Stride.Core.Assets.CompilerApp.exe')">net5.0-windows7.0</StrideCompileAssetTargetFramework>
+
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == ''">$(StrideCompileAssetCommandPath)\$(StrideCompileAssetTargetFramework)\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
+    </PropertyGroup>
+
+    <Error Condition="'$(StrideCompileAssetTargetFramework)' == ''" Text="Stride AssetCompiler: could not determine StrideCompileAssetTargetFramework (Path: &quot;$(StrideCompileAssetCommandPath)&quot;)"/>
+    <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
+  </Target>
+
+  <!--Compile assets for all StridePackage items and only for an executable-->
+  <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true'" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime;_StridePrepareAssetCompiler" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
+    <PropertyGroup>
+      <StrideCompileAssetCommandProxy>&quot;$(StrideCompileAssetCommand)&quot;</StrideCompileAssetCommandProxy>
+
+      <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot;</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
     </PropertyGroup>
@@ -129,7 +206,7 @@
 
   <!-- Pack target -->
   <!--<UsingTask TaskName="Stride.Core.Tasks.PackAssets" AssemblyFile="$(StrideCompileAssetCommand)" />-->
-  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles">
+  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StridePrepareAssetCompiler">
     <!-- We use exec version rather than task version, otherwise file will be locked during rebuild -->
     <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\stride">
       <Output TaskParameter="GeneratedItems" ItemName="None"/>
@@ -147,6 +224,10 @@
         <PackagePath>%(PackAssetsLine.PackagePath)</PackagePath>
       </None>
     </ItemGroup>
+  </Target>
+
+  <Target Name="StrideAssetUpdateGeneratedFiles">
+    <Exec Command="&quot;$(StrideCompileAssetCommand)&quot; --updated-generated-files --package-file=&quot;$(MSBuildProjectFullPath)&quot;"/>
   </Target>
 
   <!-- 

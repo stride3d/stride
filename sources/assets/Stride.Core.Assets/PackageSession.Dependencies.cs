@@ -98,7 +98,14 @@ namespace Stride.Core.Assets
             // Load some informations about the project
             try
             {
-                var msProject = VSProjectHelper.LoadProject(project.FullPath, loadParameters.BuildConfiguration, extraProperties: new Dictionary<string, string> { { "SkipInvalidConfigurations", "true" } });
+                var extraProperties = new Dictionary<string, string>();
+                if (loadParameters.ExtraCompileProperties != null)
+                {
+                    foreach (var extraProperty in loadParameters.ExtraCompileProperties)
+                        extraProperties.Add(extraProperty.Key, extraProperty.Value);
+                }
+                extraProperties.Add("SkipInvalidConfigurations", "true");
+                var msProject = VSProjectHelper.LoadProject(project.FullPath, loadParameters.BuildConfiguration, extraProperties: extraProperties);
                 try
                 {
                     var packageVersion = msProject.GetPropertyValue("PackageVersion");
@@ -106,6 +113,9 @@ namespace Stride.Core.Assets
                         package.Meta.Version = new PackageVersion(packageVersion);
 
                     project.TargetPath = msProject.GetPropertyValue("TargetPath");
+                    project.AssemblyProcessorSerializationHashFile = msProject.GetProperty("StrideAssemblyProcessorSerializationHashFile")?.EvaluatedValue;
+                    if (project.AssemblyProcessorSerializationHashFile != null)
+                        project.AssemblyProcessorSerializationHashFile = Path.Combine(Path.GetDirectoryName(project.FullPath), project.AssemblyProcessorSerializationHashFile);
                     package.Meta.Name = (msProject.GetProperty("PackageId") ?? msProject.GetProperty("AssemblyName"))?.EvaluatedValue ?? package.Meta.Name;
 
                     var outputType = msProject.GetPropertyValue("OutputType");
@@ -293,6 +303,10 @@ namespace Stride.Core.Assets
             // 1. Load store package
             foreach (var projectDependency in project.FlattenedDependencies)
             {
+                // Make all the assemblies known to the container to ensure that later assembly loads succeed
+                foreach (var assembly in projectDependency.Assemblies)
+                    AssemblyContainer.RegisterDependency(assembly);
+
                 var loadedPackage = packages.Find(projectDependency);
                 if (loadedPackage == null)
                 {
@@ -315,6 +329,11 @@ namespace Stride.Core.Assets
                         loadedProject.Package.Meta.Name = projectDependency.Name;
                         loadedProject.Package.Meta.Version = projectDependency.Version;
                         Projects.Add(loadedProject);
+
+                        if (loadedProject is StandalonePackage standalonePackage)
+                        {
+                            standalonePackage.Assemblies.AddRange(projectDependency.Assemblies);
+                        }
 
                         loadedPackage = loadedProject.Package;
                     }
@@ -367,9 +386,48 @@ namespace Stride.Core.Assets
                 // Update dependencies
                 if (flattenedDependencies)
                 {
-                    foreach (var library in projectAssets.Libraries)
+                    var libPaths = new Dictionary<ValueTuple<string, NuGet.Versioning.NuGetVersion>, LockFileLibrary>();
+                    foreach (var lib in projectAssets.Libraries)
                     {
+                        libPaths.Add(ValueTuple.Create(lib.Name, lib.Version), lib);
+                    }
+
+                    foreach (var targetLibrary in projectAssets.Targets.Last().Libraries)
+                    {
+                        if (!libPaths.TryGetValue(ValueTuple.Create(targetLibrary.Name, targetLibrary.Version), out var library))
+                            continue;
+
                         var projectDependency = new Dependency(library.Name, library.Version.ToPackageVersion(), library.Type == "project" ? DependencyType.Project : DependencyType.Package) { MSBuildProject = library.Type == "project" ? library.MSBuildProject : null };
+
+                        if (library.Type == "package")
+                        {
+                            // Find library path by testing with each PackageFolders
+                            var libraryPath = projectAssets.PackageFolders
+                                .Select(packageFolder => Path.Combine(packageFolder.Path, library.Path.Replace('/', Path.DirectorySeparatorChar)))
+                                .FirstOrDefault(x => Directory.Exists(x));
+
+                            if (libraryPath != null)
+                            {
+                                // Build list of assemblies
+                                foreach (var a in targetLibrary.RuntimeAssemblies)
+                                {
+                                    if (!a.Path.EndsWith("_._"))
+                                    {
+                                        var assemblyFile = Path.Combine(libraryPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+                                        projectDependency.Assemblies.Add(assemblyFile);
+                                    }
+                                }
+                                foreach (var a in targetLibrary.RuntimeTargets)
+                                {
+                                    if (!a.Path.EndsWith("_._"))
+                                    {
+                                        var assemblyFile = Path.Combine(libraryPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+                                        projectDependency.Assemblies.Add(assemblyFile);
+                                    }
+                                }
+                            }
+                        }
+
                         project.FlattenedDependencies.Add(projectDependency);
                         // Try to resolve package if already loaded
                         projectDependency.Package = project.Session.Packages.Find(projectDependency);
@@ -471,7 +529,7 @@ namespace Stride.Core.Assets
             else
             {
                 // External references were passed, but the top level project wasn't found.
-                // This is always due to an internal issue and typically caused by errors 
+                // This is always due to an internal issue and typically caused by errors
                 // building the project closure.
                 throw new InvalidOperationException($"Missing external reference metadata for {_request.Project.Name}");
             }

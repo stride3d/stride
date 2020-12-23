@@ -45,7 +45,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         protected override Entity Create()
         {
-            var gizmoGeometricPrimitive = GraphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerDevice, "LightProbe GeometricData", d => GeometricPrimitive.Sphere.New(GraphicsDevice, 0.2f, 8));
+            var gizmoGeometricPrimitive = GraphicsDevice.GetOrCreateSharedData("LightProbe GeometricData", d => GeometricPrimitive.Sphere.New(GraphicsDevice, 0.2f, 8));
             lightProbeMaterial = Material.New(GraphicsDevice, new MaterialDescriptor
             {
                 Attributes =

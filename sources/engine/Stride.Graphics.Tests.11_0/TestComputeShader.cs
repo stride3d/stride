@@ -92,11 +92,5 @@ namespace Stride.Graphics.Tests
 
             RunGameTest(new TestComputeShader());
         }
-
-        internal static void Main()
-        {
-            using (var game = new TestComputeShader())
-                game.Run();
-        }
     }
 }

@@ -208,14 +208,6 @@ namespace Stride.Engine.Tests
             RunGameTest(new TesselationTest());
         }
 
-        internal static void Main()
-        {
-            using (var game = new TesselationTest(true))
-            {
-                game.Run();
-            }
-        }
-
         private class WireframeCullbackPipelineProcessor : PipelineProcessor
         {
             public override void Process(RenderNodeReference renderNodeReference, ref RenderNode renderNode, RenderObject renderObject, PipelineStateDescription pipelineState)

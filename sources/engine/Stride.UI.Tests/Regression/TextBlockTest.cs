@@ -209,14 +209,5 @@ This is the last line.",
         {
             RunGameTest(new TextBlockTest());
         }
-
-        /// <summary>
-        /// Launch the Image test.
-        /// </summary>
-        internal static void Main()
-        {
-            using (var game = new TextBlockTest())
-                game.Run();
-        }
     }
 }

@@ -1,7 +1,8 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Stride.PreSettings.UnitTests.targets" />
+  <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
     <TargetFrameworks>net461</TargetFrameworks>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <AssemblyName>Stride.Physics.Tests</AssemblyName>
     <RootNamespace>Stride.Physics.Tests</RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
@@ -21,10 +22,7 @@
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
-  <ItemGroup>
+    <Compile Include="SendCollisionEndedWhenEntityIsRemovedTest.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="CharacterTest.cs" />
     <Compile Include="ColliderShapesTest.cs" />

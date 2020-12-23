@@ -239,7 +239,7 @@ namespace Stride.GameStudio.Debugging
                             bool readWriteSymbols = true;
                             bool modified;
                             assemblyProcessorApp.SerializationAssembly = true;
-                            if (!assemblyProcessorApp.Run(ref assemblyDefinition, ref readWriteSymbols, out modified))
+                            if (!assemblyProcessorApp.Run(ref assemblyDefinition, ref readWriteSymbols, out modified, out var _))
                             {
                                 result.Error("Error running assembly processor");
                                 break;

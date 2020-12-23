@@ -7,3 +7,6 @@ IF NOT ERRORLEVEL 0 (
   EXIT /B %ERRORLEVEL%
 ) 
 %GIT_CMD% clone "https://github.com/flibitijibibo/SDL2-CS.git" ../../externals/SDL2-CS
+pushd ..\..\externals\SDL2-CS
+%GIT_CMD% checkout 3e7eaf9d5be29
+popd

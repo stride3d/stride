@@ -20,12 +20,41 @@ namespace Stride.Editor.Engine
             if (entity.Id == subEntityId)
                 return entity;
 
-            return entity.GetChildren().DepthFirst(x => x.GetChildren()).FirstOrDefault(x => x.Id == subEntityId);
+            foreach (var child in entity.Transform.Children)
+            {
+                if (child.Entity.FindSubEntity(subEntityId) is Entity e)
+                    return e;
+            }
+
+            return null;
         }
 
         public static Entity FindSubEntity(this Scene scene, Guid subEntityId)
         {
-            return scene.Entities.DepthFirst(x => x.GetChildren()).FirstOrDefault(x => x.Id == subEntityId);
+            if (scene.Entities.Count == 0)
+                return null;
+            
+            if (scene.Entities[0].EntityManager is EntityManager manager)
+            {
+                // The entity manager contains all entities of all the scenes under the root scene,
+                // it should be faster in most cases to iterate over that instead of going through the entity tree
+                var e = manager.GetEnumerator();
+                while (e.MoveNext())
+                {
+                    if (e.Current.Id == subEntityId && ReferenceEquals(scene, e.Current.Scene))
+                        return e.Current;
+                }
+            }
+            else // Slow path, go through tree recursively
+            {
+                foreach (Entity entity in scene.Entities)
+                {
+                    if (entity.FindSubEntity(subEntityId) is Entity e)
+                        return e;
+                }
+            }
+            
+            return null;
         }
 
         /// <summary>

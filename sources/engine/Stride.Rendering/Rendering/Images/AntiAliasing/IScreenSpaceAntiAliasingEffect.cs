@@ -9,6 +9,7 @@ namespace Stride.Rendering.Images
     public interface IScreenSpaceAntiAliasingEffect : IImageEffect
     {
         bool NeedRangeDecompress { get; }
+        bool RequiresDepthBuffer { get; }
         bool RequiresVelocityBuffer { get; }
     }
 }

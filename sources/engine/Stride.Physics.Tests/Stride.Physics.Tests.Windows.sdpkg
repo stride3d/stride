@@ -11,3 +11,4 @@ RootAssets:
     - b98408a0-2b2d-4783-a8c2-11b0fe5bbdcc:ColliderShapesTest
     - b98408a0-2b2d-4783-a8c2-11b0fe5bbdcd:SkinnedTest
     - c2b9bd24-3e83-4fff-b963-79f9ff5430ac:CharacterTest
+    - ad1acc09-3637-40e7-b185-3bfdfb77b885:SendCollisionEndedWhenEntityIsRemovedTest

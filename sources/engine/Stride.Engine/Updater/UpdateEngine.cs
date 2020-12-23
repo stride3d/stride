@@ -264,7 +264,7 @@ namespace Stride.Updater
                         }
                         else
                         {
-                            UpdatableMember updatableMember;
+                            UpdatableMember updatableMember = null;
 
                             // Parse until end next group (or end)
                             state.ParseElementEnd = animationPath.Name.IndexOfAny(PathGroupDelimiters, state.ParseElementStart + 1);
@@ -275,7 +275,7 @@ namespace Stride.Updater
 
                             // try to find a member updater
                             var parentType = containerType;
-                            while (!UpdateKeys.TryGetValue(new UpdateKey(parentType, propertyName), out updatableMember) && parentType != null)
+                            while (parentType != null && !UpdateKeys.TryGetValue(new UpdateKey(parentType, propertyName), out updatableMember))
                             {
                                 parentType = parentType.GetTypeInfo().BaseType;
                             }

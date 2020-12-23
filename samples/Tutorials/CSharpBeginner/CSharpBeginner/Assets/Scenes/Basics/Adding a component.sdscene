@@ -16,8 +16,8 @@ Hierarchy:
                 Components:
                     d5dd94550dc377d8b1703c74aae2cee5: !TransformComponent
                         Id: 8939b5cb-c1a7-4509-a30d-44d12d057cbf
-                        Position: {X: -1.01917028, Y: 1.0569638, Z: -3.7575984}
-                        Rotation: {X: -0.127091929, Y: -0.225931823, Z: -0.0297444928, W: 0.965358853}
+                        Position: {X: -1.0191703, Y: 1.0569638, Z: -3.7575984}
+                        Rotation: {X: -0.12709193, Y: -0.22593182, Z: -0.029744493, W: 0.96535885}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     f1cc2f84c67fbd3cc50a22dd0ef605a5: !CameraComponent
@@ -33,13 +33,13 @@ Hierarchy:
                 Components:
                     e5de8ef6f80d1c1d41d827f8df09c51f: !TransformComponent
                         Id: 64eddf76-1f0d-4763-a3d1-b6caa27ef85a
-                        Position: {X: -0.133797765, Y: 0.8278033, Z: -4.23705626}
-                        Rotation: {X: 0.0, Y: 0.577477, Z: 0.0, W: 0.816406965}
+                        Position: {X: -0.13379776, Y: 0.8278033, Z: -4.2370563}
+                        Rotation: {X: 0.0, Y: 0.577477, Z: 0.0, W: 0.81640697}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     845c1d233f86e0dff93f902a4654a795: !ModelComponent
                         Id: 418bb6a9-91fd-4a9c-95f1-0d4f5b8a29e9
                         Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
                         Materials: {}
-                    e374f7b498051c200f190c1102c08b41: !CSharpBeginner.Code.AddingAComponentDemo,CSharpBeginner.Game
-                        Id: a8cdbb88-4224-4400-859d-3c522c3defaa
+                    9d5eb2e0cf20867aa4f4ea1c4f44cd3a: !CSharpBeginner.Code.AddingAComponentDemo,CSharpBeginner.Game
+                        Id: 192d2435-4477-4a07-8354-91e07ac8e63f

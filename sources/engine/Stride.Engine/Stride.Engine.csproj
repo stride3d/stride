@@ -2,18 +2,17 @@
 
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
+    <StrideRuntimeNetStandard>true</StrideRuntimeNetStandard>
   </PropertyGroup>
 
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StridePlatformDependent>true</StridePlatformDependent>
     <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
-    <StrideProjectPlatformDependentWindows>true</StrideProjectPlatformDependentWindows>
     <StrideBuildTags>*</StrideBuildTags>
     <RestorePackages>true</RestorePackages>
     <RootNamespace>Stride</RootNamespace>
@@ -22,24 +21,6 @@
     <!-- force generate Resource.designer.cs to namespace Stride.Engine to fix issue #553 -->
     <AndroidResgenNamespace>Stride.Engine</AndroidResgenNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Resources\Resource.Designer.cs" />
-  </ItemGroup>
-  <Choose>
-    <When Condition=" '$(StridePlatform)' == 'Android'">
-      <PropertyGroup>
-        <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
-      </PropertyGroup>
-      <ItemGroup>
-        <Compile Include="Resources\Resource.Designer.cs" />
-        <AndroidResource Include="Resources\Layout\Game.axml">
-          <SubType>AndroidResource</SubType>
-        </AndroidResource>
-        <Reference Include="System.Xml" />
-      </ItemGroup>
-    </When>
-  </Choose>
 
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -52,21 +33,11 @@
     <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />
     <ProjectReference Include="..\Stride.Rendering\Stride.Rendering.csproj" />
     <ProjectReference Include="..\Stride.VirtualReality\Stride.VirtualReality.csproj" />
+    <ProjectReference Include="..\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj" />
   </ItemGroup>
   <Import Project="..\Stride.Shared\Refactor\Stride.Refactor.projitems" Label="Shared" />
-  <Choose>
-    <When Condition="'$(StrideEffectCompiler)' == 'true'">
-      <ItemGroup Condition="'$(StrideEffectCompiler)' == 'true'">
-        <ProjectReference Include="..\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj">
-          <Project>{E8B3553F-A79F-4E50-B75B-ACEE771C320C}</Project>
-          <Name>Stride.Shaders.Compiler</Name>
-          <Private>False</Private>
-        </ProjectReference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Import Project="$(StridePostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

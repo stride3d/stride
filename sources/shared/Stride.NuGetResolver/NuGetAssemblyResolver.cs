@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -35,14 +36,8 @@ namespace Stride.Core.Assets
             assembliesResolved = true;
         }
 
-        [ModuleInitializer(-100000)]
-        internal static void __Initialize__()
+        internal static void SetupNuGet(string packageName, string packageVersion)
         {
-            // Only perform this for entry assembly
-            if (!(Assembly.GetEntryAssembly() == null // .NET FW: null during module .ctor
-                || Assembly.GetEntryAssembly() == Assembly.GetCallingAssembly())) // .NET Core: check against calling assembly
-                return;
-
             // Make sure our nuget local store is added to nuget config
             var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string strideFolder = null;
@@ -65,6 +60,12 @@ namespace Stride.Core.Assets
             // Note: we perform nuget restore inside the assembly resolver rather than top level module ctor (otherwise it freezes)
             AppDomain.CurrentDomain.AssemblyResolve += (sender, eventArgs) =>
             {
+                // Check if already loaded.
+                // Somehow it happens for Microsoft.NET.Build.Tasks -> NuGet.ProjectModel, probably due to the specific way it's loaded.
+                var matchingAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.FullName == eventArgs.Name);
+                if (matchingAssembly != null)
+                    return matchingAssembly;
+
                 if (!assembliesResolved)
                 {
                     lock (assembliesLock)
@@ -73,6 +74,48 @@ namespace Stride.Core.Assets
                         assembliesResolved = true;
 
                         var logger = new Logger();
+
+#if STRIDE_NUGET_RESOLVER_UX
+                        var dialogNotNeeded = new TaskCompletionSource<bool>();
+                        var dialogClosed = new TaskCompletionSource<bool>();
+
+                        // Display splash screen after a 500 msec (when NuGet takes some time to restore)
+                        var newWindowThread = new Thread(() =>
+                        {
+                            Thread.Sleep(500);
+                            if (!dialogNotNeeded.Task.IsCompleted)
+                            {
+                                var splashScreen = new Stride.NuGetResolver.SplashScreenWindow();
+                                splashScreen.Show();
+
+                                // Register log
+                                logger.SetupLogAction((level, message) =>
+                                {
+                                    splashScreen.Dispatcher.InvokeAsync(() =>
+                                    {
+                                        splashScreen.AppendMessage(level, message);
+                                    });
+                                });
+
+                                dialogNotNeeded.Task.ContinueWith(t =>
+                                {
+                                    splashScreen.Dispatcher.Invoke(() => splashScreen.Close());
+                                });
+
+                                splashScreen.Closed += (sender2, e2) =>
+                                    splashScreen.Dispatcher.InvokeShutdown();
+
+                                System.Windows.Threading.Dispatcher.Run();
+
+                                splashScreen.Close();
+                            }
+                            dialogClosed.SetResult(true);
+                        });
+                        newWindowThread.SetApartmentState(ApartmentState.STA);
+                        newWindowThread.IsBackground = true;
+                        newWindowThread.Start();
+#endif
+
                         var previousSynchronizationContext = SynchronizationContext.Current;
                         try
                         {
@@ -86,19 +129,37 @@ namespace Stride.Core.Assets
                                 .FrameworkName ?? ".NETFramework,Version=v4.7.2";
                             var nugetFramework = NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance);
 
+#if NETCOREAPP
+                            // Add TargetPlatform to net5.0 TFM (i.e. net5.0 to net5.0-windows7.0)
+                            var platform = Assembly.GetEntryAssembly()?.GetCustomAttribute<TargetPlatformAttribute>()?.PlatformName ?? string.Empty;
+                            if (framework.StartsWith(FrameworkConstants.FrameworkIdentifiers.NetCoreApp) && platform != string.Empty)
+                            {
+                                var platformParseResult = Regex.Match(platform, @"([a-zA-Z]+)(\d+.*)");
+                                if (platformParseResult.Success && Version.TryParse(platformParseResult.Groups[2].Value, out var platformVersion))
+                                {
+                                    var platformName = platformParseResult.Groups[1].Value;
+                                    nugetFramework = new NuGetFramework(nugetFramework.Framework, nugetFramework.Version, platformName, platformVersion);
+                                }
+                            }
+#endif
+
                             // Only allow this specific version
-                            var versionRange = new VersionRange(new NuGetVersion(StrideVersion.NuGetVersion), true, new NuGetVersion(StrideVersion.NuGetVersion), true);
-                            var (request, result) = RestoreHelper.Restore(logger, nugetFramework, "win", Assembly.GetExecutingAssembly().GetName().Name, versionRange).Result;
+                            var versionRange = new VersionRange(new NuGetVersion(packageVersion), true, new NuGetVersion(packageVersion), true);
+                            var (request, result) = RestoreHelper.Restore(logger, nugetFramework, "win", packageName, versionRange);
                             if (!result.Success)
                             {
                                 throw new InvalidOperationException($"Could not restore NuGet packages");
                             }
 
-                            assemblies = RestoreHelper.ListAssemblies(request, result);
+                            assemblies = RestoreHelper.ListAssemblies(result.LockFile);
                         }
                         catch (Exception e)
                         {
-                            var logFile = Path.GetTempPath() + Guid.NewGuid().ToString() + ".txt";
+#if STRIDE_NUGET_RESOLVER_UX
+                            logger.LogError($@"Error restoring NuGet packages: {e}");
+                            dialogClosed.Task.Wait();
+#else
+                            // Display log in console
                             var logText = $@"Error restoring NuGet packages!
 
 ==== Exception details ====
@@ -109,19 +170,15 @@ namespace Stride.Core.Assets
 
 {string.Join(Environment.NewLine, logger.Logs.Select(x => $"[{x.Level}] {x.Message}"))}
 ";
-                            File.WriteAllText(logFile, logText);
-#if STRIDE_NUGET_RESOLVER_UX
-                            // Write log to file
-                            System.Windows.Forms.MessageBox.Show($"{e.Message}{Environment.NewLine}{Environment.NewLine}Please see details in {logFile} (which will be automatically opened)", "Error restoring NuGet packages");
-                            Process.Start(logFile);
-#else
-                            // Display log in console
                             Console.WriteLine(logText);
 #endif
                             Environment.Exit(1);
                         }
                         finally
                         {
+#if STRIDE_NUGET_RESOLVER_UX
+                            dialogNotNeeded.TrySetResult(true);
+#endif
                             SynchronizationContext.SetSynchronizationContext(previousSynchronizationContext);
                         }
                     }
@@ -168,7 +225,18 @@ namespace Stride.Core.Assets
         public class Logger : ILogger
         {
             private object logLock = new object();
+            private Action<LogLevel, string> action;
             public List<(LogLevel Level, string Message)> Logs { get; } = new List<(LogLevel, string)>();
+
+            public void SetupLogAction(Action<LogLevel, string> action)
+            {
+                lock (logLock)
+                {
+                    this.action = action;
+                    foreach (var log in Logs)
+                        action.Invoke(log.Level, log.Message);
+                }
+            }
 
             public void LogDebug(string data)
             {
@@ -216,6 +284,7 @@ namespace Stride.Core.Assets
                 {
                     Debug.WriteLine($"[{level}] {data}");
                     Logs.Add((level, data));
+                    action?.Invoke(level, data);
                 }
             }
 

@@ -21,9 +21,9 @@ namespace Stride.Input
 
         public abstract bool IsPositionLocked { get; }
 
-        public IReadOnlySet<MouseButton> PressedButtons => MouseState.PressedButtons;
-        public IReadOnlySet<MouseButton> ReleasedButtons => MouseState.ReleasedButtons;
-        public IReadOnlySet<MouseButton> DownButtons => MouseState.DownButtons;
+        public Core.Collections.IReadOnlySet<MouseButton> PressedButtons => MouseState.PressedButtons;
+        public Core.Collections.IReadOnlySet<MouseButton> ReleasedButtons => MouseState.ReleasedButtons;
+        public Core.Collections.IReadOnlySet<MouseButton> DownButtons => MouseState.DownButtons;
 
         public Vector2 Position => MouseState.Position;
         public Vector2 Delta => MouseState.Delta;

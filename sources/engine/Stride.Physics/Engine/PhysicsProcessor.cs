@@ -27,7 +27,7 @@ namespace Stride.Physics
         private readonly List<CharacterComponent> characters = new List<CharacterComponent>();
 
         private Bullet2PhysicsSystem physicsSystem;
-        private SceneSystem sceneSystem;
+        private Scene parentScene;
         private Scene debugScene;
 
         private bool colliderShapesRendering;
@@ -38,6 +38,34 @@ namespace Stride.Physics
             : base(typeof(TransformComponent))
         {
             Order = 0xFFFF;
+        }
+
+        /// <summary>
+        /// Gets or sets the associated parent scene to render the physics debug shapes. Assigned with default one on <see cref="OnSystemAdd"/>
+        /// </summary>
+        /// <value>
+        /// The parent scene.
+        /// </value>
+        public Scene ParentScene
+        {
+            get => parentScene;
+            set
+            {
+                if (value != parentScene)
+                {
+                    if (parentScene != null && debugShapeRendering.Enabled)
+                    {
+                        // If debug rendering is running, disable it and re-enable for new scene system
+                        RenderColliderShapes(false);
+                        parentScene = value;
+                        RenderColliderShapes(true);
+                    }
+                    else
+                    {
+                        parentScene = value;
+                    }
+                }
+            }
         }
 
         public Simulation Simulation { get; private set; }
@@ -58,8 +86,9 @@ namespace Stride.Physics
                     {
                         element.RemoveDebugEntity(debugScene);
                     }
-
-                    sceneSystem.SceneInstance.RootScene.Children.Remove(debugScene);
+                    
+                    // Remove from parent scene
+                    debugScene.Parent = null;
                 }
             }
             else
@@ -74,7 +103,7 @@ namespace Stride.Physics
                     }
                 }
 
-                sceneSystem.SceneInstance.RootScene.Children.Add(debugScene);
+                debugScene.Parent = parentScene;
             }
         }
 
@@ -103,6 +132,10 @@ namespace Stride.Physics
 
         protected override void OnEntityComponentAdding(Entity entity, PhysicsComponent component, AssociatedData data)
         {
+            // Tagged for removal? If yes, cancel it
+            if (currentFrameRemovals.Remove(component))
+                return;
+
             component.Attach(data);
 
             var character = component as CharacterComponent;
@@ -149,7 +182,7 @@ namespace Stride.Physics
             component.Detach();
         }
 
-        private readonly List<PhysicsComponent> currentFrameRemovals = new List<PhysicsComponent>();
+        private readonly HashSet<PhysicsComponent> currentFrameRemovals = new HashSet<PhysicsComponent>();
 
         protected override void OnEntityComponentRemoved(Entity entity, PhysicsComponent component, AssociatedData data)
         {
@@ -179,7 +212,7 @@ namespace Stride.Physics
 
             Simulation = physicsSystem.Create(this);
 
-            sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
+            parentScene = Services.GetSafeServiceAs<SceneSystem>()?.SceneInstance?.RootScene;
         }
 
         protected override void OnSystemRemove()

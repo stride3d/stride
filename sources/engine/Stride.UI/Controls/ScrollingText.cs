@@ -166,7 +166,7 @@ namespace Stride.UI.Controls
 
         private void UpdateAndAdjustDisplayText(GameTime time = null)
         {
-            if (string.IsNullOrEmpty(Text))
+            if (string.IsNullOrEmpty(Text) || Font is null || CalculateTextSize(Text).X <= float.Epsilon)
                 return;
 
             var elapsedSeconds = time != null ? (float)time.Elapsed.TotalSeconds : 0f;

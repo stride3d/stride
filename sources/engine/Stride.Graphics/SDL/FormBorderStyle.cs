@@ -9,8 +9,19 @@ namespace Stride.Graphics.SDL
     /// </summary>
     public enum FormBorderStyle
     {
+        /// <summary>
+        /// Borderless
+        /// </summary>
         None = 0,
+        
+        /// <summary>
+        /// Borders but not resizeable
+        /// </summary>
         FixedSingle = 1,
+        
+        /// <summary>
+        /// Borders and resizeable
+        /// </summary>
         Sizable = 4,
     }
 }

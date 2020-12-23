@@ -20,19 +20,15 @@ namespace Stride.Core.IO
             get { return path; }
         }
 
-#if !NETFX_CORE
         ~TemporaryFile()
         {
             Dispose(false);
         }
-#endif
 
         public void Dispose()
         {
             Dispose(false);
-#if !NETFX_CORE
             GC.SuppressFinalize(this);
-#endif
         }
 
         private void Dispose(bool disposing)

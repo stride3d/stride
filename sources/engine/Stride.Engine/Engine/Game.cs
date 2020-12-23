@@ -303,29 +303,22 @@ namespace Stride.Engine
             if (!AutoLoadDefaultSettings) return;
 
             var renderingSettings = Settings?.Configurations.Get<RenderingSettings>();
-            if (renderingSettings == null) return;
 
             var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
 
             if (gameCreation)
             {
-                //execute the following steps only when the game is still at creation stage
-
-                deviceManager.PreferredGraphicsProfile = Context.RequestedGraphicsProfile = new[] { renderingSettings.DefaultGraphicsProfile };
-
-                //if our device height is actually smaller then requested we use the device one
-                deviceManager.PreferredBackBufferHeight = Context.RequestedHeight = Math.Min(renderingSettings.DefaultBackBufferHeight, Window.ClientBounds.Height);
-                //if our device width is actually smaller then requested we use the device one
-                deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = Math.Min(renderingSettings.DefaultBackBufferWidth, Window.ClientBounds.Width);
+                //if our device width or height is actually smaller then requested we use the device one
+                deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = Math.Min(deviceManager.PreferredBackBufferWidth, Window.ClientBounds.Width);
+                deviceManager.PreferredBackBufferHeight = Context.RequestedHeight = Math.Min(deviceManager.PreferredBackBufferHeight, Window.ClientBounds.Height);
             }
 
             //these might get triggered even during game runtime, resize, orientation change
-
-            if (renderingSettings.AdaptBackBufferToScreen)
+            if (renderingSettings != null && renderingSettings.AdaptBackBufferToScreen)
             {
                 var deviceAr = Window.ClientBounds.Width / (float)Window.ClientBounds.Height;
 
-                if (renderingSettings.DefaultBackBufferHeight > renderingSettings.DefaultBackBufferWidth)
+                if (deviceManager.PreferredBackBufferHeight > deviceManager.PreferredBackBufferWidth)
                 {
                     deviceManager.PreferredBackBufferWidth = Context.RequestedWidth = (int)(deviceManager.PreferredBackBufferHeight * deviceAr);
                 }
@@ -345,9 +338,10 @@ namespace Stride.Engine
 
             // Add the input manager
             // Add it first so that it can obtained by the UI system
-            Input = new InputManager(Services);
+            var inputSystem = new InputSystem(Services);
+            Input = inputSystem.Manager;
             Services.AddService(Input);
-            GameSystems.Add(Input);
+            GameSystems.Add(inputSystem);
 
             // Initialize the systems
             base.Initialize();
@@ -427,7 +421,6 @@ namespace Stride.Engine
 
         protected override void EndDraw(bool present)
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
             // Allow to make a screenshot using CTRL+c+F12 (on release of F12)
             if (Input.HasKeyboard)
             {
@@ -449,7 +442,6 @@ namespace Stride.Engine
                     }
                 }
             }
-#endif
             base.EndDraw(present);
         }
 

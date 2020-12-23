@@ -16,6 +16,7 @@ using Mono.Cecil.Mdb;
 using Mono.Cecil.Pdb;
 using Mono.Cecil.Rocks;
 using Stride.Core;
+using Stride.Core.Storage;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 using TypeAttributes = Mono.Cecil.TypeAttributes;
 
@@ -115,7 +116,7 @@ namespace Stride.Core.AssemblyProcessor
 
                     var symbolWriterProvider = assemblyDefinition.MainModule.SymbolReader?.GetWriterProvider();
 
-                    var result = Run(ref assemblyDefinition, ref readWriteSymbols, out modified);
+                    var result = Run(ref assemblyDefinition, ref readWriteSymbols, out modified, out var serializationHash);
                     if (modified || inputFile != outputFile)
                     {
                         // Make sure output directory is created
@@ -143,6 +144,16 @@ namespace Stride.Core.AssemblyProcessor
                         }
                     }
 
+                    if (serializationHash != null)
+                    {
+                        var assemblySerializationHashFile = Path.ChangeExtension(outputFile, ".sdserializationhash");
+                        // Check and update current value (if it exists)
+                        var serializationHashString = serializationHash.Value.ToString();
+                        if (!File.Exists(assemblySerializationHashFile) || File.ReadAllText(assemblySerializationHashFile, Encoding.UTF8) != serializationHashString)
+                        {
+                            File.WriteAllText(assemblySerializationHashFile, serializationHashString, Encoding.UTF8);
+                        }
+                    }
                     return result;
                 }
                 finally
@@ -169,9 +180,10 @@ namespace Stride.Core.AssemblyProcessor
             return assemblyResolver;
         }
 
-        public bool Run(ref AssemblyDefinition assemblyDefinition, ref bool readWriteSymbols, out bool modified)
+        public bool Run(ref AssemblyDefinition assemblyDefinition, ref bool readWriteSymbols, out bool modified, out ObjectId? serializationHash)
         {
             modified = false;
+            serializationHash = null;
 
             try
             {
@@ -251,6 +263,7 @@ namespace Stride.Core.AssemblyProcessor
 
                 // Assembly might have been recreated (i.e. il-repack), so let's use it from now on
                 assemblyDefinition = assemblyProcessorContext.Assembly;
+                serializationHash = assemblyProcessorContext.SerializationHash;
 
                 if (modified)
                 {

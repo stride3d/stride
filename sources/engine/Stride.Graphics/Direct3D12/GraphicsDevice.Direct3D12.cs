@@ -236,10 +236,6 @@ namespace Stride.Graphics
                 SharpDX.Direct3D12.DebugInterface.Get().EnableDebugLayer();
             }
 
-            // Default fallback
-            if (graphicsProfiles.Length == 0)
-                graphicsProfiles = new[] { GraphicsProfile.Level_11_0 };
-
             // Create Device D3D12 with feature Level based on profile
             for (int index = 0; index < graphicsProfiles.Length; index++)
             {

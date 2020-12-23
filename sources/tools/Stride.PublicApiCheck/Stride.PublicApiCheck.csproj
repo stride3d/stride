@@ -3,7 +3,6 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net40</TargetFramework>
     <StrideCommonDependenciesDir>..\..\..\deps\</StrideCommonDependenciesDir>
-    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -18,8 +17,6 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Mono.Cecil" Version="0.10.4" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.2" />
   </ItemGroup>
 </Project>

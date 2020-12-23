@@ -25,7 +25,6 @@ namespace Stride.Rendering
 
         private EffectCompilerParameters effectCompilerParameters = EffectCompilerParameters.Default;
 
-        private IGraphicsDeviceService graphicsDeviceService;
         private EffectCompilerBase compiler;
         private readonly Dictionary<string, List<CompilerResults>> earlyCompilerCache = new Dictionary<string, List<CompilerResults>>();
         private Dictionary<EffectBytecode, Effect> cachedEffects = new Dictionary<EffectBytecode, Effect>();
@@ -64,10 +63,9 @@ namespace Stride.Rendering
         {
             base.Initialize();
 
-            isInitialized = true;
 
             // Get graphics device service
-            graphicsDeviceService = Services.GetSafeServiceAs<IGraphicsDeviceService>();
+            base.InitGraphicsDeviceService();
 
 #if STRIDE_PLATFORM_WINDOWS_DESKTOP
             Enabled = true;
@@ -75,6 +73,8 @@ namespace Stride.Rendering
             directoryWatcher.Modified += FileModifiedEvent;
             // TODO: sdfx too
 #endif
+
+            isInitialized = true;
         }
 
         public void SetCompilationMode(CompilationMode compilationMode)
@@ -210,19 +210,28 @@ namespace Stride.Rendering
 
                 if (!cachedEffects.TryGetValue(bytecode, out effect))
                 {
-                    effect = new Effect(graphicsDeviceService.GraphicsDevice, bytecode) { Name = effectName };
+                    effect = new Effect(GraphicsDevice, bytecode) { Name = effectName };
                     cachedEffects.Add(bytecode, effect);
 
 #if STRIDE_PLATFORM_WINDOWS_DESKTOP
                     foreach (var type in bytecode.HashSources.Keys)
                     {
-                        // TODO: the "/path" is hardcoded, used in ImportStreamCommand and ShaderSourceManager. Find a place to share this correctly.
-                        using (var pathStream = FileProvider.OpenStream(EffectCompilerBase.GetStoragePathFromShaderType(type) + "/path", VirtualFileMode.Open, VirtualFileAccess.Read))
-                        using (var reader = new StreamReader(pathStream))
+                        var storagePath = EffectCompilerBase.GetStoragePathFromShaderType(type);
+                        if (!FileProvider.TryGetFileLocation(storagePath, out var filePath, out _, out _))
                         {
-                            var path = reader.ReadToEnd();
-                            directoryWatcher.Track(path);
+                            // TODO: the "/path" is hardcoded, used in ImportStreamCommand and ShaderSourceManager. Find a place to share this correctly.
+                            var pathUrl = storagePath + "/path";
+                            if (FileProvider.FileExists(pathUrl))
+                            {
+                                using (var pathStream = FileProvider.OpenStream(pathUrl, VirtualFileMode.Open, VirtualFileAccess.Read))
+                                using (var reader = new StreamReader(pathStream))
+                                {
+                                    filePath = reader.ReadToEnd();
+                                }
+                            }                            
                         }
+                        if (filePath != null)
+                            directoryWatcher.Track(filePath);
                     }
 #endif
                 }

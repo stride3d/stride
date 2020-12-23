@@ -17,14 +17,16 @@ namespace Stride.Shaders.Compiler
     /// </summary>
     internal class RemoteEffectCompiler : EffectCompilerBase
     {
-        private RemoteEffectCompilerClient remoteEffectCompilerClient;
+        private readonly DatabaseFileProvider database;
+        private readonly RemoteEffectCompilerClient remoteEffectCompilerClient;
 
         /// <inheritdoc/>
         public override IVirtualFileProvider FileProvider { get; set; }
 
-        public RemoteEffectCompiler(IVirtualFileProvider fileProvider, RemoteEffectCompilerClient remoteEffectCompilerClient)
+        public RemoteEffectCompiler(IVirtualFileProvider fileProvider, DatabaseFileProvider database, RemoteEffectCompilerClient remoteEffectCompilerClient)
         {
             FileProvider = fileProvider;
+            this.database = database;
             this.remoteEffectCompilerClient = remoteEffectCompilerClient;
         }
 
@@ -39,7 +41,7 @@ namespace Stride.Shaders.Compiler
         public override ObjectId GetShaderSourceHash(string type)
         {
             var url = GetStoragePathFromShaderType(type);
-            ((DatabaseFileProvider)FileProvider).ContentIndexMap.TryGetValue(url, out var shaderSourceId);
+            database.ContentIndexMap.TryGetValue(url, out var shaderSourceId);
             return shaderSourceId;
         }
 

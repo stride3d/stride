@@ -181,14 +181,5 @@ namespace Stride.UI.Tests.Regression
         {
             RunGameTest(new LeaveEnterTest());
         }
-
-        /// <summary>
-        /// Launch the Image test.
-        /// </summary>
-        internal static void Main()
-        {
-            using (var game = new LeaveEnterTest())
-                game.Run();
-        }
     }
 }

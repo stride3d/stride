@@ -2,7 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN && !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES
 using System;
-using SharpVulkan;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {
@@ -11,7 +12,7 @@ namespace Stride.Graphics
         private uint[] allocatedTypeCounts;
         private uint allocatedSetCount;
 
-        internal SharpVulkan.DescriptorPool NativeDescriptorPool;
+        internal VkDescriptorPool NativeDescriptorPool;
 
         public void Reset()
         {
@@ -30,7 +31,7 @@ namespace Stride.Graphics
             Recreate();
         }
 
-        internal unsafe SharpVulkan.DescriptorSet AllocateDescriptorSet(DescriptorSetLayout descriptorSetLayout)
+        internal unsafe VkDescriptorSet AllocateDescriptorSet(DescriptorSetLayout descriptorSetLayout)
         {
             // Keep track of descriptor pool usage
             bool isPoolExhausted = ++allocatedSetCount > GraphicsDevice.MaxDescriptorSetCount;
@@ -46,20 +47,20 @@ namespace Stride.Graphics
 
             if (isPoolExhausted)
             {
-                return SharpVulkan.DescriptorSet.Null;
+                return VkDescriptorSet.Null;
             }
 
             // Allocate new descriptor set
             var nativeLayoutCopy = descriptorSetLayout.NativeLayout;
             var allocateInfo = new DescriptorSetAllocateInfo
             {
-                StructureType = StructureType.DescriptorSetAllocateInfo,
+                sType = VkStructureType.DescriptorSetAllocateInfo,
                 DescriptorPool = NativeDescriptorPool,
                 DescriptorSetCount = 1,
                 SetLayouts = new IntPtr(&nativeLayoutCopy)
             };
 
-            SharpVulkan.DescriptorSet descriptorSet;
+            VkDescriptorSet descriptorSet;
             GraphicsDevice.NativeDevice.AllocateDescriptorSets(ref allocateInfo, &descriptorSet);
             return descriptorSet;
         }

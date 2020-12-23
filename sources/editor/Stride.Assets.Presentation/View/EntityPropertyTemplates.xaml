@@ -246,5 +246,28 @@
       </DockPanel>
     </DataTemplate>
   </tp:GameSettingsFiltersTemplateProvider>
+
+  <tp:GameSettingAddConfigurationTemplateProvider x:Key="GameSettingAddConfigurationTemplateProvider" OverrideRule="All"
+   sd:PropertyViewHelper.TemplateCategory="PropertyHeader">
+    <DataTemplate>
+      <Border sd:PropertyViewHelper.Increment="0" sd:PropertyViewHelper.IsExpanded="True"
+          Visibility="{Binding IsVisible, Converter={sd:VisibleOrCollapsed}}" />
+    </DataTemplate>
+  </tp:GameSettingAddConfigurationTemplateProvider>
+
+  <tp:GameSettingAddConfigurationTemplateProvider x:Key="GameSettingAddConfigurationTemplateProviderFooter" OverrideRule="All" sd:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate>
+      <StackPanel Margin="10,2,5,2" Orientation="Horizontal">
+        <TextBlock Text="{sd:Localize Add configuration}" TextTrimming="CharacterEllipsis" FontStyle="Italic" Margin="0,0,2,0"/>
+        <Button Style="{StaticResource AddNewItemButtonStyle}"/>
+        <ComboBox x:Name="InstanceTypeSelectionComboBox" Style="{StaticResource AddItemComboBox}"
+            ItemsSource="{Binding AbstractNodeMatchingEntries}" Margin="2,0">
+          <i:Interaction.Behaviors>
+            <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
+          </i:Interaction.Behaviors>
+        </ComboBox>
+      </StackPanel>
+    </DataTemplate>
+  </tp:GameSettingAddConfigurationTemplateProvider>
 </ResourceDictionary>
 

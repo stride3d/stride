@@ -16,8 +16,8 @@ Hierarchy:
                 Components:
                     d5dd94550dc377d8b1703c74aae2cee5: !TransformComponent
                         Id: 609eeee4-edc1-402b-9f1f-4cc759ba8e0a
-                        Position: {X: 1.29011929, Y: 2.3957293, Z: -1.16469264}
-                        Rotation: {X: 0.08742675, Y: -0.9047752, Z: -0.2257514, W: -0.350392222}
+                        Position: {X: 1.2901193, Y: 2.3957293, Z: -1.1646926}
+                        Rotation: {X: 0.08742675, Y: -0.9047752, Z: -0.2257514, W: -0.35039222}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     f1cc2f84c67fbd3cc50a22dd0ef605a5: !CameraComponent
@@ -81,8 +81,8 @@ Hierarchy:
                 Components:
                     f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
                         Id: e3afb164-c852-4cb1-84f5-aac2e3410512
-                        Position: {X: 0.1256559, Y: 2.23066759, Z: -0.06751517}
-                        Rotation: {X: 0.0, Y: 0.384894848, Z: 0.0, W: -0.92296046}
+                        Position: {X: 0.1256559, Y: 2.2306676, Z: -0.06751517}
+                        Rotation: {X: 0.0, Y: 0.38489485, Z: 0.0, W: -0.92296046}
                         Scale: {X: 0.4180391, Y: 0.4180391, Z: 0.4180391}
                         Children:
                             b9257ecef22ee5d5f71291bc97c7f67c: ref!! bd3c62a9-d72d-4fcf-b32b-191e972c3172
@@ -91,7 +91,7 @@ Hierarchy:
                         Id: 60e9ce47-a7f9-4167-960e-6be77ab17fe0
                         Model: 9a3a7dbc-7b08-478a-aab2-19afe1d6ce1c:Models/Teapot
                         Materials: {}
-                    72f699c2b42850ca09ea445df6402ac8: !CSharpBeginner.Code.ChildEntitiesDemo,CSharpBeginner.Game
+                    9f1676a2a824b45f5575ebc1c5eb3e1f: !CSharpBeginner.Code.ChildEntitiesDemo,CSharpBeginner.Game
                         Id: c6c77c73-1fe4-4698-9447-cd10d9097371
         -   Entity:
                 Id: b9149b06-d557-48ea-be39-4d0ed9e95198

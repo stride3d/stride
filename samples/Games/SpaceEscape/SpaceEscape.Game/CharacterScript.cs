@@ -73,6 +73,7 @@ namespace SpaceEscape
         }
 
         private bool shouldProcessInput;
+        private bool started;
         private AgentState state; // Current state of the agent
         private PlayingAnimation playingAnimation; // Current active animation
         private float startChangeLanePosX; // Position of X before changing lane
@@ -94,6 +95,8 @@ namespace SpaceEscape
             var modelMinBB = boundingBoxes[BoundingBoxKeys.Normal].Minimum;
             var modelMaxBB = boundingBoxes[BoundingBoxKeys.Normal].Maximum;
             boundingBoxes[BoundingBoxKeys.Slide] = new BoundingBox(modelMinBB, new Vector3(modelMaxBB.X, modelMaxBB.Y - 0.7f, modelMaxBB.Z));
+
+            started = true;
         }
 
         /// <summary>
@@ -139,6 +142,8 @@ namespace SpaceEscape
         /// </summary>
         public void Reset()
         {
+            if (!started)
+                return;
             shouldProcessInput = false;
             State = AgentState.Run;
             CurLane = MiddleLane;

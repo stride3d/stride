@@ -65,6 +65,9 @@ namespace Stride.Rendering.Images
             transformGroupEffect.Initialize(Context);
             Parameters = transformGroupEffect.Parameters;
 
+            // Set initial transforms
+            Parameters.Set(ColorTransformGroupKeys.Transforms, enabledTransforms);
+
             // we are adding parameter collections after as transform parameters should override previous parameters
             // TODO GRAPHICS REFACTOR
             //transformGroupEffect.ParameterCollections.Add(transformsParameters);
@@ -156,7 +159,7 @@ namespace Stride.Rendering.Images
                 collectTransforms.Add(transform);
         }
 
-        private void CollectTransforms()
+        private bool CollectTransforms()
         {
             collectTransforms.Clear();
             CollectPreTransforms();
@@ -170,6 +173,7 @@ namespace Stride.Rendering.Images
             if (collectTransforms.Count != enabledTransforms.Count)
             {
                 enabledTransforms = new List<ColorTransform>(collectTransforms);
+                return true;
             }
             else
             {
@@ -178,10 +182,12 @@ namespace Stride.Rendering.Images
                     if (collectTransforms[i] != enabledTransforms[i])
                     {
                         enabledTransforms = new List<ColorTransform>(collectTransforms);
-                        break;
+                        return true;
                     }
                 }
             }
+
+            return false;
         }
 
         private void CollectTransformsParameters(RenderDrawContext context)
@@ -193,12 +199,14 @@ namespace Stride.Rendering.Images
             }
 
             // Grab all color transforms
-            CollectTransforms();
+            var enabledTransformsChanged = CollectTransforms();
 
-            // Update effect
-            // TODO: if the list was the same than previous one, we could optimize this and not setup the value
-            Parameters.Set(ColorTransformGroupKeys.Transforms, enabledTransforms);
-            if (transformGroupEffect.EffectInstance.UpdateEffect(context.GraphicsDevice))
+            if (enabledTransformsChanged)
+            {
+                Parameters.Set(ColorTransformGroupKeys.Transforms, enabledTransforms);
+            }
+            // Update the effect and should it or the set of enabled transforms have changed prepare their parameters
+            if (transformGroupEffect.EffectInstance.UpdateEffect(context.GraphicsDevice) || enabledTransformsChanged)
             {
                 // Update layouts
                 for (int i = 0; i < enabledTransforms.Count; i++)

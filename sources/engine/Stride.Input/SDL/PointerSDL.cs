@@ -35,11 +35,13 @@ namespace Stride.Input
 
             uiControl.ResizeEndActions += OnSizeChanged;
             OnSizeChanged(new SDL.SDL_WindowEvent());
+
+            Id = InputDeviceUtils.DeviceNameToGuid(uiControl.SdlHandle.ToString() + Name);
         }
 
         public override string Name => "SDL Pointer";
 
-        public override Guid Id => new Guid("f64482a9-dac9-4806-959f-eea7cbb4c609");
+        public override Guid Id { get; }
 
         public override IInputSource Source { get; }
 

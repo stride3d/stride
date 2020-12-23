@@ -91,6 +91,7 @@ RenderFeatures:
                             ShadowCasterRenderStage: ref!! 555e84b4-b68a-4f38-ac3a-f0f563028ef0
                         d59ef45dd99e49d3af3887763d153aa7: !Stride.Rendering.Shadows.LightPointShadowMapRendererCubeMap,Stride.Rendering
                             ShadowCasterRenderStage: ref!! b03a45c6-7a56-417c-8a80-69cc608671f1
+            42be209952db58294c9f06c58809b8ca: !Stride.Rendering.InstancingRenderFeature,Stride.Rendering {}
     28e9bf54a5adbe063f59fb17acb2723e: !Stride.Rendering.Sprites.SpriteRenderFeature,Stride.Rendering
         RenderStageSelectors:
             d74665cff080638a2439c4422e542d85: !Stride.Rendering.Sprites.SpriteTransparentRenderStageSelector,Stride.Rendering
@@ -125,6 +126,8 @@ SharedRenderers:
         TransparentRenderStage: ref!! 0fa30591-02ee-486d-9347-2b6aee83d035
         ShadowMapRenderStages:
             fc4d1e0de5c2b0bbc27bcf96e9a848fd: ref!! c0524e55-4061-464d-84dd-7c4c70f70e0e
+            87ff1d9cdd52418daf76385176a0e316: ref!! 555e84b4-b68a-4f38-ac3a-f0f563028ef0
+            5e059d4cc2db4ee8a1f28a40f4ac3ae8: ref!! b03a45c6-7a56-417c-8a80-69cc608671f1
         GBufferRenderStage: ref!! ecab139e-5f55-42b5-a324-310c195a9c89
         PostEffects: !PostProcessingEffects ref!! 608bf04d-8640-469d-b710-1ecf6a46f794
         LightShafts: null
@@ -144,6 +147,8 @@ SharedRenderers:
         TransparentRenderStage: ref!! 0fa30591-02ee-486d-9347-2b6aee83d035
         ShadowMapRenderStages:
             2323a99a8a983e182f318e55604659b0: ref!! c0524e55-4061-464d-84dd-7c4c70f70e0e
+            61b557b74893400898c007d5ece5e87f: ref!! 555e84b4-b68a-4f38-ac3a-f0f563028ef0
+            5c382f66ee524c498d26d9aaf19fc9c3: ref!! b03a45c6-7a56-417c-8a80-69cc608671f1
         GBufferRenderStage: ref!! ecab139e-5f55-42b5-a324-310c195a9c89
         PostEffects: null
         LightShafts: null

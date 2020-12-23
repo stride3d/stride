@@ -68,9 +68,9 @@ namespace Stride.Games
         public event EventHandler<EventArgs> OrientationChanged;
 
         /// <summary>
-        /// Occurs when device full screen mode is toggled.
+        /// Occurs when device fullscreen mode is changed.
         /// </summary>
-        public event EventHandler<EventArgs> FullscreenToggle;
+        public event EventHandler<EventArgs> FullscreenChanged;
 
         /// <summary>
         /// Occurs before the window gets destroyed.
@@ -164,6 +164,50 @@ namespace Stride.Games
             }
         }
 
+        /// <summary>
+        /// The size the window should have when switching from fullscreen to windowed mode.
+        /// To get the current actual size use <see cref="ClientBounds"/>.
+        /// This gets overwritten when the user resizes the window. 
+        /// </summary>
+        public Int2 PreferredWindowedSize { get; set; } = new Int2(768, 432);
+
+        /// <summary>
+        /// The size the window should have when switching from windowed to fullscreen mode.
+        /// To get the current actual size use <see cref="ClientBounds"/>.
+        /// </summary>
+        public Int2 PreferredFullscreenSize { get; set; } = new Int2(1920, 1080);
+
+        /// <summary>
+        /// Whether the fullscreen mode should be a borderless window matching the desktop size.
+        /// </summary>
+        /// <remarks>This flag is currently ignored on all game platforms other than SDL.</remarks>
+        public bool FullscreenIsBorderlessWindow { get; set; } = false;
+
+        /// <summary>
+        /// Switches between fullscreen and windowed mode.
+        /// </summary>
+        public bool IsFullscreen
+        {
+            get => isFullscreen;
+            set
+            {
+                if (value != isFullscreen)
+                {
+                    isFullscreen = value;
+                    FullscreenChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Allow the GraphicsDeviceMagnager to set the actual window state after applying the device changes.
+        /// </summary>
+        /// <param name="isReallyFullscreen"></param>
+        internal void SetIsReallyFullscreen(bool isReallyFullscreen)
+        {
+            isFullscreen = isReallyFullscreen;
+        }
+
         #endregion
 
         #region Public Methods and Operators
@@ -190,10 +234,32 @@ namespace Stride.Games
         internal Action RunCallback;
 
         internal Action ExitCallback;
+        
+        private bool isFullscreen;
 
         internal abstract void Run();
 
+        /// <summary>
+        /// Sets the size of the client area and triggers the <see cref="ClientSizeChanged"/> event.
+        /// This will trigger a backbuffer resize too.
+        /// </summary>
+        public void SetSize(Int2 size)
+        {
+            Resize(size.X, size.Y);
+            OnClientSizeChanged(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Only used internally by the device managers when they adapt the window size to the backbuffer size.
+        /// Resizes the window, without sending the resized event.
+        /// </summary>
         internal abstract void Resize(int width, int height);
+
+        public virtual IMessageLoop CreateUserManagedMessageLoop()
+        {
+            // Default: not implemented
+            throw new PlatformNotSupportedException();
+        }
 
         internal IServiceRegistry Services { get; set; }
 
@@ -209,6 +275,12 @@ namespace Stride.Games
 
         protected void OnClientSizeChanged(object source, EventArgs e)
         {
+            if (!isFullscreen)
+            {
+                // Update preferred windowed size in windowed mode 
+                var resizeSize = ClientBounds.Size;
+                PreferredWindowedSize = new Int2(resizeSize.Width, resizeSize.Height); 
+            }
             var handler = ClientSizeChanged;
             handler?.Invoke(this, e);
         }
@@ -229,8 +301,7 @@ namespace Stride.Games
 
         protected void OnFullscreenToggle(object source, EventArgs e)
         {
-            var handler = FullscreenToggle;
-            handler?.Invoke(this, e);
+            IsFullscreen = !IsFullscreen;
         }
 
         protected void OnClosing(object source, EventArgs e)

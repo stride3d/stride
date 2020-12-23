@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Assets;
 using Stride.Core;
+using Stride.Shaders.Parser.Mixins;
+using System.IO;
 
 namespace Stride.Assets.Effect
 {
@@ -21,7 +23,9 @@ namespace Stride.Assets.Effect
 
         public override void SaveGeneratedAsset(AssetItem assetItem)
         {
-            // TODO: Implement this?
+            var generatedFileData = ShaderKeyFileHelper.GenerateCode(assetItem.FullPath, Text);
+            //generate the .sdfx.cs files
+            File.WriteAllBytes(assetItem.GetGeneratedAbsolutePath(), generatedFileData);
         }
     }
 }

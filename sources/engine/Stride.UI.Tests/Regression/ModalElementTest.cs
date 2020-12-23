@@ -196,15 +196,6 @@ namespace Stride.UI.Tests.Regression
             RunGameTest(new ModalElementTest());
         }
 
-        /// <summary>
-        /// Launch the Image test.
-        /// </summary>
-        internal static void Main()
-        {
-            using (var game = new ModalElementTest())
-                game.Run();
-        }
-
         private class ClearAndDrawTextureRenderer : ClearRenderer
         {
             public Texture Texture { get; set; }

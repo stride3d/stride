@@ -16,7 +16,7 @@ namespace Stride.Input
     /// <summary>
     /// Manages collecting input from connected input device in the form of <see cref="IInputDevice"/> objects. Also provides some convenience functions for most commonly used devices
     /// </summary>
-    public partial class InputManager : GameSystemBase
+    public partial class InputManager : ComponentBase
     {
         //this is used in some mobile platform for accelerometer stuff
         internal const float G = 9.81f;
@@ -51,6 +51,8 @@ namespace Stride.Input
 
         private readonly Dictionary<Type, IInputEventRouter> eventRouters = new Dictionary<Type, IInputEventRouter>();
 
+        private GameContext gameContext;
+
         private Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>> devicesCollectionChangedActions = new Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>>();
 
 #if STRIDE_INPUT_RAWINPUT
@@ -60,10 +62,9 @@ namespace Stride.Input
         /// <summary>
         /// Initializes a new instance of the <see cref="InputManager"/> class.
         /// </summary>
-        internal InputManager(IServiceRegistry registry) : base(registry)
+        /// <param name="gameContext">The game context.</param>
+        public InputManager()
         {
-            Enabled = true;
-            
             Gestures = new TrackingCollection<GestureConfig>();
             Gestures.CollectionChanged += GesturesOnCollectionChanged;
 
@@ -224,13 +225,13 @@ namespace Stride.Input
         /// Gets the collection of connected sensor devices
         /// </summary>
         public IReadOnlyList<ISensorDevice> Sensors => sensors;
-        
+
         /// <summary>
         /// Should raw input be used on windows
         /// </summary>
         public bool UseRawInput
         {
-#if STRIDE_INPUT_RAWINPUT
+#if STRIDE_PLATFORM_WINDOWS && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF) && STRIDE_INPUT_RAWINPUT
             get
             {
                 return rawInputEnabled;
@@ -241,9 +242,9 @@ namespace Stride.Input
 
                 if (value)
                 {
-                    if (rawInputSource == null)
+                    if (rawInputSource == null && gameContext is GameContextWinforms gameContextWinforms)
                     {
-                        rawInputSource = new InputSourceWindowsRawInput();
+                        rawInputSource = new InputSourceWindowsRawInput(gameContextWinforms.Control);
                         Sources.Add(rawInputSource);
                     }
                 }
@@ -291,19 +292,16 @@ namespace Stride.Input
                 (screenCoordinates.Y * fromSize.Height - destinationRectangle.Y) / destinationRectangle.Height);
         }
 
-        public override void Initialize()
+        public void Initialize(GameContext gameContext)
         {
-            base.Initialize();
-
-            Game.Activated += OnApplicationResumed;
-            Game.Deactivated += OnApplicationPaused;
+            this.gameContext = gameContext ?? throw new ArgumentNullException(nameof(gameContext));
 
             AddSources();
 
             // After adding initial devices, reassign gamepad id's
             // this creates a beter index assignment in the case where you have both an xbox controller and another controller at startup
             var sortedGamePads = GamePads.OrderBy(x => x.CanChangeIndex);
-            
+
             foreach (var gamePad in sortedGamePads)
             {
                 if (gamePad.CanChangeIndex)
@@ -394,7 +392,7 @@ namespace Stride.Input
             }
         }
 
-        public override void Update(GameTime gameTime)
+        public void Update(GameTime gameTime)
         {
             ResetGlobalInputState();
 
@@ -479,25 +477,29 @@ namespace Stride.Input
             virtualButtonValues[configIndex].TryGetValue(bindingName, out value);
             return value;
         }
-        
-        private void OnApplicationPaused(object sender, EventArgs e)
+
+        /// <summary>
+        /// Pause all input sources.
+        /// </summary>
+        public void Pause()
         {
-            // Pause sources
             foreach (var source in Sources)
             {
                 source.Pause();
             }
         }
 
-        private void OnApplicationResumed(object sender, EventArgs e)
+        /// <summary>
+        /// Resume all input sources.
+        /// </summary>
+        public void Resume()
         {
-            // Resume sources
             foreach (var source in Sources)
             {
                 source.Resume();
             }
         }
-        
+
         private void SourcesOnCollectionChanged(object o, TrackingCollectionChangedEventArgs e)
         {
             var source = (IInputSource)e.Item;
@@ -540,7 +542,7 @@ namespace Stride.Input
         {
             eventRouters[inputEvent.GetType()].PoolEvent(inputEvent);
         }
-
+        
         /// <summary>
         /// Resets the <see cref="Sources"/> collection back to it's default values
         /// </summary>
@@ -580,40 +582,41 @@ namespace Stride.Input
 
         private void AddSources()
         {
-            // Create input sources
-            switch (Game.Context.ContextType)
+            var context = gameContext;
+
+            // Add window specific input source
+            var windowInputSource = InputSourceFactory.NewWindowInputSource(context);
+            Sources.Add(windowInputSource);
+
+            // Add platform specific input sources
+            switch (context.ContextType)
             {
 #if STRIDE_UI_SDL
                 case AppContextType.DesktopSDL:
-                    Sources.Add(new InputSourceSDL());
                     break;
 #endif
 #if STRIDE_PLATFORM_ANDROID
                 case AppContextType.Android:
-                    Sources.Add(new InputSourceAndroid());
                     break;
 #endif
 #if STRIDE_PLATFORM_IOS
                 case AppContextType.iOS:
-                    Sources.Add(new InputSourceiOS());
                     break;
 #endif
 #if STRIDE_PLATFORM_UWP
                 case AppContextType.UWPXaml:
                 case AppContextType.UWPCoreWindow:
-                    Sources.Add(new InputSourceUWP());
                     break;
 #endif
                 case AppContextType.Desktop:
 #if STRIDE_PLATFORM_WINDOWS && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
-                    Sources.Add(new InputSourceWinforms());
                     Sources.Add(new InputSourceWindowsDirectInput());
                     if (InputSourceWindowsXInput.IsSupported())
                         Sources.Add(new InputSourceWindowsXInput());
-#endif
 #if STRIDE_INPUT_RAWINPUT
-                    if (rawInputEnabled)
-                        Sources.Add(new InputSourceWindowsRawInput());
+                    if (rawInputEnabled && context is GameContextWinforms gameContextWinforms)
+                        Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));
+#endif
 #endif
                     break;
                 default:
@@ -633,12 +636,6 @@ namespace Stride.Input
             {
                 source.Dispose();
             }
-
-            Game.Activated -= OnApplicationResumed;
-            Game.Deactivated -= OnApplicationPaused;
-
-            // ensure that OnApplicationPaused is called before destruction, when Game.Deactivated event is not triggered.
-            OnApplicationPaused(this, EventArgs.Empty);
         }
 
         private void GesturesOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs trackingCollectionChangedEventArgs)

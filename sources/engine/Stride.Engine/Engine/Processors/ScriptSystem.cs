@@ -85,7 +85,7 @@ namespace Stride.Engine.Processors
                     var asyncScript = script as AsyncScript;
                     if (asyncScript != null)
                     {
-                        asyncScript.MicroThread = AddTask(asyncScript.Execute, asyncScript.Priority & UpdateBit);
+                        asyncScript.MicroThread = AddTask(asyncScript.Execute, asyncScript.Priority | UpdateBit);
                         asyncScript.MicroThread.ProfilingKey = asyncScript.ProfilingKey;
                     }
                 }
@@ -171,7 +171,7 @@ namespace Stride.Engine.Processors
             var syncScript = script as SyncScript;
             if (syncScript != null)
             {
-                syncScript.UpdateSchedulerNode = Scheduler.Create(syncScript.Update, syncScript.Priority & UpdateBit);
+                syncScript.UpdateSchedulerNode = Scheduler.Create(syncScript.Update, syncScript.Priority | UpdateBit);
                 syncScript.UpdateSchedulerNode.Value.Token = syncScript;
                 syncScript.UpdateSchedulerNode.Value.ProfilingKey = syncScript.ProfilingKey;
                 syncScripts.Add(syncScript);

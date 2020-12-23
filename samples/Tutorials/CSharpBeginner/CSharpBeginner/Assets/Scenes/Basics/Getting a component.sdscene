@@ -16,8 +16,8 @@ Hierarchy:
                 Components:
                     d5dd94550dc377d8b1703c74aae2cee5: !TransformComponent
                         Id: fc51bc89-fea6-4364-8ea8-7a5cbd129c26
-                        Position: {X: 0.518751, Y: 1.03921318, Z: -4.05666447}
-                        Rotation: {X: -0.130526215, Y: -6.00100741E-17, Z: -4.55821728E-16, W: 0.9914449}
+                        Position: {X: 0.518751, Y: 1.0392132, Z: -4.0566645}
+                        Rotation: {X: -0.13052621, Y: -6.0010074E-17, Z: -4.5582173E-16, W: 0.9914449}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     f1cc2f84c67fbd3cc50a22dd0ef605a5: !CameraComponent
@@ -33,15 +33,15 @@ Hierarchy:
                 Components:
                     9869ab22904480747c15142b79bae0b2: !TransformComponent
                         Id: 3d76d015-8680-4f2e-b154-4170ca5a1da1
-                        Position: {X: 0.611625254, Y: 0.9328377, Z: -4.379287}
-                        Rotation: {X: 0.159573987, Y: 0.68886584, Z: -0.159573987, W: 0.68886584}
+                        Position: {X: 0.61162525, Y: 0.9328377, Z: -4.379287}
+                        Rotation: {X: 0.15957399, Y: 0.68886584, Z: -0.15957399, W: 0.68886584}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     6d859e897c7bcb270402105f41cf3b8c: !ModelComponent
                         Id: d6bb0120-4c94-429e-add0-d7f238018dcb
                         Model: d3f4cbe1-353f-4367-9f44-df64df144f71:Models/MagazineModel
                         Materials: {}
-                    9daf0818bfaee33fec0ebdbdbc5aa2a6: !CSharpBeginner.Code.AmmoComponent,CSharpBeginner.Game
-                        Id: 104afc5f-d0af-40da-9e21-18337d8e5f04
-                    ef7188b718f01770f2389448d1a13c88: !CSharpBeginner.Code.GettingAComponentDemo,CSharpBeginner.Game
-                        Id: dcc8ad10-7ad3-4ddd-b5b0-db58e896de8f
+                    7cc84b4e79f3687b6fcc37a866005cde: !CSharpBeginner.Code.GettingAComponentDemo,CSharpBeginner.Game
+                        Id: 90a6c833-6ef3-438d-a693-3470a6ac2b64
+                    8a68d5e207ee9a01c35893fa0039f063: !CSharpBeginner.Code.AmmoComponent,CSharpBeginner.Game
+                        Id: c372991c-7ebe-466c-ac10-2b2e64b958ad

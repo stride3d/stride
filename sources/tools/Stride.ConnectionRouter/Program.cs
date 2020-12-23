@@ -22,7 +22,6 @@ namespace Stride.ConnectionRouter
         {
             var exeName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var showHelp = false;
-            var windowsPhonePortMapping = false;
             int exitCode = 0;
             string logFileName = "routerlog.txt";
 
@@ -42,7 +41,6 @@ namespace Stride.ConnectionRouter
                     string.Empty,
                     { "h|help", "Show this message and exit", v => showHelp = v != null },
                     { "log-file=", "Log build in a custom file (default: routerlog.txt).", v => logFileName = v },
-                    { "register-windowsphone-portmapping", "Register Windows Phone IpOverUsb port mapping", v => windowsPhonePortMapping = true },
                 };
 
             try
@@ -57,12 +55,6 @@ namespace Stride.ConnectionRouter
                 // Make sure path exists
                 if (commandArgs.Count > 0)
                     throw new OptionException("This command expect no additional arguments", "");
-
-                if (windowsPhonePortMapping)
-                {
-                    WindowsPhoneTracker.RegisterWindowsPhonePortMapping();
-                    return 0;
-                }
 
                 // Enable file logging
                 if (!string.IsNullOrEmpty(logFileName))
@@ -87,9 +79,6 @@ namespace Stride.ConnectionRouter
 
                     // Start Android management thread
                     new Thread(() => AndroidTracker.TrackDevices(router)) { IsBackground = true }.Start();
-
-                    // Start Windows Phone management thread
-                    new Thread(() => WindowsPhoneTracker.TrackDevices(router)) { IsBackground = true }.Start();
 
                     //Start iOS device discovery and proxy launcher
                     //Currently this is used only internally for QA testing... as we cannot attach the debugger from windows for normal usages..

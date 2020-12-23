@@ -7,6 +7,6 @@ shader NonStageStreamTest
 
     float test()
     {
-        return streams.ext0.parentStream + streams.ext1.parentStream + streams.ext0.stageStream + streams.ext1.stageStream;;
+        return streams.ext0.parentStream + streams.ext1.parentStream + streams.ext0.stageStream + streams.ext1.stageStream;
     }
 };

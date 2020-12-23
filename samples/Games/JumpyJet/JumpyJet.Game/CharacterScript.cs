@@ -19,13 +19,13 @@ namespace JumpyJet
     public class CharacterScript : AsyncScript
     {
         private EventReceiver gameResetListener = new EventReceiver(GameGlobals.GameResetEventKey);
-        private EventReceiver gameStartedListener = new EventReceiver(GameGlobals.GameStartedventKey);
+        private EventReceiver gameStartedListener = new EventReceiver(GameGlobals.GameStartedEventKey);
 
         private static readonly Vector3 Gravity = new Vector3(0, -17, 0);
         private static readonly Vector3 StartPos = new Vector3(-1, 0, 0);
         private static readonly Vector3 StartVelocity = new Vector3(0, 7, 0);
-       
-        private const float TopLimit = (568 - 200)*GameGlobals.GamePixelToUnitScale;
+
+        private const float TopLimit = (568 - 200) * GameGlobals.GamePixelToUnitScale;
         private const float NormalVelocityY = 6.5f;
         private const float VelocityAboveTopLimit = 2f;
         private const int FlyingSpriteFrameIndex = 1;
@@ -74,9 +74,9 @@ namespace JumpyJet
 
             while (Game.IsRunning)
             {
-                var collision = await physicsComponent.CollisionEnded();
+                var collision = await physicsComponent.NewCollision();
 
-                if(collision.ColliderA.CollisionGroup == CollisionFilterGroups.CustomFilter1 || // use collision group 1 to distinguish pipe passed trigger from other colliders.
+                if (collision.ColliderA.CollisionGroup == CollisionFilterGroups.CustomFilter1 || // use collision group 1 to distinguish pipe passed trigger from other colliders.
                     collision.ColliderB.CollisionGroup == CollisionFilterGroups.CustomFilter1)
                     GameGlobals.PipePassedEventKey.Broadcast();
             }
@@ -91,7 +91,6 @@ namespace JumpyJet
 
             while (Game.IsRunning)
             {
-
                 await Script.NextFrame();
 
                 // detect collisions with the pipes
@@ -137,7 +136,7 @@ namespace JumpyJet
 
                 // update animation and rotation value
                 UpdateAgentAnimation();
-                
+
                 // update the position/rotation
                 UpdateTransformation();
             }
@@ -145,7 +144,7 @@ namespace JumpyJet
 
         private void UpdateTransformation()
         {
-            Entity.Transform.Position= position;
+            Entity.Transform.Position = position;
             Entity.Transform.RotationEulerXYZ = rotation;
         }
 
@@ -162,7 +161,7 @@ namespace JumpyJet
             // Set falling sprite frame
             var provider = Entity.Get<SpriteComponent>().SpriteProvider as SpriteFromSheet;
             if (provider != null)
-                provider.CurrentFrame = isFalling? FallingSpriteFrameIndex: FlyingSpriteFrameIndex;
+                provider.CurrentFrame = isFalling ? FallingSpriteFrameIndex : FlyingSpriteFrameIndex;
 
             // Rotate a sprite
             rotation.Z += rotationSign * MathUtil.Pi * 0.01f;

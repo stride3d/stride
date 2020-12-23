@@ -80,12 +80,6 @@ namespace Stride.Graphics.Tests
                 SaveTexture(GraphicsDevice.Presenter.BackBuffer, "sprite-font-extern-test.png");
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestExternSpriteFont())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>

@@ -49,7 +49,7 @@ namespace Stride.Games
     /// </code>
     /// Note that the main control can be changed at anytime inside the loop.
     /// </remarks>
-    internal class WindowsMessageLoop : IDisposable
+    internal class WindowsMessageLoop : IMessageLoop
     {
         private IntPtr controlHandle;
         private Control control;
@@ -111,12 +111,6 @@ namespace Stride.Games
         /// <remarks>By default, RenderLoop is using a custom window message loop that is more lightweight than <see cref="Application.DoEvents" /> to process windows event message. 
         /// Set this parameter to true to use the default <see cref="Application.DoEvents"/>.</remarks>
         public bool UseApplicationDoEvents { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [allow windowss keys].
-        /// </summary>
-        /// <value><c>true</c> if [allow windowss keys]; otherwise, <c>false</c>.</value>
-        public bool AllowWindowssKeys { get; set; }
 
         /// <summary>
         /// Calls this method on each frame.

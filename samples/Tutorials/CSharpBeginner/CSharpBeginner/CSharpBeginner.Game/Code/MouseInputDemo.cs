@@ -24,7 +24,7 @@ namespace CSharpBeginner.Code
             if (Input.HasMouse)
             {
                 // Key down is used for when a key is being held down.
-                DebugText.Print("Hold the left mouse button down to rotate the blue theapot", new Int2(400, 600));
+                DebugText.Print("Hold the left mouse button down to rotate the blue teapot", new Int2(400, 600));
                 if (Input.IsMouseButtonDown(MouseButton.Left))
                 {
                     var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
@@ -32,14 +32,14 @@ namespace CSharpBeginner.Code
                 }
 
                 // Use 'IsMouseButtonPressed' for a single mouse click event. 
-                DebugText.Print("Click the right mouse button to rotate the yellow theapot", new Int2(400, 620));
+                DebugText.Print("Click the right mouse button to rotate the yellow teapot", new Int2(400, 620));
                 if (Input.IsMouseButtonPressed(MouseButton.Right))
                 {
                     YellowTeapot.Transform.Rotation *= Quaternion.RotationY(-0.4f);
                 }
 
                 // 'IsMouseButtonReleased' is used for when you want to know when a mouse button is released after being either held down or pressed. 
-                DebugText.Print("Press and release the middel mousebutton/scrollwheel to rotate the green theapot", new Int2(400, 640));
+                DebugText.Print("Press and release the scrollwheel to rotate the green teapot", new Int2(400, 640));
                 if (Input.IsMouseButtonReleased(MouseButton.Middle))
                 {
                     GreenTeapot.Transform.Rotation *= Quaternion.RotationY(0.4f);
@@ -49,7 +49,7 @@ namespace CSharpBeginner.Code
                 // Scrolling forward gives a mousewheel delta of 1, and scrolling backwards gives a mousewheel delta of -1. 
                 // If in the next frame the mousewheel is not scrolled, the mouse wheel delta is 0 again.
                 currentScrollIndex += Input.MouseWheelDelta;
-                DebugText.Print("Scroll the mouse wheel to control the rotate the pink theapot. Scroll index: " + currentScrollIndex, new Int2(400, 660));
+                DebugText.Print("Scroll the mouse wheel to rotate the pink teapot. Scroll index: " + currentScrollIndex, new Int2(400, 660));
                 PinkTeapot.Transform.Rotation = Quaternion.RotationY(0.02f * currentScrollIndex);
 
                 // We can draw some text at the position of our mouse by getting the absolute mouse position

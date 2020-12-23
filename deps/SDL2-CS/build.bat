@@ -8,7 +8,6 @@ if "%1" == "" (
 pushd ..\..\externals\SDL2-CS
 
 REM SDL2-CS
-call "%PROGRAMFILES(X86)%\Microsoft Visual Studio\2017\Community\Common7\Tools\VsMSBuildCmd.bat"
 msbuild /p:Configuration="%1" SDL2-CS.Core.csproj /restore
 if %ERRORLEVEL% neq 0 (
 	echo Error during compilation

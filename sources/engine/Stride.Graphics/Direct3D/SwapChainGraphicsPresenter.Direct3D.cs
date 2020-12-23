@@ -151,7 +151,8 @@ namespace Stride.Graphics
         {
             try
             {
-                swapChain.Present((int)PresentInterval, PresentFlags.None);
+                var presentInterval = GraphicsDevice.Tags.Get(ForcedPresentInterval) ?? PresentInterval;
+                swapChain.Present((int)presentInterval, PresentFlags.None);
 #if STRIDE_GRAPHICS_API_DIRECT3D12
                 // Manually swap back buffer
                 backBuffer.NativeResource.Dispose();
@@ -364,24 +365,17 @@ namespace Stride.Graphics
         }
 #else
         /// <summary>
-        /// Create the SwapChain on Windows. To avoid any hard dependency on a actual windowing system
-        /// we assume that the <c>Description.DeviceWindowHandle.NativeHandle</c> holds
-        /// a window type that exposes the <code>Handle</code> property of type <see cref="IntPtr"/>.
+        /// Create the SwapChain on Windows.
         /// </summary>
         /// <returns></returns>
         private SwapChain CreateSwapChainForWindows()
         {
-            var nativeHandle = Description.DeviceWindowHandle.NativeWindow;
-            var handleProperty = nativeHandle.GetType().GetProperty("Handle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (handleProperty != null && handleProperty.PropertyType == typeof(IntPtr))
+            var hwndPtr = Description.DeviceWindowHandle.Handle;
+            if (hwndPtr != IntPtr.Zero)
             {
-                var hwndPtr = (IntPtr)handleProperty.GetValue(nativeHandle);
-                if (hwndPtr != IntPtr.Zero)
-                {
-                    return CreateSwapChainForDesktop(hwndPtr);
-                }
+                return CreateSwapChainForDesktop(hwndPtr);
             }
-            throw new NotSupportedException($"Form of type [{Description.DeviceWindowHandle?.GetType().Name ?? "null"}] is not supported. Only System.Windows.Control or SDL2.Window are supported");
+            throw new InvalidOperationException($"The {nameof(WindowHandle)}.{nameof(WindowHandle.Handle)} must not be zero.");
         }
 
         private SwapChain CreateSwapChainForDesktop(IntPtr handle)

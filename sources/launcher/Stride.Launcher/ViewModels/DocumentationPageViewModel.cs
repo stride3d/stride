@@ -31,7 +31,7 @@ namespace Stride.LauncherApp.ViewModels
         {
             try
             {
-                Process.Start(Url);
+                Process.Start(new ProcessStartInfo(Url) { UseShellExecute = true });
             }
             catch (Exception)
             {

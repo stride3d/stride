@@ -12,7 +12,7 @@ namespace ##Namespace##
     {
         private static readonly Vector3 UpVector = new Vector3(0, 1, 0);
         private static readonly Vector3 ForwardVector = new Vector3(0, 0, -1);
-        
+
         public float Speed { get; set; } = 5.0f;
         public Entity CameraEntity { get; set; }
 
@@ -46,7 +46,7 @@ namespace ##Namespace##
                 character = new CharacterComponent();
                 Entity.Add(character);
 
-                //this is currently the only way to make sure the physics element is actually created.
+                // This is currently the only way to make sure the physics element is actually created.
                 SceneSystem.SceneInstance.RootScene.Entities.Remove(Entity);
                 SceneSystem.SceneInstance.RootScene.Entities.Add(Entity);
             }
@@ -113,15 +113,15 @@ namespace ##Namespace##
             yaw = Math.Abs(deltaYaw) < rotationAdaptation ? desiredYaw : yaw + rotationAdaptation * Math.Sign(deltaYaw);
             pitch = Math.Abs(deltaPitch) < rotationAdaptation ? desiredPitch : pitch + rotationAdaptation * Math.Sign(deltaPitch);
 
-            desiredYaw = yaw -= 1.333f * rotationDelta.X * RotationSpeed; // we want to rotate faster Horizontally and Vertically
+            desiredYaw = yaw -= 1.333f * rotationDelta.X * RotationSpeed; // We want to rotate faster Horizontally and Vertically
             desiredPitch = pitch = MathUtil.Clamp(pitch - rotationDelta.Y * RotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
 
             if (CameraEntity != null)
             {
-                //we need to pitch only the camera node
+                // We need to pitch only the camera node
                 CameraEntity.Transform.Rotation = baseCameraRotation * Quaternion.RotationYawPitchRoll(0, pitch, 0);
             }
-            Entity.Transform.Rotation = Quaternion.RotationYawPitchRoll(yaw, 0, 0); //do not apply pitch to our controller
+            Entity.Transform.Rotation = Quaternion.RotationYawPitchRoll(yaw, 0, 0); // Do not apply pitch to our controller
 
             var move = new Vector3();
 
@@ -151,7 +151,7 @@ namespace ##Namespace##
 
             move *= translationSpeed;
 
-            //please note that the default character controller ignores rotation, in the case of complex collisions you would have more kinematic elements within your model anyway.
+            // Please note that the default character controller ignores rotation, in the case of complex collisions you would have more kinematic elements within your model anyway.
             character.Move(move);
 
             if (Input.IsKeyPressed(Keys.Space))

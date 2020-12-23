@@ -8,7 +8,7 @@ namespace Stride.Games
     /// <summary>
     /// A <see cref="GameContext"/> to use for rendering to an existing SDL Window.
     /// </summary>
-    public class GameContextSDL : GameContextWindows<Window>
+    public class GameContextSDL : GameContextDesktop<Window>
     {
         static GameContextSDL()
         {
@@ -17,8 +17,8 @@ namespace Stride.Games
         }
 
         /// <inheritDoc/>
-        public GameContextSDL(Window control, int requestedWidth = 0, int requestedHeight = 0)
-            : base(control ?? new GameFormSDL(), requestedWidth, requestedHeight) 
+        public GameContextSDL(Window control, int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
+            : base(control ?? new GameFormSDL(), requestedWidth, requestedHeight, isUserManagingRun)
         {
             ContextType = AppContextType.DesktopSDL;
         }

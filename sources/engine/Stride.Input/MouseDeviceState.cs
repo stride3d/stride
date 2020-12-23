@@ -34,9 +34,9 @@ namespace Stride.Input
             ReleasedButtons = new ReadOnlySet<MouseButton>(releasedButtons);
         }
 
-        public IReadOnlySet<MouseButton> PressedButtons { get; }
-        public IReadOnlySet<MouseButton> ReleasedButtons { get; }
-        public IReadOnlySet<MouseButton> DownButtons { get; }
+        public Core.Collections.IReadOnlySet<MouseButton> PressedButtons { get; }
+        public Core.Collections.IReadOnlySet<MouseButton> ReleasedButtons { get; }
+        public Core.Collections.IReadOnlySet<MouseButton> DownButtons { get; }
         
         public Vector2 Position { get; set; }
         public Vector2 Delta { get; set; }

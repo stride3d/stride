@@ -38,35 +38,9 @@ namespace Stride.Assets.Effect
 
         public override void SaveGeneratedAsset(AssetItem assetItem)
         {
-            //generate the .cs files
-            // Always output a result into the file
-            string result;
-            try
-            {
-                var parsingResult = StrideShaderParser.TryPreProcessAndParse(Text, assetItem.FullPath);
-
-                if (parsingResult.HasErrors)
-                {
-                    result = "// Failed to parse the shader:\n" + parsingResult;
-                }
-                else
-                {
-                    // Try to generate a mixin code.
-                    var shaderKeyGenerator = new ShaderMixinCodeGen(parsingResult.Shader, parsingResult);
-
-                    shaderKeyGenerator.Run();
-                    result = shaderKeyGenerator.Text ?? string.Empty;
-                }
-            }
-            catch (Exception ex)
-            {
-                result = "// Unexpected exceptions occurred while generating the file\n" + ex;
-            }
-
-            // We force the UTF8 to include the BOM to match VS default
-            var data = Encoding.UTF8.GetBytes(result);
-           
-            File.WriteAllBytes(assetItem.GetGeneratedAbsolutePath(), data);
+            var generatedFileData = ShaderKeyFileHelper.GenerateCode(assetItem.FullPath, Text);
+            //generate the .sdsl.cs files
+            File.WriteAllBytes(assetItem.GetGeneratedAbsolutePath(), generatedFileData);
         }
     }
 }

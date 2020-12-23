@@ -9,16 +9,30 @@ Hierarchy:
     RootParts:
         - ref!! 24a65d39-df51-45e9-a100-e2f435f06dcb
         - ref!! 34e856ec-512a-4686-aaaf-f71d32082685
-        - ref!! 842c111f-8523-40b6-ac65-314d6167c8c9
+        - ref!! 1e4e026d-4e6a-406d-bd6d-8322d2ebee3e
     Parts:
+        -   Entity:
+                Id: 1e4e026d-4e6a-406d-bd6d-8322d2ebee3e
+                Name: Blue Teapot
+                Components:
+                    f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
+                        Id: 161a68e3-a302-4827-b103-303e1c44f436
+                        Position: {X: 2.997803, Y: 0.22417918, Z: -2.223009}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    3633cb40f574236299aec88b18c090d2: !ModelComponent
+                        Id: 4e60c2e3-0662-4158-ac5a-3faeebb4c346
+                        Model: 9a3a7dbc-7b08-478a-aab2-19afe1d6ce1c:Models/Teapot
+                        Materials: {}
         -   Entity:
                 Id: 24a65d39-df51-45e9-a100-e2f435f06dcb
                 Name: Camera
                 Components:
                     d5dd94550dc377d8b1703c74aae2cee5: !TransformComponent
                         Id: 82293632-fd7e-4226-9416-f837639e1898
-                        Position: {X: 1.68773162, Y: 1.46883953, Z: -1.23660994}
-                        Rotation: {X: -0.158171877, Y: -0.4064115, Z: -0.0716613159, W: 0.8970373}
+                        Position: {X: 1.6877316, Y: 1.4688395, Z: -1.2366099}
+                        Rotation: {X: -0.15817188, Y: -0.4064115, Z: -0.071661316, W: 0.8970373}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     f1cc2f84c67fbd3cc50a22dd0ef605a5: !CameraComponent
@@ -38,20 +52,6 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    7b07303d94cfcc6f7d52ada9306e8358: !CSharpBeginner.Code.VirtualButtonsDemo,CSharpBeginner.Game
-                        Id: d633e0b7-9085-434b-acdf-5a7c690879fb
-                        BlueTeapot: ref!! 842c111f-8523-40b6-ac65-314d6167c8c9
-        -   Entity:
-                Id: 842c111f-8523-40b6-ac65-314d6167c8c9
-                Name: Blue Theapot
-                Components:
-                    f8eee6f467c9263f9fdd120f5463f988: !TransformComponent
-                        Id: 56e36513-da23-456b-be30-832e6964f089
-                        Position: {X: 2.997803, Y: 0.224179178, Z: -2.223009}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    3633cb40f574236299aec88b18c090d2: !ModelComponent
-                        Id: aebc4307-0e39-411b-9014-bc30fb2d3a33
-                        Model: 9a3a7dbc-7b08-478a-aab2-19afe1d6ce1c:Models/Teapot
-                        Materials: {}
+                    2d0fcd078d6a895e99474448cb43b87f: !CSharpBeginner.Code.VirtualButtonsDemo,CSharpBeginner.Game
+                        Id: 2ee96527-b84b-460f-8d10-5d346f6e9659
+                        BlueTeapot: ref!! 1e4e026d-4e6a-406d-bd6d-8322d2ebee3e

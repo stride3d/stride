@@ -1,7 +1,8 @@
 // Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using System.Collections.Generic;
-
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
 
@@ -29,19 +30,10 @@ namespace Stride.Core.Assets.Editor.View.TemplateProviders
             if (!base.MatchNode(node))
                 return false;
 
-            if (node.Type.IsGenericType)
+            if (node.AssociatedData.TryGetValue(DictionaryNodeUpdater.DictionaryNodeKeyType.Name, out var value))
             {
-                var genericArguments = node.Type.GetGenericArguments();
-                return genericArguments[0] == typeof(string);
-            }
-
-            foreach (var typeInterface in node.Type.GetInterfaces())
-            {
-                if (!typeInterface.IsGenericType || typeInterface.GetGenericTypeDefinition() != typeof(IDictionary<,>))
-                    continue;
-
-                var genericArguments = typeInterface.GetGenericArguments();
-                return genericArguments[0] == typeof(string);
+                var type = (Type)value;
+                return type == typeof(string);
             }
 
             return false;

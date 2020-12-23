@@ -23,14 +23,14 @@ namespace Stride.Core.Assets.CompilerApp
         /// </summary>
         /// <param name="logger">The builder logger.</param>
         /// <param name="packageSession">The project session.</param>
-        /// <param name="profile">The build profile.</param>
+        /// <param name="rootPackage">The root package.</param>
         /// <param name="indexName">Name of the index file.</param>
         /// <param name="outputDirectory">The output directory.</param>
         /// <param name="disableCompressionIds">The object id that should be kept uncompressed in the bundle (everything else will be compressed using LZ4).</param>
         /// <param name="useIncrementalBundles">Specifies if incremental bundles should be used, or writing a complete new one.</param>
         /// <exception cref="System.InvalidOperationException">
         /// </exception>
-        public void Build(Logger logger, PackageSession packageSession, string indexName, string outputDirectory, ISet<ObjectId> disableCompressionIds, bool useIncrementalBundles)
+        public void Build(Logger logger, PackageSession packageSession, Package rootPackage, string indexName, string outputDirectory, ISet<ObjectId> disableCompressionIds, bool useIncrementalBundles, List<string> bundleFiles)
         {
             if (logger == null) throw new ArgumentNullException("logger");
             if (packageSession == null) throw new ArgumentNullException("packageSession");
@@ -177,7 +177,6 @@ namespace Stride.Core.Assets.CompilerApp
 
                         var outputGroupBundleBackends = new Dictionary<string, BundleOdbBackend>();
 
-                        var rootPackage = packageSession.LocalPackages.First();
                         if (rootPackage.OutputGroupDirectories != null)
                         {
                             foreach (var item in rootPackage.OutputGroupDirectories)
@@ -239,7 +238,13 @@ namespace Stride.Core.Assets.CompilerApp
                                 bundleBackend = outputBundleBackend;
                             }
 
-                            objDatabase.CreateBundle(bundle.ObjectIds.ToArray(), bundle.Name, bundleBackend, disableCompressionIds, bundle.IndexMap, dependencies, useIncrementalBundles);
+                            var topBundleUrl = objDatabase.CreateBundle(bundle.ObjectIds.ToArray(), bundle.Name, bundleBackend, disableCompressionIds, bundle.IndexMap, dependencies, useIncrementalBundles);
+                            // Expand list of incremental bundles
+                            BundleOdbBackend.ReadBundleHeader(topBundleUrl, out var bundleUrls);
+                            foreach (var bundleUrl in bundleUrls)
+                            {
+                                bundleFiles.Add(VirtualFileSystem.GetAbsolutePath(bundleUrl));
+                            }
                         }
 
                         // Dispose VFS created for groups

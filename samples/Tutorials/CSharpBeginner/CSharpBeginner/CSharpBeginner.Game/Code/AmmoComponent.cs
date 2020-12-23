@@ -7,15 +7,14 @@ namespace CSharpBeginner.Code
     /// </summary>
     public class AmmoComponent : StartupScript
     {
-        private readonly int clips = 4;
-        private readonly int bullets = 6;
+        private readonly int maxBullets = 30;
+        private readonly int currentBullets = 12;
 
         public override void Start() { }
 
-        // This method return the total amount of ammo
-        public int GetTotalAmmo()
+        public int GetRemainingAmmo()
         {
-            return bullets * clips;
+            return maxBullets - currentBullets;
         }
     }
 }

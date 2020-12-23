@@ -687,6 +687,11 @@ namespace Stride.Graphics
             NativeDeviceContext.ClearUnorderedAccessView(texture.NativeUnorderedAccessView, *(RawInt4*)&value);
         }
 
+        /// <summary>
+        /// Copy a texture. View is ignored and full underlying texture is copied.
+        /// </summary>
+        /// <param name="source">The source texture.</param>
+        /// <param name="destination">The destination texture.</param>
         public void Copy(GraphicsResource source, GraphicsResource destination)
         {
             if (source == null) throw new ArgumentNullException("source");

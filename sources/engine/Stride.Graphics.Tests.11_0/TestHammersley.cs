@@ -77,12 +77,6 @@ namespace Stride.Graphics.Tests
             base.Draw(gameTime);
         }
 
-        internal static void Main()
-        {
-            using (var game = new TestHammersley())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>
@@ -90,6 +84,7 @@ namespace Stride.Graphics.Tests
         public void RunImageLoad()
         {
             IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);
+            IgnoreGraphicPlatform(GraphicsPlatform.Vulkan);
 
             RunGameTest(new TestHammersley());
         }

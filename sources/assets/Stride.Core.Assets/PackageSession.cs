@@ -227,6 +227,11 @@ namespace Stride.Core.Assets
         {
         }
 
+        /// <summary>
+        /// Optional list of assemblies to load, typically filled using NuGet.
+        /// </summary>
+        public List<string> Assemblies { get; } = new List<string>();
+
         public override string ToString() => $"Package: {package.Meta.Name}";
     }
 
@@ -259,6 +264,8 @@ namespace Stride.Core.Assets
         public DependencyType Type { get; set; }
 
         public Package Package { get; set; }
+
+        public List<string> Assemblies { get; } = new List<string>();
 
         public override string ToString()
         {
@@ -321,6 +328,8 @@ namespace Stride.Core.Assets
         public string Name => VSProject.Name;
 
         public string TargetPath { get; set; }
+
+        public string AssemblyProcessorSerializationHashFile { get; set; }
 
         public UFile FullPath => VSProject.FullPath;
 

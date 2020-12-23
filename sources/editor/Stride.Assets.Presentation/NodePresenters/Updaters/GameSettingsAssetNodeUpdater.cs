@@ -27,7 +27,10 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                     item.Order = node.Order + item.Index.Int;
                     item.AttachedProperties.Add(CategoryData.Key, true);
                 }
-                node.BypassNode();
+                if (!node.Commands.Any(cmd => cmd.Name == AddNewItemCommand.CommandName))
+                    node.Commands.Add(new AddNewItemCommand());
+                if (!node.Commands.Any(cmd => cmd.Name == RemoveItemCommand.CommandName))
+                    node.Commands.Add(new RemoveItemCommand());
             }
 
             if (typeof(Configuration).IsAssignableFrom(node.Type))

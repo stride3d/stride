@@ -1,51 +1,24 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePlatformDependent>true</StridePlatformDependent>
-    <StrideProjectPlatformDependentWindows>true</StrideProjectPlatformDependentWindows>
     <StrideBuildTags>*</StrideBuildTags>
     <StridePackAssets>true</StridePackAssets>
     <DefineConstants>$(DefineConstants);STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES</DefineConstants>
   </PropertyGroup>
-  <Choose>
-    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-    </When>
-  </Choose>
   <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
-  <Choose>
-    <When Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
-      <Choose>
-        <When Condition=" '$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'macOS' ">
-          <ItemGroup>
-            <Reference Include="SharpVulkan">
-              <SpecificVersion>False</SpecificVersion>
-              <HintPath>$(StrideDependenciesDir)\SharpVulkan\$(StridePlatform)\SharpVulkan.dll</HintPath>
-            </Reference>
-          </ItemGroup>
-        </When>
-        <Otherwise>
-          <ItemGroup>
-            <Reference Include="SharpVulkan">
-              <SpecificVersion>False</SpecificVersion>
-              <HintPath>$(StrideDependenciesDir)\SharpVulkan\Other\SharpVulkan.dll</HintPath>
-            </Reference>
-          </ItemGroup>
-        </Otherwise>
-      </Choose>
-    </When>
-  </Choose>
   <Choose>
     <When Condition="$(StrideUI.Contains('SDL'))">
       <ItemGroup>
-        <StrideNativeLib Include="$(StrideDependenciesDir)\SDL2\$(StridePlatform)\**\*SDL2*">
+        <StrideNativeLib Include="..\..\..\deps\SDL2\$(StridePlatform)\**\*SDL2*">
           <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
           <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -54,35 +27,27 @@
     </When>
   </Choose>
   <ItemGroup Condition=" '$(StridePlatform)' == 'macOS' Or '$(StrideGraphicsApi)' == 'Vulkan' ">
-    <StrideNativeLib Include="$(StrideDependenciesDir)\MoltenVK\$(StridePlatform)\**\*.*">
+    <StrideNativeLib Include="..\..\..\deps\MoltenVK\$(StridePlatform)\**\*.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>
-    <StrideNativeLib Include="$(StrideDependenciesDir)\freetype\$(StridePlatform)\**\*.*">
+    <StrideNativeLib Include="..\..\..\deps\freetype\$(StridePlatform)\**\*.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
-  </ItemGroup>
-  <ItemGroup Condition=" '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'Linux'">
-    <Reference Include="SharpFont">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(StrideDependenciesDir)SharpFont\$(StridePlatform)\SharpFont.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup Condition="'$(StridePlatform)' != 'iOS' And '$(StridePlatform)' != 'Linux'">
-    <Reference Include="SharpFont">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(StrideDependenciesDir)SharpFont\Portable\SharpFont.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
+    <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
+    <None Include="..\..\targets\Stride.GraphicsApi.PackageReference.targets" PackagePath="build\" Pack="true" />
+    <None Include="..\..\targets\Stride.GraphicsApi.PackageReference.targets" PackagePath="buildTransitive\" Pack="true" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Native\Stride.Native.csproj" />
@@ -91,7 +56,9 @@
     <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'UWP'" />
     <PackageReference Include="SharpDX.Direct3D12" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'UWP'" />
-    <PackageReference Include="Stride.OpenTK" Version="1.0.2" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'Android'" />
+    <PackageReference Include="Vortice.Vulkan" Version="1.2.141-alpha-001" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS'" />
+    <PackageReference Include="Stride.OpenTK" Version="1.0.3" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'Android'" />
+    <PackageReference Include="Stride.SharpFont" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="FrameworkResources.resx">
@@ -100,18 +67,15 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\Stride.Shared\Refactor\Stride.Refactor.projitems" Label="Shared" />
-  <Import Project="$(StridePostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <Target Name="IncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)SharpFont.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)SharpVulkan.dll" Condition=" '$(StrideGraphicsApi)' == 'Vulkan' " />
       <BuildOutputInPackage Include="$(OutputPath)SDL2-CS.dll" Condition="$(StrideUI.Contains('SDL'))" />
     </ItemGroup>
   </Target>

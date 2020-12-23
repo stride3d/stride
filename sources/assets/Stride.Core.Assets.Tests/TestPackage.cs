@@ -13,7 +13,7 @@ namespace Stride.Core.Assets.Tests
   
     public class TestPackage : TestBase
     {
-        [Fact]
+        [Fact(Skip = "Need check: we don't work with package directly anymore, they are considered external")]
         public void TestBasicPackageCreateSaveLoad()
         {
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
@@ -201,17 +201,6 @@ namespace Stride.Core.Assets.Tests
                 Console.WriteLine(logMessage);
             }
             Assert.False(log.HasErrors);
-        }
-
-        static void Main()
-        {
-            var clock = Stopwatch.StartNew();
-            for (int i = 0; i < 10; i++)
-            {
-                var session = PackageSession.Load(@"E:\Code\SengokuRun\SengokuRun\WindowsLauncher\GameAssets\Assets.sdpkg");
-            }
-            var elapsed = clock.ElapsedMilliseconds;
-            Console.WriteLine("{0}ms", elapsed);
         }
     }
 }

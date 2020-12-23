@@ -3,7 +3,8 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
-using SharpVulkan;
+using Vortice.Vulkan;
+using static Vortice.Vulkan.Vulkan;
 
 namespace Stride.Graphics
 {

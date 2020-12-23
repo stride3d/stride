@@ -58,7 +58,7 @@ namespace ##Namespace##
         public override void Update()
         {
             // Use DrawTime rather than UpdateTime
-            var time = Game.DrawTime;  
+            var time = Game.DrawTime;
 
             // This update function will account for animation with different durations, keeping a current time relative to the blended maximum duration
             long blendedMaxDuration = 0;

@@ -37,10 +37,11 @@ namespace Stride.Games
             MinimizedActions += GameForm_MinimizedActions;
             MaximizedActions += GameForm_MaximizedActions;
             RestoredActions += GameForm_RestoredActions;
+            KeyDownActions += GameFormSDL_KeyDownActions;
         }
-#endregion
+        #endregion
 
-#region Events
+        #region Events
         /// <summary>
         /// Occurs when [app activated].
         /// </summary>
@@ -65,9 +66,15 @@ namespace Stride.Games
         /// Occurs when [user resized].
         /// </summary>
         public event EventHandler<EventArgs> UserResized;
-#endregion
 
-#region Implementation
+        /// <summary>
+        /// Occurs when alt-enter key combination has been pressed.
+        /// </summary>
+        public event EventHandler<EventArgs> FullscreenToggle;
+
+        #endregion
+
+        #region Implementation
         // TODO: The code below is taken from GameForm.cs of the Windows Desktop implementation. This needs reviewing
         private Size2 cachedSize;
         private FormWindowState previousWindowState;
@@ -129,7 +136,18 @@ namespace Stride.Games
             isUserResizing = false;
             ResumeRendering?.Invoke(this, EventArgs.Empty);
         }
-#endregion
+
+        private void GameFormSDL_KeyDownActions(SDL.SDL_KeyboardEvent e)
+        {
+            var altReturn = (e.keysym.sym == SDL.SDL_Keycode.SDLK_RETURN) && ((e.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0);
+            var altEnter = (e.keysym.sym == SDL.SDL_Keycode.SDLK_KP_ENTER) && ((e.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0);
+            if (altReturn || altEnter)
+            {
+                FullscreenToggle?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        #endregion
     }
 }
 #endif

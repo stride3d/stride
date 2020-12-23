@@ -14,14 +14,8 @@ namespace Stride.Core.Serialization
     /// Describes how to serialize and deserialize an object without knowing its type.
     /// Used as a common base class for all data serializers.
     /// </summary>
-    public abstract class DataSerializer
+    public abstract partial class DataSerializer
     {
-        // Binary format version, needs to be bumped in case of big changes in serialization formats (i.e. primitive types).
-        public const int BinaryFormatVersion = 3 * 1000000 // Major version: any number is ok
-                                             + 1 * 10000   // Minor version: supported range: 0-99
-                                             + 0 * 100     // Patch version: supported range: 0-99
-                                             + 1;          // Bump ID: supported range: 0-99
-
         /// <summary>
         /// The type id of <see cref="SerializationType"/>. Used internally to avoid dealing with strings.
         /// </summary>

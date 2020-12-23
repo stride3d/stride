@@ -115,7 +115,6 @@ namespace Stride.Core.Yaml.Serialization
                 }
                 catch (Exception e)
                 {
-                    //return System.Runtime.Serialization.FormatterServices.GetUninitializedObject(type);
                     throw new InstanceCreationException($"'{typeof(Activator)}' failed to create instance of type '{type}', see inner exception.", e);
                 }
             }

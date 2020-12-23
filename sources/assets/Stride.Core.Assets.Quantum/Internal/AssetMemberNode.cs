@@ -74,12 +74,12 @@ namespace Stride.Core.Assets.Quantum.Internal
 
         private void ContentChanged(object sender, [NotNull] MemberNodeChangeEventArgs e)
         {
-            // Make sure that we have item ids everywhere we're supposed to.
-            AssetCollectionItemIdHelper.GenerateMissingItemIds(e.Member.Retrieve());
-
             var node = (AssetMemberNode)e.Member;
             if (node.IsNonIdentifiableCollectionContent)
                 return;
+
+            // Make sure that we have item ids everywhere we're supposed to.
+            AssetCollectionItemIdHelper.GenerateMissingItemIds(e.Member.Retrieve());
 
             // Don't update override if propagation from base is disabled.
             if (PropertyGraph?.Container == null || PropertyGraph?.Container?.PropagateChangesFromBase == false)

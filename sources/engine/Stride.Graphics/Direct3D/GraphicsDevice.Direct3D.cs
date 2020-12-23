@@ -4,6 +4,7 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using SharpDX;
 using SharpDX.Direct3D11;
 
@@ -206,10 +207,6 @@ namespace Stride.Graphics
             // Map GraphicsProfile to D3D11 FeatureLevel
             creationFlags = (SharpDX.Direct3D11.DeviceCreationFlags)deviceCreationFlags;
 
-            // Default fallback
-            if (graphicsProfiles.Length == 0)
-                graphicsProfiles = new[] { GraphicsProfile.Level_11_0, GraphicsProfile.Level_10_1, GraphicsProfile.Level_10_0, GraphicsProfile.Level_9_3, GraphicsProfile.Level_9_2, GraphicsProfile.Level_9_1 };
-
             // Create Device D3D11 with feature Level based on profile
             for (int index = 0; index < graphicsProfiles.Length; index++)
             {
@@ -225,6 +222,15 @@ namespace Stride.Graphics
                         if (level < SharpDX.Direct3D.FeatureLevel.Level_10_0)
                             level = SharpDX.Direct3D.FeatureLevel.Level_10_0;
                     }
+
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+                    // If RenderDoc is loaded, force level 11+
+                    if (GetModuleHandle("renderdoc.dll") != IntPtr.Zero)
+                    {
+                        if (level < SharpDX.Direct3D.FeatureLevel.Level_11_0)
+                            level = SharpDX.Direct3D.FeatureLevel.Level_11_0;
+                    }
+#endif
 
                     nativeDevice = new SharpDX.Direct3D11.Device(Adapter.NativeAdapter, creationFlags, level);
 
@@ -301,6 +307,11 @@ namespace Stride.Graphics
             if (resourceLink.Resource is GraphicsResource resource)
                 resource.DiscardNextMap = true;
         }
+
+#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+        [DllImport("kernel32.dll", EntryPoint = "GetModuleHandle", CharSet = CharSet.Unicode)]
+        private static extern IntPtr GetModuleHandle(string lpModuleName);
+#endif
     }
 }
 #endif

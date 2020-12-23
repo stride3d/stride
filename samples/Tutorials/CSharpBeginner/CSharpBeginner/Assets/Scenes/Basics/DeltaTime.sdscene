@@ -16,8 +16,8 @@ Hierarchy:
                 Components:
                     d5dd94550dc377d8b1703c74aae2cee5: !TransformComponent
                         Id: 56d83429-5834-4694-84d3-552c1c2c1feb
-                        Position: {X: 0.3964831, Y: 1.58987379, Z: 2.541554}
-                        Rotation: {X: -0.04995022, Y: 0.91597563, Z: 0.120590493, W: 0.379409522}
+                        Position: {X: 0.3964831, Y: 1.5898738, Z: 2.541554}
+                        Rotation: {X: -0.04995022, Y: 0.91597563, Z: 0.12059049, W: 0.37940952}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     f1cc2f84c67fbd3cc50a22dd0ef605a5: !CameraComponent
@@ -47,8 +47,8 @@ Hierarchy:
                 Components:
                     9864ab7cab966846b90eedba3dc115cc: !TransformComponent
                         Id: 22b7139b-b7cc-4015-b8d6-7ea577af4fa3
-                        Position: {X: -1.70852435, Y: 0.129506826, Z: 2.917612}
-                        Rotation: {X: 0.0, Y: 0.2764188, Z: 0.0, W: 0.961037338}
+                        Position: {X: -1.7085243, Y: 0.12950683, Z: 2.917612}
+                        Rotation: {X: 0.0, Y: 0.2764188, Z: 0.0, W: 0.96103734}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             f715f4540f4dcd612415012df8092638: ref!! 098644b0-0739-4a4e-a9d5-38246f043263
@@ -56,5 +56,5 @@ Hierarchy:
                         Id: 210bc310-d21a-44a9-bccf-173c4926a47d
                         Model: f68ea240-695a-4de5-9884-60d77544fcd6:Models/mannequinModel
                         Materials: {}
-                    3e42ba7a5d85c5f92dc2c5097deed788: !CSharpBeginner.Code.DeltaTimeDemo,CSharpBeginner.Game
-                        Id: d1936f8d-349f-41cd-a753-b06c74b7abf3
+                    bb167954009b06e13f5033dc75cadf9a: !CSharpBeginner.Code.DeltaTimeDemo,CSharpBeginner.Game
+                        Id: ec4745f4-aa61-428b-935a-20ecc241fd7e

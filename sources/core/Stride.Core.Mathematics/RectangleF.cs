@@ -269,7 +269,7 @@ namespace Stride.Core.Mathematics
         /// <param name="result">[OutAttribute] true if the specified Point is contained within this rectangle; false otherwise.</param>
         public void Contains(ref Vector2 value, out bool result)
         {
-            result = (X <= value.X) && (value.X < Right) && (Y <= value.Y) && (value.Y < Bottom);
+            result = value.X >= this.X && value.X <= Right && value.Y >= this.Y && value.Y <= Bottom;
         }
 
         /// <summary>Determines whether this rectangle entirely contains a specified rectangle.</summary>
@@ -295,7 +295,7 @@ namespace Stride.Core.Mathematics
         /// <returns><c>true</c> if point is inside <see cref="RectangleF"/>, otherwise <c>false</c>.</returns>
         public bool Contains(float x, float y)
         {
-            return (x >= this.X && x <= Right && y >= this.Y && y <= Bottom);
+            return x >= this.X && x <= Right && y >= this.Y && y <= Bottom;
         }
 
         /// <summary>

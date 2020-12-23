@@ -175,12 +175,6 @@ namespace Stride.Graphics.Tests
             }
         }
 
-        public static void Main()
-        {
-            using (var game = new TestCubemapRendering())
-                game.Run();
-        }
-
         /// <summary>
         /// Run the test
         /// </summary>
