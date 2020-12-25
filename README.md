@@ -66,7 +66,7 @@ If building failed:
 * Visual Studio might have issues properly building if an outdated version of 2017 is present alongside 2019. If you want to keep VS 2017 make sure that it is up to date and that you are building Stride through VS 2019.
 * Some changes might require a system reboot, try that if you haven't yet.
 * Make sure that git and visual studio can access the internet.
-* Close VS, clear the nuget cache (in your cmd ``dotnet nuget locals all --clear``), delete the hidden ``.vs`` folder inside ``\build``, build the whole solution then build and run GameStudio.
+* Close VS, clear the nuget cache (in your cmd ``dotnet nuget locals all --clear``), delete the hidden ``.vs`` folder inside ``\build`` and the files inside ``bin\packages``, kill any msbuild and other vs processes, build the whole solution then build and run GameStudio.
 
 Do note that test solutions might fail but it should not prevent you from building `Stride.GameStudio`.
 
