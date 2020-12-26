@@ -8,10 +8,10 @@ using Stride.Core.Collections;
 namespace Stride.Engine
 {
     /// <summary>
-    /// Ordered collection of <see cref="EntityProcessor"/> based on the <see cref="EntityProcessor.Order"/> property.
+    /// Ordered collection of <see cref="EntityProcessorBase"/> based on the <see cref="EntityProcessorBase.Order"/> property.
     /// </summary>
     /// <seealso cref="Stride.Core.Collections.OrderedCollection{Stride.Engine.EntityProcessor}" />
-    public class EntityProcessorCollection : OrderedCollection<EntityProcessor>
+    public class EntityProcessorCollection : OrderedCollection<EntityProcessorBase>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="EntityProcessorCollection"/> class.
@@ -34,7 +34,7 @@ namespace Stride.Engine
         /// <typeparam name="T">Type of the processor</typeparam>
         /// <returns>The first processor of type T or <c>null</c> if not found.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Get<T>() where T : EntityProcessor
+        public T Get<T>() where T : EntityProcessorBase
         {
             for (int i = 0; i < this.Count; i++)
             {
@@ -47,13 +47,13 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// Internal comparer for <see cref="EntityProcessor"/>
+        /// Internal comparer for <see cref="EntityProcessorBase"/>
         /// </summary>
-        private class EntityProcessorComparer : Comparer<EntityProcessor>
+        private class EntityProcessorComparer : Comparer<EntityProcessorBase>
         {
             public static new readonly EntityProcessorComparer Default = new EntityProcessorComparer();
 
-            public override int Compare(EntityProcessor x, EntityProcessor y)
+            public override int Compare(EntityProcessorBase x, EntityProcessorBase y)
             {
                 return x.Order.CompareTo(y.Order);
             }

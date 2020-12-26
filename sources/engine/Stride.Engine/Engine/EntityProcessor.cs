@@ -14,71 +14,8 @@ using Stride.Rendering;
 
 namespace Stride.Engine
 {
-    /// <summary>Entity processor, triggered on various <see cref="EntityManager"/> events such as Entity and Component additions and removals.</summary>
-    public abstract class EntityProcessor
+    public abstract class EntityProcessorBase
     {
-        internal ProfilingKey UpdateProfilingKey;
-        internal ProfilingKey DrawProfilingKey;
-        private readonly TypeInfo mainTypeInfo;
-        private readonly Dictionary<TypeInfo, bool> componentTypesSupportedAsRequired;
-
-        /// <summary>
-        /// Tags associated to this entity processor
-        /// </summary>
-        public PropertyContainer Tags;
-
-        /// <summary>
-        /// Update Profiling state of this entity processor for the current frame.
-        /// Pay attention this is a struct, use directly.
-        /// Useful to add custom Mark events into processors
-        /// </summary>
-        public ProfilingState UpdateProfilingState;
-
-        /// <summary>
-        /// Draw Profiling state of this entity processor for the current frame.
-        /// Pay attention this is a struct, use directly.
-        /// Useful to add custom Mark events into processors
-        /// </summary>
-        public ProfilingState DrawProfilingState;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EntityProcessor"/> class.
-        /// </summary>
-        /// <param name="mainComponentType">Type of the main component.</param>
-        /// <param name="additionalTypes">The additional types required by this processor.</param>
-        /// <exception cref="System.ArgumentNullException">If parameteters are null</exception>
-        /// <exception cref="System.ArgumentException">If a type does not inherit from EntityComponent</exception>
-        protected EntityProcessor([NotNull] Type mainComponentType, [NotNull] Type[] additionalTypes)
-        {
-            if (mainComponentType == null) throw new ArgumentNullException(nameof(mainComponentType));
-            if (additionalTypes == null) throw new ArgumentNullException(nameof(additionalTypes));
-
-            MainComponentType = mainComponentType;
-            mainTypeInfo = MainComponentType.GetTypeInfo();
-
-            RequiredTypes = new TypeInfo[additionalTypes.Length];
-
-            // Check that types are valid
-            for (var i = 0; i < additionalTypes.Length; i++)
-            {
-                var requiredType = additionalTypes[i];
-                if (!typeof(EntityComponent).GetTypeInfo().IsAssignableFrom(requiredType.GetTypeInfo()))
-                {
-                    throw new ArgumentException($"Invalid required type [{requiredType}]. Expecting only an EntityComponent type");
-                }
-
-                RequiredTypes[i] = requiredType.GetTypeInfo();
-            }
-
-            if (RequiredTypes.Length > 0)
-            {
-                componentTypesSupportedAsRequired = new Dictionary<TypeInfo, bool>();
-            }
-
-            UpdateProfilingKey = new ProfilingKey(GameProfilingKeys.GameUpdate, GetType().Name);
-            DrawProfilingKey = new ProfilingKey(GameProfilingKeys.GameDraw, GetType().Name);
-        }
-
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="EntityProcessor"/> is enabled.
         /// </summary>
@@ -115,19 +52,46 @@ namespace Stride.Engine
         public IServiceRegistry Services { get; internal set; }
 
         /// <summary>
-        /// Performs work related to this processor.
+        /// Tags associated to this entity processor
         /// </summary>
-        /// <param name="time"></param>
-        public virtual void Update(GameTime time)
-        {
-        }
+        public PropertyContainer Tags;
+
+        private readonly TypeInfo mainTypeInfo;
+        private readonly Dictionary<TypeInfo, bool> componentTypesSupportedAsRequired;
 
         /// <summary>
-        /// Performs work related to this processor.
+        /// Initializes a new instance of the <see cref="EntityProcessor"/> class.
         /// </summary>
-        /// <param name="context"></param>
-        public virtual void Draw(RenderContext context)
+        /// <param name="mainComponentType">Type of the main component.</param>
+        /// <param name="additionalTypes">The additional types required by this processor.</param>
+        /// <exception cref="System.ArgumentNullException">If parameteters are null</exception>
+        /// <exception cref="System.ArgumentException">If a type does not inherit from EntityComponent</exception>
+        protected EntityProcessorBase([NotNull] Type mainComponentType, [NotNull] Type[] additionalTypes)
         {
+            if (mainComponentType == null) throw new ArgumentNullException(nameof(mainComponentType));
+            if (additionalTypes == null) throw new ArgumentNullException(nameof(additionalTypes));
+
+            MainComponentType = mainComponentType;
+            mainTypeInfo = MainComponentType.GetTypeInfo();
+
+            RequiredTypes = new TypeInfo[additionalTypes.Length];
+
+            // Check that types are valid
+            for (var i = 0; i < additionalTypes.Length; i++)
+            {
+                var requiredType = additionalTypes[i];
+                if (!typeof(EntityComponent).GetTypeInfo().IsAssignableFrom(requiredType.GetTypeInfo()))
+                {
+                    throw new ArgumentException($"Invalid required type [{requiredType}]. Expecting only an EntityComponent type");
+                }
+
+                RequiredTypes[i] = requiredType.GetTypeInfo();
+            }
+
+            if (RequiredTypes.Length > 0)
+            {
+                componentTypesSupportedAsRequired = new Dictionary<TypeInfo, bool>();
+            }
         }
 
         /// <summary>
@@ -206,6 +170,58 @@ namespace Stride.Engine
             }
             return result;
         }
+    }
+
+    /// <summary>Entity processor, triggered on various <see cref="EntityManager"/> events such as Entity and Component additions and removals.</summary>
+    public abstract class EntityProcessor : EntityProcessorBase
+    {
+        internal ProfilingKey UpdateProfilingKey;
+        internal ProfilingKey DrawProfilingKey;       
+
+        /// <summary>
+        /// Update Profiling state of this entity processor for the current frame.
+        /// Pay attention this is a struct, use directly.
+        /// Useful to add custom Mark events into processors
+        /// </summary>
+        public ProfilingState UpdateProfilingState;
+
+        /// <summary>
+        /// Draw Profiling state of this entity processor for the current frame.
+        /// Pay attention this is a struct, use directly.
+        /// Useful to add custom Mark events into processors
+        /// </summary>
+        public ProfilingState DrawProfilingState;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EntityProcessor"/> class.
+        /// </summary>
+        /// <param name="mainComponentType">Type of the main component.</param>
+        /// <param name="additionalTypes">The additional types required by this processor.</param>
+        /// <exception cref="System.ArgumentNullException">If parameteters are null</exception>
+        /// <exception cref="System.ArgumentException">If a type does not inherit from EntityComponent</exception>
+        protected EntityProcessor([NotNull] Type mainComponentType, [NotNull] Type[] additionalTypes)
+            : base(mainComponentType, additionalTypes)
+        {
+            UpdateProfilingKey = new ProfilingKey(GameProfilingKeys.GameUpdate, GetType().Name);
+            DrawProfilingKey = new ProfilingKey(GameProfilingKeys.GameDraw, GetType().Name);
+        }
+
+
+        /// <summary>
+        /// Performs work related to this processor.
+        /// </summary>
+        /// <param name="time"></param>
+        public virtual void Update(GameTime time)
+        {
+        }
+
+        /// <summary>
+        /// Performs work related to this processor.
+        /// </summary>
+        /// <param name="context"></param>
+        public virtual void Draw(RenderContext context)
+        {
+        }     
     }
 
     /// <summary>

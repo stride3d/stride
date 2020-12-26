@@ -10,6 +10,9 @@ using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using Stride.Games;
 
 namespace Stride.Engine.Tests
 {
@@ -118,6 +121,114 @@ namespace Stride.Engine.Tests
             Assert.Equal(newEntity, entityRemoved[0]);
 
             Assert.Single(transformProcessor.TransformationRoots);
+
+            componentTypes.Clear();
+            entityAdded.Clear();
+            entityRemoved.Clear();
+        }
+
+        [Fact]
+        public async Task TestAsyncProcessors()
+        {
+            var registry = new ServiceRegistry();
+            var entityManager = new CustomEntityManager(registry);
+
+            // Create events collector to check fired events on EntityManager
+            var componentTypes = new List<Type>();
+            var entityAdded = new List<Entity>();
+            var entityRemoved = new List<Entity>();
+
+            entityManager.ComponentTypeAdded += (sender, type) => componentTypes.Add(type);
+            entityManager.EntityAdded += (sender, entity1) => entityAdded.Add(entity1);
+            entityManager.EntityRemoved += (sender, entity1) => entityRemoved.Add(entity1);
+
+            // No processors registered by default
+            Assert.Empty(entityManager.Processors);
+
+            // ================================================================
+            // 1) Add an entity with the CustomEntityComponent to the Entity Manager
+            // ================================================================
+            var events = new List<CustomEntityComponentEventArgs>();
+            var entity = new Entity
+            {
+                new AsyncEntityComponent()
+                {
+                    Changed = e => events.Add(e)
+                }
+            };
+            entityManager.Add(entity);
+
+            // Check types are correctly registered
+            Assert.Equal(2, componentTypes.Count);
+            Assert.Equal(typeof(TransformComponent), componentTypes[0]);
+            Assert.Equal(typeof(AsyncEntityComponent), componentTypes[1]);
+
+            // Check entity correctly added
+            Assert.Single(entityManager);
+            Assert.True(entityManager.Contains(entity));
+            Assert.Single(entityAdded);
+            Assert.Equal(entity, entityAdded[0]);
+            Assert.Empty(entityRemoved);
+
+            // Check that component was correctly processed when first adding the entity
+            Assert.Equal(2, entityManager.Processors.Count);
+
+            // Verify that the processor has correctly registered the component
+            var customProcessor = entityManager.GetProcessor<AsyncEntityComponentProcessor>();
+            Assert.NotNull(customProcessor);
+
+            // Check internal mapping of component types => EntityProcessor
+            Assert.Equal(2, entityManager.MapComponentTypeToProcessors.Count);
+            Assert.True(entityManager.MapComponentTypeToProcessors.ContainsKey(typeof(AsyncEntityComponent).GetTypeInfo()));
+
+            var processorListForAsyncEntityComponentType = entityManager.MapComponentTypeToProcessors[typeof(AsyncEntityComponent).GetTypeInfo()];
+            Assert.Single(processorListForAsyncEntityComponentType);
+            Assert.True(processorListForAsyncEntityComponentType[0] is AsyncEntityComponentProcessor);
+
+            // TODO: Test calling execute asynchronously. How to test async is happening?
+            // TODO: How to test the microthreads are working correctly? Are there asyncscript tests anywhere?
+
+            // clear events collector
+            componentTypes.Clear();
+            entityAdded.Clear();
+            entityRemoved.Clear();
+
+            // ================================================================
+            // 2) Add another empty entity
+            // ================================================================
+
+            var newEntity = new Entity();
+            entityManager.Add(newEntity);
+
+            // We should not have new component types registered
+            Assert.Empty(componentTypes);
+
+            // Check entity correctly added
+            Assert.Equal(2, entityManager.Count);
+            Assert.True(entityManager.Contains(newEntity));
+            Assert.Single(entityAdded);
+            Assert.Equal(newEntity, entityAdded[0]);
+            Assert.Empty(entityRemoved);
+
+            // We should still have 2 processors
+            Assert.Equal(2, entityManager.Processors.Count);
+
+            componentTypes.Clear();
+            entityAdded.Clear();
+            entityRemoved.Clear();
+
+            // ================================================================
+            // 3) Remove previous entity
+            // ================================================================
+
+            entityManager.Remove(newEntity);
+
+            // Check entity correctly removed
+            Assert.Single(entityManager);
+            Assert.False(entityManager.Contains(newEntity));
+            Assert.Empty(entityAdded);
+            Assert.Single(entityRemoved);
+            Assert.Equal(newEntity, entityRemoved[0]);
 
             componentTypes.Clear();
             entityAdded.Clear();
@@ -278,7 +389,7 @@ namespace Stride.Engine.Tests
             Assert.NotNull(processorsForTransform.Dependencies);
             Assert.Single(processorsForTransform.Dependencies);
             Assert.Equal(customProcessor, processorsForTransform.Dependencies[0]);
-            
+
             // Check that the custom processor is empty
             var processorsForCustom = entityManager.MapComponentTypeToProcessors[typeof(CustomEntityComponentWithDependency).GetTypeInfo()];
             Assert.Single(processorsForCustom);
@@ -451,6 +562,78 @@ namespace Stride.Engine.Tests
             Assert.True(removeChildCheck);
             Assert.True(prevRootAsChildCheck);
         }
+
+        [Fact]
+        public void TestAsyncExecution()
+        {
+            var registry = new ServiceRegistry();
+            var entityManager = new CustomEntityManager(registry);
+
+            // Create events collector to check fired events on EntityManager
+            var componentTypes = new List<Type>();
+            var entityAdded = new List<Entity>();
+            var entityRemoved = new List<Entity>();
+            var processorExecuted = false;
+
+            entityManager.ComponentTypeAdded += (sender, type) => componentTypes.Add(type);
+            entityManager.EntityAdded += (sender, entity1) => entityAdded.Add(entity1);
+            entityManager.EntityRemoved += (sender, entity1) => entityRemoved.Add(entity1);
+
+            // No processors registered by default
+            Assert.Empty(entityManager.Processors);
+
+            // ================================================================
+            // 1) Add an entity with the AsyncEntityComponent to the Entity Manager
+            // ================================================================
+            var events = new List<CustomEntityComponentEventArgs>();
+            var entity = new Entity
+            {
+                new AsyncEntityComponent()
+                {
+                    Changed = e => events.Add(e)
+                }
+            };
+            entityManager.Add(entity);
+
+            // Check types are correctly registered
+            Assert.Equal(2, componentTypes.Count);
+            Assert.Equal(typeof(TransformComponent), componentTypes[0]);
+            Assert.Equal(typeof(AsyncEntityComponent), componentTypes[1]);
+
+            // Check entity correctly added
+            Assert.Single(entityManager);
+            Assert.True(entityManager.Contains(entity));
+            Assert.Single(entityAdded);
+            Assert.Equal(entity, entityAdded[0]);
+            Assert.Empty(entityRemoved);
+
+            // Check that component was correctly processed when first adding the entity
+            Assert.Equal(2, entityManager.Processors.Count);
+
+            // Verify that the processor has correctly registered the component
+            var customProcessor = entityManager.GetProcessor<AsyncEntityComponentProcessor>();
+            Assert.NotNull(customProcessor);
+
+            // Wire up execution callback.
+            customProcessor.ExecutionCallback += (sender, executed) => processorExecuted = executed;
+
+            // Check internal mapping of component types => EntityProcessor
+            Assert.Equal(2, entityManager.MapComponentTypeToProcessors.Count);
+            Assert.True(entityManager.MapComponentTypeToProcessors.ContainsKey(typeof(AsyncEntityComponent).GetTypeInfo()));
+
+            var processorListForAsyncEntityComponentType = entityManager.MapComponentTypeToProcessors[typeof(AsyncEntityComponent).GetTypeInfo()];
+            Assert.Single(processorListForAsyncEntityComponentType);
+            Assert.True(processorListForAsyncEntityComponentType[0] is AsyncEntityComponentProcessor);
+
+            entityManager.Update(new GameTime());
+
+            while (!customProcessor.MicroThread.IsOver)
+            {
+                // Waiting for async processor to finish processing to continue.
+            }
+
+            Assert.True(processorExecuted);
+        }
     }
 
     public class CustomEntityManager : EntityManager
@@ -515,6 +698,58 @@ namespace Stride.Engine.Tests
         {
             return !left.Equals(right);
         }
+    }
+
+    public class AsyncEntityComponentProcessor<TCustom> : AsyncEntityProcessor<TCustom> where TCustom : CustomEntityComponentBase
+    {
+        public ConcurrentDictionary<TCustom, TCustom> CurrentComponentDatas => ComponentDatas;
+
+        public AsyncEntityComponentProcessor(params Type[] requiredAdditionalTypes) : base(requiredAdditionalTypes)
+        {
+        }
+
+        protected override TCustom GenerateComponentData(Entity entity, TCustom component)
+        {
+            component.Changed?.Invoke(new CustomEntityComponentEventArgs(CustomEntityComponentEventType.GenerateComponentData, entity, component));
+            return component;
+        }
+
+        protected override void OnEntityComponentAdding(Entity entity, TCustom component, TCustom data)
+        {
+            base.OnEntityComponentAdding(entity, component, data);
+            component.Changed?.Invoke(new CustomEntityComponentEventArgs(CustomEntityComponentEventType.EntityComponentAdding, entity, component));
+        }
+
+        protected override void OnEntityComponentRemoved(Entity entity, TCustom component, TCustom data)
+        {
+            base.OnEntityComponentRemoved(entity, component, data);
+            component.Changed?.Invoke(new CustomEntityComponentEventArgs(CustomEntityComponentEventType.EntityComponentRemoved, entity, component));
+        }
+
+        public override Task Execute()
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    public class AsyncEntityComponentProcessor : AsyncEntityComponentProcessor<AsyncEntityComponent>
+    {
+        public event EventHandler<bool> ExecutionCallback;
+
+        public override Task Execute()
+        {
+            ExecutionCallback?.Invoke(this, true);
+
+            return base.Execute();
+        }
+    }
+
+    [DataContract()]
+    [DefaultEntityComponentProcessor(typeof(AsyncEntityComponentProcessor))]
+    [AllowMultipleComponents]
+    public sealed class AsyncEntityComponent : CustomEntityComponentBase
+    {
+        public Entity Link { get; set; }
     }
 
     public class CustomEntityComponentProcessor<TCustom> : EntityProcessor<TCustom> where TCustom : CustomEntityComponentBase

@@ -146,7 +146,7 @@ namespace Stride.Core.Collections
         public void RemoveAt(int index)
         {
             if (index < 0 || index >= size) throw new ArgumentOutOfRangeException(nameof(index));
-            RemoteItem(index);
+            RemoveItem(index);
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace Stride.Core.Collections
             size++;
         }
 
-        protected virtual void RemoteItem(int index)
+        protected virtual void RemoveItem(int index)
         {
             size--;
             if (index < size)

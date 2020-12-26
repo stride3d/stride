@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Core.Collections;
@@ -25,6 +26,8 @@ namespace Stride.Engine
     /// </summary>
     public abstract class EntityManager : ComponentBase, IReadOnlySet<Entity>
     {
+        internal static readonly Logger Log = GlobalLogger.GetLogger("EntityManager");
+
         // TODO: Make this class threadsafe (current locks aren't sufficients)
         private const long UpdateBit = 1L << 32;
 
@@ -48,7 +51,7 @@ namespace Stride.Engine
         // List of processors per EntityComponent final type
         internal readonly Dictionary<TypeInfo, EntityProcessorCollectionPerComponentType> MapComponentTypeToProcessors;
 
-        private readonly List<EntityProcessor> currentDependentProcessors;
+        private readonly List<EntityProcessorBase> currentDependentProcessors;
         private readonly HashSet<TypeInfo> componentTypes;
         private int addEntityLevel = 0;
 
@@ -87,6 +90,9 @@ namespace Stride.Engine
             if (registry == null) throw new ArgumentNullException("registry");
             Services = registry;
 
+            Scheduler = new Scheduler();
+            Scheduler.ActionException += Scheduler_ActionException;
+
             entities = new HashSet<Entity>();
             processors = new TrackingEntityProcessorCollection(this);
             pendingProcessors = new EntityProcessorCollection();
@@ -94,7 +100,17 @@ namespace Stride.Engine
             componentTypes = new HashSet<TypeInfo>();
             MapComponentTypeToProcessors = new Dictionary<TypeInfo, EntityProcessorCollectionPerComponentType>();
 
-            currentDependentProcessors = new List<EntityProcessor>(10);
+            currentDependentProcessors = new List<EntityProcessorBase>(10);
+        }
+
+        protected override void Destroy()
+        {
+            Scheduler.ActionException -= Scheduler_ActionException;
+            Scheduler = null;
+
+            Services.RemoveService<EntityManager>();
+
+            base.Destroy();
         }
 
         /// <summary>
@@ -122,22 +138,35 @@ namespace Stride.Engine
             {
                 if (processor.Enabled)
                 {
-                    using (processor.UpdateProfilingState = Profiler.Begin(processor.UpdateProfilingKey, "Entities: {0}", entities.Count))
+                    var asyncProcessor = processor as AsyncEntityProcessor;
+                    if (asyncProcessor is object)
                     {
-                        var asyncProcessor = processor as AsyncEntityProcessor;
-                        if (asyncProcessor is object)
+                        // Operate similar to the AsyncScript in the ScriptProcessor
+                        asyncProcessor.MicroThread = AddTask(asyncProcessor.Execute, asyncProcessor.Priority | UpdateBit);
+                        asyncProcessor.MicroThread.ProfilingKey = asyncProcessor.ProfilingKey;
+                    }
+                    else
+                    {
+                        var syncProcessor = processor as EntityProcessor;
+                        if (syncProcessor is object)
                         {
-                            asyncProcessor.MicroThread = AddTask(asyncProcessor.Execute, asyncProcessor.Priority | UpdateBit);
-                            asyncProcessor.MicroThread.ProfilingKey = asyncProcessor.ProfilingKey;
+                            using (syncProcessor.UpdateProfilingState = Profiler.Begin(syncProcessor.UpdateProfilingKey, "Entities: {0}", entities.Count))
+                            {
+                                // Execute synchronously.
+                                syncProcessor.Update(gameTime);
+                            }
                         }
                         else
                         {
-                            // Execute synchronously.
-                            processor.Update(gameTime);
+                            // TODO: Log an error for being unprocessable.
+                            continue;
                         }
                     }
                 }
             }
+
+            // Run current micro threads
+            Scheduler.Run();
         }
 
         /// <summary>
@@ -178,7 +207,7 @@ namespace Stride.Engine
         /// <typeparam name="TProcessor">Type of the processor</typeparam>
         /// <returns>The first processor of type T or <c>null</c> if not found.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TProcessor GetProcessor<TProcessor>() where TProcessor : EntityProcessor
+        public TProcessor GetProcessor<TProcessor>() where TProcessor : EntityProcessorBase
         {
             return Processors.Get<TProcessor>();
         }
@@ -218,7 +247,7 @@ namespace Stride.Engine
         /// <param name="context">The render context.</param>
         public virtual void Draw(RenderContext context)
         {
-            foreach (var processor in processors)
+            foreach (var processor in processors.OfType<EntityProcessor>())
             {
                 if (processor.Enabled)
                 {
@@ -341,7 +370,7 @@ namespace Stride.Engine
             foreach (var processorAttributeType in processorAttributes)
             {
                 var processorType = AssemblyRegistry.GetType(processorAttributeType.TypeName);
-                if (processorType == null || !typeof(EntityProcessor).GetTypeInfo().IsAssignableFrom(processorType.GetTypeInfo()))
+                if (processorType == null || !typeof(EntityProcessorBase).GetTypeInfo().IsAssignableFrom(processorType.GetTypeInfo()))
                 {
                     // TODO: log an error if type is not of EntityProcessor
                     continue;
@@ -377,7 +406,7 @@ namespace Stride.Engine
                         // If not found, we can add this processor
                         if (addNewProcessor)
                         {
-                            var processor = (EntityProcessor)Activator.CreateInstance(processorType);
+                            var processor = (EntityProcessorBase)Activator.CreateInstance(processorType);
                             pendingProcessors.Add(processor);
 
                             // Collect dependencies
@@ -391,7 +420,7 @@ namespace Stride.Engine
             }
         }
 
-        private void OnProcessorAdded(EntityProcessor processor)
+        private void OnProcessorAdded(EntityProcessorBase processor)
         {
             processor.EntityManager = this;
             processor.Services = Services;
@@ -413,7 +442,7 @@ namespace Stride.Engine
                 {
                     if (processorList.Dependencies == null)
                     {
-                        processorList.Dependencies = new List<EntityProcessor>();
+                        processorList.Dependencies = new List<EntityProcessorBase>();
                     }
                     processorList.Dependencies.Add(processor);
                 }
@@ -427,7 +456,7 @@ namespace Stride.Engine
             }
         }
 
-        private void OnProcessorRemoved(EntityProcessor processor)
+        private void OnProcessorRemoved(EntityProcessorBase processor)
         {
             // Remove the procsesor from any list
             foreach (var componentTypeAndProcessors in MapComponentTypeToProcessors)
@@ -525,7 +554,7 @@ namespace Stride.Engine
             }
         }
 
-        private void CheckEntityWithNewProcessor(Entity entity, EntityProcessor processor)
+        private void CheckEntityWithNewProcessor(Entity entity, EntityProcessorBase processor)
         {
             var components = entity.Components;
             for (int i = 0; i < components.Count; i++)
@@ -538,7 +567,7 @@ namespace Stride.Engine
             }
         }
 
-        private void CheckEntityComponentWithProcessors(Entity entity, EntityComponent component, bool forceRemove, List<EntityProcessor> dependentProcessors)
+        private void CheckEntityComponentWithProcessors(Entity entity, EntityComponent component, bool forceRemove, List<EntityProcessorBase> dependentProcessors)
         {
             var componentType = component.GetType().GetTypeInfo();
             EntityProcessorCollectionPerComponentType processorsForComponent;
@@ -566,7 +595,7 @@ namespace Stride.Engine
                     {
                         if (processorsForComponent.Dependencies == null)
                         {
-                            processorsForComponent.Dependencies = new List<EntityProcessor>();
+                            processorsForComponent.Dependencies = new List<EntityProcessorBase>();
                         }
                         processorsForComponent.Dependencies.Add(processor);
                     }
@@ -587,6 +616,22 @@ namespace Stride.Engine
                     }
                 }
             }
+        }
+
+        private void Scheduler_ActionException(Scheduler scheduler, SchedulerEntry schedulerEntry, Exception e)
+        {
+            HandleSynchronousException((EntityProcessorBase)schedulerEntry.Token, e);
+        }
+
+        private void HandleSynchronousException(EntityProcessorBase processor, Exception e)
+        {
+            Log.Error("Unexpected exception while executing a processor.", e);
+
+            // Only crash if live scripting debugger is not listening
+            if (Scheduler.PropagateExceptions)
+                ExceptionDispatchInfo.Capture(e).Throw();
+
+            processors.Remove(processor);
         }
 
         IEnumerator<Entity> IEnumerable<Entity>.GetEnumerator()
@@ -632,7 +677,7 @@ namespace Stride.Engine
             /// <summary>
             /// The processors that are depending on the component type
             /// </summary>
-            public List<EntityProcessor> Dependencies;
+            public List<EntityProcessorBase> Dependencies;
         }
 
         private class TrackingEntityProcessorCollection : EntityProcessorCollection
@@ -655,7 +700,7 @@ namespace Stride.Engine
                 base.ClearItems();
             }
 
-            protected override void AddItem(EntityProcessor processor)
+            protected override void AddItem(EntityProcessorBase processor)
             {
                 if (processor == null) throw new ArgumentNullException(nameof(processor));
                 if (!Contains(processor))
@@ -665,10 +710,10 @@ namespace Stride.Engine
                 }
             }
 
-            protected override void RemoteItem(int index)
+            protected override void RemoveItem(int index)
             {
                 var processor = this[index];
-                base.RemoteItem(index);
+                base.RemoveItem(index);
                 manager.OnProcessorRemoved(processor);
             }
         }

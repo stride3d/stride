@@ -7,7 +7,7 @@ using Stride.Core.Annotations;
 namespace Stride.Engine.Design
 {
     /// <summary>
-    /// An attribute used to associate a default <see cref="EntityProcessor"/> to an entity component.
+    /// An attribute used to associate a default <see cref="EntityProcessorBase"/> to an entity component.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class DefaultEntityComponentProcessorAttribute : DynamicTypeAttributeBase
@@ -15,7 +15,7 @@ namespace Stride.Engine.Design
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultEntityComponentProcessorAttribute"/> class.
         /// </summary>
-        /// <param name="type">The type must derived from <see cref="EntityProcessor"/>.</param>
+        /// <param name="type">The type must derived from <see cref="EntityProcessorBase"/>.</param>
         public DefaultEntityComponentProcessorAttribute(Type type) : base(type)
         {
         }
