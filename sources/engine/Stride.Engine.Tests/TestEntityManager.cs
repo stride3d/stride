@@ -146,7 +146,7 @@ namespace Stride.Engine.Tests
             Assert.Empty(entityManager.Processors);
 
             // ================================================================
-            // 1) Add an entity with the CustomEntityComponent to the Entity Manager
+            // 1) Add an entity with the AsyncEntityComponent to the Entity Manager
             // ================================================================
             var events = new List<CustomEntityComponentEventArgs>();
             var entity = new Entity
@@ -184,9 +184,6 @@ namespace Stride.Engine.Tests
             var processorListForAsyncEntityComponentType = entityManager.MapComponentTypeToProcessors[typeof(AsyncEntityComponent).GetTypeInfo()];
             Assert.Single(processorListForAsyncEntityComponentType);
             Assert.True(processorListForAsyncEntityComponentType[0] is AsyncEntityComponentProcessor);
-
-            // TODO: Test calling execute asynchronously. How to test async is happening?
-            // TODO: How to test the microthreads are working correctly? Are there asyncscript tests anywhere?
 
             // clear events collector
             componentTypes.Clear();
