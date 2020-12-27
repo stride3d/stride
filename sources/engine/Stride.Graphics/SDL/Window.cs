@@ -39,6 +39,9 @@ namespace Stride.Graphics.SDL
 #endif
             // Pass first mouse event when user clicked on window 
             SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+
+            // Don't leave fullscreen on focus loss
+            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
         }
 
         /// <summary>
@@ -159,6 +162,15 @@ namespace Stride.Graphics.SDL
         }
 
         /// <summary>
+        /// Minimize the window when focus is lost in fullscreen, default is false.
+        /// </summary>
+        public bool MinimizeOnFocusLoss
+        {
+            get { return SDL.SDL_GetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS) == "1"; }
+            set { SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, (value ? "1" : "0")); }
+        }
+
+        /// <summary>
         /// Show window. The first time a window is shown we execute any actions from <see cref="HandleCreated"/>.
         /// </summary>
         public void Show()
@@ -167,18 +179,36 @@ namespace Stride.Graphics.SDL
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether fullscreen mode should be a borderless window matching the desktop size.
+        /// Decides whether to set the SDL_WINDOW_FULLSCREEN_DESKTOP (fake fullscreen) or SDL_WINDOW_FULLSCREEN (real fullscreen) flag.
+        /// </summary>
+        public bool FullscreenIsBorderlessWindow { get; set; } = false;
+
+        /// <summary>
         /// Are we showing the window in full screen mode?
         /// </summary>
         public bool IsFullScreen
         {
             get
             {
-                return (SDL.SDL_GetWindowFlags(SdlHandle) & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0;
+                var flags = SDL.SDL_GetWindowFlags(SdlHandle);
+                return CheckFullscreenFlag(flags);
             }
             set
             {
-                SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)(value ? SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN : 0));
+                var fsFlag = GetFullscreenFlag();
+                SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)(value ? fsFlag : 0));
             }
+        }
+
+        private SDL.SDL_WindowFlags GetFullscreenFlag()
+        {
+            return FullscreenIsBorderlessWindow ? SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP : SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
+        }
+
+        private static bool CheckFullscreenFlag(uint flags)
+        {
+            return ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0) || ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) != 0);
         }
 
         /// <summary>
@@ -211,7 +241,7 @@ namespace Stride.Graphics.SDL
             get
             {
                 uint flags = SDL.SDL_GetWindowFlags(SdlHandle);
-                if ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0)
+                if (CheckFullscreenFlag(flags))
                 {
                     return FormWindowState.Fullscreen;
                 }
@@ -233,7 +263,7 @@ namespace Stride.Graphics.SDL
                 switch (value)
                 {
                     case FormWindowState.Fullscreen:
-                        SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                        SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)GetFullscreenFlag());
                         break;
                     case FormWindowState.Maximized:
                         SDL.SDL_MaximizeWindow(SdlHandle);

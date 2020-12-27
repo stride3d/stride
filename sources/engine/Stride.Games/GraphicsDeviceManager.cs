@@ -648,26 +648,12 @@ namespace Stride.Games
             if (PreferredColorSpace == ColorSpace.Linear)
             {
                 // If the device support SRgb and ColorSpace is linear, we use automatically a SRgb backbuffer
-                if (preferredParameters.PreferredBackBufferFormat == PixelFormat.R8G8B8A8_UNorm)
-                {
-                    preferredParameters.PreferredBackBufferFormat = PixelFormat.R8G8B8A8_UNorm_SRgb;
-                }
-                else if (preferredParameters.PreferredBackBufferFormat == PixelFormat.B8G8R8A8_UNorm)
-                {
-                    preferredParameters.PreferredBackBufferFormat = PixelFormat.B8G8R8A8_UNorm_SRgb;
-                }
+                preferredParameters.PreferredBackBufferFormat = preferredParameters.PreferredBackBufferFormat.ToSRgb();
             }
             else
             {
                 // If we are looking for gamma and the backbuffer format is SRgb, switch back to non srgb
-                if (preferredParameters.PreferredBackBufferFormat == PixelFormat.R8G8B8A8_UNorm_SRgb)
-                {
-                    preferredParameters.PreferredBackBufferFormat = PixelFormat.R8G8B8A8_UNorm;
-                }
-                else if (preferredParameters.PreferredBackBufferFormat == PixelFormat.B8G8R8A8_UNorm_SRgb)
-                {
-                    preferredParameters.PreferredBackBufferFormat = PixelFormat.B8G8R8A8_UNorm;
-                }
+                preferredParameters.PreferredBackBufferFormat = preferredParameters.PreferredBackBufferFormat.ToNonSRgb();
             }
 
             // Setup resized value if there is a resize pending

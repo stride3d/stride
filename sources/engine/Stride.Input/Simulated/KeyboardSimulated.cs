@@ -11,11 +11,13 @@ namespace Stride.Input
         {
             Priority = -1000;
             Source = source;
+
+            Id = Guid.NewGuid();
         }
 
         public override string Name => "Simulated Keyboard";
 
-        public override Guid Id => new Guid(10, 10, 1, 0, 0, 0, 0, 0, 0, 0, 0);
+        public override Guid Id { get; }
 
         public override IInputSource Source { get; }
 

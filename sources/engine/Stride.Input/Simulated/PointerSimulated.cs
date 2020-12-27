@@ -17,11 +17,13 @@ namespace Stride.Input
             Priority = -1000;
             SetSurfaceSize(Vector2.One);
             Source = source;
+
+            Id = Guid.NewGuid();
         }
 
         public override string Name => "Simulated Pointer";
 
-        public override Guid Id => new Guid("8D527970-EB53-4392-AFBB-CB08CFF95143");
+        public override Guid Id { get; }
 
         public override IInputSource Source { get; }
 

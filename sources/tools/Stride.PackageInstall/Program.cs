@@ -18,8 +18,18 @@ namespace Stride.PackageInstall
 {
     class Program
     {
-        private static readonly string[] NecessaryVS2019Workloads = new[] { "Microsoft.VisualStudio.Workload.ManagedDesktop", "Microsoft.VisualStudio.Workload.NetCoreTools", "Microsoft.NetCore.ComponentGroup.DevelopmentTools.2.1" };
-        private static readonly string[] NecessaryBuildTools2019Workloads = new[] { "Microsoft.VisualStudio.Workload.MSBuildTools", "Microsoft.VisualStudio.Workload.NetCoreBuildTools", "Microsoft.Net.Component.4.6.1.TargetingPack" };
+        private static readonly new(string Id, string Name)[] NecessaryVS2019Workloads = new[]
+        {
+            ("Microsoft.VisualStudio.Workload.ManagedDesktop", ".NET desktop development"),
+            ("Microsoft.VisualStudio.Workload.NetCoreTools", ".NET core cross-platform development"),
+            ("Microsoft.NetCore.ComponentGroup.DevelopmentTools.2.1", ".NET Core 2.1 Runtime (LTS) (inside .NET core cross-platform development)"),
+        };
+        private static readonly new(string Id, string Name)[] NecessaryBuildTools2019Workloads = new[]
+        {
+            ("Microsoft.VisualStudio.Workload.MSBuildTools", "MSBuild Tools"),
+            ("Microsoft.VisualStudio.Workload.NetCoreBuildTools", ".NET Core build tools"),
+            ("Microsoft.Net.Component.4.6.1.TargetingPack", ".NET Framework 4.6.1 targeting pack"),
+        };
         private const bool AllowVisualStudioOnly = true; // Somehow this doesn't work well yet, so disabled for now
 
         static int Main(string[] args)
@@ -164,7 +174,7 @@ namespace Stride.PackageInstall
             }
 
             // Check if there is any VS2019 installed with necessary workloads
-            var matchingVisualStudioInstallation = VisualStudioVersions.AvailableVisualStudioInstances.FirstOrDefault(x => NecessaryVS2019Workloads.All(workload => x.PackageVersions.ContainsKey(workload)));
+            var matchingVisualStudioInstallation = VisualStudioVersions.AvailableVisualStudioInstances.FirstOrDefault(x => NecessaryVS2019Workloads.All(workload => x.PackageVersions.ContainsKey(workload.Id)));
             if (AllowVisualStudioOnly && matchingVisualStudioInstallation != null)
             {
                 if (!matchingVisualStudioInstallation.Complete)
@@ -188,7 +198,7 @@ namespace Stride.PackageInstall
                         var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --noUpdateInstaller --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\" {string.Join(" ", NecessaryVS2019Workloads.Select(x => $"--add {x}"))}", DialogBoxTryAgainVS);
                         if (vsInstallerExitCode != 0)
                         {
-                            var errorMessage = $"Visual Studio 2019 install failed with error {vsInstallerExitCode}";
+                            var errorMessage = $"Visual Studio 2019 install failed with error {vsInstallerExitCode}\r\n\r\nPlease manually install the following workloads/components using \"Visual Studio Installer\":\r\n  - {string.Join("\r\n  - ", NecessaryVS2019Workloads.Where(workload => !existingVisualStudio2019Install.PackageVersions.ContainsKey(workload.Id)).Select(workload => workload.Name))}";
                             MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             throw new InvalidOperationException(errorMessage);
                         }
@@ -204,7 +214,7 @@ namespace Stride.PackageInstall
                 {
                     // Otherwise, fallback to vs_buildtools standalone detection and install
                     var buildTools = VisualStudioVersions.AvailableBuildTools.Where(x => x.PackageVersions.ContainsKey("Microsoft.VisualStudio.Workload.MSBuildTools")).ToList();
-                    var matchingBuildTool = buildTools.FirstOrDefault(x => NecessaryBuildTools2019Workloads.All(workload => x.PackageVersions.ContainsKey(workload)));
+                    var matchingBuildTool = buildTools.FirstOrDefault(x => NecessaryBuildTools2019Workloads.All(workload => x.PackageVersions.ContainsKey(workload.Id)));
                     string buildToolsCommandLine = null;
 
                     if (matchingBuildTool == null)

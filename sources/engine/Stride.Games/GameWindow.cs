@@ -178,6 +178,12 @@ namespace Stride.Games
         public Int2 PreferredFullscreenSize { get; set; } = new Int2(1920, 1080);
 
         /// <summary>
+        /// Whether the fullscreen mode should be a borderless window matching the desktop size.
+        /// </summary>
+        /// <remarks>This flag is currently ignored on all game platforms other than SDL.</remarks>
+        public bool FullscreenIsBorderlessWindow { get; set; } = false;
+
+        /// <summary>
         /// Switches between fullscreen and windowed mode.
         /// </summary>
         public bool IsFullscreen
@@ -233,6 +239,20 @@ namespace Stride.Games
 
         internal abstract void Run();
 
+        /// <summary>
+        /// Sets the size of the client area and triggers the <see cref="ClientSizeChanged"/> event.
+        /// This will trigger a backbuffer resize too.
+        /// </summary>
+        public void SetSize(Int2 size)
+        {
+            Resize(size.X, size.Y);
+            OnClientSizeChanged(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Only used internally by the device managers when they adapt the window size to the backbuffer size.
+        /// Resizes the window, without sending the resized event.
+        /// </summary>
         internal abstract void Resize(int width, int height);
 
         public virtual IMessageLoop CreateUserManagedMessageLoop()
