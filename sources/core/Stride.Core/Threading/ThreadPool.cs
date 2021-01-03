@@ -12,16 +12,16 @@ namespace Stride.Core.Threading
     /// Thread pool for scheduling sub-millisecond actions, do not schedule long-running tasks.
     /// Can be instantiated and generates less garbage than dotnet's.
     /// </summary>
-    public sealed partial class ThreadPool
+    public sealed partial class ThreadPool : IDisposable
     {
         /// <summary>
         /// The default instance that the whole process shares, use this one to avoid wasting process memory.
         /// </summary>
-        public static readonly ThreadPool Instance = new ThreadPool();
+        public static ThreadPool Instance = new ThreadPool();
         
         private static readonly bool SingleCore;
         [ThreadStatic]
-        static bool isWorkedThread;
+        private static bool isWorkedThread;
         /// <summary> Is the thread reading this property a worker thread </summary>
         public static bool IsWorkedThread => isWorkedThread;
         
@@ -30,6 +30,8 @@ namespace Stride.Core.Threading
         
         private long completionCounter;
         private int workScheduled, threadsBusy;
+        private int disposing;
+        private int leftToDispose;
 
         /// <summary> Amount of threads within this pool </summary>
         public readonly int WorkerThreadsCount;
@@ -42,15 +44,14 @@ namespace Stride.Core.Threading
 
         public ThreadPool(int? threadCount = null)
         {
+            semaphore = new SemaphoreW(0, spinCountParam:70);
+            
             WorkerThreadsCount = threadCount ?? (Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount - 1);
+            leftToDispose = WorkerThreadsCount;
             for (int i = 0; i < WorkerThreadsCount; i++)
             {
                 NewWorker();
             }
-
-            // Benchmark this on multiple computers at different work frequency
-            const int SpinDuration = 140;
-            semaphore = new SemaphoreW(0, SpinDuration);
         }
 
         static ThreadPool()
@@ -73,6 +74,11 @@ namespace Stride.Core.Threading
             if (amount < 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(amount));
+            }
+
+            if (disposing > 0)
+            {
+                throw new ObjectDisposedException(ToString());
             }
 
             Interlocked.Add(ref workScheduled, amount);
@@ -130,7 +136,12 @@ namespace Stride.Core.Threading
                 {
                     while (TryCooperate())
                     {
-
+                        
+                    }
+                    
+                    if (disposing > 0)
+                    {
+                        return;
                     }
 
                     semaphore.Wait();
@@ -138,7 +149,38 @@ namespace Stride.Core.Threading
             }
             finally
             {
-                NewWorker();
+                if (disposing == 0)
+                {
+                    NewWorker();
+                }
+                else
+                {
+                    Interlocked.Decrement(ref leftToDispose);
+                }
+            }
+        }
+
+
+
+        public void Dispose()
+        {
+            if (Interlocked.CompareExchange(ref disposing, 1, 0) == 1)
+            {
+                return;
+            }
+            
+            semaphore.Release(WorkerThreadsCount);
+            while(Volatile.Read(ref leftToDispose) != 0)
+            {
+                if(semaphore.internals._counts.SignalCount == 0)
+                    semaphore.Release(1);
+                Thread.Yield();
+            }
+
+            // Finish any work left
+            while( TryCooperate() )
+            {
+                
             }
         }
     }
