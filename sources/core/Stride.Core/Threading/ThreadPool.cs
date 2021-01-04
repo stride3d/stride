@@ -44,7 +44,7 @@ namespace Stride.Core.Threading
 
         public ThreadPool(int? threadCount = null)
         {
-            semaphore = new SemaphoreW(0, spinCountParam:70);
+            semaphore = new SemaphoreW(spinCountParam:70);
             
             WorkerThreadsCount = threadCount ?? (Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount - 1);
             leftToDispose = WorkerThreadsCount;
@@ -170,15 +170,17 @@ namespace Stride.Core.Threading
             }
             
             semaphore.Release(WorkerThreadsCount);
-            while(Volatile.Read(ref leftToDispose) != 0)
+            while (Volatile.Read(ref leftToDispose) != 0)
             {
-                if(semaphore.internals._counts.SignalCount == 0)
+                if (semaphore.SignalCount == 0)
+                {
                     semaphore.Release(1);
+                }
                 Thread.Yield();
             }
 
             // Finish any work left
-            while( TryCooperate() )
+            while (TryCooperate())
             {
                 
             }

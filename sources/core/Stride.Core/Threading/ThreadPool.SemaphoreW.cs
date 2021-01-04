@@ -27,7 +27,8 @@ namespace Stride.Core.Threading
             /// </summary>
             private readonly Semaphore lifoSemaphore;
             private readonly int spinCount;
-            public Internals internals;
+            private Internals internals;
+            public uint SignalCount => internals.SignalCount;
             
             
             
@@ -47,13 +48,11 @@ namespace Stride.Core.Threading
 
 
 
-            public SemaphoreW(int initialSignalCount, int spinCountParam)
+            public SemaphoreW(int spinCountParam)
             {
-                Debug.Assert(initialSignalCount >= 0);
                 Debug.Assert(spinCountParam >= 0);
 
                 internals = default;
-                internals._counts.SignalCount = (uint)initialSignalCount;
                 spinCount = spinCountParam;
 
                 lifoSemaphore = new Semaphore(0, int.MaxValue);
@@ -64,7 +63,7 @@ namespace Stride.Core.Threading
             public void Release(int releaseCount) => internals.Release(releaseCount, lifoSemaphore);
 
             [StructLayout(LayoutKind.Explicit)]
-            public struct Counts
+            private struct Counts
             {
                 [FieldOffset(0)] public long AsLong;
                 [FieldOffset(0)] public uint SignalCount;
@@ -74,10 +73,12 @@ namespace Stride.Core.Threading
             }
             
             [StructLayout(LayoutKind.Sequential)]
-            public struct Internals
+            private struct Internals
             {
+                public uint SignalCount => _counts.SignalCount;
+                
                 private readonly PaddingFalseSharing _pad1;
-                public Counts _counts;
+                private Counts _counts;
                 private readonly PaddingFalseSharing _pad2;
                 
                 public bool Wait(int spinCount, Semaphore lifoSemaphore, int timeoutMs)
@@ -360,9 +361,9 @@ namespace Stride.Core.Threading
 
             /// <summary>A size greater than or equal to the size of the most common CPU cache lines.</summary>
 #if TARGET_ARM64
-            public const int CACHE_LINE_SIZE = 128;
+            private const int CACHE_LINE_SIZE = 128;
 #else
-            public const int CACHE_LINE_SIZE = 64;
+            private const int CACHE_LINE_SIZE = 64;
 #endif
         }
     }
