@@ -22,7 +22,7 @@ namespace Stride.PackageInstall
         {
             ("Microsoft.VisualStudio.Workload.ManagedDesktop", ".NET desktop development"),
             ("Microsoft.VisualStudio.Workload.NetCoreTools", ".NET core cross-platform development"),
-            ("Microsoft.NetCore.ComponentGroup.DevelopmentTools.2.1", ".NET Core 2.1 Runtime (LTS) (inside .NET core cross-platform development)"),
+            ("Microsoft.NetCore.ComponentGroup.DevelopmentTools.2.1", "Development Tools plus .NET Core 2.1"),
         };
         private static readonly new(string Id, string Name)[] NecessaryBuildTools2019Workloads = new[]
         {
@@ -195,7 +195,7 @@ namespace Stride.PackageInstall
 
                     // Second, check workloads
                     {
-                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --noUpdateInstaller --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\" {string.Join(" ", NecessaryVS2019Workloads.Select(x => $"--add {x}"))}", DialogBoxTryAgainVS);
+                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --noUpdateInstaller --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\" {string.Join(" ", NecessaryVS2019Workloads.Select(x => $"--add {x.Id}"))}", DialogBoxTryAgainVS);
                         if (vsInstallerExitCode != 0)
                         {
                             var errorMessage = $"Visual Studio 2019 install failed with error {vsInstallerExitCode}\r\n\r\nPlease manually install the following workloads/components using \"Visual Studio Installer\":\r\n  - {string.Join("\r\n  - ", NecessaryVS2019Workloads.Where(workload => !existingVisualStudio2019Install.PackageVersions.ContainsKey(workload.Id)).Select(workload => workload.Name))}";
@@ -222,12 +222,12 @@ namespace Stride.PackageInstall
                         if (buildTools.Count > 0)
                         {
                             // Incomplete installation
-                            buildToolsCommandLine = $"modify --wait --passive --norestart --installPath \"{buildTools.First().InstallationPath}\" {string.Join(" ", NecessaryBuildTools2019Workloads.Select(x => $"--add {x}"))}";
+                            buildToolsCommandLine = $"modify --wait --passive --norestart --installPath \"{buildTools.First().InstallationPath}\" {string.Join(" ", NecessaryBuildTools2019Workloads.Select(x => $"--add {x.Id}"))}";
                         }
                         else
                         {
                             // Not installed yet
-                            buildToolsCommandLine = $"--wait --passive --norestart {string.Join(" ", NecessaryBuildTools2019Workloads.Select(x => $"--add {x}"))}";
+                            buildToolsCommandLine = $"--wait --passive --norestart {string.Join(" ", NecessaryBuildTools2019Workloads.Select(x => $"--add {x.Id}"))}";
                         }
                     }
 
