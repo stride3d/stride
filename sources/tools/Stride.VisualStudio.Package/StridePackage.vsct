@@ -119,7 +119,7 @@
 
   <Symbols>
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidStride_VisualStudio_PackagePkg" value="{b0b8feb1-7b83-43fc-9fc0-70065ddb80a1}" />
+    <GuidSymbol name="guidStride_VisualStudio_PackagePkg" value="{248ff1ce-dacd-4404-947a-85e999d3c3ea}" />
     
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidStride_VisualStudio_PackageCmdSet" value="{9428db93-bfea-4115-8d4a-40b047166e61}">
