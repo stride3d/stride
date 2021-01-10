@@ -6,7 +6,7 @@ namespace Stride.VisualStudio
 {
     internal static class GuidList
     {
-        public const string guidStride_VisualStudio_PackagePkgString = "b0b8feb1-7b83-43fc-9fc0-70065ddb80a1";
+        public const string guidStride_VisualStudio_PackagePkgString = "248ff1ce-dacd-4404-947a-85e999d3c3ea";
         public const string guidStride_VisualStudio_PackageCmdSetString = "9428db93-bfea-4115-8d4a-40b047166e61";
         public const string guidToolWindowPersistanceString = "ddd10155-9f63-4694-95ce-c7ba2d74ad46";
 
