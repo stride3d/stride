@@ -102,7 +102,7 @@ namespace Stride.GitVersioning
                 {
                     // Compute version based on Git info
                     var height = Nerdbank.GitVersioning.GitExtensions.GetVersionHeight(repo, VersionFile.ItemSpec);
-                    versionSuffix += $"-{height.ToString("D4")}";
+                    versionSuffix += $"-h{height.ToString("D4")}";
                 }
 
                 // Replace NuGetVersionSuffix
