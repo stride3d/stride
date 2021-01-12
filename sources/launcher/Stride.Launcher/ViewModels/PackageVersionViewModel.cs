@@ -10,6 +10,7 @@ using Stride.LauncherApp.Services;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
+using System.Linq;
 
 namespace Stride.LauncherApp.ViewModels
 {
@@ -189,7 +190,7 @@ namespace Stride.LauncherApp.ViewModels
                         {
                             progressReport.ProgressChanged += (action, progress) => { Dispatcher.InvokeAsync(() => { UpdateProgress(action, progress); }).Forget(); };
                             progressReport.UpdateProgress(ProgressAction.Delete, -1);
-                            await Store.UninstallPackage(LocalPackage, progressReport);
+                            await UninstallPackage(Store, LocalPackage, progressReport);
                             CurrentProcessStatus = null;
                         }
                     }
@@ -236,7 +237,7 @@ namespace Stride.LauncherApp.ViewModels
                         var localPackage = Store.FindLocalPackage(ServerPackage.Id, ServerPackage.Version);
                         if (localPackage != null)
                         {
-                            await Store.UninstallPackage(localPackage, null);
+                            await UninstallPackage(Store, localPackage, null);
                         }
                     }
                     catch
@@ -295,7 +296,7 @@ namespace Stride.LauncherApp.ViewModels
                     progressReport.ProgressChanged += (action, progress) => { Dispatcher.InvokeAsync(() => { UpdateProgress(action, progress); }).Forget(); };
                     progressReport.UpdateProgress(ProgressAction.Delete, -1);
                     CurrentProcessStatus = string.Format(Strings.ReportDeletingVersion, FullName);
-                    await Store.UninstallPackage(LocalPackage, progressReport);
+                    await UninstallPackage(Store, LocalPackage, progressReport);
                     CurrentProcessStatus = null;
                 }
             }
@@ -313,6 +314,38 @@ namespace Stride.LauncherApp.ViewModels
             {
                 await UpdateVersionsFromStore();
                 IsProcessing = false;
+            }
+        }
+
+        private static async Task UninstallPackage(NugetStore store, NugetPackage package, ProgressReport progressReport)
+        {
+            await store.UninstallPackage(package, progressReport);
+
+            // If package is GameStudio, then recursively delete its Stride/Xenko dependencies to save more disk space
+            if (store.MainPackageIds.Contains(package.Id))
+            {
+                await UninstallDependencies(store, package);
+            }
+        }
+
+        private static async Task UninstallDependencies(NugetStore store, NugetPackage package)
+        {
+            foreach (var dependency in package.Dependencies)
+            {
+                string dependencyId = dependency.Item1;
+                string dependencyIdPrefix = dependencyId.Split('.').First();
+                PackageVersionRange dependencyVersionRange = dependency.Item2;
+
+                // Dependency must be from Stride/Xenko and package version must match exactly
+                if (((dependencyIdPrefix == "Stride") || (dependencyIdPrefix == "Xenko")) && (dependencyVersionRange.Contains(package.Version)))
+                {
+                    NugetPackage dependencyPackage = store.FindLocalPackage(dependencyId, package.Version);
+                    if (dependencyPackage != null)
+                    {
+                        await store.UninstallPackage(dependencyPackage, null);
+                        await UninstallDependencies(store, dependencyPackage);
+                    }
+                }
             }
         }
 
