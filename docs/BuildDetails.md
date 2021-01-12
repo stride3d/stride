@@ -28,13 +28,13 @@ Later, we might want to take advantage of .NET Core dependency resolving to do t
 
 ## Versioning
 
-We have 3 places with versions:
-- Stride package version (.sdpkg)
-- Assembly version (SharedAssemblyInfo.cs) -- should be kept in sync with Stride package version (note: package build will report an error if versions are not matching)
-- NuGet package version (.nupkg) -- automatically derived from the Stride package version
-
-During package build, if `StrideOfficialBuild` is not set to true, NuGet package suffix will be automatically generated with `-beta<commits_count_since_last_version_change>-g<git_hash>`
-Also, `AssemblyInformationalVersion` will also contain the same information (or at least the git hash for official builds).
+Stride is versioned using `SharedAssemblyInfo.cs`.
+For example, assuming version `4.1.3.135+gfa0f5cc4`:
+- `4.1` is the Stride major and minor version, as they are grouped in the launcher. Versions inside this group shouldn't have breaking changes
+- `3` is the asset version. This can be bumped if asset files require some upgrade.
+- `135` is the git height (number of commits since `4.1.3` is set), computed automatically when building packages.
+  Note: when building packages locally, this will typically be 1. This is the reason why the asset version needs to be bumped when asset changes to keep things ordered (otherwise the git height version `1` will always be lower than official version).
+- `+gfa0f5cc4` means git commit `fa0f5cc4`
 
 ## Assembly processor
 

@@ -13,7 +13,6 @@ Example of use:
     <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)</BuildProperties>
     <StrideSign Condition="'$(StrideSign)' == ''">true</StrideSign>
     <BuildProperties Condition="'$(StrideSign)' != ''">$(BuildProperties);StrideSign=$(StrideSign)</BuildProperties>
-    <BuildProperties Condition="'$(StrideOfficialBuild)' != ''">$(BuildProperties);StrideOfficialBuild=$(StrideOfficialBuild)</BuildProperties>
     <NuGetPath>$(MSBuildThisFileDirectory).nuget\NuGet.exe</NuGetPath>
     <XunitRunnerConsoleVersion>2.4.1</XunitRunnerConsoleVersion>
     <StrideStoreUrl Condition="'$(StrideStoreUrl)' == ''">https://api.nuget.org/v3/index.json</StrideStoreUrl>
@@ -112,10 +111,7 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideRoot)deps\Stride.GitVersioning\Stride.GitVersioning.csproj"/>
     
     <!-- Create SharedAssemblyInfo.NuGet.cs with Git information (different between official build and internal builds) -->
-    <GenerateVersionFile Condition="'$(StrideOfficialBuild)' == 'true'" RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" NuGetVersionSuffixOverride="" SpecialVersionGitCommit="true">
-      <Output TaskParameter="NuGetVersion" PropertyName="StridePackageVersion"/>
-    </GenerateVersionFile>
-    <GenerateVersionFile Condition="'$(StrideOfficialBuild)' != 'true'" RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersionGitHeight="true" SpecialVersionGitCommit="true">
+    <GenerateVersionFile RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" RevisionGitHeight="true" SpecialVersionGitCommit="true">
       <Output TaskParameter="NuGetVersion" PropertyName="StridePackageVersion"/>
     </GenerateVersionFile>
 
