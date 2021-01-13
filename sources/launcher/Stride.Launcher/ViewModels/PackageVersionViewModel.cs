@@ -328,16 +328,21 @@ namespace Stride.LauncherApp.ViewModels
             }
         }
 
+        // These packages will not be uninstalled with GameStudio
+        private static readonly string[] fixedDependencies = { "Samples.Templates" };
+
         private static async Task UninstallDependencies(NugetStore store, NugetPackage package)
         {
             foreach (var dependency in package.Dependencies)
             {
                 string dependencyId = dependency.Item1;
-                string dependencyIdPrefix = dependencyId.Split('.').First();
+                string[] dependencyIdParts = dependencyId.Split('.', 2);
                 PackageVersionRange dependencyVersionRange = dependency.Item2;
 
-                // Dependency must be from Stride/Xenko and package version must match exactly
-                if (((dependencyIdPrefix == "Stride") || (dependencyIdPrefix == "Xenko")) && (dependencyVersionRange.Contains(package.Version)))
+                // Dependency must be from Stride/Xenko, it must not be a fixed dependency and package version must match exactly
+                if (((dependencyIdParts[0] == "Stride") || (dependencyIdParts[0] == "Xenko"))
+                    && ((dependencyIdParts.Length < 2) || (!fixedDependencies.Contains(dependencyIdParts[1])))
+                    && (dependencyVersionRange.Contains(package.Version)))
                 {
                     NugetPackage dependencyPackage = store.FindLocalPackage(dependencyId, package.Version);
                     if (dependencyPackage != null)
