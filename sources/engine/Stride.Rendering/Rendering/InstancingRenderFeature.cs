@@ -48,7 +48,7 @@ namespace Stride.Rendering
         /// <inheritdoc/>
         public override void Extract()
         {
-            if (!Context.VisibilityGroup.Tags.TryGetValue(ModelToInstancingMap, out var modelToInstancingMap))
+            if ((Context.VisibilityGroup == null) || (!Context.VisibilityGroup.Tags.TryGetValue(ModelToInstancingMap, out var modelToInstancingMap)))
                 return;
 
             var renderObjectInstancingData = RootRenderFeature.RenderData.GetData(renderObjectInstancingDataInfoKey);
