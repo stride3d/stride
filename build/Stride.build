@@ -69,10 +69,11 @@ Example of use:
       <NuGetPackage Include="..\bin\packages\*.nupkg"/>
       <!-- Remove GameStudio (pushed in a second stage) -->
       <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Stride.GameStudio'))"/>
-      <!-- Remove Samples.Templates (pushed only when requested since versionned separately -->
-      <NuGetPackage Remove="@(NuGetPackage)" Condition="'$(StridePublishSkipSamplesTemplates)' == 'true' And $([System.String]::Copy('%(Filename)').Contains('Stride.Samples.Templates'))"/>
+      <!-- Remove Samples.Templates (we use -SkipDuplicate since version is rarely bumped) -->
+      <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Stride.Samples.Templates'))"/>
     </ItemGroup>
     <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols'/>
+    <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.Samples.Templates*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols -SkipDuplicate'/>
     <!-- Push GameStudio so that dependencies are already uploaded -->
     <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.GameStudio*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols'/>
   </Target>
