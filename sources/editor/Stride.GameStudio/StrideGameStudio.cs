@@ -29,7 +29,7 @@ namespace Stride.GameStudio
         public static string EditorVersionMajor => new System.Version(StrideVersion.PublicVersion).ToString(2);
 
         [NotNull]
-        public static string AnswersUrl => "http://answers.stride3d.net/";
+        public static string AnswersUrl => "https://gamedev.stackexchange.com/tags/stride"; // #706
 
         [NotNull]
         public static string DocumentationUrl => $"https://doc.stride3d.net/{EditorVersionMajor}/";
