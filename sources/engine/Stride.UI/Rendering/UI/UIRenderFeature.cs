@@ -17,7 +17,7 @@ namespace Stride.Rendering.UI
 {
     public partial class UIRenderFeature : RootRenderFeature
     {
-        private IGame game;
+        private IGameBase game;
         private UISystem uiSystem;
         private InputManager input;
         private IGraphicsDeviceService graphicsDeviceService;
@@ -53,7 +53,7 @@ namespace Stride.Rendering.UI
             base.InitializeCore();
 
             Name = "UIComponentRenderer";
-            game = RenderSystem.Services.GetService<IGame>();
+            game = RenderSystem.Services.GetService<IGameBase>();
             input = RenderSystem.Services.GetService<InputManager>();
             uiSystem = RenderSystem.Services.GetService<UISystem>();
             graphicsDeviceService = RenderSystem.Services.GetSafeServiceAs<IGraphicsDeviceService>();

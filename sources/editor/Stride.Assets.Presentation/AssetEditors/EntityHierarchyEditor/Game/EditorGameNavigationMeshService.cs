@@ -671,7 +671,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             /// <summary>
             /// Updates the highlight material animation
             /// </summary>
-            public void UpdateHighlighting(GameBase game)
+            public void UpdateHighlighting(IGameBase game)
             {
                 float elapsedTotalSeconds = (float)game.UpdateTime.Elapsed.TotalSeconds;
                 if (highlightTimer > 0)

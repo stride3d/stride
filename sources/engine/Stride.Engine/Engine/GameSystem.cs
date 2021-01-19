@@ -19,6 +19,7 @@ namespace Stride.Engine
         /// </summary>
         /// <value>The game.</value>
         /// <remarks>This value can be null</remarks>
-        public new Game Game => (Game)base.Game;
+        //TODO: rename base.Game to GameBase and remove this thing here? 
+        public new IGame Game => (IGame)base.Game;
     }
 }

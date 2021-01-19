@@ -1,4 +1,4 @@
-﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_PLATFORM_ANDROID
 using System;
@@ -204,7 +204,7 @@ namespace Stride.UI.Controls
             if (UIElementServices.Services == null)
                 throw new InvalidOperationException("services");
 
-            var game = UIElementServices.Services.GetSafeServiceAs<IGame>();
+            var game = UIElementServices.Services.GetSafeServiceAs<IGameBase>();
             return ((GameContextAndroid) game.Context);
         }
 

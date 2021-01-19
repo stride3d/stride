@@ -94,7 +94,7 @@ namespace Stride.VirtualReality
                 gyroscopeSensor = input.Sensors.OfType<IGyroscopeSensor>().FirstOrDefault();
             }
 
-            window = services.GetService<IGame>().Window;
+            window = services.GetService<IGameBase>().Window;
         }
 
         public override void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight)

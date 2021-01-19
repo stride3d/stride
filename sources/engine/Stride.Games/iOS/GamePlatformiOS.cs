@@ -27,7 +27,7 @@ namespace Stride.Games
             Marshal.FreeHGlobal(output);
         }
 
-        public GamePlatformiOS(GameBase game) : base(game)
+        public GamePlatformiOS(IGameBase game) : base(game)
         {
             PopulateFullName();
         }

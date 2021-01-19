@@ -28,7 +28,7 @@ namespace Stride.Games
             FullName = $"{manufacturer} - {model}";
         }
 
-        public GamePlatformAndroid(GameBase game) : base(game)
+        public GamePlatformAndroid(IGameBase game) : base(game)
         {
             PopulateFullName();
         }

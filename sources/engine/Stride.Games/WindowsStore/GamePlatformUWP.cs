@@ -1,4 +1,4 @@
-﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -32,7 +32,7 @@ namespace Stride.Games
 {
     internal class GamePlatformUWP : GamePlatform
     {
-        public GamePlatformUWP(GameBase game) : base(game)
+        public GamePlatformUWP(IGameBase game) : base(game)
         {
             // Application lifecycle reference:
             // https://docs.microsoft.com/en-us/windows/uwp/launch-resume/app-lifecycle

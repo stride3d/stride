@@ -41,7 +41,7 @@ namespace Stride.Starter
         /// <summary>
         /// The instance of the game to run.
         /// </summary>
-        protected GameBase Game;
+        protected IGameBase Game;
 
         private Action setFullscreenViewCallback;
         private StatusBarVisibility lastVisibility;

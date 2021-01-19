@@ -60,7 +60,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetHighlighters
             }
         }
 
-        private async Task HighlightMesh(Game game, Mesh mesh, float duration)
+        private async Task HighlightMesh(IGame game, Mesh mesh, float duration)
         {
             // TODO: this could be factorized between the different highlighters
             if (mesh == null)

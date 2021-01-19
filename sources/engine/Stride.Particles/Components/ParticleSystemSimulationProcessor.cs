@@ -25,7 +25,7 @@ namespace Stride.Particles.Components
         protected override void OnSystemAdd()
         {
             // Create or reference systems
-            //var game = Services.GetSafeServiceAs<IGame>();
+            //var game = Services.GetSafeServiceAs<IGameBase>();
             //game.GameSystems.Add(particleEngine);
             //var graphicsDevice = Services.GetSafeServiceAs<IGraphicsDeviceService>()?.GraphicsDevice;
             //var sceneSystem = Services.GetSafeServiceAs<SceneSystem>();

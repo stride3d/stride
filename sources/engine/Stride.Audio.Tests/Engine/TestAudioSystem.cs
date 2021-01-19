@@ -28,7 +28,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.CreateAndRunGame(TestInitializeAudioEngine, TestUtilities.ExitGame);
         }
 
-        private void TestInitializeAudioEngine(Game game)
+        private void TestInitializeAudioEngine(IGame game)
         {
             var audio = game.Audio;
             var audioEngine = audio.AudioEngine;
@@ -46,7 +46,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.CreateAndRunGame(TestAddRemoveListenerImpl, TestUtilities.ExitGame);
         }
 
-        private void TestAddRemoveListenerImpl(Game game)
+        private void TestAddRemoveListenerImpl(IGame game)
         {
             var audio = game.Audio;
             var notAddedToEntityListener = new AudioListenerComponent();
@@ -139,7 +139,7 @@ namespace Stride.Audio.Tests.Engine
         /// Load some default random <see cref="SoundEffect"/>, attach them to the emitter components, and query their controllers.
         /// </summary>
         /// <param name="game"></param>
-        private void AddSoundEffectToEmitterComponents(Game game)
+        private void AddSoundEffectToEmitterComponents(IGame game)
         {
             sounds = new List<Sound>
                 {
@@ -164,7 +164,7 @@ namespace Stride.Audio.Tests.Engine
         /// Add the root entity to the entity system
         /// </summary>
         /// <param name="game"></param>
-        private void AddRootEntityToEntitySystem(Game game)
+        private void AddRootEntityToEntitySystem(IGame game)
         {
             Internal.Refactor.ThrowNotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
             //game.Entities.Add(rootEntity);
@@ -174,7 +174,7 @@ namespace Stride.Audio.Tests.Engine
         /// Add all the <see cref="AudioListenerComponent"/> to the <see cref="AudioSystem"/>.
         /// </summary>
         /// <param name="game"></param>
-        private void AddListenersToAudioSystem(Game game)
+        private void AddListenersToAudioSystem(IGame game)
         {
             foreach (var t in listComps)
                 game.Audio.AddListener(t);
@@ -189,7 +189,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestAddListenerSetup, null, TestAddListenerLoopImpl);
         }
 
-        private void TestAddListenerSetup(Game game)
+        private void TestAddListenerSetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -198,7 +198,7 @@ namespace Stride.Audio.Tests.Engine
             AddRootEntityToEntitySystem(game);
         }
 
-        private void TestAddListenerLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestAddListenerLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             if (loopCount == 0)
             {
@@ -258,7 +258,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestRemoveListenerSetup, null, TestRemoveListenerLoopImpl);
         }
 
-        private void TestRemoveListenerSetup(Game game)
+        private void TestRemoveListenerSetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -286,7 +286,7 @@ namespace Stride.Audio.Tests.Engine
             soundControllers[2].IsLooping = true;
         }
 
-        private void TestRemoveListenerLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestRemoveListenerLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             if (loopCount == 0)
             {
@@ -323,7 +323,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestAddRemoveEmitterSetup, null, TestAddRemoveEmitterLoopImpl);
         }
 
-        private void TestAddRemoveEmitterSetup(Game game)
+        private void TestAddRemoveEmitterSetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -344,7 +344,7 @@ namespace Stride.Audio.Tests.Engine
             AddSoundEffectToEmitterComponents(game);
         }
 
-        private void TestAddRemoveEmitterLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestAddRemoveEmitterLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             if (loopCount == 0)
             {
@@ -413,7 +413,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestEffectsAndMusicSetup, null, TestEffectsAndMusicLoopImpl);
         }
 
-        private void TestEffectsAndMusicSetup(Game game)
+        private void TestEffectsAndMusicSetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -424,7 +424,7 @@ namespace Stride.Audio.Tests.Engine
             game.Audio.AddListener(listComps[0]);
         }
 
-        private void TestEffectsAndMusicLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestEffectsAndMusicLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             if (loopCount == 0)
             {
@@ -460,7 +460,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestSeveralControllersSetup, null, TestSeveralControllersLoopImpl);
         }
 
-        private void TestSeveralControllersSetup(Game game)
+        private void TestSeveralControllersSetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -475,7 +475,7 @@ namespace Stride.Audio.Tests.Engine
             soundControllers.Add(emitComps[0]["EffectToneE"]);
         }
 
-        private void TestSeveralControllersLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestSeveralControllersLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             // have the emitter turn around the listener to check that all sounds are coming from the same emitter.
             emitCompEntities[0].Transform.Position = new Vector3((float)Math.Cos(loopCount * Math.PI / 30), 0, (float)Math.Sin(loopCount * Math.PI / 30));
@@ -513,7 +513,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestDopplerCoherencySetup, null, TestDopplerCoherencyLoopImpl);
         }
 
-        private void TestDopplerCoherencySetup(Game game)
+        private void TestDopplerCoherencySetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -528,7 +528,7 @@ namespace Stride.Audio.Tests.Engine
             soundControllers[0].Play();
         }
 
-        private void TestDopplerCoherencyLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestDopplerCoherencyLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             // useless motion on the root entities just to check that is does not disturb to calculations.
             rootSubEntity1.Transform.Position += new Vector3(1, 2, 3);
@@ -553,7 +553,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestAttenuationCoherencySetup, null, TestAttenuationCoherencyLoopImpl);
         }
 
-        private void TestAttenuationCoherencySetup(Game game)
+        private void TestAttenuationCoherencySetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -567,7 +567,7 @@ namespace Stride.Audio.Tests.Engine
             soundControllers[0].Play();
         }
 
-        private void TestAttenuationCoherencyLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestAttenuationCoherencyLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             // put away progressively the emitter.
             emitCompEntities[0].Transform.Position = new Vector3(0, 0, loopCount / 10f);
@@ -588,7 +588,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestLocalizationCoherencySetup, null, TestLocalizationCoherencyLoopImpl);
         }
 
-        private void TestLocalizationCoherencySetup(Game game)
+        private void TestLocalizationCoherencySetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -602,7 +602,7 @@ namespace Stride.Audio.Tests.Engine
             soundControllers[0].Play();
         }
 
-        private void TestLocalizationCoherencyLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestLocalizationCoherencyLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             // useless motion on the root entities just to check that is does not disturb to calculations.
             rootSubEntity1.Transform.Position += new Vector3(1, 2, 3);

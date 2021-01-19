@@ -109,7 +109,7 @@ namespace Stride.Rendering.Materials
 
             /*
             {
-                Game game = Services.GetSafeServiceAs<Game>();
+                IGameBase game = Services.GetSafeServiceAs<IGameBase>();
                 SubsurfaceScatteringSettings settings = game.Settings.Configurations.Get<SubsurfaceScatteringSettings>();
                 //SubsurfaceScatteringSettings settings = services.GetSafeServiceAs<SubsurfaceScatteringSettings>();  // TODO: Query the settings like this once the system is ready.
             }

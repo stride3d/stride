@@ -26,7 +26,7 @@ namespace Stride.UI.Tests.Layering
         public void TestBasicInvalidations()
         {
             var services = new ServiceRegistry();
-            services.AddService<IGame>(new Game());
+            services.AddService<IGameBase>(new Game());
 
             var edit = new EditText();
             edit.UIElementServices = new UIElementServices { Services = services };

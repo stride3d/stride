@@ -28,7 +28,7 @@ namespace Stride.VirtualReality
 
 #if STRIDE_PLATFORM_ANDROID
 
-        public static void Startup(Game game, Activity androidActivity)
+        public static void Startup(IGame game, Activity androidActivity)
         {
             game.WindowCreated += (sender1, args1) =>
             {
@@ -64,7 +64,7 @@ namespace Stride.VirtualReality
 
 #elif STRIDE_PLATFORM_IOS
 
-        public static void Startup(Game game)
+        public static void Startup(IGame game)
         {
             game.WindowCreated += (sender1, args1) =>
             {

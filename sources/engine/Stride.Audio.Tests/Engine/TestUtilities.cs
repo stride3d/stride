@@ -20,7 +20,7 @@ namespace Stride.Audio.Tests.Engine
         /// <param name="onAfterUpdate">The callback that will be called after each <see cref="GameBase.Update"/> calls.</param>
         /// <param name="onBeforeDraw">The callback that will be called before each <see cref="GameBase.Draw"/> calls.</param>
         /// <param name="onAfterDraw">The callback that will be called before each <see cref="GameBase.Draw"/> calls.</param>
-        static public void CreateAndRunGame(Action<Game> onLoad, Action<Game> onBeforeUpdate, Action<Game> onAfterUpdate = null, Action<Game> onBeforeDraw = null, Action<Game> onAfterDraw = null)
+        static public void CreateAndRunGame(Action<IGame> onLoad, Action<IGame> onBeforeUpdate, Action<IGame> onAfterUpdate = null, Action<IGame> onBeforeDraw = null, Action<IGame> onAfterDraw = null)
         {
             using (var game = new GameClassForTests())
             {
@@ -39,7 +39,7 @@ namespace Stride.Audio.Tests.Engine
         /// </summary>
         /// <remarks>Can be used as parameter for function <see cref="CreateAndRunGame"/>.</remarks>
         /// <param name="game">The <see cref="Game"/> instance.</param>
-        static public void ExitGame(Game game)
+        static public void ExitGame(IGame game)
         {
             game.Exit();
         }
@@ -49,7 +49,7 @@ namespace Stride.Audio.Tests.Engine
         /// </summary>
         /// <remarks>Can be used as parameter for function <see cref="CreateAndRunGame"/>.</remarks>
         /// <param name="sleepTimeMilli">The time to sleep in milliseconds.</param>
-        static public Action<Game, int, int> ExitGameAfterSleep(int sleepTimeMilli)
+        static public Action<IGame, int, int> ExitGameAfterSleep(int sleepTimeMilli)
         {
             return (game, dump1, dump2) =>
                 {
@@ -63,10 +63,10 @@ namespace Stride.Audio.Tests.Engine
         /// </summary>
         class LoopCountClass
         {
-            private readonly Action<Game, int, int> oneLoopTurnActionBfrUpdate;
-            private readonly Action<Game, int, int> oneLoopTurnActionAftUpdate;
+            private readonly Action<IGame, int, int> oneLoopTurnActionBfrUpdate;
+            private readonly Action<IGame, int, int> oneLoopTurnActionAftUpdate;
 
-            public LoopCountClass(Action<Game, int, int> oneLoopTurnActionBfrUpdate, Action<Game, int, int> oneLoopTurnActionAftUpdate)
+            public LoopCountClass(Action<IGame, int, int> oneLoopTurnActionBfrUpdate, Action<IGame, int, int> oneLoopTurnActionAftUpdate)
             {
                 this.oneLoopTurnActionBfrUpdate = oneLoopTurnActionBfrUpdate;
                 this.oneLoopTurnActionAftUpdate = oneLoopTurnActionAftUpdate;
@@ -75,11 +75,11 @@ namespace Stride.Audio.Tests.Engine
             private int loopCount;
             private int loopCountSum;
 
-            public void OneLoopTurnActionBfrUpdate(Game game)
+            public void OneLoopTurnActionBfrUpdate(IGame game)
             {
                 oneLoopTurnActionBfrUpdate?.Invoke(game, loopCount, loopCountSum);
             }
-            public void OneLoopTurnActionAftUpdate(Game game)
+            public void OneLoopTurnActionAftUpdate(IGame game)
             {
                 oneLoopTurnActionAftUpdate?.Invoke(game, loopCount, loopCountSum);
 
@@ -96,7 +96,7 @@ namespace Stride.Audio.Tests.Engine
         /// <param name="onLoading">The callback that will be called in the <see cref="Game.LoadContent"/> method.</param>
         /// <param name="oneLoopTurnActionBfrUpdate">The callback that will be called before each <see cref="GameBase.Update"/> calls.</param>
         /// <param name="oneLoopTurnActionAftUpdate">The callback that will be called after each <see cref="GameBase.Update"/> calls.</param>
-        static public void ExecuteScriptInUpdateLoop(Action<Game> onLoading, Action<Game, int, int> oneLoopTurnActionBfrUpdate, Action<Game, int, int> oneLoopTurnActionAftUpdate = null)
+        static public void ExecuteScriptInUpdateLoop(Action<IGame> onLoading, Action<IGame, int, int> oneLoopTurnActionBfrUpdate, Action<IGame, int, int> oneLoopTurnActionAftUpdate = null)
         {
             var loopCountClass = new LoopCountClass(oneLoopTurnActionBfrUpdate, oneLoopTurnActionAftUpdate);
             CreateAndRunGame(onLoading, loopCountClass.OneLoopTurnActionBfrUpdate, loopCountClass.OneLoopTurnActionAftUpdate);
@@ -110,7 +110,7 @@ namespace Stride.Audio.Tests.Engine
         /// <param name="onLoading">The callback that will be called in the <see cref="Game.LoadContent"/> method.</param>
         /// <param name="oneLoopTurnActionBfrUpdate">The callback that will be called before each <see cref="GameBase.Update"/> calls.</param>
         /// <param name="oneLoopTurnActionAftUpdate">The callback that will be called after each <see cref="GameBase.Update"/> calls.</param>
-        static public void ExecuteScriptInDrawLoop(Action<Game> onLoading, Action<Game, int, int> oneLoopTurnActionBfrUpdate, Action<Game, int, int> oneLoopTurnActionAftUpdate = null)
+        static public void ExecuteScriptInDrawLoop(Action<IGame> onLoading, Action<IGame, int, int> oneLoopTurnActionBfrUpdate, Action<IGame, int, int> oneLoopTurnActionAftUpdate = null)
         {
             var loopCountClass = new LoopCountClass(oneLoopTurnActionBfrUpdate, oneLoopTurnActionAftUpdate);
             CreateAndRunGame(onLoading, null, null, loopCountClass.OneLoopTurnActionBfrUpdate, loopCountClass.OneLoopTurnActionAftUpdate);

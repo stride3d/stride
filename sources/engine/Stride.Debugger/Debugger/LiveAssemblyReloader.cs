@@ -1,4 +1,4 @@
-﻿// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -18,7 +18,7 @@ namespace Stride.Debugger
 {
     public static class LiveAssemblyReloader
     {
-        public static void Reload(Game game, AssemblyContainer assemblyContainer, List<Assembly> assembliesToUnregister, List<Assembly> assembliesToRegister)
+        public static void Reload(IGame game, AssemblyContainer assemblyContainer, List<Assembly> assembliesToUnregister, List<Assembly> assembliesToRegister)
         {
             List<Entity> entities = new List<Entity>();
 
@@ -124,7 +124,7 @@ namespace Stride.Debugger
             return parsingEvents;
         }
 
-        private static void ReplaceComponent(Game game, ReloadedComponentEntryLive reloadedComponent)
+        private static void ReplaceComponent(IGame game, ReloadedComponentEntryLive reloadedComponent)
         {
             // Create new component instance
             var newComponent = DeserializeComponent(reloadedComponent);

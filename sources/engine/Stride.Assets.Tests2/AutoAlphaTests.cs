@@ -41,7 +41,7 @@ namespace Stride.Assets.Tests2
             { Tuple.Create(PlatformType.iOS, AlphaFormat.Interpolated), PixelFormat.ETC2_RGBA },
         };
 
-        private static void CheckTextureFormat(Game game, string textureUrl, AlphaFormat expectedFormat)
+        private static void CheckTextureFormat(IGame game, string textureUrl, AlphaFormat expectedFormat)
         {
             var expectedPixelFormat = PlaformAndAlphaToPixelFormats[Tuple.Create(Platform.Type, expectedFormat)];
             var texture = game.Content.Load<Texture>(textureUrl);
@@ -106,7 +106,7 @@ namespace Stride.Assets.Tests2
                 );
         }
 
-        private static void CheckSpriteTransparencies(Game game, string spriteSheetName, AlphaFormat alphaFormat)
+        private static void CheckSpriteTransparencies(IGame game, string spriteSheetName, AlphaFormat alphaFormat)
         {
             var expectedPixelFormat = PlaformAndAlphaToPixelFormats[Tuple.Create(Platform.Type, alphaFormat)];
             var spriteSheet = game.Content.Load<SpriteSheet>(spriteSheetName);

@@ -445,11 +445,11 @@ namespace Stride.Streaming
                     FlushSync();
 
 #if USE_TEST_MANUAL_QUALITY // Temporary testing code used for testing quality changing using K/L keys
-                    if (((Game)Game).Input.IsKeyPressed(Stride.Input.Keys.K))
+                    if (((IGame)Game).Input.IsKeyPressed(Stride.Input.Keys.K))
                     {
                         testQuality = Math.Min(testQuality + 5, 100);
                     }
-                    if (((Game)Game).Input.IsKeyPressed(Stride.Input.Keys.L))
+                    if (((IGame)Game).Input.IsKeyPressed(Stride.Input.Keys.L))
                     {
                         testQuality = Math.Max(testQuality - 5, 0);
                     }

@@ -51,12 +51,12 @@ namespace Stride.UI.Controls
         }
 
         [NotNull]
-        private GameBase GetGame()
+        private IGameBase GetGame()
         {
             if (UIElementServices.Services == null)
                 throw new InvalidOperationException("services");
 
-            return (GameBase)UIElementServices.Services.GetSafeServiceAs<IGame>();
+            return (IGameBase)UIElementServices.Services.GetSafeServiceAs<IGameBase>();
         }
 
         private static void TextFieldOnEditingDidBegin(object sender, EventArgs eventArgs)

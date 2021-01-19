@@ -146,7 +146,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             Services = services;
             EditorScene = editorScene;
             Input = Services.GetService<InputManager>();
-            Game = (EditorServiceGame)Services.GetSafeServiceAs<IGame>();
+            Game = (EditorServiceGame)Services.GetSafeServiceAs<IGameBase>();
             graphicsDeviceService = Services.GetSafeServiceAs<IGraphicsDeviceService>();
             GraphicsDevice = graphicsDeviceService.GraphicsDevice;
             GraphicsCommandList = Game.GraphicsContext.CommandList;

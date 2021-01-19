@@ -48,7 +48,7 @@ namespace Stride.Games.Testing
 
         public override async void Initialize()
         {
-            var game = (Game)Game;
+            var game = (IGame)Game;
 
             var url = $"/service/Stride.SamplesTestServer/{StrideVersion.NuGetVersion}/Stride.SamplesTestServer.exe";
 

@@ -9,7 +9,7 @@ namespace Stride.VirtualReality
 {
     public abstract class VRDevice : IDisposable
     {
-        public GameBase Game { get; internal set; }
+        public IGameBase Game { get; internal set; }
 
         protected VRDevice()
         {

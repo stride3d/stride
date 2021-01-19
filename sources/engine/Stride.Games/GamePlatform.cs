@@ -34,7 +34,8 @@ namespace Stride.Games
     {
         private bool hasExitRan = false;
 
-        protected readonly GameBase game;
+        protected readonly IGameBase gameBase;
+        protected readonly IGameBaseInternal gameBaseInternal;
 
         protected readonly IServiceRegistry Services;
 
@@ -42,23 +43,25 @@ namespace Stride.Games
 
         public string FullName { get; protected set; } = string.Empty;
 
-        protected GamePlatform(GameBase game)
+        protected GamePlatform(IGameBase gameBase)
         {
-            this.game = game;
-            Services = game.Services;
+            this.gameBase = gameBase;
+            this.gameBaseInternal = (IGameBaseInternal)gameBase;
+
+            Services = gameBase.Services;
         }
 
-        public static GamePlatform Create(GameBase game)
+        public static GamePlatform Create(IGameBase gameBase)
         {
 #if STRIDE_PLATFORM_UWP
-            return new GamePlatformUWP(game);
+            return new GamePlatformUWP(gameBase);
 #elif STRIDE_PLATFORM_ANDROID
-            return new GamePlatformAndroid(game);
+            return new GamePlatformAndroid(gameBase);
 #elif STRIDE_PLATFORM_IOS
-            return new GamePlatformiOS(game);
+            return new GamePlatformiOS(gameBase);
 #else
             // Here we cover all Desktop variants: OpenTK, SDL, Winforms,...
-            return new GamePlatformDesktop(game);
+            return new GamePlatformDesktop(gameBase);
 #endif
         }
 
@@ -135,7 +138,7 @@ namespace Stride.Games
         private void OnRunCallback()
         {
             // If/else outside of try-catch to separate user-unhandled exceptions properly
-            var unhandledException = game.UnhandledExceptionInternal;
+            var unhandledException = gameBaseInternal.UnhandledExceptionInternal;
             if (unhandledException != null)
             {
                 // Catch exceptions and transmit them to UnhandledException event
@@ -147,7 +150,7 @@ namespace Stride.Games
                 {
                     // Some system was listening for exceptions
                     unhandledException(this, new GameUnhandledExceptionEventArgs(e, false));
-                    game.Exit();
+                    gameBase.Exit();
                 }
             }
             else
@@ -159,32 +162,32 @@ namespace Stride.Games
         private void OnInitCallback()
         {
             // If/else outside of try-catch to separate user-unhandled exceptions properly
-            var unhandledException = game.UnhandledExceptionInternal;
+            var unhandledException = gameBaseInternal.UnhandledExceptionInternal;
             if (unhandledException != null)
             {
                 // Catch exceptions and transmit them to UnhandledException event
                 try
                 {
-                    game.InitializeBeforeRun();
+                    gameBaseInternal.InitializeBeforeRun();
                 }
                 catch (Exception e)
                 {
                     // Some system was listening for exceptions
                     unhandledException(this, new GameUnhandledExceptionEventArgs(e, false));
-                    game.Exit();
+                    gameBase.Exit();
                 }
             }
             else
             {
-                game.InitializeBeforeRun();
+                gameBaseInternal.InitializeBeforeRun();
             }
         }
 
         private void Tick()
         {
-            game.Tick();
+            gameBase.Tick();
 
-            if (!IsBlockingRun && game.IsExiting && !hasExitRan)
+            if (!IsBlockingRun && gameBase.IsExiting && !hasExitRan)
             {
                 hasExitRan = true;
                 OnExiting(this, EventArgs.Empty);
@@ -394,7 +397,7 @@ namespace Stride.Games
 
     internal abstract class GamePlatform<TK> : GamePlatform
     {
-        protected GamePlatform(GameBase game) : base(game)
+        protected GamePlatform(IGameBase game) : base(game)
         {
         }
     }

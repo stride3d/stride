@@ -8,9 +8,9 @@ namespace Stride.Graphics.Regression
 {
     public class iOSGameTestController : StrideGameController
     {
-        private readonly GameBase game;
+        private readonly IGameBase game;
 
-        public iOSGameTestController(GameBase game)
+        public iOSGameTestController(IGameBase game)
         {
             this.game = game;
         }

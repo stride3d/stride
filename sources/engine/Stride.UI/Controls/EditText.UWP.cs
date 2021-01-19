@@ -169,12 +169,12 @@ namespace Stride.UI.Controls
         }
 
         [NotNull]
-        private IGame GetGame()
+        private IGameBase GetGame()
         {
             if (UIElementServices.Services == null)
                 throw new InvalidOperationException("services");
 
-            return UIElementServices.Services.GetSafeServiceAs<IGame>();
+            return UIElementServices.Services.GetSafeServiceAs<IGameBase>();
         }
     }
 }

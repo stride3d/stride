@@ -11,7 +11,7 @@ namespace Stride.Games
 {
     internal class GamePlatformOpenTK : GamePlatformWindows, IGraphicsDeviceFactory
     {
-        public GamePlatformOpenTK(GameBase game) : base(game)
+        public GamePlatformOpenTK(IGameBase game) : base(game)
         {
         }
 

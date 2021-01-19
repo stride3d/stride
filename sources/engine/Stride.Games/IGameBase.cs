@@ -9,7 +9,7 @@ using Stride.Graphics;
 
 namespace Stride.Games
 {
-    public interface IGame
+    public interface IGameBase
     {
         /// <summary>
         /// Occurs when [activated].
@@ -93,6 +93,12 @@ namespace Stride.Games
         /// </summary>
         /// <value><c>true</c> if this instance is active; otherwise, <c>false</c>.</value>
         bool IsActive { get; }
+        
+        /// <summary>
+        /// Gets a value indicating whether this instance is exiting.
+        /// </summary>
+        /// <value><c>true</c> if this instance is exiting; otherwise, <c>false</c>.</value>
+        bool IsExiting { get; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance is fixed time step.
@@ -140,5 +146,23 @@ namespace Stride.Games
         /// </summary>
         /// <value>The window.</value>
         GameWindow Window { get; }
+
+        /// <summary>
+        /// Considers windows without user focus like a minimized window for <see cref="MinimizedMinimumUpdateRate"/> 
+        /// </summary>
+        bool TreatNotFocusedLikeMinimized { get; set; }
+
+        /// <summary>
+        /// Exits the game.
+        /// </summary>
+        void Exit();
+
+        /// <summary>
+        /// Updates the game's clock and calls Update and Draw.
+        /// </summary>
+        void Tick();
+
+        void ConfirmRenderingSettings(bool gameCreation);
+
     }
 }

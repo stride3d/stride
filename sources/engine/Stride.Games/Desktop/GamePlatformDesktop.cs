@@ -29,7 +29,7 @@ namespace Stride.Games
 {
     internal class GamePlatformDesktop : GamePlatform
     {
-        public GamePlatformDesktop(GameBase game) : base(game)
+        public GamePlatformDesktop(IGameBase game) : base(game)
         {
             IsBlockingRun = true;
 #if STRIDE_PLATFORM_WINDOWS_DESKTOP && STRIDE_RUNTIME_CORECLR

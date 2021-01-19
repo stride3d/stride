@@ -55,7 +55,7 @@ namespace Stride.Engine
 
             graphicsDeviceService = Services.GetSafeServiceAs<IGraphicsDeviceService>();
 
-            Game = Services.GetSafeServiceAs<IGame>();
+            Game = Services.GetSafeServiceAs<IGameBase>();
             Content = (ContentManager)Services.GetSafeServiceAs<IContentManager>();
             Input = Services.GetSafeServiceAs<InputManager>();
             Script = Services.GetSafeServiceAs<ScriptSystem>();
@@ -100,7 +100,7 @@ namespace Stride.Engine
         public IServiceRegistry Services { get; private set; }
 
         [DataMemberIgnore]
-        public IGame Game { get; private set; }
+        public IGameBase Game { get; private set; }
 
         [DataMemberIgnore]
         public ContentManager Content { get; private set; }

@@ -31,7 +31,7 @@ namespace Stride.Games.Testing
             //quit after 10 seconds in any case
             Game.GameStarted += (sender, args) =>
             {              
-                var game = (Game)sender;
+                var game = (IGame)sender;
                 var testingSystem = new GameTestingSystem(game.Services);
                 game.GameSystems.Add(testingSystem);
             };

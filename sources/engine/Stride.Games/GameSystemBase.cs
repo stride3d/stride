@@ -53,7 +53,7 @@ namespace Stride.Games
         protected GameSystemBase([NotNull] IServiceRegistry registry)
         {
             Services = registry ?? throw new ArgumentNullException(nameof(registry));
-            Game = (GameBase)Services.GetService<IGame>();
+            Game = Services.GetService<IGameBase>();
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Stride.Games
         /// <value>The game.</value>
         /// <remarks>This value can be null</remarks>
         [CanBeNull]
-        public GameBase Game { get; }
+        public IGameBase Game { get; }
 
         /// <summary>
         /// Gets the services registry.

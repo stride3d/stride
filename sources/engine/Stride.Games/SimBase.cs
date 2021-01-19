@@ -34,18 +34,13 @@ using Stride.Graphics;
 namespace Stride.Games
 {
     /// <summary>
-    /// The game.
+    /// The simulation. 
+    /// An alternate version of "The Game" targeted for Codeonly use of Stride as Library
+    /// It allows more control over the simulation 
+    /// EXPERIMENTAL!
     /// </summary>
-    public abstract class GameBase : ComponentBase, IGameBase, IGameBaseInternal
-
+    public abstract class SimBase : ComponentBase, IGameBase
     {
-        #region explicit interface bindings
-        EventHandler<GameUnhandledExceptionEventArgs> IGameBaseInternal.UnhandledExceptionInternal => UnhandledExceptionInternal;
-        bool IGameBaseInternal.ForceOneUpdatePerDraw { get { return ForceOneUpdatePerDraw; } set { ForceOneUpdatePerDraw = value; } }
-        void IGameBaseInternal.InitializeBeforeRun() => InitializeBeforeRun();
-        void IGameBaseInternal.LoadContentInternal() => LoadContentInternal();
-        #endregion
-
         #region Fields
 
         private readonly GamePlatform gamePlatform;
@@ -75,7 +70,7 @@ namespace Stride.Games
         /// <summary>
         /// Initializes a new instance of the <see cref="GameBase" /> class.
         /// </summary>
-        protected GameBase()
+        protected SimBase()
         {
             // Internals
             Log = GlobalLogger.GetLogger(GetType().GetTypeInfo().Name);
@@ -85,7 +80,7 @@ namespace Stride.Games
             IsFixedTimeStep = false;
             maximumElapsedTime = TimeSpan.FromMilliseconds(500.0);
             TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
-            
+
             TreatNotFocusedLikeMinimized = true;
             WindowMinimumUpdateRate = new ThreadThrottler(TimeSpan.FromSeconds(0d));
             MinimizedMinimumUpdateRate = new ThreadThrottler(15); // by default 15 updates per second while minimized
@@ -210,7 +205,7 @@ namespace Stride.Games
         /// Gets a value indicating whether this instance is exiting.
         /// </summary>
         /// <value><c>true</c> if this instance is exiting; otherwise, <c>false</c>.</value>
-        public bool IsExiting{ get; private set; }
+        public bool IsExiting { get; private set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the elapsed time between each update should be constant,
@@ -1000,4 +995,6 @@ namespace Stride.Games
 
         #endregion
     }
+
+
 }

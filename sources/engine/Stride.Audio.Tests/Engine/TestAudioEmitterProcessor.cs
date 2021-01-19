@@ -52,7 +52,7 @@ namespace Stride.Audio.Tests.Engine
         /// Load some default random <see cref="SoundEffect"/>, attach them to the emitter components, and query their controllers.
         /// </summary>
         /// <param name="game"></param>
-        private void AddSoundEffectToEmitterComponents(Game game)
+        private void AddSoundEffectToEmitterComponents(IGame game)
         {
             sounds = new List<Sound>
             {
@@ -77,7 +77,7 @@ namespace Stride.Audio.Tests.Engine
         /// Add the root entity to the entity system
         /// </summary>
         /// <param name="game"></param>
-        private void AddRootEntityToEntitySystem(Game game)
+        private void AddRootEntityToEntitySystem(IGame game)
         {
             throw new NotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); // game.Entities.Add(rootEntity);
         }
@@ -86,7 +86,7 @@ namespace Stride.Audio.Tests.Engine
         /// Add all the <see cref="AudioListenerComponent"/> to the <see cref="AudioSystem"/>.
         /// </summary>
         /// <param name="game"></param>
-        private void AddListenersToAudioSystem(Game game)
+        private void AddListenersToAudioSystem(IGame game)
         {
             foreach (var t in listComps)
                 game.Audio.AddListener(t);
@@ -159,7 +159,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.CreateAndRunGame(TestAddRemoveListenersHelper, TestUtilities.ExitGame);
         }
 
-        private void TestAddRemoveListenersHelper(Game game)
+        private void TestAddRemoveListenersHelper(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -209,7 +209,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.CreateAndRunGame(TestAddRemoveEntityWithEmitterHelper, TestUtilities.ExitGame);
         }
 
-        private void TestAddRemoveEntityWithEmitterHelper(Game game)
+        private void TestAddRemoveEntityWithEmitterHelper(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -251,7 +251,7 @@ namespace Stride.Audio.Tests.Engine
         }
 
 
-        private void TestAddRemoveSoundEffectHelper(Game game)
+        private void TestAddRemoveSoundEffectHelper(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -303,7 +303,7 @@ namespace Stride.Audio.Tests.Engine
         /// Setup configuration for the test.
         /// </summary>
         /// <param name="game"></param>
-        private void TestEmitterUpdateValuesSetup(Game game)
+        private void TestEmitterUpdateValuesSetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -319,7 +319,7 @@ namespace Stride.Audio.Tests.Engine
         /// <param name="game"></param>
         /// <param name="loopCount"></param>
         /// <param name="loopCountSum"></param>
-        private void EntityPositionAndEmitterbfrUpdate(Game game, int loopCount, int loopCountSum)
+        private void EntityPositionAndEmitterbfrUpdate(IGame game, int loopCount, int loopCountSum)
         {
             rootSubEntity1.Transform.Position += new Vector3(loopCount, 2 * loopCount, 3 * loopCount);
             rootSubEntity2.Transform.Position += 2 * new Vector3(loopCount, 2 * loopCount, 3 * loopCount);
@@ -385,7 +385,7 @@ namespace Stride.Audio.Tests.Engine
         //        private bool soundController0WentToStopState;
         //        private bool soundController2WentToStopState;
 
-        private void TestEmitterUpdateValuesAtfUpdate(Game game, int loopCount, int loopCountSum)
+        private void TestEmitterUpdateValuesAtfUpdate(IGame game, int loopCount, int loopCountSum)
         {
             //throw new NotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
             //var matchingEntities = game.Entities.Processors.OfType<AudioEmitterProcessor>().First().MatchingEntitiesForDebug;
@@ -458,7 +458,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInDrawLoop(TestEmitterUpdateValuesSetup, TestMulteListenerUpdate);
         }
 
-        private void TestMulteListenerUpdate(Game game, int loopCount, int loopCountSum)
+        private void TestMulteListenerUpdate(IGame game, int loopCount, int loopCountSum)
         {
             throw new NotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer");
             //var matchingEntities = game.Entities.Processors.OfType<AudioEmitterProcessor>().First().MatchingEntitiesForDebug;

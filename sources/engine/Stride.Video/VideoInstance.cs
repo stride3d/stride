@@ -46,7 +46,7 @@ namespace Stride.Video
         /// <param name="services">The service provider.</param>
         /// <param name="videoComponent">The video component associated with this instance</param>
         public VideoInstance([NotNull] IServiceRegistry services, [NotNull] VideoComponent videoComponent)
-            : base(services.GetService<IGame>()?.GraphicsDevice)
+            : base(services.GetService<IGameBase>()?.GraphicsDevice)
         {
             this.services = services ?? throw new ArgumentNullException(nameof(services));
             this.videoComponent = videoComponent ?? throw new ArgumentNullException(nameof(videoComponent));

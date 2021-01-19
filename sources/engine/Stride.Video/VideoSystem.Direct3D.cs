@@ -17,7 +17,7 @@ namespace Stride.Video
         {
             base.Initialize();
 
-            var graphicsDevice = Services.GetService<IGame>().GraphicsDevice;
+            var graphicsDevice = Services.GetService<IGameBase>().GraphicsDevice;
 
             DxgiDeviceManager = new DXGIDeviceManager();
             DxgiDeviceManager.ResetDevice(graphicsDevice.NativeDevice);

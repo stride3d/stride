@@ -81,7 +81,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetHighlighters
             }
         }
         
-        private async Task HighlightMaterial(Game game, Material material, float duration)
+        private async Task HighlightMaterial(IGame game, Material material, float duration)
         {
             // TODO: this could be factorized between the different highlighters
             if (material == null)

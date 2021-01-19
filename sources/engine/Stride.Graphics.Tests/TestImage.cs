@@ -246,7 +246,7 @@ namespace Stride.Graphics.Tests
                 });
         }
 
-        private void ProcessFiles(Game game, ImageFileType sourceFormat, ImageFileType intermediateFormat)
+        private void ProcessFiles(IGame game, ImageFileType sourceFormat, ImageFileType intermediateFormat)
         {
             var testMemoryBefore = GC.GetTotalMemory(true);
 

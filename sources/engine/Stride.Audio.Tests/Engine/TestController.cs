@@ -60,7 +60,7 @@ namespace Stride.Audio.Tests.Engine
                 emitCompEntities[i].Add(emitComps[i]);
         }
 
-        private void AddSoundEffectToEmitterComponents(Game game)
+        private void AddSoundEffectToEmitterComponents(IGame game)
         {
             sounds = new List<Sound>
                 {
@@ -80,13 +80,13 @@ namespace Stride.Audio.Tests.Engine
             mainController = soundControllers[0];
         }
 
-        private void AddRootEntityToEntitySystem(Game game)
+        private void AddRootEntityToEntitySystem(IGame game)
         {
             Internal.Refactor.ThrowNotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
             //game.Entities.Add(rootEntity);
         }
 
-        private void AddListenersToAudioSystem(Game game)
+        private void AddListenersToAudioSystem(IGame game)
         {
             foreach (var t in listComps)
                 game.Audio.AddListener(t);
@@ -101,7 +101,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.CreateAndRunGame(TestDefaultValuesImpl, TestUtilities.ExitGame);
         }
 
-        private void TestDefaultValuesImpl(Game game)
+        private void TestDefaultValuesImpl(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -128,7 +128,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestVolumeSetup, null, TestVolumeLoopImpl);
         }
 
-        private void TestVolumeSetup(Game game)
+        private void TestVolumeSetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -138,7 +138,7 @@ namespace Stride.Audio.Tests.Engine
             AddRootEntityToEntitySystem(game);
         }
 
-        private void TestVolumeLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestVolumeLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             if (loopCount == 0)
             {
@@ -194,7 +194,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestIsLoopedSetup, null, TestIsLoopedLoopImpl);
         }
 
-        private void TestIsLoopedSetup(Game game)
+        private void TestIsLoopedSetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -204,7 +204,7 @@ namespace Stride.Audio.Tests.Engine
             AddRootEntityToEntitySystem(game);
         }
 
-        private void TestIsLoopedLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestIsLoopedLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             if (loopCount == 0)
             {
@@ -267,7 +267,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestPlaySetup, null, TestPlayLoopImpl);
         }
 
-        private void TestPlaySetup(Game game)
+        private void TestPlaySetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -276,7 +276,7 @@ namespace Stride.Audio.Tests.Engine
             AddListenersToAudioSystem(game);
         }
 
-        private void TestPlayLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestPlayLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             if (loopCount == 0)
             {
@@ -342,7 +342,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestPauseSetup, null, TestPauseLoopImpl);
         }
 
-        private void TestPauseSetup(Game game)
+        private void TestPauseSetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -357,7 +357,7 @@ namespace Stride.Audio.Tests.Engine
             soundControllers.Add(emitComps[0]["EffectFishLamp"]);
         }
 
-        private void TestPauseLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestPauseLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             if (loopCount == 0)
             {
@@ -396,7 +396,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestStopSetup, null, TestStopLoopImpl);
         }
 
-        private void TestStopSetup(Game game)
+        private void TestStopSetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -411,7 +411,7 @@ namespace Stride.Audio.Tests.Engine
             soundControllers.Add(emitComps[0]["EffectFishLamp"]);
         }
 
-        private void TestStopLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestStopLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             if (loopCount == 0)
             {
@@ -450,7 +450,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestPlayStateSetup, null, TestPlayStateLoopImpl);
         }
 
-        private void TestPlayStateSetup(Game game)
+        private void TestPlayStateSetup(ÍGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -491,7 +491,7 @@ namespace Stride.Audio.Tests.Engine
             Assert.True(PlayState.Playing == mainController.PlayState, "Value of playState with listeners is not valid after a third call to play.");
         }
 
-        private void TestPlayStateLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestPlayStateLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             if (loopCount == 60)
             {
@@ -507,7 +507,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestExitLoopSetup, null, TestExitLoopLoopImpl);
         }
 
-        private void TestExitLoopSetup(Game game)
+        private void TestExitLoopSetup(IGame game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -519,7 +519,7 @@ namespace Stride.Audio.Tests.Engine
             mainController.IsLooping = true;
         }
 
-        private void TestExitLoopLoopImpl(Game game, int loopCount, int loopCountSum)
+        private void TestExitLoopLoopImpl(IGame game, int loopCount, int loopCountSum)
         {
             if (loopCount == 0)
             {

@@ -30,8 +30,10 @@ namespace Stride.Engine
     /// <summary>
     /// Main Game class system.
     /// </summary>
-    public class Game : GameBase, ISceneRendererContext, IGameSettingsService
+    public class Game : GameBase, IGame, ISceneRendererContext, IGameSettingsService
     {
+        //TODO: make the to events below nonStatic?
+
         /// <summary>
         /// Static event that will be fired when a game is initialized
         /// </summary>
@@ -463,12 +465,12 @@ namespace Stride.Engine
             return new ConsoleLogListener();
         }
 
-        private static void OnGameStarted(Game game)
+        private static void OnGameStarted(IGame game)
         {
             GameStarted?.Invoke(game, null);
         }
 
-        private static void OnGameDestroyed(Game game)
+        private static void OnGameDestroyed(IGame game)
         {
             GameDestroyed?.Invoke(game, null);
         }

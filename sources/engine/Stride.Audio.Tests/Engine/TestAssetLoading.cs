@@ -22,7 +22,7 @@ namespace Stride.Audio.Tests.Engine
 
         private static SoundInstance testInstance;
 
-        private static void TestSoundEffectLoadingImpl(Game game)
+        private static void TestSoundEffectLoadingImpl(IGame game)
         {
             var sound = game.Content.Load<Sound>("EffectBip");
             Assert.NotNull(sound);
@@ -40,7 +40,7 @@ namespace Stride.Audio.Tests.Engine
             TestUtilities.ExecuteScriptInUpdateLoop(TestSoundMusicLoadingImpl, TestUtilities.ExitGameAfterSleep(2000));
         }
 
-        private static void TestSoundMusicLoadingImpl(Game game)
+        private static void TestSoundMusicLoadingImpl(IGame game)
         {
             var sound = game.Content.Load<Sound>("EffectBip");
             Assert.NotNull(sound);
