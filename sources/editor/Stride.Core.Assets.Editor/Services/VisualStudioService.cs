@@ -81,7 +81,8 @@ namespace Stride.Core.Assets.Editor.Services
             }
             else
             {
-                startInfo.FileName = session.SolutionPath;
+                startInfo.FileName = session.SolutionPath.ToWindowsPath();
+                startInfo.UseShellExecute = true;
             }
             try
             {
