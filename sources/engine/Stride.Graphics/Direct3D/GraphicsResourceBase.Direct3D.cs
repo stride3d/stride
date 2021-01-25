@@ -4,8 +4,8 @@
 #pragma warning disable SA1405 // Debug.Assert must provide message text
 using System;
 using System.Diagnostics;
-
-using SharpDX;
+using SharpGen.Runtime;
+using Vortice.Direct3D11;
 
 namespace Stride.Graphics
 {
@@ -14,9 +14,9 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResourceBase
     {
-        private SharpDX.Direct3D11.DeviceChild nativeDeviceChild;
+        private ID3D11DeviceChild nativeDeviceChild;
 
-        protected internal SharpDX.Direct3D11.Resource NativeResource { get; private set; }
+        protected internal ID3D11Resource NativeResource { get; private set; }
 
         private void Initialize()
         {
@@ -26,7 +26,7 @@ namespace Stride.Graphics
         /// Gets or sets the device child.
         /// </summary>
         /// <value>The device child.</value>
-        protected internal SharpDX.Direct3D11.DeviceChild NativeDeviceChild
+        protected internal ID3D11DeviceChild NativeDeviceChild
         {
             get
             {
@@ -35,7 +35,7 @@ namespace Stride.Graphics
             set
             {
                 nativeDeviceChild = value;
-                NativeResource = nativeDeviceChild as SharpDX.Direct3D11.Resource;
+                NativeResource = nativeDeviceChild as ID3D11Resource;
                 // Associate PrivateData to this DeviceResource
                 SetDebugName(GraphicsDevice, nativeDeviceChild, Name);
             }
@@ -44,7 +44,7 @@ namespace Stride.Graphics
         /// <summary>
         /// Associates the private data to the device child, useful to get the name in PIX debugger.
         /// </summary>
-        internal static void SetDebugName(GraphicsDevice graphicsDevice, SharpDX.Direct3D11.DeviceChild deviceChild, string name)
+        internal static void SetDebugName(GraphicsDevice graphicsDevice, ID3D11DeviceChild deviceChild, string name)
         {
             if (graphicsDevice.IsDebugMode && deviceChild != null)
             {
@@ -72,7 +72,7 @@ namespace Stride.Graphics
             return false;
         }
 
-        protected SharpDX.Direct3D11.Device NativeDevice
+        protected ID3D11Device NativeDevice
         {
             get
             {
@@ -85,16 +85,16 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="usage">The usage.</param>
         /// <returns></returns>
-        internal static SharpDX.Direct3D11.CpuAccessFlags GetCpuAccessFlagsFromUsage(GraphicsResourceUsage usage)
+        internal static CpuAccessFlags GetCpuAccessFlagsFromUsage(GraphicsResourceUsage usage)
         {
             switch (usage)
             {
                 case GraphicsResourceUsage.Dynamic:
-                    return SharpDX.Direct3D11.CpuAccessFlags.Write;
+                    return CpuAccessFlags.Write;
                 case GraphicsResourceUsage.Staging:
-                    return SharpDX.Direct3D11.CpuAccessFlags.Read | SharpDX.Direct3D11.CpuAccessFlags.Write;
+                    return CpuAccessFlags.Read | CpuAccessFlags.Write;
             }
-            return SharpDX.Direct3D11.CpuAccessFlags.None;
+            return CpuAccessFlags.None;
         }
 
         internal static void ReleaseComObject<T>(ref T comObject) where T : class
@@ -110,5 +110,4 @@ namespace Stride.Graphics
         }
     }
 }
- 
 #endif

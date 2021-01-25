@@ -4,21 +4,20 @@
 using System;
 using System.Collections.Generic;
 
-using SharpDX;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
+using Vortice.Direct3D11;
+using Vortice.DXGI;
 
 namespace Stride.Graphics
 {
     public partial class Buffer
     {
-        private SharpDX.Direct3D11.BufferDescription nativeDescription;
+        private Vortice.Direct3D11.BufferDescription nativeDescription;
 
-        internal SharpDX.Direct3D11.Buffer NativeBuffer
+        internal ID3D11Buffer NativeBuffer
         {
             get
             {
-                return (SharpDX.Direct3D11.Buffer)NativeDeviceChild;
+                return (ID3D11Buffer)NativeDeviceChild;
             }
         }
 
@@ -36,7 +35,7 @@ namespace Stride.Graphics
             ViewFlags = viewFlags;
             InitCountAndViewFormat(out this.elementCount, ref viewFormat);
             ViewFormat = viewFormat;
-            NativeDeviceChild = new SharpDX.Direct3D11.Buffer(GraphicsDevice.NativeDevice, dataPointer, nativeDescription);
+            NativeDeviceChild = GraphicsDevice.NativeDevice.CreateBuffer(, dataPointer, nativeDescription);
 
             // Staging resource don't have any views
             if (nativeDescription.Usage != ResourceUsage.Staging)

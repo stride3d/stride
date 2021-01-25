@@ -24,14 +24,16 @@
 
 using System;
 using System.Collections.Generic;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
+using Vortice.Direct3D;
+using Vortice.Direct3D11;
+using static Vortice.Direct3D11.D3D11;
+using Vortice.DXGI;
 
 using Stride.Core;
 using Stride.Core.Mathematics;
 
-using ResultCode = SharpDX.DXGI.ResultCode;
+using ResultCode = Vortice.DXGI.ResultCode;
+using SharpGen.Runtime;
 
 namespace Stride.Graphics
 {
@@ -44,7 +46,7 @@ namespace Stride.Graphics
     public partial class GraphicsOutput
     {
         private readonly int outputIndex;
-        private readonly Output output;
+        private readonly IDXGIOutput output;
         private readonly OutputDescription outputDescription;
 
         /// <summary>
@@ -54,18 +56,19 @@ namespace Stride.Graphics
         /// <param name="outputIndex">Index of the output.</param>
         /// <exception cref="System.ArgumentNullException">output</exception>
         /// <exception cref="ArgumentOutOfRangeException">output</exception>
-        internal GraphicsOutput(GraphicsAdapter adapter, int outputIndex)
+        internal GraphicsOutput(GraphicsAdapter adapter, int outputIndex, IDXGIOutput output)
         {
             if (adapter == null) throw new ArgumentNullException("adapter");
 
             this.outputIndex = outputIndex;
             this.adapter = adapter;
-            this.output = adapter.NativeAdapter.GetOutput(outputIndex).DisposeBy(this);
+            this.output = output;
             outputDescription = output.Description;
 
             unsafe
             {
-                var rectangle = outputDescription.DesktopBounds;
+                // TODO: Raw rect is left, top, right, bottom while Rectangle is X, Y, Width, Height
+                Vortice.RawRect rectangle = outputDescription.DesktopCoordinates;
                 desktopBounds = *(Rectangle*)&rectangle;
             }
         }
@@ -83,30 +86,31 @@ namespace Stride.Graphics
             if (targetProfiles == null) throw new ArgumentNullException("targetProfiles");
 
             ModeDescription closestDescription;
-            SharpDX.Direct3D11.Device deviceTemp = null;
+            ID3D11Device deviceTemp = null;
             try
             {
-                var features = new SharpDX.Direct3D.FeatureLevel[targetProfiles.Length];
+                var features = new Vortice.Direct3D.FeatureLevel[targetProfiles.Length];
                 for (int i = 0; i < targetProfiles.Length; i++)
                 {
                     features[i] = (FeatureLevel)targetProfiles[i];
                 }
 
-                deviceTemp = new SharpDX.Direct3D11.Device(adapter.NativeAdapter, SharpDX.Direct3D11.DeviceCreationFlags.None, features);
+                D3D11CreateDevice(adapter.NativeAdapter, DriverType.Unknown, Vortice.Direct3D11.DeviceCreationFlags.None, features, out deviceTemp).CheckError();
             }
             catch (Exception) { }
 
-            var description = new SharpDX.DXGI.ModeDescription()
+            var description = new Vortice.DXGI.ModeDescription()
             {
                 Width = mode.Width,
                 Height = mode.Height,
                 RefreshRate = mode.RefreshRate.ToSharpDX(),
-                Format = (SharpDX.DXGI.Format)mode.Format,
-                Scaling = DisplayModeScaling.Unspecified,
-                ScanlineOrdering = DisplayModeScanlineOrder.Unspecified,
+                Format = (Vortice.DXGI.Format)mode.Format,
+                Scaling = ModeScaling.Unspecified,
+                ScanlineOrdering = ModeScanlineOrder.Unspecified,
             };
+
             using (var device = deviceTemp)
-                output.GetClosestMatchingMode(device, description, out closestDescription);
+                output.FindClosestMatchingMode(device, description, out closestDescription);
 
             return DisplayMode.FromDescription(closestDescription);
         }
@@ -117,13 +121,13 @@ namespace Stride.Graphics
         /// <msdn-id>bb173068</msdn-id>
         /// <unmanaged>HMONITOR Monitor</unmanaged>
         /// <unmanaged-short>HMONITOR Monitor</unmanaged-short>
-        public IntPtr MonitorHandle { get { return outputDescription.MonitorHandle; } }
+        public IntPtr MonitorHandle { get { return outputDescription.Monitor; } }
 
         /// <summary>
         /// Gets the native output.
         /// </summary>
         /// <value>The native output.</value>
-        internal Output NativeOutput
+        internal IDXGIOutput NativeOutput
         {
             get
             {
@@ -147,7 +151,7 @@ namespace Stride.Graphics
             {
                 const DisplayModeEnumerationFlags displayModeEnumerationFlags = DisplayModeEnumerationFlags.Interlaced | DisplayModeEnumerationFlags.Scaling;
 
-                foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
+                foreach (var format in Enum.GetValues(typeof(Vortice.DXGI.Format)))
                 {
                     var dxgiFormat = (Format)format;
 #if DIRECTX11_1
@@ -158,7 +162,7 @@ namespace Stride.Graphics
 
                     foreach (var mode in modes)
                     {
-                        if (mode.Scaling == DisplayModeScaling.Unspecified)
+                        if (mode.Scaling == ModeScaling.Unspecified)
                         {
                             var key = format + ";" + mode.Width + ";" + mode.Height + ";" + mode.RefreshRate.Numerator + ";" + mode.RefreshRate.Denominator;
 
@@ -174,7 +178,7 @@ namespace Stride.Graphics
                     }
                 }
             }
-            catch (SharpDX.SharpDXException dxgiException)
+            catch (SharpGenException dxgiException)
             {
                 if (dxgiException.ResultCode != ResultCode.NotCurrentlyAvailable)
                     throw;
@@ -205,7 +209,7 @@ namespace Stride.Graphics
         /// <returns>A matched <see cref="DisplayMode"/> or null if nothing is found.</returns>
         private DisplayMode TryFindMatchingDisplayMode(Format format)
         {
-            var desktopBounds = outputDescription.DesktopBounds;
+            Vortice.RawRect desktopBounds = outputDescription.DesktopCoordinates;
 
             foreach (var supportedDisplayMode in SupportedDisplayModes)
             {
