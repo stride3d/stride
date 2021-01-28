@@ -199,8 +199,8 @@ namespace Stride.Graphics
                     var createInfo = new VkDebugUtilsMessengerCreateInfoEXT
                     {
                         sType = VkStructureType.DebugUtilsMessengerCreateInfoEXT,
-                        messageSeverity = VkDebugUtilsMessageSeverityFlagsEXT.VerboseEXT | VkDebugUtilsMessageSeverityFlagsEXT.ErrorEXT | VkDebugUtilsMessageSeverityFlagsEXT.WarningEXT,
-                        messageType = VkDebugUtilsMessageTypeFlagsEXT.GeneralEXT | VkDebugUtilsMessageTypeFlagsEXT.ValidationEXT | VkDebugUtilsMessageTypeFlagsEXT.PerformanceEXT,
+                        messageSeverity = VkDebugUtilsMessageSeverityFlagsEXT.Verbose | VkDebugUtilsMessageSeverityFlagsEXT.Error | VkDebugUtilsMessageSeverityFlagsEXT.Warning,
+                        messageType = VkDebugUtilsMessageTypeFlagsEXT.General | VkDebugUtilsMessageTypeFlagsEXT.Validation | VkDebugUtilsMessageTypeFlagsEXT.Performance,
                         pfnUserCallback = Marshal.GetFunctionPointerForDelegate(debugReport)
                     };
 
@@ -228,19 +228,19 @@ namespace Stride.Graphics
             var message = Vortice.Vulkan.Interop.GetString(pCallbackData->pMessage);
 
             // Redirect to log
-            if (severity == VkDebugUtilsMessageSeverityFlagsEXT.ErrorEXT)
+            if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Error)
             {
                 Log.Error(message);
             }
-            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.WarningEXT)
+            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Warning)
             {
                 Log.Warning(message);
             }
-            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.InfoEXT)
+            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Info)
             {
                 Log.Info(message);
             }
-            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.VerboseEXT)
+            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Verbose)
             {
                 Log.Verbose(message);
             }

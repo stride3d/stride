@@ -284,9 +284,9 @@ namespace Stride.Graphics
 
             // Transform
             VkSurfaceTransformFlagsKHR preTransform;
-            if ((surfaceCapabilities.supportedTransforms & VkSurfaceTransformFlagsKHR.IdentityKHR) != 0)
+            if ((surfaceCapabilities.supportedTransforms & VkSurfaceTransformFlagsKHR.Identity) != 0)
             {
-                preTransform = VkSurfaceTransformFlagsKHR.IdentityKHR;
+                preTransform = VkSurfaceTransformFlagsKHR.Identity;
             }
             else
             {
@@ -295,20 +295,20 @@ namespace Stride.Graphics
 
             // Find present mode
             var presentModes = vkGetPhysicalDeviceSurfacePresentModesKHR(GraphicsDevice.NativePhysicalDevice, surface);
-            var swapChainPresentMode = VkPresentModeKHR.FifoKHR; // Always supported
+            var swapChainPresentMode = VkPresentModeKHR.Fifo; // Always supported
             foreach (var presentMode in presentModes)
             {
                 // TODO VULKAN: Handle PresentInterval.Two
                 if (Description.PresentationInterval == PresentInterval.Immediate)
                 {
                     // Prefer mailbox to immediate
-                    if (presentMode == VkPresentModeKHR.ImmediateKHR)
+                    if (presentMode == VkPresentModeKHR.Immediate)
                     {
-                        swapChainPresentMode = VkPresentModeKHR.ImmediateKHR;
+                        swapChainPresentMode = VkPresentModeKHR.Immediate;
                     }
-                    else if (presentMode == VkPresentModeKHR.MailboxKHR)
+                    else if (presentMode == VkPresentModeKHR.Mailbox)
                     {
-                        swapChainPresentMode = VkPresentModeKHR.MailboxKHR;
+                        swapChainPresentMode = VkPresentModeKHR.Mailbox;
                         break;
                     }
                 }
@@ -323,10 +323,10 @@ namespace Stride.Graphics
                 imageSharingMode = VkSharingMode.Exclusive,
                 imageExtent = new Vortice.Mathematics.Size(Description.BackBufferWidth, Description.BackBufferHeight),
                 imageFormat = backBufferFormat,
-                imageColorSpace = Description.ColorSpace == ColorSpace.Gamma ? VkColorSpaceKHR.SrgbNonLinearKHR : 0,
+                imageColorSpace = Description.ColorSpace == ColorSpace.Gamma ? VkColorSpaceKHR.SrgbNonLinear : 0,
                 imageUsage = VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.TransferDst | (surfaceCapabilities.supportedUsageFlags & VkImageUsageFlags.TransferSrc), // TODO VULKAN: Use off-screen buffer to emulate
                 presentMode = swapChainPresentMode,
-                compositeAlpha = VkCompositeAlphaFlagsKHR.OpaqueKHR,
+                compositeAlpha = VkCompositeAlphaFlagsKHR.Opaque,
                 minImageCount = desiredImageCount,
                 preTransform = preTransform,
                 oldSwapchain = swapChain,
