@@ -49,7 +49,7 @@
     <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
-    <ROW TimeStampUrl="http://timestamp.globalsign.com" SignerDescription="[|ProductName]" SignOptions="7" SignTool="0" Thumbprint="c3dd2388073e8c038a62dc57865bd0994a784c76 Subject: vvvv - Dießl &amp; Gregor GbR&#10;Issuer: Sectigo RSA Code Signing CA&#10;Valid from 08/28/2020 to 07/02/2021&#10;User\MY"/>
+    <ROW TimeStampUrl="http://timestamp.digicert.com" SignerDescription="[|ProductName]" SignOptions="7" SignTool="0" Thumbprint="c3dd2388073e8c038a62dc57865bd0994a784c76 Subject: vvvv - Dießl &amp; Gregor GbR&#10;Issuer: Sectigo RSA Code Signing CA&#10;Valid from 08/28/2020 to 07/02/2021&#10;User\MY"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
     <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
