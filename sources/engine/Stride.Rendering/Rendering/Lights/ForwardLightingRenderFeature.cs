@@ -615,6 +615,10 @@ namespace Stride.Rendering.Lights
                 // Find lights
                 var lightCollection = activeRenderer.LightGroup.FindLightCollectionByGroup(group);
 
+                // Light collections aren't cleared (see ClearCache). Can be null after switching to empty scenes.
+                if (lightCollection is null)
+                    continue;
+
                 // Indices of lights in lightCollection that need processing
                 lightIndicesToProcess.Clear();
                 for (int i = 0; i < lightCollection.Count; i++)
