@@ -13,11 +13,10 @@ Example of use:
     <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)</BuildProperties>
     <StrideSign Condition="'$(StrideSign)' == ''">true</StrideSign>
     <BuildProperties Condition="'$(StrideSign)' != ''">$(BuildProperties);StrideSign=$(StrideSign)</BuildProperties>
-    <BuildProperties Condition="'$(StrideOfficialBuild)' != ''">$(BuildProperties);StrideOfficialBuild=$(StrideOfficialBuild)</BuildProperties>
     <NuGetPath>$(MSBuildThisFileDirectory).nuget\NuGet.exe</NuGetPath>
     <XunitRunnerConsoleVersion>2.4.1</XunitRunnerConsoleVersion>
     <StrideStoreUrl Condition="'$(StrideStoreUrl)' == ''">https://api.nuget.org/v3/index.json</StrideStoreUrl>
-    <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 15.5.1\bin\x86\advinst.exe')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 15.5.1\bin\x86\advinst.exe</AdvancedInstallerPath>
+    <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 17.9\bin\x86\AdvancedInstaller.com')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 17.9\bin\x86\AdvancedInstaller.com</AdvancedInstallerPath>
     <StrideBuildPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == ''">true</StrideBuildPrerequisitesInstaller>
   </PropertyGroup>
 
@@ -70,10 +69,11 @@ Example of use:
       <NuGetPackage Include="..\bin\packages\*.nupkg"/>
       <!-- Remove GameStudio (pushed in a second stage) -->
       <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Stride.GameStudio'))"/>
-      <!-- Remove Samples.Templates (pushed only when requested since versionned separately -->
-      <NuGetPackage Remove="@(NuGetPackage)" Condition="'$(StridePublishSkipSamplesTemplates)' == 'true' And $([System.String]::Copy('%(Filename)').Contains('Stride.Samples.Templates'))"/>
+      <!-- Remove Samples.Templates (we use -SkipDuplicate since version is rarely bumped) -->
+      <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Stride.Samples.Templates'))"/>
     </ItemGroup>
     <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols'/>
+    <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.Samples.Templates*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols -SkipDuplicate'/>
     <!-- Push GameStudio so that dependencies are already uploaded -->
     <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.GameStudio*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols'/>
   </Target>
@@ -112,10 +112,7 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(StrideRoot)deps\Stride.GitVersioning\Stride.GitVersioning.csproj"/>
     
     <!-- Create SharedAssemblyInfo.NuGet.cs with Git information (different between official build and internal builds) -->
-    <GenerateVersionFile Condition="'$(StrideOfficialBuild)' == 'true'" RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" NuGetVersionSuffixOverride="" SpecialVersionGitCommit="true">
-      <Output TaskParameter="NuGetVersion" PropertyName="StridePackageVersion"/>
-    </GenerateVersionFile>
-    <GenerateVersionFile Condition="'$(StrideOfficialBuild)' != 'true'" RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersionGitHeight="true" SpecialVersionGitCommit="true">
+    <GenerateVersionFile RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" RevisionGitHeight="true" SpecialVersionGitCommit="true">
       <Output TaskParameter="NuGetVersion" PropertyName="StridePackageVersion"/>
     </GenerateVersionFile>
 

@@ -73,6 +73,11 @@ namespace Stride.Core.Presentation.Quantum.Presenters
 
         public override void UpdateValue(object newValue)
         {
+            // Do not update member node presenter value to null if it does not
+            // allow null values (related to issue #668)
+            if ((newValue == null) && (memberAttributes.Any(x => x is NotNullAttribute)))
+                return;
+
             try
             {
                 Member.Update(newValue);

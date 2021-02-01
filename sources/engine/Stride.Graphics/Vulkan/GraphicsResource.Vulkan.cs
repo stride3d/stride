@@ -80,8 +80,7 @@ namespace Stride.Graphics
                 typeBits >>= 1;
             }
 
-            fixed (VkDeviceMemory* nativeMemoryPtr = &NativeMemory)
-               vkAllocateMemory(GraphicsDevice.NativeDevice, &allocateInfo, null, nativeMemoryPtr);
+            vkAllocateMemory(GraphicsDevice.NativeDevice, &allocateInfo, null, out NativeMemory);
         }
     }
 }

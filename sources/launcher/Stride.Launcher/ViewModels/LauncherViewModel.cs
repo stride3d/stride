@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.Win32;
 
 using Stride.Core.Extensions;
-using Stride.PrivacyPolicy;
 using Stride.LauncherApp.Resources;
 using Stride.LauncherApp.Services;
 using Stride.Core.Packages;
@@ -23,6 +22,7 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Metrics;
 using Stride.Core.VisualStudio;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Stride.LauncherApp.ViewModels
 {
@@ -206,6 +206,52 @@ namespace Stride.LauncherApp.ViewModels
             Dispatcher.Invoke(() => IsSynchronizing = false);
         }
 
+        private class ReferencedPackageEqualityComparer : IEqualityComparer<NugetLocalPackage>
+        {
+            public static readonly ReferencedPackageEqualityComparer Instance = new ReferencedPackageEqualityComparer();
+
+            private ReferencedPackageEqualityComparer() { }
+
+            public bool Equals(NugetLocalPackage x, NugetLocalPackage y)
+                => (ReferenceEquals(x, y)) || ((!ReferenceEquals(x, null)) && (!ReferenceEquals(y, null)) && (x.Id == y.Id) && (x.Version.ToString() == y.Version.ToString()));
+
+            public int GetHashCode([DisallowNull] NugetLocalPackage obj)
+                => (obj.Id.GetHashCode() ^ obj.Version.ToString().GetHashCode());
+        }
+
+        private HashSet<NugetLocalPackage> referencedPackages = new HashSet<NugetLocalPackage>(ReferencedPackageEqualityComparer.Instance);
+
+        private async Task RemoveUnusedPackages(IEnumerable<NugetLocalPackage> mainPackages)
+        {
+            var previousReferencedPackages = referencedPackages;
+            referencedPackages = new HashSet<NugetLocalPackage>(ReferencedPackageEqualityComparer.Instance);
+            foreach (var mainPackage in mainPackages)
+            {
+                await FindReferencedPackages(mainPackage);
+            }
+            foreach (var package in previousReferencedPackages.Where(package => !referencedPackages.Contains(package)))
+            {
+                await store.UninstallPackage(package, null);
+            }
+        }
+
+        private async Task FindReferencedPackages(NugetLocalPackage package)
+        {
+            foreach (var dependency in package.Dependencies)
+            {
+                string prefix = dependency.Item1.Split('.', 2)[0];
+                if ((prefix == "Stride") || (prefix == "Xenko"))
+                {
+                    NugetLocalPackage dependencyPackage = store.FindLocalPackage(dependency.Item1, dependency.Item2);
+                    if ((dependencyPackage != null) && (!referencedPackages.Contains(dependencyPackage)))
+                    {
+                        referencedPackages.Add(dependencyPackage);
+                        await FindReferencedPackages(dependencyPackage);
+                    }
+                }
+            }
+        }
+
         public async Task RetrieveLocalStrideVersions()
         {
             List<RecentProjectViewModel> currentRecentProjects;
@@ -218,6 +264,22 @@ namespace Stride.LauncherApp.ViewModels
                 var localPackages = await RunLockTask(() => store.GetPackagesInstalled(store.MainPackageIds).FilterStrideMainPackages().OrderByDescending(p => p.Version).ToList());
                 lock (objectLock)
                 {
+                    // Try to remove unused Stride/Xenko packages after uninstall or update
+                    try
+                    {
+                        Task.WaitAll(RemoveUnusedPackages(localPackages));
+                    }
+                    catch (Exception e)
+                    {
+                        var message = $@"**Failed to remove unused NuGet package(s).**
+
+### Exception
+```
+{e.FormatSummary(false).TrimEnd(Environment.NewLine.ToCharArray())}
+```";
+                        Task.WaitAll(ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Warning));
+                    }
+
                     // Retrieve all local packages
                     var packages = localPackages.Where(p => !store.IsDevRedirectPackage(p)).GroupBy(p => $"{p.Version.Version.Major}.{p.Version.Version.Minor}", p => p);
                     var updatedLocalPackages = new HashSet<StrideStoreVersionViewModel>();

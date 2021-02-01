@@ -19,7 +19,7 @@ Thank you everybody for your generous contributions!
 ## Backers
 
 * Amin Delavar
-* Nicolas Musset
+* [Nicolas Musset](https://github.com/Kryptos-FR)
 * Ravn Ivarson
 * Guy Godin
 * Princess Peach
@@ -36,6 +36,9 @@ Thank you everybody for your generous contributions!
 * [sebllll](https://github.com/sebllll)
 * [SoulRider](https://github.com/SoulRider)
 * [tebjan](https://github.com/tebjan)
+* [ideonella](https://github.com/ideonella)
+* [Marian Dziubiak](https://github.com/manio143)
+* [TheKeyblader](https://github.com/TheKeyblader)
 * Boris Callens
 * Daniel Keenan
 * Jorn Theunissen
@@ -45,6 +48,7 @@ Thank you everybody for your generous contributions!
 * Albeoris
 * Артем Куприянов
 * Miles Johnson
+* Ancient Phoenix
 
 ## Mini Backers
 
