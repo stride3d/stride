@@ -152,10 +152,6 @@
       <HintPath>..\..\..\deps\BulletPhysics\BulletSharp.NetStandard.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Stride.Importer.Common\ImporterUtils.h" />
     <ClInclude Include="resource.h" />

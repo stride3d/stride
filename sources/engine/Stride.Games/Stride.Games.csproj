@@ -1,7 +1,6 @@
 <Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-    <StrideRuntimeWindowsDotNet>true</StrideRuntimeWindowsDotNet>
     <StrideRuntimeWindowsNet5>true</StrideRuntimeWindowsNet5>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <UseWindowsForms Condition="$(StrideUI.Contains('WINFORMS')) OR $(StrideUI.Contains('WPF'))">true</UseWindowsForms>
@@ -11,8 +10,8 @@
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <UseWPF Condition="'$(StridePlatform)' == 'Windows'">true</UseWPF>
-    <UseWindowsForms Condition="'$(StridePlatform)' == 'Windows'">true</UseWindowsForms>
+    <UseWPF Condition="$(TargetFramework.EndsWith('-windows'))">true</UseWPF>
+    <UseWindowsForms Condition="$(TargetFramework.EndsWith('-windows'))">true</UseWindowsForms>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StridePlatformDependent>true</StridePlatformDependent>

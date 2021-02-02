@@ -1,2 +1,4 @@
 <#@ template inherits="ProjectTemplateTransformation" language="C#" #>
-    <TargetFramework>netstandard2.0</TargetFramework>
+<#@ assembly name="System.Linq" #>
+<#@ import namespace="System.Linq" #>
+    <TargetFrameworks><#= string.Join(";", ((IEnumerable<Stride.Core.Assets.SolutionPlatform>)Properties.Platforms).Select(x => x.TargetFramework).Distinct()) #></TargetFrameworks>

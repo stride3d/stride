@@ -14,7 +14,6 @@
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
     <TargetFramework>net472</TargetFramework>
-    <StrideCompilerTargetsEnable Condition="!$(StrideEditorTargetFrameworks.Contains('net4'))">false</StrideCompilerTargetsEnable>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
@@ -161,7 +160,9 @@
     <Folder Include="NuGet\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj" />
+    <ProjectReference Include="..\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj">
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>

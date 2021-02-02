@@ -1,11 +1,12 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net5.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
   </ItemGroup>

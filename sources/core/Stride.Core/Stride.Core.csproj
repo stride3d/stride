@@ -1,7 +1,6 @@
 <Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-    <StrideRuntimeNet5>true</StrideRuntimeNet5>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.Core.props" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />

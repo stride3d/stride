@@ -7,10 +7,6 @@
 
     <StrideIsExecutable Condition=" '$(OutputType)' == 'Exe'">true</StrideIsExecutable>
     <StrideIsExecutable Condition=" '$(OutputType)' == 'WinExe'">true</StrideIsExecutable>
-
-    <!--By default, use AssemblyProcessor from solution, unless this is a user build-->
-    <StrideSdkToolsDir Condition="'$(StrideSdkToolsDir)' == ''">$(SolutionDir)Bin\Windows\Tools\</StrideSdkToolsDir>
-    <StrideAssetCompilerCommand>$(StrideSdkToolsDir)Stride.Core.Assets.CompilerApp.exe</StrideAssetCompilerCommand>
   </PropertyGroup>
 
   <!--Import Stride common settings-->

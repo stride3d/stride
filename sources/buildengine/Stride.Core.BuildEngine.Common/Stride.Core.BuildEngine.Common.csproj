@@ -10,7 +10,6 @@
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="EnvDTE" Version="8.0.1" Condition="$(TargetFramework.StartsWith('net4'))" />
     <PackageReference Include="ServiceWire" Version="5.3.4" />
   </ItemGroup>
   <ItemGroup>

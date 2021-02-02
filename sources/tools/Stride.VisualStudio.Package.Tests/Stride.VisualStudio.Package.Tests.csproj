@@ -4,7 +4,6 @@
   <PropertyGroup>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
     <TargetFramework>net472</TargetFramework>
-    <StrideCompilerTargetsEnable Condition="!$(StrideEditorTargetFrameworks.Contains('net4'))">false</StrideCompilerTargetsEnable>
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
@@ -45,12 +44,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Stride.Core.Tasks\Stride.Core.Tasks.csproj" />
-    <ProjectReference Include="..\..\editor\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <None Update="TestGenerator.sdsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Generator></Generator>
     </None>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
