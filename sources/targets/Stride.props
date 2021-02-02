@@ -72,10 +72,6 @@
     <ProjectLockFile Condition="'$(ProjectLockFile)' == ''">$(MSBuildThisFileDirectory)..\build\project.lock.json</ProjectLockFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
-    <NUnitLiteBinDir>$(MSBuildThisFileDirectory)..\..\deps\NUnitLite\net-monotouch\</NUnitLiteBinDir>
-  </PropertyGroup>
-
   <!-- 
     Global Defines
   -->
