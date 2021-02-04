@@ -5,6 +5,7 @@
 
   <!-- Setup GraphicsApi (we do it even if StrideGraphicsApiDependent is not set to true, so that ProjectReference works) -->
   <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
     <!-- Check if we have override -->
     <StrideGraphicsApis Condition="'$(StrideGraphicsApisTest)' != ''">$(StrideGraphicsApisTest)</StrideGraphicsApis>
     

@@ -240,145 +240,24 @@ Example of use:
   </Target>
   
   <Target Name="RunTestsWindows" DependsOnTargets="DownloadXunitRunnerConsole">
+    <!-- Remove artifacts generated during previous run -->
+    <Delete Files="$(MSBuildThisFileDirectory)..\tests\local\**\*.*" />
     <!-- By default, enable all known categories -->
     <PropertyGroup>
       <StrideTestCategories Condition="'$(StrideTestCategories)' == ''">Simple;Game;VSPackage</StrideTestCategories>
-      <!-- We enclose everything with ;, so that we could do full word matches more easily with string.Contains() -->
-      <StrideTestCategories>;$(StrideTestCategories);</StrideTestCategories>
-      <StrideTestExtraTargets></StrideTestExtraTargets>
-      <StrideTestExtraTargets Condition="$(StrideTestCategories.Contains(';GameAndroid;'))">$(StrideTestExtraTargets);SignAndroidPackage</StrideTestExtraTargets>
     </PropertyGroup>
-    
-    <!-- Simple standalone unit tests -->
-    <ItemGroup Condition="$(StrideTestCategories.Contains(';Simple;'))">
-      <UnitTest Include="11-CoreRuntime.Tests\Stride.Core.Tests"/>
-      <UnitTest Include="21-StrideRuntime.Tests\Stride.Shaders.Tests.Windows"/>
-      <UnitTest Include="31-CoreDesign.Tests\Stride.Core.BuildEngine.Tests"/>
-      <UnitTest Include="31-CoreDesign.Tests\Stride.Core.Design.Tests"/>
-      <UnitTest Include="31-CoreDesign.Tests\Stride.Core.Yaml.Tests"/>
-      <UnitTest Include="41-Assets.Tests\Stride.Core.Assets.Quantum.Tests"/>
-      <UnitTest Include="41-Assets.Tests\Stride.Core.Assets.Tests"/>
-      <UnitTest Include="51-Presentation.Tests\Stride.Core.Presentation.Quantum.Tests"/>
-      <UnitTest Include="51-Presentation.Tests\Stride.Core.Presentation.Tests"/>
-      <UnitTest Include="51-Presentation.Tests\Stride.Core.Quantum.Tests"/>
-      <UnitTest Include="61-Editor.Tests\Stride.Core.Assets.Editor.Tests"/>
-      <UnitTest Include="61-Editor.Tests\Stride.GameStudio.Tests"/>
-      <UnitTest Include="71-StrideAssets.Tests\Stride.Assets.Tests2"/>
-    </ItemGroup>
-    
-    <ItemGroup>
-      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Engine.Tests.Windows"/>
-      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Engine.NoAssets.Tests.Windows"/>
-      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.10_0.Windows"/>
-      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.Windows"/>
-      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Navigation.Tests.Windows"/>
-      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Input.Tests.Windows"/>
-      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Particles.Tests.Windows"/>
-      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.Physics.Tests.Windows"/>
-      <UnitTestGame Include="21-StrideRuntime.Tests\Stride.UI.Tests.Windows"/>
-    </ItemGroup>
-
-    <ItemGroup>
-      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.Engine.Tests.Android"/>
-      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.10_0.Android"/>
-      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.Android"/>
-      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.Input.Tests.Android"/>
-      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.Particles.Tests.Android"/>
-      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.Physics.Tests.Android"/>
-      <UnitTestGameAndroid Include="21-StrideRuntime.Tests\Stride.UI.Tests.Android"/>
-    </ItemGroup>
-    
-    <!-- Direct3D11 unit tests -->
-    <ItemGroup Condition="$(StrideTestCategories.Contains(';Game;'))">
-      <UnitTest Include="@(UnitTestGame)"/>
-      <!-- Other graphics platforms don't support compute shaders and tessellation yet -->
-      <UnitTest Include="21-StrideRuntime.Tests\Stride.Graphics.Tests.11_0.Windows"/>
-      <UnitTest Include="21-StrideRuntime.Tests\Stride.Audio.Tests.Windows"/>
-      <UnitTest Include="71-StrideAssets.Tests\Stride.Assets.Tests"/>
-    </ItemGroup>
-
-    <!-- Unit tests for Visual Studio -->
-    <ItemGroup Condition="$(StrideTestCategories.Contains(';VSPackage;'))">
-      <UnitTest Include="91-VisualStudio\Stride.VisualStudio.Package.Tests"/>
-    </ItemGroup>
-
-    <!-- Direct3D12 unit tests -->
-    <ItemGroup Condition="$(StrideTestCategories.Contains(';GameDirect3D12;'))">
-      <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).Direct3D12</Solution></UnitTest>
-    </ItemGroup>
-
-    <!-- OpenGL unit tests -->
-    <ItemGroup Condition="$(StrideTestCategories.Contains(';GameOpenGL;'))">
-      <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).OpenGL</Solution></UnitTest>
-    </ItemGroup>
-
-    <!-- OpenGLES unit tests -->
-    <ItemGroup Condition="$(StrideTestCategories.Contains(';GameOpenGLES;'))">
-      <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).OpenGLES</Solution></UnitTest>
-    </ItemGroup>
-    
-    <!-- Vulkan unit tests -->
-    <ItemGroup Condition="$(StrideTestCategories.Contains(';GameVulkan;'))">
-      <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGame)"><Solution>$(StrideSolution).Vulkan</Solution></UnitTest>
-    </ItemGroup>
-    
-    <!-- Android unit tests -->
-    <ItemGroup Condition="$(StrideTestCategories.Contains(';GameAndroid;'))">
-      <UnitTestPrerequisites Include="@(UnitTestGame)"/>
-      <UnitTest Include="@(UnitTestGameAndroid)"><Solution>$(StrideSolution).Android</Solution></UnitTest> 
-    </ItemGroup>
-    
-    <!-- Samples unit tests -->
-    <ItemGroup Condition="$(StrideTestCategories.Contains(';Samples;'))">
-      <UnitTest Include="72-StrideSamples\Stride.Samples.Tests"/>
-    </ItemGroup>
-    
-    <!-- Compute TargetName and default Solution -->    
-    <ItemGroup>
-      <UnitTestPrerequisites>
-        <!-- Replace . into _ (needed for .sln targets) -->
-        <TargetName>$([System.String]::Copy('%(Identity)').Replace('.','_'))</TargetName>
-        <!-- Default solution -->
-        <Solution Condition="'%(UnitTestPrerequisites.Solution)' == ''">$(StrideSolution)</Solution>
-      </UnitTestPrerequisites>
-      <UnitTest>
-        <!-- Replace . into _ (needed for .sln targets) -->
-        <TargetName>$([System.String]::Copy('%(Identity)').Replace('.','_'))</TargetName>
-        <!-- Default solution -->
-        <Solution Condition="'%(UnitTest.Solution)' == ''">$(StrideSolution)</Solution>
-      </UnitTest>
-    </ItemGroup>
-
-    <!-- Remove artifacts generated during previous run -->
-    <Delete Files="$(MSBuildThisFileDirectory)..\tests\local\**\*.*" />
-    
+    <CreateItem Include="$(StrideTestCategories)">
+      <Output TaskParameter="Include" ItemName="StrideTestCategoriesItem"/>
+    </CreateItem>
     <!-- Restore NuGet packages -->
     <Message Importance="High" Text="Restoring NuGet packages"/>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Condition="'%(UnitTestPrerequisites.Solution)' != ''" Properties="StrideSolution=%(UnitTestPrerequisites.Solution)"/>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Condition="'%(UnitTest.Solution)' != ''" Properties="StrideSolution=%(UnitTest.Solution)"/>
-    
-    <!-- First, build prerequisites -->
-    <Message Condition="'%(UnitTestPrerequisites.Solution)' != ''" Importance="High" Text="Building unit test prerequisites from solution %(UnitTestPrerequisites.Solution).sln: @(UnitTestPrerequisites->'%(TargetName)')"/>
-    <MSBuild Condition="'%(UnitTestPrerequisites.Solution)' != ''" Targets="@(UnitTestPrerequisites->'%(TargetName)')" Projects="%(UnitTestPrerequisites.Solution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms;DeployExtension=true"/>
-
-    <!-- Build unit tests -->
-    <Message Condition="'%(UnitTest.Solution)' != ''" Importance="High" Text="Building unit test from solution %(UnitTest.Solution).sln: @(UnitTest->'%(TargetName)')"/>
-    <MSBuild Condition="'%(UnitTest.Solution)' != ''" Targets="@(UnitTest->'%(TargetName)');$(StrideTestExtraTargets)" Projects="%(Solution).sln" Properties="$(BuildProperties);DeployExtension=true">
-      <Output TaskParameter="TargetOutputs" ItemName="AssembliesToTest" />
-    </MSBuild>
-
-    <!-- Run unit tests -->
-    <MakeDir Directories="$(MSBuildThisFileDirectory)TestResults"/>
-    <ItemGroup>
-      <AssembliesToTestDefault Include="@(AssembliesToTest)" Condition="'%(AssembliesToTest.PlatformTarget)' != 'x86'"/>
-      <AssembliesToTestX86 Include="@(AssembliesToTest)" Condition="'%(AssembliesToTest.PlatformTarget)' == 'x86'"/>
-    </ItemGroup>
-    <Exec Condition="'@(AssembliesToTestDefault)' != ''" Command="&quot;$(XunitRunnerConsolePathDefault)&quot; @(AssembliesToTestDefault->'%(Identity)', ' ')" IgnoreStandardErrorWarningFormat="true"/>
-    <Exec Condition="'@(AssembliesToTestX86)' != ''" Command="&quot;$(XunitRunnerConsolePathX86)&quot; @(AssembliesToTestX86->'%(Identity)', ' ')" IgnoreStandardErrorWarningFormat="true"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileDirectory)Stride.Tests.%(StrideTestCategoriesItem.Identity).slnf" />
+    <!-- Build -->
+    <Message Importance="High" Text="Building unit tests"/>
+    <MSBuild Projects="$(MSBuildThisFileDirectory)Stride.Tests.%(StrideTestCategoriesItem.Identity).slnf" />
+    <!-- Run tests -->
+    <Message Importance="High" Text="Running unit tests"/>
+    <Exec Command="dotnet test Stride.Tests.%(StrideTestCategoriesItem.Identity).slnf --no-build" IgnoreStandardErrorWarningFormat="true"/>
   </Target>
   
   <ItemGroup>
