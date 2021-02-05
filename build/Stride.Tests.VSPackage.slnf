@@ -2,41 +2,7 @@
   "solution": {
     "path": "Stride.sln",
     "projects": [
-      "..\\sources\\assets\\Stride.Core.Assets.Yaml\\Stride.Core.Assets.Yaml.shproj",
-      "..\\sources\\assets\\Stride.Core.Assets\\Stride.Core.Assets.csproj",
-      "..\\sources\\assets\\Stride.Core.Packages\\Stride.Core.Packages.csproj",
-      "..\\sources\\buildengine\\Stride.Core.BuildEngine.Common\\Stride.Core.BuildEngine.Common.csproj",
-      "..\\sources\\core\\Stride.Core.Design\\Stride.Core.Design.csproj",
-      "..\\sources\\core\\Stride.Core.IO\\Stride.Core.IO.csproj",
-      "..\\sources\\core\\Stride.Core.Mathematics\\Stride.Core.Mathematics.csproj",
-      "..\\sources\\core\\Stride.Core.MicroThreading\\Stride.Core.MicroThreading.csproj",
-      "..\\sources\\core\\Stride.Core.Reflection\\Stride.Core.Reflection.csproj",
-      "..\\sources\\core\\Stride.Core.Serialization\\Stride.Core.Serialization.csproj",
-      "..\\sources\\core\\Stride.Core.Tasks\\Stride.Core.Tasks.csproj",
-      "..\\sources\\core\\Stride.Core.Yaml\\Stride.Core.Yaml.csproj",
-      "..\\sources\\core\\Stride.Core\\Stride.Core.csproj",
-      "..\\sources\\engine\\Stride.Audio\\Stride.Audio.csproj",
-      "..\\sources\\engine\\Stride.Engine\\Stride.Engine.csproj",
-      "..\\sources\\engine\\Stride.Games\\Stride.Games.csproj",
-      "..\\sources\\engine\\Stride.Graphics\\Stride.Graphics.csproj",
-      "..\\sources\\engine\\Stride.Input\\Stride.Input.csproj",
-      "..\\sources\\engine\\Stride.Native\\Stride.Native.csproj",
-      "..\\sources\\engine\\Stride.Rendering\\Stride.Rendering.csproj",
-      "..\\sources\\engine\\Stride.Shaders.Compiler\\Stride.Shaders.Compiler.csproj",
-      "..\\sources\\engine\\Stride.Shaders.Parser\\Stride.Shaders.Parser.csproj",
-      "..\\sources\\engine\\Stride.Shaders\\Stride.Shaders.csproj",
-      "..\\sources\\engine\\Stride.Shared\\Refactor\\Stride.Refactor.shproj",
-      "..\\sources\\engine\\Stride.VirtualReality\\Stride.VirtualReality.csproj",
-      "..\\sources\\engine\\Stride\\Stride.csproj",
-      "..\\sources\\shaders\\Irony\\Irony.csproj",
-      "..\\sources\\shaders\\Stride.Core.Shaders\\Stride.Core.Shaders.csproj",
-      "..\\sources\\shared\\Stride.Core.ShellHelper\\Stride.Core.ShellHelper.shproj",
-      "..\\sources\\shared\\Stride.NuGetResolver\\Stride.NuGetResolver.shproj",
-      "..\\sources\\tools\\Stride.Core.VisualStudio\\Stride.Core.VisualStudio.shproj",
-      "..\\sources\\tools\\Stride.VisualStudio.Commands.Interfaces\\Stride.VisualStudio.Commands.Interfaces.csproj",
-      "..\\sources\\tools\\Stride.VisualStudio.Commands\\Stride.VisualStudio.Commands.csproj",
-      "..\\sources\\tools\\Stride.VisualStudio.Package.Tests\\Stride.VisualStudio.Package.Tests.csproj",
-      "..\\sources\\tools\\Stride.VisualStudio.Package\\Stride.VisualStudio.Package.csproj"
+      "..\\sources\\tools\\Stride.VisualStudio.Package.Tests\\Stride.VisualStudio.Package.Tests.csproj"
     ]
   }
 }

@@ -35,6 +35,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="14.0.51103" />
     <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="stdole" Version="7.0.3301">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </PackageReference>
