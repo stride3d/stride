@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 // Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
@@ -1801,6 +1801,48 @@
     </Setter>
   </Style>
 
+  <Style TargetType="ctrl:TimeSpanEditor">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ctrl:TimeSpanEditor">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="2*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="2*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="2*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="3*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ctrl:NumericTextBox Value="{Binding Days, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}" Grid.Column="0"
+                               DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="0"
+                               WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                               WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+            <Label Content=" d " Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="1"/>
+            <ctrl:NumericTextBox Value="{Binding Hours, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}" Grid.Column="2"
+                               DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="0" Maximum="23"
+                               WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                               WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+            <Label Content=" h " Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="3"/>
+            <ctrl:NumericTextBox Value="{Binding Minutes, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}" Grid.Column="4"
+                               DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="0" Maximum="59"
+                               WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                               WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+            <Label Content=" min " Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="5"/>
+            <ctrl:NumericTextBox Value="{Binding Seconds, RelativeSource={RelativeSource Mode=TemplatedParent}}" Grid.Column="6"
+                               DecimalPlaces="3" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="0.000" Maximum="59.999"
+                               WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                               WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+            <Label Content=" s " Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="7"/>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  
   <Color x:Key="TextBoxFocusBrush">#FF374C5C</Color>
 
   <ControlTemplate x:Key="TextBoxTemplate" TargetType="{x:Type TextBox}">
