@@ -16,6 +16,7 @@ namespace Stride.Core.Assets.Quantum
             NodeBuilder.RegisterPrimitiveType(typeof(IReference));
             NodeBuilder.RegisterPrimitiveType(typeof(PropertyKey));
             NodeBuilder.RegisterPrimitiveType(typeof(TimeSpan));
+            NodeBuilder.RegisterPrimitiveType(typeof(DateTime));
             NodeBuilder.RegisterPrimitiveType(typeof(Guid));
             NodeBuilder.RegisterPrimitiveType(typeof(AssetId));
             NodeBuilder.RegisterPrimitiveType(typeof(Color));

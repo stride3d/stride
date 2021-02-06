@@ -820,6 +820,22 @@
     </DataTemplate>
   </view:TypeMatchTemplateProvider>
 
+  <!-- Provider for date time editor -->
+  <view:TypeMatchTemplateProvider x:Key="DateTimePropertyTemplateProvider" Type="{x:Type s:DateTime}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="qvm:NodeViewModel">
+      <sd:DateTimeEditor x:Name="DateTimeEditor" Margin="2"
+                         Value="{Binding NodeValue, Converter={cvt:DifferentValuesToNull}}"
+                         WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
+      </sd:DateTimeEditor>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
+          <Setter TargetName="DateTimeEditor" Property="WatermarkContent" Value="{sd:Localize (Different values)}"/>
+          <Setter TargetName="DateTimeEditor" Property="IsEnabled" Value="False"/>
+        </DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+  </view:TypeMatchTemplateProvider>
+  
   <!-- Provider for string editor -->
   <view:TypeMatchTemplateProvider x:Key="StringPropertyTemplateProvider" Type="{x:Type s:String}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">

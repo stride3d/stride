@@ -182,7 +182,7 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <summary>
-        /// Raised by <see cref="DaysProperty"/>, <see cref="HoursProperty"/>, <see cref="MinutesProperty"/> or <see cref="Seconds"/> when the <see cref="Days"/>, <see cref="Hours"/>, <see cref="Minutes"/> or <see cref="Seconds"/> dependency property is modified.
+        /// Raised by <see cref="DaysProperty"/>, <see cref="HoursProperty"/>, <see cref="MinutesProperty"/> or <see cref="SecondsProperty"/> when the <see cref="Days"/>, <see cref="Hours"/>, <see cref="Minutes"/> or <see cref="Seconds"/> dependency property is modified.
         /// </summary>
         /// <param name="sender">The dependency object where the event handler is attached.</param>
         /// <param name="e">The event data.</param>

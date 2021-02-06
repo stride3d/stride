@@ -37,6 +37,7 @@
 
   <ItemGroup>
     <Resource Include="Resources\Cursors\CursorDrag.cur" />
+    <Resource Include="Resources\Images\calendar--pencil.png" />
     <Resource Include="Resources\Images\close_window.png" />
     <Resource Include="Resources\Images\error-32.png" />
     <Resource Include="Resources\Images\info-32.png" />
