@@ -102,7 +102,7 @@ namespace Stride.Core.Presentation.Controls
                 SetCurrentValue(DaysProperty, value.Value.Days);
                 SetCurrentValue(HoursProperty, value.Value.Hours);
                 SetCurrentValue(MinutesProperty, value.Value.Minutes);
-                SetCurrentValue(SecondsProperty, value.Value.Seconds + value.Value.Milliseconds / 1000.0);
+                SetCurrentValue(SecondsProperty, (double)(value.Value.Ticks % TimeSpan.TicksPerMinute) / TimeSpan.TicksPerSecond);
             }
         }
 
@@ -112,14 +112,16 @@ namespace Stride.Core.Presentation.Controls
         /// <param name="property">The component property from which to update the <see cref="Value"/>.</param>
         private TimeSpan? UpdateValueFromComponent(DependencyProperty property)
         {
+            // NOTE: Precision must be on OS tick level.
+
             if (property == DaysProperty)
-                return Days.HasValue && Value.HasValue ? (TimeSpan?)new TimeSpan(Days.Value, Value.Value.Hours, Value.Value.Minutes, Value.Value.Seconds, Value.Value.Milliseconds) : null;
+                return Days.HasValue && Value.HasValue ? (TimeSpan?)new TimeSpan(Days.Value * TimeSpan.TicksPerDay + Value.Value.Hours * TimeSpan.TicksPerHour + Value.Value.Minutes * TimeSpan.TicksPerMinute + Value.Value.Ticks % TimeSpan.TicksPerMinute) : null;
             if (property == HoursProperty)
-                return Hours.HasValue && Value.HasValue ? (TimeSpan?)new TimeSpan(Value.Value.Days, Hours.Value, Value.Value.Minutes, Value.Value.Seconds, Value.Value.Milliseconds) : null;
+                return Hours.HasValue && Value.HasValue ? (TimeSpan?)new TimeSpan(Value.Value.Days * TimeSpan.TicksPerDay + Hours.Value * TimeSpan.TicksPerHour + Value.Value.Minutes * TimeSpan.TicksPerMinute + Value.Value.Ticks % TimeSpan.TicksPerMinute) : null;
             if (property == MinutesProperty)
-                return Minutes.HasValue && Value.HasValue ? (TimeSpan?)new TimeSpan(Value.Value.Days, Value.Value.Hours, Minutes.Value, Value.Value.Seconds, Value.Value.Milliseconds) : null;
+                return Minutes.HasValue && Value.HasValue ? (TimeSpan?)new TimeSpan(Value.Value.Days * TimeSpan.TicksPerDay + Value.Value.Hours * TimeSpan.TicksPerHour + Minutes.Value * TimeSpan.TicksPerMinute + Value.Value.Ticks % TimeSpan.TicksPerMinute) : null;
             if (property == SecondsProperty)
-                return Seconds.HasValue && Value.HasValue ? (TimeSpan?)new TimeSpan(Value.Value.Days, Value.Value.Hours, Value.Value.Minutes, (int)Seconds.Value, (int)((Seconds.Value % 1.0) * 1000.0)) : null;
+                return Seconds.HasValue && Value.HasValue ? (TimeSpan?)new TimeSpan(Value.Value.Days * TimeSpan.TicksPerDay + Value.Value.Hours * TimeSpan.TicksPerHour + Value.Value.Minutes * TimeSpan.TicksPerMinute + (long)(Seconds.Value * TimeSpan.TicksPerSecond)) : null;
 
             throw new ArgumentException("Property unsupported by method UpdateValueFromComponent.");
         }

@@ -145,7 +145,7 @@ namespace Stride.Core.Presentation.Controls
                 SetCurrentValue(DayProperty, value.Value.Day);
                 SetCurrentValue(HourProperty, value.Value.Hour);
                 SetCurrentValue(MinuteProperty, value.Value.Minute);
-                SetCurrentValue(SecondProperty, value.Value.Second + value.Value.Millisecond / 1000.0);
+                SetCurrentValue(SecondProperty, (double)(value.Value.Ticks % TimeSpan.TicksPerMinute) / TimeSpan.TicksPerSecond);
             }
         }
 
@@ -155,18 +155,55 @@ namespace Stride.Core.Presentation.Controls
         /// <param name="property">The component property from which to update the <see cref="Value"/>.</param>
         private DateTime? UpdateValueFromComponent(DependencyProperty property)
         {
+            // NOTE: Precision must be on OS tick level.
+
             if (property == YearProperty)
-                return Year.HasValue && Value.HasValue ? (DateTime?)new DateTime(Year.Value, Value.Value.Month, Math.Min(DateTime.DaysInMonth(Year.Value, Value.Value.Month), Value.Value.Day), Value.Value.Hour, Value.Value.Minute, Value.Value.Second, Value.Value.Millisecond) : null;
+            {
+                if (!Year.HasValue || !Value.HasValue)
+                    return null;
+                long ticks = new DateTime(Year.Value, Value.Value.Month, Math.Min(DateTime.DaysInMonth(Year.Value, Value.Value.Month), Value.Value.Day), Value.Value.Hour, Value.Value.Minute, 0).Ticks;
+                return new DateTime(ticks + Value.Value.Ticks % TimeSpan.TicksPerMinute);
+            }
+
             if (property == MonthProperty)
-                return Month.HasValue && Value.HasValue ? (DateTime?)new DateTime(Value.Value.Year, Month.Value, Math.Min(DateTime.DaysInMonth(Value.Value.Year, Month.Value), Value.Value.Day), Value.Value.Hour, Value.Value.Minute, Value.Value.Second, Value.Value.Millisecond) : null;
+            {
+                if (!Month.HasValue || !Value.HasValue)
+                    return null;
+                long ticks = new DateTime(Value.Value.Year, Month.Value, Math.Min(DateTime.DaysInMonth(Value.Value.Year, Month.Value), Value.Value.Day), Value.Value.Hour, Value.Value.Minute, 0).Ticks;
+                return new DateTime(ticks + Value.Value.Ticks % TimeSpan.TicksPerMinute);
+            }
+
             if (property == DayProperty)
-                return Day.HasValue && Value.HasValue ? (DateTime?)new DateTime(Value.Value.Year, Value.Value.Month, Math.Min(DateTime.DaysInMonth(Value.Value.Year, Value.Value.Month), Day.Value), Value.Value.Hour, Value.Value.Minute, Value.Value.Second, Value.Value.Millisecond) : null;
+            {
+                if (!Day.HasValue || !Value.HasValue)
+                    return null;
+                long ticks = new DateTime(Value.Value.Year, Value.Value.Month, Math.Min(DateTime.DaysInMonth(Value.Value.Year, Value.Value.Month), Day.Value), Value.Value.Hour, Value.Value.Minute, 0).Ticks;
+                return new DateTime(ticks + Value.Value.Ticks % TimeSpan.TicksPerMinute);
+            }
+
             if (property == HourProperty)
-                return Hour.HasValue && Value.HasValue ? (DateTime?)new DateTime(Value.Value.Year, Value.Value.Month, Value.Value.Day, Hour.Value, Value.Value.Minute, Value.Value.Second, Value.Value.Millisecond) : null;
+            {
+                if (!Hour.HasValue || !Value.HasValue)
+                    return null;
+                long ticks = new DateTime(Value.Value.Year, Value.Value.Month, Value.Value.Day, Hour.Value, Value.Value.Minute, 0).Ticks;
+                return new DateTime(ticks + Value.Value.Ticks % TimeSpan.TicksPerMinute);
+            }
+
             if (property == MinuteProperty)
-                return Minute.HasValue && Value.HasValue ? (DateTime?)new DateTime(Value.Value.Year, Value.Value.Month, Value.Value.Day, Value.Value.Hour, Minute.Value, Value.Value.Second, Value.Value.Millisecond) : null;
+            {
+                if (!Minute.HasValue || !Value.HasValue)
+                    return null;
+                long ticks = new DateTime(Value.Value.Year, Value.Value.Month, Value.Value.Day, Value.Value.Hour, Minute.Value, 0).Ticks;
+                return new DateTime(ticks + Value.Value.Ticks % TimeSpan.TicksPerMinute);
+            }
+            
             if (property == SecondProperty)
-                return Second.HasValue && Value.HasValue ? (DateTime?)new DateTime(Value.Value.Year, Value.Value.Month, Value.Value.Day, Value.Value.Hour, Value.Value.Minute, (int)Second.Value, (int)((Second.Value % 1.0) * 1000.0)) : null;
+            {
+                if (!Second.HasValue || !Value.HasValue)
+                    return null;
+                long ticks = Value.Value.Ticks - (Value.Value.Ticks % TimeSpan.TicksPerMinute);
+                return new DateTime(ticks + (long)(Second.Value * TimeSpan.TicksPerSecond));
+            }
 
             throw new ArgumentException("Property unsupported by method UpdateValueFromComponent.");
         }
