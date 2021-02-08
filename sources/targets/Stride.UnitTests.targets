@@ -17,6 +17,15 @@
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideGraphicsApi>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+  </ItemGroup>
+
   <Import Project="$(MSBuildThisFileDirectory)Stride.PackageVersion.targets"/>
 
   <PropertyGroup>
@@ -34,10 +43,6 @@
          However, that means that Tests dependencies must be compiled properly on Windows (should be the case usually).
     -->
     <StrideCompileAssetOptions>--compile-property:BuildProjectReferences=false</StrideCompileAssetOptions>
-
-    <!-- Workaround for solution dependencies with incompatible frameworks: https://github.com/Microsoft/msbuild/issues/2661#issuecomment-338808156 -->
-    <AddSyntheticProjectReferencesForSolutionDependencies>false</AddSyntheticProjectReferencesForSolutionDependencies>
-
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' != 'true'">

@@ -53,6 +53,26 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\core\Stride.Core.Tasks\Stride.Core.Tasks.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\Stride.VisualStudio.Commands\Stride.VisualStudio.Commands.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\Stride.VisualStudio.Package\Stride.VisualStudio.Package.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="..\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />

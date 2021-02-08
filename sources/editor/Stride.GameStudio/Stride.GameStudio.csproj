@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="..\..\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems" Label="Shared" />
@@ -37,7 +37,7 @@
     <PackageReference Include="Stride.Metrics" Version="1.0.3" />
     <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
     <PackageReference Include="Mono.Cecil" Version="0.11.2" />
-    <Reference Include="Stride.Core.AssemblyProcessor" >
+    <Reference Include="Stride.Core.AssemblyProcessor">
       <HintPath Condition="$(TargetFramework.StartsWith('net5'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
     </Reference>
   </ItemGroup>
@@ -62,6 +62,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Debugger\Stride.Debugger.csproj" />
     <ProjectReference Include="..\..\tools\Stride.ConnectionRouter\Stride.ConnectionRouter.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.PackageInstall\Stride.PackageInstall.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
     <ProjectReference Include="..\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
     <ProjectReference Include="..\..\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj" IncludeAssets="Build" />
   </ItemGroup>

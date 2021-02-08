@@ -15,6 +15,14 @@
   <Import Project="$(StrideSdkTargets)" />
 
   <ItemGroup>
+    <ProjectReference Include="..\..\core\Stride.Core.Tasks\Stride.Core.Tasks.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="ThisPackageVersion.PackageBuild.cs" />
     <Compile Include="ThisPackageVersion.DevBuild.cs" />
   </ItemGroup>

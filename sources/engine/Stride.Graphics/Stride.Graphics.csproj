@@ -50,6 +50,12 @@
     <None Include="..\..\targets\Stride.GraphicsApi.PackageReference.targets" PackagePath="buildTransitive\" Pack="true" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\core\Stride.Core.Tasks\Stride.Core.Tasks.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework;StrideGraphicsApi</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
     <ProjectReference Include="..\Stride.Native\Stride.Native.csproj" />
     <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
     <ProjectReference Include="..\Stride\Stride.csproj" />

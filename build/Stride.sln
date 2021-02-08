@@ -83,46 +83,22 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "71-StrideAssets.Tests", "71-StrideAssets.Tests", "{A47B451D-3162-410F-BAF7-C650C4B7A4B0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.GameStudio", "..\sources\editor\Stride.GameStudio\Stride.GameStudio.csproj", "{2FCA2D8B-B10F-4DCA-9847-4221F74BA586}"
-	ProjectSection(ProjectDependencies) = postProject
-		{BD176B28-49CD-4FAD-A430-CDBCF1C2E514} = {BD176B28-49CD-4FAD-A430-CDBCF1C2E514}
-		{E25E7778-0B2F-4A0B-BCD6-1DE95320B531} = {E25E7778-0B2F-4A0B-BCD6-1DE95320B531}
-		{550C1B7C-B7AD-46DF-ACF3-C36AEF35D5FF} = {550C1B7C-B7AD-46DF-ACF3-C36AEF35D5FF}
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine", "..\sources\engine\Stride.Engine\Stride.Engine.csproj", "{C121A566-555E-42B9-9B0A-1696529A9088}"
-	ProjectSection(ProjectDependencies) = postProject
-		{F2D52EDB-BC17-4243-B06D-33CD20F87A7F} = {F2D52EDB-BC17-4243-B06D-33CD20F87A7F}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics", "..\sources\engine\Stride.Graphics\Stride.Graphics.csproj", "{FB06C76A-6BB7-40BE-9AFA-FEC13B045FB5}"
-	ProjectSection(ProjectDependencies) = postProject
-		{7C67FF28-1B9E-4F13-8BDA-B833D588BC6A} = {7C67FF28-1B9E-4F13-8BDA-B833D588BC6A}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.Tests.Windows", "..\sources\engine\Stride.Engine.Tests\Stride.Engine.Tests.Windows.csproj", "{A8F8D125-7A22-489F-99BC-9A02F545A17F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Input.Tests.Windows", "..\sources\engine\Stride.Input.Tests\Stride.Input.Tests.Windows.csproj", "{01700344-CF44-482C-BEBC-60213B0F844C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Tests", "..\sources\core\Stride.Core.Tests\Stride.Core.Tests.csproj", "{5AA408BA-E766-453E-B661-E3D7EC46E2A6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Stride.Importer.FBX", "..\sources\tools\Stride.Importer.FBX\Stride.Importer.FBX.vcxproj", "{0467D515-FD66-4B8A-A128-CB642C2ED03F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Shaders", "..\sources\shaders\Stride.Core.Shaders\Stride.Core.Shaders.csproj", "{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{5210FB81-B807-49BB-AF0D-31FB6A83A572} = {5210FB81-B807-49BB-AF0D-31FB6A83A572}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation", "..\sources\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj", "{47AFCC2E-E9F0-47D6-9D75-9E646546A92B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{5210FB81-B807-49BB-AF0D-31FB6A83A572} = {5210FB81-B807-49BB-AF0D-31FB6A83A572}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Presentation.Tests", "..\sources\presentation\Stride.Core.Presentation.Tests\Stride.Core.Presentation.Tests.csproj", "{C223FCD7-CDCC-4943-9E11-9C2CC8FA9FC4}"
 EndProject
@@ -141,9 +117,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.ProjectGenerator", "..\sources\tools\Stride.ProjectGenerator\Stride.ProjectGenerator.csproj", "{4B299721-18EA-4B6D-AFD5-2D6E188B97BD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Audio.Tests.Windows", "..\sources\engine\Stride.Audio.Tests\Stride.Audio.Tests.Windows.csproj", "{7AF4B563-AAD3-42FF-B91E-84B9D34D904A}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assimp", "..\sources\tools\Stride.Assimp\Stride.Assimp.csproj", "{F61D86B5-7C3D-4441-957D-A0A6D2FA69CA}"
 EndProject
@@ -156,9 +129,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core", "..\sources\core\Stride.Core\Stride.Core.csproj", "{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Mathematics", "..\sources\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj", "{1677B922-CCF0-44DE-B57E-1CDD3D2B8E8A}"
-	ProjectSection(ProjectDependencies) = postProject
-		{5210FB81-B807-49BB-AF0D-31FB6A83A572} = {5210FB81-B807-49BB-AF0D-31FB6A83A572}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Serialization", "..\sources\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj", "{5210FB81-B807-49BB-AF0D-31FB6A83A572}"
 EndProject
@@ -181,9 +151,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Compiler", "..\sources\engine\Stride.Shaders.Compiler\Stride.Shaders.Compiler.csproj", "{E8B3553F-A79F-4E50-B75B-ACEE771C320C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Shaders.Tests.Windows", "..\sources\engine\Stride.Shaders.Tests\Stride.Shaders.Tests.Windows.csproj", "{1BE90177-FE4D-4519-839E-7EB7D78AC973}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Input", "..\sources\engine\Stride.Input\Stride.Input.csproj", "{84DEB606-77ED-49CD-9AED-D2B13C1F5A1E}"
 EndProject
@@ -200,33 +167,18 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.FixProjectReferences", "..\sources\tools\Stride.FixProjectReferences\Stride.FixProjectReferences.csproj", "{7DBC5A0B-76F5-4D9E-9798-540DA214099C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets.Tests", "..\sources\engine\Stride.Assets.Tests\Stride.Assets.Tests.csproj", "{117BF9F8-D2D9-4D32-9702-251C3E038090}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets.Models", "..\sources\engine\Stride.Assets.Models\Stride.Assets.Models.csproj", "{C904D2C6-5A15-4E0B-8432-33967E1735AA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Quantum.Tests", "..\sources\presentation\Stride.Core.Quantum.Tests\Stride.Core.Quantum.Tests.csproj", "{49AAA22D-D1C8-4E0F-82E8-F462D5442463}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.UI", "..\sources\engine\Stride.UI\Stride.UI.csproj", "{BB9DEEEF-F18C-40D8-B016-6434CC71B8C3}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C121A566-555E-42B9-9B0A-1696529A9088} = {C121A566-555E-42B9-9B0A-1696529A9088}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.UI.Tests.Windows", "..\sources\engine\Stride.UI.Tests\Stride.UI.Tests.Windows.csproj", "{E7B1B17F-D04B-4978-B504-A6BB3EE846C9}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Editor", "..\sources\editor\Stride.Editor\Stride.Editor.csproj", "{16E02D45-5530-4617-97DC-BC3BDF77DE2C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{73AA8A18-15C4-405B-BBF4-5D41C1CE44AD} = {73AA8A18-15C4-405B-BBF4-5D41C1CE44AD}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.GameStudio.Tests", "..\sources\editor\Stride.GameStudio.Tests\Stride.GameStudio.Tests.csproj", "{0EA748AF-E1DC-4788-BA50-8BABD56F220C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Design", "..\sources\core\Stride.Core.Design\Stride.Core.Design.csproj", "{66581DAD-70AD-4475-AE47-C6C0DF1EC5E2}"
 EndProject
@@ -239,9 +191,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.ProjectTemplating", "..\sources\tools\Stride.Core.ProjectTemplating\Stride.Core.ProjectTemplating.csproj", "{2E2382F7-9576-49F0-AE43-93AFD7DB2368}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets.Presentation", "..\sources\editor\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj", "{550C1B7C-B7AD-46DF-ACF3-C36AEF35D5FF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{EFD2472E-B0E1-442A-9057-BBEA2517064B} = {EFD2472E-B0E1-442A-9057-BBEA2517064B}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.ProjectTemplating.Tests", "..\sources\tools\Stride.Core.ProjectTemplating.Tests\Stride.Core.ProjectTemplating.Tests.csproj", "{862C7C39-8E2B-4F18-88E9-ACD6EDF818CD}"
 EndProject
@@ -272,19 +221,10 @@ EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Core.MostRecentlyUsedFiles", "..\sources\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.shproj", "{9AC6D791-811E-4D6A-B08E-93F0093EF268}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.Windows", "..\sources\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.Windows.csproj", "{9DE0AA56-0DE7-4ADC-BAAC-CD38B7139EBC}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.10_0.Windows", "..\sources\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.Windows.csproj", "{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Graphics.Tests.11_0.Windows", "..\sources\engine\Stride.Graphics.Tests.11_0\Stride.Graphics.Tests.11_0.Windows.csproj", "{7CA99C7B-E3A2-4DE6-9D6C-314AE39BBBB7}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.SamplesTestServer", "..\sources\tools\Stride.SamplesTestServer\Stride.SamplesTestServer.csproj", "{75D71310-ECF7-4592-9E35-3FE540040982}"
 EndProject
@@ -295,14 +235,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Native", "..\sources\engine\Stride.Native\Stride.Native.csproj", "{1DBBC150-F085-43EF-B41D-27C72D133770}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Assets.Tests2", "..\sources\engine\Stride.Assets.Tests2\Stride.Assets.Tests2.csproj", "{370ADF53-DFFA-461E-B72A-1302C0A0DE00}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Particles.Tests.Windows", "..\sources\engine\Stride.Particles.Tests\Stride.Particles.Tests.Windows.csproj", "{33CC6216-3F30-4B5A-BB29-C5B47EFFA713}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.Refactor", "..\sources\engine\Stride.Shared\Refactor\Stride.Refactor.shproj", "{B33E576F-2279-4BFC-A438-D9B84343B56B}"
 EndProject
@@ -321,9 +255,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Reflection", "..\sources\core\Stride.Core.Reflection\Stride.Core.Reflection.csproj", "{0BE7189B-F04E-4C0C-BBE9-F347C0A59FEE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Physics.Tests.Windows", "..\sources\engine\Stride.Physics.Tests\Stride.Physics.Tests.Windows.csproj", "{4F0E7E04-F067-4CE8-B8C8-1105F319D123}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Assets.Quantum", "..\sources\assets\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj", "{1123EAAD-3FE3-4FD8-8DF6-4DDCF13EFCFB}"
 EndProject
@@ -342,9 +273,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Navigation", "..\sources\engine\Stride.Navigation\Stride.Navigation.csproj", "{FBE1FA7B-E699-4BB2-9C8F-41F4C9F3F088}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Navigation.Tests.Windows", "..\sources\engine\Stride.Navigation.Tests\Stride.Navigation.Tests.Windows.csproj", "{1AC5A693-3CC4-4450-AA76-70DA4F0C29DF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Mathematics.Tests", "..\sources\core\Stride.Core.Mathematics.Tests\Stride.Core.Mathematics.Tests.csproj", "{A9A83BE5-271B-4347-9C4D-340FC3BD0B2B}"
 EndProject
@@ -355,11 +283,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.PackageInstall", "..\sources\tools\Stride.VisualStudio.PackageInstall\Stride.VisualStudio.PackageInstall.csproj", "{AF6049CC-E60E-4174-9AB6-9AA282DE3A31}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Package.Tests", "..\sources\tools\Stride.VisualStudio.Package.Tests\Stride.VisualStudio.Package.Tests.csproj", "{5BFE4386-3C42-4118-96C8-4B68441F1661}"
-	ProjectSection(ProjectDependencies) = postProject
-		{7C67FF28-1B9E-4F13-8BDA-B833D588BC6A} = {7C67FF28-1B9E-4F13-8BDA-B833D588BC6A}
-		{E136B568-3E3F-498F-A8B4-2877B7768560} = {E136B568-3E3F-498F-A8B4-2877B7768560}
-		{0BD41ADD-2704-4A77-A9AB-15460A2ABDC6} = {0BD41ADD-2704-4A77-A9AB-15460A2ABDC6}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Core.Translation", "..\sources\core\Stride.Core.Translation\Stride.Core.Translation.csproj", "{6A7B231E-36AA-4647-8C1A-FB1540ABC813}"
 EndProject
@@ -390,17 +313,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "72-StrideSamples", "72-StrideSamples", "{75608B5C-1C03-4B38-810E-14EED5165E59}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Samples.Tests", "..\samples\Tests\Stride.Samples.Tests.csproj", "{2FC40214-A4AA-45DC-9C93-72ED800C40B0}"
-	ProjectSection(ProjectDependencies) = postProject
-		{75D71310-ECF7-4592-9E35-3FE540040982} = {75D71310-ECF7-4592-9E35-3FE540040982}
-		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
-	EndProjectSection
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Stride.NuGetResolver", "..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.shproj", "{00B72ED7-00E9-47F7-868D-8162027CD068}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Samples.Templates", "..\sources\editor\Stride.Samples.Templates\Stride.Samples.Templates.csproj", "{040F754C-17F4-4B5F-B974-93F1E39D107F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{7C67FF28-1B9E-4F13-8BDA-B833D588BC6A} = {7C67FF28-1B9E-4F13-8BDA-B833D588BC6A}
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fr", "fr", "{62E9A8E4-79AF-4081-84D5-FEC5A0B28598}"
 	ProjectSection(SolutionItems) = preProject
