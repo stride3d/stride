@@ -1,6 +1,6 @@
 // Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_PLATFORM_DESKTOP || STRIDE_GRAPHICS_API_DIRECT3D // Need SharpDX
+#if STRIDE_PLATFORM_DESKTOP
 using System;
 using System.Collections.Generic;
 using System.Linq;

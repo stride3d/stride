@@ -120,7 +120,7 @@ namespace Stride.Rendering.LightProbes
         static BowyerWatsonTetrahedralization()
         {
             // TODO: Add native to Stride.Engine?
-            Core.NativeLibrary.PreloadLibrary(NativeInvoke.Library, typeof(NativeInvoke));
+            NativeLibraryHelper.PreloadLibrary(NativeInvoke.Library, typeof(NativeInvoke));
             exactinit();
         }
 

@@ -1,11 +1,11 @@
 // Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Collections.Generic;
-using Stride.Core.Annotations;
 #if STRIDE_PLATFORM_DESKTOP
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Stride.Core.Annotations;
 
 namespace Stride.Core.Diagnostics
 {
@@ -45,7 +45,7 @@ namespace Stride.Core.Diagnostics
             }
         }
 
-        public static readonly bool IsAvailable = NativeLibrary.LoadLibrary(VTune2015DllName) != IntPtr.Zero;
+        public static readonly bool IsAvailable = NativeLibrary.Load(VTune2015DllName) != IntPtr.Zero;
 
         public static Event CreateEvent([NotNull] string eventName)
         {

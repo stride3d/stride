@@ -24,6 +24,7 @@
 using System;
 using OpenTK;
 using OpenTK.Graphics;
+using Stride.Core;
 using Stride.Graphics.OpenGL;
 
 namespace Stride.Games
@@ -109,7 +110,7 @@ namespace Stride.Games
 #if STRIDE_GRAPHICS_API_OPENGL || STRIDE_GRAPHICS_API_OPENGLES
                 // Preload proper SDL native library (depending on CPU type)
                 // This is for OpenGL ES on desktop
-                Core.NativeLibrary.PreloadLibrary("SDL2.dll", typeof(GameContextOpenTK));
+                NativeLibraryHelper.PreloadLibrary("SDL2.dll", typeof(GameContextOpenTK));
 #endif
 
                 var gameWindow = new OpenTK.GameWindow(requestedWidth, requestedHeight, graphicMode, GameContext.ProductName, GameWindowFlags.Default, DisplayDevice.Default, versionMajor, versionMinor,

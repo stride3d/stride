@@ -33,7 +33,7 @@
   <Choose>
     <When Condition=" '$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12' ">
       <ItemGroup>
-        <StrideNativeLib Include="..\..\..\deps\OpenVR\$(StridePlatform)\**\openvr_api.*">
+        <StrideNativeLib Include="..\..\..\deps\OpenVR\$(StridePlatformDeps)\**\openvr_api.*">
           <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
           <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

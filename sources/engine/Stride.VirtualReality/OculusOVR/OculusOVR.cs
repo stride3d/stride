@@ -14,7 +14,7 @@ namespace Stride.VirtualReality
     {
         static OculusOvr()
         {
-            Core.NativeLibrary.PreloadLibrary(NativeInvoke.Library, typeof(OculusOvr));
+            NativeLibraryHelper.PreloadLibrary(NativeInvoke.Library, typeof(OculusOvr));
         }
 
         [SuppressUnmanagedCodeSecurity]

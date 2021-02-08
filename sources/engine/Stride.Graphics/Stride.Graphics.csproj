@@ -18,7 +18,7 @@
   <Choose>
     <When Condition="$(StrideUI.Contains('SDL'))">
       <ItemGroup>
-        <StrideNativeLib Include="..\..\..\deps\SDL2\$(StridePlatform)\**\*SDL2*">
+        <StrideNativeLib Include="..\..\..\deps\SDL2\$(StridePlatformDeps)\**\*SDL2*">
           <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
           <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -26,15 +26,15 @@
       </ItemGroup>
     </When>
   </Choose>
-  <ItemGroup Condition=" '$(StridePlatform)' == 'macOS' Or '$(StrideGraphicsApi)' == 'Vulkan' ">
-    <StrideNativeLib Include="..\..\..\deps\MoltenVK\$(StridePlatform)\**\*.*">
+  <ItemGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
+    <StrideNativeLib Include="..\..\..\deps\MoltenVK\$(StridePlatformDeps)\**\*.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>
-    <StrideNativeLib Include="..\..\..\deps\freetype\$(StridePlatform)\**\*.*">
+    <StrideNativeLib Include="..\..\..\deps\freetype\$(StridePlatformDeps)\**\*.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -37,11 +37,11 @@ namespace Stride.TextureConverter
         static TextureTool()
         {
             var type = typeof(TextureTool);
-            NativeLibrary.PreloadLibrary("DxtWrapper.dll", type);
-            NativeLibrary.PreloadLibrary("PVRTexLib.dll", type);
-            NativeLibrary.PreloadLibrary("PvrttWrapper.dll", type);
-            NativeLibrary.PreloadLibrary("FreeImage.dll", type);
-            NativeLibrary.PreloadLibrary("FreeImageNET.dll", type);
+            NativeLibraryHelper.PreloadLibrary("DxtWrapper.dll", type);
+            NativeLibraryHelper.PreloadLibrary("PVRTexLib.dll", type);
+            NativeLibraryHelper.PreloadLibrary("PvrttWrapper.dll", type);
+            NativeLibraryHelper.PreloadLibrary("FreeImage.dll", type);
+            NativeLibraryHelper.PreloadLibrary("FreeImageNET.dll", type);
         }
 
         /// <summary>

@@ -21,6 +21,11 @@
     <StridePlatform Condition=" '$(StridePlatform)' == '' ">Windows</StridePlatform>
 
     <StridePlatformFullName Condition="'$(StridePlatformFullName)' == ''">$(StridePlatform)</StridePlatformFullName>
+
+    <StridePlatformDeps Condition=" $(TargetFramework.StartsWith('net')) ">dotnet</StridePlatformDeps>
+    <StridePlatformDeps Condition=" $(TargetFramework.StartsWith('uap10.0')) ">UWP</StridePlatformDeps>
+    <StridePlatformDeps Condition=" '$(TargetFramework)' == 'monoandroid81' ">Android</StridePlatformDeps>
+    <StridePlatformDeps Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</StridePlatformDeps>
   </PropertyGroup>
 
   <!--Import Local Pre Settings for the solution being loaded -->

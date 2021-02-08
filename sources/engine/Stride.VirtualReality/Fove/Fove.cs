@@ -13,7 +13,7 @@ namespace Stride.VirtualReality
     {
         static Fove()
         {
-            Core.NativeLibrary.PreloadLibrary(NativeInvoke.Library, typeof(Fove));
+            NativeLibraryHelper.PreloadLibrary(NativeInvoke.Library, typeof(Fove));
         }
 
         [SuppressUnmanagedCodeSecurity]

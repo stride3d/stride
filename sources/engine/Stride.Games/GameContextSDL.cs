@@ -1,6 +1,7 @@
 // Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_UI_SDL
+using Stride.Core;
 using Stride.Graphics.SDL;
 
 namespace Stride.Games
@@ -13,7 +14,7 @@ namespace Stride.Games
         static GameContextSDL()
         {
             // Preload proper SDL native library (depending on CPU type)
-            Core.NativeLibrary.PreloadLibrary("SDL2.dll", typeof(Window));
+            NativeLibraryHelper.PreloadLibrary("SDL2.dll", typeof(Window));
         }
 
         /// <inheritDoc/>

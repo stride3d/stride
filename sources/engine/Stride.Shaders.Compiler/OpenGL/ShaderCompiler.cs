@@ -115,7 +115,22 @@ namespace Stride.Shaders.Compiler.OpenGL
                 File.WriteAllBytes(inputFileName, Encoding.ASCII.GetBytes(shader));
 
                 // Run shader compiler
-                var filename = Platform.Type == PlatformType.Windows ? "glslangValidator.exe" : "glslangValidator";
+                string filename;
+                switch (Platform.Type)
+                {
+                    case PlatformType.Windows:
+                    case PlatformType.UWP:
+                        filename = @"win-x64\glslangValidator.exe";
+                        break;
+                    case PlatformType.Linux:
+                        filename = @"linux-x64\glslangValidator";
+                        break;
+                    case PlatformType.macOS:
+                        filename = @"osx-x64\glslangValidator";
+                        break;
+                    default:
+                        throw new PlatformNotSupportedException();
+                }
                 ShellHelper.RunProcessAndRedirectToLogger(filename, $"-V -o {outputFileName} {inputFileName}", null, shaderBytecodeResult);
 
                 if (!File.Exists(outputFileName))

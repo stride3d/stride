@@ -76,13 +76,13 @@ namespace Stride.Video.FFmpeg
             if (Platform.Type == PlatformType.Windows)
             {
                 var type = typeof(FFmpegUtils);
-                Core.NativeLibrary.PreloadLibrary("avutil-55", type);
-                Core.NativeLibrary.PreloadLibrary("swresample-2", type);
-                Core.NativeLibrary.PreloadLibrary("avcodec-57", type);
-                Core.NativeLibrary.PreloadLibrary("avformat-57", type);
-                Core.NativeLibrary.PreloadLibrary("swscale-4", type);
-                Core.NativeLibrary.PreloadLibrary("avfilter-6", type);
-                Core.NativeLibrary.PreloadLibrary("avdevice-57", type);
+                NativeLibraryHelper.PreloadLibrary("avutil-55", type);
+                NativeLibraryHelper.PreloadLibrary("swresample-2", type);
+                NativeLibraryHelper.PreloadLibrary("avcodec-57", type);
+                NativeLibraryHelper.PreloadLibrary("avformat-57", type);
+                NativeLibraryHelper.PreloadLibrary("swscale-4", type);
+                NativeLibraryHelper.PreloadLibrary("avfilter-6", type);
+                NativeLibraryHelper.PreloadLibrary("avdevice-57", type);
             }
             else
             {

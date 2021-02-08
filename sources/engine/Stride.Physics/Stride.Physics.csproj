@@ -17,7 +17,7 @@
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
   <ItemGroup>
-    <StrideNativeLib Include="..\..\..\deps\BulletPhysics\$(StridePlatform)\**\libbulletc.*">
+    <StrideNativeLib Include="..\..\..\deps\BulletPhysics\$(StridePlatformDeps)\**\libbulletc.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </StrideNativeLib>
     <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="..\..\..\deps\BulletPhysics\BulletSharp.NetStandard.dll.config">

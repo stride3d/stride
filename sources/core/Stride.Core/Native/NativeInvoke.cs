@@ -21,7 +21,7 @@ namespace Stride.Core.Native
 
         static NativeInvoke()
         {
-            NativeLibrary.PreloadLibrary("libcore", typeof(NativeInvoke));
+            NativeLibraryHelper.PreloadLibrary("libcore", typeof(NativeInvoke));
         }
 
         /// <summary>

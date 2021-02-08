@@ -15,7 +15,7 @@ namespace Stride.VirtualReality
 
         internal static void PreLoad()
         {
-            NativeLibrary.PreloadLibrary("libstridevr", typeof(NativeInvoke));
+            NativeLibraryHelper.PreloadLibrary("libstridevr", typeof(NativeInvoke));
         }
 
         static NativeInvoke()
