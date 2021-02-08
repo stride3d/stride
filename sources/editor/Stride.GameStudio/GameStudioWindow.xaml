@@ -876,7 +876,16 @@
 
                     <Border Grid.Row="6" Background="{StaticResource ToolBarBackgroundBrush}">
                       <DockPanel>
-                        <TextBlock Margin="4" DockPanel.Dock="Top" FontWeight="Bold" Text="{Binding HoveredItem.DataContext.DisplayName, ElementName=AssetPropertyView}" TextTrimming="CharacterEllipsis"/>
+                        <Grid Margin="4" DockPanel.Dock="Top">
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                          </Grid.ColumnDefinitions>
+                          <TextBlock Grid.Column="0" FontWeight="Bold" FontStyle="Normal" Text="{Binding HoveredItem.DataContext.DisplayName, ElementName=AssetPropertyView}" TextTrimming="CharacterEllipsis"/>
+                          <TextBlock Grid.Column="1" FontWeight="Thin" FontStyle="Italic" TextAlignment="Right" Text="{Binding HoveredItem.DataContext.Type, Converter={sd:TypeToNamespace}, ConverterParameter='$.', ElementName=AssetPropertyView}"/>
+                          <TextBlock Grid.Column="2" FontWeight="Bold" FontStyle="Italic" TextAlignment="Left" Text="{Binding HoveredItem.DataContext.Type, Converter={sd:TypeToTypeName}, ElementName=AssetPropertyView}"/>
+                        </Grid>
                         <TextBlock Margin="4" Text="{Binding HoveredItem.DataContext.Documentation, ElementName=AssetPropertyView}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
                       </DockPanel>
                     </Border>
