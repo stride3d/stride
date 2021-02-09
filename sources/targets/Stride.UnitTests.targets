@@ -88,7 +88,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
   </ItemGroup>
 
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Condition="'$(IsCrossTargetingBuild)' == 'true'" Project="$(MSBuildThisFileDirectory)Stride.UnitTests.CrossTargeting.targets"/>
 
   <!-- Add Default targets used by Msbuild for undefined Platforms / or when skipping compilation under a platform -->
@@ -96,7 +96,6 @@
 
   <!-- This needs to be after Sdk.targets -->
   <Import Project="$(MSBuildThisFileDirectory)..\core\Stride.Core\build\Stride.Core.targets"/>
-  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.RuntimeIdentifier.ProjectReference.targets"/>
   <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.PackageReference.targets"/>
   <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.Dev.targets"/>
   <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'" Project="$(MSBuildThisFileDirectory)..\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>

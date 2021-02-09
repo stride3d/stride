@@ -111,7 +111,7 @@
       <_StridePackagePathLibrary Condition="'$(_StridePackageAppendRuntimeIdentifier)' == 'true'">runtimes\$(RuntimeIdentifier)\lib\$(TargetFramework)</_StridePackagePathLibrary>
     </PropertyGroup>
   </Target>
-  <Target Name="_StrideGenerateDependencies" DependsOnTargets="_StrideComputePackagePath">
+  <Target Name="_StrideGenerateDependenciesCore" DependsOnTargets="_StrideComputePackagePath">
     <!-- Set TargetPath on StrideContent and StrideNativeLib -->
     <AssignTargetPath RootFolder="$(MSBuildProjectDirectory)" Files="@(StrideContent)">
       <Output TaskParameter="AssignedFiles" ItemName="_StrideContentAssigned"/>
@@ -158,9 +158,9 @@
   </Target>
 
   <!-- Build -->
-  <Target Name="_StrideGenerateDependenciesAfterBuild" Condition="'$(TargetFramework)' != '' Or '$(StrideProjectType)' == 'Cpp'" DependsOnTargets="_StrideGenerateDependencies" AfterTargets="Build"/>
+  <Target Name="_StrideGenerateDependencies" Condition="'$(TargetFramework)' != '' Or '$(StrideProjectType)' == 'Cpp'" DependsOnTargets="_StrideGenerateDependenciesCore" AfterTargets="CopyFilesToOutputDirectory"/>
   <!-- Packaging -->
-  <Target Name="_StrideRegisterDependenciesOutputs" Condition="'$(TargetFramework)' != ''" DependsOnTargets="_StrideGenerateDependencies">
+  <Target Name="_StrideRegisterDependenciesOutputs" Condition="'$(TargetFramework)' != ''" DependsOnTargets="_StrideGenerateDependenciesCore">
     <ItemGroup Condition="'@(_StrideDependencyToCopy)' != ''">
       <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).ssdeps" PackagePath="$(_StridePackagePathLibrary)" />
       <TfmSpecificPackageFile Include="@(_StrideDependencyToCopy)" />

@@ -29,15 +29,7 @@
     <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetPlatformIdentifier)' == 'UAP'">UWP</StridePlatform>
     <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'MonoAndroid'">Android</StridePlatform>
     <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'Xamarin.iOS'">iOS</StridePlatform>
-    <StridePlatform Condition="'$(StridePlatform)' == '' And $(RuntimeIdentifier.StartsWith('linux'))">Linux</StridePlatform>
-    <StridePlatform Condition="'$(StridePlatform)' == '' And $(RuntimeIdentifier.StartsWith('osx'))">macOS</StridePlatform>
     <StridePlatform Condition="'$(StridePlatform)' == ''">Windows</StridePlatform>
-  </PropertyGroup>
-
-  <!-- If not set, Android executable doesn't work properly because ResolveNuGetPackageAssets has no NuGetRuntimeIdentifier and use only the ref assemblies -->
-  <PropertyGroup Condition="'$(StridePlatform)' == 'Android' And '$(AndroidApplication)' == 'true'">
-    <RuntimeIdentifier>win</RuntimeIdentifier>
-    <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <!-- 

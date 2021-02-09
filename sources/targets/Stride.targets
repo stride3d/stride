@@ -9,9 +9,6 @@
     <StrideIsExecutable Condition=" '$(OutputType)' == 'WinExe'">true</StrideIsExecutable>
   </PropertyGroup>
 
-  <!--Import Stride common settings-->
-  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.targets"/>
-
   <!-- 
     Settings StrideGraphicsApi specific
   -->
@@ -39,19 +36,20 @@
     <StrideGraphicsApiDefines>STRIDE_GRAPHICS_API_VULKAN</StrideGraphicsApiDefines>
   </PropertyGroup>
 
-  
-
-  <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.PackageReference.targets"/>
-  <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.Dev.targets"/>
-
   <!-- Adjust OutputPath -->
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 
-    <IntermediateOutputPath>obj\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\$(StrideGraphicsApi)\</IntermediateOutputPath>
-    <OutputPath>bin\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\$(StrideGraphicsApi)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\$(TargetFramework)\$(StrideGraphicsApi)\</IntermediateOutputPath>
+    <OutputPath>bin\$(Configuration)\$(TargetFramework)\$(StrideGraphicsApi)\</OutputPath>
   </PropertyGroup>
+
+  <!--Import Stride common settings-->
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.targets"/>
+
+  <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.PackageReference.targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.Dev.targets"/>
 
   <!-- If it exists, replace SharedAssemblyInfo.cs with the Package one (which contain NuGet and git versions) -->
   <Target Name="StrideReplaceVersionInfo" Condition="'$(StridePackageBuild)' == 'true'" BeforeTargets="PrepareResources">

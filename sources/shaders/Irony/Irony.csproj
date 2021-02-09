@@ -4,7 +4,6 @@
   </PropertyGroup>
 
   <Import Project="..\..\targets\Stride.Core.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 
   <PropertyGroup>
     <ProductVersion>9.0.30729</ProductVersion>
@@ -77,6 +76,5 @@
   </ItemGroup>
   
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 
 </Project>

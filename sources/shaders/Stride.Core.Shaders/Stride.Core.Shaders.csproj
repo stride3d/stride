@@ -3,7 +3,6 @@
     <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.Core.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -63,12 +62,12 @@
     </None>
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 
   <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
+
   </PropertyGroup>
-  <Target Name="IncludeExtraAssemblies">
+  <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
       <BuildOutputInPackage Include="$(OutputPath)CppNet.dll" />
     </ItemGroup>

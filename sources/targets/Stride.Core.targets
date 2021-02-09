@@ -14,29 +14,6 @@
   <Import Project="$(SolutionDir)$(SolutionName).Build.targets" Condition="Exists('$(SolutionDir)$(SolutionName).Build.targets')" />
   <Import Project="$(SolutionDir)Stride.Core.Build.targets" Condition="Exists('$(SolutionDir)Stride.Core.Build.targets')" />
 
-  <!-- Setup default RuntimeIdentifier for design-time build -->
-  <PropertyGroup Condition="$(DesignTimeBuild) == 'true'">
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifiers)' != ''">$(RuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</RuntimeIdentifier>
-  </PropertyGroup>
-
-  <!-- Workaround: Remove RuntimeIdentifier from Solution references (https://github.com/onovotny/MSBuildSdkExtras/issues/139)
-                   additionally, also remove it from all references to avoid issues -->
-  <Target Name="_StrideProjectReferenceRemoveRuntimeIdentifier" AfterTargets="AssignProjectConfiguration">
-    <ItemGroup>
-      <ProjectReferenceWithConfiguration>
-        <GlobalPropertiesToRemove>%(ProjectReferenceWithConfiguration.GlobalPropertiesToRemove);RuntimeIdentifier</GlobalPropertiesToRemove>
-      </ProjectReferenceWithConfiguration>
-    </ItemGroup>
-  </Target>
-  <!-- Workaround: GetPackagingOutputs from UWP (uap) try to build ProjectReference with current TFM, and that's the only way I could find to skip it -->
-  <Target Name="_StrideRemoveTargetFrameworkBeforeGetPackagingOutputs" BeforeTargets="GetPackagingOutputs">
-    <ItemGroup>
-      <ProjectReferenceWithConfiguration>
-        <UndefineProperties>%(ProjectReferenceWithConfiguration.UndefineProperties);TargetFramework</UndefineProperties>
-      </ProjectReferenceWithConfiguration>
-    </ItemGroup>
-  </Target>
-
   <!-- Include platform dependent assembly when specified -->
   <Choose>
     <When Condition="'$(StridePlatformDependent)' == 'true'">
@@ -73,19 +50,15 @@
     </ItemGroup>
   </Target>
 
-  <!-- docfx doesn't like if there is no TargetFramework/RuntimeIdentifier set by default -->
+  <!-- docfx doesn't like if there is no TargetFramework set by default -->
   <PropertyGroup Condition="'$(StrideBuildDoc)' == 'true'">
     <TargetFramework Condition="'$(TargetFramework)' == ''">$(TargetFrameworks.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</TargetFramework>
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(StrideRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>  
 
   <!-- Setup compiler targets per platform / language -->
   <PropertyGroup>
     <!-- On Android, everything is library (even Exe) -->
     <OutputType Condition=" '$(StridePlatform)' == 'Android' ">Library</OutputType>
-
-    <OutputPath Condition="'$(StrideProjectType)' == 'Cpp'">$(OutDir)</OutputPath>
-    <IntermediateOutputPath Condition="'$(StrideProjectType)' == 'Cpp'">$(IntDir)</IntermediateOutputPath>
   </PropertyGroup>
 
   <!-- User Documentation (.usrdoc) -->
@@ -120,7 +93,13 @@
     <StrideAssemblyProcessorTempBasePath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(TEMP)\Stride\AssemblyProcessor\$(StrideAssemblyProcessorHash)\$(StrideAssemblyProcessorFramework)\</StrideAssemblyProcessorTempBasePath>
     <StrideAssemblyProcessorTempPath Condition="'$(StrideAssemblyProcessorBasePath)' != ''">$(StrideAssemblyProcessorTempBasePath)Stride.Core.AssemblyProcessor.Packed$(StrideAssemblyProcessorExt)</StrideAssemblyProcessorTempPath>
   </PropertyGroup>
-  
+
+  <!-- Setup default output path for C++ projects -->
+  <PropertyGroup>
+    <OutputPath Condition="'$(StrideProjectType)' == 'Cpp'">$(OutDir)</OutputPath>
+    <IntermediateOutputPath Condition="'$(StrideProjectType)' == 'Cpp'">$(IntDir)</IntermediateOutputPath>
+  </PropertyGroup>
+
   <!-- C++ doesn't auto-import language targets -->
   <Import Condition="'$(StrideProjectType)' == 'Cpp' And '$(StrideCompilerTargetsEnable)' != 'false'" Project="$(MSBuildThisFileDirectory)Stride.Core.Cpp.targets" />
 
@@ -194,13 +173,6 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
-  <Target Name="_StridePackRemoveRuntimeIdentifierIfSingle" BeforeTargets="_SdkGetBuildOutputFilesWithTfm;_SdkGetDebugSymbolsWithTfm">
-
-    <PropertyGroup Condition="'$(RuntimeIdentifier)' != '' And '$(RuntimeIdentifiers)' == ''">
-      <RuntimeIdentifier></RuntimeIdentifier>
-    </PropertyGroup>
-  </Target>
-
 
   <!-- Auto NuGet build packages and deploy them -->
   <Import Project="$(MSBuildThisFileDirectory)Stride.AutoPack.targets"/>
@@ -236,5 +208,6 @@
       </BuildOutputInPackage>
     </ItemGroup>    
   </Target>
-  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.RuntimeIdentifier.ProjectReference.targets" />
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" Condition="'$(StrideProjectType)' != 'Cpp'" />
 </Project>

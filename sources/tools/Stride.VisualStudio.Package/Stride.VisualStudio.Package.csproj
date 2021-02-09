@@ -6,7 +6,6 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
     <TargetVsixContainerName>Stride.vsix</TargetVsixContainerName>
     <TargetVsixContainer>bin\$(TargetVsixContainerName)</TargetVsixContainer>
@@ -166,9 +165,9 @@
   </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
-    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeExtraAssemblies</GetVsixSourceItemsDependsOn>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);_StrideIncludeExtraAssemblies</GetVsixSourceItemsDependsOn>
   </PropertyGroup>
-  <Target Name="IncludeExtraAssemblies">
+  <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
       <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\NuGet.*.dll" />
       <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\ServiceWire.dll" />
@@ -177,6 +176,5 @@
   </Target>
   <Import Project="$(StrideSdkTargets)" />
   <!-- Force NET Sdk to be included before VsSDK -->
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
 </Project>
