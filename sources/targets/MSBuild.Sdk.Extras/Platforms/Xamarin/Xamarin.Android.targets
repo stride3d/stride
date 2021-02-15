@@ -1,0 +1,18 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <MSBuildAllProjects Condition=" '$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0' ">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFrameworkVersion Condition="'$(TargetFrameworkVersion)' == ''">v6.1</TargetFrameworkVersion>
+    <AndroidUseLatestPlatformSdk Condition="'$(AndroidUseLatestPlatformSdk)' == ''">false</AndroidUseLatestPlatformSdk>
+    <!-- This is here to prevent a warning in the Xamarin.Android.Common.Debugging.targets when a blank is passed into _GetPrimaryCpuAbi -->
+    <AdbTarget Condition="'$(AdbTarget)' == ''">none</AdbTarget>
+    <AndroidClassParser Condition="'$(AndroidClassParser)' == ''">class-parse</AndroidClassParser>
+    <AndroidCodegenTarget Condition="'$(AndroidCodegenTarget)' == '' And $(TargetFrameworkVersion.TrimStart('vV')) &gt; 6.0">XAJavaInterop1</AndroidCodegenTarget>
+    <AndroidUseIntermediateDesignerFile Condition=" '$(AndroidUseIntermediateDesignerFile)' == '' ">True</AndroidUseIntermediateDesignerFile>
+    <DesignTimeBuild Condition=" '$(DesignTimeBuild)' == '' ">false</DesignTimeBuild>
+  </PropertyGroup>
+
+</Project>

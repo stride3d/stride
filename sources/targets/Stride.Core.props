@@ -66,9 +66,6 @@
 
     <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
 
-    <!-- UpToDate check doesn't work with multi-TFM projects! https://github.com/dotnet/project-system/issues/2487 -->
-    <!--<DisableFastUpToDateCheck Condition="$(TargetFrameworks.Contains(';')) Or $(RuntimeIdentifiers.Contains(';'))">true</DisableFastUpToDateCheck>-->
-    <!--<TargetFrameworks>net461;uap10.0.16299;monoandroid81;xamarinios10;netstandard2.0</TargetFrameworks>-->
   </PropertyGroup>
 
   <!-- Force a full Build & Pack if dependency was only built with a single TargetFramework (which would set IsInnerBuild and skip any Pack logic)
@@ -145,7 +142,7 @@
   <PropertyGroup Condition=" '$(StridePlatform)' == 'UWP' ">
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_UWP</StridePlatformDefines>
-    <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
+    <ExtrasUwpMetaPackageVersion>6.2.12</ExtrasUwpMetaPackageVersion>
     <TargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
     <GenerateLibraryLayout>false</GenerateLibraryLayout>

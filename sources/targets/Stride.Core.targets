@@ -14,6 +14,15 @@
   <Import Project="$(SolutionDir)$(SolutionName).Build.targets" Condition="Exists('$(SolutionDir)$(SolutionName).Build.targets')" />
   <Import Project="$(SolutionDir)Stride.Core.Build.targets" Condition="Exists('$(SolutionDir)Stride.Core.Build.targets')" />
 
+  <!-- Workaround: GetPackagingOutputs from UWP (uap) try to build ProjectReference with current TFM, and that's the only way I could find to skip it -->
+  <Target Name="_StrideRemoveTargetFrameworkBeforeGetPackagingOutputs" BeforeTargets="GetPackagingOutputs">
+    <ItemGroup>
+      <ProjectReferenceWithConfiguration>
+        <UndefineProperties>%(ProjectReferenceWithConfiguration.UndefineProperties);TargetFramework</UndefineProperties>
+      </ProjectReferenceWithConfiguration>
+    </ItemGroup>
+  </Target>
+
   <!-- Include platform dependent assembly when specified -->
   <Choose>
     <When Condition="'$(StridePlatformDependent)' == 'true'">
@@ -208,6 +217,13 @@
       </BuildOutputInPackage>
     </ItemGroup>    
   </Target>
+
+  <PropertyGroup>
+    <_SdkLanguageSourceName Condition="'$(MSBuildProjectExtension)' == '.csproj'">CSharp</_SdkLanguageSourceName>
+  </PropertyGroup>
+  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\Inference.targets" />
+  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\Platforms.targets" />
+  <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\DefaultItems\ImplicitPackages.targets"/>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" Condition="'$(StrideProjectType)' != 'Cpp'" />
 </Project>
