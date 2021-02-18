@@ -722,6 +722,15 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to (local update available).
+        /// </summary>
+        public static string VersionButtonLocalUpdateAvailable {
+            get {
+                return ResourceManager.GetString("VersionButtonLocalUpdateAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Visual Studio plugin.
         /// </summary>
         public static string VisualStudioPlugin {
