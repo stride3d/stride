@@ -1283,11 +1283,11 @@
     <DockPanel>
       <UniformGrid Rows="1" DockPanel.Dock="Right">
         <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding PickupAsset}" CommandParameter="{Binding Type}"
-                ToolTip="{sd:Localize Select an asset, Context=ToolTip}">
+                ToolTip="{sd:Localize Select an asset, Context=ToolTip}" Visibility="{Binding IsReadOnly, Converter={sd:VisibleOrCollapsed}, ConverterParameter={sd:False}, Mode=OneWay}">
           <Image Source="{StaticResource ImagePickup}" Width="16" Height="16" Margin="-1"/>
         </Button>
         <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding CreateNewInstance}" CommandParameter="{x:Static assetCommands:AbstractNodeValue.Null}"
-                ToolTip="{sd:Localize Clear the reference, Context=ToolTip}">
+                ToolTip="{sd:Localize Clear the reference, Context=ToolTip}" Visibility="{Binding IsReadOnly, Converter={sd:VisibleOrCollapsed}, ConverterParameter={sd:False}, Mode=OneWay}">
           <Image Source="{StaticResource ImageClear}" Width="16" Height="16" Margin="-1"/>
         </Button>
         <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding FetchAsset}"
