@@ -49,6 +49,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             bodyEntity.Transform.Rotation = Quaternion.RotationX(-MathUtil.PiOverTwo);
             lightRay.AddChild(bodyEntity);
 
+            root.AddChild(lightRay);
+
             return root;
         }
 
@@ -58,23 +60,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             // update the color of the ray
             GizmoUniformColorMaterial.UpdateColor(GraphicsDevice, rayMaterial, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
-        }
-
-        public override bool IsSelected
-        {
-            set
-            {
-                bool hasChanged = IsSelected != value;
-                base.IsSelected = value;
-
-                if (hasChanged)
-                {
-                    if (IsSelected)
-                        GizmoRootEntity.AddChild(lightRay);
-                    else
-                        GizmoRootEntity.RemoveChild(lightRay);
-                }
-            }
         }
     }
 }
