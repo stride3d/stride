@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\targets\Stride.props" />
+  <PropertyGroup>
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <!--<StrideBuildTags>WindowsTools</StrideBuildTags>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0021" />
+    <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0021" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\core\Stride.Core.Mathematics.Tests\Stride.Core.Mathematics.Tests.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core\Stride.Core.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.Rendering\Stride.Rendering.csproj" />
+  </ItemGroup>
+
+
+</Project>
