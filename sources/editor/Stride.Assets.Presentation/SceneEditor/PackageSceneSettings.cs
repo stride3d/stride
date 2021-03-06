@@ -74,7 +74,12 @@ namespace Stride.Assets.Presentation.SceneEditor
         {
             return new SceneSettingsData
             {
-                HiddenGizmos = new List<string> { DisplayAttribute.GetDisplayName(typeof(TransformComponent)), DisplayAttribute.GetDisplayName(typeof(PhysicsComponent)) }
+                HiddenGizmos = new List<string>
+                {
+                    DisplayAttribute.GetDisplayName(typeof(TransformComponent)),
+                    DisplayAttribute.GetDisplayName(typeof(PhysicsComponent)),
+                    DisplayAttribute.GetDisplayName(typeof(Stride.Physics.ConstraintComponent)),
+                }
             };
         }
     }

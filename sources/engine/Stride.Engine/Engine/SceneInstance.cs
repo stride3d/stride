@@ -94,13 +94,15 @@ namespace Stride.Engine
                     RemoveRendererTypes();
                 }
 
+                // set rootScene before adding entities because component processors might want to reference it
+                rootScene = value;
+
                 if (value != null)
                 {
                     Add(value);
                     HandleRendererTypes();
                 }
 
-                rootScene = value;
                 OnRootSceneChanged();
             }
         }
