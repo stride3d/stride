@@ -22,7 +22,8 @@
   </Target>
   <Target Name="_ComputeTargetFrameworkItems" Returns="@(InnerOutput)">
     <ItemGroup>
-      <_TargetFramework Include="$(TargetFrameworks)" />
+      <_TargetFramework Condition="'$(TargetFrameworks)' != ''" Include="$(TargetFrameworks)" />
+      <_TargetFramework Condition="'$(TargetFrameworks)' == ''" Include="$(TargetFramework)" />
       <!-- Make normalization explicit: Trim; Deduplicate by keeping first occurrence, case insensitive -->
       <_TargetFrameworkNormalized Include="@(_TargetFramework-&gt;Trim()-&gt;Distinct())" />
     </ItemGroup>

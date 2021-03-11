@@ -1,7 +1,7 @@
 ﻿<Project>
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
-    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessorOptions/>
   </PropertyGroup>

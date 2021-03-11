@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <StridePackAssets>true</StridePackAssets>
-    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <EnableDefaultItems>false</EnableDefaultItems>
     <!-- Extract PackageVersion from ThisPackageVersion.cs -->
     <_StrideThisPackageVersionFile Condition="'$(StridePackageBuild)' == 'true'">$(MSBuildThisFileDirectory)ThisPackageVersion.PackageBuild.cs</_StrideThisPackageVersionFile>
