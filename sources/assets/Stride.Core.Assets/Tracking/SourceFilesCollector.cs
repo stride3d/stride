@@ -1,5 +1,6 @@
 // Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Assets.Visitors;
@@ -39,6 +40,14 @@ namespace Stride.Core.Assets.Tracking
             var result = sourceMembers;
             sourceMembers = null;
             return result;
+        }
+
+        public override void VisitArray(Array array, ArrayDescriptor descriptor)
+        {
+            if (!IsArrayOfPrimitiveType(descriptor))
+            {
+                base.VisitArray(array, descriptor);
+            }
         }
 
         public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object value)

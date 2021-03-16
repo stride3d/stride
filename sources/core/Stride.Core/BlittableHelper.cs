@@ -1,17 +1,15 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
-// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace Stride.Updater
+namespace Stride.Core
 {
     /// <summary>
     /// Various helpers for blittable types.
     /// </summary>
     // TODO: We should switch to something determined at compile time with assembly processor?
-    internal static class BlittableHelper
+    public static class BlittableHelper
     {
         private static Dictionary<Type, bool> blittableTypesCache = new Dictionary<Type, bool>();
 

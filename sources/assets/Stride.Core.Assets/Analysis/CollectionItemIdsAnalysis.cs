@@ -43,8 +43,11 @@ namespace Stride.Core.Assets.Analysis
 
             public override void VisitArray(Array array, ArrayDescriptor descriptor)
             {
-                Fixup(array);
-                base.VisitArray(array, descriptor);
+                if (!IsArrayOfPrimitiveType(descriptor))
+                {
+                    Fixup(array);
+                    base.VisitArray(array, descriptor);
+                }
             }
 
             public override void VisitCollection(IEnumerable collection, CollectionDescriptor descriptor)

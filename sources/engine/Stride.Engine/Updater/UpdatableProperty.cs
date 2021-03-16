@@ -3,6 +3,7 @@
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Stride.Core;
 
 namespace Stride.Updater
 {

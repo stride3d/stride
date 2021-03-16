@@ -66,7 +66,11 @@ namespace Stride.Core.Assets
                     itemIds.Add(i, ItemId.New());
                 }
             }
-            base.VisitArray(array, descriptor);
+
+            if (!IsArrayOfPrimitiveType(descriptor))
+            {
+                base.VisitArray(array, descriptor);
+            }
         }
 
         public override void VisitCollection(IEnumerable collection, CollectionDescriptor descriptor)
@@ -80,7 +84,11 @@ namespace Stride.Core.Assets
                     itemIds.Add(i, ItemId.New());
                 }
             }
-            base.VisitCollection(collection, descriptor);
+
+            if (!descriptor.ElementType.IsValueType)
+            {
+                base.VisitCollection(collection, descriptor);
+            }
         }
 
         public override void VisitDictionary(object dictionary, DictionaryDescriptor descriptor)
@@ -93,7 +101,6 @@ namespace Stride.Core.Assets
                     itemIds.Add(element.Key, ItemId.New());
                 }
             }
-            base.VisitDictionary(dictionary, descriptor);
         }
 
         private bool ShouldGenerateItemIdCollection(object collection)

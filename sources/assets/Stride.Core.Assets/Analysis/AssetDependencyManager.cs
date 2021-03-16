@@ -701,6 +701,14 @@ namespace Stride.Core.Assets.Analysis
                 return dependencies.BrokenLinksOut;
             }
 
+            public override void VisitArray(Array array, ArrayDescriptor descriptor)
+            {
+                if (!IsArrayOfPrimitiveType(descriptor))
+                {
+                    base.VisitArray(array, descriptor);
+                }
+            }
+
             public override void VisitObject(object obj, ObjectDescriptor descriptor, bool visitMembers)
             {
                 // references and base

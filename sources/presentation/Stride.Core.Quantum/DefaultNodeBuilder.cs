@@ -85,6 +85,14 @@ namespace Stride.Core.Quantum
             return rootNode;
         }
 
+        public override void VisitArray(Array array, ArrayDescriptor descriptor)
+        {
+            if (!IsPrimitiveType(descriptor.ElementType))
+            {
+                base.VisitArray(array, descriptor);
+            }
+        }
+
         /// <inheritdoc/>
         public override void VisitObject(object obj, ObjectDescriptor descriptor, bool visitMembers)
         {
