@@ -36,7 +36,7 @@
       <Project>{<#= Properties.ProjectGameGuid #>}</Project>
       <Name><#= Properties.PackageGameAssemblyName #></Name>
     </ProjectReference>
-    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.2" />
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.12" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App.xaml.cs">

@@ -1,0 +1,39 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <MSBuildAllProjects Condition=" '$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0' ">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <!--
+    Package Version property for Implicit Packages included in the props file
+  -->
+  <PropertyGroup Condition="'$(ExtrasUwpMetaPackageVersion)' == ''">
+    <ExtrasUwpMetaPackageVersion>6.2.11</ExtrasUwpMetaPackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(ExtrasTizenMetaPackageVersion)' == ''">
+    <ExtrasTizenMetaPackageVersion>8.0.0.15631</ExtrasTizenMetaPackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(ExtrasNetfxMetaPackageVersion)' == ''">
+    <ExtrasNetfxMetaPackageVersion>1.0.0</ExtrasNetfxMetaPackageVersion>
+  </PropertyGroup>  
+
+  <PropertyGroup>
+    <ExtrasImplicitPlatformPackageIsPrivate Condition="'$(ExtrasImplicitPlatformPackageIsPrivate)' == ''">false</ExtrasImplicitPlatformPackageIsPrivate>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(DisableImplicitFrameworkReferences)' != 'true' AND '$(_SdkShortFrameworkIdentifier)' == 'uap' ">
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="$(ExtrasUwpMetaPackageVersion)" PrivateAssets="all" IsImplicitlyDefined="true"/>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(DisableImplicitFrameworkReferences)' != 'true' AND '$(_SdkShortFrameworkIdentifier)' == 'tizen'">
+    <PackageReference Include="Tizen.NET" Version="$(ExtrasTizenMetaPackageVersion)" IsImplicitlyDefined="true"/>
+    <PackageReference Update="Tizen.NET" PrivateAssets="All" Condition="'$(ExtrasImplicitPlatformPackageIsPrivate)' == 'true'"/>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(DisableImplicitFrameworkReferences)' != 'true' AND '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(ExtrasNetfxMetaPackageVersion)" PrivateAssets="All" IsImplicitlyDefined="true"/>    
+  </ItemGroup>  
+
+</Project>

@@ -3,7 +3,7 @@
   <Import Project="..\..\targets\Stride.props" />
   <PropertyGroup>
     <StrideProjectType>Cpp</StrideProjectType>
-    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <StrideAssemblyProcessorOptions>
     </StrideAssemblyProcessorOptions>
@@ -36,16 +36,15 @@
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CLRSupport>true</CLRSupport>
+    <CLRSupport>NetCore</CLRSupport>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <CLRSupport>true</CLRSupport>
+    <CLRSupport>NetCore</CLRSupport>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
-  <Import Project="..\..\targets\Stride.Core.Cpp.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -151,10 +150,6 @@
     <Reference Include="BulletSharp">
       <HintPath>..\..\..\deps\BulletPhysics\BulletSharp.NetStandard.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Stride.Importer.Common\ImporterUtils.h" />

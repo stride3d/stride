@@ -148,7 +148,6 @@
   <ItemGroup>
     <Folder Include="Announcements\" />
   </ItemGroup>
-  <Import Project="..\..\targets\Stride.Core.RuntimeIdentifier.ProjectReference.targets" />
   <Import Project="..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\..\editor\Stride.PrivacyPolicy\Stride.PrivacyPolicy.projitems')" />
   <Import Project="..\..\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
   <Import Project="..\..\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems" Label="Shared" />

@@ -50,8 +50,7 @@
 
   <!-- Prepare path to be able to copy Task dll to temp directory (otherwise MSBuild lock the task file and we can't reinstall package in dev mode) -->
   <PropertyGroup>
-    <StrideMSBuildTaskTargetFramework Condition="'$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</StrideMSBuildTaskTargetFramework>
-    <StrideMSBuildTaskTargetFramework Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</StrideMSBuildTaskTargetFramework>
+    <StrideMSBuildTaskTargetFramework>netstandard2.0</StrideMSBuildTaskTargetFramework>
     <!-- First try NuGet layout, then git checkout -->
     <StrideMSBuildTaskSourcePath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll')">$(MSBuildThisFileDirectory)..\tools\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll</StrideMSBuildTaskSourcePath>
     <StrideMSBuildTaskSourcePath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\Stride.MSBuild.Tasks\bin\Release\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll')">$(MSBuildThisFileDirectory)..\..\..\..\deps\Stride.MSBuild.Tasks\bin\Release\$(StrideMSBuildTaskTargetFramework)\Stride.MSBuild.Tasks.dll</StrideMSBuildTaskSourcePath>
@@ -109,25 +108,10 @@
   <Target Name="_StridePrepareAssetCompiler">
     <PropertyGroup>
       <!-- First try NuGet layout, then git checkout -->
-      <StrideCompileAssetCommandPath Condition="Exists('$(MSBuildThisFileDirectory)..\lib\')">$(MSBuildThisFileDirectory)..\lib</StrideCompileAssetCommandPath>
-      <StrideCompileAssetCommandPath Condition="Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)</StrideCompileAssetCommandPath>
-
-      <!-- Try to guess correct which version of asset compiler to use depending on user TargetFramework -->
-      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net5.0-windows7.0\Stride.Core.Assets.CompilerApp.exe') And $(TargetFramework.StartsWith('net5'))">net5.0-windows7.0</StrideCompileAssetTargetFramework>
-      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net5.0-windows7.0\Stride.Core.Assets.CompilerApp.exe') And $(TargetFramework.StartsWith('netcoreapp'))">net5.0-windows7.0</StrideCompileAssetTargetFramework>
-      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net5.0-windows\Stride.Core.Assets.CompilerApp.exe') And $(TargetFramework.StartsWith('net5'))">net5.0-windows</StrideCompileAssetTargetFramework>
-      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net5.0-windows\Stride.Core.Assets.CompilerApp.exe') And $(TargetFramework.StartsWith('netcoreapp'))">net5.0-windows</StrideCompileAssetTargetFramework>
-      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net472\Stride.Core.Assets.CompilerApp.exe') And $(TargetFramework.StartsWith('net4'))">net472</StrideCompileAssetTargetFramework>
-
-      <!-- Otherwise, fallback to whichever framework is available -->
-      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net472\Stride.Core.Assets.CompilerApp.exe')">net472</StrideCompileAssetTargetFramework>
-      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net5.0-windows7.0\Stride.Core.Assets.CompilerApp.exe')">net5.0-windows7.0</StrideCompileAssetTargetFramework>
-      <StrideCompileAssetTargetFramework Condition="'$(StrideCompileAssetTargetFramework)' == '' And Exists('$(StrideCompileAssetCommandPath)\net5.0-windows\Stride.Core.Assets.CompilerApp.exe')">net5.0-windows</StrideCompileAssetTargetFramework>
-
-      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == ''">$(StrideCompileAssetCommandPath)\$(StrideCompileAssetTargetFramework)\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net5.0-windows7.0\')">$(MSBuildThisFileDirectory)..\lib\net5.0-windows7.0\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
+      <StrideCompileAssetCommand Condition="'$(StrideCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\Stride.Core.Assets.CompilerApp.csproj')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net5.0-windows\Stride.Core.Assets.CompilerApp.exe</StrideCompileAssetCommand>
     </PropertyGroup>
 
-    <Error Condition="'$(StrideCompileAssetTargetFramework)' == ''" Text="Stride AssetCompiler: could not determine StrideCompileAssetTargetFramework (Path: &quot;$(StrideCompileAssetCommandPath)&quot;)"/>
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
   </Target>
 

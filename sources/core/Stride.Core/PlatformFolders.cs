@@ -152,7 +152,7 @@ namespace Stride.Core
 
         private static string GetApplicationExecutablePath()
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE || STRIDE_PLATFORM_UNIX
+#if STRIDE_PLATFORM_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE
             return Assembly.GetEntryAssembly()?.Location;
 #else
             return null;
@@ -187,7 +187,7 @@ namespace Stride.Core
 
         private static string GetApplicationExecutableDiretory()
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE || STRIDE_PLATFORM_UNIX
+#if STRIDE_PLATFORM_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE
             var executableName = GetApplicationExecutablePath();
             if (!string.IsNullOrEmpty(executableName))
             {

@@ -1,10 +1,8 @@
 ﻿<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-    <StrideRuntimeNetStandard>true</StrideRuntimeNetStandard>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.Core.props" />
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -30,5 +28,4 @@
     <Folder Include="Reflection\" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

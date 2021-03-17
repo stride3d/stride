@@ -142,7 +142,7 @@ namespace Stride.Graphics
         private OpenTK.Graphics.IGraphicsContext graphicsContext;
         private OpenTK.Platform.IWindowInfo windowInfo;
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
+#if STRIDE_PLATFORM_DESKTOP
 #if STRIDE_UI_SDL
         private Stride.Graphics.SDL.Window gameWindow;
 #else
@@ -768,7 +768,7 @@ namespace Stride.Graphics
 
             renderer = GL.GetString(StringName.Renderer);
 
-#if STRIDE_PLATFORM_UNIX || STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
 #if STRIDE_UI_SDL
             gameWindow = (Stride.Graphics.SDL.Window)windowHandle.NativeWindow;
 #else
@@ -1072,7 +1072,7 @@ namespace Stride.Graphics
         {
             get
             {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
+#if STRIDE_PLATFORM_DESKTOP
                 return gameWindow.WindowState == WindowState.Fullscreen;
 #else
                 throw new NotImplementedException();
@@ -1081,7 +1081,7 @@ namespace Stride.Graphics
 
             set
             {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
+#if STRIDE_PLATFORM_DESKTOP
                 if (value ^ (gameWindow.WindowState == WindowState.Fullscreen))
                     gameWindow.WindowState = value ? WindowState.Fullscreen : WindowState.Normal;
 #else

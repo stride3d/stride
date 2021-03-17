@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Stride.Core;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
@@ -352,26 +353,35 @@ namespace Stride.Graphics
             var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
             SDL2.SDL.SDL_Vulkan_CreateSurface(control.SdlHandle, GraphicsDevice.NativeInstance.Handle, out var surfacePtr);
             surface = new VkSurfaceKHR(surfacePtr);
-#elif STRIDE_PLATFORM_WINDOWS
-            var controlHandle = Description.DeviceWindowHandle.Handle;
-            if (controlHandle == IntPtr.Zero)
-            {
-                throw new NotSupportedException($"Form of type [{Description.DeviceWindowHandle.GetType().Name}] is not supported. Only System.Windows.Control are supported");
-            }
-
-            var surfaceCreateInfo = new VkWin32SurfaceCreateInfoKHR
-            {
-                sType = VkStructureType.Win32SurfaceCreateInfoKHR,
-                instanceHandle = Process.GetCurrentProcess().Handle,
-                windowHandle = controlHandle,
-            };
-            vkCreateWin32SurfaceKHR(GraphicsDevice.NativeInstance, &surfaceCreateInfo, null, out surface);
-#elif STRIDE_PLATFORM_ANDROID
-            throw new NotImplementedException();
-#elif STRIDE_PLATFORM_LINUX
-            throw new NotSupportedException("Only SDL is supported for the time being on Linux");
 #else
-            throw new NotSupportedException();
+            if (Platform.Type == PlatformType.Windows)
+            {
+                var controlHandle = Description.DeviceWindowHandle.Handle;
+                if (controlHandle == IntPtr.Zero)
+                {
+                    throw new NotSupportedException($"Form of type [{Description.DeviceWindowHandle.GetType().Name}] is not supported. Only System.Windows.Control are supported");
+                }
+
+                var surfaceCreateInfo = new VkWin32SurfaceCreateInfoKHR
+                {
+                    sType = VkStructureType.Win32SurfaceCreateInfoKHR,
+                    instanceHandle = Process.GetCurrentProcess().Handle,
+                    windowHandle = controlHandle,
+                };
+                vkCreateWin32SurfaceKHR(GraphicsDevice.NativeInstance, &surfaceCreateInfo, null, out surface);
+            }
+            else if (Platform.Type == PlatformType.Android)
+            {
+                throw new NotImplementedException();
+            }
+            else if (Platform.Type == PlatformType.Linux)
+            {
+                throw new NotSupportedException("Only SDL is supported for the time being on Linux");
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
 #endif
         }
 

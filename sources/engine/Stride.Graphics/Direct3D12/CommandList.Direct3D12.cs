@@ -779,7 +779,7 @@ namespace Stride.Graphics
                     {
                         var size = destinationTexture.ComputeBufferTotalSize();
                         var destinationMapped = destinationTexture.NativeResource.Map(0);
-                        var sourceMapped = sourceTexture.NativeResource.Map(0, new Range { Begin = 0, End = size });
+                        var sourceMapped = sourceTexture.NativeResource.Map(0, new SharpDX.Direct3D12.Range { Begin = 0, End = size });
 
                         Utilities.CopyMemory(destinationMapped, sourceMapped, size);
 
