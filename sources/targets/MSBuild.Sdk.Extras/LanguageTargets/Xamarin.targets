@@ -1,0 +1,45 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <MSBuildAllProjects Condition=" '$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0' ">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_SdkTargetPlatformName Condition="$(TargetFrameworkIdentifier.StartsWith('Mono'))">$(TargetFrameworkIdentifier.Substring('4'))</_SdkTargetPlatformName>
+    <_SdkTargetPlatformName Condition="$(TargetFrameworkIdentifier.Contains('.'))">$(TargetFrameworkIdentifier.Split('.')[1])</_SdkTargetPlatformName>
+    <_SdkTargetPlatformName Condition="'$(_SdkTargetPlatformName)' == 'Touch'">iOS</_SdkTargetPlatformName>
+    <_SdkTargetsImportType>$(_SdkLanguageSourceName)</_SdkTargetsImportType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsApplePlatform)' == ''">
+    <IsApplePlatform Condition="'$(_SdkTargetPlatformName)' == 'iOS' OR '$(_SdkTargetPlatformName)' == 'Mac' OR '$(_SdkTargetPlatformName)' == 'TVOS' OR '$(_SdkTargetPlatformName)' == 'WatchOS'">true</IsApplePlatform>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsBindingProject)' == 'true'">
+    <_SdkTargetsImportType Condition="'$(_SdkTargetPlatformName)' == 'Android'">Bindings</_SdkTargetsImportType>
+    <_SdkTargetsImportType Condition="'$(IsApplePlatform)' == 'true'">ObjCBinding.$(_SdkLanguageSourceName)</_SdkTargetsImportType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_SdkLanguageTargets>$(MSBuildExtensionsPath)\Xamarin\$(_SdkTargetPlatformName)\Xamarin.$(_SdkTargetPlatformName).$(_SdkTargetsImportType).targets</_SdkLanguageTargets>
+  </PropertyGroup>
+
+  <!-- Multi-valued properties only get checked by direct use in an Import -->
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\$(_SdkTargetPlatformName)\Xamarin.$(_SdkTargetPlatformName).$(_SdkTargetsImportType).targets" 
+          Condition="Exists('$(MSBuildExtensionsPath)\Xamarin\$(_SdkTargetPlatformName)\Xamarin.$(_SdkTargetPlatformName).$(_SdkTargetsImportType).targets')"/>
+  <Import Project="$(MSBuildThisFileDirectory)CheckMissing.targets" />
+
+  <!-- CSharp is the only language supported for Binding Projects for Now -->
+  <Target Name="ShowAndroidBindingProjectError" Condition="'$(IsBindingProject)' == 'true' AND '$(_SdkTargetPlatformName)' == 'Android' AND '$(_SdkLanguageSourceName)' != 'CSharp'" BeforeTargets="_CheckForUnsupportedTargetFramework">
+    <Error Text="The Binding Project for $(_SdkTargetPlatformName) is only supported with only C#, not with $(_SdkLanguageSourceName). Please change the project to C# to use the Bindings Project.'"/>
+  </Target>
+
+  <!-- A workaround for https://github.com/microsoft/msbuild/issues/4584 and resolves https://github.com/onovotny/MSBuildSdkExtras/issues/176 -->
+  <Target Name="_RemoveNativeReferencesManifest" Condition="'$(IsApplePlatform)' == 'true'" AfterTargets="BuiltProjectOutputGroup">
+    <ItemGroup>
+      <_BuiltProjectOutputGroupOutputIntermediate Remove="$(OutDir)$(_DeploymentTargetApplicationManifestFileName)" />
+      <BuiltProjectOutputGroupOutput Remove="$(ProjectDir)$(OutDir)$(_DeploymentTargetApplicationManifestFileName)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

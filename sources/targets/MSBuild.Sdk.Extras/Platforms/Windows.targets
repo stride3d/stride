@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <MSBuildAllProjects Condition=" '$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0' ">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DisableImplicitFrameworkDefines)' != 'true'">
+    <ImplicitFrameworkIdentifierDefine>NETFX_CORE</ImplicitFrameworkIdentifierDefine>
+    <_SdkImplicitFrameworkProfileDefine Condition="'$(_SdkShortFrameworkIdentifier)' == 'win'">WINDOWS_APP</_SdkImplicitFrameworkProfileDefine>
+    <_SdkImplicitFrameworkProfileDefine Condition="'$(_SdkShortFrameworkIdentifier)' == 'uap'">WINDOWS_UWP</_SdkImplicitFrameworkProfileDefine>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'win' OR '$(TargetFramework)' == 'win8' OR '$(TargetFramework)' == 'win80'">
+    <TargetPlatformVersion>8.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>8.0</TargetPlatformMinVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
+    <NugetTargetMoniker>Windows,Version=v8.0</NugetTargetMoniker>
+
+    <!-- Need to override the built-in implicit defines for win8 or it'll be NETCORE4_5 -->
+    <ImplicitFrameworkDefine Condition="'$(DisableImplicitFrameworkDefines)' != 'true'">WINDOWS8</ImplicitFrameworkDefine>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'win81'">
+    <TargetPlatformVersion>8.1</TargetPlatformVersion>
+    <TargetPlatformMinVersion>8.1</TargetPlatformMinVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
+    <NugetTargetMoniker>Windows,Version=v8.1</NugetTargetMoniker>
+
+    <!-- Need to override the built-in implicit defines for win81 or it'll be NETCORE4_5_1 -->
+    <ImplicitFrameworkDefine Condition="'$(DisableImplicitFrameworkDefines)' != 'true'">WINDOWS8_1</ImplicitFrameworkDefine>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'wpa' OR '$(TargetFramework)' == 'wpa81'">
+    <TargetPlatformVersion>8.1</TargetPlatformVersion>
+    <TargetPlatformMinVersion>8.1</TargetPlatformMinVersion>
+    <TargetFrameworkVersion>v8.1</TargetFrameworkVersion>
+    <TargetPlatformIdentifier>WindowsPhoneApp</TargetPlatformIdentifier>
+
+    <!-- Need to override the built-in implicit defines for wpa81 or it'll be WINDOWSPHONEAPP8_1 -->
+    <ImplicitFrameworkDefine Condition="'$(DisableImplicitFrameworkDefines)' != 'true'">WINDOWS_PHONE_APP</ImplicitFrameworkDefine>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(_SdkShortFrameworkIdentifier)' == 'uap'">
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
+    <!-- Only set for the 10.0 version -->
+    <NugetTargetMoniker Condition="'$(_SdkShortFrameworkVersion)' == '10.0'">UAP,Version=v10.0</NugetTargetMoniker>
+    
+    <!-- Calculate defaults based on 10.0 or specific version based on TFM to handle uap10.0, uap10.0.10240, etc -->
+    <TargetPlatformVersion Condition="'$(TargetPlatformVersion)' == '' AND '$(_SdkShortFrameworkVersion)' == '10.0'">10.0.17763.0</TargetPlatformVersion>
+    <TargetPlatformVersion Condition="'$(TargetPlatformVersion)' == ''">$([System.Version]::Parse('$(_SdkShortFrameworkVersion)')).0</TargetPlatformVersion>
+    <TargetPlatformMinVersion Condition="'$(TargetPlatformMinVersion)' == '' AND '$(_SdkShortFrameworkVersion)' == '10.0'">10.0.15063.0</TargetPlatformMinVersion>
+    <TargetPlatformMinVersion Condition="'$(TargetPlatformMinVersion)' == ''">$([System.Version]::Parse('$(_SdkShortFrameworkVersion)')).0</TargetPlatformMinVersion>
+
+    <CopyLocalLockFileAssemblies Condition="'$(CopyLocalLockFileAssemblies)' == ''">false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+</Project>

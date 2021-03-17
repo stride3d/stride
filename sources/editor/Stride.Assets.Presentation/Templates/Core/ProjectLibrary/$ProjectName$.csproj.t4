@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+<#@ include file="..\Common.TargetFrameworks.targets.t4" #>
 <# if (Properties.Namespace != Properties.ProjectName) { #>
     <RootNamespace><#= Properties.Namespace #></RootNamespace>
 <# } #>

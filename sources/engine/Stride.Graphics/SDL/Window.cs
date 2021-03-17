@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_UI_SDL
 using System;
+using Stride.Core;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics.SDL
@@ -30,12 +31,10 @@ namespace Stride.Graphics.SDL
             int res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
             // 4.2 is the lowest version we support.
             res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-#if STRIDE_PLATFORM_MACOS
-            res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1);
-#else
-            res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
-#endif
-
+            if (Platform.Type == PlatformType.macOS)
+                res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1);
+            else
+                res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
 #endif
             // Pass first mouse event when user clicked on window 
             SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
@@ -72,16 +71,18 @@ namespace Stride.Graphics.SDL
                 {
                     throw new Exception("Cannot get Window information: " + SDL.SDL_GetError());
                 }
-                else
+                else if (Core.Platform.Type == Core.PlatformType.Windows)
                 {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
                     Handle = info.info.win.window;
-#elif STRIDE_PLATFORM_LINUX
+                }
+                else if (Core.Platform.Type == Core.PlatformType.Linux)
+                {
                     Handle = info.info.x11.window;
                     Display = info.info.x11.display;
-#elif STRIDE_PLATFORM_MACOS
+                }
+                else if (Core.Platform.Type == Core.PlatformType.macOS)
+                {
                     Handle = info.info.cocoa.window;
-#endif
                 }
                 Application.RegisterWindow(this);
                 Application.ProcessEvents();
@@ -595,38 +596,10 @@ namespace Stride.Graphics.SDL
         /// </summary>
         public IntPtr Handle { get; private set; }
 
-#if STRIDE_PLATFORM_LINUX
         /// <summary>
-        /// Display of current Window.
+        /// Display of current Window (valid only for Unix for X11).
         /// </summary>
-        public IntPtr Display { get; private set;}
-
-        /// <summary>
-        /// Given a Xlib display pointer, returns the corresponding Xcb connection.
-        /// </summary>
-        /// <param name="display">The Xlib display pointer.</param>
-        /// <returns>A Xcb connection pointer.</returns>
-        [System.Runtime.InteropServices.DllImport("libX11-xcb")]
-        private static extern IntPtr XGetXCBConnection(IntPtr display);
-
-        /// <summary>
-        /// Associated XcbConnection for <see cref="Display"/>. Null pointer if none available.
-        /// </summary>
-        public IntPtr XcbConnection
-        {
-            get
-            {
-                try
-                {
-                    return XGetXCBConnection(Display);
-                }
-                catch (Exception)
-                {
-                    return IntPtr.Zero;
-                }
-            }
-        }
-#endif
+        public IntPtr Display { get; private set; }
 
         /// <summary>
         /// The SDL window handle.

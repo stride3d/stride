@@ -20,7 +20,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
+#if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
 using System.Windows.Forms;
 
@@ -29,7 +29,7 @@ namespace Stride.Games
     /// <summary>
     /// A <see cref="GameContext"/> to use for rendering to an existing WinForm <see cref="Control"/>.
     /// </summary>
-    public class GameContextWinforms : GameContextDesktop<Control>
+    public class GameContextWinforms : GameContext<Control>
     {
         /// <inheritDoc/>
         /// <param name="isUserManagingRun">Is user managing event processing of <paramref name="control"/>?</param>

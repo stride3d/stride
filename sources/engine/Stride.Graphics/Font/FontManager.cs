@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using SharpFont;
-
+using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
@@ -79,7 +79,7 @@ namespace Stride.Graphics.Font
             contentManager = new ContentManager(fileProviderService);
 
             // Preload proper freetype native library (depending on CPU type)
-            Core.NativeLibrary.PreloadLibrary("freetype.dll", typeof(FontManager));
+            NativeLibraryHelper.PreloadLibrary("freetype.dll", typeof(FontManager));
 
             // create a freetype library used to generate the bitmaps
             freetypeLibrary = new Library();

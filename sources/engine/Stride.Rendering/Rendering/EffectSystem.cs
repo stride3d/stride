@@ -28,7 +28,7 @@ namespace Stride.Rendering
         private EffectCompilerBase compiler;
         private readonly Dictionary<string, List<CompilerResults>> earlyCompilerCache = new Dictionary<string, List<CompilerResults>>();
         private Dictionary<EffectBytecode, Effect> cachedEffects = new Dictionary<EffectBytecode, Effect>();
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
         private DirectoryWatcher directoryWatcher;
 #endif
         private bool isInitialized;
@@ -67,7 +67,7 @@ namespace Stride.Rendering
             // Get graphics device service
             base.InitGraphicsDeviceService();
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
             Enabled = true;
             directoryWatcher = new DirectoryWatcher("*.sdsl");
             directoryWatcher.Modified += FileModifiedEvent;
@@ -98,7 +98,7 @@ namespace Stride.Rendering
                 isInitialized = false;
             }
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
             if (directoryWatcher != null)
             {
                 directoryWatcher.Modified -= FileModifiedEvent;
@@ -213,7 +213,7 @@ namespace Stride.Rendering
                     effect = new Effect(GraphicsDevice, bytecode) { Name = effectName };
                     cachedEffects.Add(bytecode, effect);
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
                     foreach (var type in bytecode.HashSources.Keys)
                     {
                         var storagePath = EffectCompilerBase.GetStoragePathFromShaderType(type);

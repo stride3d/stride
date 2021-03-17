@@ -1,10 +1,8 @@
 ﻿<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
     <StrideBuildTags>*</StrideBuildTags>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
@@ -23,20 +21,13 @@
     <ProjectReference Include="..\Stride.Shaders.Parser\Stride.Shaders.Parser.csproj" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'UWP'" />
   </ItemGroup>
-  <ItemGroup Condition="'$(StridePlatform)' == 'Windows'">
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net'))">
     <StrideNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      <Link>win-%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <RelativePath>win-%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
-    <StrideContent Include="..\..\..\deps\glslang\Windows\glslangValidator.exe">
-      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </StrideContent>
-  </ItemGroup>
-  <ItemGroup Condition="('$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS') And '$(StrideGraphicsApi)' == 'Vulkan'">
-    <StrideContent Include="..\..\..\deps\glslang\$(StridePlatform)\glslangValidator">
+    <StrideContent Include="..\..\..\deps\glslang\**\glslangValidator*.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -44,5 +35,4 @@
   </ItemGroup>
   <Import Project="..\..\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 </Project>

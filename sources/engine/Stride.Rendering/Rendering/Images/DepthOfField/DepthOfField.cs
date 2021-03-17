@@ -8,6 +8,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using Half = Stride.Core.Mathematics.Half;
 
 namespace Stride.Rendering.Images
 {

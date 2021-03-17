@@ -2,8 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <StrideEditorTargetFrameworks Condition="'$(StrideEditorTargetFrameworks)' == ''">net5.0-windows</StrideEditorTargetFrameworks>
-    <StrideEditorTargetFramework>$(StrideEditorTargetFrameworks.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideEditorTargetFramework>
+    <StrideEditorTargetFramework>net5.0-windows</StrideEditorTargetFramework>
   </PropertyGroup>
 
 </Project>

@@ -7,13 +7,11 @@
     <SolutionPath Condition=" '$(SolutionPath)' == '' ">$(SolutionDir)$(SolutionName).sln</SolutionPath>
   </PropertyGroup>
 
-  <!-- Setup StridePlatform according to current TargetFramework/RuntimeIdentifier -->
+  <!-- Setup StridePlatform according to current TargetFramework -->
   <PropertyGroup>
     <!-- Default values -->
     <StridePlatformOriginal>$(StridePlatform)</StridePlatformOriginal>
-    <StridePlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And ('$(RuntimeIdentifier)' == '' Or $(RuntimeIdentifier.StartsWith('win'))) ">Windows</StridePlatform>
-    <StridePlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(RuntimeIdentifier.StartsWith('linux')) ">Linux</StridePlatform>
-    <StridePlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(RuntimeIdentifier.StartsWith('osx')) ">macOS</StridePlatform>
+    <StridePlatform Condition=" $(TargetFramework.StartsWith('net')) ">Windows</StridePlatform>
     <StridePlatform Condition=" $(TargetFramework.StartsWith('uap10.0')) ">UWP</StridePlatform>
     <StridePlatform Condition=" '$(TargetFramework)' == 'monoandroid81' ">Android</StridePlatform>
     <StridePlatform Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</StridePlatform>
@@ -21,6 +19,11 @@
     <StridePlatform Condition=" '$(StridePlatform)' == '' ">Windows</StridePlatform>
 
     <StridePlatformFullName Condition="'$(StridePlatformFullName)' == ''">$(StridePlatform)</StridePlatformFullName>
+
+    <StridePlatformDeps Condition=" $(TargetFramework.StartsWith('net')) ">dotnet</StridePlatformDeps>
+    <StridePlatformDeps Condition=" $(TargetFramework.StartsWith('uap10.0')) ">UWP</StridePlatformDeps>
+    <StridePlatformDeps Condition=" '$(TargetFramework)' == 'monoandroid81' ">Android</StridePlatformDeps>
+    <StridePlatformDeps Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</StridePlatformDeps>
   </PropertyGroup>
 
   <!--Import Local Pre Settings for the solution being loaded -->
@@ -34,8 +37,8 @@
   -->
   <PropertyGroup>
     <!-- Using C# version 7.3 -->
-    <LangVersion>7.3</LangVersion>
-    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</StridePlatformDefines>
+    <LangVersion>9.0</LangVersion>
+    <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP;STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</StridePlatformDefines>
 
     <!-- Note: ideally we would split using ItemGroup but then PropertyGroup are not properly evaluated if they contain ItemGroup (unless using Targets) -->
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
@@ -51,47 +54,18 @@
     <Platform>AnyCPU</Platform>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' And '$(StrideRuntimeNetStandard)' != 'true' ">
-    <!-- Add netstandard2.0 no matter what (needed for references) -->
-    <StrideRuntimeTargetFrameworks>netstandard2.0</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsDotNet)' == 'true'">$(StrideRuntimeTargetFrameworks);net461</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeNet5)' == 'true'">$(StrideRuntimeTargetFrameworks);net5.0</StrideRuntimeTargetFrameworks>
+  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
+    <!-- Add net5.0 no matter what (needed for references) -->
+    <StrideRuntimeTargetFrameworks>net5.0</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsNet5)' == 'true'">$(StrideRuntimeTargetFrameworks);net5.0-windows</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);uap10.0.16299</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);monoandroid81</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);xamarinios10</StrideRuntimeTargetFrameworks>
 
-    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And ('$(TargetFramework)' == 'netstandard2.0' Or $(TargetFramework.StartsWith('net4')) Or $(TargetFramework.StartsWith('net5'))) And $(_StridePlatforms.Contains(';Windows;'))">$(StrideRuntimeIdentifiers);win</StrideRuntimeIdentifiers>
-    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_StridePlatforms.Contains(';Linux;'))">$(StrideRuntimeIdentifiers);linux</StrideRuntimeIdentifiers>
-    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_StridePlatforms.Contains(';macOS;'))">$(StrideRuntimeIdentifiers);osx</StrideRuntimeIdentifiers>
-    <!-- Default: at least win (used when compiling only a single platform such as UWP for netstandard assemblies) -->
-    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And '$(StrideRuntimeIdentifiers)' == ''">win</StrideRuntimeIdentifiers>
-
-    <!-- Need to use a runtime identifier for all other platforms as a workaround https://github.com/NuGet/Home/issues/7661#issuecomment-450040204 -->
-    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' != 'netstandard2.0' And !$(TargetFramework.StartsWith('net4')) And !$(TargetFramework.StartsWith('net5')) And !$(TargetFramework.StartsWith('netcoreapp'))">any</StrideRuntimeIdentifiers>
-    
-    <StrideRuntimeIdentifiers Condition="'$(StrideRuntimeIdentifiers)' != ''">;$(StrideRuntimeIdentifiers);</StrideRuntimeIdentifiers>
-
-    <!-- Make sure RuntimeIdentifier is part of the list -->
-    <StrideRuntimeIdentifier Condition="'$(StrideRuntimeIdentifiers)' != '' And $(StrideRuntimeIdentifiers.Contains(';$(RuntimeIdentifier);'))">$(RuntimeIdentifier)</StrideRuntimeIdentifier>
-    <!-- Otherwise compute fallback -->
-    <StrideRuntimeIdentifier Condition="'$(StrideRuntimeIdentifiers)' != '' And '$(StrideRuntimeIdentifier)' == ''">$(StrideRuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideRuntimeIdentifier>
-
     <StrideRuntimeTargetFrameworks>$([MSBuild]::Unescape($(StrideRuntimeTargetFrameworks.Trim(';'))))</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeIdentifiers>$([MSBuild]::Unescape($(StrideRuntimeIdentifiers.Trim(';'))))</StrideRuntimeIdentifiers>
 
     <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
-    <RuntimeIdentifiers Condition="'$(StrideRuntimeIdentifiers)' != ''">$(StrideRuntimeIdentifiers)</RuntimeIdentifiers>
-	
-    <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
 
-    <!-- UpToDate check doesn't work with multi-TFM projects! https://github.com/dotnet/project-system/issues/2487 -->
-    <!--<DisableFastUpToDateCheck Condition="$(TargetFrameworks.Contains(';')) Or $(RuntimeIdentifiers.Contains(';'))">true</DisableFastUpToDateCheck>-->
-    <!--<TargetFrameworks>net461;uap10.0.16299;monoandroid81;xamarinios10;netstandard2.0</TargetFrameworks>-->
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' And '$(StrideRuntimeNetStandard)' == 'true' ">
-    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <!-- Force a full Build & Pack if dependency was only built with a single TargetFramework (which would set IsInnerBuild and skip any Pack logic)
@@ -105,21 +79,8 @@
              Condition="'%(_MSBuildProjectReferenceExistent.SetTargetFramework)' != ''"
              BuildInParallel="$(BuildInParallel)"
              Targets="Build;Pack"
-             RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;RuntimeIdentifier;StrideGraphicsApi">
+             RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove);TargetFramework;StrideGraphicsApi">
     </MSBuild>
-  </Target>
-
-  <Target Name="GetPackagingOutputs" Condition=" '$(StrideRuntime)' == 'true' And '$(StrideRuntimeNetStandard)' == 'true' " />
-
-  <!-- Use default runtime as ref assembly -->
-  <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_StrideIncludeRefAssemblies</TargetsForTfmSpecificBuildOutput>
-  </PropertyGroup>
-  <Target Name="_StrideIncludeRefAssemblies" Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == $(RuntimeIdentifiers.Split(';')[0])">
-    <ItemGroup>
-      <TfmSpecificPackageFile Include="@(IntermediateAssembly)" PackagePath="ref/$(TargetFramework)" />
-      <TfmSpecificPackageFile Include="@(DocFileItem)" PackagePath="ref/$(TargetFramework)" />
-    </ItemGroup>
   </Target>
 
   <PropertyGroup>
@@ -127,6 +88,7 @@
     <GenerateProjectSpecificOutputFolder>false</GenerateProjectSpecificOutputFolder>
 
     <!-- Defines the language of the project being compiled CSharp or Cpp - defined by default to CSharp, must be overriden to Cpp in a Cpp project -->
+    <StrideProjectType Condition="'$(MSBuildProjectExtension)' == '.vcxproj'">Cpp</StrideProjectType>
     <StrideProjectType Condition="'$(StrideProjectType)' == ''">CSharp</StrideProjectType>
 
     <!-- Flag used per-project settings to specify that it should only be compiled on Windows Desktop-->
@@ -173,30 +135,17 @@
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'Windows' ">
-    <!-- Limited version used by tools but that doesn't require installation of .NET on most computers (4.5.1 is default of many OS, 4.5.2/4.6 isn't) -->
-    <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</StridePlatformDefines>
-    <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
+  <PropertyGroup Condition=" $(TargetFramework.StartsWith('net5')) ">
+    <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP</StridePlatformDefines>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(StridePlatform)' == 'UWP' ">
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <StridePlatformDefines>STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_UWP</StridePlatformDefines>
-    <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-win10\</NUnitLiteBinDir>
-    <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
+    <ExtrasUwpMetaPackageVersion>6.2.12</ExtrasUwpMetaPackageVersion>
     <TargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
     <GenerateLibraryLayout>false</GenerateLibraryLayout>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'Linux' ">
-    <StridePlatformDefines>STRIDE_PLATFORM_LINUX;STRIDE_PLATFORM_UNIX</StridePlatformDefines>
-    <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'macOS' ">
-    <StridePlatformDefines>STRIDE_PLATFORM_MACOS;STRIDE_PLATFORM_UNIX</StridePlatformDefines>
-    <NUnitLiteBinDir>$(StrideCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(StridePlatform)' == 'Android' ">
@@ -259,9 +208,6 @@
   <PropertyGroup Condition="$(TargetFramework.StartsWith('netcoreapp')) Or $(TargetFramework.StartsWith('net5'))">
     <StrideNETRuntimeDefines>STRIDE_RUNTIME_CORECLR</StrideNETRuntimeDefines>
   </PropertyGroup>
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('net4'))">
-    <StrideNETRuntimeDefines>STRIDE_RUNTIME_NETFW</StrideNETRuntimeDefines>
-  </PropertyGroup>
 
   <PropertyGroup>
     <DefineConstants>$(StridePlatformDefines);$(DefineConstants)</DefineConstants>
@@ -287,5 +233,7 @@
       </TargetPathWithTargetPlatformMoniker>
     </ItemGroup>
   </Target>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" Condition="'$(StrideProjectType)' != 'Cpp'" />
 
 </Project>

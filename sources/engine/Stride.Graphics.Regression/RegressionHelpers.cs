@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
+using Stride.Core;
 using Stride.Core.LZ4;
 
 #if STRIDE_PLATFORM_UWP
@@ -45,8 +46,8 @@ namespace Stride.Graphics.Regression
             // TODO: Check build number in environment variables
             result.BuildNumber = -1;
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-            result.Platform = "Windows";
+#if STRIDE_PLATFORM_DESKTOP
+            result.Platform = Platform.Type.ToString();
             result.Serial = Environment.MachineName;
     #if STRIDE_GRAPHICS_API_DIRECT3D12
             result.DeviceName = "Direct3D12";
