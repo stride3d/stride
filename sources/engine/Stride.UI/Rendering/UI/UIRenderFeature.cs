@@ -247,9 +247,20 @@ namespace Stride.Rendering.UI
                 }
                 context.CommandList.SetRenderTarget(renderingContext.DepthStencilBuffer, renderingContext.RenderTarget);
 
+                var samplerState = context.GraphicsDevice.SamplerStates.LinearClamp;
+                if (renderObject.Sampler != Sampler.LinearClamp)
+                {
+                    switch (renderObject.Sampler)
+                    {
+                        case Sampler.PointClamp:
+                            samplerState = context.GraphicsDevice.SamplerStates.PointClamp;
+                            break;
+                    }
+                }
+
                 // start the image draw session
                 renderingContext.StencilTestReferenceValue = 0;
-                batch.Begin(context.GraphicsContext, ref uiElementState.WorldViewProjectionMatrix, BlendStates.AlphaBlend, uiSystem.KeepStencilValueState, renderingContext.StencilTestReferenceValue);
+                batch.Begin(context.GraphicsContext, ref uiElementState.WorldViewProjectionMatrix, BlendStates.AlphaBlend, samplerState, null, uiSystem.KeepStencilValueState, renderingContext.StencilTestReferenceValue);
 
                 // Render the UI elements in the final render target
                 RecursiveDrawWithClipping(context, rootElement, ref uiElementState.WorldViewProjectionMatrix);

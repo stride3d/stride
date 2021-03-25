@@ -1,11 +1,21 @@
 // Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.UI;
 
 namespace Stride.Rendering.UI
 {
+    public enum Sampler
+    {
+        [Display("Point (Nearest)")]
+        PointClamp,
+
+        [Display("Linear")]
+        LinearClamp,
+    }
+
     public class RenderUIElement : RenderObject
     {
         public RenderUIElement()
@@ -16,6 +26,7 @@ namespace Stride.Rendering.UI
 
         // UIComponent values
         public UIPage Page;
+        public Sampler Sampler;
         public bool IsFullScreen;
         public Vector3 Resolution;
         public Vector3 Size;
