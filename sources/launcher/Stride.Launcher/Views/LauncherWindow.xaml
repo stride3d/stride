@@ -196,8 +196,10 @@
                   <Run Text="{Binding DisplayName, StringFormat={x:Static r:Strings.VersionButton}, Mode=OneWay}"/>
                   <!-- Careful here, there must not be any space or line-break between the next two Run tags! -->
                   <Run Text="{Binding CanDelete, Converter={sskk:Chained {sskk:InvertBool}, {sskk:BoolToParam}, Parameter2={x:Static r:Strings.VersionButtonUninstalled}},
-                       Mode=OneWay}"/><Run Text="{sskk:MultiBinding {Binding CanDelete}, {Binding CanBeDownloaded}, Converter={sskk:MultiChained {sskk:AndMultiConverter},
-                       {sskk:BoolToParam}, Parameter1={x:Static r:Strings.VersionButtonUpdateAvailable}}, Mode=OneWay}"/>
+                       Mode=OneWay}"/><Run Text="{sskk:MultiBinding {Binding CanDelete}, {Binding CanBeDownloaded}, {Binding IsLatestPackageRemote}, Converter={sskk:MultiChained
+                       {sskk:AndMultiConverter}, {sskk:BoolToParam}, Parameter1={x:Static r:Strings.VersionButtonUpdateAvailable}}, Mode=OneWay}"/><Run Text="{sskk:MultiBinding
+                       {Binding CanDelete}, {Binding CanBeDownloaded}, {Binding IsLatestPackageLocal}, Converter={sskk:MultiChained {sskk:AndMultiConverter}, {sskk:BoolToParam},
+                       Parameter1={x:Static r:Strings.VersionButtonLocalUpdateAvailable}}, Mode=OneWay}"/>
               </TextBlock>
             </Grid>
           </Grid>
@@ -290,7 +292,7 @@
           </Grid.RowDefinitions>
 
           <!-- FIRST COLUMN -->
-          <DockPanel Grid.Row="0" Grid.Column="0" Width="380">
+          <DockPanel Grid.Row="0" Grid.Column="0" Width="400">
             <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}"
                   Background="{StaticResource TileAlphaBackgroundBrush}">
               <DockPanel Margin="10">

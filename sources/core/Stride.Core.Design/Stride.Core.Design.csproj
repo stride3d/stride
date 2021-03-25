@@ -1,13 +1,12 @@
 <Project>
   <Import Project="..\..\targets\Stride.Core.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -35,6 +34,5 @@
   </ItemGroup>
   
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 
 </Project>

@@ -1,12 +1,11 @@
 ﻿<Project>
   <Import Project="..\..\targets\Stride.Core.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
@@ -18,5 +17,4 @@
     <ProjectReference Include="..\Stride.Core.Reflection\Stride.Core.Reflection.csproj" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 </Project>

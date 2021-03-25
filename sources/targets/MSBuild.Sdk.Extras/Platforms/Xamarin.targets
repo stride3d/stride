@@ -1,0 +1,26 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <MSBuildAllProjects Condition=" '$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0' ">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_SdkPlatformLibraryName>$(TargetFrameworkIdentifier)</_SdkPlatformLibraryName>
+    <_SdkPlatformLibraryName Condition="$(_SdkPlatformLibraryName.EndsWith('Android'))">Mono.Android</_SdkPlatformLibraryName>
+
+    <_SdkPlatformFrameworkName>$(TargetFrameworkIdentifier)</_SdkPlatformFrameworkName>
+    <_SdkPlatformFrameworkName Condition="'$(_SdkPlatformFrameworkName)' == 'MonoTouch'">Xamarin.iOS</_SdkPlatformFrameworkName>
+    <_SdkPlatformFrameworkName Condition="$(_SdkPlatformFrameworkName.StartsWith('Mono'))">$(_SdkPlatformFrameworkName.Replace('Mono', 'Xamarin.'))</_SdkPlatformFrameworkName>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(DisableImplicitFrameworkReferences)' != 'true'">
+    <_SdkImplicitReference Include="System"/>
+    <_SdkImplicitReference Include="System.Core"/>
+    <_SdkImplicitReference Include="System.Net.Http"/>
+    <_SdkImplicitReference Include="System.Xml"/>
+    <_SdkImplicitReference Include="$(_SdkPlatformLibraryName)"/>
+  </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)Xamarin\$(_SdkPlatformFrameworkName).targets" Condition="Exists('$(MSBuildThisFileDirectory)Xamarin\$(_SdkPlatformFrameworkName).targets')"/>
+
+</Project>

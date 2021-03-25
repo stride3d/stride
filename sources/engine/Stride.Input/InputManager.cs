@@ -231,13 +231,16 @@ namespace Stride.Input
         /// </summary>
         public bool UseRawInput
         {
-#if STRIDE_PLATFORM_WINDOWS && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF) && STRIDE_INPUT_RAWINPUT
+#if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF) && STRIDE_INPUT_RAWINPUT
             get
             {
                 return rawInputEnabled;
             }
             set
             {
+                if (Platform.Type != PlatformType.Windows)
+                    return;
+
                 InputSourceWindowsRawInput rawInputSource = Sources.OfType<InputSourceWindowsRawInput>().FirstOrDefault();
 
                 if (value)
@@ -609,7 +612,7 @@ namespace Stride.Input
                     break;
 #endif
                 case AppContextType.Desktop:
-#if STRIDE_PLATFORM_WINDOWS && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
+#if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
                     Sources.Add(new InputSourceWindowsDirectInput());
                     if (InputSourceWindowsXInput.IsSupported())
                         Sources.Add(new InputSourceWindowsXInput());

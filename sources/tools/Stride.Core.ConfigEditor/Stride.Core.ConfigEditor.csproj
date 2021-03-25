@@ -1,12 +1,11 @@
 ﻿<Project>
   <Import Project="..\..\targets\Stride.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <OutputType>WinExe</OutputType>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
   </PropertyGroup>
   <ItemGroup>
@@ -66,5 +65,4 @@
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 </Project>

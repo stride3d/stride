@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
@@ -9,6 +9,12 @@
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <AssemblyName>Stride.Assets.Tests2</AssemblyName>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageReference Include="TeamCity.VSTest.TestAdapter" Version="1.0.23" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />

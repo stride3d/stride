@@ -23,7 +23,7 @@ namespace Stride.Graphics.Regression
 
         public static void RunGameTest(Game game)
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
 
             using (game)
             {

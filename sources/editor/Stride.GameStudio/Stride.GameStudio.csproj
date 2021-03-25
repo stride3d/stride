@@ -4,11 +4,10 @@
   <Import Project="..\..\tools\Stride.Core.VisualStudio\Stride.Core.VisualStudio.projitems" Label="Shared" />
   <Import Project="..\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems" Label="Shared" />
   <Import Project="..\..\targets\Stride.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -34,14 +33,11 @@
   <ItemGroup>
     <PackageReference Include="ServiceWire" Version="5.3.4" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
-    <PackageReference Include="EnvDTE" Version="8.0.1" Condition="$(TargetFramework.StartsWith('net4'))" />
     <PackageReference Include="Stride.Metrics" Version="1.0.3" />
     <PackageReference Include="Stride.CrashReport" Version="1.0.2" />
     <PackageReference Include="Mono.Cecil" Version="0.11.2" />
-    <Reference Include="Stride.Core.AssemblyProcessor" >
-      <HintPath Condition="$(TargetFramework.StartsWith('net4'))">..\..\..\deps\AssemblyProcessor\net472\Stride.Core.AssemblyProcessor.exe</HintPath>
+    <Reference Include="Stride.Core.AssemblyProcessor">
       <HintPath Condition="$(TargetFramework.StartsWith('net5'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
-      <HintPath Condition="$(TargetFramework.StartsWith('netcoreapp'))">..\..\..\deps\AssemblyProcessor\netstandard2.0\Stride.Core.AssemblyProcessor.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -65,6 +61,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Debugger\Stride.Debugger.csproj" />
     <ProjectReference Include="..\..\tools\Stride.ConnectionRouter\Stride.ConnectionRouter.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.PackageInstall\Stride.PackageInstall.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
     <ProjectReference Include="..\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
     <ProjectReference Include="..\..\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj" IncludeAssets="Build" />
   </ItemGroup>
@@ -108,12 +110,12 @@
   </ItemGroup>
   <Import Project="..\..\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 
   <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
+
   </PropertyGroup>
-  <Target Name="IncludeExtraAssemblies">
+  <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
       <BuildOutputInPackage Include="$(OutputPath)Mono.Cecil.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Core.AssemblyProcessor.*" />

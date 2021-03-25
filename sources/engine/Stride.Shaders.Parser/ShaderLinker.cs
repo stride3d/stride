@@ -14,6 +14,7 @@ using Stride.Core.Shaders.Visitor;
 using Stride.Graphics;
 
 using StorageQualifier = Stride.Core.Shaders.Ast.StorageQualifier;
+using Half = Stride.Core.Mathematics.Half;
 
 namespace Stride.Shaders.Parser
 {

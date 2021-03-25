@@ -43,6 +43,28 @@ namespace Stride.LauncherApp.ViewModels
         }
 
         /// <summary>
+        /// Checks whether the latest available package is from a remote repository (i.e. NuGet).
+        /// </summary>
+        public bool IsLatestPackageRemote
+        {
+            get
+            {
+                return (LatestServerPackage?.Source != null) && (Uri.IsWellFormedUriString(LatestServerPackage.Source, UriKind.Absolute));
+            }
+        }
+
+        /// <summary>
+        /// Checks whether the latest available package is from a local repository (i.e. disk).
+        /// </summary>
+        public bool IsLatestPackageLocal
+        {
+            get
+            {
+                return (LatestServerPackage?.Source != null) && (Directory.Exists(LatestServerPackage.Source));
+            }
+        }
+
+        /// <summary>
         /// Gets the full name of this version, including revision number and special revision string.
         /// </summary>
         /// <remarks>If this version is installed, it will use the name of the installed version. Otherwise, it will use the name of the latest version available on the server.</remarks>
@@ -118,7 +140,11 @@ namespace Stride.LauncherApp.ViewModels
 
             // Always keep track of highest version
             if (ServerPackage != null && (LatestServerPackage == null || LatestServerPackage.Version < ServerPackage.Version))
+            {
+                OnPropertyChanging(nameof(IsLatestPackageRemote), nameof(IsLatestPackageLocal));
                 LatestServerPackage = ServerPackage;
+                OnPropertyChanged(nameof(IsLatestPackageRemote), nameof(IsLatestPackageLocal));
+            }
 
             Dispatcher.Invoke(UpdateStatus);
             if (alternateVersions != null)

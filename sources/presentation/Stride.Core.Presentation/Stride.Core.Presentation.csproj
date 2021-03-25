@@ -1,11 +1,10 @@
 ﻿<Project>
 
   <Import Project="..\..\targets\Stride.Core.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 
   <PropertyGroup>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
-    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StrideLocalized>true</StrideLocalized>
@@ -37,6 +36,7 @@
 
   <ItemGroup>
     <Resource Include="Resources\Cursors\CursorDrag.cur" />
+    <Resource Include="Resources\Images\calendar--pencil.png" />
     <Resource Include="Resources\Images\close_window.png" />
     <Resource Include="Resources\Images\error-32.png" />
     <Resource Include="Resources\Images\info-32.png" />
@@ -52,5 +52,4 @@
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 </Project>

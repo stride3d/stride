@@ -15,19 +15,13 @@ namespace Stride.Core.Native
     {
 #if STRIDE_PLATFORM_IOS
         internal const string Library = "__Internal";
-        internal const string LibraryName = "libcore.so";
 #else
         internal const string Library = "libcore";
-#if STRIDE_PLATFORM_WINDOWS
-        internal const string LibraryName = "libcore.dll";
-#else
-        internal const string LibraryName = "libcore.so";
-#endif
 #endif
 
         static NativeInvoke()
         {
-            NativeLibrary.PreloadLibrary(LibraryName, typeof(NativeInvoke));
+            NativeLibraryHelper.PreloadLibrary("libcore", typeof(NativeInvoke));
         }
 
         /// <summary>

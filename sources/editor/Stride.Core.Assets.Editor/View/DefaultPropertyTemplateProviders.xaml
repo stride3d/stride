@@ -807,29 +807,35 @@
   <!-- Provider for time span editor -->
   <view:TypeMatchTemplateProvider x:Key="TimeSpanPropertyTemplateProvider" Type="{x:Type s:TimeSpan}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <!-- Note: timespan are displayed in seconds -->
-      <sd:NumericTextBox x:Name="TextBox" SelectAllOnFocus="True" Margin="2"
-                           Value="{Binding NodeValue, Converter={sd:Chained {cvt:DifferentValuesToNull}, {sd:TimeSpanToDouble}}}"
-                           Minimum="{Binding Minimum, Converter={sd:Chained {cvt:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue=0}"
-                           Maximum="{Binding Maximum, Converter={sd:Chained {cvt:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Double.MaxValue}}"
-                           SmallChange="{Binding SmallStep, Converter={sd:Chained {cvt:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue=0.1}"
-                           LargeChange="{Binding LargeStep, Converter={sd:Chained {cvt:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue=1}"
-                           DecimalPlaces="{Binding DecimalPlaces, Converter={sd:Chained {cvt:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue=3}"
-                           WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
-                           DisplayUpDownButtons="False">
-        <i:Interaction.Behaviors>
-          <!--<sd:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>-->
-          <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
-        </i:Interaction.Behaviors>
-      </sd:NumericTextBox>
+      <sd:TimeSpanEditor x:Name="TimeSpanEditor" Margin="2"
+                         Value="{Binding NodeValue, Converter={cvt:DifferentValuesToNull}}"
+                         WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
+      </sd:TimeSpanEditor>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sd:Localize (Different values)}"/>
+          <Setter TargetName="TimeSpanEditor" Property="WatermarkContent" Value="×"/>
+          <Setter TargetName="TimeSpanEditor" Property="IsEnabled" Value="False"/>
         </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
   </view:TypeMatchTemplateProvider>
 
+  <!-- Provider for date time editor -->
+  <view:TypeMatchTemplateProvider x:Key="DateTimePropertyTemplateProvider" Type="{x:Type s:DateTime}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="qvm:NodeViewModel">
+      <sd:DateTimeEditor x:Name="DateTimeEditor" Margin="2"
+                         Value="{Binding NodeValue, Converter={cvt:DifferentValuesToNull}}"
+                         WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
+      </sd:DateTimeEditor>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
+          <Setter TargetName="DateTimeEditor" Property="WatermarkContent" Value="{sd:Localize (Different values)}"/>
+          <Setter TargetName="DateTimeEditor" Property="IsEnabled" Value="False"/>
+        </DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+  </view:TypeMatchTemplateProvider>
+  
   <!-- Provider for string editor -->
   <view:TypeMatchTemplateProvider x:Key="StringPropertyTemplateProvider" Type="{x:Type s:String}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
@@ -1277,11 +1283,11 @@
     <DockPanel>
       <UniformGrid Rows="1" DockPanel.Dock="Right">
         <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding PickupAsset}" CommandParameter="{Binding Type}"
-                ToolTip="{sd:Localize Select an asset, Context=ToolTip}">
+                ToolTip="{sd:Localize Select an asset, Context=ToolTip}" Visibility="{Binding IsReadOnly, Converter={sd:VisibleOrCollapsed}, ConverterParameter={sd:False}, Mode=OneWay}">
           <Image Source="{StaticResource ImagePickup}" Width="16" Height="16" Margin="-1"/>
         </Button>
         <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding CreateNewInstance}" CommandParameter="{x:Static assetCommands:AbstractNodeValue.Null}"
-                ToolTip="{sd:Localize Clear the reference, Context=ToolTip}">
+                ToolTip="{sd:Localize Clear the reference, Context=ToolTip}" Visibility="{Binding IsReadOnly, Converter={sd:VisibleOrCollapsed}, ConverterParameter={sd:False}, Mode=OneWay}">
           <Image Source="{StaticResource ImageClear}" Width="16" Height="16" Margin="-1"/>
         </Button>
         <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding FetchAsset}"

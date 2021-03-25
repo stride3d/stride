@@ -355,7 +355,7 @@ namespace Stride.Graphics
                 // TODO D3D12 ResourceStates.CopySource not working?
                 var bufferSize = Math.Max(4 * 1024*1024, size);
                 nativeUploadBuffer = NativeDevice.CreateCommittedResource(new HeapProperties(HeapType.Upload), HeapFlags.None, ResourceDescription.Buffer(bufferSize), ResourceStates.GenericRead);
-                nativeUploadBufferStart = nativeUploadBuffer.Map(0, new Range());
+                nativeUploadBufferStart = nativeUploadBuffer.Map(0, new SharpDX.Direct3D12.Range());
                 nativeUploadBufferOffset = 0;
             }
 

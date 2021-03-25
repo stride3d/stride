@@ -145,29 +145,35 @@ namespace Stride.Graphics
             if (!availableExtensionNames.Contains(KHRSurfaceExtensionName))
                 throw new InvalidOperationException($"Required extension {KHRSurfaceExtensionName} is not available");
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-            desiredExtensionNames.Add(KHRWin32SurfaceExtensionName);
-            if (!availableExtensionNames.Contains(KHRWin32SurfaceExtensionName))
-                throw new InvalidOperationException($"Required extension {KHRWin32SurfaceExtensionName} is not available");
-#elif STRIDE_PLATFORM_ANDROID
-            desiredExtensionNames.Add(KHRAndroidSurfaceExtensionName);
-            if (!availableExtensionNames.Contains(KHRAndroidSurfaceExtensionName))
-                throw new InvalidOperationException($"Required extension {KHRAndroidSurfaceExtensionName} is not available");
-#elif STRIDE_PLATFORM_LINUX
-            if (availableExtensionNames.Contains("VK_KHR_xlib_surface"))
+            if (Platform.Type == PlatformType.Windows)
             {
-                desiredExtensionNames.Add("VK_KHR_xlib_surface");
-                HasXlibSurfaceSupport = true;
+                desiredExtensionNames.Add(KHRWin32SurfaceExtensionName);
+                if (!availableExtensionNames.Contains(KHRWin32SurfaceExtensionName))
+                    throw new InvalidOperationException($"Required extension {KHRWin32SurfaceExtensionName} is not available");
             }
-            else if (availableExtensionNames.Contains("VK_KHR_xcb_surface"))
+            else if (Platform.Type == PlatformType.Android)
             {
-                desiredExtensionNames.Add("VK_KHR_xcb_surface");
+                desiredExtensionNames.Add(KHRAndroidSurfaceExtensionName);
+                if (!availableExtensionNames.Contains(KHRAndroidSurfaceExtensionName))
+                    throw new InvalidOperationException($"Required extension {KHRAndroidSurfaceExtensionName} is not available");
             }
-            else
+            else if (Platform.Type == PlatformType.Linux)
             {
-                throw new InvalidOperationException("None of the supported surface extensions VK_KHR_xcb_surface or VK_KHR_xlib_surface is available");
+                if (availableExtensionNames.Contains("VK_KHR_xlib_surface"))
+                {
+                    desiredExtensionNames.Add("VK_KHR_xlib_surface");
+                    HasXlibSurfaceSupport = true;
+                }
+                else if (availableExtensionNames.Contains("VK_KHR_xcb_surface"))
+                {
+                    desiredExtensionNames.Add("VK_KHR_xcb_surface");
+                }
+                else
+                {
+                    throw new InvalidOperationException("None of the supported surface extensions VK_KHR_xcb_surface or VK_KHR_xlib_surface is available");
+                }
             }
-#endif
+
             bool enableDebugReport = enableValidation && availableExtensionNames.Contains(EXTDebugUtilsExtensionName);
             if (enableDebugReport)
                 desiredExtensionNames.Add(EXTDebugUtilsExtensionName);

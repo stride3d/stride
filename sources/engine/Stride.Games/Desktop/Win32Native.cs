@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 #pragma warning disable SA1310 // Field names should not contain underscore
 #pragma warning disable SA1132 // Do not combine fields
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter

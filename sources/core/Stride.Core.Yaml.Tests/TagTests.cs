@@ -66,7 +66,7 @@ namespace Stride.Core.Yaml.Tests.TestNamespace
         [Fact]
         public void TestCoreType()
         {
-            TestType(typeof(Guid), "!System.Guid,mscorlib");
+            TestType(typeof(Guid), "!System.Guid,System.Private.CoreLib");
         }
 
         [Fact]
@@ -79,11 +79,11 @@ namespace Stride.Core.Yaml.Tests.TestNamespace
         public void TestNullableType()
         {
             // TODO: we would like to have something like "!!int?"
-            TestType(typeof(int?), "!System.Nullable%601[[System.Int32,mscorlib]],mscorlib");
-            // TODO: we would like to have something like "!System.Guid?,mscorlib"
-            TestType(typeof(Guid?), "!System.Nullable%601[[System.Guid,mscorlib]],mscorlib");
+            TestType(typeof(int?), "!System.Nullable%601[[System.Int32,System.Private.CoreLib]],System.Private.CoreLib");
+            // TODO: we would like to have something like "!System.Guid?,System.Private.CoreLib"
+            TestType(typeof(Guid?), "!System.Nullable%601[[System.Guid,System.Private.CoreLib]],System.Private.CoreLib");
             // TODO: we would like to have something like "!Stride.Core.Yaml.Tests.TestNamespace.SimpleStruct?,Stride.Core.Yaml.Tests"
-            TestType(typeof(SimpleStruct?), $"!System.Nullable%601[[{Namespace}.SimpleStruct,{AssemblyName}]],mscorlib");
+            TestType(typeof(SimpleStruct?), $"!System.Nullable%601[[{Namespace}.SimpleStruct,{AssemblyName}]],System.Private.CoreLib");
         }
 
         [Fact]
@@ -102,21 +102,21 @@ namespace Stride.Core.Yaml.Tests.TestNamespace
         public void TestGenericType()
         {
             TestType(typeof(GenericType<SimpleType>), $"!{Namespace}.GenericType%601[[{Namespace}.SimpleType,{AssemblyName}]],{AssemblyName}");
-            TestType(typeof(GenericType<double>), $"!{Namespace}.GenericType%601[[System.Double,mscorlib]],{AssemblyName}");
+            TestType(typeof(GenericType<double>), $"!{Namespace}.GenericType%601[[System.Double,System.Private.CoreLib]],{AssemblyName}");
         }
 
         [Fact]
         public void TestGenericNestedType()
         {
             TestType(typeof(GenericNestedTypeContainer<SimpleType>.NestedType.NestedType2), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[{Namespace}.SimpleType,{AssemblyName}]],{AssemblyName}");
-            TestType(typeof(GenericNestedTypeContainer<int>.NestedType.NestedType2), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[System.Int32,mscorlib]],{AssemblyName}");
+            TestType(typeof(GenericNestedTypeContainer<int>.NestedType.NestedType2), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[System.Int32,System.Private.CoreLib]],{AssemblyName}");
         }
 
         [Fact]
         public void TestGenericDoubleNestedType()
         {
             TestType(typeof(GenericNestedTypeContainer2<SimpleType, SimpleType2>.NestedType<SimpleType3, SimpleType4>.NestedType2), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType,{AssemblyName}],[{Namespace}.SimpleType2,{AssemblyName}],[{Namespace}.SimpleType3,{AssemblyName}],[{Namespace}.SimpleType4,{AssemblyName}]],{AssemblyName}");
-            TestType(typeof(GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,mscorlib],[System.String,mscorlib],[System.Guid,mscorlib],[System.DateTime,mscorlib]],{AssemblyName}");
+            TestType(typeof(GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,System.Private.CoreLib],[System.String,System.Private.CoreLib],[System.Guid,System.Private.CoreLib],[System.DateTime,System.Private.CoreLib]],{AssemblyName}");
         }
 
         [Fact]
@@ -129,7 +129,7 @@ namespace Stride.Core.Yaml.Tests.TestNamespace
         public void TestGenericNestedGenericType()
         {
             TestType(typeof(GenericType<GenericNestedTypeContainer2<SimpleType, SimpleType2>.NestedType<SimpleType3, SimpleType4>.NestedType2>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType,{AssemblyName}],[{Namespace}.SimpleType2,{AssemblyName}],[{Namespace}.SimpleType3,{AssemblyName}],[{Namespace}.SimpleType4,{AssemblyName}]],{AssemblyName}]],{AssemblyName}");
-            TestType(typeof(GenericType<GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,mscorlib],[System.String,mscorlib],[System.Guid,mscorlib],[System.DateTime,mscorlib]],{AssemblyName}]],{AssemblyName}");
+            TestType(typeof(GenericType<GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,System.Private.CoreLib],[System.String,System.Private.CoreLib],[System.Guid,System.Private.CoreLib],[System.DateTime,System.Private.CoreLib]],{AssemblyName}]],{AssemblyName}");
         }
 
         [Fact]
@@ -160,13 +160,13 @@ namespace Stride.Core.Yaml.Tests.TestNamespace
         public void TestDefaultTypeArray()
         {
             // TODO: we would like to have: !!int[]
-            TestType(typeof(int[]), "!System.Int32[],mscorlib");
+            TestType(typeof(int[]), "!System.Int32[],System.Private.CoreLib");
         }
 
         [Fact]
         public void TestCoreTypeArray()
         {
-            TestType(typeof(Guid[]), "!System.Guid[],mscorlib");
+            TestType(typeof(Guid[]), "!System.Guid[],System.Private.CoreLib");
         }
 
         [Fact]
@@ -197,44 +197,44 @@ namespace Stride.Core.Yaml.Tests.TestNamespace
         public void TestGenericTypeArray()
         {
             TestType(typeof(GenericType<SimpleType>[]), $"!{Namespace}.GenericType%601[[{Namespace}.SimpleType,{AssemblyName}]][],{AssemblyName}");
-            TestType(typeof(GenericType<double>[]), $"!{Namespace}.GenericType%601[[System.Double,mscorlib]][],{AssemblyName}");
+            TestType(typeof(GenericType<double>[]), $"!{Namespace}.GenericType%601[[System.Double,System.Private.CoreLib]][],{AssemblyName}");
             TestType(typeof(GenericType<SimpleType[]>), $"!{Namespace}.GenericType%601[[{Namespace}.SimpleType[],{AssemblyName}]],{AssemblyName}");
-            TestType(typeof(GenericType<double[]>), $"!{Namespace}.GenericType%601[[System.Double[],mscorlib]],{AssemblyName}");
+            TestType(typeof(GenericType<double[]>), $"!{Namespace}.GenericType%601[[System.Double[],System.Private.CoreLib]],{AssemblyName}");
             TestType(typeof(GenericType<SimpleType[]>[]), $"!{Namespace}.GenericType%601[[{Namespace}.SimpleType[],{AssemblyName}]][],{AssemblyName}");
-            TestType(typeof(GenericType<double[]>[]), $"!{Namespace}.GenericType%601[[System.Double[],mscorlib]][],{AssemblyName}");
+            TestType(typeof(GenericType<double[]>[]), $"!{Namespace}.GenericType%601[[System.Double[],System.Private.CoreLib]][],{AssemblyName}");
         }
 
         [Fact]
         public void TestGenericTypeNestedArray()
         {
             TestType(typeof(GenericType<SimpleType>[][]), $"!{Namespace}.GenericType%601[[{Namespace}.SimpleType,{AssemblyName}]][][],{AssemblyName}");
-            TestType(typeof(GenericType<double>[][]), $"!{Namespace}.GenericType%601[[System.Double,mscorlib]][][],{AssemblyName}");
+            TestType(typeof(GenericType<double>[][]), $"!{Namespace}.GenericType%601[[System.Double,System.Private.CoreLib]][][],{AssemblyName}");
             TestType(typeof(GenericType<SimpleType[][]>), $"!{Namespace}.GenericType%601[[{Namespace}.SimpleType[][],{AssemblyName}]],{AssemblyName}");
-            TestType(typeof(GenericType<double[][]>), $"!{Namespace}.GenericType%601[[System.Double[][],mscorlib]],{AssemblyName}");
+            TestType(typeof(GenericType<double[][]>), $"!{Namespace}.GenericType%601[[System.Double[][],System.Private.CoreLib]],{AssemblyName}");
             TestType(typeof(GenericType<SimpleType[][]>[][]), $"!{Namespace}.GenericType%601[[{Namespace}.SimpleType[][],{AssemblyName}]][][],{AssemblyName}");
-            TestType(typeof(GenericType<double[][]>[][]), $"!{Namespace}.GenericType%601[[System.Double[][],mscorlib]][][],{AssemblyName}");
+            TestType(typeof(GenericType<double[][]>[][]), $"!{Namespace}.GenericType%601[[System.Double[][],System.Private.CoreLib]][][],{AssemblyName}");
         }
 
         [Fact]
         public void TestGenericNestedTypeArray()
         {
             TestType(typeof(GenericNestedTypeContainer<SimpleType>.NestedType.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[{Namespace}.SimpleType,{AssemblyName}]][],{AssemblyName}");
-            TestType(typeof(GenericNestedTypeContainer<int>.NestedType.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[System.Int32,mscorlib]][],{AssemblyName}");
+            TestType(typeof(GenericNestedTypeContainer<int>.NestedType.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[System.Int32,System.Private.CoreLib]][],{AssemblyName}");
             TestType(typeof(GenericNestedTypeContainer<SimpleType[]>.NestedType.NestedType2), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[{Namespace}.SimpleType[],{AssemblyName}]],{AssemblyName}");
-            TestType(typeof(GenericNestedTypeContainer<int[]>.NestedType.NestedType2), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[System.Int32[],mscorlib]],{AssemblyName}");
+            TestType(typeof(GenericNestedTypeContainer<int[]>.NestedType.NestedType2), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[System.Int32[],System.Private.CoreLib]],{AssemblyName}");
             TestType(typeof(GenericNestedTypeContainer<SimpleType[]>.NestedType.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[{Namespace}.SimpleType[],{AssemblyName}]][],{AssemblyName}");
-            TestType(typeof(GenericNestedTypeContainer<int[]>.NestedType.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[System.Int32[],mscorlib]][],{AssemblyName}");
+            TestType(typeof(GenericNestedTypeContainer<int[]>.NestedType.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[System.Int32[],System.Private.CoreLib]][],{AssemblyName}");
         }
 
         [Fact]
         public void TestGenericDoubleNestedTypeArray()
         {
             TestType(typeof(GenericNestedTypeContainer2<SimpleType, SimpleType2>.NestedType<SimpleType3, SimpleType4>.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType,{AssemblyName}],[{Namespace}.SimpleType2,{AssemblyName}],[{Namespace}.SimpleType3,{AssemblyName}],[{Namespace}.SimpleType4,{AssemblyName}]][],{AssemblyName}");
-            TestType(typeof(GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,mscorlib],[System.String,mscorlib],[System.Guid,mscorlib],[System.DateTime,mscorlib]][],{AssemblyName}");
+            TestType(typeof(GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,System.Private.CoreLib],[System.String,System.Private.CoreLib],[System.Guid,System.Private.CoreLib],[System.DateTime,System.Private.CoreLib]][],{AssemblyName}");
             TestType(typeof(GenericNestedTypeContainer2<SimpleType[], SimpleType2[]>.NestedType<SimpleType3[], SimpleType4[]>.NestedType2), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType[],{AssemblyName}],[{Namespace}.SimpleType2[],{AssemblyName}],[{Namespace}.SimpleType3[],{AssemblyName}],[{Namespace}.SimpleType4[],{AssemblyName}]],{AssemblyName}");
-            TestType(typeof(GenericNestedTypeContainer2<int[], string[]>.NestedType<Guid[], DateTime[]>.NestedType2), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[],mscorlib],[System.String[],mscorlib],[System.Guid[],mscorlib],[System.DateTime[],mscorlib]],{AssemblyName}");
+            TestType(typeof(GenericNestedTypeContainer2<int[], string[]>.NestedType<Guid[], DateTime[]>.NestedType2), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[],System.Private.CoreLib],[System.String[],System.Private.CoreLib],[System.Guid[],System.Private.CoreLib],[System.DateTime[],System.Private.CoreLib]],{AssemblyName}");
             TestType(typeof(GenericNestedTypeContainer2<SimpleType[], SimpleType2[]>.NestedType<SimpleType3[], SimpleType4[]>.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType[],{AssemblyName}],[{Namespace}.SimpleType2[],{AssemblyName}],[{Namespace}.SimpleType3[],{AssemblyName}],[{Namespace}.SimpleType4[],{AssemblyName}]][],{AssemblyName}");
-            TestType(typeof(GenericNestedTypeContainer2<int[], string[]>.NestedType<Guid[], DateTime[]>.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[],mscorlib],[System.String[],mscorlib],[System.Guid[],mscorlib],[System.DateTime[],mscorlib]][],{AssemblyName}");
+            TestType(typeof(GenericNestedTypeContainer2<int[], string[]>.NestedType<Guid[], DateTime[]>.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[],System.Private.CoreLib],[System.String[],System.Private.CoreLib],[System.Guid[],System.Private.CoreLib],[System.DateTime[],System.Private.CoreLib]][],{AssemblyName}");
         }
 
         [Fact]
@@ -249,26 +249,26 @@ namespace Stride.Core.Yaml.Tests.TestNamespace
         public void TestGenericNestedGenericTypeArray()
         {
             TestType(typeof(GenericType<GenericNestedTypeContainer2<SimpleType, SimpleType2>.NestedType<SimpleType3, SimpleType4>.NestedType2>[]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType,{AssemblyName}],[{Namespace}.SimpleType2,{AssemblyName}],[{Namespace}.SimpleType3,{AssemblyName}],[{Namespace}.SimpleType4,{AssemblyName}]],{AssemblyName}]][],{AssemblyName}");
-            TestType(typeof(GenericType<GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2>[]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,mscorlib],[System.String,mscorlib],[System.Guid,mscorlib],[System.DateTime,mscorlib]],{AssemblyName}]][],{AssemblyName}");
+            TestType(typeof(GenericType<GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2>[]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,System.Private.CoreLib],[System.String,System.Private.CoreLib],[System.Guid,System.Private.CoreLib],[System.DateTime,System.Private.CoreLib]],{AssemblyName}]][],{AssemblyName}");
             TestType(typeof(GenericType<GenericNestedTypeContainer2<SimpleType, SimpleType2>.NestedType<SimpleType3, SimpleType4>.NestedType2[]>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType,{AssemblyName}],[{Namespace}.SimpleType2,{AssemblyName}],[{Namespace}.SimpleType3,{AssemblyName}],[{Namespace}.SimpleType4,{AssemblyName}]][],{AssemblyName}]],{AssemblyName}");
-            TestType(typeof(GenericType<GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2[]>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,mscorlib],[System.String,mscorlib],[System.Guid,mscorlib],[System.DateTime,mscorlib]][],{AssemblyName}]],{AssemblyName}");
+            TestType(typeof(GenericType<GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2[]>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,System.Private.CoreLib],[System.String,System.Private.CoreLib],[System.Guid,System.Private.CoreLib],[System.DateTime,System.Private.CoreLib]][],{AssemblyName}]],{AssemblyName}");
             TestType(typeof(GenericType<GenericNestedTypeContainer2<SimpleType[], SimpleType2[]>.NestedType<SimpleType3[], SimpleType4[]>.NestedType2>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType[],{AssemblyName}],[{Namespace}.SimpleType2[],{AssemblyName}],[{Namespace}.SimpleType3[],{AssemblyName}],[{Namespace}.SimpleType4[],{AssemblyName}]],{AssemblyName}]],{AssemblyName}");
-            TestType(typeof(GenericType<GenericNestedTypeContainer2<int[], string[]>.NestedType<Guid[], DateTime[]>.NestedType2>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[],mscorlib],[System.String[],mscorlib],[System.Guid[],mscorlib],[System.DateTime[],mscorlib]],{AssemblyName}]],{AssemblyName}");
+            TestType(typeof(GenericType<GenericNestedTypeContainer2<int[], string[]>.NestedType<Guid[], DateTime[]>.NestedType2>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[],System.Private.CoreLib],[System.String[],System.Private.CoreLib],[System.Guid[],System.Private.CoreLib],[System.DateTime[],System.Private.CoreLib]],{AssemblyName}]],{AssemblyName}");
             TestType(typeof(GenericType<GenericNestedTypeContainer2<SimpleType[], SimpleType2[]>.NestedType<SimpleType3[], SimpleType4[]>.NestedType2[]>[]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType[],{AssemblyName}],[{Namespace}.SimpleType2[],{AssemblyName}],[{Namespace}.SimpleType3[],{AssemblyName}],[{Namespace}.SimpleType4[],{AssemblyName}]][],{AssemblyName}]][],{AssemblyName}");
-            TestType(typeof(GenericType<GenericNestedTypeContainer2<int[], string[]>.NestedType<Guid[], DateTime[]>.NestedType2[]>[]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[],mscorlib],[System.String[],mscorlib],[System.Guid[],mscorlib],[System.DateTime[],mscorlib]][],{AssemblyName}]][],{AssemblyName}");
+            TestType(typeof(GenericType<GenericNestedTypeContainer2<int[], string[]>.NestedType<Guid[], DateTime[]>.NestedType2[]>[]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[],System.Private.CoreLib],[System.String[],System.Private.CoreLib],[System.Guid[],System.Private.CoreLib],[System.DateTime[],System.Private.CoreLib]][],{AssemblyName}]][],{AssemblyName}");
         }
 
         [Fact]
         public void TestGenericNestedGenericTypeDoubleArray()
         {
             TestType(typeof(GenericType<GenericNestedTypeContainer2<SimpleType, SimpleType2>.NestedType<SimpleType3, SimpleType4>.NestedType2>[][]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType,{AssemblyName}],[{Namespace}.SimpleType2,{AssemblyName}],[{Namespace}.SimpleType3,{AssemblyName}],[{Namespace}.SimpleType4,{AssemblyName}]],{AssemblyName}]][][],{AssemblyName}");
-            TestType(typeof(GenericType<GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2>[][]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,mscorlib],[System.String,mscorlib],[System.Guid,mscorlib],[System.DateTime,mscorlib]],{AssemblyName}]][][],{AssemblyName}");
+            TestType(typeof(GenericType<GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2>[][]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,System.Private.CoreLib],[System.String,System.Private.CoreLib],[System.Guid,System.Private.CoreLib],[System.DateTime,System.Private.CoreLib]],{AssemblyName}]][][],{AssemblyName}");
             TestType(typeof(GenericType<GenericNestedTypeContainer2<SimpleType, SimpleType2>.NestedType<SimpleType3, SimpleType4>.NestedType2[][]>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType,{AssemblyName}],[{Namespace}.SimpleType2,{AssemblyName}],[{Namespace}.SimpleType3,{AssemblyName}],[{Namespace}.SimpleType4,{AssemblyName}]][][],{AssemblyName}]],{AssemblyName}");
-            TestType(typeof(GenericType<GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2[][]>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,mscorlib],[System.String,mscorlib],[System.Guid,mscorlib],[System.DateTime,mscorlib]][][],{AssemblyName}]],{AssemblyName}");
+            TestType(typeof(GenericType<GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2[][]>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,System.Private.CoreLib],[System.String,System.Private.CoreLib],[System.Guid,System.Private.CoreLib],[System.DateTime,System.Private.CoreLib]][][],{AssemblyName}]],{AssemblyName}");
             TestType(typeof(GenericType<GenericNestedTypeContainer2<SimpleType[][], SimpleType2[][]>.NestedType<SimpleType3[][], SimpleType4[][]>.NestedType2>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType[][],{AssemblyName}],[{Namespace}.SimpleType2[][],{AssemblyName}],[{Namespace}.SimpleType3[][],{AssemblyName}],[{Namespace}.SimpleType4[][],{AssemblyName}]],{AssemblyName}]],{AssemblyName}");
-            TestType(typeof(GenericType<GenericNestedTypeContainer2<int[][], string[][]>.NestedType<Guid[][], DateTime[][]>.NestedType2>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[][],mscorlib],[System.String[][],mscorlib],[System.Guid[][],mscorlib],[System.DateTime[][],mscorlib]],{AssemblyName}]],{AssemblyName}");
+            TestType(typeof(GenericType<GenericNestedTypeContainer2<int[][], string[][]>.NestedType<Guid[][], DateTime[][]>.NestedType2>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[][],System.Private.CoreLib],[System.String[][],System.Private.CoreLib],[System.Guid[][],System.Private.CoreLib],[System.DateTime[][],System.Private.CoreLib]],{AssemblyName}]],{AssemblyName}");
             TestType(typeof(GenericType<GenericNestedTypeContainer2<SimpleType[][], SimpleType2[][]>.NestedType<SimpleType3[][], SimpleType4[][]>.NestedType2[][]>[][]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType[][],{AssemblyName}],[{Namespace}.SimpleType2[][],{AssemblyName}],[{Namespace}.SimpleType3[][],{AssemblyName}],[{Namespace}.SimpleType4[][],{AssemblyName}]][][],{AssemblyName}]][][],{AssemblyName}");
-            TestType(typeof(GenericType<GenericNestedTypeContainer2<int[][], string[][]>.NestedType<Guid[][], DateTime[][]>.NestedType2[][]>[][]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[][],mscorlib],[System.String[][],mscorlib],[System.Guid[][],mscorlib],[System.DateTime[][],mscorlib]][][],{AssemblyName}]][][],{AssemblyName}");
+            TestType(typeof(GenericType<GenericNestedTypeContainer2<int[][], string[][]>.NestedType<Guid[][], DateTime[][]>.NestedType2[][]>[][]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[][],System.Private.CoreLib],[System.String[][],System.Private.CoreLib],[System.Guid[][],System.Private.CoreLib],[System.DateTime[][],System.Private.CoreLib]][][],{AssemblyName}]][][],{AssemblyName}");
         }
 
         [Fact]

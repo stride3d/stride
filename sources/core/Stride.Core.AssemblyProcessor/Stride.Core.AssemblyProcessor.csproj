@@ -2,16 +2,15 @@
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputType Condition="'$(TargetFramework)' == 'net472'">Exe</OutputType>
-    <OutputType Condition="'$(TargetFramework)' == 'netstandard2.0'">Library</OutputType>
-    <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>STRIDE_ASSEMBLY_PROCESSOR;STRIDE_PLATFORM_WINDOWS_DESKTOP;DEBUG;TRACE</DefineConstants>
+    <DefineConstants>STRIDE_ASSEMBLY_PROCESSOR;STRIDE_PLATFORM_DESKTOP;DEBUG;TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -19,7 +18,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>STRIDE_ASSEMBLY_PROCESSOR;STRIDE_PLATFORM_WINDOWS_DESKTOP;TRACE</DefineConstants>
+    <DefineConstants>STRIDE_ASSEMBLY_PROCESSOR;STRIDE_PLATFORM_DESKTOP;TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
@@ -97,8 +96,8 @@ File.WriteAllText(Path, Contents);
   </UsingTask>
 
   <Target Name="GenerateHash" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y $(TargetDir)*.* $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)
-cd $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)
+    <Exec Command="xcopy /y $(TargetDir)*.* $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\
+cd $(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\
 $(ILRepack) Stride.Core.AssemblyProcessor$(TargetExt) Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll /out:Stride.Core.AssemblyProcessor.Packed$(TargetExt)"/>
     <GetFileHash Files="$(SolutionDir)..\deps\AssemblyProcessor\$(TargetFramework)\Stride.Core.AssemblyProcessor.Packed$(TargetExt)">
       <Output
