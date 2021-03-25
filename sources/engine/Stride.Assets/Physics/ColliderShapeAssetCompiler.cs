@@ -27,7 +27,7 @@ namespace Stride.Assets.Physics
     {
         static ColliderShapeAssetCompiler()
         {
-            NativeLibrary.PreloadLibrary("VHACD.dll", typeof(ColliderShapeAssetCompiler));
+            NativeLibraryHelper.PreloadLibrary("VHACD.dll", typeof(ColliderShapeAssetCompiler));
         }
 
         public override IEnumerable<BuildDependencyInfo> GetInputTypes(AssetItem assetItem)

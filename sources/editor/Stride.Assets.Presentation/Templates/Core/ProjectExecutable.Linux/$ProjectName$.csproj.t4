@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework><#= Properties.TargetFramework #></TargetFramework>
     <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
@@ -17,8 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>" />
-    <!-- Needed for custom runtime.json -->
-    <PackageReference Include="Stride" Version="<#= Stride.Assets.StrideConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
 
 </Project>

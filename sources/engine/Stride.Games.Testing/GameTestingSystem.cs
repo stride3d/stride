@@ -103,9 +103,7 @@ namespace Stride.Games.Testing
 
             Initialized = true;
 
-#if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_WINDOWS_DESKTOP
             Console.WriteLine(@"Test initialized, waiting to start...");
-#endif
         }
 
         public override void Draw(GameTime gameTime)

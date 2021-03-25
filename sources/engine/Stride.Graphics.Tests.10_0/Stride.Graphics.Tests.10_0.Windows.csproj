@@ -1,7 +1,7 @@
 <Project>
   <Import Project="..\..\targets\Stride.UnitTests.props" />
   <PropertyGroup>
-    <TargetFrameworks>net461</TargetFrameworks>
+    <TargetFramework>net5.0</TargetFramework>
     <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <AssemblyName>Stride.Graphics.Tests.10_0</AssemblyName>
     <RootNamespace>Stride.Graphics.Tests</RootNamespace>
@@ -16,8 +16,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
   </ItemGroup>

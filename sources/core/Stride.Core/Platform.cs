@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Stride.Core
 {
@@ -13,12 +14,7 @@ namespace Stride.Core
     /// </summary>
     public static class Platform
     {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-        /// <summary>
-        /// The current running <see cref="PlatformType"/>.
-        /// </summary>
-        public static readonly PlatformType Type = PlatformType.Windows;
-#elif STRIDE_PLATFORM_UWP
+#if STRIDE_PLATFORM_UWP
         /// <summary>
         /// The current running <see cref="PlatformType"/>.
         /// </summary>
@@ -33,16 +29,15 @@ namespace Stride.Core
         /// The current running <see cref="PlatformType"/>.
         /// </summary>
         public static readonly PlatformType Type = PlatformType.iOS;
-#elif STRIDE_PLATFORM_MACOS
+#else
         /// <summary>
         /// The current running <see cref="PlatformType"/>.
         /// </summary>
-        public static readonly PlatformType Type = PlatformType.macOS;
-#elif STRIDE_PLATFORM_LINUX
-        /// <summary>
-        /// The current running <see cref="PlatformType"/>.
-        /// </summary>
-        public static readonly PlatformType Type = PlatformType.Linux;
+        public static readonly PlatformType Type
+            = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? PlatformType.Windows
+            : RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? PlatformType.Linux
+            : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? PlatformType.macOS
+            : PlatformType.Windows; // For now we use Windows as fallback, but it might be better to throw an exception?
 #endif
 
         /// <summary>

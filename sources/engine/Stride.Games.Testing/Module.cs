@@ -21,9 +21,7 @@ namespace Stride.Games.Testing
                 await Task.Delay(20000);
                 if (!GameTestingSystem.Initialized)
                 {
-#if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_WINDOWS_DESKTOP
                     Console.WriteLine(@"FATAL: Test launch timeout. Aborting.");
-#endif
                     GameTestingSystem.Quit();
                 }
             });

@@ -1,0 +1,25 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <MSBuildAllProjects Condition=" '$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0' ">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_SdkLanguageTargets>$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.$(_SdkLanguageSourceName).targets</_SdkLanguageTargets>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.$(_SdkLanguageSourceName).targets" 
+          Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.$(_SdkLanguageSourceName).targets')"/>
+  <Import Project="$(MSBuildThisFileDirectory)CheckMissing.targets" />
+
+  <!-- We need to define this here since it's after the main language targets and TPV may be overridden
+       by an included Directory.Build.targets. -->
+  <PropertyGroup Condition="'$(_SdkShortFrameworkIdentifier)' == 'uap'">
+
+    <!-- Need to override the built-in implicit defines for UAP (UAP10_0_10240) or it'll be NETCORE5_0 -->
+    <ImplicitFrameworkDefine Condition="'$(DisableImplicitFrameworkDefines)' != 'true' AND '$(_SdkLanguageSourceName)' != 'VisualBasic'">UAP$(_SdkShortFrameworkVersion.Replace('.', '_'));UAP$(TargetPlatformMinVersion.Replace('.', '_'))</ImplicitFrameworkDefine>
+    <ImplicitFrameworkDefine Condition="'$(DisableImplicitFrameworkDefines)' != 'true' AND '$(_SdkLanguageSourceName)' == 'VisualBasic'">UAP$(_SdkShortFrameworkVersion.Replace('.', '_'))=-1,UAP$(TargetPlatformMinVersion.Replace('.', '_'))</ImplicitFrameworkDefine>
+
+  </PropertyGroup>
+
+</Project>

@@ -362,9 +362,9 @@ namespace Stride.Core.Yaml.Serialization
         /// <exception cref="InvalidOperationException">Unable to get an assembly qualified name for type.</exception>
         /// <example>
         ///     <list type="bullet">
-        ///         <item><c>typeof(string).GetShortAssemblyQualifiedName(); // System.String,mscorlib</c></item>
-        ///         <item><c>typeof(string[]).GetShortAssemblyQualifiedName(); // System.String[],mscorlib</c></item>
-        ///         <item><c>typeof(List&lt;string&gt;).GetShortAssemblyQualifiedName(); // System.Collection.Generics.List`1[[System.String,mscorlib]],mscorlib</c></item>
+        ///         <item><c>typeof(string).GetShortAssemblyQualifiedName(); // System.String,System.Private.CoreLib</c></item>
+        ///         <item><c>typeof(string[]).GetShortAssemblyQualifiedName(); // System.String[],System.Private.CoreLib</c></item>
+        ///         <item><c>typeof(List&lt;string&gt;).GetShortAssemblyQualifiedName(); // System.Collection.Generics.List`1[[System.String,System.Private.CoreLib]],System.Private.CoreLib</c></item>
         ///     </list>
         /// </example>
         private static string GetShortAssemblyQualifiedName(Type type)

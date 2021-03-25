@@ -8,7 +8,7 @@ using Stride.Core.Annotations;
 #if STRIDE_PLATFORM_ANDROID
 using Android.Util;
 #endif
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
 using Microsoft.Win32.SafeHandles;
 #endif
 
@@ -19,10 +19,6 @@ namespace Stride.Core.Diagnostics
     /// </summary>
     public class ConsoleLogListener : LogListener
     {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-        private bool isConsoleActive;
-#endif
-
         /// <summary>
         /// Gets or sets the minimum log level handled by this listener.
         /// </summary>
@@ -80,7 +76,7 @@ namespace Stride.Core.Diagnostics
 
             var exceptionMsg = GetExceptionText(logMessage);
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
+#if STRIDE_PLATFORM_DESKTOP
             // save initial console color
             var initialColor = Console.ForegroundColor;
 
@@ -125,7 +121,7 @@ namespace Stride.Core.Diagnostics
             }
 #endif
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
+#if STRIDE_PLATFORM_DESKTOP
 
             // revert console initial color
             Console.ForegroundColor = initialColor;
@@ -133,10 +129,11 @@ namespace Stride.Core.Diagnostics
 #endif // !STRIDE_PLATFORM_ANDROID
         }
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
+#if STRIDE_PLATFORM_DESKTOP
 
         // TODO: MOVE THIS CODE OUT IN A SEPARATE CLASS
 
+        private bool isConsoleActive;
         private void EnsureConsole()
         {
             if (isConsoleActive || !Platform.IsWindowsDesktop)

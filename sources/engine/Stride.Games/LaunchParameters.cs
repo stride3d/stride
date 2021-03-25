@@ -36,13 +36,7 @@ namespace Stride.Games
         /// </summary>
         public LaunchParameters()
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-#if !STRIDE_RUNTIME_CORECLR
             var args = Environment.GetCommandLineArgs();
-#else
-                // FIXME: Manu: Currently we cannot get the command line arguments in CoreCLR.
-            string[] args = new string [] { };
-#endif
 
             if (args.Length > 1)
             {
@@ -71,7 +65,6 @@ namespace Stride.Games
                     }
                 }
             }
-#endif
         }
     }
 }

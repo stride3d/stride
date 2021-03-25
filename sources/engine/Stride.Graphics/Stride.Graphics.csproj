@@ -4,7 +4,6 @@
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -18,7 +17,7 @@
   <Choose>
     <When Condition="$(StrideUI.Contains('SDL'))">
       <ItemGroup>
-        <StrideNativeLib Include="..\..\..\deps\SDL2\$(StridePlatform)\**\*SDL2*">
+        <StrideNativeLib Include="..\..\..\deps\SDL2\$(StridePlatformDeps)\**\*SDL2*">
           <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
           <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -26,15 +25,15 @@
       </ItemGroup>
     </When>
   </Choose>
-  <ItemGroup Condition=" '$(StridePlatform)' == 'macOS' Or '$(StrideGraphicsApi)' == 'Vulkan' ">
-    <StrideNativeLib Include="..\..\..\deps\MoltenVK\$(StridePlatform)\**\*.*">
+  <ItemGroup Condition=" '$(StrideGraphicsApi)' == 'Vulkan' ">
+    <StrideNativeLib Include="..\..\..\deps\MoltenVK\$(StridePlatformDeps)\**\*.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>
-    <StrideNativeLib Include="..\..\..\deps\freetype\$(StridePlatform)\**\*.*">
+    <StrideNativeLib Include="..\..\..\deps\freetype\$(StridePlatformDeps)\**\*.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -50,6 +49,12 @@
     <None Include="..\..\targets\Stride.GraphicsApi.PackageReference.targets" PackagePath="buildTransitive\" Pack="true" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\core\Stride.Core.Tasks\Stride.Core.Tasks.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework;StrideGraphicsApi</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
     <ProjectReference Include="..\Stride.Native\Stride.Native.csproj" />
     <ProjectReference Include="..\Stride.Shaders\Stride.Shaders.csproj" />
     <ProjectReference Include="..\Stride\Stride.csproj" />
@@ -69,12 +74,12 @@
   </ItemGroup>
   <Import Project="..\Stride.Shared\Refactor\Stride.Refactor.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="3.0.22" />
 
   <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput>_StrideIncludeExtraAssemblies;$(TargetsForTfmSpecificBuildOutput)</TargetsForTfmSpecificBuildOutput>
+
   </PropertyGroup>
-  <Target Name="IncludeExtraAssemblies">
+  <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
       <BuildOutputInPackage Include="$(OutputPath)SDL2-CS.dll" Condition="$(StrideUI.Contains('SDL'))" />
     </ItemGroup>

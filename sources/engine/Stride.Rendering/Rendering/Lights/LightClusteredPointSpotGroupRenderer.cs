@@ -532,15 +532,14 @@ namespace Stride.Rendering.Lights
                     fixed (PointLightData* pointLightsPtr = renderViewInfo.PointLights.Items)
                         context.CommandList.UpdateSubresource(clusteredGroupRenderer.pointLightsBuffer, 0, new DataBox((IntPtr)pointLightsPtr, 0, 0), new ResourceRegion(0, 0, 0, renderViewInfo.PointLights.Count * sizeof(PointLightData), 1, 1));
                 }
-#if STRIDE_PLATFORM_MACOS
                 // macOS doesn't like when we provide a null Buffer or if it is not sufficiently allocated.
                 // It would cause an inifite loop. So for now we just create one with one element but not initializing it.
-                else if (clusteredGroupRenderer.pointLightsBuffer == null || clusteredGroupRenderer.pointLightsBuffer.SizeInBytes < sizeof(PointLightData))
+                else if (Platform.Type == PlatformType.macOS
+                    && (clusteredGroupRenderer.pointLightsBuffer == null || clusteredGroupRenderer.pointLightsBuffer.SizeInBytes < sizeof(PointLightData)))
                 {
                     clusteredGroupRenderer.pointLightsBuffer?.Dispose();
                     clusteredGroupRenderer.pointLightsBuffer = Buffer.New(context.GraphicsDevice, MathUtil.NextPowerOfTwo(sizeof(PointLightData)), 0, BufferFlags.ShaderResource, PixelFormat.R32G32B32A32_Float);
                 }
-#endif
 
                 // SpotLights: Ensure size and update
                 if (renderViewInfo.SpotLights.Count > 0)
@@ -548,28 +547,27 @@ namespace Stride.Rendering.Lights
                     fixed (SpotLightData* spotLightsPtr = renderViewInfo.SpotLights.Items)
                         context.CommandList.UpdateSubresource(clusteredGroupRenderer.spotLightsBuffer, 0, new DataBox((IntPtr)spotLightsPtr, 0, 0), new ResourceRegion(0, 0, 0, renderViewInfo.SpotLights.Count * sizeof(SpotLightData), 1, 1));
                 }
-#if STRIDE_PLATFORM_MACOS
                 // See previous macOS comment.
-                else if (clusteredGroupRenderer.spotLightsBuffer == null || clusteredGroupRenderer.spotLightsBuffer.SizeInBytes < sizeof(SpotLightData))
+                else if (Platform.Type == PlatformType.macOS
+                    && (clusteredGroupRenderer.spotLightsBuffer == null || clusteredGroupRenderer.spotLightsBuffer.SizeInBytes < sizeof(SpotLightData)))
                 {
                     clusteredGroupRenderer.spotLightsBuffer?.Dispose();
                     clusteredGroupRenderer.spotLightsBuffer = Buffer.New(context.GraphicsDevice, MathUtil.NextPowerOfTwo(sizeof(SpotLightData)), 0, BufferFlags.ShaderResource, PixelFormat.R32G32B32A32_Float);
                 }
-#endif
+
                 // LightIndices: Ensure size and update
                 if (renderViewInfo.LightIndices.Count > 0)
                 {
                     fixed (int* lightIndicesPtr = renderViewInfo.LightIndices.Items)
                         context.CommandList.UpdateSubresource(clusteredGroupRenderer.lightIndicesBuffer, 0, new DataBox((IntPtr)lightIndicesPtr, 0, 0), new ResourceRegion(0, 0, 0, renderViewInfo.LightIndices.Count * sizeof(int), 1, 1));
                 }
-#if STRIDE_PLATFORM_MACOS
                 // See previous macOS comment.
-                else if (clusteredGroupRenderer.lightIndicesBuffer == null || clusteredGroupRenderer.lightIndicesBuffer.SizeInBytes < sizeof(int))
+                else if (Platform.Type == PlatformType.macOS
+                    && (clusteredGroupRenderer.lightIndicesBuffer == null || clusteredGroupRenderer.lightIndicesBuffer.SizeInBytes < sizeof(int)))
                 {
                     clusteredGroupRenderer.lightIndicesBuffer?.Dispose();
                     clusteredGroupRenderer.lightIndicesBuffer = Buffer.New(context.GraphicsDevice, MathUtil.NextPowerOfTwo(sizeof(int)), 0, BufferFlags.ShaderResource, PixelFormat.R32_UInt);
                 }
-#endif
             }
 
             private void FinishCluster(Dictionary<LightClusterLinkedNode, int> movedClusters, ref FastListStruct<int> lightIndices, int clusterIndex)

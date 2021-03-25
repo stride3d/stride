@@ -27,7 +27,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace Stride.Games
 {
-    public class GameContextUWPXaml : GameContextDesktop<SwapChainPanel>
+    public class GameContextUWPXaml : GameContext<SwapChainPanel>
     {
         // Used internally by systems such as UI to capture input in a TextBox
         internal TextBox EditTextBox = new TextBox { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 10, 0)};
@@ -40,7 +40,7 @@ namespace Stride.Games
         }
     }
 
-    public class GameContextUWPCoreWindow : GameContextDesktop<CoreWindow>
+    public class GameContextUWPCoreWindow : GameContext<CoreWindow>
     {
         /// <inheritDoc/>
         public GameContextUWPCoreWindow(CoreWindow control, int requestedWidth = 0, int requestedHeight = 0, bool isWindowsMixedReality = false)
