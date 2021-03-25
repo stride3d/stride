@@ -80,7 +80,7 @@ namespace Stride.Importer.Gltf
                        var clip = new AnimationClip { Duration = TimeSpan.FromSeconds(x.Duration) };
                        clip.RepeatMode = AnimationRepeatMode.LoopInfinite;
                        // Add Curve
-                       ConvertCurves(x.Channels, root).ToList().ForEach(x => clip.AddCurve(x.Key, x.Value));
+                       ConvertCurves(x.Channels, root).ToList().ForEach(v => clip.AddCurve(v.Key, v.Value));
 
                        return (x.Name, clip);
                    }
