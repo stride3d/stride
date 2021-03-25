@@ -18,6 +18,8 @@ using Stride.Animations;
 using Stride.Shaders;
 using Stride.Core.Serialization;
 using Stride.Core.Assets;
+using Stride.Importer.Common;
+using Stride.Assets.Materials;
 
 namespace Stride.Importer.Gltf
 {
@@ -46,7 +48,46 @@ namespace Stride.Importer.Gltf
             return TimeSpan.FromSeconds(time);
         }
 
-        
+        public static EntityInfo ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot modelRoot)
+        {
+
+            var skin =
+                modelRoot.LogicalSkins
+                //.Where(x => x.Skeleton.Mesh == modelRoot.LogicalMeshes[0])
+                .First();
+            var nodeNames =
+                Enumerable.Range(0, skin.JointsCount)
+                .Select(x => skin.GetJoint(x).Joint.Name);
+            var meshes =
+                modelRoot
+                .LogicalMeshes[0].Primitives
+                .Select((x,i) => modelRoot.LogicalMeshes[0].Name + "_" + i)
+                .Select(
+                    x => 
+                    new MeshParameters() 
+                    {
+                        MeshName = x, 
+                        BoneNodes = nodeNames.ToHashSet(),
+                        MaterialName = "",
+                        NodeName = ""
+                    }
+                 )
+                .ToList();
+            var animNodes =
+                modelRoot.LogicalAnimations.Select(x => x.Name).ToList();
+
+            var entityInfo = new EntityInfo
+            {
+                Models = meshes,
+                AnimationNodes = animNodes,
+                Materials = new Dictionary<string, MaterialAsset>(),
+                Nodes = new List<NodeInfo>(),
+                TextureDependencies = new List<string>()
+
+            };
+            return entityInfo;
+        }
+
         public static MeshSkinningDefinition ConvertInverseBindMatrices(SharpGLTF.Schema2.ModelRoot root)
         {
             var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes[0]).Skin;

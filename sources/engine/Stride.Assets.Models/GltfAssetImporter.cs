@@ -30,14 +30,8 @@ namespace Stride.Assets.Models
         /// <inheritdoc/>
         public override EntityInfo GetEntityInfo(UFile localPath, Logger logger, AssetImporterParameters importParameters)
         {
-            //var meshConverter = new Importer.AssimpNET.MeshConverter(logger);
-
-            //if (!importParameters.InputParameters.TryGet(DeduplicateMaterialsKey, out var deduplicateMaterials))
-            //    deduplicateMaterials = true;    // Dedupe is the default value
-
-            //var entityInfo = meshConverter.ExtractEntity(localPath.FullPath, null, importParameters.IsTypeSelectedForOutput(typeof(TextureAsset)), deduplicateMaterials);
-            //return entityInfo;
-            return null;
+            
+            return GltfMeshParser.ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot.Load(localPath.FullPath));
         }
 
         /// <inheritdoc/>
