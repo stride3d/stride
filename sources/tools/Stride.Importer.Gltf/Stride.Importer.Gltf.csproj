@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0020" />
-    <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0020" />
+    <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0022" />
+    <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0022" />
   </ItemGroup>
 
   <ItemGroup>
