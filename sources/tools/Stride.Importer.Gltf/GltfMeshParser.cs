@@ -1,25 +1,19 @@
-using Stride.Graphics;
-using Stride.Rendering;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Stride.Animations;
+using Stride.Assets.Materials;
+using Stride.Core.IO;
 using Stride.Core.Mathematics;
-using System.Runtime.InteropServices;
+using Stride.Graphics;
+using Stride.Graphics.Data;
+using Stride.Importer.Common;
+using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
-using System.IO;
-//using Stride.Animations;
-using Stride.Core.Collections;
-using Stride.Graphics.Data;
-
-using static Stride.Importer.Gltf.GltfUtils;
 using static Stride.Importer.Gltf.GltfAnimationParser;
-using Stride.Animations;
-using Stride.Shaders;
-using Stride.Core.Serialization;
-using Stride.Core.Assets;
-using Stride.Importer.Common;
-using Stride.Assets.Materials;
+using static Stride.Importer.Gltf.GltfUtils;
 
 namespace Stride.Importer.Gltf
 {
@@ -35,9 +29,7 @@ namespace Stride.Importer.Gltf
                     .Select(x => LoadMesh(x))
                     .ToList()
             };
-            //LoadMaterials(root).ForEach(x => result.Add(x));
-            //result.Add(RedMaterial(device));
-            //result.Meshes.ForEach(x => x.MaterialIndex = 0);
+
             result.Skeleton = ConvertSkeleton(root);
             return result;
         }
@@ -48,26 +40,26 @@ namespace Stride.Importer.Gltf
             return TimeSpan.FromSeconds(time);
         }
 
-        public static EntityInfo ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot modelRoot)
+        public static EntityInfo ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot modelRoot, UFile sourcePath)
         {
 
             var skin =
                 modelRoot.LogicalSkins
                 //.Where(x => x.Skeleton.Mesh == modelRoot.LogicalMeshes[0])
                 .First();
-            var nodeNames =
+            var boneNames =
                 Enumerable.Range(0, skin.JointsCount)
                 .Select(x => skin.GetJoint(x).Joint.Name);
             var meshes =
                 modelRoot
                 .LogicalMeshes[0].Primitives
-                .Select((x,i) => modelRoot.LogicalMeshes[0].Name + "_" + i)
+                .Select((x, i) => modelRoot.LogicalMeshes[0].Name + "_" + i)
                 .Select(
-                    x => 
-                    new MeshParameters() 
+                    x =>
+                    new MeshParameters()
                     {
-                        MeshName = x, 
-                        BoneNodes = nodeNames.ToHashSet(),
+                        MeshName = x,
+                        BoneNodes = boneNames.ToHashSet(),
                         MaterialName = "",
                         NodeName = ""
                     }
@@ -80,13 +72,15 @@ namespace Stride.Importer.Gltf
             {
                 Models = meshes,
                 AnimationNodes = animNodes,
-                Materials = new Dictionary<string, MaterialAsset>(),
+                Materials = LoadMaterials(modelRoot, sourcePath),
                 Nodes = new List<NodeInfo>(),
-                TextureDependencies = new List<string>()
-
+                TextureDependencies = GenerateTextureFullPaths(modelRoot, sourcePath)
             };
             return entityInfo;
         }
+
+       
+
 
         public static MeshSkinningDefinition ConvertInverseBindMatrices(SharpGLTF.Schema2.ModelRoot root)
         {
@@ -131,64 +125,84 @@ namespace Stride.Importer.Gltf
             return clips;
         }
 
-        //public static List<MaterialAsset> LoadMaterials(SharpGLTF.Schema2.ModelRoot root)
-        //{
-        //    var result = new List<MaterialAsset>();
-        //    foreach (var mat in root.LogicalMaterials)
-        //    {
-        //        var material = new MaterialAsset
-        //        {
-        //            Attributes = new MaterialAttributes()
-        //        };
-        //        foreach (var chan in mat.Channels)
-        //        {
-        //            if (chan.Texture != null) { 
+        public static Dictionary<string, MaterialAsset> LoadMaterials(SharpGLTF.Schema2.ModelRoot root, UFile sourcePath)
+        {
+            var result = new Dictionary<string, MaterialAsset>();
+            foreach (var mat in root.LogicalMaterials)
+            {
+                var material = new MaterialAsset
+                {
+                    Attributes = new MaterialAttributes()
+                };
+                foreach (var chan in mat.Channels)
+                {
 
-        //                var gltfImg = chan.Texture.PrimaryImage;
-        //                var imgBuf = gltfImg.Content.Content.ToArray();
-        //                var imgPtr = new DataPointer(GCHandle.Alloc(imgBuf, GCHandleType.Pinned).AddrOfPinnedObject(), imgBuf.Length);
+                    if (chan.Texture != null && !chan.HasDefaultContent)
+                    {
 
-        //                //var image = Stride.Graphics.Image.Load(imgPtr);
-        //                //var shader = new ShaderClassSource("ComputeColorTextureRepeat",gltfImg.Name,"TEXCOORD","float2(1.0f,1.0f)");
-        //                var texture = AttachedReferenceManager.CreateProxyObject<Texture>(AssetId.Empty,gltfImg.Name);
+                        var gltfImg = chan.Texture.PrimaryImage;
+                        string imgPath;
+                        if (gltfImg.Content.SourcePath == null)
+                        {
+                            imgPath = Path.Join(sourcePath.GetFullDirectory(), gltfImg.Name + "." + gltfImg.Content.FileExtension);
+                            gltfImg.Content.SaveToFile(imgPath);
+                        }
+                        else
+                        {
+                            imgPath = gltfImg.Content.SourcePath;
+                        }
+                        
+                        switch (chan.Key)
+                        {
+                            case "BaseColor":
+                                material.Attributes.Diffuse = new MaterialDiffuseMapFeature(GenerateTextureColor(imgPath, (TextureCoordinate)chan.TextureCoordinate, Vector2.One));
+                                material.Attributes.DiffuseModel = new MaterialDiffuseLambertModelFeature();
+                                break;
+                            case "MetallicRoughness":
+                                material.Attributes.MicroSurface = new MaterialGlossinessMapFeature(GenerateTextureScalar(imgPath, (TextureCoordinate)chan.TextureCoordinate, Vector2.One));
+                                break;
+                            case "Normal":
+                                material.Attributes.Surface = new MaterialNormalMapFeature(GenerateTextureColor(imgPath, (TextureCoordinate)chan.TextureCoordinate, Vector2.One));
+                                break;
+                            case "Occlusion":
+                                material.Attributes.Occlusion = new MaterialOcclusionMapFeature();
+                                break;
+                            case "Emissive":
+                                material.Attributes.Emissive = new MaterialEmissiveMapFeature(GenerateTextureColor(imgPath, (TextureCoordinate)chan.TextureCoordinate, Vector2.One));
+                                break;
+                        }
+                    }
+                    else if(chan.Texture == null && !chan.HasDefaultContent)
+                    {
+                        var vt = new ComputeColor(new Color(ConvertNumerics(chan.Parameter)));
+                        var x = new ComputeFloat(chan.Parameter.X);
+                        switch (chan.Key)
+                        {
+                            case "BaseColor":
+                                material.Attributes.Diffuse = new MaterialDiffuseMapFeature(vt);
+                                material.Attributes.DiffuseModel = new MaterialDiffuseLambertModelFeature();
+                                break;
+                            case "MetallicRoughness":
+                                material.Attributes.MicroSurface = new MaterialGlossinessMapFeature(x);
+                                break;
+                            case "Normal":
+                                material.Attributes.Surface = new MaterialNormalMapFeature(vt);
+                                break;
+                            case "Occlusion":
+                                material.Attributes.Occlusion = new MaterialOcclusionMapFeature();
+                                break;
+                            case "Emissive":
+                                material.Attributes.Emissive = new MaterialEmissiveMapFeature(vt);
+                                break;
+                        }
+                    }
 
-
-        //                switch (chan.Key)
-        //                {
-        //                    case "BaseColor":
-        //                        var vt = new ComputeTextureColor(texture)
-        //                        {
-        //                            AddressModeU = TextureAddressMode.Wrap,
-        //                            AddressModeV = TextureAddressMode.Wrap,
-        //                            TexcoordIndex = TextureCoordinate.Texcoord0
-        //                        };
-
-        //                        material.Attributes.Diffuse = new MaterialDiffuseMapFeature(vt);
-
-        //                        material.Attributes.DiffuseModel = new MaterialDiffuseLambertModelFeature();
-        //                        break;
-        //                    case "MetallicRoughness":
-        //                        material.Attributes.MicroSurface = new MaterialGlossinessMapFeature(new ComputeTextureScalar(texture, TextureCoordinate.Texcoord0, Vector2.One, Vector2.Zero));
-        //                        break;
-        //                    case "Normal":
-        //                        material.Attributes.Surface = new MaterialNormalMapFeature(new ComputeTextureColor(texture));
-        //                        break;
-        //                    case "Occlusion":
-        //                        material.Attributes.Occlusion = new MaterialOcclusionMapFeature();
-        //                        break;
-        //                    case "Emissive":
-        //                        material.Attributes.Emissive = new MaterialEmissiveMapFeature(new ComputeTextureColor(texture));
-        //                        break;
-        //                }
-
-        //            }
-
-        //        }
-        //        material.Attributes.CullMode = CullMode.Back;
-        //        result.Add(material);
-        //    }
-        //    return result;
-        //}
+                }
+                material.Attributes.CullMode = CullMode.Back;
+                result.Add(mat.Name, material);
+            }
+            return result;
+        }
 
         public static Mesh LoadMesh(SharpGLTF.Schema2.MeshPrimitive mesh)
         {
@@ -225,7 +239,7 @@ namespace Stride.Importer.Gltf
 
         public static IndexBufferBinding ConvertSerializedIndexBufferBinding(SharpGLTF.Schema2.MeshPrimitive mesh)
         {
-            var indices = 
+            var indices =
                 mesh.GetTriangleIndices()
                 .Select(x => new int[] { x.A, x.C, x.B })
                 .SelectMany(x => x).Select(x => (uint)x)
@@ -272,56 +286,13 @@ namespace Stride.Importer.Gltf
 
             var buffer =
                 GraphicsSerializerExtensions.ToSerializableVersion(
-                    new BufferData(BufferFlags.VertexBuffer,byteBuffer)
+                    new BufferData(BufferFlags.VertexBuffer, byteBuffer)
                 );
             var binding = new VertexBufferBinding(buffer, declaration, size);
 
             return new List<VertexBufferBinding>() { binding }.ToArray();
         }
 
-
-
-        public static (VertexElement, int) ConvertVertexElement(KeyValuePair<string, SharpGLTF.Schema2.Accessor> accessor, int offset)
-        {
-
-            return (accessor.Key, accessor.Value.Format.ByteSize) switch
-            {
-                ("POSITION", 12) => (VertexElement.Position<Vector3>(0, offset), Vector3.SizeInBytes),
-                ("NORMAL", 12) => (VertexElement.Normal<Vector3>(0, offset), Vector3.SizeInBytes),
-                ("TANGENT", 12) => (VertexElement.Tangent<Vector3>(0, offset), Vector3.SizeInBytes),
-                ("COLOR", 16) => (VertexElement.Color<Vector4>(0, offset), Vector4.SizeInBytes),
-                ("TEXCOORD_0", 8) => (VertexElement.TextureCoordinate<Vector2>(0, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_1", 8) => (VertexElement.TextureCoordinate<Vector2>(1, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_2", 8) => (VertexElement.TextureCoordinate<Vector2>(2, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_3", 8) => (VertexElement.TextureCoordinate<Vector2>(3, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_4", 8) => (VertexElement.TextureCoordinate<Vector2>(4, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_5", 8) => (VertexElement.TextureCoordinate<Vector2>(5, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_6", 8) => (VertexElement.TextureCoordinate<Vector2>(6, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_7", 8) => (VertexElement.TextureCoordinate<Vector2>(7, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_8", 8) => (VertexElement.TextureCoordinate<Vector2>(8, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_9", 8) => (VertexElement.TextureCoordinate<Vector2>(9, offset), Vector2.SizeInBytes),
-                ("JOINTS_0", 8) => (new VertexElement(VertexElementUsage.BlendIndices, 0, PixelFormat.R16G16B16A16_UInt, offset), 8),
-                ("JOINTS_0", 4) => (new VertexElement(VertexElementUsage.BlendIndices, 0, PixelFormat.R8G8B8A8_UInt, offset), 4),
-                ("WEIGHTS_0", 16) => (new VertexElement(VertexElementUsage.BlendWeight, 0, PixelFormat.R32G32B32A32_Float, offset), Vector4.SizeInBytes),
-                _ => throw new NotImplementedException(),
-            };
-        }
-
-        public static PrimitiveType ConvertPrimitiveType(SharpGLTF.Schema2.PrimitiveType gltfType)
-        {
-            return gltfType switch
-            {
-                SharpGLTF.Schema2.PrimitiveType.LINES => PrimitiveType.LineList,
-                SharpGLTF.Schema2.PrimitiveType.POINTS => PrimitiveType.PointList,
-                SharpGLTF.Schema2.PrimitiveType.LINE_LOOP => PrimitiveType.Undefined,
-                SharpGLTF.Schema2.PrimitiveType.LINE_STRIP => PrimitiveType.LineStrip,
-                SharpGLTF.Schema2.PrimitiveType.TRIANGLES => PrimitiveType.TriangleList,
-                SharpGLTF.Schema2.PrimitiveType.TRIANGLE_STRIP => PrimitiveType.TriangleStrip,
-                SharpGLTF.Schema2.PrimitiveType.TRIANGLE_FAN => PrimitiveType.Undefined,
-                _ => throw new NotImplementedException()
-            };
-        }
-        
 
     }
 }

@@ -1,13 +1,11 @@
-using Stride.Animations;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Stride.Core.Mathematics;
 using System.Linq;
+using Stride.Animations;
 using Stride.Core.Collections;
-
-using static Stride.Importer.Gltf.GltfUtils;
+using Stride.Core.Mathematics;
 using Stride.Rendering;
+using static Stride.Importer.Gltf.GltfUtils;
 
 namespace Stride.Importer.Gltf
 {
@@ -54,21 +52,7 @@ namespace Stride.Importer.Gltf
             result.Nodes = mnd.ToArray();
             return result;
         }
-        public static AnimationCurve CreateRotationCurve()
-        {
-            return new AnimationCurve<Quaternion>
-            {
-                InterpolationType = AnimationCurveInterpolationType.Linear,
-                KeyFrames =
-                {
-                    CreateKeyFrame(0.00f, Quaternion.RotationX(0)),
-                    CreateKeyFrame(0.25f, Quaternion.RotationX(MathUtil.PiOverTwo)),
-                    CreateKeyFrame(0.50f, Quaternion.RotationX(MathUtil.Pi)),
-                    CreateKeyFrame(0.75f, Quaternion.RotationX(-MathUtil.PiOverTwo)),
-                    CreateKeyFrame(1.00f, Quaternion.RotationX(MathUtil.TwoPi))
-                }
-            };
-        }
+        
 
         public static KeyFrameData<T> CreateKeyFrame<T>(float keyTime, T value)
         {

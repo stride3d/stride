@@ -1,12 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
+using Stride.Core.Assets;
+using Stride.Core.IO;
 using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
+using Stride.Graphics;
+using Stride.Rendering.Materials;
+using Stride.Rendering.Materials.ComputeColors;
 
 namespace Stride.Importer.Gltf
 {
     class GltfUtils
     {
+
         public static Matrix ConvertNumerics(System.Numerics.Matrix4x4 mat)
         {
             return new Matrix(
@@ -21,5 +30,122 @@ namespace Stride.Importer.Gltf
         public static Vector4 ConvertNumerics(System.Numerics.Vector4 v) => new Vector4(v.X, v.Y, v.Z, v.W);
         public static Vector3 ConvertNumerics(System.Numerics.Vector3 v) => new Vector3(v.X, v.Y, v.Z);
         public static Vector2 ConvertNumerics(System.Numerics.Vector2 v) => new Vector2(v.X, v.Y);
+
+
+        public static (VertexElement, int) ConvertVertexElement(KeyValuePair<string, SharpGLTF.Schema2.Accessor> accessor, int offset)
+        {
+
+            return (accessor.Key, accessor.Value.Format.ByteSize) switch
+            {
+                ("POSITION", 12) => (VertexElement.Position<Vector3>(0, offset), Vector3.SizeInBytes),
+                ("NORMAL", 12) => (VertexElement.Normal<Vector3>(0, offset), Vector3.SizeInBytes),
+                ("TANGENT", 12) => (VertexElement.Tangent<Vector3>(0, offset), Vector3.SizeInBytes),
+                ("COLOR", 16) => (VertexElement.Color<Vector4>(0, offset), Vector4.SizeInBytes),
+                ("TEXCOORD_0", 8) => (VertexElement.TextureCoordinate<Vector2>(0, offset), Vector2.SizeInBytes),
+                ("TEXCOORD_1", 8) => (VertexElement.TextureCoordinate<Vector2>(1, offset), Vector2.SizeInBytes),
+                ("TEXCOORD_2", 8) => (VertexElement.TextureCoordinate<Vector2>(2, offset), Vector2.SizeInBytes),
+                ("TEXCOORD_3", 8) => (VertexElement.TextureCoordinate<Vector2>(3, offset), Vector2.SizeInBytes),
+                ("TEXCOORD_4", 8) => (VertexElement.TextureCoordinate<Vector2>(4, offset), Vector2.SizeInBytes),
+                ("TEXCOORD_5", 8) => (VertexElement.TextureCoordinate<Vector2>(5, offset), Vector2.SizeInBytes),
+                ("TEXCOORD_6", 8) => (VertexElement.TextureCoordinate<Vector2>(6, offset), Vector2.SizeInBytes),
+                ("TEXCOORD_7", 8) => (VertexElement.TextureCoordinate<Vector2>(7, offset), Vector2.SizeInBytes),
+                ("TEXCOORD_8", 8) => (VertexElement.TextureCoordinate<Vector2>(8, offset), Vector2.SizeInBytes),
+                ("TEXCOORD_9", 8) => (VertexElement.TextureCoordinate<Vector2>(9, offset), Vector2.SizeInBytes),
+                ("JOINTS_0", 8) => (new VertexElement(VertexElementUsage.BlendIndices, 0, PixelFormat.R16G16B16A16_UInt, offset), 8),
+                ("JOINTS_0", 4) => (new VertexElement(VertexElementUsage.BlendIndices, 0, PixelFormat.R8G8B8A8_UInt, offset), 4),
+                ("WEIGHTS_0", 16) => (new VertexElement(VertexElementUsage.BlendWeight, 0, PixelFormat.R32G32B32A32_Float, offset), Vector4.SizeInBytes),
+                _ => throw new NotImplementedException(),
+            };
+        }
+
+        public static PrimitiveType ConvertPrimitiveType(SharpGLTF.Schema2.PrimitiveType gltfType)
+        {
+            return gltfType switch
+            {
+                SharpGLTF.Schema2.PrimitiveType.LINES => PrimitiveType.LineList,
+                SharpGLTF.Schema2.PrimitiveType.POINTS => PrimitiveType.PointList,
+                SharpGLTF.Schema2.PrimitiveType.LINE_LOOP => PrimitiveType.Undefined,
+                SharpGLTF.Schema2.PrimitiveType.LINE_STRIP => PrimitiveType.LineStrip,
+                SharpGLTF.Schema2.PrimitiveType.TRIANGLES => PrimitiveType.TriangleList,
+                SharpGLTF.Schema2.PrimitiveType.TRIANGLE_STRIP => PrimitiveType.TriangleStrip,
+                SharpGLTF.Schema2.PrimitiveType.TRIANGLE_FAN => PrimitiveType.Undefined,
+                _ => throw new NotImplementedException()
+            };
+        }
+
+        public static List<string> GenerateTextureFullPaths(SharpGLTF.Schema2.ModelRoot root, UFile sourcePath)
+        {
+            return root.LogicalTextures.Select(tex =>
+            {
+                var gltfImg = tex.PrimaryImage;
+                string imgPath;
+                if (gltfImg.Content.SourcePath == null)
+                {
+                    return imgPath = Path.Join(sourcePath.GetFullDirectory(), gltfImg.Name + "." + gltfImg.Content.FileExtension);
+                }
+                else
+                {
+                    return imgPath = gltfImg.Content.SourcePath;
+                }
+            }).ToList();
+        }
+
+        public static ComputeTextureColor GenerateTextureColor(string sourceTextureFile, TextureCoordinate textureUVSetIndex, Vector2 textureUVscaling, TextureAddressMode addressModeU = TextureAddressMode.Wrap, TextureAddressMode addressModeV = TextureAddressMode.Wrap, string vfsOutputPath = "")
+        {
+            var textureFileName = Path.GetFileNameWithoutExtension(sourceTextureFile);
+            var url = vfsOutputPath + "_" + textureFileName;
+
+            if (File.Exists(sourceTextureFile))
+            {
+                //if (logger != nullptr)
+                //{
+                //    logger->Warning(String::Format("The texture '{0}' referenced in the mesh material can not be found on the system. Loading will probably fail at run time.", sourceTextureFile),
+                //                    nullptr, CallerInfo::Get(__FILEW__, __FUNCTIONW__, __LINE__));
+                //}
+            }
+
+            var uvScaling = textureUVscaling;
+            var textureName = textureFileName;
+
+            var texture = AttachedReferenceManager.CreateProxyObject<Texture>(AssetId.Empty, textureName);
+
+            var currentTexture =
+                new ComputeTextureColor(texture, (TextureCoordinate)textureUVSetIndex, uvScaling, Vector2.Zero)
+                {
+                    AddressModeU = addressModeU,
+                    AddressModeV = addressModeV
+                };
+
+            return currentTexture;
+        }
+        public static ComputeTextureScalar GenerateTextureScalar(string sourceTextureFile, TextureCoordinate textureUVSetIndex, Vector2 textureUVscaling, TextureAddressMode addressModeU = TextureAddressMode.Wrap, TextureAddressMode addressModeV = TextureAddressMode.Wrap, string vfsOutputPath = "")
+        {
+            var textureFileName = Path.GetFileNameWithoutExtension(sourceTextureFile);
+            var url = vfsOutputPath + "_" + textureFileName;
+
+            if (File.Exists(sourceTextureFile))
+            {
+                //if (logger != nullptr)
+                //{
+                //    logger->Warning(String::Format("The texture '{0}' referenced in the mesh material can not be found on the system. Loading will probably fail at run time.", sourceTextureFile),
+                //                    nullptr, CallerInfo::Get(__FILEW__, __FUNCTIONW__, __LINE__));
+                //}
+            }
+
+            var uvScaling = textureUVscaling;
+            var textureName = textureFileName;
+
+            var texture = AttachedReferenceManager.CreateProxyObject<Texture>(AssetId.Empty, textureName);
+
+            var currentTexture =
+                new ComputeTextureScalar(texture, (TextureCoordinate)textureUVSetIndex, uvScaling, Vector2.Zero)
+                {
+                    AddressModeU = addressModeU,
+                    AddressModeV = addressModeV
+                };
+
+            return currentTexture;
+        }
+
     }
 }

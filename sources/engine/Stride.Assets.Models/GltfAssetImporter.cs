@@ -31,7 +31,7 @@ namespace Stride.Assets.Models
         public override EntityInfo GetEntityInfo(UFile localPath, Logger logger, AssetImporterParameters importParameters)
         {
             
-            return GltfMeshParser.ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot.Load(localPath.FullPath));
+            return GltfMeshParser.ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot.Load(localPath.FullPath), localPath);
         }
 
         /// <inheritdoc/>
