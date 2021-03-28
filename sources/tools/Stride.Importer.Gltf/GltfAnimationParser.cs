@@ -15,6 +15,10 @@ namespace Stride.Importer.Gltf
         {
             Skeleton result = new Skeleton();
             var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes.First()).Skin;
+
+            // If there is no corresponding skins return null
+            if (skin == null) return null;
+
             var jointList = Enumerable.Range(0, skin.JointsCount).Select(x => skin.GetJoint(x).Joint).ToList();
             var mnd =
                 jointList
@@ -62,8 +66,34 @@ namespace Stride.Importer.Gltf
         public static Dictionary<string, AnimationCurve> ConvertCurves(IReadOnlyList<SharpGLTF.Schema2.AnimationChannel> channels, SharpGLTF.Schema2.ModelRoot root)
         {
             var result = new Dictionary<string, AnimationCurve>();
-            string baseString = "[ModelComponent.Key].Skeleton.NodeTransformations[index].Transform.type";
             var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes.First()).Skin;
+
+            // In case there is no skin joints/bones, 
+            if (skin == null)
+            {
+                string base2 = "[TransformComponent].type";
+                foreach (var chan in channels)
+                {
+                    switch (chan.TargetNodePath)
+                    {
+                        case SharpGLTF.Schema2.PropertyPath.translation:
+                            result.Add(base2.Replace("type", "Position"), ConvertCurve(chan.GetTranslationSampler()));
+                            break;
+                        case SharpGLTF.Schema2.PropertyPath.rotation:
+                            result.Add(base2.Replace("type", "Rotation"), ConvertCurve(chan.GetRotationSampler()));
+                            break;
+                        case SharpGLTF.Schema2.PropertyPath.scale:
+                            result.Add(base2.Replace("type", "Scale"), ConvertCurve(chan.GetScaleSampler()));
+                            break;
+                    };
+                }
+                return result;
+            }
+
+            string baseString = "[ModelComponent.Key].Skeleton.NodeTransformations[index].Transform.type";
+            
+            
+            
             var jointList = Enumerable.Range(0, skin.JointsCount).Select(x => skin.GetJoint(x).Joint).ToList();
             foreach (var chan in channels)
             {

@@ -22,13 +22,11 @@ namespace Stride.Importer.Gltf
 
         public static Model LoadFirstModel(SharpGLTF.Schema2.ModelRoot root)
         {
-            var result = new Model
+            var result = new Model();
+            foreach (var model in root.LogicalMeshes)
             {
-                Meshes =
-                    root.LogicalMeshes[0].Primitives
-                    .Select(x => LoadMesh(x))
-                    .ToList()
-            };
+                result.Meshes.AddRange(model.Primitives.Select(x => LoadMesh(x)).ToList());
+            }
 
             result.Skeleton = ConvertSkeleton(root);
             return result;
@@ -106,22 +104,23 @@ namespace Stride.Importer.Gltf
         public static Dictionary<string, AnimationClip> ConvertAnimations(SharpGLTF.Schema2.ModelRoot root)
         {
             var animations = root.LogicalAnimations;
+            var meshName = root.LogicalMeshes[0].Name;
 
             var clips =
                 animations
-                .Select(x =>
+                .Select((x,i) =>
                    {
                        //Create animation clip with 
                        var clip = new AnimationClip { Duration = TimeSpan.FromSeconds(x.Duration) };
                        clip.RepeatMode = AnimationRepeatMode.LoopInfinite;
                        // Add Curve
                        ConvertCurves(x.Channels, root).ToList().ForEach(v => clip.AddCurve(v.Key, v.Value));
-
-                       return (x.Name, clip);
+                       string name = x.Name ?? meshName + "_Animation_" + i;
+                       return (name, clip);
                    }
                 )
                 .ToList()
-                .ToDictionary(x => x.Name, x => x.clip);
+                .ToDictionary(x => x.name, x => x.clip);
             return clips;
         }
 
