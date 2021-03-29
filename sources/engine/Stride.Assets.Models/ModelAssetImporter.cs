@@ -143,17 +143,29 @@ namespace Stride.Assets.Models
 
         private static void ImportAnimation(List<AssetItem> assetReferences, UFile localPath, List<string> animationNodes, bool shouldPostFixName, AssetItem skeletonAsset, TimeSpan animationStartTime, TimeSpan animationEndTime)
         {
+            bool shouldReplaceName = false;
             if (animationNodes != null && animationNodes.Count > 0)
             {
-                var assetSource = localPath;
+                if (animationNodes.Count > 1)
+                {
+                    shouldReplaceName = true;
+                }
+                foreach(var anim in animationNodes)
+                {
+                    var assetSource = localPath;
 
-                var asset = new AnimationAsset { Source = assetSource, AnimationTimeMaximum = animationEndTime, AnimationTimeMinimum = animationStartTime };
-                var animUrl = localPath.GetFileNameWithoutExtension() + (shouldPostFixName ? " Animation" : "");
+                    var asset = new AnimationAsset { Source = assetSource, AnimationTimeMaximum = animationEndTime, AnimationTimeMinimum = animationStartTime };
+                    string animUrl;
+                    if (!shouldReplaceName)
+                        animUrl = localPath.GetFileNameWithoutExtension() + (shouldPostFixName ? " Animation " + anim : "");
+                    else
+                        animUrl = localPath.GetFileNameWithoutExtension() + " " + anim;
 
-                if (skeletonAsset != null)
-                    asset.Skeleton = AttachedReferenceManager.CreateProxyObject<Skeleton>(skeletonAsset.Id, skeletonAsset.Location);
+                    if (skeletonAsset != null)
+                        asset.Skeleton = AttachedReferenceManager.CreateProxyObject<Skeleton>(skeletonAsset.Id, skeletonAsset.Location);
 
-                assetReferences.Add(new AssetItem(animUrl, asset));
+                    assetReferences.Add(new AssetItem(animUrl, asset));
+                }
             }
         }
 

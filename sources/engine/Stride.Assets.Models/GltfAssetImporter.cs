@@ -10,6 +10,7 @@ using Stride.Animations;
 using Stride.Assets.Textures;
 using Stride.Importer.Common;
 using Stride.Importer.Gltf;
+using System.Linq;
 
 namespace Stride.Assets.Models
 {
@@ -37,43 +38,24 @@ namespace Stride.Assets.Models
         /// <inheritdoc/>
         public override void GetAnimationDuration(UFile localPath, Logger logger, AssetImporterParameters importParameters, out TimeSpan startTime, out TimeSpan endTime)
         {
+            var gltfFile = SharpGLTF.Schema2.ModelRoot.Load(localPath);
+            var animations = GltfMeshParser.ConvertAnimations(gltfFile);
 
-            var sceneData = GltfMeshParser.ConvertAnimations(SharpGLTF.Schema2.ModelRoot.Load(localPath));
+            endTime = GltfMeshParser.GetAnimationDuration(gltfFile); // This will go down, so we start from positive infinity
+            startTime = CompressedTimeSpan.Zero;   // This will go up, so we start from negative infinity
 
-            startTime = CompressedTimeSpan.MaxValue; // This will go down, so we start from positive infinity
-            endTime = CompressedTimeSpan.MinValue;   // This will go up, so we start from negative infinity
-
-            foreach (var animationClip in sceneData.Values)
-            {
-                foreach (var animationCurve in animationClip.Curves)
-                {
-                    foreach (var compressedTimeSpan in animationCurve.Keys)
-                    {
-                        if (compressedTimeSpan < startTime)
-                            startTime = compressedTimeSpan;
-                        if (compressedTimeSpan > endTime)
-                            endTime = compressedTimeSpan;
-                    }
-                }
-            }
-
-            if (startTime == CompressedTimeSpan.MaxValue)
-                startTime = CompressedTimeSpan.Zero;
-            if (endTime == CompressedTimeSpan.MinValue)
-                endTime = CompressedTimeSpan.Zero;
+            
         }
 
         public override IEnumerable<AssetItem> Import(UFile localPath, AssetImporterParameters importParameters)
         {
             var assetItems = base.Import(localPath, importParameters);
-            // Need to remember the DeduplicateMaterials setting per ModelAsset since the importer may be rerun on this asset
-            if (!importParameters.InputParameters.TryGet(DeduplicateMaterialsKey, out var deduplicateMaterials))
-                deduplicateMaterials = true;    // Dedupe is the default value
+            
             foreach (var item in assetItems)
             {
-                if (item.Asset is ModelAsset modelAsset)
+                if (item.Asset is AnimationAsset animAsset)
                 {
-                    modelAsset.DeduplicateMaterials = deduplicateMaterials;
+                    
                 }
             }
             return assetItems;

@@ -57,7 +57,7 @@ namespace Stride.Importer.Gltf
             SharpGLTF.Schema2.Skin skin = null;
             HashSet<String> boneNames = new HashSet<string>();
             List<NodeInfo> nodes = new List<NodeInfo>();
-            if (modelRoot.LogicalSkins.Where(x => x.Skeleton.Mesh == modelRoot.LogicalMeshes[0]).Count() > 0)
+            if (modelRoot.LogicalSkins.Where(x=>x.Skeleton != null).Where(x => x.Skeleton.Mesh == modelRoot.LogicalMeshes[0]).Count() > 0)
                 skin =
                     modelRoot.LogicalSkins
                     .Where(x => x.Skeleton.Mesh == modelRoot.LogicalMeshes[0])
@@ -144,6 +144,7 @@ namespace Stride.Importer.Gltf
                        // Add Curve
                        ConvertCurves(x.Channels, root).ToList().ForEach(v => clip.AddCurve(v.Key, v.Value));
                        string name = x.Name ?? meshName + "_Animation_" + i;
+                       clip.Optimize();
                        return (name, clip);
                    }
                 )

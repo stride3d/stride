@@ -26,6 +26,13 @@ namespace Stride.Assets.Models
 
         private unsafe object ExportAnimation(ICommandContext commandContext, ContentManager contentManager, bool failOnEmptyAnimation)
         {
+
+            if (commandContext.CurrentCommand.Title.ToLower().Contains("gltf"))
+            {
+                var ts = TimeSpan.FromSeconds(1);
+                return LoadAnimation(commandContext, contentManager, out ts);
+            }
+
             // Read from model file
             var modelSkeleton = LoadSkeleton(commandContext, contentManager); // we get model skeleton to compare it to real skeleton we need to map to
             AdjustSkeleton(modelSkeleton);

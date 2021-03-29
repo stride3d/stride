@@ -92,9 +92,18 @@ namespace Stride.Assets.Models
                     commandContext.Logger.Error($"Failed to import file {ContextAsString}.");
                     return ResultStatus.Failed;
                 }
-
-                assetManager.Save(Location, exportedObject);
-
+                if(exportedObject is Dictionary<string,AnimationClip>)
+                {
+                    var exportedObjects = exportedObject as Dictionary<string, AnimationClip>;
+                    foreach(var obj in exportedObjects)
+                        assetManager.Save(obj.Key , obj.Value);
+                }
+                else
+                {
+                    assetManager.Save(Location, exportedObject);
+                }
+                
+                
                 commandContext.Logger.Verbose($"The {ContextAsString} has been successfully imported.");
 
                 return ResultStatus.Successful;
