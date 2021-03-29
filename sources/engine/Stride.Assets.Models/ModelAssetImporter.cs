@@ -159,7 +159,7 @@ namespace Stride.Assets.Models
                     if (!shouldReplaceName)
                         animUrl = localPath.GetFileNameWithoutExtension() + (shouldPostFixName ? " Animation " + anim : "");
                     else
-                        animUrl = localPath.GetFileNameWithoutExtension() + " " + anim;
+                        animUrl = anim;
 
                     if (skeletonAsset != null)
                         asset.Skeleton = AttachedReferenceManager.CreateProxyObject<Skeleton>(skeletonAsset.Id, skeletonAsset.Location);
