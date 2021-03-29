@@ -15,9 +15,37 @@ namespace Stride.Importer.Gltf
         {
             Skeleton result = new Skeleton();
             var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes.First()).Skin;
-
             // If there is no corresponding skins return null
-            if (skin == null) return null;
+            if (skin == null)
+            {
+                result.Nodes = new List<ModelNodeDefinition>() {
+                    new ModelNodeDefinition
+                    {
+                        Name = "root",
+                        Flags = ModelNodeFlags.EnableRender,
+                        ParentIndex = -1,
+                        Transform = new TransformTRS
+                        {
+                            Position = Vector3.Zero,
+                            Rotation = Quaternion.Identity,
+                            Scale = Vector3.Zero
+                        }
+                    },
+                    new ModelNodeDefinition
+                    {
+                        Name = "Mesh",
+                        Flags = ModelNodeFlags.EnableRender,
+                        ParentIndex = -1,
+                        Transform = new TransformTRS
+                        {
+                            Position = Vector3.Zero,
+                            Rotation = Quaternion.Identity,
+                            Scale = Vector3.Zero
+                        }
+                    },
+                }.ToArray();
+                return result;
+            }
 
             var jointList = Enumerable.Range(0, skin.JointsCount).Select(x => skin.GetJoint(x).Joint).ToList();
             var mnd =
@@ -66,9 +94,10 @@ namespace Stride.Importer.Gltf
         public static Dictionary<string, AnimationCurve> ConvertCurves(IReadOnlyList<SharpGLTF.Schema2.AnimationChannel> channels, SharpGLTF.Schema2.ModelRoot root)
         {
             var result = new Dictionary<string, AnimationCurve>();
+            if (root.LogicalAnimations.Count == 0) return result;
             var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes.First()).Skin;
 
-            // In case there is no skin joints/bones, 
+            // In case there is no skin joints/bones, animate transform component
             if (skin == null)
             {
                 string base2 = "[TransformComponent].type";

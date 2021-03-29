@@ -19,15 +19,29 @@ namespace Stride.Importer.Gltf
 {
     public class GltfMeshParser
     {
-
-        public static Model LoadFirstModel(SharpGLTF.Schema2.ModelRoot root)
+        public static SharpGLTF.Schema2.ModelRoot LoadGltf(Stride.Core.IO.UFile sourcePath)
         {
-            var result = new Model();
-            foreach (var model in root.LogicalMeshes)
+
+            switch (sourcePath.GetFileExtension())
             {
-                result.Meshes.AddRange(model.Primitives.Select(x => LoadMesh(x)).ToList());
+                case ".gltf":
+                    return SharpGLTF.Schema2.ModelRoot.Load(sourcePath);
+                case null:
+                    return SharpGLTF.Schema2.ModelRoot.Load(sourcePath);
+                case ".glb":
+                    var fs = new FileStream(sourcePath.FullPath, FileMode.Open);
+                    return SharpGLTF.Schema2.ModelRoot.ReadGLB(fs);
+                default:
+                    return null;
             }
 
+        }
+        public static Model LoadFirstModel(SharpGLTF.Schema2.ModelRoot root)
+        {
+            var result = new Model()
+            {
+                Meshes = root.LogicalMeshes[0].Primitives.Select(x => LoadMesh(x)).ToList()
+            };
             result.Skeleton = ConvertSkeleton(root);
             return result;
         }
@@ -40,30 +54,43 @@ namespace Stride.Importer.Gltf
 
         public static EntityInfo ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot modelRoot, UFile sourcePath)
         {
+            SharpGLTF.Schema2.Skin skin = null;
+            HashSet<String> boneNames = new HashSet<string>();
+            List<NodeInfo> nodes = new List<NodeInfo>();
+            if (modelRoot.LogicalSkins.Where(x => x.Skeleton.Mesh == modelRoot.LogicalMeshes[0]).Count() > 0)
+                skin =
+                    modelRoot.LogicalSkins
+                    .Where(x => x.Skeleton.Mesh == modelRoot.LogicalMeshes[0])
+                    .First();
 
-            var skin =
-                modelRoot.LogicalSkins
-                //.Where(x => x.Skeleton.Mesh == modelRoot.LogicalMeshes[0])
-                .First();
-            var boneNames =
-                Enumerable.Range(0, skin.JointsCount)
-                .Select(x => skin.GetJoint(x).Joint.Name);
+            if (skin != null)
+            {
+                boneNames =
+                    Enumerable.Range(0, skin.JointsCount)
+                    .Select(x => skin.GetJoint(x).Joint.Name)
+                    .ToHashSet();
+                nodes = Enumerable.Range(0, skin.JointsCount)
+                    .Select(x => new NodeInfo() { Name = skin.GetJoint(x).Joint.Name, Depth = skin.GetJoint(x).Joint.LogicalIndex, Preserve = true })
+                    .ToList();
+            }
+
             var meshes =
                 modelRoot
                 .LogicalMeshes[0].Primitives
-                .Select((x, i) => modelRoot.LogicalMeshes[0].Name + "_" + i)
+                .Select((x, i) => (modelRoot.LogicalMeshes[0].Name + "_" + i, x.Material.Name))
                 .Select(
                     x =>
                     new MeshParameters()
                     {
-                        MeshName = x,
-                        BoneNodes = boneNames.ToHashSet(),
-                        MaterialName = "",
+                        MeshName = x.Item1,
+                        BoneNodes = boneNames,
+                        MaterialName = x.Name,
                         NodeName = ""
                     }
                  )
                 .ToList();
-            var animNodes =
+
+            List<String> animNodes =
                 modelRoot.LogicalAnimations.Select(x => x.Name).ToList();
 
             var entityInfo = new EntityInfo
@@ -71,18 +98,19 @@ namespace Stride.Importer.Gltf
                 Models = meshes,
                 AnimationNodes = animNodes,
                 Materials = LoadMaterials(modelRoot, sourcePath),
-                Nodes = new List<NodeInfo>(),
+                Nodes = nodes,
                 TextureDependencies = GenerateTextureFullPaths(modelRoot, sourcePath)
             };
             return entityInfo;
         }
 
-       
+
 
 
         public static MeshSkinningDefinition ConvertInverseBindMatrices(SharpGLTF.Schema2.ModelRoot root)
         {
             var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes[0]).Skin;
+            if (skin == null) return null;
             var jointList = Enumerable.Range(0, skin.JointsCount).Select(skin.GetJoint);
             var mnt =
                 new MeshSkinningDefinition
@@ -108,7 +136,7 @@ namespace Stride.Importer.Gltf
 
             var clips =
                 animations
-                .Select((x,i) =>
+                .Select((x, i) =>
                    {
                        //Create animation clip with 
                        var clip = new AnimationClip { Duration = TimeSpan.FromSeconds(x.Duration) };
@@ -150,7 +178,7 @@ namespace Stride.Importer.Gltf
                         {
                             imgPath = gltfImg.Content.SourcePath;
                         }
-                        
+
                         switch (chan.Key)
                         {
                             case "BaseColor":
@@ -171,7 +199,7 @@ namespace Stride.Importer.Gltf
                                 break;
                         }
                     }
-                    else if(chan.Texture == null && !chan.HasDefaultContent)
+                    else if (chan.Texture == null && !chan.HasDefaultContent)
                     {
                         var vt = new ComputeColor(new Color(ConvertNumerics(chan.Parameter)));
                         var x = new ComputeFloat(chan.Parameter.X);
@@ -277,7 +305,8 @@ namespace Stride.Importer.Gltf
                                 .Replace("BLENDINDICES", "JOINTS_0")
                                 .Replace("BLENDWEIGHT", "WEIGHTS_0")
                             )
-                            .Select(y => mesh.GetVertexAccessor(y).TryGetVertexBytes(x).ToArray())
+                            .Select(y => mesh.GetVertexAccessor(y)?.TryGetVertexBytes(x).ToArray())
+                            .Where(x => x != null)
                 )
                 .SelectMany(x => x)
                 .SelectMany(x => x)

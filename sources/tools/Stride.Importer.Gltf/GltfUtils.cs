@@ -34,13 +34,15 @@ namespace Stride.Importer.Gltf
 
         public static (VertexElement, int) ConvertVertexElement(KeyValuePair<string, SharpGLTF.Schema2.Accessor> accessor, int offset)
         {
-
+            // TODO : Simplify this part
             return (accessor.Key, accessor.Value.Format.ByteSize) switch
             {
                 ("POSITION", 12) => (VertexElement.Position<Vector3>(0, offset), Vector3.SizeInBytes),
                 ("NORMAL", 12) => (VertexElement.Normal<Vector3>(0, offset), Vector3.SizeInBytes),
                 ("TANGENT", 12) => (VertexElement.Tangent<Vector3>(0, offset), Vector3.SizeInBytes),
+                ("TANGENT", 16) => (VertexElement.Tangent<Vector4>(0, offset), Vector4.SizeInBytes),
                 ("COLOR", 16) => (VertexElement.Color<Vector4>(0, offset), Vector4.SizeInBytes),
+                ("COLOR_0", 16) => (VertexElement.Color<Vector4>(0, offset), Vector4.SizeInBytes),
                 ("TEXCOORD_0", 8) => (VertexElement.TextureCoordinate<Vector2>(0, offset), Vector2.SizeInBytes),
                 ("TEXCOORD_1", 8) => (VertexElement.TextureCoordinate<Vector2>(1, offset), Vector2.SizeInBytes),
                 ("TEXCOORD_2", 8) => (VertexElement.TextureCoordinate<Vector2>(2, offset), Vector2.SizeInBytes),
