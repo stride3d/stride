@@ -45,6 +45,10 @@ namespace Stride.Importer.Gltf
             result.Skeleton = ConvertSkeleton(root);
             return result;
         }
+        public static string FirstModelName(SharpGLTF.Schema2.ModelRoot root)
+        {
+            return root.LogicalMeshes.First()?.Name;
+        }
 
         public static TimeSpan GetAnimationDuration(SharpGLTF.Schema2.ModelRoot root)
         {
@@ -89,9 +93,9 @@ namespace Stride.Importer.Gltf
                     }
                  )
                 .ToList();
-
+            var meshName = FirstModelName(modelRoot);
             List<String> animNodes =
-                modelRoot.LogicalAnimations.Select(x => x.Name).ToList();
+                modelRoot.LogicalAnimations.Select(x => meshName + "_" + x.Name).ToList();
 
             var entityInfo = new EntityInfo
             {
@@ -143,7 +147,7 @@ namespace Stride.Importer.Gltf
                        clip.RepeatMode = AnimationRepeatMode.LoopInfinite;
                        // Add Curve
                        ConvertCurves(x.Channels, root).ToList().ForEach(v => clip.AddCurve(v.Key, v.Value));
-                       string name = x.Name ?? meshName + "_Animation_" + i;
+                       string name = x.Name == null ? meshName + "_Animation_" + i : meshName + "_" + x.Name;
                        clip.Optimize();
                        return (name, clip);
                    }
