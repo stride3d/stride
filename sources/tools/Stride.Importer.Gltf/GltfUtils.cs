@@ -77,19 +77,30 @@ namespace Stride.Importer.Gltf
 
         public static List<string> GenerateTextureFullPaths(SharpGLTF.Schema2.ModelRoot root, UFile sourcePath)
         {
-            return root.LogicalTextures.Select(tex =>
+            var result = new List<String>();
+            foreach (var mat in root.LogicalMaterials)
             {
-                var gltfImg = tex.PrimaryImage;
-                string imgPath;
-                if (gltfImg.Content.SourcePath == null)
+                foreach (var chan in mat.Channels)
                 {
-                    return imgPath = Path.Join(sourcePath.GetFullDirectory(), gltfImg.Name + "." + gltfImg.Content.FileExtension);
+
+                    if (chan.Texture != null && !chan.HasDefaultContent)
+                    {
+
+                        var gltfImg = chan.Texture.PrimaryImage;
+                        if (gltfImg.Content.SourcePath == null)
+                        {
+                            var textureName = gltfImg.Name ?? GltfMeshParser.FirstModelName(root) + "_" + (mat.Name??mat.LogicalIndex.ToString()) + "_" + chan.Key;
+                            result.Add( Path.Join(sourcePath.GetFullDirectory(), textureName + "." + gltfImg.Content.FileExtension));
+                            
+                        }
+                        else
+                        {
+                            result.Add(gltfImg.Content.SourcePath);
+                        }
+                    }
                 }
-                else
-                {
-                    return imgPath = gltfImg.Content.SourcePath;
-                }
-            }).ToList();
+            }
+            return result;
         }
 
         public static ComputeTextureColor GenerateTextureColor(string sourceTextureFile, TextureCoordinate textureUVSetIndex, Vector2 textureUVscaling, TextureAddressMode addressModeU = TextureAddressMode.Wrap, TextureAddressMode addressModeV = TextureAddressMode.Wrap, string vfsOutputPath = "")

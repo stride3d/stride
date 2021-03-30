@@ -176,8 +176,10 @@ namespace Stride.Importer.Gltf
                         string imgPath;
                         if (gltfImg.Content.SourcePath == null)
                         {
-                            imgPath = Path.Join(sourcePath.GetFullDirectory(), gltfImg.Name + "." + gltfImg.Content.FileExtension);
-                            gltfImg.Content.SaveToFile(imgPath);
+                            var textureName = gltfImg.Name ?? FirstModelName(root) + "_" + (mat.Name ?? mat.LogicalIndex.ToString()) + "_" + chan.Key;
+                            imgPath = Path.Join(sourcePath.GetFullDirectory(), textureName + "." + gltfImg.Content.FileExtension);
+                            if(!File.Exists(imgPath))
+                                gltfImg.Content.SaveToFile(imgPath);
                         }
                         else
                         {

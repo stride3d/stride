@@ -33,8 +33,8 @@ namespace Stride.Assets.Models
 
         protected override Model LoadModel(ICommandContext commandContext, ContentManager contentManager)
         {
-            var materialMapping = Materials.Select((s, i) => new { Value = s, Index = i }).ToDictionary(x => x.Value.Name, x => x.Index);
-            var sceneData = GltfMeshParser.LoadFirstModel(SharpGLTF.Schema2.ModelRoot.Load(SourcePath));
+            var model = GltfMeshParser.LoadGltf(SourcePath);
+            var sceneData = GltfMeshParser.LoadFirstModel(model);
             return sceneData;
         }
 
