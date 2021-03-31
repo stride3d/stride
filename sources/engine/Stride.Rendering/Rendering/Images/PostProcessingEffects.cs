@@ -39,6 +39,7 @@ namespace Stride.Rendering.Images
         /// </summary>
         public PostProcessingEffects()
         {
+            Fog = new Fog {Enabled = false};
             AmbientOcclusion = new AmbientOcclusion();
             LocalReflections = new LocalReflections();
             DepthOfField = new DepthOfField();
@@ -67,6 +68,13 @@ namespace Stride.Rendering.Images
         [DataMember(-100), Display(Browsable = false)]
         [NonOverridable]
         public Guid Id { get; set; } = Guid.NewGuid();
+
+        /// <summary>
+        /// Gets the fog effect.
+        /// </summary>
+        [DataMember(7)]
+        [Category]
+        public Fog Fog { get; private set; }
 
         /// <summary>
         /// Gets the ambient occlusion effect.
@@ -156,6 +164,7 @@ namespace Stride.Rendering.Images
         /// </summary>
         public void DisableAll()
         {
+            Fog.Enabled = false;
             AmbientOcclusion.Enabled = false;
             LocalReflections.Enabled = false;
             DepthOfField.Enabled = false;
@@ -181,6 +190,7 @@ namespace Stride.Rendering.Images
         {
             base.InitializeCore();
 
+            Fog = ToLoadAndUnload(Fog);
             AmbientOcclusion = ToLoadAndUnload(AmbientOcclusion);
             LocalReflections = ToLoadAndUnload(LocalReflections);
             DepthOfField = ToLoadAndUnload(DepthOfField);
@@ -373,6 +383,16 @@ namespace Stride.Rendering.Images
                 DepthOfField.SetOutput(dofOutput);
                 DepthOfField.Draw(context);
                 currentInput = dofOutput;
+            }
+
+            if (Fog.Enabled && inputDepthTexture != null)
+            {
+                // Fog
+                var fogOutput = NewScopedRenderTarget2D(input.Width, input.Height, input.Format);
+                Fog.SetColorDepthInput(currentInput, inputDepthTexture, context.RenderContext.RenderView.NearClipPlane, context.RenderContext.RenderView.FarClipPlane);
+                Fog.SetOutput(fogOutput);
+                Fog.Draw(context);
+                currentInput = fogOutput;
             }
 
             // Luminance pass (only if tone mapping is enabled)
