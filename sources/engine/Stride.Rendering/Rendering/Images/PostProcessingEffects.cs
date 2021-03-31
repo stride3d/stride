@@ -39,6 +39,7 @@ namespace Stride.Rendering.Images
         /// </summary>
         public PostProcessingEffects()
         {
+            Outline = new Outline {Enabled = false};
             AmbientOcclusion = new AmbientOcclusion();
             LocalReflections = new LocalReflections();
             DepthOfField = new DepthOfField();
@@ -68,6 +69,12 @@ namespace Stride.Rendering.Images
         [NonOverridable]
         public Guid Id { get; set; } = Guid.NewGuid();
 
+        /// <summary>
+        /// Gets the outline effect.
+        /// </summary>
+        [DataMember(6)]
+        [Category]
+        public Outline Outline { get; private set; }
         /// <summary>
         /// Gets the ambient occlusion effect.
         /// </summary>
@@ -156,6 +163,7 @@ namespace Stride.Rendering.Images
         /// </summary>
         public void DisableAll()
         {
+            Outline.Enabled = false;
             AmbientOcclusion.Enabled = false;
             LocalReflections.Enabled = false;
             DepthOfField.Enabled = false;
@@ -181,6 +189,7 @@ namespace Stride.Rendering.Images
         {
             base.InitializeCore();
 
+            Outline = ToLoadAndUnload(Outline);
             AmbientOcclusion = ToLoadAndUnload(AmbientOcclusion);
             LocalReflections = ToLoadAndUnload(LocalReflections);
             DepthOfField = ToLoadAndUnload(DepthOfField);
@@ -279,6 +288,17 @@ namespace Stride.Rendering.Images
             }
             
             var currentInput = input;
+
+            // Draw outline before AA
+            if (Outline.Enabled && inputDepthTexture != null)
+            {
+                // Outline
+                var outlineOutput = NewScopedRenderTarget2D(input.Width, input.Height, input.Format);
+                Outline.SetColorDepthInput(currentInput, inputDepthTexture, context.RenderContext.RenderView.NearClipPlane, context.RenderContext.RenderView.FarClipPlane);
+                Outline.SetOutput(outlineOutput);
+                Outline.Draw(context);
+                currentInput = outlineOutput;
+            }
 
             var fxaa = Antialiasing as FXAAEffect;
             bool aaFirst = Bloom != null && Bloom.StableConvolution;
