@@ -47,7 +47,7 @@ namespace Stride.Importer.Gltf
         }
         public static string FirstModelName(SharpGLTF.Schema2.ModelRoot root)
         {
-            return root.LogicalMeshes.First()?.Name;
+            return root.LogicalMeshes.First()?.Name ?? "Mesh";
         }
 
         public static TimeSpan GetAnimationDuration(SharpGLTF.Schema2.ModelRoot root)
@@ -61,41 +61,51 @@ namespace Stride.Importer.Gltf
             SharpGLTF.Schema2.Skin skin = null;
             HashSet<String> boneNames = new HashSet<string>();
             List<NodeInfo> nodes = new List<NodeInfo>();
-            if (modelRoot.LogicalSkins.Where(x=>x.Skeleton != null).Where(x => x.Skeleton.Mesh == modelRoot.LogicalMeshes[0]).Count() > 0)
+
+            var meshName = FirstModelName(modelRoot);
+            var modelName = modelRoot.LogicalMeshes[0].Name ?? "Mesh";
+            var parent = modelRoot.LogicalSkins[0].VisualParents.First().Mesh;
+            if (modelRoot.LogicalSkins.Where(x => x.VisualParents.First()?.Mesh == modelRoot.LogicalMeshes[0]).Count() > 0)
                 skin =
                     modelRoot.LogicalSkins
-                    .Where(x => x.Skeleton.Mesh == modelRoot.LogicalMeshes[0])
+                    .Where(x => x.VisualParents.First().Mesh == modelRoot.LogicalMeshes[0])
                     .First();
 
             if (skin != null)
             {
                 boneNames =
                     Enumerable.Range(0, skin.JointsCount)
-                    .Select(x => skin.GetJoint(x).Joint.Name)
+                    .Select(x => skin.GetJoint(x).Joint.Name ?? "Joint_" + skin.GetJoint(x).Joint.LogicalIndex)
                     .ToHashSet();
                 nodes = Enumerable.Range(0, skin.JointsCount)
-                    .Select(x => new NodeInfo() { Name = skin.GetJoint(x).Joint.Name, Depth = skin.GetJoint(x).Joint.LogicalIndex, Preserve = true })
+                    .Select(x => new NodeInfo() { Name = skin.GetJoint(x).Joint.Name ?? "Joint_" + skin.GetJoint(x).Joint.LogicalIndex, Depth = skin.GetJoint(x).Joint.LogicalIndex, Preserve = true })
                     .ToList();
             }
-
+            
             var meshes =
                 modelRoot
                 .LogicalMeshes[0].Primitives
-                .Select((x, i) => (modelRoot.LogicalMeshes[0].Name + "_" + i, x.Material.Name))
+                .Select(
+                    x => 
+                    {
+                        var materialName = x.Material == null ? FirstModelName(modelRoot) + "_" + (x.Material.Name ?? "Material" + x.Material.LogicalIndex) : "";
+                        return (meshName + "_" + x.LogicalIndex, materialName);
+                    }
+                )
                 .Select(
                     x =>
                     new MeshParameters()
                     {
                         MeshName = x.Item1,
                         BoneNodes = boneNames,
-                        MaterialName = x.Name,
+                        MaterialName = x.materialName,
                         NodeName = ""
                     }
                  )
                 .ToList();
-            var meshName = FirstModelName(modelRoot);
+
             List<String> animNodes =
-                modelRoot.LogicalAnimations.Select(x => meshName + "_" + x.Name).ToList();
+                modelRoot.LogicalAnimations.Select(x => x.Name == null ? meshName + "_Animation_" + x.LogicalIndex : meshName + "_" + x.Name).ToList();
 
             var entityInfo = new EntityInfo
             {
@@ -140,14 +150,14 @@ namespace Stride.Importer.Gltf
 
             var clips =
                 animations
-                .Select((x, i) =>
+                .Select(x =>
                    {
                        //Create animation clip with 
                        var clip = new AnimationClip { Duration = TimeSpan.FromSeconds(x.Duration) };
                        clip.RepeatMode = AnimationRepeatMode.LoopInfinite;
                        // Add Curve
                        ConvertCurves(x.Channels, root).ToList().ForEach(v => clip.AddCurve(v.Key, v.Value));
-                       string name = x.Name == null ? meshName + "_Animation_" + i : meshName + "_" + x.Name;
+                       string name = x.Name == null ? meshName + "_Animation_" + x.LogicalIndex : meshName + "_" + x.Name;
                        clip.Optimize();
                        return (name, clip);
                    }
@@ -233,7 +243,9 @@ namespace Stride.Importer.Gltf
 
                 }
                 material.Attributes.CullMode = CullMode.Back;
-                result.Add(mat.Name, material);
+                var materialName = FirstModelName(root) + "_" + (mat.Name ?? "Material" + mat.LogicalIndex);
+
+                result.Add(materialName, material);
             }
             return result;
         }

@@ -54,7 +54,7 @@ namespace Stride.Importer.Gltf
                     x =>
                     new ModelNodeDefinition
                     {
-                        Name = x.Name,
+                        Name = x.Name ?? "Joint_" + x.LogicalIndex,
                         Flags = ModelNodeFlags.Default,
                         ParentIndex = jointList.IndexOf(x.VisualParent) + 1,
                         Transform = new TransformTRS

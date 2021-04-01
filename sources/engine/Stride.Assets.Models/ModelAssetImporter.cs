@@ -100,8 +100,8 @@ namespace Stride.Assets.Models
             {
                 TimeSpan startTime, endTime;
                 GetAnimationDuration(localPath, importParameters.Logger, importParameters, out startTime, out endTime);
-
-                ImportAnimation(rawAssetReferences, localPath, entityInfo.AnimationNodes, isImportingModel, skeletonAsset, startTime, endTime);
+                bool isGltfAsset = localPath.GetFileExtension().ToLower().Contains("glb") || localPath.GetFileExtension().ToLower().Contains("gltf");
+                ImportAnimation(rawAssetReferences, localPath, entityInfo.AnimationNodes, isImportingModel, isGltfAsset, skeletonAsset, startTime, endTime);
             }
 
             // 4. Materials
@@ -141,22 +141,18 @@ namespace Stride.Assets.Models
             return assetItem;
         }
 
-        private static void ImportAnimation(List<AssetItem> assetReferences, UFile localPath, List<string> animationNodes, bool shouldPostFixName, AssetItem skeletonAsset, TimeSpan animationStartTime, TimeSpan animationEndTime)
+        private static void ImportAnimation(List<AssetItem> assetReferences, UFile localPath, List<string> animationNodes, bool shouldPostFixName, bool isGltfAsset, AssetItem skeletonAsset, TimeSpan animationStartTime, TimeSpan animationEndTime)
         {
-            bool shouldReplaceName = false;
+            
             if (animationNodes != null && animationNodes.Count > 0)
             {
-                if (animationNodes.Count > 1)
-                {
-                    shouldReplaceName = true;
-                }
                 foreach(var anim in animationNodes)
                 {
                     var assetSource = localPath;
 
                     var asset = new AnimationAsset { Source = assetSource, AnimationTimeMaximum = animationEndTime, AnimationTimeMinimum = animationStartTime };
                     string animUrl;
-                    if (!shouldReplaceName)
+                    if (!isGltfAsset)
                         animUrl = localPath.GetFileNameWithoutExtension() + (shouldPostFixName ? " Animation " + anim : "");
                     else
                         animUrl = anim;
