@@ -64,7 +64,6 @@ namespace Stride.Importer.Gltf
 
             var meshName = FirstModelName(modelRoot);
             var modelName = modelRoot.LogicalMeshes[0].Name ?? "Mesh";
-            var parent = modelRoot.LogicalSkins[0].VisualParents.First().Mesh;
             if (modelRoot.LogicalSkins.Where(x => x.VisualParents.First()?.Mesh == modelRoot.LogicalMeshes[0]).Count() > 0)
                 skin =
                     modelRoot.LogicalSkins
