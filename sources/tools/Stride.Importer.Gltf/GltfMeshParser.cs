@@ -87,7 +87,7 @@ namespace Stride.Importer.Gltf
                 .Select(
                     x => 
                     {
-                        var materialName = x.Material == null ? FirstModelName(modelRoot) + "_" + (x.Material.Name ?? "Material" + x.Material.LogicalIndex) : "";
+                        var materialName = x.Material != null ? FirstModelName(modelRoot) + "_" + (x.Material.Name ?? "Material" + x.Material.LogicalIndex) : "";
                         return (meshName + "_" + x.LogicalIndex, materialName);
                     }
                 )
@@ -145,7 +145,7 @@ namespace Stride.Importer.Gltf
         public static Dictionary<string, AnimationClip> ConvertAnimations(SharpGLTF.Schema2.ModelRoot root)
         {
             var animations = root.LogicalAnimations;
-            var meshName = root.LogicalMeshes[0].Name;
+            var meshName = FirstModelName(root);
 
             var clips =
                 animations
