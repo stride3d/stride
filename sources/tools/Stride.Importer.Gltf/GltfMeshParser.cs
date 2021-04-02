@@ -19,6 +19,11 @@ namespace Stride.Importer.Gltf
 {
     public class GltfMeshParser
     {
+        /// <summary>
+        /// Loads the gltf file depending its extension.
+        /// </summary>
+        /// <param name="sourcePath"> path of the gltf file</param>
+        /// <returns>ModelRoot</returns>
         public static SharpGLTF.Schema2.ModelRoot LoadGltf(Stride.Core.IO.UFile sourcePath)
         {
 
@@ -36,8 +41,15 @@ namespace Stride.Importer.Gltf
             }
 
         }
+
+        /// <summary>
+        /// Converts the first mesh in the GLTF file into a stride Model 
+        /// </summary>
+        /// <param name="root"></param>
+        /// <returns></returns>
         public static Model LoadFirstModel(SharpGLTF.Schema2.ModelRoot root)
         {
+            // We load every primitives of the first mesh
             var result = new Model()
             {
                 Meshes = root.LogicalMeshes[0].Primitives.Select(x => LoadMesh(x)).ToList()
@@ -45,17 +57,36 @@ namespace Stride.Importer.Gltf
             result.Skeleton = ConvertSkeleton(root);
             return result;
         }
+
+        /// <summary>
+        /// Gets the first model name
+        /// </summary>
+        /// <param name="root"></param>
+        /// <returns></returns>
         public static string FirstModelName(SharpGLTF.Schema2.ModelRoot root)
         {
+            // TODO : Get the file name instead of `Mesh`
             return root.LogicalMeshes.First()?.Name ?? "Mesh";
         }
 
+        /// <summary>
+        /// Gets the sum of all animation duration
+        /// </summary>
+        /// <param name="root"></param>
+        /// <returns></returns>
         public static TimeSpan GetAnimationDuration(SharpGLTF.Schema2.ModelRoot root)
         {
             var time = root.LogicalAnimations.Select(x => x.Duration).Sum();
             return TimeSpan.FromSeconds(time);
         }
 
+        /// <summary>
+        /// Extract the entity info. This function tells the editor informations about any assets.
+        /// If any info is missing/wrong the assests won't be correctly imported.
+        /// </summary>
+        /// <param name="modelRoot"></param>
+        /// <param name="sourcePath"></param>
+        /// <returns></returns>
         public static EntityInfo ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot modelRoot, UFile sourcePath)
         {
             SharpGLTF.Schema2.Skin skin = null;
@@ -63,13 +94,15 @@ namespace Stride.Importer.Gltf
             List<NodeInfo> nodes = new List<NodeInfo>();
 
             var meshName = FirstModelName(modelRoot);
-            var modelName = modelRoot.LogicalMeshes[0].Name ?? "Mesh";
+
+            
             if (modelRoot.LogicalSkins.Where(x => x.VisualParents.First()?.Mesh == modelRoot.LogicalMeshes[0]).Count() > 0)
                 skin =
                     modelRoot.LogicalSkins
                     .Where(x => x.VisualParents.First().Mesh == modelRoot.LogicalMeshes[0])
                     .First();
 
+            // If there is a skin, we can load the bone names and instantiate the node informations.
             if (skin != null)
             {
                 boneNames =
@@ -81,6 +114,7 @@ namespace Stride.Importer.Gltf
                     .ToList();
             }
             
+            // Loading Mesh parameters, this will link the materials with the meshes
             var meshes =
                 modelRoot
                 .LogicalMeshes[0].Primitives
@@ -103,10 +137,11 @@ namespace Stride.Importer.Gltf
                  )
                 .ToList();
 
+            // Loading the animation names (should be the same as the keys used in animations
             List<String> animNodes =
-                modelRoot.LogicalAnimations.Select(x => x.Name == null ? meshName + "_Animation_" + x.LogicalIndex : meshName + "_" + x.Name).ToList();
+                ConvertAnimations(modelRoot).Keys.ToList();
 
-            var entityInfo = new EntityInfo
+            return new EntityInfo
             {
                 Models = meshes,
                 AnimationNodes = animNodes,
@@ -114,12 +149,15 @@ namespace Stride.Importer.Gltf
                 Nodes = nodes,
                 TextureDependencies = GenerateTextureFullPaths(modelRoot, sourcePath)
             };
-            return entityInfo;
         }
 
 
 
-
+        /// <summary>
+        /// Converts GLTF joints into MeshSkinningDefinition, defining the Mesh to World matrix useful for skinning and animations.
+        /// </summary>
+        /// <param name="root"></param>
+        /// <returns></returns>
         public static MeshSkinningDefinition ConvertInverseBindMatrices(SharpGLTF.Schema2.ModelRoot root)
         {
             var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes[0]).Skin;
@@ -142,6 +180,11 @@ namespace Stride.Importer.Gltf
             return mnt;
         }
 
+        /// <summary>
+        /// Converts GLTF animations into Stride AnimationClips.
+        /// </summary>
+        /// <param name="root"></param>
+        /// <returns></returns>
         public static Dictionary<string, AnimationClip> ConvertAnimations(SharpGLTF.Schema2.ModelRoot root)
         {
             var animations = root.LogicalAnimations;
@@ -166,8 +209,15 @@ namespace Stride.Importer.Gltf
             return clips;
         }
 
+        /// <summary>
+        /// Convert GLTF materials to Stride materials
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="sourcePath"></param>
+        /// <returns></returns>
         public static Dictionary<string, MaterialAsset> LoadMaterials(SharpGLTF.Schema2.ModelRoot root, UFile sourcePath)
         {
+            // TODO : Handle official ClearCoat extension
             var result = new Dictionary<string, MaterialAsset>();
             foreach (var mat in root.LogicalMaterials)
             {
@@ -249,6 +299,11 @@ namespace Stride.Importer.Gltf
             return result;
         }
 
+        /// <summary>
+        /// Convert a GLTF Primitive into a Stride Mesh
+        /// </summary>
+        /// <param name="mesh"></param>
+        /// <returns></returns>
         public static Mesh LoadMesh(SharpGLTF.Schema2.MeshPrimitive mesh)
         {
 
@@ -270,18 +325,28 @@ namespace Stride.Importer.Gltf
             };
 
 
-            //TODO : Add parameter collection only after checking if it has
+            // TODO : Add parameter collection only after checking if it has
             result.Parameters.Set(MaterialKeys.HasSkinningPosition, true);
             result.Parameters.Set(MaterialKeys.HasSkinningNormal, true);
             return result;
         }
 
+        /// <summary>
+        /// Gets the number of triangle indices.
+        /// </summary>
+        /// <param name="mesh"></param>
+        /// <returns></returns>
         private static int GetDrawCount(SharpGLTF.Schema2.MeshPrimitive mesh)
         {
-            var tmp = mesh.GetTriangleIndices().Select(x => new int[] { x.A, x.C, x.B }).SelectMany(x => x).Select(x => (uint)x).ToArray();
+            // TODO : Check if every meshes has triangle indices
             return mesh.GetTriangleIndices().Select(x => new int[] { x.A, x.C, x.B }).SelectMany(x => x).Select(x => (uint)x).ToArray().Length;
         }
 
+        /// <summary>
+        /// Converts an index buffer into a serialized index buffer binding for asset creation.
+        /// </summary>
+        /// <param name="mesh"></param>
+        /// <returns></returns>
         public static IndexBufferBinding ConvertSerializedIndexBufferBinding(SharpGLTF.Schema2.MeshPrimitive mesh)
         {
             var indices =
@@ -294,6 +359,11 @@ namespace Stride.Importer.Gltf
             return new IndexBufferBinding(buf, true, indices.Length);
         }
 
+        /// <summary>
+        /// Converts a vertex buffer into a serialized vertex buffer for asset creation.
+        /// </summary>
+        /// <param name="mesh"></param>
+        /// <returns></returns>
         public static VertexBufferBinding[] ConvertSerializedVertexBufferBinding(SharpGLTF.Schema2.MeshPrimitive mesh)
         {
             var offset = 0;

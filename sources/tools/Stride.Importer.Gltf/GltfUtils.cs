@@ -15,7 +15,11 @@ namespace Stride.Importer.Gltf
 {
     class GltfUtils
     {
-
+        /// <summary>
+        /// Converts a System.Numerics value into a Stride value
+        /// </summary>
+        /// <param name="mat"></param>
+        /// <returns></returns>
         public static Matrix ConvertNumerics(System.Numerics.Matrix4x4 mat)
         {
             return new Matrix(
@@ -25,13 +29,37 @@ namespace Stride.Importer.Gltf
                     mat.M41, mat.M42, mat.M43, mat.M44
                 );
         }
-
+        /// <summary>
+        /// Converts a System.Numerics value into a Stride value
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
         public static Quaternion ConvertNumerics(System.Numerics.Quaternion v) => new Quaternion(v.X, v.Y, v.Z, v.W);
+        /// <summary>
+        /// Converts a System.Numerics value into a Stride value
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
         public static Vector4 ConvertNumerics(System.Numerics.Vector4 v) => new Vector4(v.X, v.Y, v.Z, v.W);
+        /// <summary>
+        /// Converts a System.Numerics value into a Stride value
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
         public static Vector3 ConvertNumerics(System.Numerics.Vector3 v) => new Vector3(v.X, v.Y, v.Z);
+        /// <summary>
+        /// Converts a System.Numerics value into a Stride value
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
         public static Vector2 ConvertNumerics(System.Numerics.Vector2 v) => new Vector2(v.X, v.Y);
 
-
+        /// <summary>
+        /// Gets the Stride VertexElement equivalent of a GLTF vertex 
+        /// </summary>
+        /// <param name="accessor"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
         public static (VertexElement, int) ConvertVertexElement(KeyValuePair<string, SharpGLTF.Schema2.Accessor> accessor, int offset)
         {
             // TODO : Simplify this part
@@ -59,7 +87,11 @@ namespace Stride.Importer.Gltf
                 _ => throw new NotImplementedException(),
             };
         }
-
+        /// <summary>
+        /// Gets the GLTF primitive's PrimitiveType
+        /// </summary>
+        /// <param name="gltfType"></param>
+        /// <returns></returns>
         public static PrimitiveType ConvertPrimitiveType(SharpGLTF.Schema2.PrimitiveType gltfType)
         {
             return gltfType switch
@@ -75,6 +107,12 @@ namespace Stride.Importer.Gltf
             };
         }
 
+        /// <summary>
+        /// Generates the texture files paths.
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="sourcePath"></param>
+        /// <returns></returns>
         public static List<string> GenerateTextureFullPaths(SharpGLTF.Schema2.ModelRoot root, UFile sourcePath)
         {
             var result = new List<String>();
@@ -103,19 +141,19 @@ namespace Stride.Importer.Gltf
             return result;
         }
 
+        /// <summary>
+        /// Generate a ComputeTextureColor for asset creation
+        /// </summary>
+        /// <param name="sourceTextureFile"></param>
+        /// <param name="textureUVSetIndex"></param>
+        /// <param name="textureUVscaling"></param>
+        /// <param name="addressModeU"></param>
+        /// <param name="addressModeV"></param>
+        /// <param name="vfsOutputPath"></param>
+        /// <returns></returns>
         public static ComputeTextureColor GenerateTextureColor(string sourceTextureFile, TextureCoordinate textureUVSetIndex, Vector2 textureUVscaling, TextureAddressMode addressModeU = TextureAddressMode.Wrap, TextureAddressMode addressModeV = TextureAddressMode.Wrap, string vfsOutputPath = "")
         {
             var textureFileName = Path.GetFileNameWithoutExtension(sourceTextureFile);
-            var url = vfsOutputPath + "_" + textureFileName;
-
-            if (File.Exists(sourceTextureFile))
-            {
-                //if (logger != nullptr)
-                //{
-                //    logger->Warning(String::Format("The texture '{0}' referenced in the mesh material can not be found on the system. Loading will probably fail at run time.", sourceTextureFile),
-                //                    nullptr, CallerInfo::Get(__FILEW__, __FUNCTIONW__, __LINE__));
-                //}
-            }
 
             var uvScaling = textureUVscaling;
             var textureName = textureFileName;
@@ -131,20 +169,21 @@ namespace Stride.Importer.Gltf
 
             return currentTexture;
         }
+
+        /// <summary>
+        /// Generate a ComputeTextureScalar for asset creation.
+        /// </summary>
+        /// <param name="sourceTextureFile"></param>
+        /// <param name="textureUVSetIndex"></param>
+        /// <param name="textureUVscaling"></param>
+        /// <param name="addressModeU"></param>
+        /// <param name="addressModeV"></param>
+        /// <param name="vfsOutputPath"></param>
+        /// <returns></returns>
         public static ComputeTextureScalar GenerateTextureScalar(string sourceTextureFile, TextureCoordinate textureUVSetIndex, Vector2 textureUVscaling, TextureAddressMode addressModeU = TextureAddressMode.Wrap, TextureAddressMode addressModeV = TextureAddressMode.Wrap, string vfsOutputPath = "")
         {
             var textureFileName = Path.GetFileNameWithoutExtension(sourceTextureFile);
-            var url = vfsOutputPath + "_" + textureFileName;
-
-            if (File.Exists(sourceTextureFile))
-            {
-                //if (logger != nullptr)
-                //{
-                //    logger->Warning(String::Format("The texture '{0}' referenced in the mesh material can not be found on the system. Loading will probably fail at run time.", sourceTextureFile),
-                //                    nullptr, CallerInfo::Get(__FILEW__, __FUNCTIONW__, __LINE__));
-                //}
-            }
-
+            
             var uvScaling = textureUVscaling;
             var textureName = textureFileName;
 

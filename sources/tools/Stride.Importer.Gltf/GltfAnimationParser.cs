@@ -11,11 +11,16 @@ namespace Stride.Importer.Gltf
 {
     public class GltfAnimationParser
     {
+        /// <summary>
+        /// Converts GLTF Skeleton into a Stride Skeleton
+        /// </summary>
+        /// <param name="root"></param>
+        /// <returns>skeleton</returns>
         public static Skeleton ConvertSkeleton(SharpGLTF.Schema2.ModelRoot root)
         {
             Skeleton result = new Skeleton();
             var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes.First()).Skin;
-            // If there is no corresponding skins return null
+            // If there is no corresponding skins return a skeleton with 2 bones (an empty skeleton would make the editor crash)
             if (skin == null)
             {
                 result.Nodes = new List<ModelNodeDefinition>() {
@@ -46,7 +51,7 @@ namespace Stride.Importer.Gltf
                 }.ToArray();
                 return result;
             }
-
+            // for each joints we create a ModelNodeDefinition
             var jointList = Enumerable.Range(0, skin.JointsCount).Select(x => skin.GetJoint(x).Joint).ToList();
             var mnd =
                 jointList
@@ -67,6 +72,7 @@ namespace Stride.Importer.Gltf
                     }
                 )
                 .ToList();
+            // And insert a parent one not caught by the above function (GLTF does not consider the parent bone as a bone)
             mnd.Insert(
                     0,
                     new ModelNodeDefinition
@@ -85,12 +91,25 @@ namespace Stride.Importer.Gltf
             return result;
         }
         
-
+        /// <summary>
+        /// Helper function to create a keyframe from values
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="keyTime"></param>
+        /// <param name="value"></param>
+        /// <returns>keyframe</returns>
         public static KeyFrameData<T> CreateKeyFrame<T>(float keyTime, T value)
         {
             return new KeyFrameData<T>((CompressedTimeSpan)TimeSpan.FromSeconds(keyTime), value);
         }
 
+        /// <summary>
+        /// Convert a GLTF animation channel into a Stride AnimationCurve.
+        /// If the model has no skin, root motion should be enabled
+        /// </summary>
+        /// <param name="channels"></param>
+        /// <param name="root"></param>
+        /// <returns>animationCurves</returns>
         public static Dictionary<string, AnimationCurve> ConvertCurves(IReadOnlyList<SharpGLTF.Schema2.AnimationChannel> channels, SharpGLTF.Schema2.ModelRoot root)
         {
             var result = new Dictionary<string, AnimationCurve>();
@@ -119,6 +138,7 @@ namespace Stride.Importer.Gltf
                 return result;
             }
 
+            // Else we animate the model.
             string baseString = "[ModelComponent.Key].Skeleton.NodeTransformations[index].Transform.type";
             
             
@@ -145,6 +165,11 @@ namespace Stride.Importer.Gltf
 
         }
 
+        /// <summary>
+        /// Converts a GLTF AnimationSampler into a Stride AnimationCurve
+        /// </summary>
+        /// <param name="sampler"></param>
+        /// <returns></returns>
         public static AnimationCurve<Quaternion> ConvertCurve(SharpGLTF.Schema2.IAnimationSampler<System.Numerics.Quaternion> sampler)
         {
             var interpolationType =
@@ -175,6 +200,12 @@ namespace Stride.Importer.Gltf
                 KeyFrames = new FastList<KeyFrameData<Quaternion>>(keyframes)
             };
         }
+
+        /// <summary>
+        /// Converts a GLTF AnimationSampler into a Stride AnimationCurve
+        /// </summary>
+        /// <param name="sampler"></param>
+        /// <returns></returns>
         public static AnimationCurve<Vector3> ConvertCurve(SharpGLTF.Schema2.IAnimationSampler<System.Numerics.Vector3> sampler)
         {
             var interpolationType =
