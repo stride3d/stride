@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -6,12 +6,14 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 
-namespace Stride.Rendering.Images {
+namespace Stride.Rendering.Images 
+{
     /// <summary>
     /// A fog filter.
     /// </summary>
     [DataContract("Fog")]
-    public class Fog : ImageEffect {
+    public class Fog : ImageEffect 
+    {
         private readonly ImageEffectShader fogFilter;
         private Texture depthTexture;
         private float zMin, zMax;
@@ -20,14 +22,16 @@ namespace Stride.Rendering.Images {
         /// Initializes a new instance of the <see cref="Fog"/> class.
         /// </summary>
         public Fog()
-            : this("FogEffect") {
+            : this("FogEffect") 
+        {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Fog"/> class.
         /// </summary>
         /// <param name="shaderName">Name of the fog shader.</param>
-        public Fog(string shaderName) : base(shaderName) {
+        public Fog(string shaderName) : base(shaderName) 
+        {
             if (shaderName == null) throw new ArgumentNullException("fogFilterName");
             fogFilter = new ImageEffectShader(shaderName);
         }
@@ -44,7 +48,8 @@ namespace Stride.Rendering.Images {
         [DataMember(40)]
         public bool SkipBackground { get; set; } = false;
 
-        protected override void InitializeCore() {
+        protected override void InitializeCore() 
+        {
             base.InitializeCore();
             ToLoadAndUnload(fogFilter);
         }
@@ -54,23 +59,27 @@ namespace Stride.Rendering.Images {
         /// </summary>
         /// <param name="colorBuffer">A color buffer to process.</param>
         /// <param name="depthBuffer">The depth buffer corresponding to the color buffer provided.</param>
-        public void SetColorDepthInput(Texture colorBuffer, Texture depthBuffer, float zMin, float zMax) {
+        public void SetColorDepthInput(Texture colorBuffer, Texture depthBuffer, float zMin, float zMax) 
+        {
             SetInput(0, colorBuffer);
             depthTexture = depthBuffer;
             this.zMin = zMin;
             this.zMax = zMax;
         }
 
-        protected override void SetDefaultParameters() {
+        protected override void SetDefaultParameters() 
+        {
             Color = new Color3(1.0f);
             Density = 0.1f;
             base.SetDefaultParameters();
         }
 
-        protected override void DrawCore(RenderDrawContext context) {
+        protected override void DrawCore(RenderDrawContext context) 
+        {
             Texture color = GetInput(0);
             Texture output = GetOutput(0);
-            if (color == null || output == null || depthTexture == null) {
+            if (color == null || output == null || depthTexture == null) 
+            {
                 return;
             }
 

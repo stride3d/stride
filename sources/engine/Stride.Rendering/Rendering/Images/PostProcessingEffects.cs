@@ -43,7 +43,11 @@ namespace Stride.Rendering.Images
                 Enabled = false
             };
 
-            Fog = new Fog {Enabled = false};
+            Fog = new Fog
+            {
+                Enabled = false
+            };
+
             AmbientOcclusion = new AmbientOcclusion();
             LocalReflections = new LocalReflections();
             DepthOfField = new DepthOfField();
