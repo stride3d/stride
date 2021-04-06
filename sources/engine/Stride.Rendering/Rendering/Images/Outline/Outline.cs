@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -11,7 +11,8 @@ namespace Stride.Rendering.Images {
     /// A fog filter.
     /// </summary>
     [DataContract("Outline")]
-    public class Outline : ImageEffect {
+    public class Outline : ImageEffect 
+    {
         private readonly ImageEffectShader outlineFilter;
         private Texture depthTexture;
         private float zMin, zMax;
@@ -20,7 +21,8 @@ namespace Stride.Rendering.Images {
         /// Initializes a new instance of the <see cref="Outline"/> class.
         /// </summary>
         public Outline()
-            : this("OutlineEffect") {
+            : this("OutlineEffect") 
+        {
         }
 
         [DataMember(10)]
@@ -36,12 +38,14 @@ namespace Stride.Rendering.Images {
         /// Initializes a new instance of the <see cref="Outline"/> class.
         /// </summary>
         /// <param name="shaderName">Name of the outline shader.</param>
-        public Outline(string shaderName) : base(shaderName) {
+        public Outline(string shaderName) : base(shaderName) 
+        {
             if (shaderName == null) throw new ArgumentNullException("outlineFilterName");
             outlineFilter = new ImageEffectShader(shaderName);
         }
 
-        protected override void InitializeCore() {
+        protected override void InitializeCore() 
+        {
             base.InitializeCore();
             ToLoadAndUnload(outlineFilter);
         }
@@ -51,24 +55,28 @@ namespace Stride.Rendering.Images {
         /// </summary>
         /// <param name="colorBuffer">A color buffer to process.</param>
         /// <param name="depthBuffer">The depth buffer corresponding to the color buffer provided.</param>
-        public void SetColorDepthInput(Texture colorBuffer, Texture depthBuffer, float zMin, float zMax) {
+        public void SetColorDepthInput(Texture colorBuffer, Texture depthBuffer, float zMin, float zMax) 
+        {
             SetInput(0, colorBuffer);
             depthTexture = depthBuffer;
             this.zMin = zMin;
             this.zMax = zMax;
         }
 
-        protected override void SetDefaultParameters() {
+        protected override void SetDefaultParameters() 
+        {
             NormalWeight = 2f;
             DepthWeight = 0.2f;
             NormalNearCutoff = 0.1f;
             base.SetDefaultParameters();
         }
 
-        protected override void DrawCore(RenderDrawContext context) {
+        protected override void DrawCore(RenderDrawContext context) 
+        {
             Texture color = GetInput(0);
             Texture output = GetOutput(0);
-            if (color == null || output == null || depthTexture == null) {
+            if (color == null || output == null || depthTexture == null) 
+            {
                 return;
             }
 
