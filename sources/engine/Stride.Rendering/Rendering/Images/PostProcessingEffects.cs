@@ -8,7 +8,6 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Materials;
-using Stride.Rendering.SubsurfaceScattering;
 
 namespace Stride.Rendering.Images
 {
@@ -39,7 +38,11 @@ namespace Stride.Rendering.Images
         /// </summary>
         public PostProcessingEffects()
         {
-            Fog = new Fog {Enabled = false};
+            Fog = new Fog
+            {
+                Enabled = false
+            };
+
             AmbientOcclusion = new AmbientOcclusion();
             LocalReflections = new LocalReflections();
             DepthOfField = new DepthOfField();
