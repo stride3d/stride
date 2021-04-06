@@ -13,7 +13,7 @@ using Stride.Rendering.Materials.ComputeColors;
 
 namespace Stride.Importer.Gltf
 {
-    class GltfUtils
+    public static class GltfUtils
     {
         /// <summary>
         /// Converts a System.Numerics value into a Stride value

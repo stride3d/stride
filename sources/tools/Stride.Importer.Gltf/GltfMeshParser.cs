@@ -17,7 +17,7 @@ using static Stride.Importer.Gltf.GltfUtils;
 
 namespace Stride.Importer.Gltf
 {
-    public class GltfMeshParser
+    public static class GltfMeshParser
     {
         /// <summary>
         /// Loads the gltf file depending its extension.
@@ -292,9 +292,9 @@ namespace Stride.Importer.Gltf
 
                 }
                 material.Attributes.CullMode = CullMode.Back;
-                var materialName = FirstModelName(root) + "_" + (mat.Name ?? "Material" + mat.LogicalIndex);
+                var materialName = FirstModelName(root) + "_" + (mat.Name ?? "Material") + "_" + mat.LogicalIndex;
 
-                result.Add(materialName, material);
+                result.TryAdd(materialName, material);
             }
             return result;
         }

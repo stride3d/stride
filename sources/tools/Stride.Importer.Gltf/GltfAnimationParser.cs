@@ -9,7 +9,7 @@ using static Stride.Importer.Gltf.GltfUtils;
 
 namespace Stride.Importer.Gltf
 {
-    public class GltfAnimationParser
+    public static class GltfAnimationParser
     {
         /// <summary>
         /// Converts GLTF Skeleton into a Stride Skeleton
