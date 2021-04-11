@@ -14,6 +14,9 @@ namespace Stride.Rendering.UI
 
         [Display("Linear")]
         LinearClamp,
+
+        [Display("Anisotropic")]
+        AnisotropicClamp,
     }
 
     public class RenderUIElement : RenderObject
