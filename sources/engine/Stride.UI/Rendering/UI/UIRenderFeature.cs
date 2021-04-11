@@ -263,7 +263,7 @@ namespace Stride.Rendering.UI
                 batch.Begin(context.GraphicsContext, ref uiElementState.WorldViewProjectionMatrix, BlendStates.AlphaBlend, samplerState, null, uiSystem.KeepStencilValueState, renderingContext.StencilTestReferenceValue);
 
                 // Render the UI elements in the final render target
-                RecursiveDrawWithClipping(context, rootElement, ref uiElementState.WorldViewProjectionMatrix);
+                RecursiveDrawWithClipping(context, rootElement, ref uiElementState.WorldViewProjectionMatrix, samplerState);
 
                 // end the image draw session
                 batch.End();
@@ -281,7 +281,7 @@ namespace Stride.Rendering.UI
             }
         }
 
-        private void RecursiveDrawWithClipping(RenderDrawContext context, UIElement element, ref Matrix worldViewProj)
+        private void RecursiveDrawWithClipping(RenderDrawContext context, UIElement element, ref Matrix worldViewProj, SamplerState samplerState)
         {
             // if the element is not visible, we also remove all its children
             if (!element.IsVisible)
@@ -297,13 +297,13 @@ namespace Stride.Rendering.UI
                 batch.End();
 
                 // render the clipping region
-                batch.Begin(context.GraphicsContext, ref worldViewProj, BlendStates.ColorDisabled, uiSystem.IncreaseStencilValueState, renderingContext.StencilTestReferenceValue);
+                batch.Begin(context.GraphicsContext, ref worldViewProj, BlendStates.ColorDisabled, samplerState, null, uiSystem.IncreaseStencilValueState, renderingContext.StencilTestReferenceValue);
                 renderer.RenderClipping(element, renderingContext);
                 batch.End();
 
                 // update context and restart the batch
                 renderingContext.StencilTestReferenceValue += 1;
-                batch.Begin(context.GraphicsContext, ref worldViewProj, BlendStates.AlphaBlend, uiSystem.KeepStencilValueState, renderingContext.StencilTestReferenceValue);
+                batch.Begin(context.GraphicsContext, ref worldViewProj, BlendStates.AlphaBlend, samplerState, null, uiSystem.KeepStencilValueState, renderingContext.StencilTestReferenceValue);
             }
 
             // render the design of the element
@@ -311,7 +311,7 @@ namespace Stride.Rendering.UI
 
             // render the children
             foreach (var child in element.VisualChildrenCollection)
-                RecursiveDrawWithClipping(context, child, ref worldViewProj);
+                RecursiveDrawWithClipping(context, child, ref worldViewProj, samplerState);
 
             // clear the element clipping region from the stencil buffer
             if (element.ClipToBounds)
@@ -322,13 +322,13 @@ namespace Stride.Rendering.UI
                 renderingContext.DepthBias = element.MaxChildrenDepthBias;
 
                 // render the clipping region
-                batch.Begin(context.GraphicsContext, ref worldViewProj, BlendStates.ColorDisabled, uiSystem.DecreaseStencilValueState, renderingContext.StencilTestReferenceValue);
+                batch.Begin(context.GraphicsContext, ref worldViewProj, BlendStates.ColorDisabled, samplerState, null, uiSystem.DecreaseStencilValueState, renderingContext.StencilTestReferenceValue);
                 renderer.RenderClipping(element, renderingContext);
                 batch.End();
 
                 // update context and restart the batch
                 renderingContext.StencilTestReferenceValue -= 1;
-                batch.Begin(context.GraphicsContext, ref worldViewProj, BlendStates.AlphaBlend, uiSystem.KeepStencilValueState, renderingContext.StencilTestReferenceValue);
+                batch.Begin(context.GraphicsContext, ref worldViewProj, BlendStates.AlphaBlend, samplerState, null, uiSystem.KeepStencilValueState, renderingContext.StencilTestReferenceValue);
             }
         }
 
