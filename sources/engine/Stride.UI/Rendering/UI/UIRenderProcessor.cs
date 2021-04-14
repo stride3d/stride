@@ -45,7 +45,6 @@ namespace Stride.Rendering.UI
                     renderUIElement.RenderGroup = uiComponent.RenderGroup;
 
                     renderUIElement.Page = uiComponent.Page;
-                    renderUIElement.Sampler = uiComponent.Sampler;
                     renderUIElement.IsFullScreen = uiComponent.IsFullScreen;
                     renderUIElement.Resolution = uiComponent.Resolution;
                     renderUIElement.Size = uiComponent.Size;

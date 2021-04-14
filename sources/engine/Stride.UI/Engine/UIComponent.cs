@@ -39,17 +39,6 @@ namespace Stride.Engine
         public UIPage Page { get; set; }
 
         /// <summary>
-        /// Specifies the sampling method to be used for this component
-        /// </summary>
-        /// <userdoc>
-        /// Specifies the sampling method to be used for this component
-        /// </userdoc>
-        [DataMember(15)]
-        [DefaultValue(Sampler.LinearClamp)]
-        [Display("Sampler")]
-        public Sampler Sampler { get; set; } = Sampler.LinearClamp;
-
-        /// <summary>
         /// Gets or sets the value indicating whether the UI should be full screen.
         /// </summary>
         /// <userdoc>Check this checkbox to display UI of this component on full screen. Uncheck it to display UI using standard camera.</userdoc>
