@@ -38,6 +38,11 @@ namespace Stride.Rendering.Images
         /// </summary>
         public PostProcessingEffects()
         {
+            Outline = new Outline
+            {
+                Enabled = false
+            };
+
             Fog = new Fog
             {
                 Enabled = false
@@ -73,6 +78,12 @@ namespace Stride.Rendering.Images
         public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <summary>
+        /// Gets the outline effect.
+        /// </summary>
+        [DataMember(6)]
+        [Category]
+        public Outline Outline { get; private set; }
+
         /// Gets the fog effect.
         /// </summary>
         [DataMember(7)]
@@ -167,6 +178,7 @@ namespace Stride.Rendering.Images
         /// </summary>
         public void DisableAll()
         {
+            Outline.Enabled = false;
             Fog.Enabled = false;
             AmbientOcclusion.Enabled = false;
             LocalReflections.Enabled = false;
@@ -193,6 +205,7 @@ namespace Stride.Rendering.Images
         {
             base.InitializeCore();
 
+            Outline = ToLoadAndUnload(Outline);
             Fog = ToLoadAndUnload(Fog);
             AmbientOcclusion = ToLoadAndUnload(AmbientOcclusion);
             LocalReflections = ToLoadAndUnload(LocalReflections);
@@ -292,6 +305,17 @@ namespace Stride.Rendering.Images
             }
             
             var currentInput = input;
+
+            // Draw outline before AA
+            if (Outline.Enabled && inputDepthTexture != null)
+            {
+                // Outline
+                var outlineOutput = NewScopedRenderTarget2D(input.Width, input.Height, input.Format);
+                Outline.SetColorDepthInput(currentInput, inputDepthTexture, context.RenderContext.RenderView.NearClipPlane, context.RenderContext.RenderView.FarClipPlane);
+                Outline.SetOutput(outlineOutput);
+                Outline.Draw(context);
+                currentInput = outlineOutput;
+            }
 
             var fxaa = Antialiasing as FXAAEffect;
             bool aaFirst = Bloom != null && Bloom.StableConvolution;
