@@ -1,0 +1,38 @@
+// Copyright (c) Stride contributors (https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// Simple fog
+    /// </summary>
+    internal shader FogEffect : ImageEffectShader
+    {
+        stage float FogStart;
+        stage float Density;
+        stage float zFar;
+        stage float zNear;
+        stage bool skipBG;
+
+        stage float3 FogColor;
+        stage Texture2D DepthTexture;
+
+        stage override float4 Shading() 
+        {
+            float4 color = Texture0.Sample(PointSampler, streams.TexCoord);
+            float z_b = DepthTexture.SampleLevel(PointSampler, streams.TexCoord, 0.0).x;
+            
+            if (!skipBG || z_b < 1.0) {
+                float z_n = 2.0 * z_b - 1.0;
+                float dist = 2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear));
+                dist -= FogStart;
+            
+                float fogAmount = clamp(exp(dist * -Density), 0.0, 1.0);
+            
+                color.xyz = lerp(FogColor, color.xyz, fogAmount);
+            }
+
+            return color;
+        }
+    };
+}

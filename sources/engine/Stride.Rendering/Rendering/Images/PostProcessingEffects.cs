@@ -8,7 +8,6 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Materials;
-using Stride.Rendering.SubsurfaceScattering;
 
 namespace Stride.Rendering.Images
 {
@@ -39,6 +38,16 @@ namespace Stride.Rendering.Images
         /// </summary>
         public PostProcessingEffects()
         {
+            Outline = new Outline
+            {
+                Enabled = false
+            };
+
+            Fog = new Fog
+            {
+                Enabled = false
+            };
+
             AmbientOcclusion = new AmbientOcclusion();
             LocalReflections = new LocalReflections();
             DepthOfField = new DepthOfField();
@@ -67,6 +76,19 @@ namespace Stride.Rendering.Images
         [DataMember(-100), Display(Browsable = false)]
         [NonOverridable]
         public Guid Id { get; set; } = Guid.NewGuid();
+
+        /// <summary>
+        /// Gets the outline effect.
+        /// </summary>
+        [DataMember(6)]
+        [Category]
+        public Outline Outline { get; private set; }
+
+        /// Gets the fog effect.
+        /// </summary>
+        [DataMember(7)]
+        [Category]
+        public Fog Fog { get; private set; }
 
         /// <summary>
         /// Gets the ambient occlusion effect.
@@ -156,6 +178,8 @@ namespace Stride.Rendering.Images
         /// </summary>
         public void DisableAll()
         {
+            Outline.Enabled = false;
+            Fog.Enabled = false;
             AmbientOcclusion.Enabled = false;
             LocalReflections.Enabled = false;
             DepthOfField.Enabled = false;
@@ -181,6 +205,8 @@ namespace Stride.Rendering.Images
         {
             base.InitializeCore();
 
+            Outline = ToLoadAndUnload(Outline);
+            Fog = ToLoadAndUnload(Fog);
             AmbientOcclusion = ToLoadAndUnload(AmbientOcclusion);
             LocalReflections = ToLoadAndUnload(LocalReflections);
             DepthOfField = ToLoadAndUnload(DepthOfField);
@@ -280,6 +306,17 @@ namespace Stride.Rendering.Images
             
             var currentInput = input;
 
+            // Draw outline before AA
+            if (Outline.Enabled && inputDepthTexture != null)
+            {
+                // Outline
+                var outlineOutput = NewScopedRenderTarget2D(input.Width, input.Height, input.Format);
+                Outline.SetColorDepthInput(currentInput, inputDepthTexture, context.RenderContext.RenderView.NearClipPlane, context.RenderContext.RenderView.FarClipPlane);
+                Outline.SetOutput(outlineOutput);
+                Outline.Draw(context);
+                currentInput = outlineOutput;
+            }
+
             var fxaa = Antialiasing as FXAAEffect;
             bool aaFirst = Bloom != null && Bloom.StableConvolution;
             bool needAA = Antialiasing != null && Antialiasing.Enabled;
@@ -373,6 +410,16 @@ namespace Stride.Rendering.Images
                 DepthOfField.SetOutput(dofOutput);
                 DepthOfField.Draw(context);
                 currentInput = dofOutput;
+            }
+
+            if (Fog.Enabled && inputDepthTexture != null)
+            {
+                // Fog
+                var fogOutput = NewScopedRenderTarget2D(input.Width, input.Height, input.Format);
+                Fog.SetColorDepthInput(currentInput, inputDepthTexture, context.RenderContext.RenderView.NearClipPlane, context.RenderContext.RenderView.FarClipPlane);
+                Fog.SetOutput(fogOutput);
+                Fog.Draw(context);
+                currentInput = fogOutput;
             }
 
             // Luminance pass (only if tone mapping is enabled)
