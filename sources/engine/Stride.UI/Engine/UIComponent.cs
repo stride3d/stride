@@ -41,13 +41,11 @@ namespace Stride.Engine
         /// <summary>
         /// Specifies the sampling method to be used for this component
         /// </summary>
-        /// <userdoc>
-        /// Specifies the sampling method to be used for this component
-        /// </userdoc>
+        /// <userdoc>Specifies the sampling method to be used for this component</userdoc>
         [DataMember(15)]
-        [DefaultValue(Sampler.LinearClamp)]
+        [DefaultValue(UIElementSampler.LinearClamp)]
         [Display("Sampler")]
-        public Sampler Sampler { get; set; } = Sampler.LinearClamp;
+        public UIElementSampler Sampler { get; set; } = UIElementSampler.LinearClamp;
 
         /// <summary>
         /// Gets or sets the value indicating whether the UI should be full screen.

@@ -248,12 +248,15 @@ namespace Stride.Rendering.UI
                 context.CommandList.SetRenderTarget(renderingContext.DepthStencilBuffer, renderingContext.RenderTarget);
 
                 var samplerState = context.GraphicsDevice.SamplerStates.LinearClamp;
-                if (renderObject.Sampler != Sampler.LinearClamp)
+                if (renderObject.Sampler != UIElementSampler.LinearClamp)
                 {
                     switch (renderObject.Sampler)
                     {
-                        case Sampler.PointClamp:
+                        case UIElementSampler.PointClamp:
                             samplerState = context.GraphicsDevice.SamplerStates.PointClamp;
+                            break;
+                        case UIElementSampler.AnisotropicClamp:
+                            samplerState = context.GraphicsDevice.SamplerStates.AnisotropicClamp;
                             break;
                     }
                 }

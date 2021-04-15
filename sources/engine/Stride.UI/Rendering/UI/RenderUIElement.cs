@@ -7,7 +7,7 @@ using Stride.UI;
 
 namespace Stride.Rendering.UI
 {
-    public enum Sampler
+    public enum UIElementSampler
     {
         [Display("Point (Nearest)")]
         PointClamp,
@@ -29,7 +29,7 @@ namespace Stride.Rendering.UI
 
         // UIComponent values
         public UIPage Page;
-        public Sampler Sampler;
+        public UIElementSampler Sampler;
         public bool IsFullScreen;
         public Vector3 Resolution;
         public Vector3 Size;
