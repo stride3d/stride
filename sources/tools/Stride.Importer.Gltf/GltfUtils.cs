@@ -7,6 +7,7 @@ using Stride.Core.Assets;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
@@ -65,25 +66,26 @@ namespace Stride.Importer.Gltf
             // TODO : Simplify this part
             return (accessor.Key, accessor.Value.Format.ByteSize) switch
             {
-                ("POSITION", 12) => (VertexElement.Position<Vector3>(0, offset), Vector3.SizeInBytes),
-                ("NORMAL", 12) => (VertexElement.Normal<Vector3>(0, offset), Vector3.SizeInBytes),
-                ("TANGENT", 12) => (VertexElement.Tangent<Vector3>(0, offset), Vector3.SizeInBytes),
-                ("TANGENT", 16) => (VertexElement.Tangent<Vector4>(0, offset), Vector4.SizeInBytes),
-                ("COLOR", 16) => (VertexElement.Color<Vector4>(0, offset), Vector4.SizeInBytes),
-                ("COLOR_0", 16) => (VertexElement.Color<Vector4>(0, offset), Vector4.SizeInBytes),
-                ("TEXCOORD_0", 8) => (VertexElement.TextureCoordinate<Vector2>(0, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_1", 8) => (VertexElement.TextureCoordinate<Vector2>(1, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_2", 8) => (VertexElement.TextureCoordinate<Vector2>(2, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_3", 8) => (VertexElement.TextureCoordinate<Vector2>(3, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_4", 8) => (VertexElement.TextureCoordinate<Vector2>(4, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_5", 8) => (VertexElement.TextureCoordinate<Vector2>(5, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_6", 8) => (VertexElement.TextureCoordinate<Vector2>(6, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_7", 8) => (VertexElement.TextureCoordinate<Vector2>(7, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_8", 8) => (VertexElement.TextureCoordinate<Vector2>(8, offset), Vector2.SizeInBytes),
-                ("TEXCOORD_9", 8) => (VertexElement.TextureCoordinate<Vector2>(9, offset), Vector2.SizeInBytes),
+                ("POSITION", 12) => (VertexElement.Position<Vector3>(0, offset), 12),
+                ("NORMAL", 12) => (VertexElement.Normal<Vector3>(0, offset), 12),
+                ("TANGENT", 16) => (VertexElement.Tangent<Vector4>(0, offset), 16),
+                ("COLOR", 16) => (VertexElement.Color<Vector4>(0, offset), 16),
+                ("COLOR_0", 16) => (VertexElement.Color<Vector4>(0, offset), 16),
+                ("TEXCOORD_0", 8) => (VertexElement.TextureCoordinate<Vector2>(0, offset), 8),
+                ("TEXCOORD_1", 8) => (VertexElement.TextureCoordinate<Vector2>(1, offset), 8),
+                ("TEXCOORD_2", 8) => (VertexElement.TextureCoordinate<Vector2>(2, offset), 8),
+                ("TEXCOORD_3", 8) => (VertexElement.TextureCoordinate<Vector2>(3, offset), 8),
+                ("TEXCOORD_4", 8) => (VertexElement.TextureCoordinate<Vector2>(4, offset), 8),
+                ("TEXCOORD_5", 8) => (VertexElement.TextureCoordinate<Vector2>(5, offset), 8),
+                ("TEXCOORD_6", 8) => (VertexElement.TextureCoordinate<Vector2>(6, offset), 8),
+                ("TEXCOORD_7", 8) => (VertexElement.TextureCoordinate<Vector2>(7, offset), 8),
+                ("TEXCOORD_8", 8) => (VertexElement.TextureCoordinate<Vector2>(8, offset), 8),
+                ("TEXCOORD_9", 8) => (VertexElement.TextureCoordinate<Vector2>(9, offset), 8),
                 ("JOINTS_0", 8) => (new VertexElement(VertexElementUsage.BlendIndices, 0, PixelFormat.R16G16B16A16_UInt, offset), 8),
                 ("JOINTS_0", 4) => (new VertexElement(VertexElementUsage.BlendIndices, 0, PixelFormat.R8G8B8A8_UInt, offset), 4),
-                ("WEIGHTS_0", 16) => (new VertexElement(VertexElementUsage.BlendWeight, 0, PixelFormat.R32G32B32A32_Float, offset), Vector4.SizeInBytes),
+                ("WEIGHTS_0", 4) => (new VertexElement(VertexElementUsage.BlendWeight, 0, PixelFormat.R8G8B8A8_UInt, offset), 4),
+                ("WEIGHTS_0", 8) => (new VertexElement(VertexElementUsage.BlendWeight, 0, PixelFormat.R16G16B16A16_Float, offset), 8),
+                ("WEIGHTS_0", 16) => (new VertexElement(VertexElementUsage.BlendWeight, 0, PixelFormat.R32G32B32A32_Float, offset), 16),
                 _ => throw new NotImplementedException(),
             };
         }
@@ -159,9 +161,10 @@ namespace Stride.Importer.Gltf
             var textureName = textureFileName;
 
             var texture = AttachedReferenceManager.CreateProxyObject<Texture>(AssetId.Empty, textureName);
+            
 
             var currentTexture =
-                new ComputeTextureColor(texture, (TextureCoordinate)textureUVSetIndex, uvScaling, Vector2.Zero)
+                new ComputeTextureColor(texture, textureUVSetIndex, uvScaling, Vector2.Zero)
                 {
                     AddressModeU = addressModeU,
                     AddressModeV = addressModeV
@@ -190,7 +193,7 @@ namespace Stride.Importer.Gltf
             var texture = AttachedReferenceManager.CreateProxyObject<Texture>(AssetId.Empty, textureName);
 
             var currentTexture =
-                new ComputeTextureScalar(texture, (TextureCoordinate)textureUVSetIndex, uvScaling, Vector2.Zero)
+                new ComputeTextureScalar(texture, textureUVSetIndex, uvScaling, Vector2.Zero)
                 {
                     AddressModeU = addressModeU,
                     AddressModeV = addressModeV

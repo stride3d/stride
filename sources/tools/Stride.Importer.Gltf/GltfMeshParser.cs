@@ -232,10 +232,11 @@ namespace Stride.Importer.Gltf
                     {
 
                         var gltfImg = chan.Texture.PrimaryImage;
+                        var textureName = gltfImg.Name ?? FirstModelName(root) + "_" + (mat.Name ?? mat.LogicalIndex.ToString()) + "_" + chan.Key;
+
                         string imgPath;
                         if (gltfImg.Content.SourcePath == null)
                         {
-                            var textureName = gltfImg.Name ?? FirstModelName(root) + "_" + (mat.Name ?? mat.LogicalIndex.ToString()) + "_" + chan.Key;
                             imgPath = Path.Join(sourcePath.GetFullDirectory(), textureName + "." + gltfImg.Content.FileExtension);
                             if(!File.Exists(imgPath))
                                 gltfImg.Content.SaveToFile(imgPath);
@@ -339,7 +340,7 @@ namespace Stride.Importer.Gltf
         private static int GetDrawCount(SharpGLTF.Schema2.MeshPrimitive mesh)
         {
             // TODO : Check if every meshes has triangle indices
-            return mesh.GetTriangleIndices().Select(x => new int[] { x.A, x.C, x.B }).SelectMany(x => x).Select(x => (uint)x).ToArray().Length;
+            return mesh.GetTriangleIndices().Select(x => new int[] { x.A, x.B, x.C }).SelectMany(x => x).Select(x => (uint)x).ToArray().Length;
         }
 
         /// <summary>
@@ -377,7 +378,6 @@ namespace Stride.Importer.Gltf
                         return y.Item1;
                     })
                 .ToList();
-
             var declaration =
                 new VertexDeclaration(
                     vertElem.ToArray()
