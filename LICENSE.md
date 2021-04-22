@@ -1,6 +1,7 @@
 ﻿The MIT License (MIT)
 
-Copyright (c) 2018-2020 Stride contributors (https://stride3d.net)  
+Copyright (c) 2021 .NET Foundation and Contributors (https://dotnetfoundation.org/)
+Copyright (c) 2018-2021 Stride contributors (https://stride3d.net)  
 Copyright (c) 2011-2018 Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 
 All rights reserved.
