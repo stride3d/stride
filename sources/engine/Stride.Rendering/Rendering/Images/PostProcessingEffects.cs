@@ -8,6 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Materials;
+using Stride.Rendering.Rendering.Images.MotionBlur;
 using Stride.Rendering.SubsurfaceScattering;
 
 namespace Stride.Rendering.Images
@@ -51,6 +52,7 @@ namespace Stride.Rendering.Images
             rangeCompress = new ImageEffectShader("RangeCompressorShader");
             rangeDecompress = new ImageEffectShader("RangeDecompressorShader");
             colorTransformsGroup = new ColorTransformGroup();
+            MotionBlur = new MotionBlur();
         }
 
         /// <summary>
@@ -152,6 +154,15 @@ namespace Stride.Rendering.Images
         public IScreenSpaceAntiAliasingEffect Antialiasing { get; set; } // TODO: Unload previous anti aliasing
 
         /// <summary>
+        /// Gets the motion blur effects.
+        /// </summary>
+        /// <value>The motion blur.</value>
+        /// <userdoc>Perform object motion blur</userdoc>
+        [DataMember(80)]
+        [Category]
+        public MotionBlur MotionBlur { get; set; }
+
+        /// <summary>
         /// Disables all post processing effects.
         /// </summary>
         public void DisableAll()
@@ -166,6 +177,7 @@ namespace Stride.Rendering.Images
             rangeCompress.Enabled = false;
             rangeDecompress.Enabled = false;
             colorTransformsGroup.Enabled = false;
+            MotionBlur.Enabled = false;
         }
 
         public override void Reset()
@@ -196,6 +208,8 @@ namespace Stride.Rendering.Images
             rangeDecompress = ToLoadAndUnload(rangeDecompress);
 
             colorTransformsGroup = ToLoadAndUnload(colorTransformsGroup);
+
+            MotionBlur = ToLoadAndUnload(MotionBlur);
         }
 
         public void Collect(RenderContext context)
@@ -241,7 +255,7 @@ namespace Stride.Rendering.Images
             Draw(drawContext);
         }
 
-        public bool RequiresVelocityBuffer => Antialiasing?.RequiresVelocityBuffer ?? false;
+        public bool RequiresVelocityBuffer => MotionBlur?.RequiresVelocityBuffer ?? Antialiasing?.RequiresVelocityBuffer ?? false;
 
         public bool RequiresNormalBuffer => LocalReflections.Enabled;
 
@@ -364,7 +378,21 @@ namespace Stride.Rendering.Images
                     currentInput = rlrOutput;
                 }
             }
+            if (MotionBlur.Enabled)
+            {
+                // blurred output
+                var moBlurOut = NewScopedRenderTarget2D(currentInput.Width, currentInput.Height, currentInput.Format);
+                // color input
+                MotionBlur.SetInput(0, currentInput);
+                // velocity input
+                MotionBlur.SetInput(1, GetInput(6));
+                // depth input
+                MotionBlur.SetInput(2, inputDepthTexture);
+                MotionBlur.SetOutput(moBlurOut);
+                MotionBlur.Draw(context);
+                currentInput = moBlurOut;
 
+            }
             if (DepthOfField.Enabled && inputDepthTexture != null)
             {
                 // DoF
@@ -402,6 +430,7 @@ namespace Stride.Rendering.Images
                 // Set this parameter that will be used by the tone mapping
                 colorTransformsGroup.Parameters.Set(LuminanceEffect.LuminanceResult, new LuminanceResult(luminanceEffect.AverageLuminance, luminanceTexture));
             }
+
 
             if (BrightFilter.Enabled && (Bloom.Enabled || LightStreak.Enabled || LensFlare.Enabled))
             {

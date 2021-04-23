@@ -1,0 +1,41 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader TileMaxShader : ImageEffectShader
+{
+    cbuffer PerDraw
+    {
+        int  u_TileSize;
+        //float  u_Width;
+        //float  u_Height;
+    }
+
+    // Texture0: velocity
+    stage override float4 Shading()
+    {
+        float2 velocity = float2(0,0);
+        for(int i = 0; i < u_TileSize; i++)
+        {
+            for(int j = 0; j < u_TileSize; j++)
+            {
+                float2 tileCoord = GetTileCoord(float2(i, j));
+                float2 texSample = Texture0.Sample(PointSampler, tileCoord).xy;
+                velocity = length(velocity) > length(texSample) ? velocity : texSample;
+            }
+        }
+        
+        return float4(velocity,0,0);
+
+        //return abs(Texture0.Sample(PointSampler, streams.TexCoord));
+    }
+
+    float2 GetTileCoord(float2 pos)
+    {
+        float2 tc = streams.TexCoord;
+        float2 txs = Texture0TexelSize;
+        return tc - ( txs / 2 ) + ( txs / (2 * u_TileSize )) + pos * ( txs / u_TileSize );
+    }
+
+    
+
+    
+};
