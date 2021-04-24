@@ -1,16 +1,17 @@
+using System.Collections;
 using System.Collections.Generic;
 using Stride.Core.Collections;
 
 namespace Stride.Core.Settings
 {
     [DataContract("AppSettings")]
-    public sealed class AppSettings
+    public sealed class AppSettings : IEnumerable<object>
     {
         /// <summary>
         /// Application specific settings.
         /// </summary>
         [DataMember]
-        public IReadOnlyCollection<object> Settings { get; private set; }
+        private FastCollection<object> Settings { get; set; }
 
         /// <summary>
         /// Default constructor, used for deserialization.
@@ -21,7 +22,7 @@ namespace Stride.Core.Settings
         /// Creates a new <see cref="AppSettings"/> instance with a settings collection.
         /// </summary>
         /// <param name="settings">Settings collection.</param>
-        public AppSettings(IEnumerable<object> settings) => Settings = new FastList<object>(settings);
+        public AppSettings(IEnumerable<object> settings) => Settings = new FastCollection<object>(settings);
 
         /// <summary>
         /// Finds a settings object of the specified type in the settings collection.
@@ -38,5 +39,11 @@ namespace Stride.Core.Settings
 
             return null;
         }
+
+        public FastCollection<object>.Enumerator GetEnumerator() => Settings.GetEnumerator();
+
+        IEnumerator<object> IEnumerable<object>.GetEnumerator() => ((IEnumerable<object>)Settings).GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Settings).GetEnumerator();
     }
 }
