@@ -8,6 +8,9 @@ namespace Stride.Core.Settings
     /// </summary>
     public static class AppSettingsManager
     {
+        private static AppSettings settings;
+        private static IAppSettingsProvider provider;
+
         /// <summary>
         /// Gets <see cref="AppSettings"/> instance for the application.
         /// </summary>
@@ -30,8 +33,8 @@ namespace Stride.Core.Settings
         /// Gets or sets an <see cref="IAppSettingsProvider"/> for the application.
         /// </summary>
         /// <remarks>
-        /// If provider is not set, getter of this property will attempt to find an implementation among the registered assemblies.
-        /// 
+        /// If provider is not set, getter of this property will attempt to find an implementation
+        /// among the registered assemblies and cache it.
         /// </remarks>
         public static IAppSettingsProvider SettingsProvider
         {
@@ -78,8 +81,5 @@ namespace Stride.Core.Settings
                 settings = new AppSettings();
             }
         }
-
-        private static AppSettings settings;
-        private static IAppSettingsProvider provider;
     }
 }

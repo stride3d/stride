@@ -4,6 +4,9 @@ using Stride.Core.Collections;
 
 namespace Stride.Core.Settings
 {
+    /// <summary>
+    /// Collection of runtime loaded application settings. See also <seealso cref="AppSettingsManager"/>.
+    /// </summary>
     [DataContract("AppSettings")]
     public sealed class AppSettings : IEnumerable<object>
     {
@@ -40,6 +43,10 @@ namespace Stride.Core.Settings
             return null;
         }
 
+        /// <summary>
+        /// Inline Enumerator used by foreach.
+        /// </summary>
+        /// <returns>Enumerator of the underlying settings collection.</returns>
         public FastCollection<object>.Enumerator GetEnumerator() => Settings.GetEnumerator();
 
         IEnumerator<object> IEnumerable<object>.GetEnumerator() => ((IEnumerable<object>)Settings).GetEnumerator();
