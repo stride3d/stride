@@ -1,0 +1,51 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader NeighborMaxShader : ImageEffectShader
+{
+
+    cbuffer PerDraw
+    {
+        float  u_TileSize;
+    }
+
+    // Texture0: tiles max
+    stage override float4 Shading()
+    {
+        float2 txs = Texture0TexelSize;
+        float2 pos = streams.TexCoord;
+        float4 vel = Texture0.Sample(PointSampler, pos);
+    
+        float4 up = Texture0.Sample(PointSampler, saturate(pos - float2(txs.x,0)));
+        float4 left = Texture0.Sample(PointSampler, saturate(pos - float2(0, txs.y)));
+
+        float4 down = Texture0.Sample(PointSampler, saturate(pos + float2(txs.x,0)));
+        float4 right = Texture0.Sample(PointSampler, saturate(pos + float2(0,txs.y)));
+
+        if(length(up.xy) > length(vel.xy))
+            vel = up;
+        if(length(left.xy) > length(vel.xy))
+            vel = left;
+
+        if(length(down.xy) > length(vel.xy))
+            vel = down;
+        if(length(right.xy) > length(vel.xy))
+            vel = right;
+
+        return vel;
+    }
+    //float Halton(int b, int i)
+    //{
+    //    float r = 0.0;
+    //    float f = 1.0;
+    //    while (i > 0) {
+    //        f = f / float(b);
+    //        r = r + f * float(i % b);
+    //        i = int(floor(float(i) / float(b)));
+    //    }
+    //    return r;
+    //}
+    //float SOffset(float2 p, float j)
+    //{
+    //    float2 txlSize = Texture1TexelSize;
+    //}    
+};

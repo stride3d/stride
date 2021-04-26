@@ -34,7 +34,7 @@ namespace Stride.Rendering.Images
             : this(RenderContext.GetShared(services))
         {
         }
-
+ 
         /// <summary>
         /// Initializes a new instance of the <see cref="PostProcessingEffects"/> class.
         /// </summary>
@@ -52,7 +52,7 @@ namespace Stride.Rendering.Images
             rangeCompress = new ImageEffectShader("RangeCompressorShader");
             rangeDecompress = new ImageEffectShader("RangeDecompressorShader");
             colorTransformsGroup = new ColorTransformGroup();
-            MotionBlur = new MotionBlur();
+            MotionBlur = new ChapmanMotionBlur();
         }
 
         /// <summary>
@@ -159,8 +159,8 @@ namespace Stride.Rendering.Images
         /// <value>The motion blur.</value>
         /// <userdoc>Perform object motion blur</userdoc>
         [DataMember(80)]
-        [Category]
-        public MotionBlur MotionBlur { get; set; }
+        [Display("Type", "MotionBlur")]
+        public IMotionBlur MotionBlur { get; set; }
 
         /// <summary>
         /// Disables all post processing effects.
@@ -387,7 +387,8 @@ namespace Stride.Rendering.Images
                 // velocity input
                 MotionBlur.SetInput(1, GetInput(6));
                 // depth input
-                MotionBlur.SetInput(2, inputDepthTexture);
+                if(MotionBlur.RequiresDepthBuffer)
+                    MotionBlur.SetInput(2, inputDepthTexture);
                 MotionBlur.SetOutput(moBlurOut);
                 MotionBlur.Draw(context);
                 currentInput = moBlurOut;

@@ -1,0 +1,133 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader MotionReconstructionShader : ImageEffectShader
+{
+    cbuffer PerDraw
+    {
+        float   u_MinimumThreshold; // gamma
+        float   u_MaximumJitter; // eta
+        int     u_WeightBias; // K
+        int     u_SamplingRate; // N
+        int     u_JitterLevel; // phi
+        int     u_TileSize;
+    }
+
+
+    // Texture0: color
+    // Texture1: velocity
+    // Texture2: depth
+    // Texture3: neighborMax
+    stage override float4 Shading()
+    {
+        float2 pos = streams.TexCoord;
+
+        // Getting the current color and the neighborMax texel size
+        float4 currentColor = Texture0.Sample(PointSampler, pos);
+        float2 nmTxs = Texture3TexelSize;
+
+        float j = Halton(-1,1);
+        float2 vmax = Texture3.Sample(LinearSampler, pos + sOffset(pos,j)).xy;
+        if(length(vmax)<0.5)
+        {
+            return currentColor;
+        }
+        float2 wn = normalize(vmax);
+        float2 vc = Texture1.Sample(PointSampler, pos).xy;
+        float2 wp = float2(-wn.y,wn.x);
+        if(dot(wp,vc)<0)
+        {
+            wp = -wp;
+        }
+        
+        float2 wc = nlerp(wp, normalize(vc),(length(vc)-0.5) / float(u_MinimumThreshold));
+        return float4(wc,0,1);
+        //float totalWeight = u_TileSize/(u_WeightBias * length(vc));
+
+        //float4 result = float4(mul(currentColor.xyz, totalWeight),currentColor.w);
+
+        //float j2 = j * u_MaximumJitter * (u_JitterLevel / u_TileSize);
+        //[unroll(100)]
+        //for(int i = 0; i<= u_TileSize; i++)
+        //{
+        //    float t = lerp(-1,1,(i + j2 + 1)/(u_TileSize+1));
+        //    float2 d = uint(i) % 2 == 0 ? vmax : vc;
+
+        //    float T = t * length(vmax);
+        //    float2 S = pos + floor(t*d);
+
+        //    float2 vs = Texture1.Sample(LinearSampler,S).xy;
+        //    float4 colorSample4 = Texture0.Sample(LinearSampler, S);
+        //    float3 colorSample = colorSample4.xyz;
+
+        //    float f = zCompare(Texture2.Sample(LinearSampler, pos).x,Texture2.Sample(LinearSampler, S).x);
+        //    float b = zCompare(Texture2.Sample(LinearSampler, S).x,Texture2.Sample(LinearSampler, pos).x);
+
+        //    float weight = 0;
+        //    float2 wA = dot(wc,d);
+        //    float2 wB = dot(normalize(vs),d);
+
+        //    weight += dot(f,cone(T, 1/length(vs))*wB);
+        //    weight += dot(b,cone(T, 1/length(vs))*wA);
+
+        //    weight += cylinder(T, min(length(vs),length(vc))) * max(wA,wB) * 2;
+            
+        //    totalWeight += weight;
+
+        //    result.xyz += colorSample * weight;
+        //}
+
+        //result = float4(result.xyz / totalWeight,int(pos.x + pos.y)&1);
+        //if(isnan(result.x) || result.x < 0) result.x = 1;
+        //if(isnan(result.y) || result.y < 0) result.y = 1;
+        //if(isnan(result.z) || result.z < 0) result.z = 1;
+        //if(isnan(result.w) || result.w < 0) result.w = 1;
+
+
+        //return result;
+        
+    }
+
+    float zCompare(float a, float b)
+    {
+        return min(max(0,1-(a-b)/min(a,b)),1);
+    }
+
+    float Halton(int b, int i)
+    {
+        float r = 0.0;
+        float f = 1.0;
+        while (i > 0) {
+            f = f / float(b);
+            r = r + f * float(i % b);
+            i = int(floor(float(i) / float(b)));
+        }
+        return r;
+    }
+    float2 sOffset(float2 pos, float j)
+    {
+        float2 randv = random(pos);
+        float rsign = randv.x > 0.0 ? -1 : 1;
+        float jitter = j * u_MaximumJitter * rsign;
+        if(randv.y < 0.5)
+        {
+            return float2(jitter,0);
+        }
+        return float2(0,jitter);
+    }
+    float2 random (float2 st) 
+    {
+        return frac(sin(dot(st.xy,float2(12.9898,78.233)))*43758.5453123);
+    }
+
+    float cone(float x, float y)
+    {
+        if(abs(x) > y) return 0;
+        return y - abs(x);
+    }
+    float cylinder(float x, float y)
+    {
+        if(abs(x) > y) return 0;
+        return 1 - smoothstep(0.95*y,1.05*y,x);
+    }
+        
+};

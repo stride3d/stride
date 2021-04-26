@@ -12,9 +12,9 @@ using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Rendering
 {
-    public static partial class MotionBlurShaderKeys
-    {
-        public static readonly ValueParameterKey<float> u_VelocityScale = ParameterKeys.NewValue<float>();
+    public static partial class ChapmanBlurShaderKeys
+    { 
+        public static readonly ValueParameterKey<uint> u_BlurRadius= ParameterKeys.NewValue<uint>();
         public static readonly ValueParameterKey<uint> u_MaxSamples = ParameterKeys.NewValue<uint>();
     }
 }

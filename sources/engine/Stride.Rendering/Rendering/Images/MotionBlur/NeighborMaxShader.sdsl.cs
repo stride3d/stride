@@ -12,8 +12,8 @@ using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Rendering
 {
-    public static partial class MaxVelocityShaderKeys
+    public static partial class NeighborMaxShaderKeys
     {
-        public static readonly ValueParameterKey<float> u_Radius = ParameterKeys.NewValue<float>();
+        public static readonly ValueParameterKey<float> u_TileSize = ParameterKeys.NewValue<float>();
     }
 }
