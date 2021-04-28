@@ -16,15 +16,14 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
     {
         private ImageEffectShader SimpleBlur;
 
-        public bool NeedRangeDecompress => false;
-
         public bool RequiresDepthBuffer => true;
 
         public bool RequiresVelocityBuffer => true;
 
-        [DataAlias("Target FPS")]
-        [DefaultValue(60)]
-        public int TargetFPS { get; set; } = 60;
+
+        [DefaultValue(12)]
+        [DataMemberRange(1, 30, 1, 1, 1)]
+        public uint ShutterSpeed { get; set; } = 12;
 
         
         [DefaultValue(20)]
@@ -57,7 +56,7 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
             SimpleBlur.SetInput(1, velocityBuffer);
             SimpleBlur.SetInput(2, depthBuffer);
             SimpleBlur.Parameters.Set(ChapmanBlurShaderKeys.u_MaxSamples, MaxSamples);
-            SimpleBlur.Parameters.Set(ChapmanBlurShaderKeys.u_BlurRadius, Math.Min(15, (uint)(context.RenderContext.Time.FramePerSecond / TargetFPS)));
+            SimpleBlur.Parameters.Set(ChapmanBlurShaderKeys.u_BlurRadius, Math.Min(60, (uint)(context.RenderContext.Time.FramePerSecond / ShutterSpeed)));
             SimpleBlur.SetOutput(outputBuffer); 
             SimpleBlur.Draw(context);
 

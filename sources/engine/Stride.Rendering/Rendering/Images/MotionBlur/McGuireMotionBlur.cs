@@ -24,21 +24,14 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
         private ImageEffectShader tileMaxPassShader;
         private ImageEffectShader neighborMaxPassShader;
         private ImageEffectShader blurPassShader;
-        private ImageEffectShader resize;
 
-        public bool NeedRangeDecompress => false;
 
         public bool RequiresDepthBuffer => true;
 
         public bool RequiresVelocityBuffer => true;
 
-        //[DefaultValue(20)]
-        //public float ShutterSpeed { get; set; } = 20;
-
-        //[DefaultValue(4)]
-        //public uint MaxSamples { get; set; } = 4;
-
         [DefaultValue(4)]
+        [DataMemberRange(1, 24, 1, 1, 1)]
         public int TileSize { get; set; } = 4;
 
         [DefaultValue(1)]
@@ -63,7 +56,6 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
             base.InitializeCore();
 
             tileMaxPassShader = ToLoadAndUnload(new ImageEffectShader("TileMaxShader"));
-            resize = ToLoadAndUnload(new ImageEffectShader("ResizeTexture"));
             neighborMaxPassShader = ToLoadAndUnload(new ImageEffectShader("NeighborMaxShader"));
             blurPassShader = ToLoadAndUnload(new ImageEffectShader("MotionReconstructionShader"));
         }
@@ -115,13 +107,6 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
             blurPassShader.SetOutput(outputBuffer);
             blurPassShader.Draw(context);
 
-            // return output (maybe not needed since we draw on it right bf
-
-            //resize.SetInput(maxVelocity);
-            //resize.SetOutput(outputBuffer);
-            //resize.Draw(context);
-
-            //SetOutput(tileMax);
         }
     }
 }
