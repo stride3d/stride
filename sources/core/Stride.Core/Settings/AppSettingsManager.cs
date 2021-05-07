@@ -8,18 +8,40 @@ namespace Stride.Core.Settings
     /// </summary>
     public static class AppSettingsManager
     {
+        private static AppSettings settings;
+        private static IAppSettingsProvider provider;
+
         /// <summary>
-        /// <see cref="AppSettings"/> instance for the application.
+        /// Gets <see cref="AppSettings"/> instance for the application.
         /// </summary>
-        /// <note>
+        /// <remarks>
         /// Loaded with an <see cref="IAppSettingsProvider"/>. If no provider implementation is found, returns empty <see cref="AppSettings"/> instance.
-        /// </note>
+        /// </remarks>
         public static AppSettings Settings
         {
             get
             {
                 if (settings != null)
                     return settings;
+
+                ReloadSettings();
+                return settings;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets an <see cref="IAppSettingsProvider"/> for the application.
+        /// </summary>
+        /// <remarks>
+        /// If provider is not set, getter of this property will attempt to find an implementation
+        /// among the registered assemblies and cache it.
+        /// </remarks>
+        public static IAppSettingsProvider SettingsProvider
+        {
+            get
+            {
+                if (provider != null)
+                    return provider;
 
                 foreach (var assembly in AssemblyRegistry.FindAll())
                 {
@@ -31,18 +53,33 @@ namespace Stride.Core.Settings
                             if (!type.IsAbstract &&
                                 type.GetConstructor(Type.EmptyTypes) != null)
                             {
-                                var instance = (IAppSettingsProvider)Activator.CreateInstance(type);
-                                settings = instance.LoadAppSettings();
-                                return settings;
+                                provider = (IAppSettingsProvider)Activator.CreateInstance(type);
+                                return provider;
                             }
                     }
                 }
 
-                settings = new AppSettings();
-                return settings;
+                return null;
+            }
+            set
+            {
+                provider = value;
             }
         }
 
-        private static AppSettings settings;
+        /// <summary>
+        /// Clears cached settings value and calls <see cref="IAppSettingsProvider.LoadAppSettings"/> on the <see cref="SettingsProvider"/>.
+        /// </summary>
+        public static void ReloadSettings()
+        {
+            if (SettingsProvider != null)
+            {
+                settings = SettingsProvider.LoadAppSettings();
+            }
+            else
+            {
+                settings = new AppSettings();
+            }
+        }
     }
 }
