@@ -217,7 +217,7 @@ namespace Stride.LauncherApp.ViewModels
                         progressReport.ProgressChanged += (action, progress) => { Dispatcher.InvokeAsync(() => { UpdateProgress(action, progress); }).Forget(); };
                         progressReport.UpdateProgress(ProgressAction.Install, -1);
                         MetricsHelper.NotifyDownloadStarting(ServerPackage.Id, ServerPackage.Version.ToString());
-                        await Store.InstallPackage(ServerPackage.Id, ServerPackage.Version, progressReport);
+                        await Store.InstallPackage(ServerPackage.Id, ServerPackage.Version, ServerPackage.TargetFrameworks, progressReport);
                         downloadCompleted = true;
                         MetricsHelper.NotifyDownloadCompleted(ServerPackage.Id, ServerPackage.Version.ToString());
                     }

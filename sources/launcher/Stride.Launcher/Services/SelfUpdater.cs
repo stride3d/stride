@@ -104,7 +104,7 @@ namespace Stride.LauncherApp.Services
                 var movedFiles = new List<string>();
 
                 // Download package
-                var installedPackage = await store.InstallPackage(package.Id, package.Version, null);
+                var installedPackage = await store.InstallPackage(package.Id, package.Version, package.TargetFrameworks, null);
 
                 // Copy files from tools\ to the current directory
                 var inputFiles = installedPackage.GetFiles();

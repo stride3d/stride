@@ -275,7 +275,7 @@ namespace Stride.Core.Packages
         /// <remarks>It is safe to call it concurrently be cause we operations are done using the FileLock.</remarks>
         /// <param name="packageId">Name of package to install.</param>
         /// <param name="version">Version of package to install.</param>
-        public async Task<NugetLocalPackage> InstallPackage(string packageId, PackageVersion version, ProgressReport progress)
+        public async Task<NugetLocalPackage> InstallPackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, ProgressReport progress)
         {
             using (GetLocalRepositoryLock())
             {
@@ -321,13 +321,6 @@ namespace Stride.Core.Packages
                                     LibraryRange = new LibraryRange(packageId, new VersionRange(version.ToNuGetVersion()), LibraryDependencyTarget.Package),
                                 }
                             },
-                            TargetFrameworks =
-                            {
-                                new TargetFrameworkInformation
-                                {
-                                    FrameworkName = NuGetFramework.Parse("net472"),
-                                }
-                            },
                             RestoreMetadata = new ProjectRestoreMetadata
                             {
                                 ProjectPath = projectPath,
@@ -335,13 +328,17 @@ namespace Stride.Core.Packages
                                 ProjectStyle = ProjectStyle.PackageReference,
                                 ProjectUniqueName = projectPath,
                                 OutputPath = Path.Combine(Path.GetTempPath(), $"StrideLauncher-{packageId}-{version.ToString()}"),
-                                OriginalTargetFrameworks = new[] { "net472" },
+                                OriginalTargetFrameworks = targetFrameworks.ToList(),
                                 ConfigFilePaths = settings.GetConfigFilePaths(),
                                 PackagesPath = installPath,
                                 Sources = SettingsUtility.GetEnabledSources(settings).ToList(),
                                 FallbackFolders = SettingsUtility.GetFallbackPackageFolders(settings).ToList()
                             },
                         };
+                        foreach (var targetFramework in targetFrameworks)
+                        {
+                            spec.TargetFrameworks.Add(new TargetFrameworkInformation { FrameworkName = NuGetFramework.Parse(targetFramework) });
+                        }
 
                         using (var context = new SourceCacheContext { MaxAge = DateTimeOffset.UtcNow })
                         {

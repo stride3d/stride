@@ -179,6 +179,11 @@ namespace Stride.Core.Packages
         public int DependencySetsCount => DependencySets?.Count() ?? 0;
 
         /// <summary>
+        /// List of supported target frameworks.
+        /// </summary>
+        public IEnumerable<string> TargetFrameworks => packageMetadata.DependencySets.Select(x => x.TargetFramework.GetShortFolderName());
+
+        /// <summary>
         /// Computed the list of dependencies of this package.
         /// </summary>
         public IEnumerable<Tuple<string, PackageVersionRange>>  Dependencies
