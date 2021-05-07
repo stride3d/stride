@@ -136,8 +136,6 @@ namespace Stride.Assets.Presentation.Templates
             //write gitignore
             WriteGitIgnore(parameters);
 
-            WriteGlobalJson(parameters);
-
             // Setup the assets folder
             //Directory.CreateDirectory(UPath.Combine(package.RootDirectory, (UDirectory)"Assets/Shared"));
 
