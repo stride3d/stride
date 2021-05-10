@@ -387,7 +387,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         protected virtual void InitializeServices([NotNull] EditorGameServiceRegistry services)
         {
             services.Add(new EditorGameDebugService());
-            services.Add(RecoveryService = new EditorGameRecoveryService(Editor) { IsActive = false });
+            services.Add(RecoveryService = new EditorGameRecoveryService(Editor) { IsActive = true });
         }
 
         private void SceneGameRunThread()
