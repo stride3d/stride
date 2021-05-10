@@ -7,9 +7,11 @@ shader MotionReconstructionShader : ImageEffectShader
         float   u_MinimumThreshold; // gamma
         float   u_MaximumJitter; // eta
         int     u_WeightBias; // K
-        int     u_SamplingRate; // N
+        int     u_SamplingRate; // N - number of samples
         int     u_JitterLevel; // phi
-        int     u_TileSize;
+        int     u_TileSize; // r - number of pixels on one side of the tile
+        float   u_MotionBlurScale;
+        float   u_MinimumVelocity;
     }
 
 
@@ -19,72 +21,66 @@ shader MotionReconstructionShader : ImageEffectShader
     // Texture3: neighborMax
     stage override float4 Shading()
     {
+        // In this pass we should extract 2 speed, the dominant velocity per tiles and the pixel velocity.
+        // We will sample color pixels along both speed at different rates depending the length of each speed
+        // We will also introduce a bias with the depth texture to remove unwanted blur artifacts
+
+
         float2 pos = streams.TexCoord;
 
         // Getting the current color and the neighborMax texel size
-        float4 currentColor = Texture0.Sample(PointSampler, pos);
-        float2 nmTxs = Texture3TexelSize;
+        float2 velocity = Texture1.Sample(PointSampler, pos).xy;
 
-        float j = Halton(-1,1);
-        float2 vmax = Texture3.Sample(LinearSampler, pos + sOffset(pos,j)).xy;
-        if(length(vmax)<0.5)
+        float2 vmax = (Texture3.Sample(PointSampler, pos).xy * 2.0 - 1.0) * u_MotionBlurScale * Texture3TexelSize;
+        if(length(vmax) < u_MinimumVelocity) return Texture0.Sample(PointSampler,pos);
+		float2 centerV = (Texture1.Sample(PointSampler, pos).xy * 2.0 - 1.0) * u_MotionBlurScale * Texture1TexelSize;
+		float2 Wn = normalize(vmax);
+		float2 Wp = float2(-Wn.y, Wn.x);
+		if (dot(Wp, centerV) < 0.0)
+		{
+			Wp = -Wp;
+		}
+        float y = 1.5;
+		float2 Wc = RNMix(Wp, normalize(centerV), (length(centerV) - 0.5) / y);
+		float totalWeight = 1.0;//float(u_SamplingRate) / length(centerV) * 1.0;//float(u_SamplingRate);
+		float4 centerSample = Texture0.Sample(PointSampler, pos);
+		float4 finalColor = float4(centerSample.rgb * totalWeight, centerSample.a);
+        [unroll(200)]
+		for (int i = 1; i < u_SamplingRate; ++i)
         {
-            return currentColor;
-        }
-        float2 wn = normalize(vmax);
-        float2 vc = Texture1.Sample(PointSampler, pos).xy;
-        float2 wp = float2(-wn.y,wn.x);
-        if(dot(wp,vc)<0)
-        {
-            wp = -wp;
-        }
-        
-        float2 wc = nlerp(wp, normalize(vc),(length(vc)-0.5) / float(u_MinimumThreshold));
-        return float4(wc,0,1);
-        //float totalWeight = u_TileSize/(u_WeightBias * length(vc));
+			float t = float(i) / float(u_SamplingRate - 1) - 0.5;
 
-        //float4 result = float4(mul(currentColor.xyz, totalWeight),currentColor.w);
+			float2 d = centerV;
+            float2 txs = Texture0TexelSize;
+			if ((i & 1) == 0)
+			{
+				d = vmax;
+                txs = Texture3TexelSize;
+			}
+			float T = t * length(vmax);
+			float2 sampleP = pos + d * t; // \todo
 
-        //float j2 = j * u_MaximumJitter * (u_JitterLevel / u_TileSize);
-        //[unroll(100)]
-        //for(int i = 0; i<= u_TileSize; i++)
-        //{
-        //    float t = lerp(-1,1,(i + j2 + 1)/(u_TileSize+1));
-        //    float2 d = uint(i) % 2 == 0 ? vmax : vc;
+			float2 sampleV  = (Texture1.Sample(PointSampler, sampleP).xy * 2.0 - 1.0) * u_MotionBlurScale;
+			float4 sampleCZ = Texture0.Sample(PointSampler, sampleP);
+            float csDepth = Texture2.Sample(PointSampler, pos).r;
+            float sampleD = Texture2.Sample(PointSampler, sampleP).r;
+			float foreground = ZCompare(csDepth, sampleD); 
+			float background = ZCompare(sampleD, csDepth);
 
-        //    float T = t * length(vmax);
-        //    float2 S = pos + floor(t*d);
+			float weightA = dot(Wc, d);
+			float weightB = dot(normalize(sampleV), d);
 
-        //    float2 vs = Texture1.Sample(LinearSampler,S).xy;
-        //    float4 colorSample4 = Texture0.Sample(LinearSampler, S);
-        //    float3 colorSample = colorSample4.xyz;
+			float weight = 0.0;
+			weight += foreground * Cone(T, 1.0 / length(sampleV)) * weightB;
+			weight += background * Cone(T, 1.0 / length(centerV)) * weightA;
+			weight += Cylinder(T, min(length(sampleV), length(centerV))) * max(weightA, weightB) * 2.0;
+			
 
-        //    float f = zCompare(Texture2.Sample(LinearSampler, pos).x,Texture2.Sample(LinearSampler, S).x);
-        //    float b = zCompare(Texture2.Sample(LinearSampler, S).x,Texture2.Sample(LinearSampler, pos).x);
-
-        //    float weight = 0;
-        //    float2 wA = dot(wc,d);
-        //    float2 wB = dot(normalize(vs),d);
-
-        //    weight += dot(f,cone(T, 1/length(vs))*wB);
-        //    weight += dot(b,cone(T, 1/length(vs))*wA);
-
-        //    weight += cylinder(T, min(length(vs),length(vc))) * max(wA,wB) * 2;
-            
-        //    totalWeight += weight;
-
-        //    result.xyz += colorSample * weight;
-        //}
-
-        //result = float4(result.xyz / totalWeight,int(pos.x + pos.y)&1);
-        //if(isnan(result.x) || result.x < 0) result.x = 1;
-        //if(isnan(result.y) || result.y < 0) result.y = 1;
-        //if(isnan(result.z) || result.z < 0) result.z = 1;
-        //if(isnan(result.w) || result.w < 0) result.w = 1;
-
-
-        //return result;
-        
+			totalWeight += weight;
+			finalColor += float4(sampleCZ.rgb * weight,finalColor.w);
+		}
+		finalColor.rgb /= totalWeight;
+        return finalColor;
     }
 
     float zCompare(float a, float b)
@@ -98,7 +94,7 @@ shader MotionReconstructionShader : ImageEffectShader
         float f = 1.0;
         while (i > 0) {
             f = f / float(b);
-            r = r + f * float(i % b);
+            r = r + f * float(uint(i) % uint(b));
             i = int(floor(float(i) / float(b)));
         }
         return r;
@@ -119,15 +115,38 @@ shader MotionReconstructionShader : ImageEffectShader
         return frac(sin(dot(st.xy,float2(12.9898,78.233)))*43758.5453123);
     }
 
-    float cone(float x, float y)
+    float Cone(in float2 _x, in float2 _y, in float2 _v)
     {
-        if(abs(x) > y) return 0;
-        return y - abs(x);
+	    return saturate(1.0 - length(_x - _y) / length(_v));
     }
-    float cylinder(float x, float y)
+
+    float Cone(in float _x, in float _y)
     {
-        if(abs(x) > y) return 0;
-        return 1 - smoothstep(0.95*y,1.05*y,x);
+	    return saturate(1.0 - _x / _y);
     }
-        
+
+    float Cylinder(in float2 _x, in float2 _y, in float2 _v)
+    {
+	    float lengthV = length(_v);
+	    return 1.0 - smoothstep(0.95 * lengthV, 1.05 * lengthV, length(_x - _y));
+    }
+
+    float Cylinder(in float _x, in float _y)
+    {
+	    return 1.0 - smoothstep(0.95 * _y, 1.05 * _y, _x);
+    }
+
+    float SoftStep(in float _a, in float _b, in float _radius)
+    {
+	    return saturate(1.0 - (_a - _b) / _radius);
+    }
+
+    float ZCompare(in float _a, in float _b)
+    {
+	    return min(1.0, max(0.0, 1.0 - (_a - _b) / min(_a, _b)));
+    }
+    float2 RNMix(in float2 _a, in float2 _b, in float _theta)
+    {
+	    return normalize(lerp(_a, _b, _theta));
+    }
 };

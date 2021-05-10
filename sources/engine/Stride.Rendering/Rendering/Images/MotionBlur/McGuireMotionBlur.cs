@@ -31,17 +31,17 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
         public bool RequiresVelocityBuffer => true;
 
         [DefaultValue(4)]
-        [DataMemberRange(1, 24, 1, 1, 1)]
-        public int TileSize { get; set; } = 4;
+        [DataMemberRange(1, 50, 1, 1, 1)]
+        public int TileSize { get; set; } = 40;
 
-        [DefaultValue(1)]
-        public float MinimumThreshold { get; set; } = 1;
+        [DefaultValue(1.5f)]
+        public float MinimumThreshold { get; set; } = 1.5f;
 
-        [DefaultValue(1)]
-        public float MaximumJitter { get; set; } = 1;
+        [DefaultValue(0.95f)]
+        public float MaximumJitter { get; set; } = 0.95f;
 
-        [DefaultValue(1)]
-        public int JitterLevel { get; set; } = 1;
+        [DefaultValue(27)]
+        public int JitterLevel { get; set; } = 27;
 
         [DefaultValue(40)]
         public int WeightBias { get; set; } = 40;
@@ -49,7 +49,13 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
         [DefaultValue(40)]
         public int SamplingRate { get; set; } = 40;
 
-        
+        [DefaultValue(0.5)]
+        public float MotionBlurScale { get; set; } = 0.5f;
+
+        [DefaultValue(0.5)]
+        public float MinimumVelocity { get; set; } = 0.5f;
+
+
 
         protected override void InitializeCore()
         { 
@@ -104,6 +110,7 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
             blurPassShader.Parameters.Set(MotionReconstructionShaderKeys.u_JitterLevel, JitterLevel);
             blurPassShader.Parameters.Set(MotionReconstructionShaderKeys.u_SamplingRate, SamplingRate);
             blurPassShader.Parameters.Set(MotionReconstructionShaderKeys.u_TileSize, TileSize);
+            blurPassShader.Parameters.Set(MotionReconstructionShaderKeys.u_MotionBlurScale, 1);
             blurPassShader.SetOutput(outputBuffer);
             blurPassShader.Draw(context);
 
