@@ -13,39 +13,32 @@ shader NeighborMaxShader : ImageEffectShader
     {
         float2 txs = Texture0TexelSize;
         float2 pos = streams.TexCoord;
-        float4 vel = Texture0.Sample(PointSampler, pos);
+        float cw = 1.01;
+        
     
-        float4 up = Texture0.Sample(PointSampler, saturate(pos - float2(txs.x,0)));
-        float4 left = Texture0.Sample(PointSampler, saturate(pos - float2(0, txs.y)));
+        float4 d = txs.xyxy * float4(1.0, 1.0, -1.0, 0.0);
 
-        float4 down = Texture0.Sample(PointSampler, saturate(pos + float2(txs.x,0)));
-        float4 right = Texture0.Sample(PointSampler, saturate(pos + float2(0,txs.y)));
+        float2 v1 = Texture0.Sample(PointSampler, pos - d.xy).rg;
+        float2 v2 = Texture0.Sample(PointSampler, pos - d.wy).rg;
+        float2 v3 = Texture0.Sample(PointSampler, pos - d.zy).rg;
 
-        if(length(up.xy) > length(vel.xy))
-            vel = up;
-        if(length(left.xy) > length(vel.xy))
-            vel = left;
+        float2 v4 = Texture0.Sample(PointSampler, pos - d.xw).rg;
+        float2 v5 = Texture0.Sample(PointSampler, pos).rg * cw;
+        float2 v6 = Texture0.Sample(PointSampler, pos + d.xw).rg;
 
-        if(length(down.xy) > length(vel.xy))
-            vel = down;
-        if(length(right.xy) > length(vel.xy))
-            vel = right;
+        float2 v7 = Texture0.Sample(PointSampler, pos + d.zy).rg;
+        float2 v8 = Texture0.Sample(PointSampler, pos + d.wy).rg;
+        float2 v9 = Texture0.Sample(PointSampler, pos + d.xy).rg;
 
-        return vel;
+        float2 va = MaxV(v1, MaxV(v2, v3));
+        float2 vb = MaxV(v4, MaxV(v5, v6));
+        float2 vc = MaxV(v7, MaxV(v8, v9));
+
+        return float4(MaxV(va, MaxV(vb, vc)) * (1.0 / cw), 0.0, 0.0);
+
     }
-    //float Halton(int b, int i)
-    //{
-    //    float r = 0.0;
-    //    float f = 1.0;
-    //    while (i > 0) {
-    //        f = f / float(b);
-    //        r = r + f * float(i % b);
-    //        i = int(floor(float(i) / float(b)));
-    //    }
-    //    return r;
-    //}
-    //float SOffset(float2 p, float j)
-    //{
-    //    float2 txlSize = Texture1TexelSize;
-    //}    
+    float2 MaxV(float2 v1, float2 v2)
+    {
+        return dot(v1, v1) < dot(v2, v2) ? v2 : v1;
+    }  
 };
