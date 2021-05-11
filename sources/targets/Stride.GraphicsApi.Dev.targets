@@ -14,10 +14,10 @@
   <Target Name="_StrideQueryGraphicsApis" Returns="@(_StrideGraphicsApisItemsInternal)" Condition="'$(StrideProjectType)' != 'Cpp'">
     <!-- Use a fake runtime identifier to transmit StrideGraphicsApiDependent -->
     <ItemGroup Condition="'$(StrideGraphicsApis)' != ''">
-      <_StrideGraphicsApisItemsInternal Include="$(StrideGraphicsApis)" TargetFramework="$(TargetFramework)" />
+      <_StrideGraphicsApisItemsInternal Include="$(StrideGraphicsApis)" TargetFramework="$(TargetFramework)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
     </ItemGroup>
     <ItemGroup Condition="'$(StrideGraphicsApis)' == ''">
-      <_StrideGraphicsApisItemsInternal Include="$(StrideGraphicsApi)" TargetFramework="$(TargetFramework)" />
+      <_StrideGraphicsApisItemsInternal Include="$(StrideGraphicsApi)" TargetFramework="$(TargetFramework)" StrideGraphicsApiDependent="$(StrideGraphicsApiDependent)" />
     </ItemGroup>
   </Target>
   <Target Name="_ComputeTargetFrameworkItems" Returns="@(InnerOutput)">
@@ -43,7 +43,8 @@
     <ItemGroup Condition="'$(StrideGraphicsApiDependent)' == 'true'">
       <_TargetFrameworkWithStrideGraphicsApi Include="@(_StrideGraphicsApisItems->'%(OriginalItemSpec)')" StrideGraphicsApi="%(_StrideGraphicsApisItems.Identity)" />
       <_InnerBuildProjects Include="$(MSBuildProjectFile)">
-        <AdditionalProperties>TargetFramework=%(_TargetFrameworkWithStrideGraphicsApi.TargetFramework);StrideGraphicsApi=%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApi)</AdditionalProperties>
+        <AdditionalProperties Condition="'%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApiDependent)' != 'true'">TargetFramework=%(_TargetFrameworkWithStrideGraphicsApi.TargetFramework)</AdditionalProperties>
+        <AdditionalProperties Condition="'%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApiDependent)' == 'true'">TargetFramework=%(_TargetFrameworkWithStrideGraphicsApi.TargetFramework);StrideGraphicsApi=%(_TargetFrameworkWithStrideGraphicsApi.StrideGraphicsApi)</AdditionalProperties>
       </_InnerBuildProjects>
     </ItemGroup>
   </Target>

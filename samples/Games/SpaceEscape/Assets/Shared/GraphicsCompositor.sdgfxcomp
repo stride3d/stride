@@ -50,6 +50,7 @@ RenderFeatures:
                     5890e37af0e4bbc2cfdc1de648ff07d4: ~(Deleted)
                     411fdcfb9fc388449a0443173dfa3f27: ~(Deleted)
                 ShadowMapRenderer: null
+            42be209952db58294c9f06c58809b8ca: !Stride.Rendering.InstancingRenderFeature,Stride.Rendering {}
             4e6e32bcbd8f38a663c636bab78dba4a*: !SpaceEscape.Rendering.BendFogRenderFeature,SpaceEscape.Game {}
     28e9bf54a5adbe063f59fb17acb2723e: !Stride.Rendering.Sprites.SpriteRenderFeature,Stride.Rendering
         RenderStageSelectors:
@@ -79,7 +80,7 @@ SharedRenderers:
         Id: 3f5395d3-5cfe-4e1b-8be7-0988bec3b0c0
         Clear:
             Id: 4bc4b2ca-027e-4e4a-94cb-2912709bef5f
-            Color: {R: 0.40491876, G: 0.411895424, B: 0.43775, A: 1.0}
+            Color: {R: 0.40491876, G: 0.41189542, B: 0.43775, A: 1.0}
         LightProbes: false
         OpaqueRenderStage: ref!! 2dd24df6-33f1-4fc5-8d49-79db348db785
         TransparentRenderStage: ref!! ab05402a-6b3f-4a95-a079-bedf1617419d
