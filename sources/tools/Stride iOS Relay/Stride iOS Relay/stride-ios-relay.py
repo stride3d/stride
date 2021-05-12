@@ -3,7 +3,7 @@
 #
 #	stride-ios-relay.py - Stride TCP connection relay for iOS devices to Windows developer host (using usbmuxd)
 #
-# Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+# Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 # Copyright (C) 2009	Hector Martin "marcan" <hector@marcansoft.com>
 #
 # This program is free software; you can redistribute it and/or modify
