@@ -1,11 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <ApplicationIcon>Resources\GameIcon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <RootNamespace>SpaceEscape</RootNamespace>
-
     <OutputPath>..\Bin\Windows\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
@@ -56,9 +54,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\SpaceEscape.Game\SpaceEscape.Game.csproj" />
   </ItemGroup>
-
 </Project>
