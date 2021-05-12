@@ -10,8 +10,8 @@ shader MotionReconstructionShader : ImageEffectShader
         int     u_SamplingRate; // N - number of samples
         int     u_JitterLevel; // phi
         int     u_TileSize; // r - number of pixels on one side of the tile
-        float   u_ShutterAngle;
-        float   u_MotionBlurScale;
+        float   u_MotionBlurScale; // Scale of the blur, computed from the shutter angle
+        float   u_MinimumVelocity; // minimum velocity to blur
     }
 
 
@@ -24,91 +24,69 @@ shader MotionReconstructionShader : ImageEffectShader
         float2 pos = streams.TexCoord;
         // Color sample at the center point
         const float4 initColor = Texture0.Sample(PointSampler,pos);
-        float velocityScale = 50* u_ShutterAngle / 360;
-        // Velocity/Depth sample at the center point
-        const float3 vdp = SampleVelocityDepth(pos) * velocityScale;
-        const float speed = max(length(vdp.xy), 0.5);
-        const float rcp_d_p = 1.0 / vdp.z;
+        float j = Halton(-1,1);
+        float2 vmax = Texture3.Sample(PointSampler, pos + JitterTile(pos, Texture0TexelSize, j)).xy;
+        float spMax = length(vmax);
+        if(spMax < u_MinimumVelocity) return initColor;
 
-        // NeighborMax vector sample at the center point
-        const float2 vmax = Texture3.Sample(PointSampler, pos + JitterTile(pos)).xy * velocityScale;
-        const float speedVmax = length(vmax);
-        const float rcp_speedVmax = 1.0 / speedVmax;
+        float2 wn = normalize(vmax);
+        float2 vc = SampleVelocity(pos);
 
-        // Escape early if the NeighborMax vector is small enough.
-        if (speedVmax < u_MinimumThreshold) return initColor;
+        float2 wp = float2(-wn.y, wn.x) * u_SamplingRate / u_WeightBias;
 
-        // Use V_p as a secondary sampling direction except when it's too small
-        // compared to vmax. This vector is rescaled to be the length of vmax.
-        const float2 v_alt = (speed * 2.0 > speedVmax) ? vdp.xy * (speedVmax / speed) : vmax;
-
-        // Determine the sample count.
-        //const float sc = floor(min(u_SamplingRate, speedVmax * 0.5));
-        const float sc = float(u_SamplingRate);
-
-        // Loop variables (starts from the outermost sample)
-        const float dt = 1.0 / sc;
-        const float t_offs = (GradientNoise(pos) - 0.5) * dt;
-        float t = 1.0 - dt * 0.5;
-        float count = 0.0;
-
-        // Background velocity
-        // This is used for tracking the maximum velocity in the background layer.
-        float l_v_bg = max(speed, 1.0);
-
-        // Color accumlation
-        float4 acc = 0.0;
-
-        [unroll(200)]
-        //for(int count = 0; count < sc; count++) 
-        while (t > dt * 0.25)
+        if(dot(wp,vc) < 0)
         {
-            // Sampling direction (switched per every two samples)
-            const float2 v_s = uint(count)%4 == 0 ? v_alt : vmax;
-
-            // Sample position (inverted per every sample)
-            const float t_s = (uint(count)%2 == 0 ? -t : t) + t_offs;
-
-            // Distance to the sample position
-            const float l_t = speedVmax * abs(t_s);
-
-            // UVs for the sample position
-            const float2 uv0 = pos + v_s * t_s * Texture0TexelSize;
-            const float2 uv1 = pos + v_s * t_s * Texture1TexelSize;
-
-            // Color sample
-            const float3 c = SampleColor(uv0).rgb;
-
-            // Velocity/Depth sample
-            const float3 vd = SampleVelocityDepth(uv1) * velocityScale;
-
-            // Background/Foreground separation
-            const float fg = saturate((vdp.z - vd.z) * 20.0 * rcp_d_p);
-
-            // Length of the velocity vector
-            const float l_v = lerp(l_v_bg, length(vd.xy), fg);
-
-            // Sample weight
-            // (Distance test) * (Spreading out by motion) * (Triangular window)
-            const float w = saturate(l_v - l_t) / l_v * (1.2 - t);
-
-            // Color accumulation
-            acc += float4(c, 1.0) * w;
-
-            // Update the background velocity.
-            l_v_bg = max(l_v_bg, l_v);
-
-            // Advance to the next sample.
-            t = uint(count)%2==0 ? t - dt : t;
-            count += 1.0;
+            wp = -wp;
         }
 
-        // Add the center sample.
-        //acc += float4(initColor.rgb, 1.0) * (1.2 / (l_v_bg * sc * 2.0));
+        float2 wc = RNMix(wp, normalize(vc),(length(vc) - 0.5)/u_MinimumThreshold);
 
-        return float4(acc.rgb / acc.a, initColor.a);
-        //return float4(u_SamplingRate/count,u_SamplingRate/count,u_SamplingRate/count,1);
+        float totalWeight = 1.0;
+
+        float4 result = initColor * totalWeight;
+
+        float j2 = j * u_MaximumJitter * u_JitterLevel / u_SamplingRate;
+               
+
+        [unroll(200)]
+        for(int i = 0; i < u_SamplingRate; i++)
+        {
+            float t = lerp(-1,1,(i + j2 + 1)/(u_SamplingRate + 1));
+
+            float2 d = uint(i)%2 == 0 ? vmax : vc;
+            
+            float T = t * length(vmax);
+            float2 S = Texture0TexelSize * floor(t*d) + pos;
+
+            float2 vs = SampleVelocity(S);
+            float3 cs = SampleColor(S);
+
+            float f = ZCompare(Texture2.Sample(PointSampler,pos).r,Texture2.Sample(PointSampler,S).r);
+            float b = ZCompare(Texture2.Sample(PointSampler,S).r,Texture2.Sample(PointSampler,pos).r);
+
+            float weight = 0;
+            float wA = dot(wc,d);
+            float wB = dot(normalize(vs),d);
+
+
+            weight += f*Cone(T,1/length(vs)) * wB;
+            weight += b*Cone(T,1/length(vc)) * wA;
+
+            weight += Cylinder(T, min(length(vs),length(vc))) * max(wA,wB) * 2;
+
+            totalWeight += weight;
+
+            result.xyz += cs * weight;
+            
+        }
+
+        return float4(result.xyz / totalWeight,initColor.w);
+
+        
     }
+
+    
+
     float2 SampleVelocity(float2 uv)
     {
         float2 v = Texture1.Sample(PointSampler, uv).xy;
@@ -140,12 +118,11 @@ shader MotionReconstructionShader : ImageEffectShader
         }
         return r;
     }
-    float2 JitterTile(float2 uv)
+    float2 JitterTile(float2 uv, float2 txs, float j)
     {
         float rx, ry;
-        float two_pi = 6.28318530718;
-        sincos(GradientNoise(uv + float2(2.0, 0.0)) * two_pi, ry, rx);
-        return float2(rx, ry) * Texture3TexelSize* 0.25;
+        sincos(GradientNoise(uv + float2(2.0, 0.0)) * j, ry, rx);
+        return float2(rx, ry) * txs;
     }
     float2 sOffset(float2 pos, float j)
     {
@@ -218,5 +195,4 @@ shader MotionReconstructionShader : ImageEffectShader
                     lerp( dot( random2(i + float2(0.0,1.0) ), f - float2(0.0,1.0) ),
                          dot( random2(i + float2(1.0,1.0) ), f - float2(1.0,1.0) ), u.x), u.y);
     }
-
 };

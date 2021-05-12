@@ -21,6 +21,6 @@ namespace Stride.Rendering
         public static readonly ValueParameterKey<int> u_JitterLevel = ParameterKeys.NewValue<int>();
         public static readonly ValueParameterKey<int> u_TileSize= ParameterKeys.NewValue<int>();
         public static readonly ValueParameterKey<float> u_MotionBlurScale = ParameterKeys.NewValue<float>();
-        public static readonly ValueParameterKey<float> u_ShutterAngle = ParameterKeys.NewValue<float>();
+        public static readonly ValueParameterKey<float> u_MinimumVelocity = ParameterKeys.NewValue<float>();
     }
 }
