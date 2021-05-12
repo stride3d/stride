@@ -16,9 +16,9 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
 {
 
     /// <summary>
-    /// Motion blur effect using GUERTIN2014 Motion blur.
+    /// Motion blur effect using a technique defined in MotionBlurHPG14.
     /// </summary>
-    [DataContract("McGuireMotionBlur")]
+    [DataContract("MotionBlurHPG14")]
     public class McGuireMotionBlur : ImageEffect, IMotionBlur
     {
         private ImageEffectShader tileMaxPassShader;
@@ -30,17 +30,31 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
 
         public bool RequiresVelocityBuffer => true;
 
+        /// <summary>
+        /// The size of the square tile for the maximum speed pass.
+        /// The bigger the more it will leave trails
+        /// </summary>
         [DefaultValue(40)]
         [DataMemberRange(1, 50, 1, 1, 1)]
         public int TileSize { get; set; } = 40;
 
+        /// <summary>
+        /// The shutter angle defines how long a frame is exposed to light.
+        /// Higher values gives a more pronounced blur.
+        /// </summary>
         [DefaultValue(180)]
         [DataMemberRange(1, 360, 1, 1, 1)]
         public float ShutterAngle { get; set; } = 180;
 
+        /// <summary>
+        /// The minimum thresholds controls how much pixel velocity influences the max tile velocity.
+        /// </summary>
         [DefaultValue(1.5f)]
         public float MinimumThreshold { get; set; } = 1.5f;
 
+        /// <summary>
+        /// Controls the maximum jitter that will be used during the blur sampling
+        /// </summary>
         [DefaultValue(0.95f)]
         public float MaximumJitter { get; set; } = 0.95f;
 
@@ -50,9 +64,16 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
         [DefaultValue(40)]
         public int WeightBias { get; set; } = 40;
 
+        /// <summary>
+        /// The number of samples for the blurring.
+        /// Lower values gives better performance but less accurate blurring.
+        /// </summary>
         [DefaultValue(40)]
         public int SamplingRate { get; set; } = 40;
         
+        /// <summary>
+        /// The minimum velocity for the motion blur to be activated
+        /// </summary>
         [DefaultValue(0.5)]
         public float MinimumVelocity { get; set; } = 0.5f;
 

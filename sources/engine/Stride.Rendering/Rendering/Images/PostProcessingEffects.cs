@@ -157,7 +157,7 @@ namespace Stride.Rendering.Images
         /// Gets the motion blur effects.
         /// </summary>
         /// <value>The motion blur.</value>
-        /// <userdoc>Perform object motion blur</userdoc>
+        /// <userdoc>Perform per-object motion blur</userdoc>
         [DataMember(80)]
         [Display("Type", "MotionBlur")]
         public IMotionBlur MotionBlur { get; set; }

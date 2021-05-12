@@ -20,12 +20,19 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
 
         public bool RequiresVelocityBuffer => true;
 
-
-        [DefaultValue(12)]
-        [DataMemberRange(1, 30, 1, 1, 1)]
-        public uint ShutterSpeed { get; set; } = 12;
-
         
+        /// <summary>
+        /// The shutter angle defines how long a frame is exposed to light.
+        /// Higher values gives a more pronounced blur
+        /// </summary>
+        [DefaultValue(60)]
+        [DataMemberRange(1, 360, 1, 1, 1)]
+        public float ShutterAngle { get; set; } = 60;
+
+        /// <summary>
+        /// Max number of samples for the blurring.
+        /// Lower values gives better performance but less accurate blurring.
+        /// </summary>
         [DefaultValue(20)]
         [DataMemberRange(1, 50, 1, 1, 1)]
         public uint MaxSamples { get; set; } = 20;
@@ -56,7 +63,7 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
             SimpleBlur.SetInput(1, velocityBuffer);
             SimpleBlur.SetInput(2, depthBuffer);
             SimpleBlur.Parameters.Set(ChapmanBlurShaderKeys.u_MaxSamples, MaxSamples);
-            SimpleBlur.Parameters.Set(ChapmanBlurShaderKeys.u_BlurRadius, Math.Min(60, (uint)(context.RenderContext.Time.FramePerSecond / ShutterSpeed)));
+            SimpleBlur.Parameters.Set(ChapmanBlurShaderKeys.u_BlurRadius, Math.Min(60, (uint)(context.RenderContext.Time.FramePerSecond * ShutterAngle / 360)));
             SimpleBlur.SetOutput(outputBuffer); 
             SimpleBlur.Draw(context);
 
