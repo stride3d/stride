@@ -4,8 +4,9 @@ shader ChapmanBlurShader : ImageEffectShader
 {
     cbuffer PerDraw
     {
-        uint u_BlurRadius;
+        float u_BlurRadius;
         uint u_MaxSamples;
+        float u_MinDepth;
     }
 
 
@@ -19,9 +20,8 @@ shader ChapmanBlurShader : ImageEffectShader
         float4 color = Texture0.Sample(LinearSampler, texCoord); 
         float2 velocity = Texture1.Sample(LinearSampler, texCoord).xy;
         
-        //if(length(velocity) < 0.1) return color;
         
-        float speed = velocity * u_BlurRadius;
+        float speed = length(velocity) * u_BlurRadius;
         int nSamples = clamp(int(speed), 1, u_MaxSamples);
 
         [unroll(100)]

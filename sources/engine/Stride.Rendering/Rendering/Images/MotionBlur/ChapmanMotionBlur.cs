@@ -38,7 +38,6 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
         public uint MaxSamples { get; set; } = 20;
 
 
-
         protected override void InitializeCore()
         {
             base.InitializeCore(); 
@@ -63,7 +62,7 @@ namespace Stride.Rendering.Rendering.Images.MotionBlur
             SimpleBlur.SetInput(1, velocityBuffer);
             SimpleBlur.SetInput(2, depthBuffer);
             SimpleBlur.Parameters.Set(ChapmanBlurShaderKeys.u_MaxSamples, MaxSamples);
-            SimpleBlur.Parameters.Set(ChapmanBlurShaderKeys.u_BlurRadius, Math.Min(60, (uint)(context.RenderContext.Time.FramePerSecond * ShutterAngle / 360)));
+            SimpleBlur.Parameters.Set(ChapmanBlurShaderKeys.u_BlurRadius, Math.Min(10, context.RenderContext.Time.FramePerSecond * ShutterAngle / 360));
             SimpleBlur.SetOutput(outputBuffer); 
             SimpleBlur.Draw(context);
 
