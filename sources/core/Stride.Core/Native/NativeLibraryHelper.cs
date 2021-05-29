@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -68,11 +69,12 @@ namespace Stride.Core
                 {
                     foreach (var libraryPath in new[]
                     {
-                        Path.Combine(Path.GetDirectoryName(owner.GetTypeInfo().Assembly.Location), $"{platform}-{cpu}"),
-                        Path.Combine(Environment.CurrentDirectory, $"{platform}-{cpu}"),
+                        Path.Combine(Path.GetDirectoryName(owner.GetTypeInfo().Assembly.Location) ?? string.Empty, $"{platform}-{cpu}"),
+                        Path.Combine(Environment.CurrentDirectory ?? string.Empty, $"{platform}-{cpu}"),
+                        Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName) ?? string.Empty, $"{platform}-{cpu}"),
                         // Also try without platform for Windows-only packages (backward compat for editor packages)
-                        Path.Combine(Path.GetDirectoryName(owner.GetTypeInfo().Assembly.Location), $"{cpu}"),
-                        Path.Combine(Environment.CurrentDirectory, $"{cpu}"),
+                        Path.Combine(Path.GetDirectoryName(owner.GetTypeInfo().Assembly.Location) ?? string.Empty, $"{cpu}"),
+                        Path.Combine(Environment.CurrentDirectory ?? string.Empty, $"{cpu}"),
                     })
                     {
                         var libraryFilename = Path.Combine(libraryPath, libraryName);
