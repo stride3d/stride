@@ -21,6 +21,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="GamePadLayouts\gamecontrollerdb.txt">
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <PackageFlatten>true</PackageFlatten>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Stride.Games\Stride.Games.csproj" />
     <PackageReference Include="SharpDX.RawInput" Version="4.2.0" Condition="$(TargetFramework.StartsWith('net4'))" />
     <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" Condition="$(TargetFramework.EndsWith('-windows'))" />
