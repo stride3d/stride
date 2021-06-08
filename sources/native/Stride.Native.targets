@@ -86,7 +86,7 @@
     <ItemGroup>
       <StrideNativeOutput Include="@(_StrideNativeOutput->'$(StrideNativeOutputPath)%(Identity)')"/>
       <StrideNativeOutput>
-        <Link>$([MSBuild]::MakeRelative('$(_OutputPathRelative)', '$(StrideNativeOutputPath)'))%(RelativePath)</Link>
+        <Link>$([MSBuild]::MakeRelative('$(_OutputPathRelative)', '$(StrideNativeOutputPath)'))\%(RelativePath)</Link>
       </StrideNativeOutput>
       <StrideNativeLib Include="@(StrideNativeOutput)"/>
     </ItemGroup>
