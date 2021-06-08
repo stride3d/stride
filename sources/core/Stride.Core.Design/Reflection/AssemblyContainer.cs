@@ -300,7 +300,17 @@ namespace Stride.Core.Reflection
                         }
 
                         // TODO: Is using AppDomain would provide more opportunities for unloading?
-                        assembly = pdbBytes != null ? Assembly.Load(assemblyBytes, pdbBytes) : Assembly.Load(assemblyBytes);
+                        const uint unverifiableExecutableWithFixups = 0x80131019;
+                        try
+                        {
+                            assembly = pdbBytes != null ? Assembly.Load(assemblyBytes, pdbBytes) : Assembly.Load(assemblyBytes);
+                        }
+                        catch (FileLoadException fileLoadException)
+                        when ((uint)fileLoadException.HResult == unverifiableExecutableWithFixups)
+                        {
+                            // No way to load from byte array (see https://stackoverflow.com/questions/5005409/exception-with-resolving-assemblies-attempt-to-load-an-unverifiable-executable)
+                            assembly = Assembly.LoadFrom(assemblyFullPath);
+                        }
                         loadedAssembly = new LoadedAssembly(this, assemblyFullPath, assembly, dependenciesMapping);
                         loadedAssemblies.Add(loadedAssembly);
                         loadedAssembliesByName.Add(assemblyFullPath, loadedAssembly);
