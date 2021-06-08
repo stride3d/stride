@@ -69,7 +69,15 @@ namespace Stride.PackageInstall
             }
         }
 
-        private static int RunProgramAndAskUntilSuccess(string programName, string fileName, string arguments, Func<string, Process, bool> processError)
+        enum RunProgramResult
+        {
+            Retry,
+            Ignore,
+            Success,
+            Abort,
+        }
+
+        private static int RunProgramAndAskUntilSuccess(string programName, string fileName, string arguments, Func<string, Process, RunProgramResult> processError)
         {
         TryAgain:
             try
@@ -83,9 +91,16 @@ namespace Stride.PackageInstall
                 prerequisitesInstallerProcess.WaitForExit();
                 if (prerequisitesInstallerProcess.ExitCode != 0)
                 {
-                    if (!processError(programName, prerequisitesInstallerProcess))
-                        return prerequisitesInstallerProcess.ExitCode;
-                    goto TryAgain;
+                    switch (processError(programName, prerequisitesInstallerProcess))
+                    {
+                        case RunProgramResult.Ignore:
+                        case RunProgramResult.Success:
+                            return 0;
+                        case RunProgramResult.Retry:
+                            goto TryAgain;
+                        case RunProgramResult.Abort:
+                            return prerequisitesInstallerProcess.ExitCode;
+                    }
                 }
                 return 0;
             }
@@ -105,13 +120,22 @@ namespace Stride.PackageInstall
             }
         }
 
-        private static bool DialogBoxTryAgain(string programName, Process process)
+        private static RunProgramResult DialogBoxTryAgain(string programName, Process process)
         {
-            var result = MessageBox.Show($"The installation of {programName} returned with code {process.ExitCode}.\r\nDo you want to try it again?", "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            return result == DialogResult.Yes;
+            var result = MessageBox.Show($"The installation of {programName} returned with code {process.ExitCode}.\r\nDo you want to try it again?", "Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Question);
+            switch (result)
+            {
+                case DialogResult.Abort:
+                    return RunProgramResult.Abort;
+                case DialogResult.Retry:
+                    return RunProgramResult.Retry;
+                case DialogResult.Ignore:
+                    return RunProgramResult.Ignore;
+            }
+            return RunProgramResult.Success;
         }
 
-        private static bool DialogBoxTryAgainVS(string programName, Process process)
+        private static RunProgramResult DialogBoxTryAgainVS(string programName, Process process, string extraMessage)
         {
             var additionalErrorLines = FindVisualStudioInstallerErrors();
             var updateError = additionalErrorLines.FirstOrDefault(x => x.Contains("UpdateRequiredException"));
@@ -122,21 +146,30 @@ namespace Stride.PackageInstall
                 var webClient = new WebClient();
                 if (downloadUrl.Success && TryDownloadAndExecuteVSSetup(downloadUrl.Value))
                 {
-                    return true;
+                    return RunProgramResult.Success;
                 }
                 else
                 {
                     Process.Start(process.StartInfo.FileName);
                     var result2 = MessageBox.Show($"It seems Visual Studio Installer needs to self-update.\r\nWe're running it for you, please click Update, and then click OK on this dialog box only once the Update is done.", "Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-                    return result2 == DialogResult.OK;
+                    return result2 == DialogResult.OK ? RunProgramResult.Success : RunProgramResult.Abort;
                 }
             }    
             var additionalErrors = string.Join(Environment.NewLine, additionalErrorLines);
             if (additionalErrors.Length > 0)
                 additionalErrors = "\r\n\r\nAdditional details from log files:\r\n\r\n" + additionalErrors;
 
-            var result = MessageBox.Show($"The installation of {programName} returned with code {process.ExitCode}.\r\nDo you want to try it again?{additionalErrors}", "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            return result == DialogResult.Yes;
+            var result = MessageBox.Show($"The installation of {programName} returned with code {process.ExitCode}.\r\n{extraMessage}Do you want to try it again?{additionalErrors}", "Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Question);
+            switch (result)
+            {
+                case DialogResult.Abort:
+                    return RunProgramResult.Abort;
+                case DialogResult.Retry:
+                    return RunProgramResult.Retry;
+                case DialogResult.Ignore:
+                    return RunProgramResult.Ignore;
+            }
+            return RunProgramResult.Success;
         }
 
         private static bool TryDownloadAndExecuteVSSetup(string vsSetupUrl)
@@ -195,12 +228,11 @@ namespace Stride.PackageInstall
 
                     // Second, check workloads
                     {
-                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --noUpdateInstaller --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\" {string.Join(" ", NecessaryVS2019Workloads.Select(x => $"--add {x.Id}"))}", DialogBoxTryAgainVS);
+                        var extraMessage = $"\r\nPlease manually install the following workloads / components using \"Visual Studio Installer\":\r\n  - {string.Join("\r\n - ", NecessaryVS2019Workloads.Where(workload => !existingVisualStudio2019Install.PackageVersions.ContainsKey(workload.Id)).Select(workload => workload.Name))}\r\n\r\n";
+                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --noUpdateInstaller --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\" {string.Join(" ", NecessaryVS2019Workloads.Select(x => $"--add {x.Id}"))}", (programName, process) => DialogBoxTryAgainVS(programName, process, extraMessage));
                         if (vsInstallerExitCode != 0)
                         {
-                            var errorMessage = $"Visual Studio 2019 install failed with error {vsInstallerExitCode}\r\n\r\nPlease manually install the following workloads/components using \"Visual Studio Installer\":\r\n  - {string.Join("\r\n  - ", NecessaryVS2019Workloads.Where(workload => !existingVisualStudio2019Install.PackageVersions.ContainsKey(workload.Id)).Select(workload => workload.Name))}";
-                            MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            throw new InvalidOperationException(errorMessage);
+                            throw new InvalidOperationException($"Visual Studio 2019 install failed with error {vsInstallerExitCode}");
                         }
                     }
 
@@ -234,7 +266,7 @@ namespace Stride.PackageInstall
                     if (buildToolsCommandLine != null)
                     {
                         // Run vs_buildtools again
-                        RunProgramAndAskUntilSuccess("Build Tools", "vs_buildtools.exe", buildToolsCommandLine, DialogBoxTryAgainVS);
+                        RunProgramAndAskUntilSuccess("Build Tools", "vs_buildtools.exe", buildToolsCommandLine, (programName, process) => DialogBoxTryAgainVS(programName, process, string.Empty));
                     }
                 }
             }
@@ -246,7 +278,7 @@ namespace Stride.PackageInstall
             {
                 // Not sure why, but it seems VS Update is sometimes sending Ctrl+C to our process...
                 Console.CancelKeyPress += Console_IgnoreControlC;
-                var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"update --noUpdateInstaller --passive --norestart --installPath \"{existingVisualStudioInstall.InstallationPath}\"", DialogBoxTryAgainVS);
+                var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"update --noUpdateInstaller --passive --norestart --installPath \"{existingVisualStudioInstall.InstallationPath}\"", (programName, process) => DialogBoxTryAgainVS(programName, process, string.Empty));
                 if (vsInstallerExitCode != 0)
                 {
                     var errorMessage = $"{existingVisualStudioInstall.DisplayName} update failed with error {vsInstallerExitCode}";
