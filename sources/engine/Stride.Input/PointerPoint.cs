@@ -31,13 +31,18 @@ namespace Stride.Input
         public int Id;
 
         /// <summary>
+        /// The original, unmodified pointer ID as provided by the OS
+        /// </summary>
+        public uint SystemId;
+
+        /// <summary>
         /// The device to which this pointer belongs
         /// </summary>
         public IPointerDevice Pointer;
 
         public override string ToString()
         {
-            return $"Pointer [{Id}] {nameof(Position)}: {Position}, {nameof(Delta)}: {Delta}, {nameof(IsDown)}: {IsDown}, {nameof(Pointer)}: {Pointer}";
+            return $"Pointer [{Id}] {nameof(Position)}: {Position}, {nameof(Delta)}: {Delta}, {nameof(IsDown)}: {IsDown}, {nameof(Pointer)}: {Pointer}, {nameof(SystemId)}: {SystemId}";
         }
     }
 }

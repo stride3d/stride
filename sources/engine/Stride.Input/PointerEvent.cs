@@ -20,6 +20,13 @@ namespace Stride.Input
         public int PointerId { get; internal set; }
 
         /// <summary>
+        /// The original, unmodified id as provided by the OS. See remarks.
+        /// </summary>
+        /// <value>The system pointer id.</value>
+        /// <remarks>On Windows this is a unique id, endlessly counting up from 0, never reusing id's that became free when a touch was removed.</remarks>
+        public uint SystemPointerId { get; internal set; }
+
+        /// <summary>
         /// Gets the absolute screen position of the pointer.
         /// </summary>
         /// <value>The absolute delta position.</value>
@@ -67,7 +74,7 @@ namespace Stride.Input
 
         public override string ToString()
         {
-            return $"Pointer {PointerId} {EventType}, {AbsolutePosition}, Delta: {AbsoluteDeltaPosition}, DT: {DeltaTime}, {nameof(IsDown)}: {IsDown}, {nameof(Pointer)}: {Pointer.Name}";
+            return $"Pointer {PointerId} {EventType}, {AbsolutePosition}, Delta: {AbsoluteDeltaPosition}, DT: {DeltaTime}, {nameof(IsDown)}: {IsDown}, {nameof(Pointer)}: {Pointer.Name}, {nameof(SystemPointerId)}: {SystemPointerId}";
         }
 
         /// <summary>
@@ -80,6 +87,7 @@ namespace Stride.Input
             {
                 Device = Device,
                 PointerId = PointerId,
+                SystemPointerId = SystemPointerId,
                 Position = Position,
                 DeltaPosition = DeltaPosition,
                 DeltaTime = DeltaTime,
