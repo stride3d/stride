@@ -78,6 +78,7 @@ namespace Stride.Input
             var pointerEvent = InputEventPool<PointerEvent>.GetOrCreate(SourceDevice);
             pointerEvent.Position = evt.Position;
             pointerEvent.PointerId = evt.Id;
+            pointerEvent.SystemPointerId = evt.SystemId;
             pointerEvent.EventType = evt.Type;
             UpdatePointerState(pointerEvent);
 
@@ -92,6 +93,7 @@ namespace Stride.Input
         {
             var data = GetPointerData(evt.PointerId);
             data.Id = evt.PointerId;
+            data.SystemId = evt.SystemPointerId;
 
             if (updateDelta)
             {
@@ -174,6 +176,7 @@ namespace Stride.Input
             public Vector2 Position;
             public Vector2 Delta;
             public int Id;
+            public uint SystemId;
         }
     }
 }

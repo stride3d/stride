@@ -95,7 +95,7 @@ namespace Stride.Input
         {
             var newPosition = new Vector2(e.x, e.y);
             var id = GetFingerId(e.fingerId, type);
-            PointerState.PointerInputEvents.Add(new PointerDeviceState.InputEvent { Type = type, Position = newPosition, Id = id });
+            PointerState.PointerInputEvents.Add(new PointerDeviceState.InputEvent { Type = type, Position = newPosition, Id = id, SystemId = (uint) e.fingerId});
         }
 
         private void OnFingerMoveEvent(SDL.SDL_TouchFingerEvent e)
