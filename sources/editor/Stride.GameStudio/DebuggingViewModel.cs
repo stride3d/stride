@@ -168,14 +168,14 @@ namespace Stride.GameStudio
                     if (!trackAssemblyChanges || assemblyChange == null)
                         continue;
 
-                    // Ignore Binary changes
-                    if (assemblyChange.ChangeType == AssemblyChangeType.Binary)
+                    if (assemblyChange.Project != null && assemblyChange.ChangeType == AssemblyChangeType.Binary)
                         continue;
 
                     var shouldNotify = !assemblyChangesPending;
                     modifiedAssemblies[assemblyChange.Assembly] = new ModifiedAssembly
                     {
                         LoadedAssembly = assemblyChange.Assembly,
+                        LoadedAssemblyPath = assemblyChange.Assembly.Path,
                         ChangeType = assemblyChange.ChangeType,
                         Project = assemblyChange.Project
                     };

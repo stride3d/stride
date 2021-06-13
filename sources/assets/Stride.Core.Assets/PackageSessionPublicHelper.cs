@@ -81,12 +81,14 @@ namespace Stride.Core.Assets
             const string MSBUILD_EXE_PATH = nameof(MSBUILD_EXE_PATH);
             const string MSBuildExtensionsPath = nameof(MSBuildExtensionsPath);
             const string MSBuildSDKsPath = nameof(MSBuildSDKsPath);
+            const string DOTNET_HOST_PATH = nameof(DOTNET_HOST_PATH);
 
             var variables = new Dictionary<string, string>
             {
                 [MSBUILD_EXE_PATH] = dotNetSdkPath + "MSBuild.dll",
                 [MSBuildExtensionsPath] = dotNetSdkPath,
-                [MSBuildSDKsPath] = dotNetSdkPath + "Sdks"
+                [MSBuildSDKsPath] = dotNetSdkPath + "Sdks",
+                [DOTNET_HOST_PATH] = dotNetSdkPath + "../../dotnet.exe"
             };
 
             foreach (var kvp in variables)

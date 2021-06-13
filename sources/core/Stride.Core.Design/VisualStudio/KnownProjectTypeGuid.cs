@@ -38,5 +38,6 @@ namespace Stride.Core.VisualStudio
         public static readonly Guid Setup = new Guid("54435603-DBB4-11D2-8724-00A0C9A8B90C");
         public static readonly Guid WebProject = new Guid("E24C65DC-7377-472B-9ABA-BC803B73C61A");
         public static readonly Guid CSharpNewSystem = new Guid("9A19103F-16F7-4668-BE54-9A1E7A4F7556");
+        public static readonly Guid FSharpNewSystem = new Guid("6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705");
     }
 }

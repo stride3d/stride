@@ -17,6 +17,7 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StrideLocalized>true</StrideLocalized>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
     <StrideNuGetResolverUX>true</StrideNuGetResolverUX>
     <StrideSTAThreadOnMain>true</StrideSTAThreadOnMain>
     <UseWPF>true</UseWPF>

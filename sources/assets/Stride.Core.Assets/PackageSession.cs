@@ -815,7 +815,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                         // Note: using ToList() because upgrade from old package system might change Projects list
                         foreach (var vsProject in solution.Projects.ToList())
                         {
-                            if (vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharpNewSystem)
+                            if (vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharpNewSystem || vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.FSharpNewSystem)
                             {
                                 var project = (SolutionProject)session.LoadProject(sessionResult, vsProject.FullPath, loadParameters);
                                 project.VSProject = vsProject;
