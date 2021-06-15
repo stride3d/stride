@@ -946,8 +946,8 @@ namespace Stride.Graphics
             int sizeOfTextureData = textureDepthStride * depth;
 
             // Check size validity of data to copy to
-            if (fromData.Size != sizeOfTextureData)
-                throw new ArgumentException($"Size of toData ({fromData.Size} bytes) is not compatible expected size ({sizeOfTextureData} bytes) : Width * Height * Depth * sizeof(PixelFormat) size in bytes");
+            if (fromData.Size < sizeOfTextureData)
+                throw new ArgumentException($"Size of fromData ({fromData.Size} bytes) is not compatible expected size must be at least {sizeOfTextureData} bytes : Width * Height * Depth * sizeof(PixelFormat) size in bytes");
 
             // Calculate the subResourceIndex for a Texture
             int subResourceIndex = this.GetSubResourceIndex(arraySlice, mipSlice);
