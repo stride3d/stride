@@ -5,6 +5,7 @@
 
   <!-- Setup GraphicsApi (we do it even if StrideGraphicsApiDependent is not set to true, so that ProjectReference works) -->
   <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
     <!-- Check if we have override -->
     <StrideGraphicsApis Condition="'$(StrideGraphicsApisTest)' != ''">$(StrideGraphicsApisTest)</StrideGraphicsApis>
     
@@ -15,6 +16,15 @@
     <!-- Setup default GraphicsApi-->
     <StrideGraphicsApi Condition="'$(StrideGraphicsApi)' == '' And '$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideGraphicsApi>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\assets\Stride.Core.Assets.CompilerApp\Stride.Core.Assets.CompilerApp.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+  </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)Stride.PackageVersion.targets"/>
 
@@ -33,10 +43,6 @@
          However, that means that Tests dependencies must be compiled properly on Windows (should be the case usually).
     -->
     <StrideCompileAssetOptions>--compile-property:BuildProjectReferences=false</StrideCompileAssetOptions>
-
-    <!-- Workaround for solution dependencies with incompatible frameworks: https://github.com/Microsoft/msbuild/issues/2661#issuecomment-338808156 -->
-    <AddSyntheticProjectReferencesForSolutionDependencies>false</AddSyntheticProjectReferencesForSolutionDependencies>
-
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' != 'true'">
@@ -77,7 +83,12 @@
     <None Update="**\*.sdfx" Generator="StrideEffectCodeGenerator" />
   </ItemGroup>
 
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
+  <ItemGroup>
+    <PackageReference Include="TeamCity.VSTest.TestAdapter" Version="1.0.23" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+  </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Condition="'$(IsCrossTargetingBuild)' == 'true'" Project="$(MSBuildThisFileDirectory)Stride.UnitTests.CrossTargeting.targets"/>
 
   <!-- Add Default targets used by Msbuild for undefined Platforms / or when skipping compilation under a platform -->
@@ -85,7 +96,6 @@
 
   <!-- This needs to be after Sdk.targets -->
   <Import Project="$(MSBuildThisFileDirectory)..\core\Stride.Core\build\Stride.Core.targets"/>
-  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.RuntimeIdentifier.ProjectReference.targets"/>
   <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.PackageReference.targets"/>
   <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApi.Dev.targets"/>
   <Import Condition="'$(StrideCompileAssets)' == 'true' And '$(StrideCompilerTargetsEnable)' != 'false'" Project="$(MSBuildThisFileDirectory)..\assets\Stride.Core.Assets.CompilerApp\build\Stride.Core.Assets.CompilerApp.targets"/>

@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_DIRECT3D12
 using System;
@@ -779,7 +779,7 @@ namespace Stride.Graphics
                     {
                         var size = destinationTexture.ComputeBufferTotalSize();
                         var destinationMapped = destinationTexture.NativeResource.Map(0);
-                        var sourceMapped = sourceTexture.NativeResource.Map(0, new Range { Begin = 0, End = size });
+                        var sourceMapped = sourceTexture.NativeResource.Map(0, new SharpDX.Direct3D12.Range { Begin = 0, End = size });
 
                         Utilities.CopyMemory(destinationMapped, sourceMapped, size);
 

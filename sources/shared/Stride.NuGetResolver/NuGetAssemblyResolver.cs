@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -155,6 +155,11 @@ namespace Stride.Core.Assets
                         }
                         catch (Exception e)
                         {
+#if STRIDE_NUGET_RESOLVER_UX
+                            logger.LogError($@"Error restoring NuGet packages: {e}");
+                            dialogClosed.Task.Wait();
+#else
+                            // Display log in console
                             var logText = $@"Error restoring NuGet packages!
 
 ==== Exception details ====
@@ -165,10 +170,6 @@ namespace Stride.Core.Assets
 
 {string.Join(Environment.NewLine, logger.Logs.Select(x => $"[{x.Level}] {x.Message}"))}
 ";
-#if STRIDE_NUGET_RESOLVER_UX
-                            dialogClosed.Task.Wait();
-#else
-                            // Display log in console
                             Console.WriteLine(logText);
 #endif
                             Environment.Exit(1);

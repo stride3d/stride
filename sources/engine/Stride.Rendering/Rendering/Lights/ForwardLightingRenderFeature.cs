@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -614,6 +614,10 @@ namespace Stride.Rendering.Lights
             {
                 // Find lights
                 var lightCollection = activeRenderer.LightGroup.FindLightCollectionByGroup(group);
+
+                // Light collections aren't cleared (see ClearCache). Can be null after switching to empty scenes.
+                if (lightCollection is null)
+                    continue;
 
                 // Indices of lights in lightCollection that need processing
                 lightIndicesToProcess.Clear();

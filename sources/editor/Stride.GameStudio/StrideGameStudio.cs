@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable 436 // The type 'type' in 'assembly' conflicts with the imported type 'type2' in 'assembly' (due to StrideVersion being duplicated)
 
@@ -29,7 +29,7 @@ namespace Stride.GameStudio
         public static string EditorVersionMajor => new System.Version(StrideVersion.PublicVersion).ToString(2);
 
         [NotNull]
-        public static string AnswersUrl => "http://answers.stride3d.net/";
+        public static string AnswersUrl => "https://gamedev.stackexchange.com/tags/stride"; // #706
 
         [NotNull]
         public static string DocumentationUrl => $"https://doc.stride3d.net/{EditorVersionMajor}/";

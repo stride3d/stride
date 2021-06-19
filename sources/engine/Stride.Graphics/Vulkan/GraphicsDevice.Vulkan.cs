@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
@@ -430,9 +430,7 @@ namespace Stride.Graphics
                 typeBits >>= 1;
             }
 
-            fixed (VkDeviceMemory* nativeUploadBufferMemoryPtr = &nativeUploadBufferMemory)
-                vkAllocateMemory(NativeDevice, &allocateInfo, null, nativeUploadBufferMemoryPtr);
-
+            vkAllocateMemory(NativeDevice, &allocateInfo, null, out nativeUploadBufferMemory);
             vkBindBufferMemory(NativeDevice, nativeUploadBuffer, nativeUploadBufferMemory, 0);
         }
 
@@ -809,52 +807,52 @@ namespace Stride.Graphics
 
         public static unsafe implicit operator NativeResource(VkBuffer handle)
         {
-            return new NativeResource(VkDebugReportObjectTypeEXT.BufferEXT, *(ulong*)&handle);
+            return new NativeResource(VkDebugReportObjectTypeEXT.Buffer, *(ulong*)&handle);
         }
 
         public static unsafe implicit operator NativeResource(VkBufferView handle)
         {
-            return new NativeResource(VkDebugReportObjectTypeEXT.BufferViewEXT, *(ulong*)&handle);
+            return new NativeResource(VkDebugReportObjectTypeEXT.BufferView, *(ulong*)&handle);
         }
 
         public static unsafe implicit operator NativeResource(VkImage handle)
         {
-            return new NativeResource(VkDebugReportObjectTypeEXT.ImageEXT, *(ulong*)&handle);
+            return new NativeResource(VkDebugReportObjectTypeEXT.Image, *(ulong*)&handle);
         }
 
         public static unsafe implicit operator NativeResource(VkImageView handle)
         {
-            return new NativeResource(VkDebugReportObjectTypeEXT.ImageViewEXT, *(ulong*)&handle);
+            return new NativeResource(VkDebugReportObjectTypeEXT.ImageView, *(ulong*)&handle);
         }
 
         public static unsafe implicit operator NativeResource(VkDeviceMemory handle)
         {
-            return new NativeResource(VkDebugReportObjectTypeEXT.DeviceMemoryEXT, *(ulong*)&handle);
+            return new NativeResource(VkDebugReportObjectTypeEXT.DeviceMemory, *(ulong*)&handle);
         }
 
         public static unsafe implicit operator NativeResource(VkSampler handle)
         {
-            return new NativeResource(VkDebugReportObjectTypeEXT.SamplerEXT, *(ulong*)&handle);
+            return new NativeResource(VkDebugReportObjectTypeEXT.Sampler, *(ulong*)&handle);
         }
 
         public static unsafe implicit operator NativeResource(VkFramebuffer handle)
         {
-            return new NativeResource(VkDebugReportObjectTypeEXT.FramebufferEXT, *(ulong*)&handle);
+            return new NativeResource(VkDebugReportObjectTypeEXT.Framebuffer, *(ulong*)&handle);
         }
 
         public static unsafe implicit operator NativeResource(VkSemaphore handle)
         {
-            return new NativeResource(VkDebugReportObjectTypeEXT.SemaphoreEXT, *(ulong*)&handle);
+            return new NativeResource(VkDebugReportObjectTypeEXT.Semaphore, *(ulong*)&handle);
         }
 
         public static unsafe implicit operator NativeResource(VkFence handle)
         {
-            return new NativeResource(VkDebugReportObjectTypeEXT.FenceEXT, *(ulong*)&handle);
+            return new NativeResource(VkDebugReportObjectTypeEXT.Fence, *(ulong*)&handle);
         }
 
         public static unsafe implicit operator NativeResource(VkQueryPool handle)
         {
-            return new NativeResource(VkDebugReportObjectTypeEXT.QueryPoolEXT, *(ulong*)&handle);
+            return new NativeResource(VkDebugReportObjectTypeEXT.QueryPool, *(ulong*)&handle);
         }
 
         public unsafe void Destroy(GraphicsDevice device)
@@ -863,34 +861,34 @@ namespace Stride.Graphics
 
             switch (type)
             {
-                case VkDebugReportObjectTypeEXT.BufferEXT:
+                case VkDebugReportObjectTypeEXT.Buffer:
                     vkDestroyBuffer(device.NativeDevice, *(VkBuffer*)&handleCopy, null);
                     break;
-                case VkDebugReportObjectTypeEXT.BufferViewEXT:
+                case VkDebugReportObjectTypeEXT.BufferView:
                     vkDestroyBufferView(device.NativeDevice, *(VkBufferView*)&handleCopy, null);
                     break;
-                case VkDebugReportObjectTypeEXT.ImageEXT:
+                case VkDebugReportObjectTypeEXT.Image:
                     vkDestroyImage(device.NativeDevice, *(VkImage*)&handleCopy, null);
                     break;
-                case VkDebugReportObjectTypeEXT.ImageViewEXT:
+                case VkDebugReportObjectTypeEXT.ImageView:
                     vkDestroyImageView(device.NativeDevice, *(VkImageView*)&handleCopy, null);
                     break;
-                case VkDebugReportObjectTypeEXT.DeviceMemoryEXT:
+                case VkDebugReportObjectTypeEXT.DeviceMemory:
                     vkFreeMemory(device.NativeDevice, *(VkDeviceMemory*)&handleCopy, null);
                     break;
-                case VkDebugReportObjectTypeEXT.SamplerEXT:
+                case VkDebugReportObjectTypeEXT.Sampler:
                     vkDestroySampler(device.NativeDevice, *(VkSampler*)&handleCopy, null);
                     break;
-                case VkDebugReportObjectTypeEXT.FramebufferEXT:
+                case VkDebugReportObjectTypeEXT.Framebuffer:
                     vkDestroyFramebuffer(device.NativeDevice, *(VkFramebuffer*)&handleCopy, null);
                     break;
-                case VkDebugReportObjectTypeEXT.SemaphoreEXT:
+                case VkDebugReportObjectTypeEXT.Semaphore:
                     vkDestroySemaphore(device.NativeDevice, *(VkSemaphore*)&handleCopy, null);
                     break;
-                case VkDebugReportObjectTypeEXT.FenceEXT:
+                case VkDebugReportObjectTypeEXT.Fence:
                     vkDestroyFence(device.NativeDevice, *(VkFence*)&handleCopy, null);
                     break;
-                case VkDebugReportObjectTypeEXT.QueryPoolEXT:
+                case VkDebugReportObjectTypeEXT.QueryPool:
                     vkDestroyQueryPool(device.NativeDevice, *(VkQueryPool*)&handleCopy, null);
                     break;
             }

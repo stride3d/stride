@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -15,19 +15,13 @@ namespace Stride.Core.Native
     {
 #if STRIDE_PLATFORM_IOS
         internal const string Library = "__Internal";
-        internal const string LibraryName = "libcore.so";
 #else
         internal const string Library = "libcore";
-#if STRIDE_PLATFORM_WINDOWS
-        internal const string LibraryName = "libcore.dll";
-#else
-        internal const string LibraryName = "libcore.so";
-#endif
 #endif
 
         static NativeInvoke()
         {
-            NativeLibrary.PreloadLibrary(LibraryName, typeof(NativeInvoke));
+            NativeLibraryHelper.PreloadLibrary("libcore", typeof(NativeInvoke));
         }
 
         /// <summary>

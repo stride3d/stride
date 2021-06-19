@@ -1,0 +1,19 @@
+{
+  "solution": {
+    "path": "Stride.sln",
+    "projects": [
+      "..\\sources\\assets\\Stride.Core.Assets.Quantum.Tests\\Stride.Core.Assets.Quantum.Tests.csproj",
+      "..\\sources\\assets\\Stride.Core.Assets.Tests\\Stride.Core.Assets.Tests.csproj",
+      "..\\sources\\buildengine\\Stride.Core.BuildEngine.Tests\\Stride.Core.BuildEngine.Tests.csproj",
+      "..\\sources\\core\\Stride.Core.Design.Tests\\Stride.Core.Design.Tests.csproj",
+      "..\\sources\\core\\Stride.Core.Tests\\Stride.Core.Tests.csproj",
+      "..\\sources\\core\\Stride.Core.Yaml.Tests\\Stride.Core.Yaml.Tests.csproj",
+      "..\\sources\\editor\\Stride.Core.Assets.Editor.Tests\\Stride.Core.Assets.Editor.Tests.csproj",
+      "..\\sources\\editor\\Stride.GameStudio.Tests\\Stride.GameStudio.Tests.csproj",
+      "..\\sources\\engine\\Stride.Shaders.Tests\\Stride.Shaders.Tests.Windows.csproj",
+      "..\\sources\\presentation\\Stride.Core.Presentation.Quantum.Tests\\Stride.Core.Presentation.Quantum.Tests.csproj",
+      "..\\sources\\presentation\\Stride.Core.Presentation.Tests\\Stride.Core.Presentation.Tests.csproj",
+      "..\\sources\\presentation\\Stride.Core.Quantum.Tests\\Stride.Core.Quantum.Tests.csproj"
+    ]
+  }
+}

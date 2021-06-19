@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
+using Stride.Rendering;
 using Color = Stride.Core.Mathematics.Color;
 
 namespace Stride.Profiling
@@ -49,7 +50,7 @@ namespace Stride.Profiling
 
         private Color4 textColor = Color.LightGreen;
 
-        private PresentInterval userPresentInterval = PresentInterval.Default;
+        private PresentInterval? userPresentInterval;
         private bool userMinimizedState = true;
 
         private int lastFrame = -1;
@@ -60,6 +61,11 @@ namespace Stride.Profiling
 
         private uint trianglesCount;
         private uint drawCallsCount;
+
+        /// <summary>
+        /// The render target where the profiling results should be rendered into. If null, the <see cref="Game.GraphicsDevice.Presenter.BackBuffer"/> is used.
+        /// </summary>
+        public Texture RenderTarget { get; set; }
 
         private struct ProfilingResult : IComparer<ProfilingResult>
         {
@@ -343,6 +349,9 @@ namespace Stride.Profiling
         /// <inheritdoc/>
         public override void Draw(GameTime gameTime)
         {
+            // Where to render the result?
+            var renderTarget = RenderTarget ?? Game.GraphicsDevice.Presenter.BackBuffer;
+
             // copy those values before fast text render not to influence the game stats
             drawCallsCount = GraphicsDevice.FrameDrawCalls;
             trianglesCount = GraphicsDevice.FrameTriangleCount;
@@ -351,7 +360,7 @@ namespace Stride.Profiling
             {
                 dumpTiming.Restart();
 
-                renderTargetSize = new Size2(Game.GraphicsContext.CommandList.RenderTarget.Width, Game.GraphicsContext.CommandList.RenderTarget.Height);
+                renderTargetSize = new Size2(renderTarget.Width, renderTarget.Height);
 
                 if (stringBuilderTask == null || stringBuilderTask.IsCompleted)
                 {
@@ -360,46 +369,50 @@ namespace Stride.Profiling
                 }
             }
 
-            viewportHeight = Game.GraphicsContext.CommandList.Viewport.Height;
+            var renderContext = RenderContext.GetShared(Services);
+            var renderDrawContext = renderContext.GetThreadContext();
 
             if (fastTextRenderer == null)
             {
-                fastTextRenderer = new FastTextRenderer(Game.GraphicsContext)
+                fastTextRenderer = new FastTextRenderer(renderDrawContext.GraphicsContext)
                 {
                     DebugSpriteFont = Content.Load<Texture>("StrideDebugSpriteFont"),
                     TextColor = TextColor,
                 };
             }
 
-            // TODO GRAPHICS REFACTOR where to get command list from?
-            Game.GraphicsContext.CommandList.SetRenderTargetAndViewport(null, Game.GraphicsDevice.Presenter.BackBuffer);
-            fastTextRenderer.Begin(Game.GraphicsContext);
-            lock (stringLock)
+            using (renderDrawContext.PushRenderTargetsAndRestore())
             {
-                var currentHeight = textDrawStartOffset.Y;
-                fastTextRenderer.DrawString(Game.GraphicsContext, fpsStatString, textDrawStartOffset.X, currentHeight);
-                currentHeight += TopRowHeight;
-
-                if (FilteringMode == GameProfilingResults.CpuEvents)
+                renderDrawContext.CommandList.SetRenderTargetAndViewport(null, renderTarget);
+                viewportHeight = renderDrawContext.CommandList.Viewport.Height;
+                fastTextRenderer.Begin(renderDrawContext.GraphicsContext);
+                lock (stringLock)
                 {
-                    fastTextRenderer.DrawString(Game.GraphicsContext, gcMemoryString, textDrawStartOffset.X, currentHeight);
+                    var currentHeight = textDrawStartOffset.Y;
+                    fastTextRenderer.DrawString(renderDrawContext.GraphicsContext, fpsStatString, textDrawStartOffset.X, currentHeight);
                     currentHeight += TopRowHeight;
-                    fastTextRenderer.DrawString(Game.GraphicsContext, gcCollectionsString, textDrawStartOffset.X, currentHeight);
-                    currentHeight += TopRowHeight;
-                }
-                else if (FilteringMode == GameProfilingResults.GpuEvents)
-                {
-                    fastTextRenderer.DrawString(Game.GraphicsContext, gpuGeneralInfoString, textDrawStartOffset.X, currentHeight);
-                    currentHeight += TopRowHeight;
-                    fastTextRenderer.DrawString(Game.GraphicsContext, gpuInfoString, textDrawStartOffset.X, currentHeight);
-                    currentHeight += TopRowHeight;
+
+                    if (FilteringMode == GameProfilingResults.CpuEvents)
+                    {
+                        fastTextRenderer.DrawString(renderDrawContext.GraphicsContext, gcMemoryString, textDrawStartOffset.X, currentHeight);
+                        currentHeight += TopRowHeight;
+                        fastTextRenderer.DrawString(renderDrawContext.GraphicsContext, gcCollectionsString, textDrawStartOffset.X, currentHeight);
+                        currentHeight += TopRowHeight;
+                    }
+                    else if (FilteringMode == GameProfilingResults.GpuEvents)
+                    {
+                        fastTextRenderer.DrawString(renderDrawContext.GraphicsContext, gpuGeneralInfoString, textDrawStartOffset.X, currentHeight);
+                        currentHeight += TopRowHeight;
+                        fastTextRenderer.DrawString(renderDrawContext.GraphicsContext, gpuInfoString, textDrawStartOffset.X, currentHeight);
+                        currentHeight += TopRowHeight;
+                    }
+
+                    if (FilteringMode != GameProfilingResults.Fps)
+                        fastTextRenderer.DrawString(renderDrawContext.GraphicsContext, profilersString, textDrawStartOffset.X, currentHeight);
                 }
 
-                if (FilteringMode != GameProfilingResults.Fps)
-                    fastTextRenderer.DrawString(Game.GraphicsContext, profilersString, textDrawStartOffset.X, currentHeight);
+                fastTextRenderer.End(renderDrawContext.GraphicsContext);
             }
-
-            fastTextRenderer.End(Game.GraphicsContext);
         }
 
         /// <summary>
@@ -419,10 +432,10 @@ namespace Stride.Profiling
             }
 
             // Backup current PresentInterval state
-            userPresentInterval = GraphicsDevice.Presenter.PresentInterval;
+            userPresentInterval = GraphicsDevice.Tags.Get(GraphicsPresenter.ForcedPresentInterval);
 
             // Disable VSync (otherwise GPU results might be incorrect)
-            GraphicsDevice.Presenter.PresentInterval = PresentInterval.Immediate;
+            GraphicsDevice.Tags.Set(GraphicsPresenter.ForcedPresentInterval, PresentInterval.Immediate);
 
             if (keys.Length == 0)
             {
@@ -459,8 +472,9 @@ namespace Stride.Profiling
             Visible = false;
 
             // Restore previous PresentInterval state
-            GraphicsDevice.Presenter.PresentInterval = userPresentInterval;
-            userPresentInterval = PresentInterval.Default;
+            GraphicsDevice.Tags.Set(GraphicsPresenter.ForcedPresentInterval, userPresentInterval);
+
+            userPresentInterval = default;
             if (Game != null)
                 Game.TreatNotFocusedLikeMinimized = userMinimizedState;
 

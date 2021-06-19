@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -43,7 +43,7 @@ namespace Stride.Input
                     var uwpContext = (GameContextUWPCoreWindow)context;
                     return new InputSourceUWP(uwpContext.Control);
 #endif
-#if STRIDE_PLATFORM_WINDOWS && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
+#if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
                 case AppContextType.Desktop:
                     var winformsContext = (GameContextWinforms)context;
                     return new InputSourceWinforms(winformsContext.Control);

@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -36,13 +36,7 @@ namespace Stride.Games
         /// </summary>
         public LaunchParameters()
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-#if !STRIDE_RUNTIME_CORECLR
             var args = Environment.GetCommandLineArgs();
-#else
-                // FIXME: Manu: Currently we cannot get the command line arguments in CoreCLR.
-            string[] args = new string [] { };
-#endif
 
             if (args.Length > 1)
             {
@@ -71,7 +65,6 @@ namespace Stride.Games
                     }
                 }
             }
-#endif
         }
     }
 }

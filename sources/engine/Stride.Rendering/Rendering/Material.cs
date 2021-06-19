@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -49,6 +49,10 @@ namespace Stride.Rendering
         public static Material New(GraphicsDevice device, MaterialDescriptor descriptor)
         {
             if (descriptor == null) throw new ArgumentNullException("descriptor");
+
+            // The descriptor is not assigned to the material because
+            // 1) we don't know whether it will mutate and be used to generate another material
+            // 2) we don't wanna hold on to memory we actually don't need
             var context = new MaterialGeneratorContext(new Material(), device)
             {
                 GraphicsProfile = device.Features.RequestedProfile,

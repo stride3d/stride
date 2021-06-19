@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -20,10 +20,11 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
+#if STRIDE_PLATFORM_DESKTOP
 using System;
 using System.IO;
 using System.Reflection;
+using Stride.Core;
 
 namespace Stride.Games
 {
@@ -32,9 +33,12 @@ namespace Stride.Games
         public GamePlatformDesktop(GameBase game) : base(game)
         {
             IsBlockingRun = true;
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP && STRIDE_RUNTIME_CORECLR
+#if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
+            if (Platform.Type == PlatformType.Windows)
+            {
                 // This is required by the Audio subsystem of SharpDX.
-            Win32Native.CoInitialize(IntPtr.Zero);
+                Win32Native.CoInitialize(IntPtr.Zero);
+            }
 #endif
         }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Runtime.InteropServices;
 
@@ -8,7 +8,7 @@ namespace Stride.Core.Native
     {
         static NativeLz4Base()
         {
-            NativeLibrary.PreloadLibrary(NativeInvoke.LibraryName, typeof(NativeLz4Base));
+            NativeLibraryHelper.PreloadLibrary(NativeInvoke.Library, typeof(NativeLz4Base));
         }
 
         [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]

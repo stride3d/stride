@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -17,11 +17,13 @@ namespace Stride.Input
             Priority = -1000;
             SetSurfaceSize(Vector2.One);
             Source = source;
+
+            Id = Guid.NewGuid();
         }
 
         public override string Name => "Simulated Mouse";
 
-        public override Guid Id => new Guid("B6B2EE26-23F2-4B8B-8431-529DBCF9AC83");
+        public override Guid Id { get; }
 
         public override bool IsPositionLocked => positionLocked;
 

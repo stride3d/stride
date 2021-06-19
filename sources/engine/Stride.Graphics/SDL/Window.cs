@@ -1,7 +1,8 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_UI_SDL
 using System;
+using Stride.Core;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics.SDL
@@ -30,15 +31,16 @@ namespace Stride.Graphics.SDL
             int res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
             // 4.2 is the lowest version we support.
             res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-#if STRIDE_PLATFORM_MACOS
-            res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1);
-#else
-            res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
-#endif
-
+            if (Platform.Type == PlatformType.macOS)
+                res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1);
+            else
+                res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
 #endif
             // Pass first mouse event when user clicked on window 
             SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+
+            // Don't leave fullscreen on focus loss
+            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
         }
 
         /// <summary>
@@ -69,16 +71,18 @@ namespace Stride.Graphics.SDL
                 {
                     throw new Exception("Cannot get Window information: " + SDL.SDL_GetError());
                 }
-                else
+                else if (Core.Platform.Type == Core.PlatformType.Windows)
                 {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
                     Handle = info.info.win.window;
-#elif STRIDE_PLATFORM_LINUX
+                }
+                else if (Core.Platform.Type == Core.PlatformType.Linux)
+                {
                     Handle = info.info.x11.window;
                     Display = info.info.x11.display;
-#elif STRIDE_PLATFORM_MACOS
+                }
+                else if (Core.Platform.Type == Core.PlatformType.macOS)
+                {
                     Handle = info.info.cocoa.window;
-#endif
                 }
                 Application.RegisterWindow(this);
                 Application.ProcessEvents();
@@ -159,6 +163,15 @@ namespace Stride.Graphics.SDL
         }
 
         /// <summary>
+        /// Minimize the window when focus is lost in fullscreen, default is false.
+        /// </summary>
+        public bool MinimizeOnFocusLoss
+        {
+            get { return SDL.SDL_GetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS) == "1"; }
+            set { SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, (value ? "1" : "0")); }
+        }
+
+        /// <summary>
         /// Show window. The first time a window is shown we execute any actions from <see cref="HandleCreated"/>.
         /// </summary>
         public void Show()
@@ -167,18 +180,36 @@ namespace Stride.Graphics.SDL
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether fullscreen mode should be a borderless window matching the desktop size.
+        /// Decides whether to set the SDL_WINDOW_FULLSCREEN_DESKTOP (fake fullscreen) or SDL_WINDOW_FULLSCREEN (real fullscreen) flag.
+        /// </summary>
+        public bool FullscreenIsBorderlessWindow { get; set; } = false;
+
+        /// <summary>
         /// Are we showing the window in full screen mode?
         /// </summary>
         public bool IsFullScreen
         {
             get
             {
-                return (SDL.SDL_GetWindowFlags(SdlHandle) & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0;
+                var flags = SDL.SDL_GetWindowFlags(SdlHandle);
+                return CheckFullscreenFlag(flags);
             }
             set
             {
-                SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)(value ? SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN : 0));
+                var fsFlag = GetFullscreenFlag();
+                SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)(value ? fsFlag : 0));
             }
+        }
+
+        private SDL.SDL_WindowFlags GetFullscreenFlag()
+        {
+            return FullscreenIsBorderlessWindow ? SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP : SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
+        }
+
+        private static bool CheckFullscreenFlag(uint flags)
+        {
+            return ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0) || ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) != 0);
         }
 
         /// <summary>
@@ -211,7 +242,7 @@ namespace Stride.Graphics.SDL
             get
             {
                 uint flags = SDL.SDL_GetWindowFlags(SdlHandle);
-                if ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0)
+                if (CheckFullscreenFlag(flags))
                 {
                     return FormWindowState.Fullscreen;
                 }
@@ -233,7 +264,7 @@ namespace Stride.Graphics.SDL
                 switch (value)
                 {
                     case FormWindowState.Fullscreen:
-                        SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                        SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)GetFullscreenFlag());
                         break;
                     case FormWindowState.Maximized:
                         SDL.SDL_MaximizeWindow(SdlHandle);
@@ -565,38 +596,10 @@ namespace Stride.Graphics.SDL
         /// </summary>
         public IntPtr Handle { get; private set; }
 
-#if STRIDE_PLATFORM_LINUX
         /// <summary>
-        /// Display of current Window.
+        /// Display of current Window (valid only for Unix for X11).
         /// </summary>
-        public IntPtr Display { get; private set;}
-
-        /// <summary>
-        /// Given a Xlib display pointer, returns the corresponding Xcb connection.
-        /// </summary>
-        /// <param name="display">The Xlib display pointer.</param>
-        /// <returns>A Xcb connection pointer.</returns>
-        [System.Runtime.InteropServices.DllImport("libX11-xcb")]
-        private static extern IntPtr XGetXCBConnection(IntPtr display);
-
-        /// <summary>
-        /// Associated XcbConnection for <see cref="Display"/>. Null pointer if none available.
-        /// </summary>
-        public IntPtr XcbConnection
-        {
-            get
-            {
-                try
-                {
-                    return XGetXCBConnection(Display);
-                }
-                catch (Exception)
-                {
-                    return IntPtr.Zero;
-                }
-            }
-        }
-#endif
+        public IntPtr Display { get; private set; }
 
         /// <summary>
         /// The SDL window handle.

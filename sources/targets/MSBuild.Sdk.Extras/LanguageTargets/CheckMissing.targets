@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <MSBuildAllProjects Condition=" '$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0' ">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <!-- Need to detect if the expected targets where actually imported and reset to common if not -->
+  <!-- Workaround for https://github.com/onovotny/MSBuildSdkExtras/issues/179 -->
+  <PropertyGroup Condition=" '$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0' ">
+    <_SdkLanguageTargetsMissing Condition="$(MSBuildAllProjects.Contains('Microsoft.Common.targets')) ">false</_SdkLanguageTargetsMissing>
+    <_SdkLanguageTargetsMissing Condition="'$(_SdkLanguageTargetsMissing)' == ''">true</_SdkLanguageTargetsMissing>
+  </PropertyGroup>
+
+  <!-- Check if the Common targets have been loaded, see https://github.com/onovotny/MSBuildSdkExtras/pull/186 -->
+  <!-- https://github.com/microsoft/msbuild/blob/d42d3504057ef2b88dd4f68c4bfc5591371bd6fe/src/Tasks/Microsoft.Common.targets#L32-L43 -->
+  <PropertyGroup Condition=" '$(CommonTargetsPath)' == '' Or '$(MSBuildVersion)' &gt;= '16.0' ">
+    <_SdkLanguageTargetsMissing Condition="'$(CommonTargetsPath)'!=''">false</_SdkLanguageTargetsMissing>
+    <_SdkLanguageTargetsMissing Condition="'$(_SdkLanguageTargetsMissing)' == ''">true</_SdkLanguageTargetsMissing>
+  </PropertyGroup>
+
+  <!-- Check to see if the Lang targets exist and if not, trigger an error on Compile -->
+  <!-- We clear out the lang targets so the defaults are used for the error to show -->
+  <PropertyGroup Condition="'$(_ExtrasSkipTargetsCheck)' != 'true' and '$(_SdkLanguageTargetsMissing)' == 'true' ">
+
+    <!-- Reset LanguageTargets Eval-->
+    <!-- https://github.com/dotnet/sdk/blob/581f5371dac022ad2b3e5bcdbb2e576bd73b5c4a/src/Tasks/Microsoft.NET.Build.Tasks/sdk/Sdk.targets#L28-L37 -->
+    <LanguageTargets></LanguageTargets>
+    <LanguageTargets Condition="'$(MSBuildProjectExtension)' == '.csproj'">$(MSBuildToolsPath)\Microsoft.CSharp.targets</LanguageTargets>
+    <LanguageTargets Condition="'$(MSBuildProjectExtension)' == '.vbproj'">$(MSBuildToolsPath)\Microsoft.VisualBasic.targets</LanguageTargets>
+    <LanguageTargets Condition="'$(MSBuildProjectExtension)' == '.fsproj'">$(MSBuildThisFileDirectory)..\targets\Microsoft.NET.Sdk.FSharpTargetsShim.targets</LanguageTargets>
+
+    <!-- If LanguageTargets isn't otherwise set, then just import the common targets.  This should allow the restore target to run,
+         which could bring in NuGet packages that set the LanguageTargets to something else.  This means support for different
+         languages could either be supplied via an SDK or via a NuGet package. -->
+    <LanguageTargets Condition="'$(LanguageTargets)' == ''">$(MSBuildToolsPath)\Microsoft.Common.targets</LanguageTargets>
+  </PropertyGroup>
+
+  <!-- Import common targets so NuGet restore succeeds -->
+  <!-- https://github.com/dotnet/sdk/blob/979eed136b786b6e2d77f567eb5a368952982740/src/Tasks/Microsoft.NET.Build.Tasks/sdk/Sdk.targets#L33 -->
+  <Import Condition=" '$(_SdkLanguageTargetsMissing)' == 'true' " Project="$(LanguageTargets)" />
+
+
+  <Target Name="_ShowMissingLanguageTargetsError" BeforeTargets="_CheckForUnsupportedTargetFramework" Condition="'$(_SdkLanguageTargetsMissing)' == 'true' and '$(_SdkIgnoreMissingLanguageTargetsError)' != 'true' ">
+    <Error Condition="'$(_SdkShortFrameworkIdentifier)' != 'portable'" Text="The specified language targets for $(TargetFramework) is missing. Ensure correct tooling is installed for '$(_SdkShortFrameworkIdentifier)'. Missing: '$(_SdkLanguageTargets)'"/>
+    <Error Condition="'$(_SdkShortFrameworkIdentifier)' == 'portable'" Text="The specified TFM '$(TargetFramework)' is not valid. Check that it's a valid combination: https://portablelibraryprofiles.stephencleary.com/"/>
+  </Target>
+
+</Project>

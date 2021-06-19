@@ -4,7 +4,6 @@
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
   <PropertyGroup>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePlatformDependent>true</StridePlatformDependent>
@@ -31,15 +30,8 @@
   </ItemGroup>
   <Choose>
     <When Condition="$(DefineConstants.Contains(STRIDE_VIDEO_FFMPEG))">
-      <ItemGroup Condition="'$(StridePlatform)' == 'Android'">
-        <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FFmpeg\$(StridePlatform)\**\*.so">
-          <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-          <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </StrideNativeLib>
-      </ItemGroup>
-      <ItemGroup Condition="'$(StridePlatform)' == 'Windows'">
-        <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FFmpeg\$(StridePlatform)\**\*.dll">
+      <ItemGroup>
+        <StrideNativeLib Include="$(MSBuildThisFileDirectory)..\..\..\deps\FFmpeg\$(StridePlatformDeps)\**\*.*" Exclude="$(MSBuildThisFileDirectory)..\..\..\deps\FFmpeg\$(StridePlatformDeps)\*.*">
           <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
           <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -51,5 +43,4 @@
     <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" Condition="'$(StridePlatform)' == 'Windows'" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
 </Project>

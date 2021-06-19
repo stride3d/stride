@@ -1,12 +1,12 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Math = System.Math;
 
 namespace Stride.Core.Threading
 {
@@ -17,7 +17,10 @@ namespace Stride.Core.Threading
         /// </summary>
         private class SemaphoreW
         {
+            private const int SpinSleep0Threshold = 10;
+            
             private static readonly int OptimalMaxSpinWaitsPerSpinIteration;
+            private static readonly int SpinMult;
             
             /// <summary>
             /// Eideren: Is not actually lifo, standard 2.0 doesn't have such constructs right now
@@ -25,6 +28,7 @@ namespace Stride.Core.Threading
             private readonly Semaphore lifoSemaphore;
             private readonly int spinCount;
             private Internals internals;
+            public uint SignalCount => internals.SignalCount;
             
             
             
@@ -39,17 +43,16 @@ namespace Stride.Core.Threading
                     opti = (int)f.GetValue(null);
                 }
                 OptimalMaxSpinWaitsPerSpinIteration = opti;
+                SpinMult = Environment.OSVersion.Platform == PlatformID.Unix ? 2 : 1;
             }
 
 
 
-            public SemaphoreW(int initialSignalCount, int spinCountParam)
+            public SemaphoreW(int spinCountParam)
             {
-                Debug.Assert(initialSignalCount >= 0);
                 Debug.Assert(spinCountParam >= 0);
 
                 internals = default;
-                internals._counts.SignalCount = (uint)initialSignalCount;
                 spinCount = spinCountParam;
 
                 lifoSemaphore = new Semaphore(0, int.MaxValue);
@@ -72,61 +75,11 @@ namespace Stride.Core.Threading
             [StructLayout(LayoutKind.Sequential)]
             private struct Internals
             {
-                private readonly PaddingFalseSharing _pad1;
-                public Counts _counts;
-                private readonly PaddingFalseSharing _pad2;
+                public uint SignalCount => _counts.SignalCount;
                 
-                public bool WaitForSignal(int timeoutMs, Semaphore lifoSemaphore)
-                {
-                    Debug.Assert(timeoutMs > 0 || timeoutMs == -1);
-
-                    while (true)
-                    {
-                        if (!lifoSemaphore.WaitOne(timeoutMs))
-                        {
-                            // Unregister the waiter. The wait subsystem used above guarantees that a thread that wakes due to a timeout does
-                            // not observe a signal to the object being waited upon.
-                            Counts toSubtract = default;
-                            toSubtract.WaiterCount++;
-                            Counts newCounts = Subtract(toSubtract);
-                            Debug.Assert(newCounts.WaiterCount != ushort.MaxValue); // Check for underflow
-                            return false;
-                        }
-
-                        var sw = new SpinWait();
-                        // Unregister the waiter if this thread will not be waiting anymore, and try to acquire the semaphore
-                        while (true)
-                        {
-                            Counts counts = _counts;
-                            Debug.Assert(counts.WaiterCount != 0);
-                            Counts newCounts = counts;
-                            if (counts.SignalCount != 0)
-                            {
-                                --newCounts.SignalCount;
-                                --newCounts.WaiterCount;
-                            }
-
-                            // This waiter has woken up and this needs to be reflected in the count of waiters signaled to wake
-                            if (counts.CountOfWaitersSignaledToWake != 0)
-                            {
-                                --newCounts.CountOfWaitersSignaledToWake;
-                            }
-
-                            Counts countsBeforeUpdate = CompareExchange(newCounts, counts);
-                            if (countsBeforeUpdate.AsLong == counts.AsLong)
-                            {
-                                if (counts.SignalCount != 0)
-                                {
-                                    return true;
-                                }
-
-                                break;
-                            }
-
-                            sw.SpinOnce();
-                        }
-                    }
-                }
+                private readonly PaddingFalseSharing _pad1;
+                private Counts _counts;
+                private readonly PaddingFalseSharing _pad2;
                 
                 public bool Wait(int spinCount, Semaphore lifoSemaphore, int timeoutMs)
                 {
@@ -137,10 +90,9 @@ namespace Stride.Core.Threading
                     // b) register as a waiter if there's already too many spinners or spinCount == 0 and timeoutMs > 0
                     // c) bail out if timeoutMs == 0 and return false
 
-                    SpinWait sw = new SpinWait();
+                    Counts counts = _counts;
                     do
                     {
-                        Counts counts = _counts;
                         Counts newCounts = counts;
 
                         if (counts.SignalCount != 0)
@@ -182,20 +134,21 @@ namespace Stride.Core.Threading
                             break;
                         }
 
-                        sw.SpinOnce();
+                        counts = countsBeforeUpdate;
                     } while (true);
 
+                    spinCount *= SpinMult;
+
                     // Waiting for signal as a spinner
-                    int spinIndex = 0;
-                    while (SingleCore == false && spinIndex < spinCount)
+                    int spinIndex = SingleCore == false ? 0 : SpinSleep0Threshold;
+                    while (spinIndex < spinCount)
                     {
                         Spin(spinIndex, 10);
                         spinIndex++;
 
                         // Try to acquire the semaphore and unregister as a spinner
-                        SpinWait compSW = new SpinWait();
-                        Counts counts;
-                        while ((counts = _counts).SignalCount > 0)
+                        counts = _counts;
+                        while (counts.SignalCount > 0)
                         {
                             Counts newCounts = counts;
                             newCounts.SignalCount--;
@@ -207,15 +160,14 @@ namespace Stride.Core.Threading
                                 return true;
                             }
 
-                            compSW.SpinOnce();
+                            counts = countsBeforeUpdate;
                         }
                     }
 
                     // Swap to waiter
-                    sw = new SpinWait();
+                    counts = _counts;
                     do
                     {
-                        Counts counts = _counts;
                         Counts newCounts = counts;
                         newCounts.SpinnerCount--;
                         if (counts.SignalCount != 0)
@@ -234,7 +186,7 @@ namespace Stride.Core.Threading
                             return counts.SignalCount != 0 || WaitForSignal(timeoutMs, lifoSemaphore);
                         }
 
-                        sw.SpinOnce();
+                        counts = countsBeforeUpdate;
                     } while (true);
                 }
                 
@@ -242,10 +194,10 @@ namespace Stride.Core.Threading
                 {
                     Debug.Assert(releaseCount > 0);
 
-                    var sw = new SpinWait();
+                    int countOfWaitersToWake;
+                    Counts counts = _counts;
                     do
                     {
-                        Counts counts = _counts;
                         Counts newCounts = counts;
 
                         // Increase the signal count. The addition doesn't overflow because of the limit on the max signal count in constructor.
@@ -254,9 +206,9 @@ namespace Stride.Core.Threading
 
                         // Determine how many waiters to wake, taking into account how many spinners and waiters there are and how many waiters
                         // have previously been signaled to wake but have not yet woken
-                        int countOfWaitersToWake = (int)Math.Min(newCounts.SignalCount, (uint)newCounts.WaiterCount + newCounts.SpinnerCount) -
-                                                   newCounts.SpinnerCount -
-                                                   newCounts.CountOfWaitersSignaledToWake;
+                        countOfWaitersToWake = (int)Math.Min(newCounts.SignalCount, (uint)counts.WaiterCount + counts.SpinnerCount) -
+                                               counts.SpinnerCount -
+                                               counts.CountOfWaitersSignaledToWake;
                         if (countOfWaitersToWake > 0)
                         {
                             // Ideally, limiting to a maximum of releaseCount would not be necessary and could be an assert instead, but since
@@ -270,11 +222,14 @@ namespace Stride.Core.Threading
 
                             // Cap countOfWaitersSignaledToWake to its max value. It's ok to ignore some woken threads in this count, it just
                             // means some more threads will be woken next time. Typically, it won't reach the max anyway.
-                            newCounts.CountOfWaitersSignaledToWake += (byte)Math.Min(countOfWaitersToWake, byte.MaxValue);
-                            if (newCounts.CountOfWaitersSignaledToWake <= counts.CountOfWaitersSignaledToWake)
+
+                            uint value = (uint)countOfWaitersToWake;
+                            uint availableCount = (uint)(byte.MaxValue - newCounts.CountOfWaitersSignaledToWake);
+                            if (value > availableCount)
                             {
-                                newCounts.CountOfWaitersSignaledToWake = byte.MaxValue;
+                                value = availableCount;
                             }
+                            newCounts.CountOfWaitersSignaledToWake += (byte)value;
                         }
 
                         Counts countsBeforeUpdate = CompareExchange(newCounts, counts);
@@ -282,12 +237,62 @@ namespace Stride.Core.Threading
                         {
                             if (countOfWaitersToWake > 0)
                                 lifoSemaphore.Release(countOfWaitersToWake);
-
                             return;
                         }
 
-                        sw.SpinOnce();
+                        counts = countsBeforeUpdate;
                     } while (true);
+                }
+                
+                public bool WaitForSignal(int timeoutMs, Semaphore lifoSemaphore)
+                {
+                    Debug.Assert(timeoutMs > 0 || timeoutMs == -1);
+
+                    while (true)
+                    {
+                        if (!lifoSemaphore.WaitOne(timeoutMs))
+                        {
+                            // Unregister the waiter. The wait subsystem used above guarantees that a thread that wakes due to a timeout does
+                            // not observe a signal to the object being waited upon.
+                            Counts toSubtract = default;
+                            toSubtract.WaiterCount++;
+                            Counts newCounts = Subtract(toSubtract);
+                            Debug.Assert(newCounts.WaiterCount != ushort.MaxValue); // Check for underflow
+                            return false;
+                        }
+
+                        // Unregister the waiter if this thread will not be waiting anymore, and try to acquire the semaphore
+                        Counts counts = _counts;
+                        while (true)
+                        {
+                            Debug.Assert(counts.WaiterCount != 0);
+                            Counts newCounts = counts;
+                            if (counts.SignalCount != 0)
+                            {
+                                --newCounts.SignalCount;
+                                --newCounts.WaiterCount;
+                            }
+
+                            // This waiter has woken up and this needs to be reflected in the count of waiters signaled to wake
+                            if (counts.CountOfWaitersSignaledToWake != 0)
+                            {
+                                --newCounts.CountOfWaitersSignaledToWake;
+                            }
+
+                            Counts countsBeforeUpdate = CompareExchange(newCounts, counts);
+                            if (countsBeforeUpdate.AsLong == counts.AsLong)
+                            {
+                                if (counts.SignalCount != 0)
+                                {
+                                    return true;
+                                }
+
+                                break;
+                            }
+
+                            counts = countsBeforeUpdate;
+                        }
+                    }
                 }
             
                 private static void Spin(int spinIndex, int sleep0Threshold)
@@ -327,7 +332,7 @@ namespace Stride.Core.Threading
                     // uninterruptible version of Sleep(0). Not doing Thread.Yield, it does not seem to have any
                     // benefit over Sleep(0).
                     Thread.Sleep(0);
-                    /*Thread.UninterruptibleSleep0();*/ // Eideren: Not a thing on standard 2.0, commented out for now
+                    /*Thread.UninterruptibleSleep0();*/ // Eideren: Not a thing on standard 2.0 and pointless since our implementation doesn't have area preventing thread interrupts
 
                     // Don't want to Sleep(1) in this spin wait:
                     //   - Don't want to spin for that long, since a proper wait will follow when the spin wait fails
@@ -356,9 +361,9 @@ namespace Stride.Core.Threading
 
             /// <summary>A size greater than or equal to the size of the most common CPU cache lines.</summary>
 #if TARGET_ARM64
-            public const int CACHE_LINE_SIZE = 128;
+            private const int CACHE_LINE_SIZE = 128;
 #else
-            public const int CACHE_LINE_SIZE = 64;
+            private const int CACHE_LINE_SIZE = 64;
 #endif
         }
     }

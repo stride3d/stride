@@ -11,13 +11,25 @@ Stride comes with an editor that allows you to create and manage the content of 
 
 To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
-## License
+## License and governance
+
+### .NET Foundation
+
+This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
+
+### License
 
 Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
 
 You can find the list of third party projects [here](THIRD%20PARTY.md).
 
 Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
+
+### Code of conduct
+
+Stride being a [.NET Foundation](https://www.dotnetfoundation.org/) project, it has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community.
+
+For more information see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct). 
 
 ## Documentation
 
@@ -60,10 +72,21 @@ Ask for help or report issues:
 2. Open `<StrideDir>\build\Stride.sln` with Visual Studio 2019 and build `Stride.GameStudio` (it should be the default startup project) or run it from VS's toolbar.
 * Optionally, open and build `Stride.Android.sln`, `Stride.iOS.sln`, etc.
 
+### Build Stride without Visual Studio
+
+1. Install VS build tools with the same prerequisites listed above
+2. Add MSBuild's directory to your system's *PATH*
+3. Open a command prompt, point it to a directory and clone Stride to it: `git clone https://github.com/stride3d/stride.git`
+4. Navigate to `/Build` with the command prompt, input `dotnet restore Stride.sln` then `compile`
+
+For .Net 5.0 make sure that you have the latest SDK and runtime, navigate to `\sources\targets\Stride.Core.TargetFrameworks.Editor.props` and change `net472` to `net5.0-windows`
+
 If building failed:
 * If you skipped one of the `Prerequisites` thinking that you already have the latest version, update to the latest anyway just to be sure.
 * Visual Studio might have issues properly building if an outdated version of 2017 is present alongside 2019. If you want to keep VS 2017 make sure that it is up to date and that you are building Stride through VS 2019.
 * Some changes might require a system reboot, try that if you haven't yet.
+* Make sure that git and visual studio can access the internet.
+* Close VS, clear the nuget cache (in your cmd `dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any msbuild and other vs processes, build the whole solution then build and run GameStudio.
 
 Do note that test solutions might fail but it should not prevent you from building `Stride.GameStudio`.
 

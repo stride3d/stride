@@ -3,7 +3,6 @@
     <StrideRuntime>true</StrideRuntime>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.Core.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
   
   <PropertyGroup>
     <Description>Stride Core IO assembly.</Description>
@@ -33,6 +32,5 @@
   </ItemGroup>
   
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
 
 </Project>

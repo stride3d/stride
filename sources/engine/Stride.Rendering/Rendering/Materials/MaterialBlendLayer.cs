@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -87,7 +87,7 @@ namespace Stride.Rendering.Materials
             }
 
             // Find the material from the reference
-            var material = context.FindAsset(Material) as IMaterialDescriptor;
+            var material = Material.Descriptor ?? context.FindAsset(Material) as IMaterialDescriptor;
             if (material == null)
             {
                 context.Log.Error($"Unable to find material [{Material}]");

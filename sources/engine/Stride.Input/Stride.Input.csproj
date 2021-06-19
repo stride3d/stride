@@ -1,20 +1,18 @@
 ﻿<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-    <StrideRuntimeWindowsDotNet>true</StrideRuntimeWindowsDotNet>
     <StrideRuntimeWindowsNet5>true</StrideRuntimeWindowsNet5>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
   <PropertyGroup>
-    <UseWPF Condition="'$(StridePlatform)' == 'Windows'">true</UseWPF>
-    <UseWindowsForms Condition="'$(StridePlatform)' == 'Windows'">true</UseWindowsForms>
+    <UseWPF Condition="$(TargetFramework.EndsWith('-windows'))">true</UseWPF>
+    <UseWindowsForms Condition="$(TargetFramework.EndsWith('-windows'))">true</UseWindowsForms>
     <StridePlatformDependent>true</StridePlatformDependent>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
-    <DefineConstants Condition="'$(StridePlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))">$(DefineConstants);STRIDE_INPUT_RAWINPUT</DefineConstants>
+    <DefineConstants Condition="$(TargetFramework.StartsWith('net4'))">$(DefineConstants);STRIDE_INPUT_RAWINPUT</DefineConstants>
   </PropertyGroup>
   <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
   <ItemGroup>
@@ -24,11 +22,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Games\Stride.Games.csproj" />
-    <PackageReference Include="SharpDX.RawInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))" />
-    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
-    <PackageReference Include="SharpDX.XInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.7.1" Condition="'$(StridePlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.RawInput" Version="4.2.0" Condition="$(TargetFramework.StartsWith('net4'))" />
+    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" Condition="$(TargetFramework.EndsWith('-windows'))" />
+    <PackageReference Include="SharpDX.XInput" Version="4.2.0" Condition="$(TargetFramework.EndsWith('-windows'))" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
 </Project>

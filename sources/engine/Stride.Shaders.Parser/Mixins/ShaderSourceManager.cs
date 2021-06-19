@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -264,8 +264,7 @@ namespace Stride.Shaders.Parser.Mixins
 
         private bool FileExists(string path)
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-            if (UseFileSystem)
+            if (UseFileSystem && Platform.Type == PlatformType.Windows)
             {
                 var fileInfo = new FileInfo(path);
                 if (fileInfo.Exists)
@@ -280,7 +279,6 @@ namespace Stride.Shaders.Parser.Mixins
                 }
             }
             else
-#endif
             {
                 return fileProvider.FileExists(path);
             }
@@ -289,8 +287,7 @@ namespace Stride.Shaders.Parser.Mixins
 
         private Stream OpenStream(string path)
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-            if (UseFileSystem)
+            if (UseFileSystem && Platform.Type == PlatformType.Windows)
             {
                 // Try several times in case of IOException
                 for (int tries = 10; tries >= 0; --tries)
@@ -306,12 +303,10 @@ namespace Stride.Shaders.Parser.Mixins
                     }
                 }
             }
-#endif
 
             return fileProvider.OpenStream(path, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read);
         }
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
         [DllImport("kernel32.dll", EntryPoint = "GetLongPathNameW", SetLastError = true, CharSet = CharSet.Unicode)]
         static extern uint GetLongPathName(string shortPath, StringBuilder sb, int buffer);
 
@@ -349,7 +344,6 @@ namespace Stride.Shaders.Parser.Mixins
 
             return null;
         }
-#endif
 
         public struct ShaderSourceWithHash
         {

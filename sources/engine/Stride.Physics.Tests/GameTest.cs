@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -39,11 +39,12 @@ namespace Stride.Physics.Tests
             testName = name;
             assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-            //  SaveScreenshot is only defined for windows
-            platformName = "Windows";
-            Directory.CreateDirectory("screenshots\\");
-#endif
+            if (Platform.Type == PlatformType.Windows)
+            {
+                //  SaveTexture is only defined for windows
+                platformName = "Windows";
+                Directory.CreateDirectory("screenshots\\");
+            }
 
             AutoLoadDefaultSettings = true; // Note! This will override the preferred graphics profile so save it for later
             overrideGraphicsProfile = profile;

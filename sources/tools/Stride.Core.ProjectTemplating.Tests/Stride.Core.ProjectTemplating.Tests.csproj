@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\targets\Stride.Core.TargetFrameworks.Editor.props" />
-  <Import Project="..\..\targets\Stride.Core.RuntimeIdentifier.ProjectReference.targets" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>

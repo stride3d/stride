@@ -1,10 +1,10 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using SharpFont;
-
+using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
@@ -79,7 +79,7 @@ namespace Stride.Graphics.Font
             contentManager = new ContentManager(fileProviderService);
 
             // Preload proper freetype native library (depending on CPU type)
-            Core.NativeLibrary.PreloadLibrary("freetype.dll", typeof(FontManager));
+            NativeLibraryHelper.PreloadLibrary("freetype.dll", typeof(FontManager));
 
             // create a freetype library used to generate the bitmaps
             freetypeLibrary = new Library();

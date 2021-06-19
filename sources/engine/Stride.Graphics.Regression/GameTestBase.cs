@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -25,8 +25,6 @@ namespace Stride.Graphics.Regression
     public abstract class GameTestBase : Game
     {
         public static bool ForceInteractiveMode;
-        // Note: it might cause OOM on 32-bit processes
-        public static bool CaptureRenderDocOnError = string.Compare(Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR"), "true", StringComparison.OrdinalIgnoreCase) == 0;
 
         public static readonly Logger TestGameLogger = GlobalLogger.GetLogger("TestGameLogger");
 
@@ -47,7 +45,12 @@ namespace Stride.Graphics.Regression
         private List<string> comparisonFailedMessages = new List<string>();
 
         private BackBufferSizeMode backBufferSizeMode;
+#if STRIDE_PLATFORM_DESKTOP
+        // Note: it might cause OOM on 32-bit processes
+        public static bool CaptureRenderDocOnError = string.Compare(Environment.GetEnvironmentVariable("STRIDE_TESTS_CAPTURE_RENDERDOC_ON_ERROR"), "true", StringComparison.OrdinalIgnoreCase) == 0;
+
         private RenderDocManager renderDocManager;
+#endif
 
         protected GameTestBase()
         {
@@ -81,12 +84,14 @@ namespace Stride.Graphics.Regression
         {
             base.Initialize();
 
+#if STRIDE_PLATFORM_DESKTOP
             if (CaptureRenderDocOnError)
             {
                 renderDocManager = new RenderDocManager();
                 if (!renderDocManager.IsInitialized)
                     renderDocManager = null;
             }
+#endif
 
             // Disable streaming
             Streaming.Enabled = false;
@@ -220,6 +225,7 @@ namespace Stride.Graphics.Regression
         {
             await base.LoadContent();
 
+#if STRIDE_PLATFORM_DESKTOP
             // Setup RenderDoc capture
             if (renderDocManager != null)
             {
@@ -227,6 +233,7 @@ namespace Stride.Graphics.Regression
                 renderDocManager.Initialize(renderdocCaptureFile);
                 renderDocManager.StartFrameCapture(GraphicsDevice, IntPtr.Zero);
             }
+#endif
 
             if (!ForceInteractiveMode)
                 InitializeSimulatedInputSource();
@@ -242,6 +249,7 @@ namespace Stride.Graphics.Regression
 
         protected override void Destroy()
         {
+#if STRIDE_PLATFORM_DESKTOP
             if (renderDocManager != null)
             {
                 // Note: if no comparison error, let's discard the capture
@@ -252,6 +260,7 @@ namespace Stride.Graphics.Regression
                 // Note: we don't remove hooks in case another unit test need them later
                 //renderDocManager.RemoveHooks();
             }
+#endif
 
             base.Destroy();
         }
@@ -447,12 +456,10 @@ namespace Stride.Graphics.Regression
 
         private string GetPlatformSpecificFolder()
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-            return $"Windows.{GraphicsDevice.Platform}\\{GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ')}";
-#else
-            var platformSpecific = string.Empty;
-            throw new NotImplementedException();
-#endif
+            if (Platform.Type == PlatformType.Windows)
+                return $"Windows.{GraphicsDevice.Platform}\\{GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ')}";
+            else
+                throw new NotImplementedException();
         }
 
         private string GenerateTestArtifactFileName(string testArtifactPath, string frame, string platformSpecific, string extension)
@@ -477,15 +484,16 @@ namespace Stride.Graphics.Regression
 
         protected void SaveTexture(Texture texture, string filename)
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-            using (var image = texture.GetDataAsImage(GraphicsContext.CommandList))
+            if (Platform.Type == PlatformType.Windows)
             {
-                using (var resultFileStream = File.OpenWrite(filename))
+                using (var image = texture.GetDataAsImage(GraphicsContext.CommandList))
                 {
-                    image.Save(resultFileStream, ImageFileType.Png);
+                    using (var resultFileStream = File.OpenWrite(filename))
+                    {
+                        image.Save(resultFileStream, ImageFileType.Png);
+                    }
                 }
             }
-#endif
         }
 
         /// <summary>

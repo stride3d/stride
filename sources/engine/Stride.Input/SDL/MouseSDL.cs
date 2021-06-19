@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if STRIDE_UI_SDL
@@ -20,18 +20,20 @@ namespace Stride.Input
         {
             Source = source;
             this.uiControl = uiControl;
-            
+
             uiControl.MouseMoveActions += OnMouseMoveEvent;
             uiControl.PointerButtonPressActions += OnMouseInputEvent;
             uiControl.PointerButtonReleaseActions += OnMouseInputEvent;
             uiControl.MouseWheelActions += OnMouseWheelEvent;
             uiControl.ResizeEndActions += OnSizeChanged;
             OnSizeChanged(new SDL.SDL_WindowEvent());
+
+            Id = InputDeviceUtils.DeviceNameToGuid(uiControl.SdlHandle.ToString() + Name);
         }
         
         public override string Name => "SDL Mouse";
 
-        public override Guid Id => new Guid("0ccaf48e-e371-4b34-b6bb-a3720f6742a8");
+        public override Guid Id { get; }
 
         public override bool IsPositionLocked => isMousePositionLocked;
 

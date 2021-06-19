@@ -1,8 +1,7 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
-using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.LauncherApp.Resources;
 using Stride.Core.Packages;
@@ -218,7 +217,7 @@ namespace Stride.LauncherApp.ViewModels
                         progressReport.ProgressChanged += (action, progress) => { Dispatcher.InvokeAsync(() => { UpdateProgress(action, progress); }).Forget(); };
                         progressReport.UpdateProgress(ProgressAction.Install, -1);
                         MetricsHelper.NotifyDownloadStarting(ServerPackage.Id, ServerPackage.Version.ToString());
-                        await Store.InstallPackage(ServerPackage.Id, ServerPackage.Version, progressReport);
+                        await Store.InstallPackage(ServerPackage.Id, ServerPackage.Version, ServerPackage.TargetFrameworks, progressReport);
                         downloadCompleted = true;
                         MetricsHelper.NotifyDownloadCompleted(ServerPackage.Id, ServerPackage.Version.ToString());
                     }

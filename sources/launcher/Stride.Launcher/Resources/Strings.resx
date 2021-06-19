@@ -313,6 +313,10 @@
     <value>(update available)</value>
     <comment>Additional message stating that an update is available for the version. It is displayed right after the VersionButton text (with a space)</comment>
   </data>
+  <data name="VersionButtonLocalUpdateAvailable" xml:space="preserve">
+    <value>(local update available)</value>
+    <comment>Additional message stating that a local update is available for the version. It is displayed right after the VersionButton text (with a space)</comment>
+  </data>
   <data name="VisualStudioPlugin" xml:space="preserve">
     <value>Visual Studio plugin</value>
     <comment>Title of this category</comment>

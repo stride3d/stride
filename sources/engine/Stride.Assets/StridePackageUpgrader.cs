@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -137,7 +137,8 @@ namespace Stride.Assets
             }
 
             // Update NuGet references
-            var projectFullPath = (dependentPackage.Container as SolutionProject)?.FullPath;
+            var solutionProject = dependentPackage.Container as SolutionProject;
+            var projectFullPath = solutionProject?.FullPath;
             if (projectFullPath != null)
             {
                 try
@@ -199,6 +200,22 @@ namespace Stride.Assets
                                 if (!shaderFile.IsImported)
                                     project.RemoveItem(shaderFile);
                             }
+                        }
+                    }
+
+                    if (dependency.Version.MinVersion < new PackageVersion("4.1.0.0") && solutionProject != null)
+                    {
+                        var tfm = project.GetProperty("TargetFramework");
+                        if (tfm != null && tfm.EvaluatedValue == "netstandard2.0")
+                        {
+                            tfm.Xml.Name = "TargetFrameworks";
+                            tfm.Xml.Value = "net5.0";
+                            isProjectDirty = true;
+                        }
+                        if (tfm != null && tfm.EvaluatedValue.StartsWith("net4") && solutionProject.Type == ProjectType.Executable)
+                        {
+                            tfm.Xml.Value = "net5.0-windows";
+                            isProjectDirty = true;
                         }
                     }
 

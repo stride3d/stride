@@ -1,9 +1,8 @@
 <Project>
   <Import Project="..\..\targets\Stride.props" />
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net5.0;net472</TargetFrameworks>
     <RootNamespace>Stride.VisualStudio.Commands</RootNamespace>
   </PropertyGroup>
 
@@ -13,5 +12,4 @@
   </ItemGroup>
 
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

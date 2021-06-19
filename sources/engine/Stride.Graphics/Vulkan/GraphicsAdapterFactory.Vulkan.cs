@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
@@ -145,29 +145,35 @@ namespace Stride.Graphics
             if (!availableExtensionNames.Contains(KHRSurfaceExtensionName))
                 throw new InvalidOperationException($"Required extension {KHRSurfaceExtensionName} is not available");
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-            desiredExtensionNames.Add(KHRWin32SurfaceExtensionName);
-            if (!availableExtensionNames.Contains(KHRWin32SurfaceExtensionName))
-                throw new InvalidOperationException($"Required extension {KHRWin32SurfaceExtensionName} is not available");
-#elif STRIDE_PLATFORM_ANDROID
-            desiredExtensionNames.Add(KHRAndroidSurfaceExtensionName);
-            if (!availableExtensionNames.Contains(KHRAndroidSurfaceExtensionName))
-                throw new InvalidOperationException($"Required extension {KHRAndroidSurfaceExtensionName} is not available");
-#elif STRIDE_PLATFORM_LINUX
-            if (availableExtensionNames.Contains("VK_KHR_xlib_surface"))
+            if (Platform.Type == PlatformType.Windows)
             {
-                desiredExtensionNames.Add("VK_KHR_xlib_surface");
-                HasXlibSurfaceSupport = true;
+                desiredExtensionNames.Add(KHRWin32SurfaceExtensionName);
+                if (!availableExtensionNames.Contains(KHRWin32SurfaceExtensionName))
+                    throw new InvalidOperationException($"Required extension {KHRWin32SurfaceExtensionName} is not available");
             }
-            else if (availableExtensionNames.Contains("VK_KHR_xcb_surface"))
+            else if (Platform.Type == PlatformType.Android)
             {
-                desiredExtensionNames.Add("VK_KHR_xcb_surface");
+                desiredExtensionNames.Add(KHRAndroidSurfaceExtensionName);
+                if (!availableExtensionNames.Contains(KHRAndroidSurfaceExtensionName))
+                    throw new InvalidOperationException($"Required extension {KHRAndroidSurfaceExtensionName} is not available");
             }
-            else
+            else if (Platform.Type == PlatformType.Linux)
             {
-                throw new InvalidOperationException("None of the supported surface extensions VK_KHR_xcb_surface or VK_KHR_xlib_surface is available");
+                if (availableExtensionNames.Contains("VK_KHR_xlib_surface"))
+                {
+                    desiredExtensionNames.Add("VK_KHR_xlib_surface");
+                    HasXlibSurfaceSupport = true;
+                }
+                else if (availableExtensionNames.Contains("VK_KHR_xcb_surface"))
+                {
+                    desiredExtensionNames.Add("VK_KHR_xcb_surface");
+                }
+                else
+                {
+                    throw new InvalidOperationException("None of the supported surface extensions VK_KHR_xcb_surface or VK_KHR_xlib_surface is available");
+                }
             }
-#endif
+
             bool enableDebugReport = enableValidation && availableExtensionNames.Contains(EXTDebugUtilsExtensionName);
             if (enableDebugReport)
                 desiredExtensionNames.Add(EXTDebugUtilsExtensionName);
@@ -199,8 +205,8 @@ namespace Stride.Graphics
                     var createInfo = new VkDebugUtilsMessengerCreateInfoEXT
                     {
                         sType = VkStructureType.DebugUtilsMessengerCreateInfoEXT,
-                        messageSeverity = VkDebugUtilsMessageSeverityFlagsEXT.VerboseEXT | VkDebugUtilsMessageSeverityFlagsEXT.ErrorEXT | VkDebugUtilsMessageSeverityFlagsEXT.WarningEXT,
-                        messageType = VkDebugUtilsMessageTypeFlagsEXT.GeneralEXT | VkDebugUtilsMessageTypeFlagsEXT.ValidationEXT | VkDebugUtilsMessageTypeFlagsEXT.PerformanceEXT,
+                        messageSeverity = VkDebugUtilsMessageSeverityFlagsEXT.Verbose | VkDebugUtilsMessageSeverityFlagsEXT.Error | VkDebugUtilsMessageSeverityFlagsEXT.Warning,
+                        messageType = VkDebugUtilsMessageTypeFlagsEXT.General | VkDebugUtilsMessageTypeFlagsEXT.Validation | VkDebugUtilsMessageTypeFlagsEXT.Performance,
                         pfnUserCallback = Marshal.GetFunctionPointerForDelegate(debugReport)
                     };
 
@@ -228,19 +234,19 @@ namespace Stride.Graphics
             var message = Vortice.Vulkan.Interop.GetString(pCallbackData->pMessage);
 
             // Redirect to log
-            if (severity == VkDebugUtilsMessageSeverityFlagsEXT.ErrorEXT)
+            if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Error)
             {
                 Log.Error(message);
             }
-            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.WarningEXT)
+            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Warning)
             {
                 Log.Warning(message);
             }
-            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.InfoEXT)
+            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Info)
             {
                 Log.Info(message);
             }
-            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.VerboseEXT)
+            else if (severity == VkDebugUtilsMessageSeverityFlagsEXT.Verbose)
             {
                 Log.Verbose(message);
             }

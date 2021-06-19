@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
@@ -355,7 +355,7 @@ namespace Stride.Graphics
                 // TODO D3D12 ResourceStates.CopySource not working?
                 var bufferSize = Math.Max(4 * 1024*1024, size);
                 nativeUploadBuffer = NativeDevice.CreateCommittedResource(new HeapProperties(HeapType.Upload), HeapFlags.None, ResourceDescription.Buffer(bufferSize), ResourceStates.GenericRead);
-                nativeUploadBufferStart = nativeUploadBuffer.Map(0, new Range());
+                nativeUploadBufferStart = nativeUploadBuffer.Map(0, new SharpDX.Direct3D12.Range());
                 nativeUploadBufferOffset = 0;
             }
 

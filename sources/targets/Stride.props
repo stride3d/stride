@@ -14,8 +14,8 @@
   <PropertyGroup>
     <StrideGraphicsApisWindows Condition="'$(StrideGraphicsApisWindows)' == ''">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</StrideGraphicsApisWindows>
     <StrideGraphicsApisLinux Condition="'$(StrideGraphicsApisLinux)' == ''">Vulkan;OpenGL</StrideGraphicsApisLinux>
-    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApisDependentBuildAll)' == 'true') And '$(StridePlatform)' == 'Windows'">$(StrideGraphicsApisWindows)</StrideGraphicsApis>
-    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApisDependentBuildAll)' == 'true') And '$(StridePlatform)' == 'Linux'">$(StrideGraphicsApisLinux)</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And '$(StridePlatform)' == 'Windows'">$(StrideGraphicsApisWindows)</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="('$(StrideGraphicsApis)' == '' Or '$(StrideGraphicsApiDependentBuildAll)' == 'true') And '$(StridePlatform)' == 'Linux'">$(StrideGraphicsApisLinux)</StrideGraphicsApis>
 
     <StrideDefaultGraphicsApi Condition="'$(StrideGraphicsApis)' != ''">$(StrideGraphicsApis.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</StrideDefaultGraphicsApi>
     <StrideDefaultGraphicsApi Condition="'$(StridePlatform)' == 'UWP'">Direct3D11</StrideDefaultGraphicsApi>
@@ -72,10 +72,6 @@
     <ProjectLockFile Condition="'$(ProjectLockFile)' == ''">$(MSBuildThisFileDirectory)..\build\project.lock.json</ProjectLockFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
-    <NUnitLiteBinDir>$(MSBuildThisFileDirectory)..\..\deps\NUnitLite\net-monotouch\</NUnitLiteBinDir>
-  </PropertyGroup>
-
   <!-- 
     Global Defines
   -->
@@ -86,7 +82,7 @@
   <PropertyGroup>
     <StrideUI Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS'">SDL</StrideUI>
     <StrideUI Condition="'$(StrideGraphicsApi)' == 'OpenGL'">$(StrideUI);OPENTK</StrideUI>
-    <StrideUI Condition="'$(StridePlatform)' == 'Windows' AND ($(TargetFramework.StartsWith('net4')) OR $(TargetFramework.StartsWith('net5'))) AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
+    <StrideUI Condition="$(TargetFramework.EndsWith('-windows')) AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
 
     <DefineConstants Condition="$(StrideUI.Contains('SDL'))">$(DefineConstants);STRIDE_UI_SDL</DefineConstants>
     <DefineConstants Condition="$(StrideUI.Contains('OPENTK'))">$(DefineConstants);STRIDE_UI_OPENTK</DefineConstants>

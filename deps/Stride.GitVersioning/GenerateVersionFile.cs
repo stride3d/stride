@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
@@ -38,7 +38,7 @@ namespace Stride.GitVersioning
 
         public string SpecialVersion { get; set; }
 
-        public bool SpecialVersionGitHeight { get; set; }
+        public bool RevisionGitHeight { get; set; }
 
         public bool SpecialVersionGitCommit { get; set; }
 
@@ -98,11 +98,19 @@ namespace Stride.GitVersioning
                 // Patch AssemblyInformationalVersion
                 var headCommitSha = repo.Head.Commits.FirstOrDefault()?.Sha;
 
-                if (SpecialVersionGitHeight)
+                if (RevisionGitHeight)
                 {
+                    if (!Version.TryParse(publicVersion, out var publicVersionParsed))
+                    {
+                        throw new InvalidOperationException($"Could not decode version {publicVersion}");
+                    }
+
                     // Compute version based on Git info
                     var height = Nerdbank.GitVersioning.GitExtensions.GetVersionHeight(repo, VersionFile.ItemSpec);
-                    versionSuffix += $"-{height.ToString("D4")}";
+                    publicVersionParsed = new Version(publicVersionParsed.Major, publicVersionParsed.Minor, publicVersionParsed.Build, height);
+                    publicVersion = publicVersionParsed.ToString();
+
+                    versionFileData = Regex.Replace(versionFileData, "PublicVersion = \"(.*)\";", $"PublicVersion = \"{publicVersion}\";");
                 }
 
                 // Replace NuGetVersionSuffix

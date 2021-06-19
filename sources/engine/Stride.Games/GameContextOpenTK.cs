@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -20,10 +20,11 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-#if (STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX) && STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
+#if STRIDE_PLATFORM_DESKTOP && STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
 using System;
 using OpenTK;
 using OpenTK.Graphics;
+using Stride.Core;
 using Stride.Graphics.OpenGL;
 
 namespace Stride.Games
@@ -31,7 +32,7 @@ namespace Stride.Games
     /// <summary>
     /// A <see cref="GameContext"/> to use for rendering to an existing OpenTK Window.
     /// </summary>
-    public class GameContextOpenTK : GameContextDesktop<OpenTK.GameWindow>
+    public class GameContextOpenTK : GameContext<OpenTK.GameWindow>
     {
         /// <inheritDoc/>
         public GameContextOpenTK(OpenTK.GameWindow control, int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
@@ -109,7 +110,7 @@ namespace Stride.Games
 #if STRIDE_GRAPHICS_API_OPENGL || STRIDE_GRAPHICS_API_OPENGLES
                 // Preload proper SDL native library (depending on CPU type)
                 // This is for OpenGL ES on desktop
-                Core.NativeLibrary.PreloadLibrary("SDL2.dll", typeof(GameContextOpenTK));
+                NativeLibraryHelper.PreloadLibrary("SDL2.dll", typeof(GameContextOpenTK));
 #endif
 
                 var gameWindow = new OpenTK.GameWindow(requestedWidth, requestedHeight, graphicMode, GameContext.ProductName, GameWindowFlags.Default, DisplayDevice.Default, versionMajor, versionMinor,

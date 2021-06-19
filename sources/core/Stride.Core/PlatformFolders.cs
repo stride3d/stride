@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -56,9 +56,9 @@ namespace Stride.Core
 
             set
             {
-                if (virtualFileSystemInitialized) 
-                    throw new InvalidOperationException("ApplicationDataSubDirectory cannot be modified after the VirtualFileSystem has been initialized."); 
-                
+                if (virtualFileSystemInitialized)
+                    throw new InvalidOperationException("ApplicationDataSubDirectory cannot be modified after the VirtualFileSystem has been initialized.");
+
                 applicationDataSubDirectory = value;
             }
         }
@@ -152,7 +152,9 @@ namespace Stride.Core
 
         private static string GetApplicationExecutablePath()
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE || STRIDE_PLATFORM_UNIX
+#if STRIDE_PLATFORM_ANDROID
+            return PlatformAndroid.Context.PackageCodePath;
+#elif STRIDE_PLATFORM_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE
             return Assembly.GetEntryAssembly()?.Location;
 #else
             return null;
@@ -182,12 +184,17 @@ namespace Stride.Core
         [NotNull]
         private static string GetApplicationBinaryDirectory()
         {
-            return FindCoreAssemblyDirectory(GetApplicationExecutableDiretory());
+            var executablePath = GetApplicationExecutableDirectory();
+#if STRIDE_PLATFORM_ANDROID
+            return executablePath;
+#else
+            return FindCoreAssemblyDirectory(executablePath);
+#endif
         }
 
-        private static string GetApplicationExecutableDiretory()
+        private static string GetApplicationExecutableDirectory()
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE || STRIDE_PLATFORM_UNIX
+#if STRIDE_PLATFORM_DESKTOP || STRIDE_PLATFORM_MONO_MOBILE
             var executableName = GetApplicationExecutablePath();
             if (!string.IsNullOrEmpty(executableName))
             {

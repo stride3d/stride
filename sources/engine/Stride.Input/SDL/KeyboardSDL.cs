@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if STRIDE_UI_SDL
@@ -23,6 +23,8 @@ namespace Stride.Input
             this.window.KeyUpActions += OnKeyEvent;
             this.window.TextInputActions += OnTextInputActions;
             this.window.TextEditingActions += OnTextEditingActions;
+
+            Id = InputDeviceUtils.DeviceNameToGuid(window.SdlHandle.ToString() + Name);
         }
         
         public void Dispose()
@@ -33,7 +35,7 @@ namespace Stride.Input
 
         public override string Name => "SDL Keyboard";
 
-        public override Guid Id => new Guid("a25469ad-804e-4713-82da-347c6b187323");
+        public override Guid Id { get; }
 
         public override IInputSource Source { get; }
 

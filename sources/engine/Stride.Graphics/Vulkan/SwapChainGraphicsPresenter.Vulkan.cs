@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Stride.Core;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
@@ -284,9 +285,9 @@ namespace Stride.Graphics
 
             // Transform
             VkSurfaceTransformFlagsKHR preTransform;
-            if ((surfaceCapabilities.supportedTransforms & VkSurfaceTransformFlagsKHR.IdentityKHR) != 0)
+            if ((surfaceCapabilities.supportedTransforms & VkSurfaceTransformFlagsKHR.Identity) != 0)
             {
-                preTransform = VkSurfaceTransformFlagsKHR.IdentityKHR;
+                preTransform = VkSurfaceTransformFlagsKHR.Identity;
             }
             else
             {
@@ -295,20 +296,20 @@ namespace Stride.Graphics
 
             // Find present mode
             var presentModes = vkGetPhysicalDeviceSurfacePresentModesKHR(GraphicsDevice.NativePhysicalDevice, surface);
-            var swapChainPresentMode = VkPresentModeKHR.FifoKHR; // Always supported
+            var swapChainPresentMode = VkPresentModeKHR.Fifo; // Always supported
             foreach (var presentMode in presentModes)
             {
                 // TODO VULKAN: Handle PresentInterval.Two
                 if (Description.PresentationInterval == PresentInterval.Immediate)
                 {
                     // Prefer mailbox to immediate
-                    if (presentMode == VkPresentModeKHR.ImmediateKHR)
+                    if (presentMode == VkPresentModeKHR.Immediate)
                     {
-                        swapChainPresentMode = VkPresentModeKHR.ImmediateKHR;
+                        swapChainPresentMode = VkPresentModeKHR.Immediate;
                     }
-                    else if (presentMode == VkPresentModeKHR.MailboxKHR)
+                    else if (presentMode == VkPresentModeKHR.Mailbox)
                     {
-                        swapChainPresentMode = VkPresentModeKHR.MailboxKHR;
+                        swapChainPresentMode = VkPresentModeKHR.Mailbox;
                         break;
                     }
                 }
@@ -323,10 +324,10 @@ namespace Stride.Graphics
                 imageSharingMode = VkSharingMode.Exclusive,
                 imageExtent = new Vortice.Mathematics.Size(Description.BackBufferWidth, Description.BackBufferHeight),
                 imageFormat = backBufferFormat,
-                imageColorSpace = Description.ColorSpace == ColorSpace.Gamma ? VkColorSpaceKHR.SrgbNonLinearKHR : 0,
+                imageColorSpace = Description.ColorSpace == ColorSpace.Gamma ? VkColorSpaceKHR.SrgbNonLinear : 0,
                 imageUsage = VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.TransferDst | (surfaceCapabilities.supportedUsageFlags & VkImageUsageFlags.TransferSrc), // TODO VULKAN: Use off-screen buffer to emulate
                 presentMode = swapChainPresentMode,
-                compositeAlpha = VkCompositeAlphaFlagsKHR.OpaqueKHR,
+                compositeAlpha = VkCompositeAlphaFlagsKHR.Opaque,
                 minImageCount = desiredImageCount,
                 preTransform = preTransform,
                 oldSwapchain = swapChain,
@@ -352,26 +353,35 @@ namespace Stride.Graphics
             var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
             SDL2.SDL.SDL_Vulkan_CreateSurface(control.SdlHandle, GraphicsDevice.NativeInstance.Handle, out var surfacePtr);
             surface = new VkSurfaceKHR(surfacePtr);
-#elif STRIDE_PLATFORM_WINDOWS
-            var controlHandle = Description.DeviceWindowHandle.Handle;
-            if (controlHandle == IntPtr.Zero)
-            {
-                throw new NotSupportedException($"Form of type [{Description.DeviceWindowHandle.GetType().Name}] is not supported. Only System.Windows.Control are supported");
-            }
-
-            var surfaceCreateInfo = new VkWin32SurfaceCreateInfoKHR
-            {
-                sType = VkStructureType.Win32SurfaceCreateInfoKHR,
-                instanceHandle = Process.GetCurrentProcess().Handle,
-                windowHandle = controlHandle,
-            };
-            vkCreateWin32SurfaceKHR(GraphicsDevice.NativeInstance, &surfaceCreateInfo, null, out surface);
-#elif STRIDE_PLATFORM_ANDROID
-            throw new NotImplementedException();
-#elif STRIDE_PLATFORM_LINUX
-            throw new NotSupportedException("Only SDL is supported for the time being on Linux");
 #else
-            throw new NotSupportedException();
+            if (Platform.Type == PlatformType.Windows)
+            {
+                var controlHandle = Description.DeviceWindowHandle.Handle;
+                if (controlHandle == IntPtr.Zero)
+                {
+                    throw new NotSupportedException($"Form of type [{Description.DeviceWindowHandle.GetType().Name}] is not supported. Only System.Windows.Control are supported");
+                }
+
+                var surfaceCreateInfo = new VkWin32SurfaceCreateInfoKHR
+                {
+                    sType = VkStructureType.Win32SurfaceCreateInfoKHR,
+                    instanceHandle = Process.GetCurrentProcess().Handle,
+                    windowHandle = controlHandle,
+                };
+                vkCreateWin32SurfaceKHR(GraphicsDevice.NativeInstance, &surfaceCreateInfo, null, out surface);
+            }
+            else if (Platform.Type == PlatformType.Android)
+            {
+                throw new NotImplementedException();
+            }
+            else if (Platform.Type == PlatformType.Linux)
+            {
+                throw new NotSupportedException("Only SDL is supported for the time being on Linux");
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
 #endif
         }
 

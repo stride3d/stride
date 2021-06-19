@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable 436 // The type 'type' in 'assembly' conflicts with the imported type 'type2' in 'assembly' (due to StrideVersion being duplicated)
 #pragma warning disable SA1402 // File may only contain a single class
@@ -23,9 +23,9 @@ namespace Stride
     internal class StrideVersion
     {
         /// <summary>
-        /// The version used by editor for display purpose. 4th digit needs to be at least 1 if used (due to NuGet special cases).
+        /// The version used by editor for display purpose. The 4th digit will automatically be replaced by the git height when building packages with Stride.Build.
         /// </summary>
-        public const string PublicVersion = "4.0.0.1";
+        public const string PublicVersion = "4.1.0.1";
 
         /// <summary>
         /// The current assembly version as text, currently same as <see cref="PublicVersion"/>.
@@ -43,13 +43,9 @@ namespace Stride
         public const string NuGetVersion = NuGetVersionSimple + NuGetVersionSuffix;
 
         /// <summary>
-        /// The NuGet package suffix (i.e. -beta01). Automatically set by Stride.GitVersioning.GenerateVersionFile.
-        /// Three possible values:
-        /// - Empty: official release
-        /// - -betaXX: development version (XX should corespond to development asset versioning)
-        /// - -betaXX-YYYY: beta release (YYYY is the git height since current version has been bumped)
+        /// The NuGet package suffix (i.e. -beta).
         /// </summary>
-        public const string NuGetVersionSuffix = "-beta04";
+        public const string NuGetVersionSuffix = "-beta";
 
         /// <summary>
         /// The build metadata, usually +g[git_hash] during package. Automatically set by Stride.GitVersioning.GenerateVersionFile.

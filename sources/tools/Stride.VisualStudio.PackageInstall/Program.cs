@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -45,7 +45,7 @@ namespace Stride.VisualStudio.PackageInstall
                     case "/uninstall":
                     {
                         // Note: we allow uninstall to fail (i.e. VSIX was not installed for that specific VIsual Studio version)
-                        RunVsixInstaller(visualStudioVersion.VsixInstallerPath, "/uninstall:b0b8feb1-7b83-43fc-9fc0-70065ddb80a1");
+                        RunVsixInstaller(visualStudioVersion.VsixInstallerPath, "/uninstall:248ff1ce-dacd-4404-947a-85e999d3c3ea");
                         break;
                     }
                 }

@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -21,7 +21,7 @@ namespace Stride.Engine
     /// <summary>
     /// Manage a collection of entities.
     /// </summary>
-    public abstract class EntityManager : ComponentBase, IReadOnlySet<Entity>
+    public abstract class EntityManager : ComponentBase, Core.Collections.IReadOnlySet<Entity>
     {
         // TODO: Make this class threadsafe (current locks aren't sufficients)
 

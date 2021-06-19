@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -27,7 +27,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace Stride.Games
 {
-    public class GameContextUWPXaml : GameContextDesktop<SwapChainPanel>
+    public class GameContextUWPXaml : GameContext<SwapChainPanel>
     {
         // Used internally by systems such as UI to capture input in a TextBox
         internal TextBox EditTextBox = new TextBox { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 10, 0)};
@@ -40,7 +40,7 @@ namespace Stride.Games
         }
     }
 
-    public class GameContextUWPCoreWindow : GameContextDesktop<CoreWindow>
+    public class GameContextUWPCoreWindow : GameContext<CoreWindow>
     {
         /// <inheritDoc/>
         public GameContextUWPCoreWindow(CoreWindow control, int requestedWidth = 0, int requestedHeight = 0, bool isWindowsMixedReality = false)

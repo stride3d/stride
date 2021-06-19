@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -73,6 +73,11 @@ namespace Stride.Core.Presentation.Quantum.Presenters
 
         public override void UpdateValue(object newValue)
         {
+            // Do not update member node presenter value to null if it does not
+            // allow null values (related to issue #668)
+            if ((newValue == null) && (memberAttributes.Any(x => x is NotNullAttribute)))
+                return;
+
             try
             {
                 Member.Update(newValue);

@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -74,12 +74,12 @@ namespace Stride.Core.Assets.Quantum.Internal
 
         private void ContentChanged(object sender, [NotNull] MemberNodeChangeEventArgs e)
         {
-            // Make sure that we have item ids everywhere we're supposed to.
-            AssetCollectionItemIdHelper.GenerateMissingItemIds(e.Member.Retrieve());
-
             var node = (AssetMemberNode)e.Member;
             if (node.IsNonIdentifiableCollectionContent)
                 return;
+
+            // Make sure that we have item ids everywhere we're supposed to.
+            AssetCollectionItemIdHelper.GenerateMissingItemIds(e.Member.Retrieve());
 
             // Don't update override if propagation from base is disabled.
             if (PropertyGraph?.Container == null || PropertyGraph?.Container?.PropagateChangesFromBase == false)

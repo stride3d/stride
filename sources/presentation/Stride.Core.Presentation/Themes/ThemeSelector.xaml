@@ -1,5 +1,5 @@
-﻿<!--
-// Copyright (c) Stride contributors (https://stride3d.net)
+<!--
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Original code:
@@ -66,6 +66,7 @@
   <BitmapImage x:Key="ImageWarningDialog" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/warning-32.png" />
 
   <BitmapImage x:Key="ImageAdvancedEditionVector" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/gear--pencil.png" />
+  <BitmapImage x:Key="ImagePickDateTime" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/calendar--pencil.png" />
   <BitmapImage x:Key="ImageReset" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/eraser.png" />
   <BitmapImage x:Key="ImageLocked" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/lock.png" />
   <BitmapImage x:Key="ImageUnlocked" UriSource="pack://application:,,,/Stride.Core.Presentation;component/Resources/Images/lock-unlock.png" />
@@ -1801,6 +1802,122 @@
     </Setter>
   </Style>
 
+  <Style TargetType="ctrl:TimeSpanEditor">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ctrl:TimeSpanEditor">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="2*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="2*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="2*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="3*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ctrl:NumericTextBox Value="{Binding Days, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}" Grid.Column="0"
+                               DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="0"
+                               WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                               WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+            <Label Content=" d " Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="1"/>
+            <ctrl:NumericTextBox Value="{Binding Hours, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}" Grid.Column="2"
+                               DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="0" Maximum="23"
+                               WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                               WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+            <Label Content=" h " Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="3"/>
+            <ctrl:NumericTextBox Value="{Binding Minutes, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}" Grid.Column="4"
+                               DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="0" Maximum="59"
+                               WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                               WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+            <Label Content=" min " Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="5"/>
+            <ctrl:NumericTextBox Value="{Binding Seconds, RelativeSource={RelativeSource Mode=TemplatedParent}}" Grid.Column="6"
+                               DecimalPlaces="7" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="0.0000000" Maximum="59.9999999"
+                               WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                               WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+            <Label Content=" s " Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="7"/>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style TargetType="ctrl:DateTimeEditor">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ctrl:DateTimeEditor">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ctrl:TextBox Grid.Column="0" IsReadOnly="True" SelectAllOnFocus="True" Margin="-1" TextAlignment="Left"
+                          Text="{Binding Value, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:DateTimeToString}}"
+                          WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
+                          WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+            <ToggleButton Grid.Column="1" Margin="2,0,0,0" x:Name="ToggleButtonPickDate" Width="16" Height="16" Background="Transparent" ToolTip="{sd:Localize Pick date and time, Context=ToolTip}"
+                          ClickMode="Press" IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+              <Image Width="16" Height="16" Margin="-1" Source="{StaticResource ImagePickDateTime}" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+            </ToggleButton>
+            <Popup x:Name="Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True"
+                   MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ctrl:DateTimeEditor}}" StaysOpen="False"
+                   PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=ctrl:DateTimeEditor}}" PopupAnimation="Slide" VerticalOffset="2">
+              <Border SnapsToDevicePixels="True" Background="{StaticResource BackgroundBrush}" BorderBrush="Black" BorderThickness="1">
+                <Grid>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                  </Grid.RowDefinitions>
+                  <Grid Grid.Row="0" Margin="4">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ctrl:NumericTextBox Value="{Binding Year, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}" Grid.Column="0"
+                               DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="1" Maximum="9999"/>
+                    <Label Content=" y " Margin="2" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="1"/>
+                    <ctrl:NumericTextBox Value="{Binding Month, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}" Grid.Column="2"
+                               DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="1" Maximum="12"/>
+                    <Label Content=" m " Margin="2" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="3"/>
+                    <ctrl:NumericTextBox Value="{Binding Day, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}" Grid.Column="4"
+                               DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="1"/>
+                    <Label Content=" d " Margin="2" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="5"/>
+                  </Grid>
+                  <Grid Grid.Row="1" Margin="4">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ctrl:NumericTextBox Value="{Binding Hour, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}" Grid.Column="0"
+                               DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="0" Maximum="23"/>
+                    <Label Content=" h " Margin="2" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="1"/>
+                    <ctrl:NumericTextBox Value="{Binding Minute, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}" Grid.Column="2"
+                               DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="0" Maximum="59"/>
+                    <Label Content=" min " Margin="2" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="3"/>
+                    <ctrl:NumericTextBox Value="{Binding Second, RelativeSource={RelativeSource Mode=TemplatedParent}}" Grid.Column="4"
+                               DecimalPlaces="7" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Right" Minimum="0.0000000" Maximum="59.9999999"/>
+                    <Label Content=" s " Margin="2" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="5"/>
+                  </Grid>
+                </Grid>
+              </Border>
+            </Popup>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  
   <Color x:Key="TextBoxFocusBrush">#FF374C5C</Color>
 
   <ControlTemplate x:Key="TextBoxTemplate" TargetType="{x:Type TextBox}">

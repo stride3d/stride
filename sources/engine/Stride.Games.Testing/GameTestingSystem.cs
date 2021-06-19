@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core;
@@ -103,9 +103,7 @@ namespace Stride.Games.Testing
 
             Initialized = true;
 
-#if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_WINDOWS_DESKTOP
             Console.WriteLine(@"Test initialized, waiting to start...");
-#endif
         }
 
         public override void Draw(GameTime gameTime)

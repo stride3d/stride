@@ -1,7 +1,7 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if STRIDE_INPUT_RAWINPUT || (STRIDE_PLATFORM_WINDOWS_DESKTOP && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF))
+#if STRIDE_INPUT_RAWINPUT || (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using WinFormsKeys = System.Windows.Forms.Keys;

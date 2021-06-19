@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
@@ -37,11 +37,11 @@ namespace Stride.TextureConverter
         static TextureTool()
         {
             var type = typeof(TextureTool);
-            NativeLibrary.PreloadLibrary("DxtWrapper.dll", type);
-            NativeLibrary.PreloadLibrary("PVRTexLib.dll", type);
-            NativeLibrary.PreloadLibrary("PvrttWrapper.dll", type);
-            NativeLibrary.PreloadLibrary("FreeImage.dll", type);
-            NativeLibrary.PreloadLibrary("FreeImageNET.dll", type);
+            NativeLibraryHelper.PreloadLibrary("DxtWrapper.dll", type);
+            NativeLibraryHelper.PreloadLibrary("PVRTexLib.dll", type);
+            NativeLibraryHelper.PreloadLibrary("PvrttWrapper.dll", type);
+            NativeLibraryHelper.PreloadLibrary("FreeImage.dll", type);
+            NativeLibraryHelper.PreloadLibrary("FreeImageNET.dll", type);
         }
 
         /// <summary>

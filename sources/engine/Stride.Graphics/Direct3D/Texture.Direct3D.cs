@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
@@ -103,7 +103,24 @@ namespace Stride.Graphics
 
         internal Texture InitializeFromImpl(ShaderResourceView srv)
         {
-            return InitializeFromImpl(new Texture2D(srv.Resource.NativePointer), false);
+            if (srv.Description.Dimension == ShaderResourceViewDimension.Texture2D)
+            {
+                (srv as SharpDX.IUnknown)?.AddReference();
+                NativeShaderResourceView = srv;
+                var dxTexture2D = new Texture2D(srv.Resource.NativePointer);
+                NativeDeviceChild = dxTexture2D;
+
+                var newTextureDescription = ConvertFromNativeDescription(dxTexture2D.Description);
+                var newTextureViewDescription = new TextureViewDescription();
+                newTextureViewDescription.Format = (PixelFormat)srv.Description.Format;
+                newTextureViewDescription.Flags = newTextureDescription.Flags;
+
+                return InitializeFrom(null, newTextureDescription, newTextureViewDescription, null);
+            }
+            else
+            {
+                throw new NotImplementedException("Creating a texture from a SRV with dimension " + srv.Description.Dimension + " is not implemented");
+            }
         }
 
         internal void SwapInternal(Texture other)
@@ -151,7 +168,8 @@ namespace Stride.Graphics
                 GraphicsDevice.RegisterTextureMemoryUsage(SizeInBytes);
             }
 
-            NativeShaderResourceView = GetShaderResourceView(ViewType, ArraySlice, MipLevel);
+            if (NativeShaderResourceView == null)
+                NativeShaderResourceView = GetShaderResourceView(ViewType, ArraySlice, MipLevel);
             NativeUnorderedAccessView = GetUnorderedAccessView(ViewType, ArraySlice, MipLevel);
             NativeRenderTargetView = GetRenderTargetView(ViewType, ArraySlice, MipLevel);
             NativeDepthStencilView = GetDepthStencilView(out HasStencil);

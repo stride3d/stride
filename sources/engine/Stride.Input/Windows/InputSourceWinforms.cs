@@ -1,7 +1,7 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP && (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
+#if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -199,7 +199,7 @@ namespace Stride.Input
             {
                 // We need to check the scan code to check which SHIFT key it is.
                 var scanCode = (lParam & 0x00FF0000) >> 16;
-                return (scanCode != 36) ? WinFormsKeys.LShiftKey : WinFormsKeys.RShiftKey;
+                return (scanCode != 0x36) ? WinFormsKeys.LShiftKey : WinFormsKeys.RShiftKey;
             }
 
             if (virtualKey == WinFormsKeys.Menu)

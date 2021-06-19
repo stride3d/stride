@@ -1,0 +1,36 @@
+{
+  "solution": {
+    "path": "Stride.sln",
+    "projects": [
+      "..\\sources\\core\\Stride.Core.IO\\Stride.Core.IO.csproj",
+      "..\\sources\\core\\Stride.Core.Mathematics\\Stride.Core.Mathematics.csproj",
+      "..\\sources\\core\\Stride.Core.MicroThreading\\Stride.Core.MicroThreading.csproj",
+      "..\\sources\\core\\Stride.Core.Serialization\\Stride.Core.Serialization.csproj",
+      "..\\sources\\core\\Stride.Core.Tasks\\Stride.Core.Tasks.csproj",
+      "..\\sources\\core\\Stride.Core\\Stride.Core.csproj",
+      "..\\sources\\engine\\Stride.Audio\\Stride.Audio.csproj",
+      "..\\sources\\engine\\Stride.Engine\\Stride.Engine.csproj",
+      "..\\sources\\engine\\Stride.Games\\Stride.Games.csproj",
+      "..\\sources\\engine\\Stride.Graphics\\Stride.Graphics.csproj",
+      "..\\sources\\engine\\Stride.Input\\Stride.Input.csproj",
+      "..\\sources\\engine\\Stride.Native\\Stride.Native.csproj",
+      "..\\sources\\engine\\Stride.Navigation\\Stride.Navigation.csproj",
+      "..\\sources\\engine\\Stride.Particles\\Stride.Particles.csproj",
+      "..\\sources\\engine\\Stride.Physics\\Stride.Physics.csproj",
+      "..\\sources\\engine\\Stride.Rendering\\Stride.Rendering.csproj",
+      "..\\sources\\engine\\Stride.Shaders.Compiler\\Stride.Shaders.Compiler.csproj",
+      "..\\sources\\engine\\Stride.Shaders.Parser\\Stride.Shaders.Parser.csproj",
+      "..\\sources\\engine\\Stride.Shaders\\Stride.Shaders.csproj",
+      "..\\sources\\engine\\Stride.Shared\\Refactor\\Stride.Refactor.shproj",
+      "..\\sources\\engine\\Stride.SpriteStudio.Runtime\\Stride.SpriteStudio.Runtime.csproj",
+      "..\\sources\\engine\\Stride.UI\\Stride.UI.csproj",
+      "..\\sources\\engine\\Stride.Video\\Stride.Video.csproj",
+      "..\\sources\\engine\\Stride.VirtualReality\\Stride.VirtualReality.csproj",
+      "..\\sources\\engine\\Stride.Voxels\\Stride.Voxels.csproj",
+      "..\\sources\\engine\\Stride\\Stride.csproj",
+      "..\\sources\\shaders\\Irony\\Irony.csproj",
+      "..\\sources\\shaders\\Stride.Core.Shaders\\Stride.Core.Shaders.csproj",
+      "..\\sources\\shared\\Stride.Core.ShellHelper\\Stride.Core.ShellHelper.shproj"
+    ]
+  }
+}

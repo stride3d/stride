@@ -1,7 +1,8 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using Stride.Core;
 
 namespace Stride.Games
 {
@@ -15,7 +16,7 @@ namespace Stride.Games
         {
             // Default context is Desktop
             AppContextType type = AppContextType.Desktop;
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX
+#if STRIDE_PLATFORM_DESKTOP
     #if STRIDE_GRAPHICS_API_OPENGL
         #if STRIDE_UI_SDL
             type = AppContextType.DesktopSDL;
@@ -102,20 +103,18 @@ namespace Stride.Games
 
         public static GameContext NewGameContextDesktop(int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
         {
-#if STRIDE_PLATFORM_WINDOWS_DESKTOP
-    #if STRIDE_UI_OPENTK
+            if (Platform.Type != PlatformType.Windows)
+                return null;
+#if STRIDE_UI_OPENTK
             return new GameContextOpenTK(null);
-    #else
-        #if STRIDE_UI_SDL && !STRIDE_UI_WINFORMS && !STRIDE_UI_WPF
-            return new GameContextSDL(null, requestedWidth, requestedHeight, isUserManagingRun);
-        #elif (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
-            return new GameContextWinforms(null, requestedWidth, requestedHeight, isUserManagingRun);
-        #else
-            return null;
-        #endif
-    #endif
 #else
+   #if STRIDE_UI_SDL && !STRIDE_UI_WINFORMS && !STRIDE_UI_WPF
+            return new GameContextSDL(null, requestedWidth, requestedHeight, isUserManagingRun);
+    #elif (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
+            return new GameContextWinforms(null, requestedWidth, requestedHeight, isUserManagingRun);
+    #else
             return null;
+    #endif
 #endif
         }
 
@@ -139,7 +138,7 @@ namespace Stride.Games
 
         public static GameContext NewGameContextOpenTK(int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
         {
-#if (STRIDE_PLATFORM_WINDOWS_DESKTOP || STRIDE_PLATFORM_UNIX) && STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
+#if STRIDE_PLATFORM_DESKTOP && STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
             return new GameContextOpenTK(null, requestedWidth, requestedHeight, isUserManagingRun);
 #else
             return null;

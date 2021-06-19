@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Stride.Core;
@@ -16,6 +16,7 @@ namespace Stride.Core.Assets.Quantum
             NodeBuilder.RegisterPrimitiveType(typeof(IReference));
             NodeBuilder.RegisterPrimitiveType(typeof(PropertyKey));
             NodeBuilder.RegisterPrimitiveType(typeof(TimeSpan));
+            NodeBuilder.RegisterPrimitiveType(typeof(DateTime));
             NodeBuilder.RegisterPrimitiveType(typeof(Guid));
             NodeBuilder.RegisterPrimitiveType(typeof(AssetId));
             NodeBuilder.RegisterPrimitiveType(typeof(Color));

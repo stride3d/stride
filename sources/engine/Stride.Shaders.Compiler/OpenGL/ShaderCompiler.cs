@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -115,7 +115,22 @@ namespace Stride.Shaders.Compiler.OpenGL
                 File.WriteAllBytes(inputFileName, Encoding.ASCII.GetBytes(shader));
 
                 // Run shader compiler
-                var filename = Platform.Type == PlatformType.Windows ? "glslangValidator.exe" : "glslangValidator";
+                string filename;
+                switch (Platform.Type)
+                {
+                    case PlatformType.Windows:
+                    case PlatformType.UWP:
+                        filename = @"win-x64\glslangValidator.exe";
+                        break;
+                    case PlatformType.Linux:
+                        filename = @"linux-x64\glslangValidator.bin";
+                        break;
+                    case PlatformType.macOS:
+                        filename = @"osx-x64\glslangValidator.bin";
+                        break;
+                    default:
+                        throw new PlatformNotSupportedException();
+                }
                 ShellHelper.RunProcessAndRedirectToLogger(filename, $"-V -o {outputFileName} {inputFileName}", null, shaderBytecodeResult);
 
                 if (!File.Exists(outputFileName))

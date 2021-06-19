@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 
@@ -196,7 +196,7 @@ namespace Stride.VirtualReality
 
         static OpenVR()
         {
-            NativeLibrary.PreloadLibrary("openvr_api.dll", typeof(OpenVR));
+            NativeLibraryHelper.PreloadLibrary("openvr_api.dll", typeof(OpenVR));
         }
 
         public static bool InitDone = false;
@@ -229,7 +229,7 @@ namespace Stride.VirtualReality
         {
             var tex = new Texture_t
             {
-                eType = EGraphicsAPIConvention.API_DirectX,
+                eType = ETextureType.DirectX,
                 eColorSpace = EColorSpace.Auto,
                 handle = texture.NativeResource.NativePointer,
             };
@@ -264,7 +264,7 @@ namespace Stride.VirtualReality
 
         public static void Recenter()
         {
-            Valve.VR.OpenVR.System.ResetSeatedZeroPose();
+            Valve.VR.OpenVR.Chaperone.ResetZeroPose(ETrackingUniverseOrigin.TrackingUniverseSeated);
         }
 
         public static void SetTrackingSpace(ETrackingUniverseOrigin space)
@@ -387,7 +387,7 @@ namespace Stride.VirtualReality
         {
             projection = Matrix.Identity;
             var eye = eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right;
-            var proj = Valve.VR.OpenVR.System.GetProjectionMatrix(eye, near, far, EGraphicsAPIConvention.API_DirectX);
+            var proj = Valve.VR.OpenVR.System.GetProjectionMatrix(eye, near, far);
             Utilities.CopyMemory((IntPtr)Interop.Fixed(ref projection), (IntPtr)Interop.Fixed(ref proj), Utilities.SizeOf<Matrix>());
         }
 
@@ -406,8 +406,12 @@ namespace Stride.VirtualReality
             var nativeDevice = device.NativeDevice.NativePointer;
             var eyeTexSrv = IntPtr.Zero;
             Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, nativeDevice, ref eyeTexSrv);
+            
             var tex = new Texture(device);
-            tex.InitializeFromImpl(new ShaderResourceView(eyeTexSrv));
+            var srv = new ShaderResourceView(eyeTexSrv);
+
+            tex.InitializeFromImpl(srv);
+
             return tex;
         }
 
@@ -428,7 +432,7 @@ namespace Stride.VirtualReality
         {
             var tex = new Texture_t
             {
-                eType = EGraphicsAPIConvention.API_DirectX,
+                eType = ETextureType.DirectX,
                 eColorSpace = EColorSpace.Auto,
                 handle = texture.NativeResource.NativePointer,
             };

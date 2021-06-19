@@ -20,7 +20,10 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Use this so that tests are detected by "dotnet test" even though xunit is referenced transitively -->
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 </Project>

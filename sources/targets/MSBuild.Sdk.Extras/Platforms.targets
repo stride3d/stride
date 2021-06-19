@@ -1,0 +1,64 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <MSBuildAllProjects Condition=" '$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0' ">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_SdkPlatformName>$(TargetFrameworkIdentifier)</_SdkPlatformName>
+    <_SdkPlatformName Condition="'$(TargetFrameworkIdentifier)' == '.NETCore' OR '$(TargetFrameworkIdentifier)' == 'WindowsPhoneApp'">Windows</_SdkPlatformName>
+    <_SdkPlatformName Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">Portable</_SdkPlatformName>
+    <_SdkPlatformName Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">NETFramework</_SdkPlatformName>
+    <_SdkPlatformName Condition="$(TargetFrameworkIdentifier.StartsWith('Xamarin'))">Xamarin</_SdkPlatformName>
+    <_SdkPlatformName Condition="'$(TargetFrameworkIdentifier)' == 'MonoAndroid' OR '$(TargetFrameworkIdentifier)' == 'MonoTouch' OR '$(TargetFrameworkIdentifier)' == 'MonoMac'">Xamarin</_SdkPlatformName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(LanguageTargets)' == '' ">
+    <LanguageTargets Condition="Exists('$(MSBuildThisFileDirectory)LanguageTargets\$(_SdkPlatformName).targets')">$(MSBuildThisFileDirectory)LanguageTargets\$(_SdkPlatformName).targets</LanguageTargets>
+  </PropertyGroup>
+
+  <!-- Add conditional compilation symbols for the target framework and one with version -->
+  <PropertyGroup Condition="'$(DisableImplicitFrameworkDefines)' != 'true'">
+    <ImplicitFrameworkIdentifierDefine>$(TargetFrameworkIdentifier.TrimStart('.').Replace('.','_').ToUpperInvariant())</ImplicitFrameworkIdentifierDefine>
+    <ImplicitFrameworkDefine>$(TargetFramework.Replace('.','_').Replace('-','_').Replace('+','_').ToUpperInvariant())</ImplicitFrameworkDefine>
+    <_SdkRuntimeIdentifierDefine Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier.Replace('.','_').Replace('-','_').ToUpperInvariant())</_SdkRuntimeIdentifierDefine>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(PlatformTargets)' == ''">
+    <PlatformTargets>$(MSBuildThisFileDirectory)Platforms\$(_SdkPlatformName).targets</PlatformTargets>
+  </PropertyGroup>
+
+  <Import Project="$(PlatformTargets)" Condition="Exists('$(PlatformTargets)')"/>
+
+  <PropertyGroup Condition="'$(DisableImplicitFrameworkDefines)' != 'true' AND '$(_SdkLanguageSourceName)' != 'VisualBasic'">
+    <DefineConstants Condition="'$(_SdkImplicitFrameworkProfileDefine)' != ''">$(DefineConstants);$(_SdkImplicitFrameworkProfileDefine)</DefineConstants>
+    <DefineConstants Condition="'$(_SdkRuntimeIdentifierDefine)' != ''">$(DefineConstants);$(_SdkRuntimeIdentifierDefine)</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DisableImplicitFrameworkDefines)' != 'true' AND '$(_SdkLanguageSourceName)' == 'VisualBasic'">
+    <FinalDefineConstants Condition="'$(_SdkImplicitFrameworkProfileDefine)' != ''">$(FinalDefineConstants),$(_SdkImplicitFrameworkProfileDefine)=-1</FinalDefineConstants>
+    <FinalDefineConstants Condition="'$(_SdkRuntimeIdentifierDefine)' != ''">$(FinalDefineConstants),$(_SdkRuntimeIdentifierDefine)=-1</FinalDefineConstants>
+  </PropertyGroup>
+
+  <!-- The conditional compilation symbols defined in the above import and the property-group flows to the Main SDK -->
+  <PropertyGroup Condition="'$(DisableImplicitFrameworkDefines)' != 'true'">
+    <DisableImplicitFrameworkDefines>true</DisableImplicitFrameworkDefines>
+    <VersionlessImplicitFrameworkDefine>$(ImplicitFrameworkIdentifierDefine)</VersionlessImplicitFrameworkDefine>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(DisableImplicitFrameworkReferences)' != 'true'">
+    <!-- Set Pack=false on implicit references so they don't get added to NuGet packages as framework assemblies -->
+    <_SdkImplicitReference Update="@(_SdkImplicitReference)" Pack="false"/>
+
+    <!--
+      Don't duplicate any references that are explicit in the project file.
+      This means that if you do want to include a framework assembly in your NuGet package,
+      you can just add the Reference to your project file.
+    -->
+    <_SdkImplicitReference Remove="@(Reference)"/>
+
+    <!-- Add the implicit references to @(Reference) -->
+    <Reference Include="@(_SdkImplicitReference)"/>
+  </ItemGroup>
+
+</Project>

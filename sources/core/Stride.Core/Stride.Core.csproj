@@ -1,10 +1,8 @@
 <Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-    <StrideRuntimeNet5>true</StrideRuntimeNet5>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.Core.props" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
   
   <PropertyGroup>
     <Description>Core assembly for all Stride assemblies.</Description>
@@ -18,7 +16,7 @@
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StrideBuildTags>*</StrideBuildTags>
     <RestorePackages>true</RestorePackages>
-    <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
+    <ExtrasUwpMetaPackageVersion>6.2.12</ExtrasUwpMetaPackageVersion>
   </PropertyGroup>
   
   <Choose>
@@ -123,5 +121,4 @@
   </ItemGroup>
   
   <Import Project="$(StrideSdkTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.1.6" />
 </Project>
