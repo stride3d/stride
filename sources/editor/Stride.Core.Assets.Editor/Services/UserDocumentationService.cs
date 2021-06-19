@@ -82,7 +82,7 @@ namespace Stride.Core.Assets.Editor.Services
             documentedAssemblies.Remove(assemblyName);
         }
 
-        private bool CacheAssemblyDocumentation([NotNull] Assembly assembly)
+        public bool CacheAssemblyDocumentation([NotNull] Assembly assembly)
         {
             // Can't process dynamic assemblies (they don't have a location)
             if (assembly.IsDynamic)
