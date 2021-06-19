@@ -329,6 +329,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 // Automatically select a start-up package.
                 sessionViewModel.AutoSelectCurrentProject();
 
+                sessionViewModel.LoadDocumentation();
+
                 // Copy the result of the asset loading to the log panel.
                 sessionViewModel.AssetLog.AddLogger(LogKey.Get("Session"), loggerResult);
 
