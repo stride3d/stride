@@ -3,12 +3,12 @@
   
   <PropertyGroup>
     <TargetFrameworks>$(StrideEditorTargetFramework)</TargetFrameworks>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0022" />
-    <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0022" />
+    <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0023" />
+    <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0023" />
   </ItemGroup>
 
   <ItemGroup>

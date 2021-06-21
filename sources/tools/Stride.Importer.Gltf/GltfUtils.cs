@@ -117,7 +117,7 @@ namespace Stride.Importer.Gltf
         /// <returns></returns>
         public static List<string> GenerateTextureFullPaths(SharpGLTF.Schema2.ModelRoot root, UFile sourcePath)
         {
-            var result = new List<String>();
+            var result = new List<string>();
             foreach (var mat in root.LogicalMaterials)
             {
                 foreach (var chan in mat.Channels)

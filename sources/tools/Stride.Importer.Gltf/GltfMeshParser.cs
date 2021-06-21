@@ -90,7 +90,7 @@ namespace Stride.Importer.Gltf
         public static EntityInfo ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot modelRoot, UFile sourcePath)
         {
             SharpGLTF.Schema2.Skin skin = null;
-            HashSet<String> boneNames = new HashSet<string>();
+            HashSet<string> boneNames = new HashSet<string>();
             List<NodeInfo> nodes = new List<NodeInfo>();
 
             var meshName = FirstModelName(modelRoot);
@@ -138,7 +138,7 @@ namespace Stride.Importer.Gltf
                 .ToList();
 
             // Loading the animation names (should be the same as the keys used in animations
-            List<String> animNodes =
+            List<string> animNodes =
                 ConvertAnimations(modelRoot).Keys.ToList();
 
             return new EntityInfo
@@ -384,21 +384,18 @@ namespace Stride.Importer.Gltf
             );
 
             var size = mesh.VertexAccessors.First().Value.Count;
-            var byteBuffer = Enumerable.Range(0, size)
-                .Select(
-                    x =>
-                        declaration.EnumerateWithOffsets()
-                            .Select(y => y.VertexElement.SemanticName
-                                .Replace("ORD", "ORD_" + y.VertexElement.SemanticIndex)
-                                .Replace("BLENDINDICES", "JOINTS_0")
-                                .Replace("BLENDWEIGHT", "WEIGHTS_0")
-                            )
-                            .Select(y => mesh.GetVertexAccessor(y)?.TryGetVertexBytes(x).ToArray())
-                            .Where(x => x != null)
-                )
-                .SelectMany(x => x)
-                .SelectMany(x => x)
-                .ToArray();
+
+            List<byte> bytelst = new();
+
+            for(int i=0; i< size; i++)
+            {
+                foreach(var e in mesh.VertexAccessors.Keys)
+                {
+                    var bytes = mesh.GetVertexAccessor(e).TryGetVertexBytes(i).ToArray();
+                    bytelst.AddRange(bytes);
+                }
+            }
+            var byteBuffer = bytelst.ToArray();
 
             var buffer =
                 GraphicsSerializerExtensions.ToSerializableVersion(
