@@ -683,8 +683,8 @@ namespace Stride.Rendering
                     var staticEffectObjectNode = staticObjectNode * effectSlotCount + effectSlots[renderNode.RenderStage.Index].Index;
                     var renderEffect = renderEffects[staticEffectObjectNode];
 
-                    // Not compiled yet?
-                    if (renderEffect.Effect == null)
+                    // Not compiled yet or error?
+                    if (renderEffect.Effect == null || renderEffect.Reflection == null)
                     {
                         renderNode.RenderEffect = renderEffect;
                         renderNode.EffectObjectNode = EffectObjectNodeReference.Invalid;
