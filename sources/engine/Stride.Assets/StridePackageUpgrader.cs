@@ -206,16 +206,20 @@ namespace Stride.Assets
                     if (dependency.Version.MinVersion < new PackageVersion("4.1.0.0") && solutionProject != null)
                     {
                         var tfm = project.GetProperty("TargetFramework");
-                        if (tfm != null && tfm.EvaluatedValue == "netstandard2.0")
+                        if (tfm != null)
                         {
-                            tfm.Xml.Name = "TargetFrameworks";
-                            tfm.Xml.Value = "net5.0";
-                            isProjectDirty = true;
-                        }
-                        if (tfm != null && tfm.EvaluatedValue.StartsWith("net4") && solutionProject.Type == ProjectType.Executable)
-                        {
-                            tfm.Xml.Value = "net5.0-windows";
-                            isProjectDirty = true;
+                            if (tfm.EvaluatedValue == "netstandard2.0"
+                                || (tfm.EvaluatedValue.StartsWith("net4") && solutionProject.Type == ProjectType.Library))
+                            {
+                                tfm.Xml.Name = "TargetFrameworks";
+                                tfm.Xml.Value = "net5.0";
+                                isProjectDirty = true;
+                            }
+                            else if (tfm.EvaluatedValue.StartsWith("net4") && solutionProject.Type == ProjectType.Executable)
+                            {
+                                tfm.Xml.Value = "net5.0-windows";
+                                isProjectDirty = true;
+                            }
                         }
                     }
 
