@@ -11,6 +11,7 @@ namespace Stride.Rendering.Images
         stage float zNear;
         stage bool skipBG;
 
+        [Color]
         stage float3 FogColor;
         stage Texture2D DepthTexture;
 

@@ -23,7 +23,7 @@ namespace Stride.Rendering.Images
         public static readonly ValueParameterKey<float> zFar = ParameterKeys.NewValue<float>();
         public static readonly ValueParameterKey<float> zNear = ParameterKeys.NewValue<float>();
         public static readonly ValueParameterKey<bool> skipBG = ParameterKeys.NewValue<bool>();
-        public static readonly ValueParameterKey<Vector3> FogColor = ParameterKeys.NewValue<Vector3>();
+        public static readonly ValueParameterKey<Color3> FogColor = ParameterKeys.NewValue<Color3>();
         public static readonly ObjectParameterKey<Texture> DepthTexture = ParameterKeys.NewObject<Texture>();
     }
 }
