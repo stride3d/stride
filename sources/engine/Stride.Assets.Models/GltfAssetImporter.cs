@@ -39,26 +39,8 @@ namespace Stride.Assets.Models
         public override void GetAnimationDuration(UFile localPath, Logger logger, AssetImporterParameters importParameters, out TimeSpan startTime, out TimeSpan endTime)
         {
             var gltfFile = SharpGLTF.Schema2.ModelRoot.Load(localPath);
-            var animations = GltfMeshParser.ConvertAnimations(gltfFile);
-
-            endTime = GltfMeshParser.GetAnimationDuration(gltfFile); // This will go down, so we start from positive infinity
-            startTime = CompressedTimeSpan.Zero;   // This will go up, so we start from negative infinity
-
-            
-        }
-
-        public override IEnumerable<AssetItem> Import(UFile localPath, AssetImporterParameters importParameters)
-        {
-            var assetItems = base.Import(localPath, importParameters);
-            
-            foreach (var item in assetItems)
-            {
-                if (item.Asset is AnimationAsset animAsset)
-                {
-                    
-                }
-            }
-            return assetItems;
+            endTime = GltfMeshParser.GetAnimationDuration(gltfFile);
+            startTime = CompressedTimeSpan.Zero;
         }
     }
 }

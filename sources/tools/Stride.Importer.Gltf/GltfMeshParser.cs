@@ -1,3 +1,6 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -95,7 +98,7 @@ namespace Stride.Importer.Gltf
 
             var meshName = FirstModelName(modelRoot);
 
-            
+
             if (modelRoot.LogicalSkins.Where(x => x.VisualParents.First()?.Mesh == modelRoot.LogicalMeshes[0]).Count() > 0)
                 skin =
                     modelRoot.LogicalSkins
@@ -113,13 +116,13 @@ namespace Stride.Importer.Gltf
                     .Select(x => new NodeInfo() { Name = skin.GetJoint(x).Joint.Name ?? "Joint_" + skin.GetJoint(x).Joint.LogicalIndex, Depth = skin.GetJoint(x).Joint.LogicalIndex, Preserve = true })
                     .ToList();
             }
-            
+
             // Loading Mesh parameters, this will link the materials with the meshes
             var meshes =
                 modelRoot
                 .LogicalMeshes[0].Primitives
                 .Select(
-                    x => 
+                    x =>
                     {
                         var materialName = x.Material != null ? FirstModelName(modelRoot) + "_" + (x.Material.Name ?? "Material" + x.Material.LogicalIndex) : "";
                         return (meshName + "_" + x.LogicalIndex, materialName);
@@ -238,7 +241,7 @@ namespace Stride.Importer.Gltf
                         if (gltfImg.Content.SourcePath == null)
                         {
                             imgPath = Path.Join(sourcePath.GetFullDirectory(), textureName + "." + gltfImg.Content.FileExtension);
-                            if(!File.Exists(imgPath))
+                            if (!File.Exists(imgPath))
                                 gltfImg.Content.SaveToFile(imgPath);
                         }
                         else
@@ -387,9 +390,9 @@ namespace Stride.Importer.Gltf
 
             List<byte> bytelst = new();
 
-            for(int i=0; i< size; i++)
+            for (int i = 0; i < size; i++)
             {
-                foreach(var e in mesh.VertexAccessors.Keys)
+                foreach (var e in mesh.VertexAccessors.Keys)
                 {
                     var bytes = mesh.GetVertexAccessor(e).TryGetVertexBytes(i).ToArray();
                     bytelst.AddRange(bytes);

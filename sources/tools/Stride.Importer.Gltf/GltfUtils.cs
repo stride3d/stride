@@ -1,13 +1,13 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using Stride.Core.Assets;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
-using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
@@ -36,24 +36,48 @@ namespace Stride.Importer.Gltf
         /// <param name="v"></param>
         /// <returns></returns>
         public static Quaternion ConvertNumerics(System.Numerics.Quaternion v) => new Quaternion(v.X, v.Y, v.Z, v.W);
+        
         /// <summary>
         /// Converts a System.Numerics value into a Stride value
         /// </summary>
         /// <param name="v"></param>
         /// <returns></returns>
         public static Vector4 ConvertNumerics(System.Numerics.Vector4 v) => new Vector4(v.X, v.Y, v.Z, v.W);
+        
         /// <summary>
         /// Converts a System.Numerics value into a Stride value
         /// </summary>
         /// <param name="v"></param>
         /// <returns></returns>
         public static Vector3 ConvertNumerics(System.Numerics.Vector3 v) => new Vector3(v.X, v.Y, v.Z);
+       
         /// <summary>
         /// Converts a System.Numerics value into a Stride value
         /// </summary>
         /// <param name="v"></param>
         /// <returns></returns>
         public static Vector2 ConvertNumerics(System.Numerics.Vector2 v) => new Vector2(v.X, v.Y);
+
+
+        public static List<Vector2> ConvertNumerics((System.Numerics.Vector2, System.Numerics.Vector2, System.Numerics.Vector2) value)
+        {
+            return new List<Vector2> { ConvertNumerics(value.Item1), ConvertNumerics(value.Item2), ConvertNumerics(value.Item3) };
+        }
+
+        public static List<Vector3> ConvertNumerics((System.Numerics.Vector3, System.Numerics.Vector3, System.Numerics.Vector3) value)
+        {
+            return new List<Vector3> { ConvertNumerics(value.Item1), ConvertNumerics(value.Item2), ConvertNumerics(value.Item3) };
+        }
+
+        public static List<Vector4> ConvertNumerics((System.Numerics.Vector4, System.Numerics.Vector4, System.Numerics.Vector4) value)
+        {
+            return new List<Vector4> { ConvertNumerics(value.Item1), ConvertNumerics(value.Item2), ConvertNumerics(value.Item3) };
+        }
+
+        public static List<Quaternion> ConvertNumerics((System.Numerics.Quaternion, System.Numerics.Quaternion, System.Numerics.Quaternion) value)
+        {
+            return new List<Quaternion> { ConvertNumerics(value.Item1), ConvertNumerics(value.Item2), ConvertNumerics(value.Item3) };
+        }
 
         /// <summary>
         /// Gets the Stride VertexElement equivalent of a GLTF vertex 
@@ -63,7 +87,7 @@ namespace Stride.Importer.Gltf
         /// <returns></returns>
         public static (VertexElement, int) ConvertVertexElement(KeyValuePair<string, SharpGLTF.Schema2.Accessor> accessor, int offset)
         {
-            // TODO : Simplify this part
+            // TODO : Can be simplified but this gives better control over what's implemented or not
             return (accessor.Key, accessor.Value.Format.ByteSize) switch
             {
                 ("POSITION", 12) => (VertexElement.Position<Vector3>(0, offset), 12),
@@ -104,8 +128,7 @@ namespace Stride.Importer.Gltf
                 SharpGLTF.Schema2.PrimitiveType.LINE_STRIP => PrimitiveType.LineStrip,
                 SharpGLTF.Schema2.PrimitiveType.TRIANGLES => PrimitiveType.TriangleList,
                 SharpGLTF.Schema2.PrimitiveType.TRIANGLE_STRIP => PrimitiveType.TriangleStrip,
-                SharpGLTF.Schema2.PrimitiveType.TRIANGLE_FAN => PrimitiveType.Undefined,
-                _ => throw new NotImplementedException()
+                _ => PrimitiveType.Undefined
             };
         }
 
@@ -129,9 +152,9 @@ namespace Stride.Importer.Gltf
                         var gltfImg = chan.Texture.PrimaryImage;
                         if (gltfImg.Content.SourcePath == null)
                         {
-                            var textureName = gltfImg.Name ?? GltfMeshParser.FirstModelName(root) + "_" + (mat.Name??mat.LogicalIndex.ToString()) + "_" + chan.Key;
-                            result.Add( Path.Join(sourcePath.GetFullDirectory(), textureName + "." + gltfImg.Content.FileExtension));
-                            
+                            var textureName = gltfImg.Name ?? GltfMeshParser.FirstModelName(root) + "_" + (mat.Name ?? mat.LogicalIndex.ToString()) + "_" + chan.Key;
+                            result.Add(Path.Join(sourcePath.GetFullDirectory(), textureName + "." + gltfImg.Content.FileExtension));
+
                         }
                         else
                         {
@@ -161,7 +184,7 @@ namespace Stride.Importer.Gltf
             var textureName = textureFileName;
 
             var texture = AttachedReferenceManager.CreateProxyObject<Texture>(AssetId.Empty, textureName);
-            
+
 
             var currentTexture =
                 new ComputeTextureColor(texture, textureUVSetIndex, uvScaling, Vector2.Zero)
@@ -186,7 +209,7 @@ namespace Stride.Importer.Gltf
         public static ComputeTextureScalar GenerateTextureScalar(string sourceTextureFile, TextureCoordinate textureUVSetIndex, Vector2 textureUVscaling, TextureAddressMode addressModeU = TextureAddressMode.Wrap, TextureAddressMode addressModeV = TextureAddressMode.Wrap, string vfsOutputPath = "")
         {
             var textureFileName = Path.GetFileNameWithoutExtension(sourceTextureFile);
-            
+
             var uvScaling = textureUVscaling;
             var textureName = textureFileName;
 

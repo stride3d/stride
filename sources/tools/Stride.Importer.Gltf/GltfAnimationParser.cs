@@ -1,3 +1,6 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -90,7 +93,7 @@ namespace Stride.Importer.Gltf
             result.Nodes = mnd.ToArray();
             return result;
         }
-        
+
         /// <summary>
         /// Helper function to create a keyframe from values
         /// </summary>
@@ -140,9 +143,9 @@ namespace Stride.Importer.Gltf
 
             // Else we animate the model.
             string baseString = "[ModelComponent.Key].Skeleton.NodeTransformations[index].Transform.type";
-            
-            
-            
+
+
+
             var jointList = Enumerable.Range(0, skin.JointsCount).Select(x => skin.GetJoint(x).Joint).ToList();
             foreach (var chan in channels)
             {
@@ -188,10 +191,10 @@ namespace Stride.Importer.Gltf
                         sampler.GetLinearKeys().Select(x => CreateKeyFrame(x.Key, ConvertNumerics(x.Value))),
                     AnimationCurveInterpolationType.Linear =>
                         sampler.GetLinearKeys().Select(x => CreateKeyFrame(x.Key, ConvertNumerics(x.Value))),
+                    // Cubic might be broken
                     AnimationCurveInterpolationType.Cubic =>
-                        sampler.GetLinearKeys().Select(x => CreateKeyFrame(x.Key, ConvertNumerics(x.Value))),
-                        //sampler.GetCubicKeys().Select(x => CreateKeyFrame(x.Key, ConvertNumerics(x.Value))),
-                        _ => throw new NotImplementedException()
+                        sampler.GetCubicKeys().Select(x => ConvertNumerics(x.Value).Select(y => CreateKeyFrame(x.Key, y))).SelectMany(x => x),
+                    _ => throw new NotImplementedException()
                 };
 
             return new AnimationCurve<Quaternion>
@@ -224,16 +227,118 @@ namespace Stride.Importer.Gltf
                         sampler.GetLinearKeys().Select(x => CreateKeyFrame(x.Key, ConvertNumerics(x.Value))),
                     AnimationCurveInterpolationType.Linear =>
                         sampler.GetLinearKeys().Select(x => CreateKeyFrame(x.Key, ConvertNumerics(x.Value))),
+                    // TODO : Cubic can be broken
                     AnimationCurveInterpolationType.Cubic =>
-                        sampler.GetLinearKeys().Select(x => CreateKeyFrame(x.Key, ConvertNumerics(x.Value))),
-                        //sampler.GetCubicKeys().Select(x => CreateKeyFrame(x.Key, ConvertNumerics(x.Value))),
-                        _ => throw new NotImplementedException()
+                        sampler.GetCubicKeys().Select(x => ConvertNumerics(x.Value).Select(y => CreateKeyFrame(x.Key, y))).SelectMany(x => x),
+                    _ => throw new NotImplementedException()
                 };
 
             return new AnimationCurve<Vector3>
             {
                 InterpolationType = interpolationType,
                 KeyFrames = new FastList<KeyFrameData<Vector3>>(keyframes)
+            };
+        }
+        /// <summary>
+        /// Converts a GLTF AnimationSampler into a Stride AnimationCurve
+        /// </summary>
+        /// <param name="sampler"></param>
+        /// <returns></returns>
+        public static AnimationCurve<Vector2> ConvertCurve(SharpGLTF.Schema2.IAnimationSampler<System.Numerics.Vector2> sampler)
+        {
+            var interpolationType =
+                sampler.InterpolationMode switch
+                {
+                    SharpGLTF.Schema2.AnimationInterpolationMode.LINEAR => AnimationCurveInterpolationType.Linear,
+                    SharpGLTF.Schema2.AnimationInterpolationMode.STEP => AnimationCurveInterpolationType.Constant,
+                    SharpGLTF.Schema2.AnimationInterpolationMode.CUBICSPLINE => AnimationCurveInterpolationType.Cubic,
+                    _ => throw new NotImplementedException(),
+                };
+
+            var keyframes =
+                interpolationType switch
+                {
+                    AnimationCurveInterpolationType.Constant =>
+                        sampler.GetLinearKeys().Select(x => CreateKeyFrame(x.Key, ConvertNumerics(x.Value))),
+                    AnimationCurveInterpolationType.Linear =>
+                        sampler.GetLinearKeys().Select(x => CreateKeyFrame(x.Key, ConvertNumerics(x.Value))),
+                    // TODO : Cubic can be broken
+                    AnimationCurveInterpolationType.Cubic =>
+                        sampler.GetCubicKeys().Select(x => ConvertNumerics(x.Value).Select(y => CreateKeyFrame(x.Key, y))).SelectMany(x => x),
+                    _ => throw new NotImplementedException()
+                };
+
+            return new AnimationCurve<Vector2>
+            {
+                InterpolationType = interpolationType,
+                KeyFrames = new FastList<KeyFrameData<Vector2>>(keyframes)
+            };
+        }
+        /// <summary>
+        /// Converts a GLTF AnimationSampler into a Stride AnimationCurve
+        /// </summary>
+        /// <param name="sampler"></param>
+        /// <returns></returns>
+        public static AnimationCurve<Vector4> ConvertCurve(SharpGLTF.Schema2.IAnimationSampler<System.Numerics.Vector4> sampler)
+        {
+            var interpolationType =
+                sampler.InterpolationMode switch
+                {
+                    SharpGLTF.Schema2.AnimationInterpolationMode.LINEAR => AnimationCurveInterpolationType.Linear,
+                    SharpGLTF.Schema2.AnimationInterpolationMode.STEP => AnimationCurveInterpolationType.Constant,
+                    SharpGLTF.Schema2.AnimationInterpolationMode.CUBICSPLINE => AnimationCurveInterpolationType.Cubic,
+                    _ => throw new NotImplementedException(),
+                };
+
+            var keyframes =
+                interpolationType switch
+                {
+                    AnimationCurveInterpolationType.Constant =>
+                        sampler.GetLinearKeys().Select(x => CreateKeyFrame(x.Key, ConvertNumerics(x.Value))),
+                    AnimationCurveInterpolationType.Linear =>
+                        sampler.GetLinearKeys().Select(x => CreateKeyFrame(x.Key, ConvertNumerics(x.Value))),
+                    // TODO : Cubic can be broken
+                    AnimationCurveInterpolationType.Cubic =>
+                        sampler.GetCubicKeys().Select(x => ConvertNumerics(x.Value).Select(y => CreateKeyFrame(x.Key, y))).SelectMany(x => x),
+                    _ => throw new NotImplementedException()
+                };
+
+            return new AnimationCurve<Vector4>
+            {
+                InterpolationType = interpolationType,
+                KeyFrames = new FastList<KeyFrameData<Vector4>>(keyframes)
+            };
+        }
+        /// <summary>
+        /// Converts a GLTF AnimationSampler into a Stride AnimationCurve
+        /// </summary>
+        /// <param name="sampler"></param>
+        /// <returns></returns>
+        public static AnimationCurve<float> ConvertCurve(SharpGLTF.Schema2.IAnimationSampler<float> sampler)
+        {
+            var interpolationType =
+                sampler.InterpolationMode switch
+                {
+                    SharpGLTF.Schema2.AnimationInterpolationMode.LINEAR => AnimationCurveInterpolationType.Linear,
+                    SharpGLTF.Schema2.AnimationInterpolationMode.STEP => AnimationCurveInterpolationType.Constant,
+                    SharpGLTF.Schema2.AnimationInterpolationMode.CUBICSPLINE => AnimationCurveInterpolationType.Cubic,
+                    _ => throw new NotImplementedException(),
+                };
+
+            var keyframes =
+                interpolationType switch
+                {
+                    AnimationCurveInterpolationType.Constant =>
+                        sampler.GetLinearKeys().Select(x => CreateKeyFrame(x.Key, x.Value)),
+                    AnimationCurveInterpolationType.Linear =>
+                        sampler.GetLinearKeys().Select(x => CreateKeyFrame(x.Key, x.Value)),
+                    _ => throw new NotImplementedException()
+                };
+
+            return new AnimationCurve<float>
+            {
+                InterpolationType = interpolationType,
+                KeyFrames = new FastList<KeyFrameData<float>>(keyframes)
             };
         }
     }
