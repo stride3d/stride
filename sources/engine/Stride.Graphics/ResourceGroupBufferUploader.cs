@@ -89,6 +89,20 @@ namespace Stride.Graphics
             }
         }
 
+        public void Clear()
+        {
+            if (resourceGroupBindings is null)
+                return;
+
+            for (int i = 0; i < resourceGroupBindings.Length; i++)
+            {
+                ref var binding = ref resourceGroupBindings[i];
+                binding.ConstantBufferPreallocated?.Dispose();
+            }
+
+            resourceGroupBindings = null;
+        }
+
         internal struct ResourceGroupBinding
         {
             // Constant buffer
