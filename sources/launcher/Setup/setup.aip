@@ -25,10 +25,10 @@
     <ROW Property="BuildExeName" Value="StrideSetup"/>
     <ROW Property="CTRLS" Value="2"/>
     <ROW Property="Manufacturer" Value="Stride"/>
-    <ROW Property="ProductCode" Value="1033:{FB06242C-984D-45E5-AC09-E9188AA4E20F} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{FDA2F8B5-085E-4C39-BA07-CBB3021CE8F6} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="Stride"/>
-    <ROW Property="ProductVersion" Value="5.0.1" Type="32"/>
+    <ROW Property="ProductVersion" Value="5.0.5" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
     <ROW Property="UpgradeCode" Value="{B48CDC88-F979-46BC-B73C-E65080AE8F3A}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -56,7 +56,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="AIShRegAnswer" ComponentId="{BD0931F0-C2B5-4E23-BFF6-77123283DBF9}" Directory_="APPDIR" Attributes="4" KeyPath="AIShRegAnswer"/>
-    <ROW Component="AI_CustomARPName" ComponentId="{29882926-543A-4B6F-925C-FFA455547825}" Directory_="APPDIR" Attributes="260" KeyPath="DisplayName" Options="1"/>
+    <ROW Component="AI_CustomARPName" ComponentId="{673F0469-3C61-4B5C-B821-D2A96AD2C07B}" Directory_="APPDIR" Attributes="260" KeyPath="DisplayName" Options="1"/>
     <ROW Component="AI_DisableModify" ComponentId="{20B0BFF5-527E-4A4C-B788-20F10784D27D}" Directory_="APPDIR" Attributes="260" KeyPath="NoModify" Options="1"/>
     <ROW Component="AI_ExePath" ComponentId="{ECECCEFA-4B57-4B3B-B44A-B440929CD009}" Directory_="APPDIR" Attributes="4" KeyPath="AI_ExePath"/>
     <ROW Component="APPDIR" ComponentId="{995F059F-2BC1-4BA2-8A1E-F504C47564D9}" Directory_="APPDIR" Attributes="0"/>
