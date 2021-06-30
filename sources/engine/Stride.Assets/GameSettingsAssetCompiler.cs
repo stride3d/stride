@@ -35,9 +35,8 @@ namespace Stride.Assets
 
         public override IEnumerable<Type> GetRuntimeTypes(AssetItem assetItem)
         {
-            yield return typeof(Scene);
-            yield return typeof(GraphicsCompositor);
-            yield return typeof(Texture);
+            var runtimeTypesCollector = new RuntimeTypesCollector();
+            return runtimeTypesCollector.GetRuntimeTypes(assetItem.Asset);
         }
 
         private class GameSettingsCompileCommand : AssetCommand<GameSettingsAsset>
