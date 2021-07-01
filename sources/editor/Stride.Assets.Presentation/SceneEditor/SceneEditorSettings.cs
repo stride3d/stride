@@ -84,6 +84,10 @@ namespace Stride.Assets.Presentation.SceneEditor
             {
                 DisplayName = $"{SceneEditor}/{ViewportSettings}/{Tr._p("Settings", "Display direction names instead of XYZ components")}"
             };
+            UseLinearMovementForRotation = new SettingsKey<bool>("SceneEditor/ViewportSettings/UseLinearMovementForRotation", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, false)
+            {
+                DisplayName = $"{SceneEditor}/{ViewportSettings}/{Tr._p("Settings", "Use linear movement for the rotation gizmo")}"
+            };
             AskBeforeDeletingEntities = new SettingsKey<bool>("SceneEditor/AskBeforeDeletingEntities", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, true)
             {
                 DisplayName = $"{SceneEditor}/{Tr._p("Settings", "Ask before deleting entities")}"
@@ -123,6 +127,8 @@ namespace Stride.Assets.Presentation.SceneEditor
         public static SettingsKey<float> DefaultScaleSnap { get; }
 
         public static SettingsKey<bool> DisplayDirectionNames { get; }
+
+        public static SettingsKey<bool> UseLinearMovementForRotation { get; }
 
         public static SettingsKey<bool> AskBeforeDeletingEntities { get; }
 

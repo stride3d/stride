@@ -7,6 +7,7 @@ using Stride.Engine;
 using Stride.Extensions;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
+using Stride.Assets.Presentation.SceneEditor;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
@@ -155,6 +156,16 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// <returns></returns>
         protected override InitialTransformation CalculateTransformation()
         {
+            var transformation = new InitialTransformation { Rotation = Quaternion.Identity, Scale = Vector3.One };
+
+            // set the rotation to apply in the gizmo space
+            transformation.Rotation = SceneEditorSettings.UseLinearMovementForRotation.GetValue() ? GetRotationFromLinearMovement() : GetRotationFromCircularMovement();
+
+            return transformation;
+        }
+
+        private Quaternion GetRotationFromCircularMovement()
+        {
             // TODO: use cameraComponent.WorldToScreenPosition instead once implemented
             // determine the anchor entity's screen position
             var anchorEntityWorldPosition = AnchorEntity.Transform.WorldMatrix.TranslationVector;
@@ -173,8 +184,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             anchorEntityToMouse.X *= cameraComponent.AspectRatio;
             anchorEntityToStartMouse.X *= cameraComponent.AspectRatio;
-            
-            var transformation = new InitialTransformation { Rotation = Quaternion.Identity, Scale = Vector3.One };
 
             // determine the rotation angle
             var rotationAngle = MathF.Atan2(anchorEntityToMouse.X * anchorEntityToStartMouse.Y - anchorEntityToMouse.Y * anchorEntityToStartMouse.X, Vector2.Dot(anchorEntityToStartMouse, anchorEntityToMouse));
@@ -187,14 +196,31 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
 
             // determine the rotation axis
-            var rotationAxisWorldUp =  rotationAxes[(int)TransformationAxes / 2].Transform.WorldMatrix.Up;
+            var rotationAxisWorldUp = rotationAxes[(int)TransformationAxes / 2].Transform.WorldMatrix.Up;
             var cameraToAnchorEntity = AnchorEntity.Transform.WorldMatrix.TranslationVector - Game.EditorServices.Get<IEditorGameCameraService>().Position;
             var rotationAxis = new Vector3(0) { [(int)TransformationAxes / 2] = MathF.Sign(Vector3.Dot(cameraToAnchorEntity, rotationAxisWorldUp)) };
 
-            // set the rotation to apply in the gizmo space
-            transformation.Rotation = Quaternion.RotationAxis(rotationAxis, rotationAngle);
+            return Quaternion.RotationAxis(rotationAxis, rotationAngle);
+        }
 
-            return transformation;
+        private Quaternion GetRotationFromLinearMovement()
+        {
+            var mouseDrag = Input.MousePosition - StartMousePosition;
+
+            // determine the rotation angle
+            var rotationAngle = Vector2.Dot(new Vector2(mouseDrag.X, -mouseDrag.Y), TransformationDirection) * 2.1f * MathUtil.Pi; // half screen size if little bit more Pi
+
+            // snap the rotation angle if necessary
+            if (UseSnap)
+            {
+                var snapValue = MathUtil.DegreesToRadians(SnapValue);
+                rotationAngle = MathUtil.Snap(rotationAngle, snapValue);
+            }
+
+            // determine the rotation axis
+            var rotationAxis = new Vector3(0) { [(int)TransformationAxes / 2] = 1 };
+
+            return Quaternion.RotationAxis(rotationAxis, rotationAngle);
         }
 
         protected override void OnTransformationFinished()
