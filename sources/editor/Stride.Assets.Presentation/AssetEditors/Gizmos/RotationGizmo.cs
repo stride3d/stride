@@ -186,12 +186,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 rotationAngle = MathUtil.Snap(rotationAngle, snapValue);
             }
 
-            // determine the rotation axis in the Gizmo
-
+            // determine the rotation axis
             var rotationAxisWorldUp =  rotationAxes[(int)TransformationAxes / 2].Transform.WorldMatrix.Up;
-            var anchorEntityToCamera = AnchorEntity.Transform.WorldMatrix.TranslationVector - Game.EditorServices.Get<IEditorGameCameraService>().Position;
-            var rotationAxis = new Vector3(0) { [(int)TransformationAxes / 2] = MathF.Sign(Vector3.Dot(anchorEntityToCamera, rotationAxisWorldUp)) };
-            rotationAxis.Normalize();
+            var cameraToAnchorEntity = AnchorEntity.Transform.WorldMatrix.TranslationVector - Game.EditorServices.Get<IEditorGameCameraService>().Position;
+            var rotationAxis = new Vector3(0) { [(int)TransformationAxes / 2] = MathF.Sign(Vector3.Dot(cameraToAnchorEntity, rotationAxisWorldUp)) };
 
             // set the rotation to apply in the gizmo space
             transformation.Rotation = Quaternion.RotationAxis(rotationAxis, rotationAngle);
