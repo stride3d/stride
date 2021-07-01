@@ -80,6 +80,10 @@ namespace Stride.Assets.Presentation.SceneEditor
             {
                 DisplayName = $"{SceneEditor}/{ViewportSettings}/{Tr._p("Settings", "Default snap factor for scale")}"
             };
+            DisplayDirectionNames = new SettingsKey<bool>("SceneEditor/ViewportSettings/DisplayDirectionNames", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, false)
+            {
+                DisplayName = $"{SceneEditor}/{ViewportSettings}/{Tr._p("Settings", "Display direction names instead of XYZ components")}"
+            };
             AskBeforeDeletingEntities = new SettingsKey<bool>("SceneEditor/AskBeforeDeletingEntities", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, true)
             {
                 DisplayName = $"{SceneEditor}/{Tr._p("Settings", "Ask before deleting entities")}"
@@ -117,6 +121,8 @@ namespace Stride.Assets.Presentation.SceneEditor
         public static SettingsKey<float> DefaultRotationSnap { get; }
 
         public static SettingsKey<float> DefaultScaleSnap { get; }
+
+        public static SettingsKey<bool> DisplayDirectionNames { get; }
 
         public static SettingsKey<bool> AskBeforeDeletingEntities { get; }
 

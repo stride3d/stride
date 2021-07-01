@@ -45,7 +45,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             pointMesh= new LightPointMesh(GraphicsDevice);
             pointMesh.Build();
 
-            pointMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
+            pointMaterial = GizmoEmissiveColorMaterial.Create(GraphicsDevice, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
 
             pointEntity = new Entity("Point Mesh of {0}".ToFormat(root.Id))
             {
@@ -71,7 +71,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             pointEntity.Transform.Scale = new Vector3(LightPoint.Radius);
 
             // update the spot color
-            GizmoUniformColorMaterial.UpdateColor(GraphicsDevice, pointMaterial, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
+            GizmoEmissiveColorMaterial.UpdateColor(GraphicsDevice, pointMaterial, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
         }
         
         public override bool IsSelected

@@ -11,20 +11,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
     public static class GizmoUniformColorMaterial
     {
-        public static readonly ValueParameterKey<Color4> GizmoColorKey = ParameterKeys.NewValue<Color4>();
-
-        public static Material Create(GraphicsDevice device, Color color, bool emissive = true)
+        public static Material Create(GraphicsDevice device, Color color)
         {
             var desc = new MaterialDescriptor();
-            if (emissive)
-            {
-                desc.Attributes.Emissive = new MaterialEmissiveMapFeature(new ComputeColor() { Key = GizmoColorKey });
-            }
-            else
-            {
-                desc.Attributes.Diffuse = new MaterialDiffuseMapFeature(new ComputeColor() { Key = GizmoColorKey });
-                desc.Attributes.DiffuseModel = new MaterialDiffuseLambertModelFeature();
-            }
+            desc.Attributes.Diffuse = new MaterialDiffuseMapFeature(new ComputeColor());
+            desc.Attributes.DiffuseModel = new MaterialDiffuseLambertModelFeature();
 
             var material = Material.New(device, desc);
 
@@ -46,7 +37,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         public static void UpdateColor(GraphicsDevice device, Material material, Color color)
         {
             // set the color to the material
-            material.Passes[0].Parameters.Set(GizmoColorKey, new Color4(color).ToColorSpace(device.ColorSpace));
+            material.Passes[0].Parameters.Set(MaterialKeys.DiffuseValue, new Color4(color).ToColorSpace(device.ColorSpace));
         }
     }
 }
