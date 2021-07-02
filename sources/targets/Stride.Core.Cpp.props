@@ -4,6 +4,9 @@
   <PropertyGroup Condition="'$(DesignTimeBuild)' == 'true' And '$(TargetFrameworks)' != '' And '$(TargetFramework)' == ''">
     <TargetFramework>$(TargetFrameworks.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</TargetFramework>
   </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == ''">
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
     <TargetFramework>net472</TargetFramework>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
