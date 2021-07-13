@@ -253,19 +253,19 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="from">The first point.</param>
         /// <param name="to">The second point.</param>
-        /// <param name="maxDistancePerCall">The rate at which the first point is going to move towards the second point.</param>
+        /// <param name="maxTravelDistance">The rate at which the first point is going to move towards the second point.</param>
         /// <param name="result">When the method completes, contains a version of the Vector that is closer to the second vector.</param>
-        public static void Goto(ref Vector3 from, ref Vector3 to, ref float maxDistancePerCall, out Vector3 result)
+        public static void MoveTo(ref Vector3 from, ref Vector3 to, float maxTravelDistance, out Vector3 result)
         {
             Vector3 distance;
             Subtract(ref to, ref from, out distance);
 
             float length = distance.Length();
 
-            if (maxDistancePerCall >= length || length == 0)
+            if (maxTravelDistance >= length || length == 0)
                 result = to;
             else
-                result = new Vector3(from.X + distance.X / length * maxDistancePerCall, from.Y + distance.Y / length * maxDistancePerCall, from.Z + distance.Z / length * maxDistancePerCall);
+                result = new Vector3(from.X + distance.X / length * maxTravelDistance, from.Y + distance.Y / length * maxTravelDistance, from.Z + distance.Z / length * maxTravelDistance);
         }
 
         /// <summary>
@@ -273,11 +273,11 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="from">The first point.</param>
         /// <param name="to">The second point.</param>
-        /// <param name="maxDistancePerCall">The rate at which the first point is going to move towards the second point.</param>
-        public static Vector3 Goto(Vector3 from, Vector3 to, float maxDistancePerCall)
+        /// <param name="maxTravelDistance">The rate at which the first point is going to move towards the second point.</param>
+        public static Vector3 MoveTo(Vector3 from, Vector3 to, float maxTravelDistance)
         {
             Vector3 result;
-            Goto(ref from, ref to, ref maxDistancePerCall, out result);
+            MoveTo(ref from, ref to, maxTravelDistance, out result);
             return result;
         }
 

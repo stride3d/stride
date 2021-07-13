@@ -287,19 +287,19 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="from">The first point.</param>
         /// <param name="to">The second point.</param>
-        /// <param name="maxDistancePerCall">The rate at which the first point is going to move towards the second point.</param>
+        /// <param name="maxTravelDistance">The rate at which the first point is going to move towards the second point.</param>
         /// <param name="result">When the method completes, contains a version of the Vector that is closer to the second vector.</param>
-        public static void Goto(ref Vector4 from, ref Vector4 to, ref float maxDistancePerCall, out Vector4 result)
+        public static void MoveTo(ref Vector4 from, ref Vector4 to, float maxTravelDistance, out Vector4 result)
         {
             Vector4 distance;
             Subtract(ref to, ref from, out distance);
 
             float length = distance.Length();
 
-            if (maxDistancePerCall >= length || length == 0)
+            if (maxTravelDistance >= length || length == 0)
                 result = to;
             else
-                result = new Vector4(from.X + distance.X / length * maxDistancePerCall, from.Y + distance.Y / length * maxDistancePerCall, from.Z + distance.Z / length * maxDistancePerCall, from.W + distance.W / length * maxDistancePerCall);
+                result = new Vector4(from.X + distance.X / length * maxTravelDistance, from.Y + distance.Y / length * maxTravelDistance, from.Z + distance.Z / length * maxTravelDistance, from.W + distance.W / length * maxTravelDistance);
         }
 
         /// <summary>
@@ -307,11 +307,11 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="from">The first point.</param>
         /// <param name="to">The second point.</param>
-        /// <param name="maxDistancePerCall">The rate at which the first point is going to move towards the second point.</param>
-        public static Vector4 Goto(Vector4 from, Vector4 to, float maxDistancePerCall)
+        /// <param name="maxTravelDistance">The rate at which the first point is going to move towards the second point.</param>
+        public static Vector4 Moveto(Vector4 from, Vector4 to, float maxTravelDistance)
         {
             Vector4 result;
-            Goto(ref from, ref to, ref maxDistancePerCall, out result);
+            MoveTo(ref from, ref to, maxTravelDistance, out result);
             return result;
         }
 
