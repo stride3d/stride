@@ -212,17 +212,17 @@ namespace Stride.Core.Mathematics
         /// </summary>
         /// <param name="First">The first point.</param>
         /// <param name="Second">The second point.</param>
-        /// <param name="Speed">The rate at which the first point is going to move towards the second point.</param>
-        public static Vector2 Goto(Vector2 First, Vector2 Second, float Speed)
+        /// <param name="MaxDistancePerCall">The rate at which the first point is going to move towards the second point.</param>
+        public static Vector2 Goto(Vector2 First, Vector2 Second, float MaxDistancePerCall)
         {
             Vector2 Distance = Subtract(Second, First);
 
             float length = (float)Math.Sqrt(Distance.X * Distance.X + Distance.Y * Distance.Y);
 
-            if (length == 0 || Speed >= length)
+            if (length == 0 || MaxDistancePerCall >= length)
                 return Second;
 
-            return new Vector2(First.X + Distance.X / length * Speed, First.Y + Distance.Y / length * Speed);
+            return new Vector2(First.X + Distance.X / length * MaxDistancePerCall, First.Y + Distance.Y / length * MaxDistancePerCall);
         }
 
         /// <summary>
