@@ -249,6 +249,24 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Moves the first vector3 to the second one in a straight line.
+        /// </summary>
+        /// <param name="First">The first point.</param>
+        /// <param name="Second">The second point.</param>
+        /// <param name="Speed">The rate at which the first point is going to move towards the second point.</param>
+        public static Vector3 Goto(Vector3 First, Vector3 Second, float Speed)
+        {
+            Vector3 Distance = Subtract(Second, First);
+
+            float length = (float)Math.Sqrt(Distance.X * Distance.X + Distance.Y * Distance.Y + Distance.Z * Distance.Z);
+
+            if (length == 0 || Speed >= length)
+                return Second;
+
+            return new Vector3(First.X + Distance.X / length * Speed, First.Y + Distance.Y / length * Speed, First.Z + Distance.Z / length * Speed);
+        }
+
+        /// <summary>
         /// Adds two vectors.
         /// </summary>
         /// <param name="left">The first vector to add.</param>
