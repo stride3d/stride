@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.ViewModels;
 
@@ -24,5 +25,10 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         /// Gets or sets the alpha level of the grid.
         /// </summary>
         float Alpha { get; set; }
+
+        /// <summary>
+        /// Gets or sets the axis of the grid.
+        /// </summary>
+        int AxisIndex { get; set; }
     }
 }

@@ -472,6 +472,30 @@
         <Border Background="{StaticResource BackgroundBrush}" DockPanel.Dock="Top" Padding="8,2">
           <DockPanel>
             <WrapPanel HorizontalAlignment="Right" DockPanel.Dock="Right">
+              <!-- Grid -->
+              <ToggleButton x:Name="ToggleGrid" Content="{sd:Image {StaticResource ImageGrid}, 16, 16, NearestNeighbor}"
+                            ToolTip="{sd:Localize Viewport grid settings..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                            Width="28" Height="28" Background="Transparent" >
+              </ToggleButton>
+              <Popup IsOpen="{Binding ElementName=ToggleGrid, Path=IsChecked}" StaysOpen="False" PlacementTarget="{Binding ElementName=ToggleGrid}">
+                <Grid Background="{StaticResource BackgroundBrush}" MinWidth="130" MinHeight="100">
+                  <StackPanel>
+                    <CheckBox Content="Show Grid" Margin="8" IsChecked="{Binding Grid.IsVisible}"/>
+                    <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
+                      <TextBlock Text="{sd:Localize Grid axis}" FontWeight="Bold"/>
+                    </Border>
+                    <DockPanel Margin="8">
+                      <RadioButton Content="{sd:Localize X, Context=Button}" IsChecked="{Binding Grid.AxisIndex, Converter={sd:IntToBool}, ConverterParameter=0}" Margin="4"/>
+                      <RadioButton Content="{sd:Localize Y, Context=Button}" IsChecked="{Binding Grid.AxisIndex, Converter={sd:IntToBool}, ConverterParameter=1}" Margin="4"/>
+                      <RadioButton Content="{sd:Localize Z, Context=Button}" IsChecked="{Binding Grid.AxisIndex, Converter={sd:IntToBool}, ConverterParameter=2}" Margin="4"/>
+                    </DockPanel>
+                    <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
+                      <TextBlock Text="{sd:Localize Grid opacity}" FontWeight="Bold"/>
+                    </Border>
+                    <sd:NumericTextBox Value="{Binding Grid.Alpha}" SmallChange="0.1"  Minimum="0" Maximum="1" DecimalPlaces="3" Margin="8"/>
+                  </StackPanel>
+                </Grid>
+              </Popup>
               <!-- Lighting -->
               <ToggleButton x:Name="ToggleLighting" Content="{sd:Image {StaticResource ImageLighting}, 16, 16, NearestNeighbor}"
                             ToolTip="{sd:Localize Light probes and cubemaps..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
@@ -589,8 +613,6 @@
                               Maximum="{Binding Length, Source={x:Static sd:Utils.ZoomFactors}, Converter={sd:SumNum}, ConverterParameter=-1}"
                               Value="{Binding EntityGizmos.GizmoSize, Converter={sd:ItemToIndex}, ConverterParameter={x:Static sd:Utils.ZoomFactors}}"/>
                       <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                        <CheckBox Content="Grid" Margin="5" IsChecked="{Binding Grid.IsVisible}"/>
-                        <Separator Margin="5" Height="0" Width="5"/>
                         <CheckBox Content="{sd:Localize Camera preview, Context=Button}" Margin="5" IsChecked="{Binding DisplayCameraPreview}"/>
                         <CheckBox Content="{sd:Localize Light probe volumes, Context=Button}" Margin="5" IsChecked="{Binding Lighting.LightProbeWireframeVisible}"/>
                       </StackPanel>

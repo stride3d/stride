@@ -6,6 +6,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.SceneEditor;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {
@@ -45,10 +46,31 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
         public float Alpha { get { return Service.Alpha; } set { SetValue(Math.Abs(Alpha - value) > MathUtil.ZeroTolerance, () => Service.Alpha = value); } }
 
         /// <summary>
+        /// Gets or sets the axis of the grid.
+        /// </summary>
+        public int AxisIndex { get { return Service.AxisIndex; } set { SetValue(AxisIndex != value, () => Service.AxisIndex = value); } }
+
+        /// <summary>
         /// Gets a command that will toggle the visibility of the grid.
         /// </summary>
         public ICommandBase ToggleCommand { get; }
 
         private IEditorGameGridViewModelService Service => controller.GetService<IEditorGameGridViewModelService>();
+
+        public void LoadSettings([NotNull] SceneSettingsData sceneSettings)
+        {
+            IsVisible = sceneSettings.GridVisible;
+            Color = sceneSettings.GridColor;
+            Alpha = sceneSettings.GridOpacity;
+            AxisIndex = sceneSettings.GridAxisIndex;
+        }
+
+        public void SaveSettings([NotNull] SceneSettingsData sceneSettings)
+        {
+            sceneSettings.GridVisible = IsVisible;
+            sceneSettings.GridColor = Color;
+            sceneSettings.GridOpacity = Alpha;
+            sceneSettings.GridAxisIndex = AxisIndex;
+        }
     }
 }
