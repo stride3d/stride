@@ -283,7 +283,7 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Moves the first vector3 to the second one in a straight line.
+        /// Moves the first vector4 to the second one in a straight line.
         /// </summary>
         /// <param name="First">The first point.</param>
         /// <param name="Second">The second point.</param>
