@@ -210,19 +210,34 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Moves the first vector2 to the second one in a straight line.
         /// </summary>
-        /// <param name="First">The first point.</param>
-        /// <param name="Second">The second point.</param>
-        /// <param name="MaxDistancePerCall">The rate at which the first point is going to move towards the second point.</param>
-        public static Vector2 Goto(Vector2 First, Vector2 Second, float MaxDistancePerCall)
+        /// <param name="from">The first point.</param>
+        /// <param name="to">The second point.</param>
+        /// <param name="maxDistancePerCall">The rate at which the first point is going to move towards the second point.</param>
+        /// <param name="result">When the method completes, contains a version of the Vector that is closer to the second vector.</param>
+        public static void Goto(ref Vector2 from, ref Vector2 to, ref float maxDistancePerCall, out Vector2 result)
         {
-            Vector2 Distance = Subtract(Second, First);
+            Vector2 distance;
+            Subtract(ref to, ref from, out distance);
 
-            float length = (float)Math.Sqrt(Distance.X * Distance.X + Distance.Y * Distance.Y);
+            float length = distance.Length();
 
-            if (length == 0 || MaxDistancePerCall >= length)
-                return Second;
+            if (maxDistancePerCall >= length || length == 0)
+                result = to;
+            else
+                result = new Vector2(from.X + distance.X / length * maxDistancePerCall, from.Y + distance.Y / length * maxDistancePerCall);
+        }
 
-            return new Vector2(First.X + Distance.X / length * MaxDistancePerCall, First.Y + Distance.Y / length * MaxDistancePerCall);
+        /// <summary>
+        /// Moves the first vector2 to the second one in a straight line.
+        /// </summary>
+        /// <param name="from">The first point.</param>
+        /// <param name="to">The second point.</param>
+        /// <param name="maxDistancePerCall">The rate at which the first point is going to move towards the second point.</param>
+        public static Vector2 Goto(Vector2 from, Vector2 to, float maxDistancePerCall)
+        {
+            Vector2 result;
+            Goto(ref from, ref to, ref maxDistancePerCall, out result);
+            return result;
         }
 
         /// <summary>
