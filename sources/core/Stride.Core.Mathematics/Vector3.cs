@@ -193,7 +193,7 @@ namespace Stride.Core.Mathematics
         /// and speed is of the essence.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Length()
+        public readonly float Length()
         {
             return (float)Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
         }
@@ -254,31 +254,16 @@ namespace Stride.Core.Mathematics
         /// <param name="from">The first point.</param>
         /// <param name="to">The second point.</param>
         /// <param name="maxTravelDistance">The rate at which the first point is going to move towards the second point.</param>
-        /// <param name="result">When the method completes, contains a version of the Vector that is closer to the second vector.</param>
-        public static void MoveTo(ref Vector3 from, ref Vector3 to, float maxTravelDistance, out Vector3 result)
+        public static Vector3 MoveTo(in Vector3 from, in Vector3 to, float maxTravelDistance)
         {
-            Vector3 distance;
-            Subtract(ref to, ref from, out distance);
+            Vector3 distance = Subtract(to, from);
 
             float length = distance.Length();
 
             if (maxTravelDistance >= length || length == 0)
-                result = to;
+                return to;
             else
-                result = new Vector3(from.X + distance.X / length * maxTravelDistance, from.Y + distance.Y / length * maxTravelDistance, from.Z + distance.Z / length * maxTravelDistance);
-        }
-
-        /// <summary>
-        /// Moves the first vector3 to the second one in a straight line.
-        /// </summary>
-        /// <param name="from">The first point.</param>
-        /// <param name="to">The second point.</param>
-        /// <param name="maxTravelDistance">The rate at which the first point is going to move towards the second point.</param>
-        public static Vector3 MoveTo(Vector3 from, Vector3 to, float maxTravelDistance)
-        {
-            Vector3 result;
-            MoveTo(ref from, ref to, maxTravelDistance, out result);
-            return result;
+                return new Vector3(from.X + distance.X / length * maxTravelDistance, from.Y + distance.Y / length * maxTravelDistance, from.Z + distance.Z / length * maxTravelDistance);
         }
 
         /// <summary>
@@ -324,7 +309,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second vector to subtract.</param>
         /// <returns>The difference of the two vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 Subtract(Vector3 left, Vector3 right)
+        public static Vector3 Subtract(in Vector3 left, in Vector3 right)
         {
             return new Vector3(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
         }
