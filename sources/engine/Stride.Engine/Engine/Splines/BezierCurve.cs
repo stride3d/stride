@@ -17,8 +17,6 @@ namespace Stride.Engine.Splines
         public Vector3 TargetPosition { get; private set; }
         public Vector3 TargetTangentPosition { get; private set; }
 
-        public BezierCurve TargetNode;
-
         private BezierPoint[] _bezierPoints;
 
         public delegate void BezierCurveDirtyEventHandler();
@@ -49,9 +47,9 @@ namespace Stride.Engine.Splines
                 Update();
         }
 
-        public void SetTangentPosition(Vector3 targetPosition, bool update = false)
+        public void SetTangentPosition(Vector3 tangetPosition, bool update = false)
         {
-            TangentPosition = targetPosition;
+            TangentPosition = tangetPosition;
 
             if (update)
                 Update();
@@ -59,7 +57,7 @@ namespace Stride.Engine.Splines
 
         public void SetTargetPosition(Vector3 targetPosition, bool update = false)
         {
-            TargetPosition = TargetPosition;
+            TargetPosition = targetPosition;
 
             if (update)
                 Update();
@@ -95,8 +93,8 @@ namespace Stride.Engine.Splines
         {
             p0 = Position;
             p1 = TangentPosition;
-            p2 = TargetNode.TangentPosition;
-            p3 = TargetNode.Position;
+            p2 = TargetTangentPosition;
+            p3 = TargetPosition;
 
             //var oriPivot = Pivot:Create();
             //var targetPivot = Pivot:Create();

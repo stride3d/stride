@@ -159,7 +159,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     {
                         Model = new Model
                         {
-                            GizmoUniformColorMaterial.Create(GraphicsDevice, i % 2 == 0 ? Color.LightGoldenrodYellow: Color.LightCyan),
+                            GizmoUniformColorMaterial.Create(GraphicsDevice, i % 2 == 0 ? Color.GreenYellow: Color.YellowGreen),
                             new Mesh { Draw = lineMesh.MeshDraw }
                         },
                         RenderGroup = RenderGroup,
