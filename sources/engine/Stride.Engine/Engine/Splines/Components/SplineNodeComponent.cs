@@ -28,6 +28,7 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 _tangentOut = value;
+                MakeDirty();
             }
         }
         #endregion
@@ -41,6 +42,7 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 _tangentIn = value;
+                MakeDirty();
             }
         }
         #endregion
@@ -60,7 +62,8 @@ namespace Stride.Engine.Splines.Components
                 {
                     _segments = value;
                 }
-                _bezierCurve?.MakeDirty();
+
+                MakeDirty();
             }
         }
         #endregion
@@ -80,8 +83,17 @@ namespace Stride.Engine.Splines.Components
             if (_bezierCurve != null && 
                 ( _previousPosition.X != Entity.Transform.Position.X || _previousPosition.Y != Entity.Transform.Position.Y || _previousPosition.Z != Entity.Transform.Position.Z))
             {
-                _bezierCurve?.MakeDirty();
+                MakeDirty();
             }
+        }
+
+        public delegate void BezierCurveDirtyEventHandler();
+        public event BezierCurveDirtyEventHandler OnDirty;
+
+
+        public void MakeDirty()
+        {
+            OnDirty?.Invoke();
         }
 
         public void UpdateBezierCurve(SplineNodeComponent nextNode)

@@ -116,7 +116,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
                         if (Component.DebugInfo.Segments || Component.DebugInfo.Points)
                         {
-                            var splinePointsInfo = curNode.GetBezierCurve().GetBezierPoints();
+                            var curve = curNode.GetBezierCurve();
+                            if (curve == null) return;
+
+                            var splinePointsInfo = curve.GetBezierPoints();
                             var splinePoints = new Vector3[splinePointsInfo.Length];
                             for (int j = 0; j < splinePointsInfo.Length; j++)
                             {
@@ -159,7 +162,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     {
                         Model = new Model
                         {
-                            GizmoUniformColorMaterial.Create(GraphicsDevice, i % 2 == 0 ? Color.GreenYellow: Color.YellowGreen),
+                            GizmoUniformColorMaterial.Create(GraphicsDevice, i % 2 == 0 ? Color.White: Color.GhostWhite),
                             new Mesh { Draw = lineMesh.MeshDraw }
                         },
                         RenderGroup = RenderGroup,
@@ -184,7 +187,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     {
                         Model = new Model
                         {
-                            GizmoUniformColorMaterial.Create(GraphicsDevice, Color.PeachPuff),
+                            GizmoUniformColorMaterial.Create(GraphicsDevice, Color.White),
                             new Mesh { Draw = pointMesh.MeshDraw }
                         },
                         RenderGroup = RenderGroup,

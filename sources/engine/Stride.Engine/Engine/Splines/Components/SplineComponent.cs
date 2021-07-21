@@ -77,11 +77,7 @@ namespace Stride.Engine.Splines.Components
                 var curNode = Nodes[i];
                 if (curNode != null)
                 {
-                    var curve = curNode.GetBezierCurve();
-                    if (curve != null)
-                    {
-                        curve.OnDirty -= MakeSplineDirty;
-                    }
+                    curNode.OnDirty -= MakeSplineDirty;
                 }
             }
         }
@@ -103,10 +99,7 @@ namespace Stride.Engine.Splines.Components
                     if (i < totalNodesCount - 1)
                         curNode?.UpdateBezierCurve(Nodes[i + 1]);
 
-                    var curve = curNode.GetBezierCurve();
-                    
-                    if(curve != null)
-                        curve.OnDirty += MakeSplineDirty;
+                    curNode.OnDirty += MakeSplineDirty;
                 }
             }
             distanceTest = GetTotalSplineDistance();

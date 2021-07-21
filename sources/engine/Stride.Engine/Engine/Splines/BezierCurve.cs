@@ -1,3 +1,4 @@
+using System;
 using Stride.Core.Mathematics;
 
 namespace Stride.Engine.Splines
@@ -17,10 +18,9 @@ namespace Stride.Engine.Splines
         public Vector3 TargetPosition { get; private set; }
         public Vector3 TargetTangentPosition { get; private set; }
 
-        private BezierPoint[] _bezierPoints;
+        private BezierPoint[] _tempBezierPoints;
+        private BezierPoint[] _redistributedBezierPoints;
 
-        public delegate void BezierCurveDirtyEventHandler();
-        public event BezierCurveDirtyEventHandler OnDirty;
 
         public float Distance { get; private set; } = 0;
 
@@ -34,7 +34,7 @@ namespace Stride.Engine.Splines
             TargetPosition = targetPosition;
             TargetTangentPosition = targetTangentPosition;
 
-            _bezierPoints = new BezierPoint[bezierPointCount];
+            _tempBezierPoints = new BezierPoint[bezierPointCount];
 
             Update();
         }
@@ -71,14 +71,12 @@ namespace Stride.Engine.Splines
                 Update();
         }
 
-        public void MakeDirty()
-        {
-            OnDirty.Invoke();
-        }
+
 
         public BezierPoint[] GetBezierPoints()
         {
-            return _bezierPoints;
+            //return _redistributedBezierPoints;
+            return _tempBezierPoints;
         }
 
         public struct BezierPoint
@@ -103,7 +101,7 @@ namespace Stride.Engine.Splines
             for (var i = 0; i < bezierPointCount; i++)
             {
                 var p = CalculateBezierPoint(t * (i));
-                _bezierPoints[i].Position = p;
+                _tempBezierPoints[i].Position = p;
 
                 if (i > 0)
                 {
@@ -116,23 +114,69 @@ namespace Stride.Engine.Splines
 
                     if (i == bezierPointCount)
                     {
-                        _bezierPoints[i].Rotation = _bezierPoints[i - 1].Rotation;
+                        _tempBezierPoints[i].Rotation = _tempBezierPoints[i - 1].Rotation;
                     }
 
-                    var distance = Vector3.Distance(_bezierPoints[i].Position, _bezierPoints[i - 1].Position);
-                    _bezierPoints[i].PointDistance = distance;
-                    _bezierPoints[i].TotalNodeDistance = _bezierPoints[i - 1].TotalNodeDistance + distance;
+                    var distance = Vector3.Distance(_tempBezierPoints[i].Position, _tempBezierPoints[i - 1].Position);
+                    Console.WriteLine(i + " - " + distance);
+                    _tempBezierPoints[i].PointDistance = distance;
+                    _tempBezierPoints[i].TotalNodeDistance = _tempBezierPoints[i - 1].TotalNodeDistance + distance;
                 }
                 else
                 {
-                    _bezierPoints[i].PointDistance = 0;
-                    _bezierPoints[i].TotalNodeDistance = 0;
+                    _tempBezierPoints[i].PointDistance = 0;
+                    _tempBezierPoints[i].TotalNodeDistance = 0;
                 }
             }
 
             for (int i = 0; i < bezierPointCount; i++)
             {
-                Distance += _bezierPoints[i].PointDistance;
+                Distance += _tempBezierPoints[i].PointDistance;
+            }
+
+            Console.WriteLine("disc - " + Distance);
+
+
+            //Redistribute();
+        }
+
+        /// <summary>
+        /// polynominal curve has incorrect arc length parameterization. Use approximated estimated position
+        /// </summary>
+        private void Redistribute()
+        {
+            _redistributedBezierPoints = new BezierPoint[bezierPointCount];
+
+
+            for (var i = 1; i < bezierPointCount-2; i++)
+            {
+                Console.WriteLine("Distribute - " + i);
+
+                var estimatedExptedDistance = (Distance / bezierPointCount) * i;
+                
+                var bezierPoint = _tempBezierPoints[i];
+
+                //if lower than total current node distance
+                Vector3 estimatedPos;
+
+                if (estimatedExptedDistance < bezierPoint.TotalNodeDistance)
+                {
+                    Console.WriteLine("Shorter - ");
+
+                    var prevBezierPoint = _tempBezierPoints[i-1];
+                    estimatedPos = Vector3.Lerp(prevBezierPoint.Position, bezierPoint.Position, estimatedExptedDistance / bezierPoint.TotalNodeDistance);
+                }
+                else
+                {
+                    Console.WriteLine("Longer- ");
+                    var nextBezierPoint = _tempBezierPoints[i+1];
+                    estimatedPos = Vector3.Lerp(bezierPoint.Position, nextBezierPoint.Position, estimatedExptedDistance / nextBezierPoint.TotalNodeDistance);
+
+                }
+
+                _redistributedBezierPoints[i].Position = estimatedPos;
+                _redistributedBezierPoints[i].PointDistance = estimatedExptedDistance;
+                _redistributedBezierPoints[i].TotalNodeDistance = _redistributedBezierPoints[i - 1].TotalNodeDistance + estimatedExptedDistance;
             }
         }
 
