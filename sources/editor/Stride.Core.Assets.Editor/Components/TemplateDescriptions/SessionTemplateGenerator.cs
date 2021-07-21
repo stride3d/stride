@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -9,9 +9,6 @@ using Stride.Core.Assets.Templates;
 using Stride.Core.Yaml;
 using System.IO;
 using Stride.Core.IO;
-using System.Runtime.InteropServices;
-using Microsoft.Build.Locator;
-using System.Linq;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions
 {
@@ -38,8 +35,6 @@ _ReSharper*
 obj/
 Cache/
 "; //sadly templates and new games are different, the first ones are basically a copy the second is more programatically, so our best bet to have something easy to mantain is this for now.
-
-        private static string GlobalJson(string version) => $"{{ \"sdk\": {{ \"version\": \"{version}\" }} }}";
 
         public sealed override bool Run(SessionTemplateGeneratorParameters parameters)
         {
@@ -129,16 +124,6 @@ Cache/
         {
             var fileName = UFile.Combine(parameters.OutputDirectory, ".gitignore");
             File.WriteAllText(fileName.ToWindowsPath(), GitIgnore);
-        }
-
-        protected void WriteGlobalJson(SessionTemplateGeneratorParameters parameters)
-        {
-            if (!RuntimeInformation.FrameworkDescription.StartsWith(".NET Core"))
-                return;
-            var sdkVersion = MSBuildLocator.QueryVisualStudioInstances()
-                .First(vs => vs.DiscoveryType == DiscoveryType.DotNetSdk && vs.Version.Major >= 3).Version;
-            var fileName = UFile.Combine(parameters.OutputDirectory, "global.json");
-            File.WriteAllText(fileName.ToWindowsPath(), GlobalJson(sdkVersion.ToString()));
         }
 
         private void EnsureGraphs(SessionTemplateGeneratorParameters parameters)

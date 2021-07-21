@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Tebjan Halm
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Tebjan Halm
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using Stride.Core.Annotations;
@@ -23,8 +23,8 @@ namespace Stride.Engine.Processors
             public RenderInstancing RenderInstancing = new RenderInstancing();
         }
 
-        public InstancingProcessor() 
-            : base (typeof(TransformComponent), typeof(ModelComponent)) // Requires TransformComponent and ModelComponent
+        public InstancingProcessor()
+            : base(typeof(TransformComponent), typeof(ModelComponent)) // Requires TransformComponent and ModelComponent
         {
             // After TransformProcessor but before ModelRenderProcessor
             Order = -100;
@@ -73,7 +73,7 @@ namespace Stride.Engine.Processors
                     renderInstancing.BuffersManagedByUser = true;
                     renderInstancing.InstanceWorldBuffer = instancingUserBuffer.InstanceWorldBuffer;
                     renderInstancing.InstanceWorldInverseBuffer = instancingUserBuffer.InstanceWorldInverseBuffer;
-                } 
+                }
             }
         }
 
@@ -148,7 +148,6 @@ namespace Stride.Engine.Processors
 
         private static void BoundingBoxPreMultiplyWorld(InstancingData instancingData, IInstancing instancing, ModelComponent.MeshInfo meshInfo, Mesh mesh)
         {
-            
             var ibb = instancing.BoundingBox;
 
             var center = meshInfo.BoundingBox.Center;
@@ -208,6 +207,11 @@ namespace Stride.Engine.Processors
             VisibilityGroup.Tags.Set(InstancingRenderFeature.ModelToInstancingMap, modelInstancingMap);
 
             modelRenderProcessor = EntityManager.GetProcessor<ModelRenderProcessor>();
+            if (modelRenderProcessor == null)
+            {
+                modelRenderProcessor = new ModelRenderProcessor();
+                EntityManager.Processors.Add(modelRenderProcessor);
+            }
         }
 
         protected internal override void OnSystemRemove()

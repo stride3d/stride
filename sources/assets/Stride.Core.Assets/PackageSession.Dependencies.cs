@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -8,10 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NuGet.Commands;
 using NuGet.DependencyResolver;
-using NuGet.LibraryModel;
 using NuGet.ProjectModel;
-using NuGet.Protocol.Core.Types;
-using NuGet.RuntimeModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Packages;
@@ -20,59 +17,6 @@ namespace Stride.Core.Assets
 {
     partial class PackageSession
     {
-        private async Task<RestoreTargetGraph> GenerateRestoreGraph(ILogger log, string projectName, string projectPath)
-        {
-            var dgFile = await VSProjectHelper.GenerateRestoreGraphFile(log, projectPath);
-            var dgProvider = new DependencyGraphSpecRequestProvider(new RestoreCommandProvidersCache(), dgFile);
-
-            using (var cacheContext = new SourceCacheContext())
-            {
-                var restoreContext = new RestoreArgs();
-                restoreContext.CacheContext = cacheContext;
-                restoreContext.Log = new NuGet.Common.NullLogger();
-                restoreContext.PreLoadedRequestProviders.Add(dgProvider);
-
-                var request = (await dgProvider.CreateRequests(restoreContext)).Single();
-
-                var restoreRequest = request.Request;
-                var collectorLogger = new RestoreCollectorLogger(restoreRequest.Log, false);
-                var contextForProject = CreateRemoteWalkContext(restoreRequest, collectorLogger);
-
-                // Get external project references
-                // If the top level project already exists, update the package spec provided
-                // with the RestoreRequest spec.
-                var updatedExternalProjects = GetProjectReferences(restoreRequest, contextForProject);
-
-                // Load repositories
-                // the external project provider is specific to the current restore project
-                contextForProject.ProjectLibraryProviders.Add(new PackageSpecReferenceDependencyProvider(updatedExternalProjects, restoreRequest.Log));
-
-
-                var walker = new RemoteDependencyWalker(contextForProject);
-
-                var requestProject = request.Request.Project;
-
-                var projectRange = new LibraryRange()
-                {
-                    Name = projectName,
-                    VersionRange = new NuGet.Versioning.VersionRange(requestProject.Version),
-                    TypeConstraint = LibraryDependencyTarget.Project | LibraryDependencyTarget.ExternalProject
-                };
-
-                var framework = requestProject.TargetFrameworks.First();
-                var graphs = new List<GraphNode<RemoteResolveResult>>
-                {
-                    await walker.WalkAsync(
-                    projectRange,
-                    framework.FrameworkName,
-                    null,
-                    RuntimeGraph.Empty,
-                    recursive: true)
-                };
-                return RestoreTargetGraph.Create(graphs, contextForProject, restoreRequest.Log, framework.FrameworkName);
-            }
-        }
-
         private async Task PreLoadPackageDependencies(ILogger log, SolutionProject project, PackageLoadParameters loadParameters)
         {
             if (log == null) throw new ArgumentNullException(nameof(log));

@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -87,6 +87,20 @@ namespace Stride.Graphics
                     resourceGroup.DescriptorSet.SetConstantBuffer(resourceGroupBinding.ConstantBufferSlot, preallocatedBuffer, resourceGroup.ConstantBuffer.Offset, resourceGroup.ConstantBuffer.Size);
                 }
             }
+        }
+
+        public void Clear()
+        {
+            if (resourceGroupBindings is null)
+                return;
+
+            for (int i = 0; i < resourceGroupBindings.Length; i++)
+            {
+                ref var binding = ref resourceGroupBindings[i];
+                binding.ConstantBufferPreallocated?.Dispose();
+            }
+
+            resourceGroupBindings = null;
         }
 
         internal struct ResourceGroupBinding

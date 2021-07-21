@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -63,7 +63,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             frustumMesh = new CameraFrustumMesh(GraphicsDevice);
             frustumMesh.Build(GraphicsCommandList, cameraParameters);
 
-            var frustumMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, new Color(0.75f, 0.75f, 1f, 1f));
+            var frustumMaterial = GizmoEmissiveColorMaterial.Create(GraphicsDevice, new Color(0.75f, 0.75f, 1f, 1f));
 
             frustum = new Entity("Camera frustumMesh of {0}".ToFormat(root.Id))
             {

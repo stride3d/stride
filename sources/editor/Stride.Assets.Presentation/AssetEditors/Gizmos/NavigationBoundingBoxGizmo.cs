@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Stride.Core;
@@ -29,7 +29,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         protected override Entity Create()
         {
-            material = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.CornflowerBlue);
+            material = GizmoEmissiveColorMaterial.Create(GraphicsDevice, Color.CornflowerBlue);
 
             box = new BoxMesh(GraphicsDevice);
             box.Build();

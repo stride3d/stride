@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Linq;
@@ -43,6 +43,8 @@ namespace Stride.Rendering
             RootSignature?.Dispose();
             RootSignature = null;
 
+            bufferUploader.Clear();
+
             base.Destroy();
         }
 
@@ -71,6 +73,7 @@ namespace Stride.Rendering
                 RootSignature?.Dispose();
                 RootSignature = RootSignature.New(graphicsDevice, descriptorReflection);
 
+                bufferUploader.Clear();
                 bufferUploader.Compile(graphicsDevice, descriptorReflection, effect.Bytecode);
 
                 // Create parameter updater

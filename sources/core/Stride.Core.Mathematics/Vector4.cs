@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // -----------------------------------------------------------------------------
@@ -225,7 +225,7 @@ namespace Stride.Core.Mathematics
         /// and speed is of the essence.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Length()
+        public readonly float Length()
         {
             return (float)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
         }
@@ -283,6 +283,29 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Moves the first vector4 to the second one in a straight line.
+        /// </summary>
+        /// <param name="from">The first point.</param>
+        /// <param name="to">The second point.</param>
+        /// <param name="maxTravelDistance">The rate at which the first point is going to move towards the second point.</param>
+        public static Vector4 Moveto(in Vector4 from, in Vector4 to, float maxTravelDistance)
+        {
+            Vector4 distance = Subtract(to, from);
+
+            float length = distance.Length();
+
+            if (maxTravelDistance >= length || length == 0)
+            {
+                return to;
+            }
+            else
+            {
+                var v = 1f / length * maxTravelDistance;
+                return new Vector4(from.X + distance.X * v, from.Y + distance.Y * v, from.Z + distance.Z * v, from.W + distance.W * v);
+            }
+        }
+
+        /// <summary>
         /// Adds two vectors.
         /// </summary>
         /// <param name="left">The first vector to add.</param>
@@ -325,7 +348,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second vector to subtract.</param>
         /// <returns>The difference of the two vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 Subtract(Vector4 left, Vector4 right)
+        public static Vector4 Subtract(in Vector4 left, in Vector4 right)
         {
             return new Vector4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
         }
