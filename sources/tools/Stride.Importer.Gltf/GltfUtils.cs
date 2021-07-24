@@ -94,6 +94,7 @@ namespace Stride.Importer.Gltf
                 ("NORMAL", 12) => (VertexElement.Normal<Vector3>(0, offset), 12),
                 ("TANGENT", 16) => (VertexElement.Tangent<Vector4>(0, offset), 16),
                 ("COLOR", 16) => (VertexElement.Color<Vector4>(0, offset), 16),
+                ("COLOR_0", 8) => (new VertexElement(VertexElementUsage.Color, 0, PixelFormat.R16G16B16A16_Float, offset), 8),
                 ("COLOR_0", 16) => (VertexElement.Color<Vector4>(0, offset), 16),
                 ("TEXCOORD_0", 8) => (VertexElement.TextureCoordinate<Vector2>(0, offset), 8),
                 ("TEXCOORD_1", 8) => (VertexElement.TextureCoordinate<Vector2>(1, offset), 8),
