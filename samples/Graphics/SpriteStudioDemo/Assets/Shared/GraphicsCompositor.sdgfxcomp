@@ -50,6 +50,7 @@ RenderFeatures:
                     5890e37af0e4bbc2cfdc1de648ff07d4: !Stride.Rendering.Lights.LightPointGroupRenderer,Stride.Rendering {}
                     2eda85523d76b3f9e1e7d3e55aab5280: !Stride.Rendering.Lights.LightSpotGroupRenderer,Stride.Rendering {}
                 ShadowMapRenderer: null
+            42be209952db58294c9f06c58809b8ca: !Stride.Rendering.InstancingRenderFeature,Stride.Rendering {}
     28e9bf54a5adbe063f59fb17acb2723e: !Stride.Rendering.Sprites.SpriteRenderFeature,Stride.Rendering
         RenderStageSelectors:
             d74665cff080638a2439c4422e542d85: !Stride.Rendering.Sprites.SpriteTransparentRenderStageSelector,Stride.Rendering
@@ -83,7 +84,7 @@ SharedRenderers:
         Id: 4d409a59-d3c6-4b55-a5c7-4bd9b8886ea5
         Clear:
             Id: 4bc4b2ca-027e-4e4a-94cb-2912709bef5f
-            Color: {R: 0.40491876, G: 0.411895424, B: 0.43775, A: 1.0}
+            Color: {R: 0.40491876, G: 0.41189542, B: 0.43775, A: 1.0}
         LightProbes: false
         OpaqueRenderStage: ref!! 50671147-a5c1-49d4-b4ad-3625f71439b3
         TransparentRenderStage: ref!! 0fa30591-02ee-486d-9347-2b6aee83d035

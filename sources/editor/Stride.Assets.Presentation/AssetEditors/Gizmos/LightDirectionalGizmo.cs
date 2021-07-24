@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Mathematics;
@@ -33,7 +33,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             var root = base.Create();
             
             lightRay = new Entity($"Light ray for light gizmo {root.Id}");
-            rayMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
+            rayMaterial = GizmoEmissiveColorMaterial.Create(GraphicsDevice, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
 
             // build the ray mesh
             var coneMesh = GeometricPrimitive.Cone.New(GraphicsDevice, ConeRadius, ConeHeight, GizmoTessellation).ToMeshDraw();
@@ -57,7 +57,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             base.Update();
 
             // update the color of the ray
-            GizmoUniformColorMaterial.UpdateColor(GraphicsDevice, rayMaterial, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
+            GizmoEmissiveColorMaterial.UpdateColor(GraphicsDevice, rayMaterial, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
         }
 
         public override bool IsSelected

@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
@@ -37,6 +37,15 @@ namespace Stride.Engine
         [DataMember(10)]
         [Display("Page")]
         public UIPage Page { get; set; }
+
+        /// <summary>
+        /// Specifies the sampling method to be used for this component
+        /// </summary>
+        /// <userdoc>Specifies the sampling method to be used for this component</userdoc>
+        [DataMember(15)]
+        [DefaultValue(UIElementSampler.LinearClamp)]
+        [Display("Sampler")]
+        public UIElementSampler Sampler { get; set; } = UIElementSampler.LinearClamp;
 
         /// <summary>
         /// Gets or sets the value indicating whether the UI should be full screen.

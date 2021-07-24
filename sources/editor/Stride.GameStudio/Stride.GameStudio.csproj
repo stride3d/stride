@@ -22,6 +22,7 @@
     <UseWPF>true</UseWPF>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
     <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>Stride.GameStudio.Program</StartupObject>
@@ -103,11 +104,6 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <None Update="global.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
   <Import Project="..\..\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems" Label="Shared" />
   <Import Project="$(StrideSdkTargets)" />
 
@@ -119,7 +115,6 @@
     <ItemGroup>
       <BuildOutputInPackage Include="$(OutputPath)Mono.Cecil.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Core.AssemblyProcessor.*" />
-      <BuildOutputInPackage Include="$(OutputPath)global.json" />
     </ItemGroup>
   </Target>
 </Project>

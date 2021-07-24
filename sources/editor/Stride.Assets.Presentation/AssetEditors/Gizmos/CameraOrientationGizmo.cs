@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -16,6 +16,7 @@ using Stride.Graphics.Font;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Presentation.SceneEditor;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
@@ -36,12 +37,12 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         private static readonly FaceData[] Faces =
         {
-            new FaceData("Right", new Vector3(0, MathUtil.PiOverTwo, 0)),
-            new FaceData("Left", new Vector3(0, -MathUtil.PiOverTwo, 0)),
-            new FaceData("Top", new Vector3(-MathUtil.PiOverTwo, 0, 0)),
-            new FaceData("Bottom", new Vector3(MathUtil.PiOverTwo, 0, 0)),
-            new FaceData("Back", Vector3.Zero),
-            new FaceData("Front", new Vector3(0, MathUtil.Pi, 0))
+            new FaceData("Right", "X", new Vector3(0, MathUtil.PiOverTwo, 0)),
+            new FaceData("Left", "-X", new Vector3(0, -MathUtil.PiOverTwo, 0)),
+            new FaceData("Top", "Y", new Vector3(-MathUtil.PiOverTwo, 0, 0)),
+            new FaceData("Bottom", "-Y", new Vector3(MathUtil.PiOverTwo, 0, 0)),
+            new FaceData("Back", "-Z", Vector3.Zero),
+            new FaceData("Front", "Z", new Vector3(0, MathUtil.Pi, 0))
         };
 
         /// <summary>
@@ -58,9 +59,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// </summary>
         private const int DefaultSize = 25;
 
-        private const float FontSize = 7;
+        private const float FontSize = 25;
 
-        private const float TextScale = 0.08f;
+        private const float NameIndicatorScale = 0.08f;
+
+        private const float XYZIndicatorScale = 0.18f;
 
         private const float OuterExtent = 0.25f;
 
@@ -227,8 +230,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             base.Create();
 
-            DefaultMaterial = CreateUniformColorMaterial(Color.White);
-            ElementSelectedMaterial = CreateUniformColorMaterial(Color.Gold);
+            DefaultMaterial = CreateShaderMaterial("CameraOrientationGizmoShader");
+            ElementSelectedMaterial = CreateEmissiveColorMaterial(Color.Gray);
 
             var entity = new Entity("View Gizmo");
             cameraComponent = new CameraComponent
@@ -250,7 +253,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             // create the sprite batch use to draw text
             spriteBatch = new SpriteBatch(GraphicsDevice) { DefaultDepth = 1 };
 
-            // Add a renderer on the top right size
+            // Add a renderer on the top right side
             var cameraOrientationGizmoRenderStage = new RenderStage("CameraOrientationGizmo", "Main");
             game.EditorSceneSystem.GraphicsCompositor.RenderStages.Add(cameraOrientationGizmoRenderStage);
 
@@ -320,13 +323,17 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             var textureToWorldSpace = Matrix.RotationX(MathUtil.Pi) * Matrix.Translation(0, 0, OuterExtent);
 
-            foreach (var face in Faces)
-            {
-                var text = face.Name.ToUpperInvariant();
+            var displayDirectionNames = SceneEditorSettings.DisplayDirectionNames.GetValue();
 
-                spriteBatch.Begin(context.GraphicsContext, textureToWorldSpace * face.Rotation * viewMatrix, projectionMatrix, SpriteSortMode.BackToFront, BlendStates.AlphaBlend, context.GraphicsDevice.SamplerStates.LinearClamp, DepthStencilStates.None);
+            var textScale = displayDirectionNames ? NameIndicatorScale : XYZIndicatorScale;
+
+            for (int i = 0; i < Faces.Count(); i++)
+            {
+                var text = displayDirectionNames ? Faces[i].Name.ToUpperInvariant() : Faces[i].XYZComponent;
+
+                spriteBatch.Begin(context.GraphicsContext, textureToWorldSpace * Faces[i].Rotation * viewMatrix, projectionMatrix, SpriteSortMode.BackToFront, BlendStates.AlphaBlend, context.GraphicsDevice.SamplerStates.LinearClamp, DepthStencilStates.None);
                 var textSize = spriteBatch.MeasureString(defaultFont, text, viewPortSize);
-                spriteBatch.DrawString(defaultFont, text, Vector2.One * 0.5f, new Color(0, 0, 0, 0.8f), 0, textSize / 2, Vector2.One / FontSize * TextScale, SpriteEffects.None, 0, TextAlignment.Center);
+                spriteBatch.DrawString(defaultFont, text, Vector2.One * 0.5f, GetAxisDefaultColor(i / 2), 0, textSize / 2, Vector2.One / FontSize * textScale, SpriteEffects.None, 0, TextAlignment.Center);
 
                 spriteBatch.End();
             }
@@ -336,11 +343,14 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             public readonly string Name;
 
+            public readonly string XYZComponent;
+
             public readonly Matrix Rotation;
 
-            public FaceData(string name, Vector3 angles)
+            public FaceData(string name, string xyzComponent, Vector3 angles)
             {
                 Name = name;
+                XYZComponent = xyzComponent;
                 Rotation = Matrix.RotationYawPitchRoll(angles.Y, angles.X, angles.Z);
             }
         }

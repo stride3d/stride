@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -57,7 +57,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             spotMesh = new LightSpotMesh(GraphicsDevice);
             spotMesh.Build(GraphicsCommandList, LightSpot);
 
-            spotMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
+            spotMaterial = GizmoEmissiveColorMaterial.Create(GraphicsDevice, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
 
             spotEntity = new Entity("Spot Mesh of {0}".ToFormat(root.Id))
             {
@@ -113,7 +113,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
 
             // update the spot color
-            GizmoUniformColorMaterial.UpdateColor(GraphicsDevice, spotMaterial, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
+            GizmoEmissiveColorMaterial.UpdateColor(GraphicsDevice, spotMaterial, (Color)new Color4(GetLightColor(GraphicsDevice), 1f));
         }
 
         public override bool IsSelected

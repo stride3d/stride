@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Settings;
 using Stride.Core.Translation;
@@ -80,6 +80,14 @@ namespace Stride.Assets.Presentation.SceneEditor
             {
                 DisplayName = $"{SceneEditor}/{ViewportSettings}/{Tr._p("Settings", "Default snap factor for scale")}"
             };
+            DisplayDirectionNames = new SettingsKey<bool>("SceneEditor/ViewportSettings/DisplayDirectionNames", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, false)
+            {
+                DisplayName = $"{SceneEditor}/{ViewportSettings}/{Tr._p("Settings", "Display direction names instead of XYZ components")}"
+            };
+            UseLinearMovementForRotation = new SettingsKey<bool>("SceneEditor/ViewportSettings/UseLinearMovementForRotation", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, false)
+            {
+                DisplayName = $"{SceneEditor}/{ViewportSettings}/{Tr._p("Settings", "Use linear movement for the rotation gizmo")}"
+            };
             AskBeforeDeletingEntities = new SettingsKey<bool>("SceneEditor/AskBeforeDeletingEntities", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, true)
             {
                 DisplayName = $"{SceneEditor}/{Tr._p("Settings", "Ask before deleting entities")}"
@@ -117,6 +125,10 @@ namespace Stride.Assets.Presentation.SceneEditor
         public static SettingsKey<float> DefaultRotationSnap { get; }
 
         public static SettingsKey<float> DefaultScaleSnap { get; }
+
+        public static SettingsKey<bool> DisplayDirectionNames { get; }
+
+        public static SettingsKey<bool> UseLinearMovementForRotation { get; }
 
         public static SettingsKey<bool> AskBeforeDeletingEntities { get; }
 

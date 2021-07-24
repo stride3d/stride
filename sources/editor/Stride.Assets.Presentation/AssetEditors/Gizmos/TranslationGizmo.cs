@@ -1,8 +1,7 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
@@ -29,9 +28,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
         };
 
-        private const float AxisConeRadius = GizmoExtremitySize / 2f;
-        private const float AxisConeHeight = 2f * AxisConeRadius;
-        private const float AxisBodyRadius = GizmoExtremitySize / 7.5f;
+        private const float AxisConeRadius = GizmoExtremitySize / 3f;
+        private const float AxisConeHeight = GizmoExtremitySize;
+        private const float AxisBodyRadius = GizmoExtremitySize / 9f;
         private const float AxisBodyLength = 1f - AxisConeHeight;
         private const float OriginRadius = GizmoOriginScale * AxisConeRadius;
 
@@ -75,25 +74,19 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 bodyEntity.Transform.RotationEulerXYZ = -MathUtil.Pi / 2 * Vector3.UnitZ;
                 translationAxes[axis].Add(bodyEntity);
 
-                // oposite side part (cylinder + end sphere shown when camera is looking oposite direction to the axis)
+                // oposite side part (cylinder shown when camera is looking oposite direction to the axis)
                 var frameMesh = GeometricPrimitive.Cylinder.New(GraphicsDevice, GizmoPlaneLength, AxisBodyRadius, GizmoTessellation).ToMeshDraw();
                 var opositeFrameEntity = new Entity("Oposite Frame" + axis) { new ModelComponent { Model = new Model { material, new Mesh { Draw = frameMesh } }, RenderGroup = RenderGroup } };
                 opositeFrameEntity.Transform.Position.X = - GizmoPlaneLength / 2;
                 opositeFrameEntity.Transform.RotationEulerXYZ = -MathUtil.Pi / 2 * Vector3.UnitZ;
-                var articulationMesh = GeometricPrimitive.Sphere.New(GraphicsDevice, AxisBodyRadius, GizmoTessellation).ToMeshDraw();
-                var opositeSphereEntity = new Entity("FrameSphere" + axis) { new ModelComponent { Model = new Model { material, new Mesh { Draw = articulationMesh } }, RenderGroup = RenderGroup } };
-                opositeSphereEntity.Transform.Position = new Vector3(-GizmoPlaneLength, 0, 0);
                 translationAxes[axis].Add(opositeFrameEntity);
-                translationAxes[axis].Add(opositeSphereEntity);
                 translationOpositeAxes[axis].Add(opositeFrameEntity.Get<ModelComponent>());
-                translationOpositeAxes[axis].Add(opositeSphereEntity.Get<ModelComponent>());
 
-                // create the arrow entity composed of the cone and bode
+                // create the arrow entity composed of the cone and body
                 var arrowEntity = new Entity("ArrowEntity" + axis);
                 arrowEntity.Transform.Children.Add(coneEntity.Transform);
                 arrowEntity.Transform.Children.Add(bodyEntity.Transform);
                 arrowEntity.Transform.Children.Add(opositeFrameEntity.Transform);
-                arrowEntity.Transform.Children.Add(opositeSphereEntity.Transform);
 
                 // Add the arrow entity to the gizmo entity
                 axisRootEntities[axis].Transform.Children.Add(arrowEntity.Transform);
@@ -104,22 +97,16 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             {
                 // The skeleton material
                 var axisMaterial = GetAxisDefaultMaterial(axis);
-                
-                // The 2 frame cylinders
-                var frameMesh = GeometricPrimitive.Cylinder.New(GraphicsDevice, GizmoPlaneLength, AxisBodyRadius, GizmoTessellation).ToMeshDraw();
+
+                // The 2 frame rectangles
+                var frameMesh = GeometricPrimitive.Cube.New(GraphicsDevice, new Vector3(AxisBodyRadius / 2f, GizmoPlaneLength / 3f, AxisBodyRadius / 2f)).ToMeshDraw();
                 var topFrameEntity = new Entity("TopFrame" + axis) { new ModelComponent { Model = new Model { axisMaterial, new Mesh { Draw = frameMesh } }, RenderGroup = RenderGroup } };
                 var leftFrameEntity = new Entity("LeftFrame" + axis) { new ModelComponent { Model = new Model { axisMaterial, new Mesh { Draw = frameMesh } }, RenderGroup = RenderGroup } };
-                topFrameEntity.Transform.Position = new Vector3(0, GizmoPlaneLength, GizmoPlaneLength / 2);
+                topFrameEntity.Transform.Position = new Vector3(0, GizmoPlaneLength, GizmoPlaneLength - (GizmoPlaneLength / 6));
                 topFrameEntity.Transform.RotationEulerXYZ = new Vector3(MathUtil.Pi / 2f, 0, 0);
-                leftFrameEntity.Transform.Position = new Vector3(0, GizmoPlaneLength / 2, GizmoPlaneLength);
+                leftFrameEntity.Transform.Position = new Vector3(0, GizmoPlaneLength - (GizmoPlaneLength / 6), GizmoPlaneLength);
                 translationPlaneEdges[axis].Add(topFrameEntity);
                 translationPlaneEdges[axis].Add(leftFrameEntity);
-
-                // The articulation sphere
-                var articulationMesh = GeometricPrimitive.Sphere.New(GraphicsDevice, AxisBodyRadius, GizmoTessellation).ToMeshDraw();
-                var articulationEntity = new Entity("FrameSphere" + axis) { new ModelComponent { Model = new Model { axisMaterial, new Mesh { Draw = articulationMesh } }, RenderGroup = RenderGroup } };
-                articulationEntity.Transform.Position = new Vector3(0, GizmoPlaneLength, GizmoPlaneLength);
-                translationPlaneEdges[axis].Add(articulationEntity);
 
                 // The transparent planes (2 for correct lighting)
                 var materialPlane = planeMaterials[axis];
@@ -139,7 +126,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 var planeEntity = new Entity("GizmoPlane" + axis);
                 planeEntity.Transform.Children.Add(topFrameEntity.Transform);
                 planeEntity.Transform.Children.Add(leftFrameEntity.Transform);
-                planeEntity.Transform.Children.Add(articulationEntity.Transform);
                 planeEntity.Transform.Children.Add(planeFrameEntityFront.Transform);
                 planeEntity.Transform.Children.Add(planeFrameEntityBack.Transform);
                 translationPlaneRoots.Add(planeEntity);
@@ -148,7 +134,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 axisRootEntities[axis].Transform.Children.Add(planeEntity.Transform);
             }
 
-            // set the axis root entities rotation and add them to the main entityaxisRootEntities[axis]
+            // set the axis root entities rotation and add them to the main entity
             var axisRotations = new [] { Vector3.Zero, new Vector3(MathUtil.PiOverTwo, 0, MathUtil.PiOverTwo), new Vector3(-MathUtil.PiOverTwo, -MathUtil.PiOverTwo, 0) };
             for (int axis = 0; axis < 3; axis++)
             {
@@ -157,9 +143,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
 
             // Add middle sphere
-            var materialSphere = DefaultOriginMaterial;
             var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, OriginRadius, GizmoTessellation).ToMeshDraw();
-            translationOrigin = new Entity("OriginCube") { new ModelComponent { Model = new Model { materialSphere, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
+            translationOrigin = new Entity("OriginSphere") { new ModelComponent { Model = new Model { DefaultOriginMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
             entity.Transform.Children.Add(translationOrigin.Transform);
 
             return entity;
@@ -191,7 +176,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             for (int axis = 0; axis < 3; axis++)
             {
                 var isCameraBackfacing = cameraInGizmoSpace[axis] < 0;
-                translationOpositeAxes[axis].ForEach(x=>x.Enabled = isCameraBackfacing);
+                translationOpositeAxes[axis].ForEach(x => x.Enabled = isCameraBackfacing);
 
                 if (isCameraBackfacing)
                 {
@@ -220,7 +205,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             var clickRay = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, Input.MousePosition, gizmoViewInverse);
             
-            float hitDistance;
             var minHitDistance = float.PositiveInfinity;
 
             // Select the closest intersecting translation plane
@@ -237,7 +221,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 UpdateSelectionOnCloserIntersection(new BoundingBox(minimum, maximum), clickRay, pair.Key, ref minHitDistance, ref newSelection);
             }
 
-            // Overrides selection with the closed intersecting axis if any
+            // Overrides selection with the closest intersecting axis if any
             minHitDistance = float.PositiveInfinity;
             for (int i = 0; i < 3; i++)
             {
@@ -257,7 +241,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
             
             // overrides the current selection with the origin if intersecting
-            if (new BoundingSphere(Vector3.Zero, OriginRadius).Intersects(ref clickRay, out hitDistance))
+            if (new BoundingSphere(Vector3.Zero, OriginRadius).Intersects(ref clickRay))
                 newSelection = GizmoTransformationAxes.XYZ;
 
             TransformationAxes = newSelection;

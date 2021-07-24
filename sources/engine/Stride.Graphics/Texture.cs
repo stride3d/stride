@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2012 SharpDX - Alexandre Mutel
@@ -946,8 +946,8 @@ namespace Stride.Graphics
             int sizeOfTextureData = textureDepthStride * depth;
 
             // Check size validity of data to copy to
-            if (fromData.Size != sizeOfTextureData)
-                throw new ArgumentException($"Size of toData ({fromData.Size} bytes) is not compatible expected size ({sizeOfTextureData} bytes) : Width * Height * Depth * sizeof(PixelFormat) size in bytes");
+            if (fromData.Size < sizeOfTextureData)
+                throw new ArgumentException($"Size of fromData ({fromData.Size} bytes) is not compatible expected size must be at least {sizeOfTextureData} bytes : Width * Height * Depth * sizeof(PixelFormat) size in bytes");
 
             // Calculate the subResourceIndex for a Texture
             int subResourceIndex = this.GetSubResourceIndex(arraySlice, mipSlice);

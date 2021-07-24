@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -43,7 +43,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         public const RenderGroupMask TransformationGizmoGroupMask = RenderGroupMask.Group4;
 
         private bool transformationInitialized;
-        private bool transformationStarted;
         private bool duplicationDone;
 
         /// <summary>
@@ -55,6 +54,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// Gets the gizmo default scale in ratio of screen height ( 1 => full screen vertically )
         /// </summary>
         public float DefaultScale => GizmoDefaultSize / GraphicsDevice.Presenter.BackBuffer.Height;
+
+        /// <summary>
+        /// Returns whether the transformation has started or not
+        /// </summary>
+        protected bool TransformationStarted { get; private set; }
 
         /// <summary>
         /// The default material for the origin elements
@@ -135,9 +139,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             base.Create();
             
-            DefaultOriginMaterial = CreateUniformColorMaterial(Color.White);
-            ElementSelectedMaterial = CreateUniformColorMaterial(Color.Gold);
-            TransparentElementSelectedMaterial = CreateUniformColorMaterial(Color.Gold.WithAlpha(86));
+            DefaultOriginMaterial = CreateEmissiveColorMaterial(Color.White);
+            ElementSelectedMaterial = CreateEmissiveColorMaterial(Color.Gold);
+            TransparentElementSelectedMaterial = CreateEmissiveColorMaterial(Color.Gold.WithAlpha(86));
 
             return null;
         }
@@ -186,7 +190,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     if (AnchorEntity.GetParent() != null)
                         parentMatrix = AnchorEntity.TransformValue.Parent.WorldMatrix;
 
-                    // We don't use the entity's "WorldMatrix" because it's scale could be zero, which would break the gizmo.
+                    // We don't use the entity's "WorldMatrix" because its scale could be zero, which would break the gizmo.
                     worldMatrix = Matrix.RotationQuaternion(AnchorEntity.Transform.Rotation) *
                                   Matrix.Translation(AnchorEntity.Transform.Position) *
                                   parentMatrix;
@@ -316,7 +320,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         protected virtual void OnTransformationStarted(Vector2 mouseDragPixel)
         {
-            transformationStarted = true;
+            TransformationStarted = true;
 
             // keep in memory all initial transformation states
             InitialTransformations.Clear();
@@ -353,7 +357,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     OnTransformationFinished();
 
                 transformationInitialized = false;
-                transformationStarted = false;
+                TransformationStarted = false;
                 return;
             }
 
@@ -368,7 +372,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             var mouseDrag = mousePosition - StartMousePosition;
 
             // start the transformation only if user has dragged from a given amount of pixel. Determine direction of the transformation.
-            if (!transformationStarted)
+            if (!TransformationStarted)
             {
                 // ensure that the mouse cursor has been moved enough
                 var screenSize = new Vector2(GraphicsDevice.Presenter.BackBuffer.Width, GraphicsDevice.Presenter.BackBuffer.Height);
