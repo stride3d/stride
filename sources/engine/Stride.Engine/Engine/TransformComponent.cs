@@ -204,12 +204,21 @@ namespace Stride.Engine
                 var oldParent = Parent;
                 if (oldParent == value)
                     return;
-                
-                // SceneValue must be null if we have a parent
-                if( Entity.SceneValue != null )
-                    Entity.Scene = null;
 
                 var previousScene = oldParent?.Entity?.Scene;
+
+                // If the new parent is null make the entity a root entity in the scene
+                if (value == null)
+                {
+                    oldParent?.Children.Remove(this);
+                    Entity.Scene = previousScene;
+                    return;
+                }
+
+                // SceneValue must be null if we have a parent
+                if (Entity.SceneValue != null)
+                    Entity.Scene = null;
+
                 var newScene = value?.Entity?.Scene;
 
                 // Get to root scene
