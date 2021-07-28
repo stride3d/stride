@@ -235,8 +235,8 @@ namespace Stride.Graphics
             var offset = new Vector2(x, y + GetBaseOffsetY(fontSize.Y) + glyph.Offset.Y);
             Vector2.Modulate(ref offset, ref AxisDirectionTable[(int)spriteEffects & 3], out offset);
             Vector2.Add(ref offset, ref parameters.Origin, out offset);
-            offset.X = (float)Math.Round(offset.X);
-            offset.Y = (float)Math.Round(offset.Y);
+            offset.X = MathF.Round(offset.X);
+            offset.Y = MathF.Round(offset.Y);
 
             if (spriteEffects != SpriteEffects.None)
             {
@@ -276,8 +276,8 @@ namespace Stride.Graphics
             var yShift = y + (GetBaseOffsetY(requestedFontSize.Y) + glyph.Offset.Y * auxiliaryScaling.Y);
             if (parameters.SnapText)
             {
-                xShift = (float)Math.Round(xShift);
-                yShift = (float)Math.Round(yShift);
+                xShift = MathF.Round(xShift);
+                yShift = MathF.Round(yShift);
             }
             var xScaledShift = xShift / realVirtualResolutionRatio.X;
             var yScaledShift = yShift / realVirtualResolutionRatio.Y;
@@ -533,7 +533,7 @@ namespace Stride.Graphics
                     // Otherwise the starting offset can fall just in between two pixels and due to float imprecision 
                     // some characters can be aligned to the pixel before and others to the pixel after, resulting in gaps and character overlapping
                     var xStart = (scanOrder == TextAlignment.Center) ? (wholeSize.X - lineSize.X) / 2 : wholeSize.X - lineSize.X;
-                    xStart = (float)Math.Round(xStart); 
+                    xStart = MathF.Round(xStart); 
 
                     // scan the line
                     ForGlyph(commandList, ref text, ref requestedFontSize, action, ref parameters, startIndex, endIndex, updateGpuResources, xStart, yStart);

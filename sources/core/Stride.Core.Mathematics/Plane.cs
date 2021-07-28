@@ -112,7 +112,7 @@ namespace Stride.Core.Mathematics
             float yz = (y1 * z2) - (z1 * y2);
             float xz = (z1 * x2) - (x1 * z2);
             float xy = (x1 * y2) - (y1 * x2);
-            float invPyth = 1.0f / (float)(Math.Sqrt((yz * yz) + (xz * xz) + (xy * xy)));
+            float invPyth = 1.0f / MathF.Sqrt((yz * yz) + (xz * xz) + (xy * xy));
 
             Normal.X = yz * invPyth;
             Normal.Y = xz * invPyth;
@@ -190,7 +190,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         public void Normalize()
         {
-            float magnitude = 1.0f / (float)(Math.Sqrt((Normal.X * Normal.X) + (Normal.Y * Normal.Y) + (Normal.Z * Normal.Z)));
+            float magnitude = 1.0f / MathF.Sqrt((Normal.X * Normal.X) + (Normal.Y * Normal.Y) + (Normal.Z * Normal.Z));
 
             Normal.X *= magnitude;
             Normal.Y *= magnitude;
@@ -436,7 +436,7 @@ namespace Stride.Core.Mathematics
         /// <param name="result">When the method completes, contains the normalized plane.</param>
         public static void Normalize(float normalX, float normalY, float normalZ, float planeD, out Plane result)
         {
-            float magnitude = 1.0f / (float)(Math.Sqrt((normalX * normalX) + (normalY * normalY) + (normalZ * normalZ)));
+            float magnitude = 1.0f / MathF.Sqrt((normalX * normalX) + (normalY * normalY) + (normalZ * normalZ));
 
             result.Normal.X = normalX * magnitude;
             result.Normal.Y = normalY * magnitude;
@@ -451,7 +451,7 @@ namespace Stride.Core.Mathematics
         /// <param name="result">When the method completes, contains the normalized plane.</param>
         public static void Normalize(ref Plane plane, out Plane result)
         {
-            float magnitude = 1.0f / (float)(Math.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z)));
+            float magnitude = 1.0f / MathF.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z));
 
             result.Normal.X = plane.Normal.X * magnitude;
             result.Normal.Y = plane.Normal.Y * magnitude;
@@ -466,7 +466,7 @@ namespace Stride.Core.Mathematics
         /// <returns>The normalized plane.</returns>
         public static Plane Normalize(Plane plane)
         {
-            float magnitude = 1.0f / (float)(Math.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z)));
+            float magnitude = 1.0f / MathF.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z));
             return new Plane(plane.Normal.X * magnitude, plane.Normal.Y * magnitude, plane.Normal.Z * magnitude, plane.D * magnitude);
         }
 
@@ -490,7 +490,7 @@ namespace Stride.Core.Mathematics
         /// <returns>The flipped plane.</returns>
         public static Plane Negate(Plane plane)
         {
-            float magnitude = 1.0f / (float)(Math.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z)));
+            float magnitude = 1.0f / MathF.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z));
             return new Plane(plane.Normal.X * magnitude, plane.Normal.Y * magnitude, plane.Normal.Z * magnitude, plane.D * magnitude);
         }
 

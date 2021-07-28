@@ -409,7 +409,7 @@ namespace Stride.Rendering.Images
                 var downSizedTexture = originalColorBuffer;
                 if (i > 0)
                 {
-                    downSizedTexture = GetScopedRenderTarget(originalColorBuffer.Description, 1f / (float)Math.Pow(2f, i), originalColorBuffer.Description.Format);
+                    downSizedTexture = GetScopedRenderTarget(originalColorBuffer.Description, 1f / MathF.Pow(2f, i), originalColorBuffer.Description.Format);
                     textureScaler.SetInput(0, downscaledSources[i - 1]);
                     textureScaler.SetOutput(downSizedTexture);
                     textureScaler.Draw(context, "DownScale_Factor{0}", i);

@@ -145,16 +145,16 @@ namespace Stride.Engine
                 float yz = rotation.Y * rotation.Z;
                 float xw = rotation.X * rotation.W;
 
-                rotationEuler.Y = (float)Math.Asin(2.0f * (yw - zx));
+                rotationEuler.Y = MathF.Asin(2.0f * (yw - zx));
                 double test = Math.Cos(rotationEuler.Y);
                 if (test > 1e-6f)
                 {
-                    rotationEuler.Z = (float)Math.Atan2(2.0f * (xy + zw), 1.0f - (2.0f * (yy + zz)));
-                    rotationEuler.X = (float)Math.Atan2(2.0f * (yz + xw), 1.0f - (2.0f * (yy + xx)));
+                    rotationEuler.Z = MathF.Atan2(2.0f * (xy + zw), 1.0f - (2.0f * (yy + zz)));
+                    rotationEuler.X = MathF.Atan2(2.0f * (yz + xw), 1.0f - (2.0f * (yy + xx)));
                 }
                 else
                 {
-                    rotationEuler.Z = (float)Math.Atan2(2.0f * (zw - xy), 2.0f * (zx + yw));
+                    rotationEuler.Z = MathF.Atan2(2.0f * (zw - xy), 2.0f * (zx + yw));
                     rotationEuler.X = 0.0f;
                 }
                 return rotationEuler;
@@ -172,12 +172,12 @@ namespace Stride.Engine
 
                 var halfAngles = value * 0.5f;
 
-                var fSinX = (float)Math.Sin(halfAngles.X);
-                var fCosX = (float)Math.Cos(halfAngles.X);
-                var fSinY = (float)Math.Sin(halfAngles.Y);
-                var fCosY = (float)Math.Cos(halfAngles.Y);
-                var fSinZ = (float)Math.Sin(halfAngles.Z);
-                var fCosZ = (float)Math.Cos(halfAngles.Z);
+                var fSinX = MathF.Sin(halfAngles.X);
+                var fCosX = MathF.Cos(halfAngles.X);
+                var fSinY = MathF.Sin(halfAngles.Y);
+                var fCosY = MathF.Cos(halfAngles.Y);
+                var fSinZ = MathF.Sin(halfAngles.Z);
+                var fCosZ = MathF.Cos(halfAngles.Z);
 
                 var fCosXY = fCosX * fCosY;
                 var fSinXY = fSinX * fSinY;

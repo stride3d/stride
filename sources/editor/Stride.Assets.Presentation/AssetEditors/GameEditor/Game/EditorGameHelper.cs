@@ -21,7 +21,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
             {
                 // calculate the ray direction corresponding to the click in the view space
                 var verticalFov = MathUtil.DegreesToRadians(camera.VerticalFieldOfView);
-                var rayDirectionView = Vector3.Normalize(new Vector3(camera.AspectRatio * screenPosition.X, screenPosition.Y, -1 / (float)Math.Tan(verticalFov / 2f)));
+                var rayDirectionView = Vector3.Normalize(new Vector3(camera.AspectRatio * screenPosition.X, screenPosition.Y, -1 / MathF.Tan(verticalFov / 2f)));
 
                 // calculate the direction of the ray in the gizmo space
                 var rayDirectionGizmo = Vector3.Normalize(Vector3.TransformNormal(rayDirectionView, worldView));

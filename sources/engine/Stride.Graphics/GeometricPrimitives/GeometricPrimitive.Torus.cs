@@ -144,7 +144,7 @@ namespace Stride.Graphics.GeometricPrimitives
                         float v = 1 - (float)j / tessellation;
 
                         float innerAngle = j * MathUtil.TwoPi / tessellation + MathUtil.Pi;
-                        float dx = (float)Math.Cos(innerAngle), dy = (float)Math.Sin(innerAngle);
+                        float dx = MathF.Cos(innerAngle), dy = MathF.Sin(innerAngle);
 
                         // Create a vertex.
                         var normal = new Vector3(dx, dy, 0);

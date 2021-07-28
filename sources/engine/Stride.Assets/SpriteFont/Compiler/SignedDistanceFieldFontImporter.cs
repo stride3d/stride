@@ -202,8 +202,8 @@ namespace Stride.Assets.SpriteFont.Compiler
             var pixelHeight = (int)Math.Ceiling(height + 4);
 
 
-            var matrixM31 = -(float)Math.Floor(xOffset) + 1;
-            var matrixM32 = -(float)Math.Floor(yOffset) + 1;
+            var matrixM31 = -MathF.Floor(xOffset) + 1;
+            var matrixM32 = -MathF.Floor(yOffset) + 1;
 
             Bitmap bitmap;
             if (char.IsWhiteSpace(character))

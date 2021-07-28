@@ -136,7 +136,7 @@ namespace Stride.Rendering.Lights
             // Calculate the width and height of the near plane in world space:
             var nearClipDistance = Math.Min(spotLight.ProjectionPlaneDistance, spotLight.Range);
             float angleOuterInRadians = MathUtil.DegreesToRadians(Math.Max(spotLight.AngleInner, spotLight.AngleOuter));
-            float height = (float)Math.Tan(angleOuterInRadians / 2.0f) * nearClipDistance;  // TODO: Is this correct?
+            float height = MathF.Tan(angleOuterInRadians / 2.0f) * nearClipDistance;  // TODO: Is this correct?
             float width = height * spotLight.AspectRatio;  // TODO: Is this correct?
 
             Matrix viewMatrix = light.WorldMatrix;

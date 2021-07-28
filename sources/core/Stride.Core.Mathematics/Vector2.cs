@@ -121,7 +121,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         public bool IsNormalized
         {
-            get { return Math.Abs((X * X) + (Y * Y) - 1f) < MathUtil.ZeroTolerance; }
+            get { return MathF.Abs((X * X) + (Y * Y) - 1f) < MathUtil.ZeroTolerance; }
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace Stride.Core.Mathematics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly float Length()
         {
-            return (float)Math.Sqrt((X * X) + (Y * Y));
+            return MathF.Sqrt((X * X) + (Y * Y));
         }
 
         /// <summary>
@@ -472,7 +472,7 @@ namespace Stride.Core.Mathematics
             float x = value1.X - value2.X;
             float y = value1.Y - value2.Y;
 
-            result = (float)Math.Sqrt((x * x) + (y * y));
+            result = MathF.Sqrt((x * x) + (y * y));
         }
 
         /// <summary>
@@ -490,7 +490,7 @@ namespace Stride.Core.Mathematics
             float x = value1.X - value2.X;
             float y = value1.Y - value2.Y;
 
-            return (float)Math.Sqrt((x * x) + (y * y));
+            return MathF.Sqrt((x * x) + (y * y));
         }
 
         /// <summary>
@@ -1409,8 +1409,8 @@ namespace Stride.Core.Mathematics
         /// </returns>
         public bool Equals(Vector2 other)
         {
-            return ((float)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance);
+            return (MathF.Abs(other.X - X) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance);
         }
 
         /// <summary>

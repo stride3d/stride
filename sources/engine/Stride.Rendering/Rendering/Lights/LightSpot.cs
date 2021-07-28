@@ -143,17 +143,17 @@ namespace Stride.Rendering.Lights
 
         public override bool Update(RenderLight light)
         {
-            var range = Math.Max(0.001f, Range);
+            var range = MathF.Max(0.001f, Range);
             InvSquareRange = 1.0f / (range * range);
-            var innerAngle = Math.Min(AngleInner, AngleOuter);
-            var outerAngle = Math.Max(AngleInner, AngleOuter);
+            var innerAngle = MathF.Min(AngleInner, AngleOuter);
+            var outerAngle = MathF.Max(AngleInner, AngleOuter);
             AngleOuterInRadians = MathUtil.DegreesToRadians(outerAngle);
-            var cosInner = (float)Math.Cos(MathUtil.DegreesToRadians(innerAngle / 2));
-            var cosOuter = (float)Math.Cos(AngleOuterInRadians * 0.5f);
-            LightAngleScale = 1.0f / Math.Max(0.001f, cosInner - cosOuter);
+            var cosInner = MathF.Cos(MathUtil.DegreesToRadians(innerAngle / 2));
+            var cosOuter = MathF.Cos(AngleOuterInRadians * 0.5f);
+            LightAngleScale = 1.0f / MathF.Max(0.001f, cosInner - cosOuter);
             LightAngleOffset = -cosOuter * LightAngleScale;
 
-            LightRadiusAtTarget = (float)Math.Abs(Range * Math.Sin(AngleOuterInRadians * 0.5f));
+            LightRadiusAtTarget = MathF.Abs(Range * MathF.Sin(AngleOuterInRadians * 0.5f));
 
             return true;
         }
@@ -191,7 +191,7 @@ namespace Stride.Rendering.Lights
             Vector4 projectedTarget;
             Vector4.Transform(ref targetPosition, ref renderView.ViewProjection, out projectedTarget);
 
-            var d = Math.Abs(projectedTarget.W) + 0.00001f;
+            var d = MathF.Abs(projectedTarget.W) + 0.00001f;
             var r = Range * Math.Sin(MathUtil.DegreesToRadians(AngleOuter / 2.0f));
 
             // Handle correctly the case where the eye is inside the sphere
