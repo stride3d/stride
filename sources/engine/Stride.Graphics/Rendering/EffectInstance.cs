@@ -43,6 +43,8 @@ namespace Stride.Rendering
             RootSignature?.Dispose();
             RootSignature = null;
 
+            bufferUploader.Clear();
+
             base.Destroy();
         }
 
@@ -71,6 +73,7 @@ namespace Stride.Rendering
                 RootSignature?.Dispose();
                 RootSignature = RootSignature.New(graphicsDevice, descriptorReflection);
 
+                bufferUploader.Clear();
                 bufferUploader.Compile(graphicsDevice, descriptorReflection, effect.Bytecode);
 
                 // Create parameter updater
