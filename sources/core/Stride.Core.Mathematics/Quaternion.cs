@@ -1049,6 +1049,38 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Computes a quaternion corresponding to the rotation looking from the position<paramref name="eye"/> to the position <paramref name="target"/>.
+        /// </summary>
+        /// <param name="eye">The position of the eye.</param>
+        /// <param name="target">The target to look at.</param>
+        /// <returns>The resulting quaternion of the rotation from the .</returns>
+        public static Quaternion LookAtRH(Vector3 eye, Vector3 target)
+        {
+            Vector3 forwardVector = Vector3.Normalize(target - eye);
+            Vector3 axis = Vector3.Cross(-Vector3.UnitZ, forwardVector);
+            float dot = Vector3.Dot(-Vector3.UnitZ, forwardVector);
+
+            return Normalize(new Quaternion(axis, dot + 1));
+        }
+        /// <summary>
+        /// Computes a quaternion corresponding to the rotation looking from the position<paramref name="eye"/> to the position <paramref name="target"/>.
+        /// </summary>
+        /// <param name="eye">The position of the eye.</param>
+        /// <param name="target">The target to look at.</param>
+        /// <param name="result">The resulting direction</param>
+        public static void LookAtRH(Vector3 eye, Vector3 target, out Quaternion result)
+        {
+            Vector3 forwardVector = Vector3.Normalize(target - eye);
+            Vector3 axis = Vector3.Cross(-Vector3.UnitZ, forwardVector);
+            float dot = Vector3.Dot(-Vector3.UnitZ, forwardVector);
+
+            result.X = axis.X;
+            result.Y = axis.Y;
+            result.Z = axis.Z;
+            result.W = dot + 1;
+        }
+
+        /// <summary>
         /// Interpolates between two quaternions, using spherical linear interpolation.
         /// </summary>
         /// <param name="start">Start quaternion.</param>
