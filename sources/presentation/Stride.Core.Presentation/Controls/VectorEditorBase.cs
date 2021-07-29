@@ -198,7 +198,7 @@ namespace Stride.Core.Presentation.Controls
 
             var editor = (VectorEditorBase<T>)sender;
             var decimalPlaces = editor.DecimalPlaces;
-            return decimalPlaces < 0 ? basevalue : (float)Math.Round((float)basevalue, decimalPlaces);
+            return decimalPlaces < 0 ? basevalue : MathF.Round((float)basevalue, decimalPlaces);
         }
 
         /// <summary>

@@ -446,7 +446,7 @@ namespace Stride.Rendering.Images
 
                 var levelConfig = cocLevels[i];
                 var textureToBlur = downscaledSources[levelConfig.DownscaleFactor];
-                float downscaleFactor = 1f / (float)(Math.Pow(2f, levelConfig.DownscaleFactor));
+                float downscaleFactor = 1f / MathF.Pow(2f, levelConfig.DownscaleFactor);
                 var blurOutput = GetScopedRenderTarget(originalColorBuffer.Description, downscaleFactor, originalColorBuffer.Description.Format);
                 var blurOutputFront = NewScopedRenderTarget2D(blurOutput.Description);
                 float blurRadius = (MaxBokehSize * BokehSizeFactor) * levelConfig.CoCValue * downscaleFactor * originalColorBuffer.Width;

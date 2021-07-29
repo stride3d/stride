@@ -146,8 +146,7 @@ namespace Stride.Engine
                 float xw = rotation.X * rotation.W;
 
                 rotationEuler.Y = MathF.Asin(2.0f * (yw - zx));
-                double test = Math.Cos(rotationEuler.Y);
-                if (test > 1e-6f)
+                if (MathF.Cos(rotationEuler.Y) > MathUtil.ZeroTolerance)
                 {
                     rotationEuler.Z = MathF.Atan2(2.0f * (xy + zw), 1.0f - (2.0f * (yy + zz)));
                     rotationEuler.X = MathF.Atan2(2.0f * (yz + xw), 1.0f - (2.0f * (yy + xx)));

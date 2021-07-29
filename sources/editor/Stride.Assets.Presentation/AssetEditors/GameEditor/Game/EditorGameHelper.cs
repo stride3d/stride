@@ -50,7 +50,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
             // Ensures a ray angle with projection plane of at least 'limitAngle' to avoid the object to go to infinity.
             var dotProductValue = Vector3.Dot(ray.Direction, projectionPlane.Normal);
             var comparisonSign = Math.Sign(Vector3.Dot(ray.Position, projectionPlane.Normal) + projectionPlane.D);
-            if (comparisonSign * (Math.Acos(dotProductValue) - MathUtil.PiOverTwo) < limitAngle)
+            if (comparisonSign * (MathF.Acos(dotProductValue) - MathUtil.PiOverTwo) < limitAngle)
             {
                 var rotationAxis = Vector3.Normalize(Vector3.Cross(projectionPlane.Normal, ray.Direction));
                 var initialDirection = Vector3.Normalize(Vector3.Cross(rotationAxis, projectionPlane.Normal));
