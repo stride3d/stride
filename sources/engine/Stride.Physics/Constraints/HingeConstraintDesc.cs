@@ -13,8 +13,11 @@ namespace Stride.Physics.Constraints
     /// </summary>
     [Display("Hinge")]
     [DataContract(nameof(HingeConstraintDesc))]
-    public class HingeConstraintDesc : IConstraintDesc, IRotateConstraintDesc
+    public class HingeConstraintDesc : IConstraintDesc
     {
+        /// <inheritdoc/>
+        public ConstraintTypes Type => ConstraintTypes.Hinge;
+
         /// <summary>
         /// Position local to rigidbody A.
         /// </summary>
@@ -55,7 +58,7 @@ namespace Stride.Physics.Constraints
         public Quaternion AxisInB { get; set; } = Quaternion.Identity;
 
         /// <summary>
-        /// Use Axis in relation to body A. TODO: this isn't completely accurate
+        /// Use Axis in relation to body A. <!-- TODO: this isn't completely accurate -->
         /// </summary>
         [Display(8)]
         public bool UseReferenceFrameA { get; set; }
@@ -86,7 +89,7 @@ namespace Stride.Physics.Constraints
         /// <summary>
         /// Positive limit (0, Pi). Right handed rotation when thumb points at positive X axis of the constraint.
         /// </summary>
-        /// /// <userdoc>
+        /// <userdoc>
         /// Positive limit (0, Pi), where 0 is at positive Z axis. Right handed rotation when thumb points at positive X axis of the constraint.
         /// </userdoc>
         [Display(7)]

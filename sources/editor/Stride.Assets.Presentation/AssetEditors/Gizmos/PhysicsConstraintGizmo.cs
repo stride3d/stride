@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Extensions;
@@ -13,21 +9,30 @@ using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
-    [GizmoComponent(typeof(ConstraintComponent), false)]
-    public class PhysicsConstraintGizmo : EntityGizmo<ConstraintComponent>
+    [GizmoComponent(typeof(PhysicsConstraintComponent), false)]
+    public class PhysicsConstraintGizmo : EntityGizmo<PhysicsConstraintComponent>
     {
         private static readonly Color OrangeUniformColor = new Color(0xFF, 0x98, 0x2B);
+        private static readonly Color OrangeNegUniformColor = new Color(0xFF - 0xFF, 0xFF - 0x98, 0xFF - 0x2B);
         private static readonly Color PurpleUniformColor = new Color(0xB1, 0x24, 0xF2);
+        private static readonly Color PurpleNegUniformColor = new Color(0xFF - 0xB1, 0xFF - 0x24, 0xFF - 0xF2);
+        
+        // Using the same render group as transformation gizmo which means constraint gizmo is visible while inside another mesh
+        private static readonly RenderGroup GizmoRenderGroup = TransformationGizmo.TransformationGizmoGroup;
 
-        private MeshDraw CenterSphereMesh;
-        private MeshDraw CyliderAxisMesh;
+        private const float AxisConeRadius = 0.03f / 3f;
+        private const float AxisConeHeight = 0.03f;
+        private const float CenterSphereRadius = 0.01f;
+        private const float CylinderLength = 0.3f;
+        private const float CylinderRadius = 0.005f;
+        private const int Tessellation = 16;
 
         private PivotMarker PivotA;
         private PivotMarker PivotB;
 
-        public PhysicsConstraintGizmo(ConstraintComponent component) : base(component)
+        public PhysicsConstraintGizmo(PhysicsConstraintComponent component) : base(component)
         {
-            RenderGroup = PhysicsShapesGroup;
+            RenderGroup = GizmoRenderGroup;
         }
 
         protected override Entity Create()
@@ -54,31 +59,15 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             GizmoRootEntity.Transform.Position = Vector3.Zero;
             GizmoRootEntity.Transform.Rotation = Quaternion.Zero;
             
-            UpdateConstraintRotation();
-
-            UpdatePivot(ref PivotA, Component.BodyA, Component.Description.PivotInA, OrangeUniformColor, $"{ContentEntity.Name}_PivotInA");
-            UpdatePivot(ref PivotB, Component.BodyB, Component.Description.PivotInB, PurpleUniformColor, $"{ContentEntity.Name}_PivotInB");
-        }
-
-        private void UpdateConstraintRotation()
-        {
-            if (Component.Description is IRotateConstraintDesc rotateDesc)
-            {
-                PivotA.ConstraintRotation = rotateDesc.AxisInA;
-                PivotB.ConstraintRotation = rotateDesc.AxisInB;
-            }
-            else
-            {
-                PivotA.ConstraintRotation = Quaternion.Identity;
-                PivotB.ConstraintRotation = Quaternion.Identity;
-            }
+            UpdatePivot(Pivot.A, ref PivotA, Component.BodyA, Component.Description.PivotInA, $"{ContentEntity.Name}_PivotInA");
+            UpdatePivot(Pivot.B, ref PivotB, Component.BodyB, Component.Description.PivotInB, $"{ContentEntity.Name}_PivotInB");
         }
 
         private void UpdatePivot(
+            Pivot pivotNum,
             ref PivotMarker pivotMarker,
             RigidbodyComponent rigidbody,
             Vector3 pivot,
-            Color markerColor,
             string entityName)
         {
             if (rigidbody == null)
@@ -91,75 +80,45 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             // First we create a debug entity which will be reused by any rigidbody referenced
             if (pivotMarker.Entity == null)
             {
-                CenterSphereMesh ??= GeometricPrimitive.Sphere.New(GraphicsDevice, 0.01f, 16).ToMeshDraw();
-                CyliderAxisMesh ??= GeometricPrimitive.Cylinder.New(GraphicsDevice, 0.3f, 0.005f, 16).ToMeshDraw();
-
-                var material = GizmoUniformColorMaterial.Create(GraphicsDevice, markerColor, false);
-                var materialNeg = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Negate(markerColor), false);
-
                 pivotMarker.Entity = new Entity(entityName);
-                this.AddModelEntity(ref pivotMarker, "Center", CenterSphereMesh, material);
-                this.AddModelEntity(ref pivotMarker, "Y", CyliderAxisMesh, material);
-                this.AddModelEntity(ref pivotMarker, "X", CyliderAxisMesh, materialNeg, Quaternion.RotationAxis(Vector3.UnitZ, MathUtil.PiOverTwo));
-                this.AddModelEntity(ref pivotMarker, "Z", CyliderAxisMesh, material, Quaternion.RotationAxis(Vector3.UnitX, MathUtil.PiOverTwo));
-                this.AddModelEntity(ref pivotMarker, "Yend", CenterSphereMesh, material, position: 0.15f * Vector3.UnitY);
-                this.AddModelEntity(ref pivotMarker, "Xend", CenterSphereMesh, material, position: 0.15f * Vector3.UnitX);
-                this.AddModelEntity(ref pivotMarker, "Zend", CenterSphereMesh, materialNeg, position: 0.15f * Vector3.UnitZ);
+                pivotMarker.ModelWrapper = ModelWrapper.Create(Component.Description, pivotNum, GraphicsDevice);
+                pivotMarker.Entity.AddChild(pivotMarker.ModelWrapper.ModelEntity);
 
-                //var physicsComponent = new StaticColliderComponent
-                //{
-                //    Enabled = false,
-                //    ColliderShape = new SphereColliderShape(false, 0.05f),
-                //};
-                //pivotMarker.Entity.Add(physicsComponent);
-
-                // adding entity into the scene will cause the physics component to get picked up by the processor,
-                // which we need for the AddDebugEntity call
-
-                //EditorScene.Entities.Add(pivotMarker.Entity);
                 this.GizmoRootEntity.AddChild(pivotMarker.Entity);
+            }
 
-                //physicsComponent.AddDebugEntity(EditorScene, RenderGroup, true);
-                //pivotMarker.Model = physicsComponent.DebugEntity.GetChild(0).Get<ModelComponent>();
+            if (Component.Description.Type == pivotMarker.ModelWrapper.ConstraintType)
+            {
+                pivotMarker.ModelWrapper.Update(Component.Description);
+            }
+            else
+            {
+                // Type of descriptor has changed, we have to recreate the gizmo models
+                pivotMarker.Entity.RemoveChild(pivotMarker.Entity.GetChild(0));
+                pivotMarker.ModelWrapper = ModelWrapper.Create(Component.Description, pivotNum, GraphicsDevice);
+                pivotMarker.Entity.AddChild(pivotMarker.ModelWrapper.ModelEntity);
             }
 
             // on each frame we'll update the transform of the entity
-            // we're setting the pivot entity as a child of the rigidbody to have the correct local rotation
-            //pivotMarker.Entity.SetParent(rigidbody.Entity);
-            // we're dividing the pivot by the scale, because the constraint ignores it
+            // we compute the position of the pivot from the world position and rotation of the entity with rigidbody
             rigidbody.Entity.Transform.UpdateWorldMatrix();
             rigidbody.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion rotation, out var position);
             rotation.Rotate(ref pivot);
             pivotMarker.Entity.Transform.Position = position + pivot;
-            pivotMarker.Entity.Transform.Rotation = pivotMarker.ConstraintRotation * rotation; // ???
+            pivotMarker.Entity.Transform.Rotation = rotation;
 
             // we want the pivot marker to keep the same size irrespective of the scale of the rigidbody
-            //rigidbody.Entity.Transform.WorldMatrix.Decompose(out var parentWorldScale, out _);
             var targetScale = GizmoScalingEntity.Transform.Scale;
-            pivotMarker.Entity.Transform.Scale = targetScale; // / parentWorldScale;
+            pivotMarker.Entity.Transform.Scale = targetScale;
 
             // and ensure the model is enabled
             pivotMarker.Enable(true);
         }
 
-        private void AddModelEntity(ref PivotMarker pivotMarker, string suffix, MeshDraw mesh, Material material, Quaternion rotation = default, Vector3 position = default)
-        {
-            var entity = new Entity($"{pivotMarker.Entity.Name}_Model_{suffix}");
-            entity.Transform.Position = position;
-            entity.Transform.Rotation = rotation;
-            entity.Add(new ModelComponent
-            {
-                Model = new Model { material, new Mesh { Draw = mesh } },
-                RenderGroup = RenderGroup,
-            });
-
-            pivotMarker.Entity.AddChild(entity);
-        }
-
         private struct PivotMarker
         {
             public Entity Entity;
-            public Quaternion ConstraintRotation;
+            public ModelWrapper ModelWrapper;
             
             /// <summary>
             /// Enable components in child entities - models.
@@ -169,7 +128,96 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 if (Entity == null) return;
 
                 foreach (var child in this.Entity.GetChildren())
-                    child.EnableAll(enabled);
+                    child.EnableAll(enabled, applyOnChildren: true);
+            }
+        }
+
+        private enum Pivot
+        {
+            A, B
+        }
+
+        private abstract class ModelWrapper
+        {
+            protected ModelWrapper(Pivot pivot) => Pivot = pivot;
+
+            public Entity ModelEntity { get; } = new Entity("ModelWrapper");
+
+            public Pivot Pivot { get; }
+
+            public abstract ConstraintTypes ConstraintType { get; }
+
+            public abstract void Update(IConstraintDesc constraintDesc);
+
+            public static ModelWrapper Create(IConstraintDesc constraintDesc, Pivot pivot, Graphics.GraphicsDevice graphicsDevice)
+            {
+                if (constraintDesc is Point2PointConstraintDesc p)
+                    return new PointModelWrapper(p, pivot, graphicsDevice);
+                else if (constraintDesc is HingeConstraintDesc h)
+                    return new HingeModelWrapper(h, pivot, graphicsDevice);
+
+                throw new NotSupportedException();
+            }
+
+            protected Entity AddModelEntity(string suffix, MeshDraw mesh, Material material, Quaternion rotation = default, Vector3 position = default)
+            {
+                var entity = new Entity($"Model_{suffix}");
+                entity.Transform.Position = position;
+                entity.Transform.Rotation = rotation;
+                entity.Add(new ModelComponent
+                {
+                    Model = new Model { material, new Mesh { Draw = mesh } },
+                    RenderGroup = GizmoRenderGroup,
+                });
+
+                ModelEntity.AddChild(entity);
+                return entity;
+            }
+        }
+
+        private sealed class PointModelWrapper : ModelWrapper
+        {
+            public PointModelWrapper(Point2PointConstraintDesc desc, Pivot pivot, Graphics.GraphicsDevice graphicsDevice)
+                : base(pivot)
+            {
+                var sphere = GeometricPrimitive.Sphere.New(graphicsDevice, CenterSphereRadius, Tessellation).ToMeshDraw();
+                var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
+                AddModelEntity("Center", sphere, material);
+            }
+
+            public override ConstraintTypes ConstraintType => ConstraintTypes.Point2Point;
+
+            public override void Update(IConstraintDesc constraintDesc)
+            {
+                // model isn't changing
+            }
+        }
+
+        private sealed class HingeModelWrapper : ModelWrapper
+        {
+            public HingeModelWrapper(HingeConstraintDesc desc, Pivot pivot, Graphics.GraphicsDevice graphicsDevice)
+                : base(pivot)
+            {
+                // TODO: Add limit angles - create a procedular part of a disc given an angle
+                var pipe = GeometricPrimitive.Cylinder.New(graphicsDevice, CylinderLength, CylinderRadius, Tessellation).ToMeshDraw();
+                var tip = GeometricPrimitive.Cone.New(graphicsDevice, AxisConeRadius, AxisConeHeight, Tessellation).ToMeshDraw();
+                var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
+                var material2 = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeNegUniformColor : PurpleNegUniformColor);
+
+                var xRotation = Quaternion.RotationAxis(Vector3.UnitZ, -MathUtil.PiOverTwo); // Yup rotated towards X
+                AddModelEntity("X", pipe, material, xRotation);
+                AddModelEntity("Xend", tip, material, position: CylinderLength / 2f * Vector3.UnitX, rotation: xRotation);
+
+                var zRotation = Quaternion.RotationAxis(Vector3.UnitX, MathUtil.PiOverTwo); // Yup rotated towards Z
+                AddModelEntity("Zend", tip, material2, position: CylinderRadius * 4f * Vector3.UnitZ, rotation: zRotation);
+            }
+
+            public override ConstraintTypes ConstraintType => ConstraintTypes.Hinge;
+
+            public override void Update(IConstraintDesc constraintDesc)
+            {
+                var hingeDesc = (HingeConstraintDesc)constraintDesc;
+                ModelEntity.Transform.Rotation = Pivot == Pivot.A ? hingeDesc.AxisInA : hingeDesc.AxisInB;
             }
         }
     }

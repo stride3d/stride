@@ -11,6 +11,11 @@ namespace Stride.Physics
     public interface IConstraintDesc
     {
         /// <summary>
+        /// Type of the constraint description.
+        /// </summary>
+        ConstraintTypes Type { get; }
+
+        /// <summary>
         /// Position local to rigidbody A.
         /// </summary>
         Vector3 PivotInA { get; set; }

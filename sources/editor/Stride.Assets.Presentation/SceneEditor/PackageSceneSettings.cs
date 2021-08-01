@@ -78,7 +78,7 @@ namespace Stride.Assets.Presentation.SceneEditor
                 {
                     DisplayAttribute.GetDisplayName(typeof(TransformComponent)),
                     DisplayAttribute.GetDisplayName(typeof(PhysicsComponent)),
-                    DisplayAttribute.GetDisplayName(typeof(Stride.Physics.ConstraintComponent)),
+                    DisplayAttribute.GetDisplayName(typeof(Stride.Physics.PhysicsConstraintComponent)),
                 }
             };
         }

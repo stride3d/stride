@@ -14,13 +14,13 @@ namespace Stride.Physics
     /// </summary>
     [DataContract("PhysicsConstraintComponent")]
     [Display("Physics Constraint")]
-    [DefaultEntityComponentProcessor(typeof(ConstraintProcessor))]
+    [DefaultEntityComponentProcessor(typeof(PhysicsConstraintProcessor))]
     [AllowMultipleComponents]
     [ComponentOrder(3010)]
     [ComponentCategory("Physics")]
-    public class ConstraintComponent : ActivableEntityComponent
+    public class PhysicsConstraintComponent : ActivableEntityComponent
     {
-        internal ConstraintProcessor constraintProcessor;
+        internal PhysicsConstraintProcessor constraintProcessor;
 
         /// <summary>
         /// (Required) Rigidbody A used for body-body and body-world constraints.

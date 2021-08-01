@@ -14,6 +14,9 @@ namespace Stride.Physics.Constraints
     public class Point2PointConstraintDesc : IConstraintDesc
     {
         /// <inheritdoc/>
+        public ConstraintTypes Type => ConstraintTypes.Point2Point;
+
+        /// <inheritdoc/>
         /// <userdoc>
         /// Position local to rigidbody A.
         /// </userdoc>

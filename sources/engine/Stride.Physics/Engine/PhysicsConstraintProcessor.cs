@@ -9,16 +9,16 @@ using Stride.Games;
 
 namespace Stride.Physics.Engine
 {
-    public class ConstraintProcessor : EntityProcessor<ConstraintComponent>
+    public class PhysicsConstraintProcessor : EntityProcessor<PhysicsConstraintComponent>
     {
-        private static readonly Logger logger = GlobalLogger.GetLogger(nameof(ConstraintProcessor));
+        private static readonly Logger logger = GlobalLogger.GetLogger(nameof(PhysicsConstraintProcessor));
 
-        public ConstraintProcessor()
+        public PhysicsConstraintProcessor()
         {
             Order = 0xFFFE;
         }
 
-        protected override void OnEntityComponentAdding(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
+        protected override void OnEntityComponentAdding(Entity entity, [NotNull] PhysicsConstraintComponent component, [NotNull] PhysicsConstraintComponent data)
         {
             //this is mostly required for the game studio gizmos
             if (Simulation.DisableSimulation)
@@ -29,7 +29,7 @@ namespace Stride.Physics.Engine
             Recreate(component);
         }
 
-        protected override void OnEntityComponentRemoved(Entity entity, [NotNull] ConstraintComponent component, [NotNull] ConstraintComponent data)
+        protected override void OnEntityComponentRemoved(Entity entity, [NotNull] PhysicsConstraintComponent component, [NotNull] PhysicsConstraintComponent data)
         {
             if (component.Constraint != null)
             {
@@ -58,7 +58,7 @@ namespace Stride.Physics.Engine
             }
         }
 
-        public void Recreate(ConstraintComponent component)
+        public void Recreate(PhysicsConstraintComponent component)
         {
             if (component.Constraint != null)
             {
