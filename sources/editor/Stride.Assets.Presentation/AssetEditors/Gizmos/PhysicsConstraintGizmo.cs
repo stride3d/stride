@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Extensions;
@@ -16,13 +17,19 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private static readonly Color OrangeNegUniformColor = new Color(0xFF - 0xFF, 0xFF - 0x98, 0xFF - 0x2B);
         private static readonly Color PurpleUniformColor = new Color(0xB1, 0x24, 0xF2);
         private static readonly Color PurpleNegUniformColor = new Color(0xFF - 0xB1, 0xFF - 0x24, 0xFF - 0xF2);
-        
+
+        // Each time we create a primitive we allocate memory that won't be garbage collected without calling Dispose,
+        // so we need a global cache of those per a graphics device (in case there's more than one).
+        private static Dictionary<Graphics.GraphicsDevice, GeometricPrimitive> SphereCache = new Dictionary<Graphics.GraphicsDevice, GeometricPrimitive>(1);
+        private static Dictionary<Graphics.GraphicsDevice, GeometricPrimitive> ConeCache = new Dictionary<Graphics.GraphicsDevice, GeometricPrimitive>(1);
+        private static Dictionary<Graphics.GraphicsDevice, GeometricPrimitive> CylinderCache = new Dictionary<Graphics.GraphicsDevice, GeometricPrimitive>(1);
+
         // Using the same render group as transformation gizmo which means constraint gizmo is visible while inside another mesh
         private static readonly RenderGroup GizmoRenderGroup = TransformationGizmo.TransformationGizmoGroup;
 
         private const float AxisConeRadius = 0.03f / 3f;
         private const float AxisConeHeight = 0.03f;
-        private const float CenterSphereRadius = 0.01f;
+        private const float CenterSphereRadius = 0.015f;
         private const float CylinderLength = 0.3f;
         private const float CylinderRadius = 0.005f;
         private const int Tessellation = 16;
@@ -109,10 +116,43 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             // we want the pivot marker to keep the same size irrespective of the scale of the rigidbody
             var targetScale = GizmoScalingEntity.Transform.Scale;
-            pivotMarker.Entity.Transform.Scale = targetScale;
+            pivotMarker.Entity.Transform.Scale = targetScale; // TODO: fix as this doesn't seem to be working?
 
             // and ensure the model is enabled
             pivotMarker.Enable(true);
+        }
+
+        private static GeometricPrimitive GetSphere(Graphics.GraphicsDevice device)
+        {
+            if (!SphereCache.TryGetValue(device, out var sphere))
+            {
+                sphere = GeometricPrimitive.Sphere.New(device, CenterSphereRadius, Tessellation);
+                SphereCache.Add(device, sphere);
+            }
+
+            return sphere;
+        }
+
+        private static GeometricPrimitive GetCone(Graphics.GraphicsDevice device)
+        {
+            if (!ConeCache.TryGetValue(device, out var cone))
+            {
+                cone = GeometricPrimitive.Cone.New(device, AxisConeRadius, AxisConeHeight, Tessellation);
+                ConeCache.Add(device, cone);
+            }
+
+            return cone;
+        }
+
+        private static GeometricPrimitive GetCylinder(Graphics.GraphicsDevice device)
+        {
+            if (!CylinderCache.TryGetValue(device, out var cylinder))
+            {
+                cylinder = GeometricPrimitive.Cylinder.New(device, CylinderLength, CylinderRadius, Tessellation);
+                CylinderCache.Add(device, cylinder);
+            }
+
+            return cylinder;
         }
 
         private struct PivotMarker
@@ -155,6 +195,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     return new PointModelWrapper(p, pivot, graphicsDevice);
                 else if (constraintDesc is HingeConstraintDesc h)
                     return new HingeModelWrapper(h, pivot, graphicsDevice);
+                else if (constraintDesc is ConeTwistConstraintDesc ct)
+                    return new ConeModelWrapper(ct, pivot, graphicsDevice);
 
                 throw new NotSupportedException();
             }
@@ -180,7 +222,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             public PointModelWrapper(Point2PointConstraintDesc desc, Pivot pivot, Graphics.GraphicsDevice graphicsDevice)
                 : base(pivot)
             {
-                var sphere = GeometricPrimitive.Sphere.New(graphicsDevice, CenterSphereRadius, Tessellation).ToMeshDraw();
+                var sphere = GetSphere(graphicsDevice).ToMeshDraw();
                 var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
                 AddModelEntity("Center", sphere, material);
             }
@@ -199,10 +241,13 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 : base(pivot)
             {
                 // TODO: Add limit angles - create a procedular part of a disc given an angle
-                var pipe = GeometricPrimitive.Cylinder.New(graphicsDevice, CylinderLength, CylinderRadius, Tessellation).ToMeshDraw();
-                var tip = GeometricPrimitive.Cone.New(graphicsDevice, AxisConeRadius, AxisConeHeight, Tessellation).ToMeshDraw();
+                var sphere = GetSphere(graphicsDevice).ToMeshDraw();
+                var pipe = GetCylinder(graphicsDevice).ToMeshDraw();
+                var tip = GetCone(graphicsDevice).ToMeshDraw();
                 var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
                 var material2 = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeNegUniformColor : PurpleNegUniformColor);
+
+                AddModelEntity("Center", sphere, material);
 
                 var xRotation = Quaternion.RotationAxis(Vector3.UnitZ, -MathUtil.PiOverTwo); // Yup rotated towards X
                 AddModelEntity("X", pipe, material, xRotation);
@@ -210,6 +255,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
                 var zRotation = Quaternion.RotationAxis(Vector3.UnitX, MathUtil.PiOverTwo); // Yup rotated towards Z
                 AddModelEntity("Zend", tip, material2, position: CylinderRadius * 4f * Vector3.UnitZ, rotation: zRotation);
+
+                Update(desc);
             }
 
             public override ConstraintTypes ConstraintType => ConstraintTypes.Hinge;
@@ -217,6 +264,39 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             public override void Update(IConstraintDesc constraintDesc)
             {
                 var hingeDesc = (HingeConstraintDesc)constraintDesc;
+                ModelEntity.Transform.Rotation = Pivot == Pivot.A ? hingeDesc.AxisInA : hingeDesc.AxisInB;
+            }
+        }
+
+        private sealed class ConeModelWrapper : ModelWrapper
+        {
+            public ConeModelWrapper(ConeTwistConstraintDesc desc, Pivot pivot, Graphics.GraphicsDevice graphicsDevice)
+                : base(pivot)
+            {
+                // TODO: Add limit angles - create a procedular part of a disc given an angle
+                var sphere = GetSphere(graphicsDevice).ToMeshDraw();
+                var pipe = GetCylinder(graphicsDevice).ToMeshDraw();
+                var tip = GetCone(graphicsDevice).ToMeshDraw();
+                var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
+                var material2 = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeNegUniformColor : PurpleNegUniformColor);
+
+                AddModelEntity("Center", sphere, material);
+
+                var xRotation = Quaternion.RotationAxis(Vector3.UnitZ, -MathUtil.PiOverTwo); // Yup rotated towards X
+                AddModelEntity("X", pipe, material, xRotation);
+                AddModelEntity("Xend", tip, material, position: CylinderLength / 2f * Vector3.UnitX, rotation: xRotation);
+
+                var zRotation = Quaternion.RotationAxis(Vector3.UnitX, MathUtil.PiOverTwo); // Yup rotated towards Z
+                AddModelEntity("Zend", tip, material2, position: CylinderRadius * 4f * Vector3.UnitZ, rotation: zRotation);
+
+                Update(desc);
+            }
+
+            public override ConstraintTypes ConstraintType => ConstraintTypes.ConeTwist;
+
+            public override void Update(IConstraintDesc constraintDesc)
+            {
+                var hingeDesc = (ConeTwistConstraintDesc)constraintDesc;
                 ModelEntity.Transform.Rotation = Pivot == Pivot.A ? hingeDesc.AxisInA : hingeDesc.AxisInB;
             }
         }
