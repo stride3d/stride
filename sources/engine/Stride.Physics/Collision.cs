@@ -30,6 +30,8 @@ namespace Stride.Physics
         /// </remarks>
         public bool HasEndedFromComponentRemoval => ColliderA.Simulation.EndedFromComponentRemoval.Contains(this);
 
+        public bool AreColliding => ColliderA.Simulation.CurrentCollisions.Contains(this);
+
         public HashSet<ContactPoint> Contacts => ColliderA.Simulation.LatestContactPointsFor(this);
 
         internal Collision(PhysicsComponent a, PhysicsComponent b)
