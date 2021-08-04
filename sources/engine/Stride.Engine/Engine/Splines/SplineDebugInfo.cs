@@ -6,7 +6,6 @@ namespace Stride.Engine.Splines
     public struct SplineDebugInfo
     {
         private bool _nodes;
-        private bool _nodesLink;
         private bool _segments;
         private bool _points;
         private bool _out;
@@ -41,16 +40,6 @@ namespace Stride.Engine.Splines
             set
             {
                 _nodes = value;
-                IsDirty = true;
-            }
-        }
-
-        public bool NodesLink
-        {
-            get { return _nodesLink; }
-            set
-            {
-                _nodesLink = value;
                 IsDirty = true;
             }
         }

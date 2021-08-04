@@ -1,5 +1,6 @@
 // Copyright (c) Stride contributors (https://Stride.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Stride.Assets.Presentation.AssetEditors.Gizmos.Spline;
 using Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -18,12 +19,17 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private Entity mainGizmoEntity;
         private Entity gizmoNodes;
         private Entity gizmoNodeLinks;
-        private Entity gizmoSegments;
+        private Entity gizmoBeziers;
         private Entity gizmoPoints;
         private Entity gizmoTangentOut;
         private Entity gizmoTangentIn;
         private float updateFrequency = 1.2f;
         private float updateTimer = 0.0f;
+
+        private Material whiteMaterial;
+        private Material redMaterial;
+
+        public TangentTranslationGizmo tangentTranslationGizmo;
 
         public SplineGizmo(EntityComponent component) : base(component, "Spline gizmo", GizmoResources.SplineGizmo)
         {
@@ -31,19 +37,28 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         protected override Entity Create()
         {
+            tangentTranslationGizmo = new TangentTranslationGizmo();
             mainGizmoEntity = new Entity();
             gizmoNodes = new Entity();
             gizmoNodeLinks = new Entity();
-            gizmoSegments = new Entity();
+            gizmoBeziers = new Entity();
             gizmoPoints = new Entity();
             gizmoTangentOut = new Entity();
             gizmoTangentIn = new Entity();
             mainGizmoEntity.AddChild(gizmoNodes);
             mainGizmoEntity.AddChild(gizmoNodeLinks);
-            mainGizmoEntity.AddChild(gizmoSegments);
+            mainGizmoEntity.AddChild(gizmoBeziers);
             mainGizmoEntity.AddChild(gizmoPoints);
             mainGizmoEntity.AddChild(gizmoTangentOut);
             mainGizmoEntity.AddChild(gizmoTangentIn);
+
+            tangentTranslationGizmo = new TangentTranslationGizmo();
+            tangentTranslationGizmo.AnchorEntity = GizmoRootEntity;
+
+            whiteMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.White);
+            redMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Red);
+            RenderGroup = RenderGroup.Group4;
+
             return mainGizmoEntity;
         }
 
@@ -71,12 +86,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             GizmoRootEntity.Transform.Position = translation;
             GizmoRootEntity.Transform.Scale = 1 * scale;
             GizmoRootEntity.Transform.UpdateWorldMatrix();
-                        
+
             if (Component.Nodes?.Count > 1 && Component.Dirty)
             {
                 ClearChildren(gizmoNodes);
-                ClearChildren(gizmoNodeLinks);
-                ClearChildren(gizmoSegments);
+                ClearChildren(gizmoBeziers);
                 ClearChildren(gizmoPoints);
                 ClearChildren(gizmoTangentOut);
                 ClearChildren(gizmoTangentIn);
@@ -85,6 +99,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 for (int i = 0; i < totalNodesCount; i++)
                 {
                     var curNode = Component.Nodes[i];
+
+
                     if (curNode == null)
                     {
                         break;
@@ -109,11 +125,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     //Draw all, but last node
                     if (i < totalNodesCount - 1)
                     {
-                        //if (Component.DebugInfo.NodesLink)
-                        //{
-                        //    DrawNodeLinks(curNode, Component.spline.BezierCurves[i+1]);
-                        //}
-
                         if (Component.DebugInfo.Segments || Component.DebugInfo.Points)
                         {
                             var curve = curNode.GetBezierCurve();
@@ -138,7 +149,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                         }
                     }
                 }
-
                 Component.Dirty = false;
             }
         }
@@ -151,10 +161,44 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 localPoints[i] = mainGizmoEntity.Transform.WorldToLocal(splinePoints[i]);
             }
 
+            //var correctedLocalPoints = new Vector3[localPoints.Length-1];
+
+            //for (int i = 0; i < localPoints.Length-1; i++)
+            //{
+            //    if (i == 0)
+            //    {
+            //        correctedLocalPoints[i] = localPoints[i];
+            //    }
+            //    else
+            //    {
+            //        correctedLocalPoints[i] = localPoints[i + 1] - localPoints[i];
+            //    }
+            //}
+
+            //var lineMesh = new LineMesh(GraphicsDevice);
+            //lineMesh.Build(localPoints);
+
+            //var debugLine = new Entity()
+            //{
+            //    new ModelComponent
+            //    {
+            //        Model = new Model
+            //        {
+            //            whiteMaterial, new Mesh { Draw = lineMesh.MeshDraw }
+            //        },
+            //        RenderGroup = RenderGroup,
+            //    }
+            //};
+
+            //gizmoBeziers.AddChild(debugLine);
+            //debugLine.Transform.Position += correctedLocalPoints[0];
+
+
+
             for (int i = 0; i < localPoints.Length - 1; i++)
             {
-                var lineMesh = new LineMesh(GraphicsDevice);
-                lineMesh.Build(new Vector3[2] { localPoints[i], localPoints[i + 1] - localPoints[i] });
+                var lineMeshold = new LineMesh(GraphicsDevice);
+                lineMeshold.Build(new Vector3[2] { localPoints[i], localPoints[i + 1] - localPoints[i] });
 
                 var segment = new Entity()
                 {
@@ -162,14 +206,14 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     {
                         Model = new Model
                         {
-                            GizmoUniformColorMaterial.Create(GraphicsDevice, i % 2 == 0 ? Color.White: Color.GhostWhite),
-                            new Mesh { Draw = lineMesh.MeshDraw }
+                                redMaterial,
+                                new Mesh { Draw = lineMeshold.MeshDraw }
                         },
                         RenderGroup = RenderGroup,
                     }
                 };
 
-                gizmoSegments.AddChild(segment);
+                gizmoBeziers.AddChild(segment);
                 segment.Transform.Position += localPoints[i];
             }
         }
@@ -178,7 +222,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             for (int i = 0; i < splinePoints.Length; i++)
             {
-                var pointMesh = new BulbMesh(GraphicsDevice, 0.2f);
+                var pointMesh = new BulbMesh(GraphicsDevice, 0.1f);
                 pointMesh.Build();
 
                 var point = new Entity()
@@ -202,7 +246,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         private void DrawNodes(SplineNodeComponent splineNodeComponent)
         {
-            var nodeMesh = new BulbMesh(GraphicsDevice, 0.4f);
+            var nodeMesh = new BulbMesh(GraphicsDevice, 0.2f);
             nodeMesh.Build();
 
             var node = new Entity()
@@ -222,29 +266,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             node.Transform.Position += splineNodeComponent.Entity.Transform.Position;
         }
 
-        private void DrawNodeLinks(SplineNodeComponent currentSplineNodeComponent, SplineNodeComponent nextSplineNodeComponent)
-        {
-            var nodeLinkLineMesh = new LineMesh(GraphicsDevice);
-            nodeLinkLineMesh.Build(new Vector3[2] { currentSplineNodeComponent.Entity.Transform.Position, nextSplineNodeComponent.Entity.Transform.Position - currentSplineNodeComponent.Entity.Transform.Position });
-            var nodeLink = new Entity()
-                {
-                    new ModelComponent
-                    {
-                        Model = new Model
-                        {
-                            GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Green),
-                            new Mesh { Draw = nodeLinkLineMesh.MeshDraw }
-                        },
-                        RenderGroup = RenderGroup
-                    }
-                };
-            gizmoNodeLinks.AddChild(nodeLink);
-            nodeLink.Transform.Position += currentSplineNodeComponent.Entity.Transform.Position;
-        }
-
         private void DrawTangentOutwards(SplineNodeComponent splineNodeComponent)
         {
-            var outMesh = new BulbMesh(GraphicsDevice, 0.3f);
+            var outMesh = new BulbMesh(GraphicsDevice, 0.2f);
             outMesh.Build();
 
             var outEntity = new Entity()
@@ -266,7 +290,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         private void DrawTangentInwards(SplineNodeComponent splineNodeComponent)
         {
-            var inMesh = new BulbMesh(GraphicsDevice, 0.3f);
+            var inMesh = new BulbMesh(GraphicsDevice, 0.2f);
             inMesh.Build();
 
             var inEntity = new Entity()

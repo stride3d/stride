@@ -80,8 +80,7 @@ namespace Stride.Engine.Splines.Components
 
         private void CheckDirtyness()
         {
-            if (_bezierCurve != null && 
-                ( _previousPosition.X != Entity.Transform.Position.X || _previousPosition.Y != Entity.Transform.Position.Y || _previousPosition.Z != Entity.Transform.Position.Z))
+            if (_previousPosition.X != Entity.Transform.Position.X || _previousPosition.Y != Entity.Transform.Position.Y || _previousPosition.Z != Entity.Transform.Position.Z)
             {
                 MakeDirty();
             }

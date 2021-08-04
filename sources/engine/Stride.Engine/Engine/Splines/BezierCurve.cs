@@ -5,8 +5,8 @@ namespace Stride.Engine.Splines
 {
     public class BezierCurve
     {
-        private int _segments = 2;
         private int bezierPointCount = 3;
+        private int baseBezierPointCount = 100;
         private Vector3 p0;
         private Vector3 p1;
         private Vector3 p2;
@@ -18,23 +18,24 @@ namespace Stride.Engine.Splines
         public Vector3 TargetPosition { get; private set; }
         public Vector3 TargetTangentPosition { get; private set; }
 
-        private BezierPoint[] _tempBezierPoints;
-        private BezierPoint[] _redistributedBezierPoints;
+        private BezierPoint[] _baseBezierPoints;
+        private BezierPoint[] _parameterizedBezierPoints;
 
 
         public float Distance { get; private set; } = 0;
 
         public BezierCurve(int segments, Vector3 position, Vector3 tangentPosition, Vector3 targetPosition, Vector3 targetTangentPosition)
         {
-            _segments = segments;
-            bezierPointCount = _segments + 1;
+            bezierPointCount = segments + 1;
+            baseBezierPointCount = bezierPointCount > baseBezierPointCount ? baseBezierPointCount + 10: baseBezierPointCount;
 
             Position = position;
             TangentPosition = tangentPosition;
             TargetPosition = targetPosition;
             TargetTangentPosition = targetTangentPosition;
 
-            _tempBezierPoints = new BezierPoint[bezierPointCount];
+            _baseBezierPoints = new BezierPoint[baseBezierPointCount];
+            _parameterizedBezierPoints = new BezierPoint[bezierPointCount];
 
             Update();
         }
@@ -71,12 +72,9 @@ namespace Stride.Engine.Splines
                 Update();
         }
 
-
-
         public BezierPoint[] GetBezierPoints()
         {
-            //return _redistributedBezierPoints;
-            return _tempBezierPoints;
+            return _parameterizedBezierPoints;
         }
 
         public struct BezierPoint
@@ -84,7 +82,7 @@ namespace Stride.Engine.Splines
             public Vector3 Position;
             public Vector3 Rotation;
             public float PointDistance;
-            public float TotalNodeDistance;
+            public float Distance;
         }
 
         public void Update()
@@ -94,90 +92,57 @@ namespace Stride.Engine.Splines
             p2 = TargetTangentPosition;
             p3 = TargetPosition;
 
-            //var oriPivot = Pivot:Create();
-            //var targetPivot = Pivot:Create();
-
-            float t = 1.0f / _segments;
-            for (var i = 0; i < bezierPointCount; i++)
+            //We create a base spline that contains a large amount of segments.
+            // Later on we can distill this as a way of determining arc length parameterization
+            float t = 1.0f / (baseBezierPointCount-1);
+            for (var i = 0; i < baseBezierPointCount; i++)
             {
-                var p = CalculateBezierPoint(t * (i));
-                _tempBezierPoints[i].Position = p;
+                _baseBezierPoints[i].Position = CalculateBezierPoint(t * i);
 
-                if (i > 0)
+                if (i == 0)
                 {
-                    //oriPivot.SetPosition(_splinePoints[i - 1], true);
-                    //targetPivot.SetPosition(p, true);
-                    //oriPivot.Point(targetPivot);
-
-                    //todo fix rotation
-                    //_splinePoints[i - 1].rotation = oriPivot:GetRotation(true);
-
-                    if (i == bezierPointCount)
-                    {
-                        _tempBezierPoints[i].Rotation = _tempBezierPoints[i - 1].Rotation;
-                    }
-
-                    var distance = Vector3.Distance(_tempBezierPoints[i].Position, _tempBezierPoints[i - 1].Position);
-                    Console.WriteLine(i + " - " + distance);
-                    _tempBezierPoints[i].PointDistance = distance;
-                    _tempBezierPoints[i].TotalNodeDistance = _tempBezierPoints[i - 1].TotalNodeDistance + distance;
+                    _baseBezierPoints[i].PointDistance = 0;
+                    _baseBezierPoints[i].Distance = 0;
                 }
-                else
-                {
-                    _tempBezierPoints[i].PointDistance = 0;
-                    _tempBezierPoints[i].TotalNodeDistance = 0;
+                else { 
+                    var distance = Vector3.Distance(_baseBezierPoints[i].Position, _baseBezierPoints[i - 1].Position);
+                    //_baseBezierPoints[i].PointDistance = distance;
+                    _baseBezierPoints[i].Distance = _baseBezierPoints[i - 1].Distance + distance;
                 }
             }
 
-            for (int i = 0; i < bezierPointCount; i++)
-            {
-                Distance += _tempBezierPoints[i].PointDistance;
-            }
+            Distance += _baseBezierPoints[baseBezierPointCount-1].Distance;
+            
 
-            Console.WriteLine("disc - " + Distance);
-
-
-            //Redistribute();
+            ArcLengthParameterization(); 
         }
 
         /// <summary>
-        /// polynominal curve has incorrect arc length parameterization. Use approximated estimated position
+        /// polynominal curve has incorrect arc length parameterization. Use approximated estimated positions
         /// </summary>
-        private void Redistribute()
+        private void ArcLengthParameterization()
         {
-            _redistributedBezierPoints = new BezierPoint[bezierPointCount];
+            _parameterizedBezierPoints = new BezierPoint[bezierPointCount];
+         
+            if (Distance <= 0)
+                return;
 
-
-            for (var i = 1; i < bezierPointCount-2; i++)
+            for (var i = 0; i < bezierPointCount; i++)
             {
-                Console.WriteLine("Distribute - " + i);
+                var estimatedExptedDistance = (Distance / (bezierPointCount-1)) * i;
 
-                var estimatedExptedDistance = (Distance / bezierPointCount) * i;
-                
-                var bezierPoint = _tempBezierPoints[i];
-
-                //if lower than total current node distance
-                Vector3 estimatedPos;
-
-                if (estimatedExptedDistance < bezierPoint.TotalNodeDistance)
+                for (int j = 0; j < baseBezierPointCount; j++)
                 {
-                    Console.WriteLine("Shorter - ");
-
-                    var prevBezierPoint = _tempBezierPoints[i-1];
-                    estimatedPos = Vector3.Lerp(prevBezierPoint.Position, bezierPoint.Position, estimatedExptedDistance / bezierPoint.TotalNodeDistance);
+                    var curPoint = _baseBezierPoints[j];
+                    if (curPoint.Distance >= estimatedExptedDistance)
+                    {
+                        _parameterizedBezierPoints[i] = curPoint;
+                        break;
+                    }
                 }
-                else
-                {
-                    Console.WriteLine("Longer- ");
-                    var nextBezierPoint = _tempBezierPoints[i+1];
-                    estimatedPos = Vector3.Lerp(bezierPoint.Position, nextBezierPoint.Position, estimatedExptedDistance / nextBezierPoint.TotalNodeDistance);
-
-                }
-
-                _redistributedBezierPoints[i].Position = estimatedPos;
-                _redistributedBezierPoints[i].PointDistance = estimatedExptedDistance;
-                _redistributedBezierPoints[i].TotalNodeDistance = _redistributedBezierPoints[i - 1].TotalNodeDistance + estimatedExptedDistance;
             }
+
+            _parameterizedBezierPoints[bezierPointCount-1] = _baseBezierPoints[baseBezierPointCount-1];
         }
 
         private Vector3 CalculateBezierPoint(float t)
