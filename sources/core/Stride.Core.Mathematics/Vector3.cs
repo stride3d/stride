@@ -148,7 +148,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         public bool IsNormalized
         {
-            get { return Math.Abs((X * X) + (Y * Y) + (Z * Z) - 1f) < MathUtil.ZeroTolerance; }
+            get { return MathF.Abs((X * X) + (Y * Y) + (Z * Z) - 1f) < MathUtil.ZeroTolerance; }
         }
 
         /// <summary>
@@ -195,7 +195,7 @@ namespace Stride.Core.Mathematics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly float Length()
         {
-            return (float)Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
+            return MathF.Sqrt((X * X) + (Y * Y) + (Z * Z));
         }
 
         /// <summary>
@@ -234,9 +234,9 @@ namespace Stride.Core.Mathematics
         /// <param name="exponent">The exponent.</param>
         public void Pow(float exponent)
         {
-            X = (float)Math.Pow(X, exponent);
-            Y = (float)Math.Pow(Y, exponent);
-            Z = (float)Math.Pow(Z, exponent);
+            X = MathF.Pow(X, exponent);
+            Y = MathF.Pow(Y, exponent);
+            Z = MathF.Pow(Z, exponent);
         }
 
         /// <summary>
@@ -546,7 +546,7 @@ namespace Stride.Core.Mathematics
             float y = value1.Y - value2.Y;
             float z = value1.Z - value2.Z;
 
-            result = (float)Math.Sqrt((x * x) + (y * y) + (z * z));
+            result = MathF.Sqrt((x * x) + (y * y) + (z * z));
         }
 
         /// <summary>
@@ -565,7 +565,7 @@ namespace Stride.Core.Mathematics
             float y = value1.Y - value2.Y;
             float z = value1.Z - value2.Z;
 
-            return (float)Math.Sqrt((x * x) + (y * y) + (z * z));
+            return MathF.Sqrt((x * x) + (y * y) + (z * z));
         }
 
         /// <summary>
@@ -1721,9 +1721,9 @@ namespace Stride.Core.Mathematics
         /// </returns>
         public bool Equals(Vector3 other)
         {
-            return ((float)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.Z - Z) < MathUtil.ZeroTolerance);
+            return (MathF.Abs(other.X - X) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Z - Z) < MathUtil.ZeroTolerance);
         }
 
         /// <summary>

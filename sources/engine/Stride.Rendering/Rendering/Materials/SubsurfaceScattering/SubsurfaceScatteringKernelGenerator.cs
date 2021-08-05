@@ -14,7 +14,7 @@ namespace Stride.Rendering.Materials
         private static float GaussianComponent(float variance, float r, float falloff)
         {
             float rr = r / (0.001f + falloff);
-            return (float)Math.Exp((-(rr * rr)) / (2.0f * variance)) / (2.0f * 3.14f * variance);
+            return MathF.Exp((-(rr * rr)) / (2.0f * variance)) / (2.0f * 3.14f * variance);
         }
 
         private static Vector3 Gaussian(float variance, float r, Color3 falloff) // Based on "SeparableSSS::gaussian()".
@@ -115,8 +115,8 @@ namespace Stride.Rendering.Materials
             // Calculate the weights:
             for (int i = 0; i < sampleCount; i++)
             {
-                float w0 = i > 0 ? Math.Abs(kernel[i].W - kernel[i - 1].W) : 0.0f;
-                float w1 = i < sampleCount - 1 ? Math.Abs(kernel[i].W - kernel[i + 1].W) : 0.0f;
+                float w0 = i > 0 ? MathF.Abs(kernel[i].W - kernel[i - 1].W) : 0.0f;
+                float w1 = i < sampleCount - 1 ? MathF.Abs(kernel[i].W - kernel[i + 1].W) : 0.0f;
                 float area = (w0 + w1) / 2.0f;
                 Vector3 t1 = area * Profile(kernel[i].W, falloff);
                 kernel[i].X = t1.X;

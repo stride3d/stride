@@ -284,8 +284,8 @@ namespace Stride.Rendering.Images
 
                 // Direction vector
                 float angle = MathUtil.DegreesToRadians(Phase) + streak * MathUtil.TwoPi / StreakCount;
-                direction.X = (float)Math.Cos(angle);
-                direction.Y = (float)Math.Sin(angle);
+                direction.X = MathF.Cos(angle);
+                direction.Y = MathF.Sin(angle);
 
                 // Extends the length recursively
                 for (int level = 0; level < IterationCount; level++)
@@ -296,7 +296,7 @@ namespace Stride.Rendering.Images
                     for (int i = 0; i < TapsPerIteration; i++)
                     {
                         tapOffsetsWeights[i].X = i * passLength;
-                        tapOffsetsWeights[i].Y = (float)Math.Pow(MathUtil.Lerp(0.7f, 1.0f, Attenuation), i * passLength);
+                        tapOffsetsWeights[i].Y = MathF.Pow(MathUtil.Lerp(0.7f, 1.0f, Attenuation), i * passLength);
                         totalWeight += tapOffsetsWeights[i].Y;
                     }
                     // Normalizes the weights

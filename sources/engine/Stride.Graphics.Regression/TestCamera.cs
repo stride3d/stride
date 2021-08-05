@@ -367,8 +367,8 @@ namespace Stride.Graphics.Regression
 
             // calculate the min distance from the object to see it entirely
             var minimunDistance = Math.Max(
-                boundingSphere.Radius / (2f * (float)Math.Tan(cameraComponent.VerticalFieldOfView * cameraComponent.AspectRatio / 2f)),
-                boundingSphere.Radius / (2f * (float)Math.Tan(cameraComponent.VerticalFieldOfView / 2f)));
+                boundingSphere.Radius / (2f * MathF.Tan(cameraComponent.VerticalFieldOfView * cameraComponent.AspectRatio / 2f)),
+                boundingSphere.Radius / (2f * MathF.Tan(cameraComponent.VerticalFieldOfView / 2f)));
 
             var distance = 1.2f * (minimunDistance + boundingSphere.Radius); // set the view distance such that the object can be seen entirely 
             var parameters = new ViewParameters(upAxis)

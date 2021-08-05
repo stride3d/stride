@@ -189,7 +189,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     var coordinateAxis = new Vector3 { [i] = 1.0f };
                     var dotProduct = Vector3.Dot(viewInvert.Forward, coordinateAxis);
 
-                    if (Math.Abs(dotProduct) > 0.99f)
+                    if (MathF.Abs(dotProduct) > 0.99f)
                     {
                         upVector = coordinateAxis;
                         viewAxisIndex = i;
@@ -210,10 +210,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             var originPosition = Vector3.Zero;
 
             // Add a small offset along the Up axis to avoid depth-fight with objects positioned at height=0
-            snappedPosition[viewAxisIndex] = Math.Sign(viewInvert[3, viewAxisIndex]) * GridVerticalOffset * sceneUnit;
+            snappedPosition[viewAxisIndex] = MathF.Sign(viewInvert[3, viewAxisIndex]) * GridVerticalOffset * sceneUnit;
 
             // Move the grid origin in slightly in front the grid to have it in the foreground
-            originPosition[viewAxisIndex] = snappedPosition[viewAxisIndex] + Math.Sign(viewInvert[3, viewAxisIndex]) * 0.001f * sceneUnit;
+            originPosition[viewAxisIndex] = snappedPosition[viewAxisIndex] + MathF.Sign(viewInvert[3, viewAxisIndex]) * 0.001f * sceneUnit;
             
             // Determine the intersection point of the center of the vieport with the grid plane
             var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, new Vector2(0.5f), viewInvert);
@@ -236,7 +236,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             for (var i = 0; i < 3; i++)
             {
                 if (viewAxisIndex != i)
-                    snappedPosition[i] += (float)Math.Round(intersection[i] / gridStringLineUnit) * gridStringLineUnit;
+                    snappedPosition[i] += MathF.Round(intersection[i] / gridStringLineUnit) * gridStringLineUnit;
             }
 
             // Apply positions
@@ -271,7 +271,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             var axisModelUp = new Vector3 { [modelUpAxis] = 1f };
             var axisRotationVector = Vector3.Cross(axisModelUp, upVector);
-            var axisRotationAngle = (float)Math.Acos(Vector3.Dot(axisModelUp, upVector));
+            var axisRotationAngle = MathF.Acos(Vector3.Dot(axisModelUp, upVector));
             entity.Transform.Rotation = Quaternion.RotationAxis(axisRotationVector, axisRotationAngle);
         }
 

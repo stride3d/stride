@@ -83,9 +83,9 @@ namespace Stride.Rendering.Voxels
                 if (dataVolume.VoxelGridSnapping)
                 {
                     matTrans /= storageContext.RealVoxelSize();
-                    matTrans.X = (float)Math.Floor(matTrans.X);
-                    matTrans.Y = (float)Math.Floor(matTrans.Y);
-                    matTrans.Z = (float)Math.Floor(matTrans.Z);
+                    matTrans.X = MathF.Floor(matTrans.X);
+                    matTrans.Y = MathF.Floor(matTrans.Y);
+                    matTrans.Z = MathF.Floor(matTrans.Z);
                     matTrans *= storageContext.RealVoxelSize();
 
                     corMatrix = Matrix.Scaling(matScale) * Matrix.Translation(matTrans);
