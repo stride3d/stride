@@ -17,21 +17,24 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private static readonly Color OrangeNegUniformColor = new Color(0xFF - 0xFF, 0xFF - 0x98, 0xFF - 0x2B);
         private static readonly Color PurpleUniformColor = new Color(0xB1, 0x24, 0xF2);
         private static readonly Color PurpleNegUniformColor = new Color(0xFF - 0xB1, 0xFF - 0x24, 0xFF - 0xF2);
+        private static readonly Color LimitColor = new Color(0xac, 0xf4, 0xa4, 0x96);
 
         // Each time we create a primitive we allocate memory that won't be garbage collected without calling Dispose,
         // so we need a global cache of those per a graphics device (in case there's more than one).
         private static Dictionary<Graphics.GraphicsDevice, GeometricPrimitive> SphereCache = new Dictionary<Graphics.GraphicsDevice, GeometricPrimitive>(1);
         private static Dictionary<Graphics.GraphicsDevice, GeometricPrimitive> ConeCache = new Dictionary<Graphics.GraphicsDevice, GeometricPrimitive>(1);
         private static Dictionary<Graphics.GraphicsDevice, GeometricPrimitive> CylinderCache = new Dictionary<Graphics.GraphicsDevice, GeometricPrimitive>(1);
+        private static Dictionary<Graphics.GraphicsDevice, Dictionary<float, GeometricPrimitive>> LimitDiscCache = new Dictionary<Graphics.GraphicsDevice, Dictionary<float,GeometricPrimitive>>(1);
 
         // Using the same render group as transformation gizmo which means constraint gizmo is visible while inside another mesh
         private static readonly RenderGroup GizmoRenderGroup = TransformationGizmo.TransformationGizmoGroup;
 
         private const float AxisConeRadius = 0.03f / 3f;
         private const float AxisConeHeight = 0.03f;
-        private const float CenterSphereRadius = 0.015f;
-        private const float CylinderLength = 0.3f;
+        private const float CenterSphereRadius = 0.01f;
+        private const float CylinderLength = 0.2f;
         private const float CylinderRadius = 0.005f;
+        private const float LimitDiscRadius = 0.06f;
         private const int Tessellation = 16;
 
         private PivotMarker PivotA;
@@ -114,6 +117,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             var shapePosition = rigidbody.ColliderShape?.LocalOffset ?? Vector3.Zero;
             var shapeRotation = rigidbody.ColliderShape?.LocalRotation ?? Quaternion.Identity;
             var shapeLocalMatrix = Matrix.RotationQuaternion(shapeRotation) * Matrix.Translation(shapePosition);
+            // TODO: reset scale of the worldmatrix (after multiplying?)
             var shapeWorldMatrix = shapeLocalMatrix * rigidbody.Entity.Transform.WorldMatrix;
 
             // we want the pivot marker to receive scaling from the gizmo system
@@ -161,6 +165,23 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             return cylinder;
         }
 
+        private static GeometricPrimitive GetLimitDisc(Graphics.GraphicsDevice device, float angle)
+        {
+            if (!LimitDiscCache.TryGetValue(device, out var cache))
+            {
+                cache = new Dictionary<float, GeometricPrimitive>();
+                LimitDiscCache.Add(device, cache);
+            }
+
+            if (!cache.TryGetValue(angle, out var disc))
+            {
+                disc = GeometricPrimitive.Disc.New(device, LimitDiscRadius, angle, Tessellation);
+                cache.Add(angle, disc);
+            }
+
+            return disc;
+        }
+
         private struct PivotMarker
         {
             public Entity Entity;
@@ -185,7 +206,13 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         private abstract class ModelWrapper
         {
-            protected ModelWrapper(Pivot pivot) => Pivot = pivot;
+            protected ModelWrapper(Pivot pivot, Graphics.GraphicsDevice graphicsDevice)
+            {
+                Pivot = pivot;
+                GraphicsDevice = graphicsDevice;
+            }
+
+            protected Graphics.GraphicsDevice GraphicsDevice { get; }
 
             public Entity ModelEntity { get; } = new Entity("ModelWrapper");
 
@@ -226,7 +253,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private sealed class PointModelWrapper : ModelWrapper
         {
             public PointModelWrapper(Point2PointConstraintDesc desc, Pivot pivot, Graphics.GraphicsDevice graphicsDevice)
-                : base(pivot)
+                : base(pivot, graphicsDevice)
             {
                 var sphere = GetSphere(graphicsDevice).ToMeshDraw();
                 var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
@@ -243,24 +270,36 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         private sealed class HingeModelWrapper : ModelWrapper
         {
+            private Material limitMaterial;
+            private ModelComponent lowerLimit;
+            private ModelComponent upperLimit;
+            private float lastLowerLimit;
+            private float lastUpperLimit;
             public HingeModelWrapper(HingeConstraintDesc desc, Pivot pivot, Graphics.GraphicsDevice graphicsDevice)
-                : base(pivot)
+                : base(pivot, graphicsDevice)
             {
-                // TODO: Add limit angles - create a procedular part of a disc given an angle
                 var sphere = GetSphere(graphicsDevice).ToMeshDraw();
                 var pipe = GetCylinder(graphicsDevice).ToMeshDraw();
                 var tip = GetCone(graphicsDevice).ToMeshDraw();
+                lastLowerLimit = desc.Limit.SetLimit ? -desc.Limit.LowerLimit : MathF.PI;
+                lastUpperLimit = desc.Limit.SetLimit ? desc.Limit.UpperLimit : MathF.PI;
+                var limitLower = GetLimitDisc(graphicsDevice, lastLowerLimit).ToMeshDraw();
+                var limitUpper = GetLimitDisc(graphicsDevice, lastUpperLimit).ToMeshDraw();
                 var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
                 var material2 = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeNegUniformColor : PurpleNegUniformColor);
+                limitMaterial = GizmoUniformColorMaterial.Create(graphicsDevice, LimitColor);
 
                 AddModelEntity("Center", sphere, material);
 
-                var xRotation = Quaternion.RotationAxis(Vector3.UnitZ, -MathUtil.PiOverTwo); // Yup rotated towards X
+                var xRotation = Quaternion.RotationZ(-MathUtil.PiOverTwo); // Yup rotated towards X
                 AddModelEntity("X", pipe, material, xRotation);
                 AddModelEntity("Xend", tip, material, position: CylinderLength / 2f * Vector3.UnitX, rotation: xRotation);
 
-                var zRotation = Quaternion.RotationAxis(Vector3.UnitX, MathUtil.PiOverTwo); // Yup rotated towards Z
+                var zRotation = Quaternion.RotationX(MathUtil.PiOverTwo); // Yup rotated towards Z
                 AddModelEntity("Zend", tip, material2, position: CylinderRadius * 4f * Vector3.UnitZ, rotation: zRotation);
+
+                lowerLimit = AddModelEntity("LowerLimit", limitLower, limitMaterial, Quaternion.RotationZ(MathUtil.PiOverTwo) * Quaternion.RotationX(MathUtil.PiOverTwo)).Get<ModelComponent>();
+                upperLimit = AddModelEntity("UpperLimit", limitUpper, limitMaterial, Quaternion.RotationZ(-MathUtil.PiOverTwo) * Quaternion.RotationX(-MathUtil.PiOverTwo)).Get<ModelComponent>();
 
                 Update(desc);
             }
@@ -271,20 +310,50 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             {
                 var hingeDesc = (HingeConstraintDesc)constraintDesc;
                 ModelEntity.Transform.Rotation = Pivot == Pivot.A ? hingeDesc.AxisInA : hingeDesc.AxisInB;
+
+                var newLowerLimit = hingeDesc.Limit.SetLimit ? -hingeDesc.Limit.LowerLimit : MathF.PI;
+                var newUpperLimit = hingeDesc.Limit.SetLimit ? hingeDesc.Limit.UpperLimit : MathF.PI;
+
+                if(newLowerLimit != lastLowerLimit)
+                {
+                    var limitMesh = GetLimitDisc(GraphicsDevice, newLowerLimit).ToMeshDraw();
+                    lowerLimit.Model = new Model { limitMaterial, new Mesh { Draw = limitMesh } };
+                    lastLowerLimit = newLowerLimit;
+                }
+
+                if (newUpperLimit != lastUpperLimit)
+                {
+                    var limitMesh = GetLimitDisc(GraphicsDevice, newUpperLimit).ToMeshDraw();
+                    upperLimit.Model = new Model { limitMaterial, new Mesh { Draw = limitMesh } };
+                    lastUpperLimit = newUpperLimit;
+                }
             }
         }
 
         private sealed class ConeModelWrapper : ModelWrapper
         {
+            private Material limitMaterial;
+            private ModelComponent limitZ;
+            private ModelComponent limitY;
+            private ModelComponent limitT;
+            private float lastLimitZ;
+            private float lastLimitY;
+            private float lastLimitT;
             public ConeModelWrapper(ConeTwistConstraintDesc desc, Pivot pivot, Graphics.GraphicsDevice graphicsDevice)
-                : base(pivot)
+                : base(pivot, graphicsDevice)
             {
-                // TODO: Add limit angles - create a procedular part of a disc given an angle
                 var sphere = GetSphere(graphicsDevice).ToMeshDraw();
                 var pipe = GetCylinder(graphicsDevice).ToMeshDraw();
                 var tip = GetCone(graphicsDevice).ToMeshDraw();
+                lastLimitZ = desc.Limit.SetLimit ? desc.Limit.SwingSpanZ : MathF.PI;
+                lastLimitY = desc.Limit.SetLimit ? desc.Limit.SwingSpanY : MathF.PI;
+                lastLimitT = desc.Limit.SetLimit ? 2 * desc.Limit.TwistSpan : 2 * MathF.PI;
+                var limitZ = GetLimitDisc(graphicsDevice, lastLimitZ).ToMeshDraw();
+                var limitY = GetLimitDisc(graphicsDevice, lastLimitY).ToMeshDraw();
+                var limitT = GetLimitDisc(graphicsDevice, lastLimitT).ToMeshDraw();
                 var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
                 var material2 = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeNegUniformColor : PurpleNegUniformColor);
+                limitMaterial = GizmoUniformColorMaterial.Create(graphicsDevice, LimitColor);
 
                 AddModelEntity("Center", sphere, material);
 
@@ -295,6 +364,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 var zRotation = Quaternion.RotationAxis(Vector3.UnitX, MathUtil.PiOverTwo); // Yup rotated towards Z
                 AddModelEntity("Zend", tip, material2, position: CylinderRadius * 4f * Vector3.UnitZ, rotation: zRotation);
 
+                this.limitZ = AddModelEntity("LimitZ", limitZ, limitMaterial, Quaternion.RotationY(MathF.PI + (lastLimitZ / 2f)), position: new Vector3(CylinderLength / 2, 0, 0)).Get<ModelComponent>();
+                this.limitY = AddModelEntity("LimitY", limitY, limitMaterial, Quaternion.RotationY(MathF.PI + (lastLimitY / 2f)) * Quaternion.RotationX(-MathUtil.PiOverTwo), position: new Vector3(CylinderLength / 2, 0, 0)).Get<ModelComponent>();
+                this.limitT = AddModelEntity("LimitT", limitT, limitMaterial, Quaternion.RotationZ(MathUtil.PiOverTwo) * Quaternion.RotationX(MathUtil.PiOverTwo - lastLimitT / 2f)).Get<ModelComponent>();
+
                 Update(desc);
             }
 
@@ -302,8 +375,36 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             public override void Update(IConstraintDesc constraintDesc)
             {
-                var hingeDesc = (ConeTwistConstraintDesc)constraintDesc;
-                ModelEntity.Transform.Rotation = Pivot == Pivot.A ? hingeDesc.AxisInA : hingeDesc.AxisInB;
+                var coneDesc = (ConeTwistConstraintDesc)constraintDesc;
+                ModelEntity.Transform.Rotation = Pivot == Pivot.A ? coneDesc.AxisInA : coneDesc.AxisInB;
+
+                var newLimitZ = coneDesc.Limit.SetLimit ? coneDesc.Limit.SwingSpanZ : MathF.PI;
+                var newLimitY = coneDesc.Limit.SetLimit ? coneDesc.Limit.SwingSpanY : MathF.PI;
+                var newLimitT = coneDesc.Limit.SetLimit ? 2 * coneDesc.Limit.TwistSpan : 2 * MathF.PI;
+
+                if (newLimitZ != lastLimitZ)
+                {
+                    var limitMesh = GetLimitDisc(GraphicsDevice, newLimitZ).ToMeshDraw();
+                    limitZ.Model = new Model { limitMaterial, new Mesh { Draw = limitMesh } };
+                    limitZ.Entity.Transform.Rotation = Quaternion.RotationY(MathF.PI + (newLimitZ / 2f));
+                    lastLimitZ = newLimitZ;
+                }
+
+                if (newLimitY != lastLimitY)
+                {
+                    var limitMesh = GetLimitDisc(GraphicsDevice, newLimitY).ToMeshDraw();
+                    limitY.Model = new Model { limitMaterial, new Mesh { Draw = limitMesh } };
+                    limitY.Entity.Transform.Rotation = Quaternion.RotationY(MathF.PI + (newLimitY / 2f)) * Quaternion.RotationX(-MathUtil.PiOverTwo);
+                    lastLimitY = newLimitY;
+                }
+
+                if (newLimitT != lastLimitT)
+                {
+                    var limitMesh = GetLimitDisc(GraphicsDevice, newLimitT).ToMeshDraw();
+                    limitT.Model = new Model { limitMaterial, new Mesh { Draw = limitMesh } };
+                    limitT.Entity.Transform.Rotation = Quaternion.RotationZ(MathUtil.PiOverTwo) * Quaternion.RotationX(MathUtil.PiOverTwo - newLimitT / 2f);
+                    lastLimitT = newLimitT;
+                }
             }
         }
     }

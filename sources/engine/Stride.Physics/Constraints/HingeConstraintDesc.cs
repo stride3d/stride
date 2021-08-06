@@ -126,7 +126,7 @@ namespace Stride.Physics.Constraints
             /// calculated from 0 to ±PI, with 0 being at the positive Z axis of the constraint (with X being the hinge axis).
             /// </remarks>
             /// <userdoc>
-            /// Wheather there should be limits set on the constraint.
+            /// Whether there should be limits set on the constraint.
             /// </userdoc>
             [Display(0)]
             public bool SetLimit { get; set; }
@@ -139,7 +139,7 @@ namespace Stride.Physics.Constraints
             /// </userdoc>
             [Display(1)]
             [DataMemberRange(-Math.PI, 0, MathUtil.PiOverFour / 9, MathUtil.PiOverFour, 3)]
-            public float LowerLimit { get; set; } = -(float)Math.PI;
+            public float LowerLimit { get; set; } = -MathF.PI;
 
             /// <summary>
             /// Positive limit (0, Pi). Right handed rotation when thumb points at positive X axis of the constraint.
@@ -149,7 +149,7 @@ namespace Stride.Physics.Constraints
             /// </userdoc>
             [Display(2)]
             [DataMemberRange(0, Math.PI, MathUtil.PiOverFour / 9, MathUtil.PiOverFour, 3)]
-            public float UpperLimit { get; set; } = (float)Math.PI;
+            public float UpperLimit { get; set; } = MathF.PI;
         }
 
         /// <summary>
