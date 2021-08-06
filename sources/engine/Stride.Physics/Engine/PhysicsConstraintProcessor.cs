@@ -75,6 +75,8 @@ namespace Stride.Physics.Engine
 
                 if (component.BodyB != null && component.BodyB.Simulation != component.BodyA.Simulation)
                     return; // simulation mismatch - may happen when first loading the scene
+                if (component.BodyA?.InternalRigidBody == null || component.BodyB != null && component.BodyB.InternalRigidBody == null)
+                    return; // constraint processing ran before rigidbodies were initialized by the PhysicsProcessor
 
                 component.Constraint = component.Description.Build(
                     component.BodyA,

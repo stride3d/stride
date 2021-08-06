@@ -29,11 +29,11 @@ namespace Stride.Physics
         Vector3 PivotInB { get; set; }
 
         /// <summary>
-        /// TODO
+        /// Create a new constraint according to the description properties between bodies A and B, or between A and World.
         /// </summary>
-        /// <param name="rigidbodyA"></param>
-        /// <param name="rigidbodyB"></param>
-        /// <returns></returns>
+        /// <param name="rigidbodyA">Rigidbody A.</param>
+        /// <param name="rigidbodyB">Rigidbody B (may be null).</param>
+        /// <returns>A new constraint registered in the <see cref="Simulation"/>.</returns>
         Constraint Build(RigidbodyComponent rigidbodyA, RigidbodyComponent rigidbodyB);
     }
 }

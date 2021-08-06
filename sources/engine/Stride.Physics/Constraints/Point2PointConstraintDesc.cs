@@ -28,6 +28,7 @@ namespace Stride.Physics.Constraints
         /// </userdoc>
         public Vector3 PivotInB { get; set; }
 
+        /// <inheritdoc/>
         public Constraint Build(RigidbodyComponent bodyA, RigidbodyComponent bodyB)
         {
             var frameA = Matrix.Translation(PivotInA);

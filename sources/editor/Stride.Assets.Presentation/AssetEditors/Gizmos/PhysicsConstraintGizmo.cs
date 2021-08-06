@@ -109,14 +109,20 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             // on each frame we'll update the transform of the entity
             // we compute the position of the pivot from the world position and rotation of the entity with rigidbody
             rigidbody.Entity.Transform.UpdateWorldMatrix();
-            rigidbody.Entity.Transform.WorldMatrix.Decompose(out _, out Quaternion rotation, out var position);
-            rotation.Rotate(ref pivot);
-            pivotMarker.Entity.Transform.Position = position + pivot;
-            pivotMarker.Entity.Transform.Rotation = rotation;
+            
+            // the constraint pivot is local to the center of rigidbody body mass
+            var shapePosition = rigidbody.ColliderShape?.LocalOffset ?? Vector3.Zero;
+            var shapeRotation = rigidbody.ColliderShape?.LocalRotation ?? Quaternion.Identity;
+            var shapeLocalMatrix = Matrix.RotationQuaternion(shapeRotation) * Matrix.Translation(shapePosition);
+            var shapeWorldMatrix = shapeLocalMatrix * rigidbody.Entity.Transform.WorldMatrix;
 
-            // we want the pivot marker to keep the same size irrespective of the scale of the rigidbody
+            // we want the pivot marker to receive scaling from the gizmo system
             var targetScale = GizmoScalingEntity.Transform.Scale;
-            pivotMarker.Entity.Transform.Scale = targetScale; // TODO: fix as this doesn't seem to be working?
+
+            var pivotPosition = Matrix.Scaling(targetScale) * Matrix.Translation(pivot) * shapeWorldMatrix;
+
+            pivotMarker.Entity.Transform.UseTRS = false;
+            pivotMarker.Entity.Transform.LocalMatrix = pivotPosition;
 
             // and ensure the model is enabled
             pivotMarker.Enable(true);

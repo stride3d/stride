@@ -60,42 +60,22 @@ namespace Stride.Physics.Constraints
         /// <summary>
         /// Use Axis in relation to body A. <!-- TODO: this isn't completely accurate -->
         /// </summary>
-        [Display(8)]
+        [Display(4)]
         public bool UseReferenceFrameA { get; set; }
 
-        /// <summary>
-        /// If true there will be a limit set on the constraint.
-        /// </summary>
-        /// <remarks>
-        /// The limits are angles determining the area of freedom for the constraint,
-        /// calculated from 0 to ±PI, with 0 being at the positive Z axis of the constraint (with X being the hinge axis).
-        /// </remarks>
         /// <userdoc>
-        /// Wheather there should be limits set on the constraint.
+        /// Limits properties.
         /// </userdoc>
         [Display(5)]
-        public bool SetLimit { get; set; }
+        public LimitDesc Limit { get; set; } = new LimitDesc();
 
-        /// <summary>
-        /// Negative limit (-Pi, 0). Left handed rotation when thumb points at positive X axis of the constraint.
-        /// </summary>
         /// <userdoc>
-        /// Negative limit (-Pi, 0), where 0 is at positive Z axis. Left handed rotation when thumb points at positive X axis of the constraint.
+        /// Motor properties.
         /// </userdoc>
         [Display(6)]
-        [DataMemberRange(-Math.PI, 0, MathUtil.PiOverFour / 9, MathUtil.PiOverFour, 3)]
-        public float LowerLimit { get; set; } = -(float)Math.PI;
+        public MotorDesc Motor { get; set; } = new MotorDesc();
 
-        /// <summary>
-        /// Positive limit (0, Pi). Right handed rotation when thumb points at positive X axis of the constraint.
-        /// </summary>
-        /// <userdoc>
-        /// Positive limit (0, Pi), where 0 is at positive Z axis. Right handed rotation when thumb points at positive X axis of the constraint.
-        /// </userdoc>
-        [Display(7)]
-        [DataMemberRange(0, Math.PI, MathUtil.PiOverFour / 9, MathUtil.PiOverFour, 3)]
-        public float UpperLimit { get; set; } = (float)Math.PI;
-
+        /// <inheritdoc/>
         public Constraint Build(RigidbodyComponent rigidbodyA, RigidbodyComponent rigidbodyB)
         {
             if (rigidbodyA == null)
@@ -119,12 +99,91 @@ namespace Stride.Physics.Constraints
             };
             hinge.InternalConstraint = hinge.InternalHingeConstraint;
 
-            if (SetLimit)
+            if (Limit.SetLimit)
             {
-                hinge.SetLimit(LowerLimit, UpperLimit);
+                hinge.SetLimit(Limit.LowerLimit, Limit.UpperLimit);
+            }
+
+            if (Motor.EnableMotor)
+            {
+                hinge.EnableAngularMotor(Motor.EnableMotor, Motor.TargetVelocity, Motor.MaxMotorImpulse);
             }
 
             return hinge;
+        }
+
+        /// <summary>
+        /// Hinge constraint properties regarding limits.
+        /// </summary>
+        [DataContract]
+        public class LimitDesc
+        {
+            /// <summary>
+            /// If true there will be a limit set on the constraint.
+            /// </summary>
+            /// <remarks>
+            /// The limits are angles determining the area of freedom for the constraint,
+            /// calculated from 0 to ±PI, with 0 being at the positive Z axis of the constraint (with X being the hinge axis).
+            /// </remarks>
+            /// <userdoc>
+            /// Wheather there should be limits set on the constraint.
+            /// </userdoc>
+            [Display(0)]
+            public bool SetLimit { get; set; }
+
+            /// <summary>
+            /// Negative limit (-Pi, 0). Left handed rotation when thumb points at positive X axis of the constraint.
+            /// </summary>
+            /// <userdoc>
+            /// Negative limit (-Pi, 0), where 0 is at positive Z axis. Left handed rotation when thumb points at positive X axis of the constraint.
+            /// </userdoc>
+            [Display(1)]
+            [DataMemberRange(-Math.PI, 0, MathUtil.PiOverFour / 9, MathUtil.PiOverFour, 3)]
+            public float LowerLimit { get; set; } = -(float)Math.PI;
+
+            /// <summary>
+            /// Positive limit (0, Pi). Right handed rotation when thumb points at positive X axis of the constraint.
+            /// </summary>
+            /// <userdoc>
+            /// Positive limit (0, Pi), where 0 is at positive Z axis. Right handed rotation when thumb points at positive X axis of the constraint.
+            /// </userdoc>
+            [Display(2)]
+            [DataMemberRange(0, Math.PI, MathUtil.PiOverFour / 9, MathUtil.PiOverFour, 3)]
+            public float UpperLimit { get; set; } = (float)Math.PI;
+        }
+
+        /// <summary>
+        /// Hinge constraint properties regarding the angular motor.
+        /// </summary>
+        [DataContract]
+        public struct MotorDesc
+        {
+            /// <summary>
+            /// Enables an angular motor on the constraint.
+            /// </summary>
+            /// <userdoc>
+            /// Enables an angular motor on the constraint.
+            /// </userdoc>
+            [Display(0)]
+            public bool EnableMotor { get; set; }
+
+            /// <summary>
+            /// Target angular velocity of the motor.
+            /// </summary>
+            /// <userdoc>
+            /// Target angular velocity of the motor.
+            /// </userdoc>
+            [Display(1)]
+            public float TargetVelocity { get; set; }
+
+            /// <summary>
+            /// Maximum motor impulse.
+            /// </summary>
+            /// <userdoc>
+            /// Maximum motor impulse.
+            /// </userdoc>
+            [Display(2)]
+            public float MaxMotorImpulse { get; set; }
         }
     }
 }
