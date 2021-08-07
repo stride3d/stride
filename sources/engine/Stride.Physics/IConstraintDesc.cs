@@ -18,7 +18,7 @@ namespace Stride.Physics
         /// <summary>
         /// Position local to rigidbody A.
         /// </summary>
-        Vector3 PivotInA { get; set; }
+        Vector3 PivotInA { get; }
 
         /// <summary>
         /// Position local to rigidbody B.
@@ -26,7 +26,7 @@ namespace Stride.Physics
         /// <remarks>
         /// Ignored when creating a body-world constraint.
         /// </remarks>
-        Vector3 PivotInB { get; set; }
+        Vector3 PivotInB { get; }
 
         /// <summary>
         /// Create a new constraint according to the description properties between bodies A and B, or between A and World.

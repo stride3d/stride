@@ -230,6 +230,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     return new HingeModelWrapper(h, pivot, graphicsDevice);
                 else if (constraintDesc is ConeTwistConstraintDesc ct)
                     return new ConeModelWrapper(ct, pivot, graphicsDevice);
+                else if (constraintDesc is GearConstraintDesc g)
+                    return new GearModelWrapper(g, pivot, graphicsDevice);
 
                 throw new NotSupportedException();
             }
@@ -405,6 +407,35 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     limitT.Entity.Transform.Rotation = Quaternion.RotationZ(MathUtil.PiOverTwo) * Quaternion.RotationX(MathUtil.PiOverTwo - newLimitT / 2f);
                     lastLimitT = newLimitT;
                 }
+            }
+        }
+
+        private sealed class GearModelWrapper : ModelWrapper
+        {
+            public GearModelWrapper(GearConstraintDesc desc, Pivot pivot, Graphics.GraphicsDevice graphicsDevice)
+                : base(pivot, graphicsDevice)
+            {
+                var pipe = GetCylinder(graphicsDevice).ToMeshDraw();
+                var tip = GetCone(graphicsDevice).ToMeshDraw();
+                var disc = GetLimitDisc(graphicsDevice, 2 * MathF.PI).ToMeshDraw();
+                var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
+                var discMaterial = GizmoUniformColorMaterial.Create(graphicsDevice, LimitColor);
+
+                var xRotation = Quaternion.RotationZ(-MathUtil.PiOverTwo); // Yup rotated towards X
+                AddModelEntity("X", pipe, material, xRotation);
+                AddModelEntity("Xend", tip, material, position: CylinderLength / 2f * Vector3.UnitX, rotation: xRotation);
+
+                AddModelEntity("Disc", disc, discMaterial, Quaternion.RotationZ(MathUtil.PiOverTwo)).Get<ModelComponent>();
+
+                Update(desc);
+            }
+
+            public override ConstraintTypes ConstraintType => ConstraintTypes.Gear;
+
+            public override void Update(IConstraintDesc constraintDesc)
+            {
+                var gearDesc = (GearConstraintDesc)constraintDesc;
+                ModelEntity.Transform.Rotation = Pivot == Pivot.A ? gearDesc.AxisInA : gearDesc.AxisInB;
             }
         }
     }
