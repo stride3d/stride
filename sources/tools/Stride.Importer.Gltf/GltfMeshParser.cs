@@ -9,6 +9,7 @@ using Stride.Animations;
 using Stride.Assets.Materials;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
+using Stride.Extensions;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Importer.Common;
@@ -53,9 +54,23 @@ namespace Stride.Importer.Gltf
         public static Model LoadFirstModel(SharpGLTF.Schema2.ModelRoot root)
         {
             // We load every primitives of the first mesh
+            var draws = 
+                root.LogicalMeshes
+                .Select(x => (x.Primitives.Select(x => LoadMesh(x)).ToList(), ConvertNumerics(x.VisualParents.First().WorldMatrix))).ToList();
+            for (int i = 0; i < draws.Count; i++)
+            {
+                var mat = draws[i].Item2;
+                for (int j = 0; j < draws[i].Item1.Count; j++)
+                {
+                    for (int k = 0; k < draws[i].Item1[j].Draw.VertexBuffers.Count(); k++)
+                    {
+                        draws[i].Item1[j].Draw.VertexBuffers[k].TransformBuffer(ref mat);
+                    }
+                }
+            }
             var result = new Model()
             {
-                Meshes = root.LogicalMeshes[0].Primitives.Select(x => LoadMesh(x)).ToList()
+                Meshes = draws.SelectMany(x => x.Item1).ToList()
             };
             result.Skeleton = ConvertSkeleton(root);
             return result;
