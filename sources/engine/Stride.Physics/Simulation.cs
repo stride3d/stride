@@ -140,6 +140,11 @@ namespace Stride.Physics
                     solverInfo.SolverMode |= BulletSharp.SolverModes.Use2FrictionDirections | BulletSharp.SolverModes.RandomizeOrder;
                     dispatchInfo.UseContinuous = true;
                 }
+                else
+                {
+                    CanCcd = false;
+                    dispatchInfo.UseContinuous = false;
+                }
             }
         }
 
