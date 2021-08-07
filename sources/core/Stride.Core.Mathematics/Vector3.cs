@@ -148,7 +148,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         public bool IsNormalized
         {
-            get { return Math.Abs((X * X) + (Y * Y) + (Z * Z) - 1f) < MathUtil.ZeroTolerance; }
+            get { return MathF.Abs((X * X) + (Y * Y) + (Z * Z) - 1f) < MathUtil.ZeroTolerance; }
         }
 
         /// <summary>
@@ -193,9 +193,9 @@ namespace Stride.Core.Mathematics
         /// and speed is of the essence.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Length()
+        public readonly float Length()
         {
-            return (float)Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
+            return MathF.Sqrt((X * X) + (Y * Y) + (Z * Z));
         }
 
         /// <summary>
@@ -234,9 +234,9 @@ namespace Stride.Core.Mathematics
         /// <param name="exponent">The exponent.</param>
         public void Pow(float exponent)
         {
-            X = (float)Math.Pow(X, exponent);
-            Y = (float)Math.Pow(Y, exponent);
-            Z = (float)Math.Pow(Z, exponent);
+            X = MathF.Pow(X, exponent);
+            Y = MathF.Pow(Y, exponent);
+            Z = MathF.Pow(Z, exponent);
         }
 
         /// <summary>
@@ -246,6 +246,24 @@ namespace Stride.Core.Mathematics
         public float[] ToArray()
         {
             return new float[] { X, Y, Z };
+        }
+
+        /// <summary>
+        /// Moves the first vector3 to the second one in a straight line.
+        /// </summary>
+        /// <param name="from">The first point.</param>
+        /// <param name="to">The second point.</param>
+        /// <param name="maxTravelDistance">The rate at which the first point is going to move towards the second point.</param>
+        public static Vector3 MoveTo(in Vector3 from, in Vector3 to, float maxTravelDistance)
+        {
+            Vector3 distance = Subtract(to, from);
+
+            float length = distance.Length();
+
+            if (maxTravelDistance >= length || length == 0)
+                return to;
+            else
+                return new Vector3(from.X + distance.X / length * maxTravelDistance, from.Y + distance.Y / length * maxTravelDistance, from.Z + distance.Z / length * maxTravelDistance);
         }
 
         /// <summary>
@@ -291,7 +309,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second vector to subtract.</param>
         /// <returns>The difference of the two vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 Subtract(Vector3 left, Vector3 right)
+        public static Vector3 Subtract(in Vector3 left, in Vector3 right)
         {
             return new Vector3(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
         }
@@ -528,7 +546,7 @@ namespace Stride.Core.Mathematics
             float y = value1.Y - value2.Y;
             float z = value1.Z - value2.Z;
 
-            result = (float)Math.Sqrt((x * x) + (y * y) + (z * z));
+            result = MathF.Sqrt((x * x) + (y * y) + (z * z));
         }
 
         /// <summary>
@@ -547,7 +565,7 @@ namespace Stride.Core.Mathematics
             float y = value1.Y - value2.Y;
             float z = value1.Z - value2.Z;
 
-            return (float)Math.Sqrt((x * x) + (y * y) + (z * z));
+            return MathF.Sqrt((x * x) + (y * y) + (z * z));
         }
 
         /// <summary>
@@ -1703,9 +1721,9 @@ namespace Stride.Core.Mathematics
         /// </returns>
         public bool Equals(Vector3 other)
         {
-            return ((float)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.Z - Z) < MathUtil.ZeroTolerance);
+            return (MathF.Abs(other.X - X) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Z - Z) < MathUtil.ZeroTolerance);
         }
 
         /// <summary>

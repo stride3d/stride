@@ -150,7 +150,7 @@ namespace Stride.Editor.Engine
             if (hasSprite && !(hasModel && meshSelector != null))
             {
                 var spriteSize = spriteComponent.CurrentSprite.Size;
-                var spriteDiagonalSize = (float)Math.Sqrt(spriteSize.X * spriteSize.X + spriteSize.Y * spriteSize.Y);
+                var spriteDiagonalSize = MathF.Sqrt(spriteSize.X * spriteSize.X + spriteSize.Y * spriteSize.Y);
 
                 // Note: this is probably wrong, need to unify with SpriteComponentRenderer
                 var center = worldMatrix.TranslationVector;
@@ -180,7 +180,7 @@ namespace Stride.Editor.Engine
                     var nodeMatrix = node.ModelTransform * worldMatrix;
 
                     var spriteSize = node.Sprite.Size;
-                    var spriteDiagonalSize = (float)Math.Sqrt(spriteSize.X * spriteSize.X + spriteSize.Y * spriteSize.Y);
+                    var spriteDiagonalSize = MathF.Sqrt(spriteSize.X * spriteSize.X + spriteSize.Y * spriteSize.Y);
 
                     Vector3 pos, scale;
                     nodeMatrix.Decompose(out scale, out pos);

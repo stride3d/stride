@@ -118,7 +118,7 @@ namespace Stride.Particles.Updaters.FieldShapes
             inverseRotation.Rotate(ref particlePosition);
 //            particlePosition /= fieldSize;
 
-            var maxDist = (float)Math.Sqrt(particlePosition.X * particlePosition.X + particlePosition.Z * particlePosition.Z);
+            var maxDist = MathF.Sqrt(particlePosition.X * particlePosition.X + particlePosition.Z * particlePosition.Z);
 
             var fieldX = radius * fieldSize.X;
             var fieldY = halfHeight * fieldSize.Y;

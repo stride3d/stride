@@ -437,4 +437,11 @@
 
 Please go to Stride website and download a new version.</value>
   </data>
+  <data name="AskAddNugetDeprecatedSource" xml:space="preserve">
+    <value>If you want to access Xenko 3.0 and lower, we need to add a custom nuget source.
+
+Do you want to proceed?
+
+This will restart the launcher.</value>
+  </data>
 </root>
