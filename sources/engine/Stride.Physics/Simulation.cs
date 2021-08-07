@@ -289,6 +289,8 @@ namespace Stride.Physics
                 {
                     collision.ColliderB.PairEndedChannel.Send(collision);
                 }
+                collision.ColliderA.Collisions.Remove( collision );
+                collision.ColliderB.Collisions.Remove( collision );
             }
 
             outdatedCollisions.Clear();
@@ -321,6 +323,9 @@ namespace Stride.Physics
 
             foreach (var collision in markedAsNewColl)
             {
+                collision.ColliderA.Collisions.Add( collision );
+                collision.ColliderB.Collisions.Add( collision );
+                
                 while (collision.ColliderA.NewPairChannel.Balance < 0)
                 {
                     collision.ColliderA.NewPairChannel.Send(collision);
@@ -369,6 +374,9 @@ namespace Stride.Physics
                 {
                     collision.ColliderB.PairEndedChannel.Send(collision);
                 }
+                
+                collision.ColliderA.Collisions.Remove( collision );
+                collision.ColliderB.Collisions.Remove( collision );
             }
 
             markedAsDeprecatedColl.Clear();
