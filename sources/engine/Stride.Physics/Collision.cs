@@ -34,7 +34,7 @@ namespace Stride.Physics
 
         public readonly HashSet<ContactPoint> Contacts => ColliderA.Simulation.LatestContactPointsFor(this);
 
-        internal Collision(PhysicsComponent a, PhysicsComponent b)
+        public Collision(PhysicsComponent a, PhysicsComponent b)
         {
             ColliderA = a;
             ColliderB = b;
