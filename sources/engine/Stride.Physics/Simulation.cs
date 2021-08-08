@@ -162,9 +162,20 @@ namespace Stride.Physics
         private readonly List<Collision> markedAsDeprecatedColl = new();
         internal readonly HashSet<Collision> EndedFromComponentRemoval = new();
 
-
+        /// <summary>
+        /// Every pair of components currently colliding with each other
+        /// </summary>
         public ICollection<Collision> CurrentCollisions => collisions.Keys;
         
+        /// <summary>
+        /// Should static - static collisions of StaticColliderComponent yield
+        /// <see cref="PhysicsComponent"/>.<see cref="PhysicsComponent.NewCollision()"/> and added to
+        /// <see cref="PhysicsComponent"/>.<see cref="PhysicsComponent.Collisions"/> ?
+        /// </summary>
+        /// <remarks>
+        /// Regardless of the state of this value you can still retrieve static-static collisions
+        /// through <see cref="CurrentCollisions"/>.
+        /// </remarks>
         public bool IncludeStaticAgainstStaticCollisions { get; set; } = false;
 
 
