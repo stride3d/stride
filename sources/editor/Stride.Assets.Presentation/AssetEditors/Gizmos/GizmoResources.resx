@@ -160,7 +160,7 @@
   <data name="UIGizmo" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\..\Resources\Gizmos\UIGizmo.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-    <data name="SplineGizmo" type="System.Resources.ResXFileRef, System.Windows.Forms">
-        <value>..\..\Resources\Gizmos\SplineGizmo.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </data>
+  <data name="SplineGizmo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+      <value>..\..\Resources\Gizmos\SplineGizmo.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

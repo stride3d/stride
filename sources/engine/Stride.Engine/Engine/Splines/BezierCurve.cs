@@ -21,13 +21,14 @@ namespace Stride.Engine.Splines
         private BezierPoint[] _baseBezierPoints;
         private BezierPoint[] _parameterizedBezierPoints;
 
+        public BoundingBox BoundingBox { get; private set; }
 
         public float Distance { get; private set; } = 0;
 
         public BezierCurve(int segments, Vector3 position, Vector3 tangentPosition, Vector3 targetPosition, Vector3 targetTangentPosition)
         {
             bezierPointCount = segments + 1;
-            baseBezierPointCount = bezierPointCount > baseBezierPointCount ? baseBezierPointCount + 10: baseBezierPointCount;
+            baseBezierPointCount = bezierPointCount > baseBezierPointCount ? baseBezierPointCount + 10 : baseBezierPointCount;
 
             Position = position;
             TangentPosition = tangentPosition;
@@ -94,7 +95,7 @@ namespace Stride.Engine.Splines
 
             //We create a base spline that contains a large amount of segments.
             // Later on we can distill this as a way of determining arc length parameterization
-            float t = 1.0f / (baseBezierPointCount-1);
+            float t = 1.0f / (baseBezierPointCount - 1);
             for (var i = 0; i < baseBezierPointCount; i++)
             {
                 _baseBezierPoints[i].Position = CalculateBezierPoint(t * i);
@@ -104,17 +105,57 @@ namespace Stride.Engine.Splines
                     _baseBezierPoints[i].PointDistance = 0;
                     _baseBezierPoints[i].Distance = 0;
                 }
-                else { 
+                else
+                {
                     var distance = Vector3.Distance(_baseBezierPoints[i].Position, _baseBezierPoints[i - 1].Position);
                     //_baseBezierPoints[i].PointDistance = distance;
                     _baseBezierPoints[i].Distance = _baseBezierPoints[i - 1].Distance + distance;
                 }
             }
 
-            Distance += _baseBezierPoints[baseBezierPointCount-1].Distance;
-            
+            Distance += _baseBezierPoints[baseBezierPointCount - 1].Distance;
 
-            ArcLengthParameterization(); 
+
+            ArcLengthParameterization();
+
+            UpdateBoundingBox();
+        }
+
+        /// <summary>
+        /// Updates the boundix box of the bezier curve
+        /// </summary>
+        private void UpdateBoundingBox()
+        {
+            var x = new Vector2();
+            var y = new Vector2();
+            var z = new Vector2();
+
+            for (int i = 0; i < _parameterizedBezierPoints.Length; i++)
+            {
+                var pos = _parameterizedBezierPoints[i].Position;
+                if (i == 0)
+                {
+                    x.X = Position.X;
+                    x.Y = Position.X;
+                    x.X = Position.Y;
+                    x.Y = Position.Y;
+                    x.X = Position.Z;
+                    x.Y = Position.Z;
+                    continue;
+                }
+                else
+                {
+                    x.X = Math.Min(x.X, pos.X);
+                    x.Y = Math.Max(x.X, pos.X);
+
+                    y.X = Math.Min(y.X, pos.Y);
+                    y.Y = Math.Max(y.X, pos.Y);
+
+                    z.X = Math.Min(z.X, pos.Z);
+                    z.Y = Math.Max(z.X, pos.Z);
+                }
+            }
+            BoundingBox = new BoundingBox(new Vector3(x.X, y.X, z.X), new Vector3(x.Y, y.Y, z.Y));
         }
 
         /// <summary>
@@ -123,13 +164,13 @@ namespace Stride.Engine.Splines
         private void ArcLengthParameterization()
         {
             _parameterizedBezierPoints = new BezierPoint[bezierPointCount];
-         
+
             if (Distance <= 0)
                 return;
 
             for (var i = 0; i < bezierPointCount; i++)
             {
-                var estimatedExptedDistance = (Distance / (bezierPointCount-1)) * i;
+                var estimatedExptedDistance = (Distance / (bezierPointCount - 1)) * i;
 
                 for (int j = 0; j < baseBezierPointCount; j++)
                 {
@@ -142,7 +183,7 @@ namespace Stride.Engine.Splines
                 }
             }
 
-            _parameterizedBezierPoints[bezierPointCount-1] = _baseBezierPoints[baseBezierPointCount-1];
+            _parameterizedBezierPoints[bezierPointCount - 1] = _baseBezierPoints[baseBezierPointCount - 1];
         }
 
         private Vector3 CalculateBezierPoint(float t)

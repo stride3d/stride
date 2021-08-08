@@ -1,11 +1,12 @@
 // Copyright (c) Stride contributors (https://Stride.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Stride.Assets.Presentation.AssetEditors.Gizmos.Spline;
 using Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Splines;
 using Stride.Engine.Splines.Components;
+using Stride.Extensions;
+using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
@@ -23,11 +24,15 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private Entity gizmoPoints;
         private Entity gizmoTangentOut;
         private Entity gizmoTangentIn;
+        private Entity gizmoBoundingBox;
+
         private float updateFrequency = 1.2f;
         private float updateTimer = 0.0f;
 
         private Material whiteMaterial;
         private Material redMaterial;
+        private Material greenMaterial;
+        private Material boundingBoxMaterial;
 
         public TangentTranslationGizmo tangentTranslationGizmo;
 
@@ -45,19 +50,22 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             gizmoPoints = new Entity();
             gizmoTangentOut = new Entity();
             gizmoTangentIn = new Entity();
+            gizmoBoundingBox = new Entity();
             mainGizmoEntity.AddChild(gizmoNodes);
             mainGizmoEntity.AddChild(gizmoNodeLinks);
             mainGizmoEntity.AddChild(gizmoBeziers);
             mainGizmoEntity.AddChild(gizmoPoints);
             mainGizmoEntity.AddChild(gizmoTangentOut);
             mainGizmoEntity.AddChild(gizmoTangentIn);
-
-            tangentTranslationGizmo = new TangentTranslationGizmo();
-            tangentTranslationGizmo.AnchorEntity = GizmoRootEntity;
+            mainGizmoEntity.AddChild(gizmoBoundingBox);
 
             whiteMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.White);
             redMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Red);
+            greenMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Green);
+            boundingBoxMaterial = GizmoEmissiveColorMaterial.Create(GraphicsDevice, Color.Green);
             RenderGroup = RenderGroup.Group4;
+
+            Update();
 
             return mainGizmoEntity;
         }
@@ -94,6 +102,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 ClearChildren(gizmoPoints);
                 ClearChildren(gizmoTangentOut);
                 ClearChildren(gizmoTangentIn);
+                ClearChildren(gizmoBoundingBox);
 
                 var totalNodesCount = Component.Nodes.Count;
                 for (int i = 0; i < totalNodesCount; i++)
@@ -120,6 +129,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     if (Component.DebugInfo.TangentInwards)
                     {
                         DrawTangentInwards(curNode);
+                    }
+
+                    if (Component.DebugInfo.BoundingBox)
+                    {
+                        //UpdateBoundingBox(curNode);
                     }
 
                     //Draw all, but last node
@@ -150,11 +164,43 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     }
                 }
                 Component.Dirty = false;
+                GizmoRootEntity.Transform.LocalMatrix = ContentEntity.Transform.WorldMatrix;
+                GizmoRootEntity.Transform.UseTRS = false;
             }
+        }
+
+        private void UpdateBoundingBox(SplineNodeComponent curNode)
+        {
+            var curve = curNode.GetBezierCurve();
+            
+            if (curve == null)
+                return;
+            
+            var cubeMesh = GeometricPrimitive.Cube.New(GraphicsDevice, new Vector3(2,3,4)).ToMeshDraw();
+
+
+            //gizmoBoundingBox.Transform.Position = curNode.Entity.Transform.Position;
+            gizmoBoundingBox.Add(
+                new ModelComponent
+                {
+                    Model = new Model
+                    {
+                        boundingBoxMaterial,
+                        new Mesh { Draw = cubeMesh},
+                    },
+                    RenderGroup = RenderGroup,
+                });
         }
 
         private void DrawSplineSegments(Vector3[] splinePoints)
         {
+            var lineMesh = new LineMesh(GraphicsDevice);
+            lineMesh.Build(splinePoints);
+
+            var debugLine = new Entity(){new ModelComponent{Model = new Model{greenMaterial, new Mesh { Draw = lineMesh.MeshDraw }},RenderGroup = RenderGroup.Group1}};
+            gizmoBeziers.AddChild(debugLine);
+
+
             var localPoints = new Vector3[splinePoints.Length];
             for (int i = 0; i < splinePoints.Length; i++)
             {
@@ -174,26 +220,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             //        correctedLocalPoints[i] = localPoints[i + 1] - localPoints[i];
             //    }
             //}
-
-            //var lineMesh = new LineMesh(GraphicsDevice);
-            //lineMesh.Build(localPoints);
-
-            //var debugLine = new Entity()
-            //{
-            //    new ModelComponent
-            //    {
-            //        Model = new Model
-            //        {
-            //            whiteMaterial, new Mesh { Draw = lineMesh.MeshDraw }
-            //        },
-            //        RenderGroup = RenderGroup,
-            //    }
-            //};
-
-            //gizmoBeziers.AddChild(debugLine);
-            //debugLine.Transform.Position += correctedLocalPoints[0];
-
-
 
             for (int i = 0; i < localPoints.Length - 1; i++)
             {
@@ -238,8 +264,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     }
                 };
 
-                point.Transform.Position = mainGizmoEntity.Transform.WorldToLocal(splinePoints[i]);
                 gizmoPoints.AddChild(point);
+                point.Transform.Position = mainGizmoEntity.Transform.WorldToLocal(splinePoints[i]);
             }
         }
 

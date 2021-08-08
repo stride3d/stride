@@ -10,6 +10,7 @@ namespace Stride.Engine.Splines
         private bool _points;
         private bool _out;
         private bool _in;
+        private bool _boundingBox;
 
         [DataMemberIgnore]
         public bool IsDirty { get; set; }
@@ -60,6 +61,16 @@ namespace Stride.Engine.Splines
             set
             {
                 _in = value;
+                IsDirty = true;
+            }
+        }
+
+        public bool BoundingBox
+        {
+            get { return _boundingBox; }
+            set
+            {
+                _boundingBox = value;
                 IsDirty = true;
             }
         }
