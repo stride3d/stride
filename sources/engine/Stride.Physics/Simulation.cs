@@ -164,6 +164,8 @@ namespace Stride.Physics
 
 
         public ICollection<Collision> CurrentCollisions => collisions.Keys;
+        
+        public bool IncludeStaticAgainstStaticCollisions { get; set; } = false;
 
 
         internal void UpdateContacts()
@@ -280,6 +282,16 @@ namespace Stride.Physics
             foreach (var (_, refCollision) in outdatedCollisions)
             {
                 var collision = new Collision(refCollision.ColliderA, refCollision.ColliderB);
+                // See: SendEvents()
+                if (IncludeStaticAgainstStaticCollisions == false
+                    && collision.ColliderA is StaticColliderComponent
+                    && collision.ColliderB is StaticColliderComponent)
+                {
+                    collision.ColliderA.Collisions.Remove( collision );
+                    collision.ColliderB.Collisions.Remove( collision );
+                    continue;
+                }
+                
                 while (collision.ColliderA.PairEndedChannel.Balance < 0)
                 {
                     collision.ColliderA.PairEndedChannel.Send(collision);
@@ -318,11 +330,19 @@ namespace Stride.Physics
             contactsUpToDate.Clear();
 
             if (previousSets != contactChangedChannels.Count)
+            {
                 throw new InvalidOperationException($"All {nameof(contactChangedChannels)} should have hashsets associated to them");
-
+            }
 
             foreach (var collision in markedAsNewColl)
             {
+                if (IncludeStaticAgainstStaticCollisions == false
+                    && collision.ColliderA is StaticColliderComponent
+                    && collision.ColliderB is StaticColliderComponent)
+                {
+                    continue;
+                }
+
                 collision.ColliderA.Collisions.Add( collision );
                 collision.ColliderB.Collisions.Add( collision );
                 
@@ -365,6 +385,20 @@ namespace Stride.Physics
 
             foreach (var collision in markedAsDeprecatedColl)
             {
+                if (IncludeStaticAgainstStaticCollisions == false
+                    && collision.ColliderA is StaticColliderComponent
+                    && collision.ColliderB is StaticColliderComponent)
+                {
+                    // Try to remove them still if they were added while
+                    // 'IncludeStaticAgainstStaticCollisions' was true
+                    collision.ColliderA.Collisions.Remove( collision );
+                    collision.ColliderB.Collisions.Remove( collision );
+                    continue;
+                }
+                
+                // IncludeStaticAgainstStaticCollisions:
+                // Can't do much if something is awaiting the end of a specific
+                // static-static collision below though
                 while (collision.ColliderA.PairEndedChannel.Balance < 0)
                 {
                     collision.ColliderA.PairEndedChannel.Send(collision);
@@ -379,6 +413,7 @@ namespace Stride.Physics
                 collision.ColliderB.Collisions.Remove( collision );
             }
 
+            markedAsNewColl.Clear();
             markedAsDeprecatedColl.Clear();
 
             // Mark un-awaited channels for removal
@@ -397,7 +432,6 @@ namespace Stride.Physics
             }
 
             markedAsDeprecatedColl.Clear();
-            markedAsNewColl.Clear();
         }
 
 
