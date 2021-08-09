@@ -550,7 +550,7 @@ namespace Stride.Physics
         /// <param name="filterGroup">The collision group of this raycast</param>
         /// <param name="filterFlags">The collision group that this raycast can collide with</param>
         /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
-        public void RaycastPenetrating(Vector3 from, Vector3 to, IList<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false)
+        public void RaycastPenetrating(Vector3 from, Vector3 to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false)
         {
             var callback = StrideAllHitsRayResultCallback.Shared(ref from, ref to, hitTriggers, resultsOutput, filterGroup, filterFlags);
             collisionWorld.RayTest(from, to, callback);
@@ -591,7 +591,7 @@ namespace Stride.Physics
         /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
         /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
         /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
-        public void ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, IList<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false)
+        public void ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false)
         {
             var sh = shape.InternalShape as BulletSharp.ConvexShape;
             if (sh == null)
@@ -989,29 +989,21 @@ namespace Stride.Physics
         private class StrideAllHitsConvexResultCallback : StrideReusableConvexResultCallback
         {
             [ThreadStatic]
-            static StrideAllHitsConvexResultCallback shared;
+            private static StrideAllHitsConvexResultCallback shared;
 
-            public IList<HitResult> ResultsList { get; set; }
-
-            public StrideAllHitsConvexResultCallback(IList<HitResult> results)
-            {
-                ResultsList = results;
-            }
+            private ICollection<HitResult> resultsList;
 
             public override float AddSingleResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
             {
-                ResultsList.Add(ComputeHitResult(ref convexResult, normalInWorldSpace));
+                resultsList.Add(ComputeHitResult(ref convexResult, normalInWorldSpace));
                 return convexResult.m_hitFraction;
             }
 
-            public static StrideAllHitsConvexResultCallback Shared(IList<HitResult> buffer, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            public static StrideAllHitsConvexResultCallback Shared(ICollection<HitResult> buffer, bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
             {
-                if (shared == null)
-                {
-                    shared = new StrideAllHitsConvexResultCallback(buffer);
-                }
-                shared.ResultsList = buffer;
-                shared.Recycle(hitNoContResp, filterGroup, filterMask);
+                shared ??= new StrideAllHitsConvexResultCallback();
+                shared.resultsList = buffer;
+                shared.Recycle(hitTriggers, filterGroup, filterMask);
                 return shared;
             }
         }
@@ -1019,40 +1011,38 @@ namespace Stride.Physics
         private class StrideClosestConvexResultCallback : StrideReusableConvexResultCallback
         {
             [ThreadStatic]
-            static StrideClosestConvexResultCallback shared;
+            private static StrideClosestConvexResultCallback shared;
 
-            BulletSharp.LocalConvexResult closestHit;
-            bool normalInWorldSpace;
-            float? closestFraction;
+            private BulletSharp.LocalConvexResult closestHit;
+            private bool normalInWorldSpace;
+            
             public HitResult Result => ComputeHitResult(ref closestHit, normalInWorldSpace);
 
             public override float AddSingleResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpaceParam)
             {
                 float fraction = convexResult.m_hitFraction;
-                // First hit or closest hit yet
-                if (closestFraction == null || closestFraction > fraction)
-                {
-                    closestHit = convexResult;
-                    closestFraction = fraction;
-                    normalInWorldSpace = normalInWorldSpaceParam;
-                }
+                
+                // This is 'm_closestHitFraction', Bullet will look at this value to ignore hits further away,
+                // this method will only be called for hits closer than the last.
+                // See btCollisionWorld::rayTestSingleInternal
+                System.Diagnostics.Debug.Assert(convexResult.m_hitFraction <= ClosestHitFraction);
+                ClosestHitFraction = fraction;
+
+                closestHit = convexResult;
+                normalInWorldSpace = normalInWorldSpaceParam;
                 return fraction;
             }
 
-            public override void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroupFlags filterMask = (CollisionFilterGroupFlags)(-1))
+            protected override void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroupFlags filterMask = (CollisionFilterGroupFlags)(-1))
             {
                 base.Recycle(hitNoContResp, filterGroup, filterMask);
-                closestFraction = null;
                 closestHit = default;
             }
 
-            public static StrideClosestConvexResultCallback Shared(bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            public static StrideClosestConvexResultCallback Shared(bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
             {
-                if (shared == null)
-                {
-                    shared = new StrideClosestConvexResultCallback();
-                }
-                shared.Recycle(hitNoContResp, filterGroup, filterMask);
+                shared ??= new StrideClosestConvexResultCallback();
+                shared.Recycle(hitTriggers, filterGroup, filterMask);
                 return shared;
             }
         }
@@ -1060,29 +1050,21 @@ namespace Stride.Physics
         private class StrideAllHitsRayResultCallback : StrideReusableRayResultCallback
         {
             [ThreadStatic]
-            static StrideAllHitsRayResultCallback shared;
+            private static StrideAllHitsRayResultCallback shared;
 
-            public IList<HitResult> ResultsList { get; set; }
-
-            public StrideAllHitsRayResultCallback(ref Vector3 from, ref Vector3 to, IList<HitResult> results) : base(ref from, ref to)
-            {
-                ResultsList = results;
-            }
+            private ICollection<HitResult> resultsList;
 
             public override float AddSingleResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
             {
-                ResultsList.Add(ComputeHitResult(ref rayResult, normalInWorldSpace));
+                resultsList.Add(ComputeHitResult(ref rayResult, normalInWorldSpace));
                 return rayResult.m_hitFraction;
             }
 
-            public static StrideAllHitsRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitNoContResp, IList<HitResult> buffer, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            public static StrideAllHitsRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitTriggers, ICollection<HitResult> buffer, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
             {
-                if (shared == null)
-                {
-                    shared = new StrideAllHitsRayResultCallback(ref from, ref to, buffer);
-                }
-                shared.ResultsList = buffer;
-                shared.Recycle(ref from, ref to, hitNoContResp, filterGroup, filterMask);
+                shared ??= new StrideAllHitsRayResultCallback();
+                shared.resultsList = buffer;
+                shared.Recycle(ref from, ref to, hitTriggers, filterGroup, filterMask);
                 return shared;
             }
         }
@@ -1090,43 +1072,38 @@ namespace Stride.Physics
         private class StrideClosestRayResultCallback : StrideReusableRayResultCallback
         {
             [ThreadStatic]
-            static StrideClosestRayResultCallback shared;
+            private static StrideClosestRayResultCallback shared;
 
-            BulletSharp.LocalRayResult closestHit;
-            bool normalInWorldSpace;
-            float? closestFraction;
+            private BulletSharp.LocalRayResult closestHit;
+            private bool normalInWorldSpace;
+            
             public HitResult Result => ComputeHitResult(ref closestHit, normalInWorldSpace);
-
-            public StrideClosestRayResultCallback(ref Vector3 from, ref Vector3 to) : base(ref from, ref to)
-            {
-            }
 
             public override float AddSingleResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpaceParam)
             {
                 float fraction = rayResult.m_hitFraction;
-                // First hit or closest hit yet
-                if (closestFraction == null || closestFraction > fraction)
-                {
-                    closestHit = rayResult;
-                    closestFraction = fraction;
-                    normalInWorldSpace = normalInWorldSpaceParam;
-                    CollisionObject = rayResult.CollisionObject;
-                    ClosestHitFraction = fraction;
-                }
+                
+                // This is 'm_closestHitFraction', Bullet will look at this value to ignore hits further away,
+                // this method will only be called for hits closer than the last.
+                // See btCollisionWorld::rayTestSingleInternal
+                System.Diagnostics.Debug.Assert(rayResult.m_hitFraction <= ClosestHitFraction);
+                ClosestHitFraction = fraction;
+                
+                closestHit = rayResult;
+                normalInWorldSpace = normalInWorldSpaceParam;
                 return fraction;
             }
 
-            public override void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            protected override void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
             {
                 base.Recycle(ref from, ref to, hitNoContResp, filterGroup, filterMask);
-                closestFraction = null;
                 closestHit = default;
             }
 
-            public static StrideClosestRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            public static StrideClosestRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
             {
-                shared ??= new StrideClosestRayResultCallback(ref from, ref to);
-                shared.Recycle(ref from, ref to, hitNoContResp, filterGroup, filterMask);
+                shared ??= new StrideClosestRayResultCallback();
+                shared.Recycle(ref from, ref to, hitTriggers, filterGroup, filterMask);
                 return shared;
             }
         }
@@ -1140,21 +1117,15 @@ namespace Stride.Physics
             /// This boolean controls whether the test ignores(when false) or includes(when true) <see cref="PhysicsTriggerComponentBase"/>.
             /// </summary>
             private bool hitNoContactResponseObjects;
-            public Vector3 RayFromWorld { get; protected set; }
-            public Vector3 RayToWorld { get; protected set; }
+            private Vector3 rayFromWorld;
+            private Vector3 rayToWorld;
 
-            public StrideReusableRayResultCallback(ref Vector3 from, ref Vector3 to) : base()
-            {
-                RayFromWorld = from;
-                RayToWorld = to;
-            }
-
-            public HitResult ComputeHitResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
+            protected HitResult ComputeHitResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
             {
                 var obj = rayResult.CollisionObject;
                 if (obj == null)
                 {
-                    return new HitResult() { Succeeded = false };
+                    return new HitResult{ Succeeded = false };
                 }
 
                 Vector3 normal = rayResult.m_hitNormalLocal;
@@ -1167,18 +1138,17 @@ namespace Stride.Physics
                 {
                     Succeeded = true,
                     Collider = obj.UserObject as PhysicsComponent,
-                    Point = Vector3.Lerp(RayFromWorld, RayToWorld, rayResult.m_hitFraction),
+                    Point = Vector3.Lerp(rayFromWorld, rayToWorld, rayResult.m_hitFraction),
                     Normal = normal,
                     HitFraction = rayResult.m_hitFraction,
                 };
             }
 
-            public virtual void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            protected virtual void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
             {
-                RayFromWorld = from;
-                RayToWorld = to;
+                rayFromWorld = from;
+                rayToWorld = to;
                 ClosestHitFraction = float.PositiveInfinity;
-                CollisionObject = null;
                 Flags = 0;
                 CollisionFilterGroup = (int)filterGroup;
                 CollisionFilterMask = (int)filterMask;
@@ -1208,12 +1178,12 @@ namespace Stride.Physics
             /// </summary>
             private bool hitNoContactResponseObjects;
             
-            public HitResult ComputeHitResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
+            protected static HitResult ComputeHitResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
             {
                 var obj = convexResult.HitCollisionObject;
                 if ( obj == null )
                 {
-                    return new HitResult() { Succeeded = false };
+                    return new HitResult{ Succeeded = false };
                 }
 
                 Vector3 normal = convexResult.m_hitNormalLocal;
@@ -1232,7 +1202,7 @@ namespace Stride.Physics
                 };
             }
 
-            public virtual void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            protected virtual void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
             {
                 ClosestHitFraction = float.PositiveInfinity;
                 CollisionFilterGroup = (int)filterGroup;
