@@ -1133,7 +1133,13 @@ namespace Stride.Physics
 
         private abstract class StrideReusableRayResultCallback : BulletSharp.RayResultCallback
         {
-            public bool HitNoContResp;
+            /// <summary>
+            /// Our <see cref="PhysicsTriggerComponentBase"/> have <see cref="BulletSharp.CollisionFlags.NoContactResponse"/>
+            /// set to let objects pass through them.
+            /// By default we want intersection test to reflect that behavior to avoid throwing off our users.
+            /// This boolean controls whether the test ignores(when false) or includes(when true) <see cref="PhysicsTriggerComponentBase"/>.
+            /// </summary>
+            private bool hitNoContactResponseObjects;
             public Vector3 RayFromWorld { get; protected set; }
             public Vector3 RayToWorld { get; protected set; }
 
@@ -1176,12 +1182,12 @@ namespace Stride.Physics
                 Flags = 0;
                 CollisionFilterGroup = (int)filterGroup;
                 CollisionFilterMask = (int)filterMask;
-                HitNoContResp = hitNoContResp;
+                hitNoContactResponseObjects = hitNoContResp;
             }
 
             public override bool NeedsCollision(BulletSharp.BroadphaseProxy proxy0)
             {
-                if (HitNoContResp == false 
+                if (hitNoContactResponseObjects == false 
                     && proxy0.ClientObject is BulletSharp.CollisionObject co 
                     && (co.CollisionFlags & BulletSharp.CollisionFlags.NoContactResponse) != 0)
                 {
@@ -1194,7 +1200,13 @@ namespace Stride.Physics
 
         private abstract class StrideReusableConvexResultCallback : BulletSharp.ConvexResultCallback
         {
-            public bool HitNoContResp;
+            /// <summary>
+            /// Our <see cref="PhysicsTriggerComponentBase"/> have <see cref="BulletSharp.CollisionFlags.NoContactResponse"/>
+            /// set to let objects pass through them.
+            /// By default we want intersection test to reflect that behavior to avoid throwing off our users.
+            /// This boolean controls whether the test ignores(when false) or includes(when true) <see cref="PhysicsTriggerComponentBase"/>.
+            /// </summary>
+            private bool hitNoContactResponseObjects;
             
             public HitResult ComputeHitResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
             {
@@ -1225,12 +1237,12 @@ namespace Stride.Physics
                 ClosestHitFraction = float.PositiveInfinity;
                 CollisionFilterGroup = (int)filterGroup;
                 CollisionFilterMask = (int)filterMask;
-                HitNoContResp = hitNoContResp;
+                hitNoContactResponseObjects = hitNoContResp;
             }
 
             public override bool NeedsCollision(BulletSharp.BroadphaseProxy proxy0)
             {
-                if (HitNoContResp == false 
+                if (hitNoContactResponseObjects == false 
                     && proxy0.ClientObject is BulletSharp.CollisionObject co 
                     && (co.CollisionFlags & BulletSharp.CollisionFlags.NoContactResponse) != 0)
                 {
