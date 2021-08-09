@@ -74,6 +74,7 @@ namespace Stride.Physics.Constraints
                     bodyB,
                     frameA,
                     frameB)) as GearConstraint;
+
             gear.Ratio = Ratio;
 
             return gear;
