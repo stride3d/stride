@@ -140,6 +140,11 @@ namespace Stride.Physics
                     solverInfo.SolverMode |= BulletSharp.SolverModes.Use2FrictionDirections | BulletSharp.SolverModes.RandomizeOrder;
                     dispatchInfo.UseContinuous = true;
                 }
+                else
+                {
+                    CanCcd = false;
+                    dispatchInfo.UseContinuous = false;
+                }
             }
         }
 
@@ -157,8 +162,21 @@ namespace Stride.Physics
         private readonly List<Collision> markedAsDeprecatedColl = new();
         internal readonly HashSet<Collision> EndedFromComponentRemoval = new();
 
-
+        /// <summary>
+        /// Every pair of components currently colliding with each other
+        /// </summary>
         public ICollection<Collision> CurrentCollisions => collisions.Keys;
+        
+        /// <summary>
+        /// Should static - static collisions of StaticColliderComponent yield
+        /// <see cref="PhysicsComponent"/>.<see cref="PhysicsComponent.NewCollision()"/> and added to
+        /// <see cref="PhysicsComponent"/>.<see cref="PhysicsComponent.Collisions"/> ?
+        /// </summary>
+        /// <remarks>
+        /// Regardless of the state of this value you can still retrieve static-static collisions
+        /// through <see cref="CurrentCollisions"/>.
+        /// </remarks>
+        public bool IncludeStaticAgainstStaticCollisions { get; set; } = false;
 
 
         internal void UpdateContacts()
@@ -180,20 +198,30 @@ namespace Stride.Physics
             for (int i = 0; i < numManifolds; i++)
             {
                 var persManifoldPtr = btDispatcher_getManifoldByIndexInternal(dispatcherNativePtr, i);
+
+                int numContacts = btPersistentManifold_getNumContacts(persManifoldPtr);
+                if (numContacts == 0)
+                    continue;
+                
                 var ptrA = btPersistentManifold_getBody0(persManifoldPtr);
                 var ptrB = btPersistentManifold_getBody1(persManifoldPtr);
-
-                (IntPtr, IntPtr) collId = (ptrA, ptrB);
+                bool aFirst;
+                unsafe { aFirst = ptrA.ToPointer() > ptrB.ToPointer(); }
+                (IntPtr, IntPtr) collId = aFirst ? (ptrA, ptrB) : (ptrB, ptrA);
 
                 // This collision is up-to-date, remove it from the outdated collisions
-                bool isNewCollision = outdatedCollisions.Remove(collId) == false;
-                if (isNewCollision)
+                if (outdatedCollisions.Remove(collId))
+                    continue;
+                
+                // Likely a new collision, or a duplicate
+                
+                var a = BulletSharp.CollisionObject.GetManaged(collId.Item1);
+                var b = BulletSharp.CollisionObject.GetManaged(collId.Item2);
+                var collision = new Collision(a.UserObject as PhysicsComponent, b.UserObject as PhysicsComponent);
+                // PairCachingGhostObject has two identical manifolds when colliding, not 100% sure why that is,
+                // CompoundColliderShape shapes all map to the same PhysicsComponent but create unique manifolds.
+                if (collisions.TryAdd(collision, collId))
                 {
-                    var a = BulletSharp.CollisionObject.GetManaged(collId.Item1);
-                    var b = BulletSharp.CollisionObject.GetManaged(collId.Item2);
-                    var collision = new Collision(a.UserObject as PhysicsComponent, b.UserObject as PhysicsComponent);
-
-                    collisions.Add(collision, collId);
                     markedAsNewColl.Add(collision);
                 }
             }
@@ -265,6 +293,16 @@ namespace Stride.Physics
             foreach (var (_, refCollision) in outdatedCollisions)
             {
                 var collision = new Collision(refCollision.ColliderA, refCollision.ColliderB);
+                // See: SendEvents()
+                if (IncludeStaticAgainstStaticCollisions == false
+                    && collision.ColliderA is StaticColliderComponent
+                    && collision.ColliderB is StaticColliderComponent)
+                {
+                    collision.ColliderA.Collisions.Remove( collision );
+                    collision.ColliderB.Collisions.Remove( collision );
+                    continue;
+                }
+                
                 while (collision.ColliderA.PairEndedChannel.Balance < 0)
                 {
                     collision.ColliderA.PairEndedChannel.Send(collision);
@@ -274,6 +312,8 @@ namespace Stride.Physics
                 {
                     collision.ColliderB.PairEndedChannel.Send(collision);
                 }
+                collision.ColliderA.Collisions.Remove( collision );
+                collision.ColliderB.Collisions.Remove( collision );
             }
 
             outdatedCollisions.Clear();
@@ -301,11 +341,22 @@ namespace Stride.Physics
             contactsUpToDate.Clear();
 
             if (previousSets != contactChangedChannels.Count)
+            {
                 throw new InvalidOperationException($"All {nameof(contactChangedChannels)} should have hashsets associated to them");
-
+            }
 
             foreach (var collision in markedAsNewColl)
             {
+                if (IncludeStaticAgainstStaticCollisions == false
+                    && collision.ColliderA is StaticColliderComponent
+                    && collision.ColliderB is StaticColliderComponent)
+                {
+                    continue;
+                }
+
+                collision.ColliderA.Collisions.Add( collision );
+                collision.ColliderB.Collisions.Add( collision );
+                
                 while (collision.ColliderA.NewPairChannel.Balance < 0)
                 {
                     collision.ColliderA.NewPairChannel.Send(collision);
@@ -345,6 +396,20 @@ namespace Stride.Physics
 
             foreach (var collision in markedAsDeprecatedColl)
             {
+                if (IncludeStaticAgainstStaticCollisions == false
+                    && collision.ColliderA is StaticColliderComponent
+                    && collision.ColliderB is StaticColliderComponent)
+                {
+                    // Try to remove them still if they were added while
+                    // 'IncludeStaticAgainstStaticCollisions' was true
+                    collision.ColliderA.Collisions.Remove( collision );
+                    collision.ColliderB.Collisions.Remove( collision );
+                    continue;
+                }
+                
+                // IncludeStaticAgainstStaticCollisions:
+                // Can't do much if something is awaiting the end of a specific
+                // static-static collision below though
                 while (collision.ColliderA.PairEndedChannel.Balance < 0)
                 {
                     collision.ColliderA.PairEndedChannel.Send(collision);
@@ -354,8 +419,12 @@ namespace Stride.Physics
                 {
                     collision.ColliderB.PairEndedChannel.Send(collision);
                 }
+                
+                collision.ColliderA.Collisions.Remove( collision );
+                collision.ColliderB.Collisions.Remove( collision );
             }
 
+            markedAsNewColl.Clear();
             markedAsDeprecatedColl.Clear();
 
             // Mark un-awaited channels for removal
@@ -374,7 +443,6 @@ namespace Stride.Physics
             }
 
             markedAsDeprecatedColl.Clear();
-            markedAsNewColl.Clear();
         }
 
 
@@ -386,7 +454,7 @@ namespace Stride.Physics
             buffer = contactsPool.Count == 0 ? new HashSet<ContactPoint>() : contactsPool.Pop();
             contactsUpToDate[coll] = buffer;
 
-            if (collisions.TryGetValue(coll, out var ptrPairToFind) == false)
+            if (collisions.ContainsKey(coll) == false)
                 return buffer;
 
             int numManifolds = collisionWorld.Dispatcher.NumManifolds;
@@ -394,17 +462,25 @@ namespace Stride.Physics
             for (int i = 0; i < numManifolds; i++)
             {
                 var persManifoldPtr = btDispatcher_getManifoldByIndexInternal(dispatcherNativePtr, i);
-                var ptrA = btPersistentManifold_getBody0(persManifoldPtr);
-                var ptrB = btPersistentManifold_getBody1(persManifoldPtr);
-                (IntPtr, IntPtr) collId = (ptrA, ptrB);
-
-                if (ptrPairToFind != collId)
-                    continue;
-
-                var collA = coll.ColliderA;
-                var collB = coll.ColliderB;
 
                 int numContacts = btPersistentManifold_getNumContacts(persManifoldPtr);
+                if (numContacts == 0)
+                    continue;
+                
+                var ptrA = btPersistentManifold_getBody0(persManifoldPtr);
+                var ptrB = btPersistentManifold_getBody1(persManifoldPtr);
+
+                // Distinct bullet pointer can map to the same PhysicsComponent through CompoundColliderShapes
+                // We're retrieving all contacts for a pair of PhysicsComponent here, not for a unique collider
+                var collA = BulletSharp.CollisionObject.GetManaged(ptrA).UserObject as PhysicsComponent;
+                var collB = BulletSharp.CollisionObject.GetManaged(ptrB).UserObject as PhysicsComponent;
+                
+                if (false == (coll.ColliderA == collA && coll.ColliderB == collB 
+                              || coll.ColliderA == collB && coll.ColliderB == collA))
+                {
+                    continue;
+                }
+                
                 for (int j = 0; j < numContacts; j++)
                 {
                     var point = BulletSharp.ManifoldPoint.FromPtr(btPersistentManifold_getContactPoint(persManifoldPtr, j));
@@ -418,8 +494,6 @@ namespace Stride.Physics
                         PositionOnB = point.m_positionWorldOnB,
                     });
                 }
-
-                break;
             }
 
             return buffer;

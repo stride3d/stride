@@ -28,13 +28,13 @@ namespace Stride.Physics
         /// If true, it is not safe to invoke further actions on the colliders.
         /// Only use colliders information to identify the entity that has been removed.
         /// </remarks>
-        public bool HasEndedFromComponentRemoval => ColliderA.Simulation.EndedFromComponentRemoval.Contains(this);
+        public readonly bool HasEndedFromComponentRemoval => ColliderA.Simulation.EndedFromComponentRemoval.Contains(this);
 
-        public bool AreColliding => ColliderA.Simulation.CurrentCollisions.Contains(this);
+        public readonly bool AreColliding => ColliderA.Simulation.CurrentCollisions.Contains(this);
 
-        public HashSet<ContactPoint> Contacts => ColliderA.Simulation.LatestContactPointsFor(this);
+        public readonly HashSet<ContactPoint> Contacts => ColliderA.Simulation.LatestContactPointsFor(this);
 
-        internal Collision(PhysicsComponent a, PhysicsComponent b)
+        public Collision(PhysicsComponent a, PhysicsComponent b)
         {
             ColliderA = a;
             ColliderB = b;
@@ -60,16 +60,20 @@ namespace Stride.Physics
             } while (!endCollision.Equals(this));
         }
 
+        public static bool operator ==(in Collision a, in Collision b)
+        {
+            return (Equals(a.ColliderA, b.ColliderA) && Equals(a.ColliderB, b.ColliderB))
+                   || (Equals(a.ColliderB, b.ColliderA) && Equals(a.ColliderA, b.ColliderB));
+        }
+
+        public static bool operator !=(in Collision a, in Collision b) => (a == b) == false;
+
         public override bool Equals(object obj)
         {
             return obj is Collision other && Equals(other);
         }
 
-        public bool Equals(Collision other)
-        {
-            return (Equals(ColliderA, other.ColliderA) && Equals(ColliderB, other.ColliderB)) 
-                   || (Equals(ColliderB, other.ColliderA) && Equals(ColliderA, other.ColliderB));
-        }
+        public bool Equals(Collision other) => this == other;
 
         public override int GetHashCode()
         {
