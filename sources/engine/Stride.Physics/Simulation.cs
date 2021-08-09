@@ -509,8 +509,8 @@ namespace Stride.Physics
         /// <summary>
         /// Raycasts and returns the closest hit
         /// </summary>
-        /// <param name="from">From.</param>
-        /// <param name="to">To.</param>
+        /// <param name="from">The starting point of this raycast</param>
+        /// <param name="to">The end point of this raycast</param>
         /// <param name="filterGroup">The collision group of this raycast</param>
         /// <param name="filterFlags">The collision group that this raycast can collide with</param>
         /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
@@ -525,13 +525,13 @@ namespace Stride.Physics
         /// <summary>
         /// Raycasts, returns true when it hit something
         /// </summary>
-        /// <param name="from">From.</param>
-        /// <param name="to">To.</param>
-        /// <param name="result">Raycast info</param>
+        /// <param name="from">The starting point of this raycast</param>
+        /// <param name="to">The end point of this raycast</param>
+        /// <param name="result">Information about this test</param>
         /// <param name="filterGroup">The collision group of this raycast</param>
         /// <param name="filterFlags">The collision group that this raycast can collide with</param>
         /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
-        /// <returns>True if the test collided with something</returns>
+        /// <returns>True if the test collided with an object in the simulation</returns>
         public bool Raycast(Vector3 from, Vector3 to, out HitResult result, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags, bool hitTriggers = false)
         {
             var callback = StrideClosestRayResultCallback.Shared(ref from, ref to, hitTriggers, filterGroup, filterFlags);
@@ -544,9 +544,9 @@ namespace Stride.Physics
         /// Raycasts penetrating any shape the ray encounters.
         /// Filtering by CollisionGroup
         /// </summary>
-        /// <param name="from">From.</param>
-        /// <param name="to">To.</param>
-        /// <param name="resultsOutput">The list to fill with results.</param>
+        /// <param name="from">The starting point of this raycast</param>
+        /// <param name="to">The end point of this raycast</param>
+        /// <param name="resultsOutput">The collection to add intersections to</param>
         /// <param name="filterGroup">The collision group of this raycast</param>
         /// <param name="filterFlags">The collision group that this raycast can collide with</param>
         /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
@@ -559,9 +559,9 @@ namespace Stride.Physics
         /// <summary>
         /// Performs a sweep test using a collider shape and returns the closest hit
         /// </summary>
-        /// <param name="shape">The shape.</param>
-        /// <param name="from">From.</param>
-        /// <param name="to">To.</param>
+        /// <param name="shape">The shape used when testing collisions with colliders in the simulation</param>
+        /// <param name="from">The starting point of this sweep</param>
+        /// <param name="to">The end point of this sweep</param>
         /// <param name="filterGroup">The collision group of this shape sweep</param>
         /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
         /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
@@ -583,10 +583,10 @@ namespace Stride.Physics
         /// <summary>
         /// Performs a sweep test using a collider shape and never stops until "to"
         /// </summary>
-        /// <param name="shape">The shape.</param>
-        /// <param name="from">From.</param>
-        /// <param name="to">To.</param>
-        /// <param name="resultsOutput">The list to fill with results.</param>
+        /// <param name="shape">The shape against which colliders in the simulation will be tested</param>
+        /// <param name="from">The starting point of this sweep</param>
+        /// <param name="to">The end point of this sweep</param>
+        /// <param name="resultsOutput">The collection to add hit results to</param>
         /// <param name="filterGroup">The collision group of this shape sweep</param>
         /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
         /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
