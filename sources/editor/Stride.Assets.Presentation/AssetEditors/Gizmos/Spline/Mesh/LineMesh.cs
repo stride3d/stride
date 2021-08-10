@@ -31,9 +31,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh
             MeshDraw = new MeshDraw
             {
                 PrimitiveType = PrimitiveType.LineStrip,
-                DrawCount = positions.Length,
+                DrawCount = 10, //? 
                 VertexBuffers = new[] { new VertexBufferBinding(vertexBuffer, VertexPositionNormalTexture.Layout, vertexBuffer.ElementCount) },
             };
         }
     }
 }
+

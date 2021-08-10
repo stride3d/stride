@@ -158,6 +158,12 @@ namespace Stride.Engine.Splines
             BoundingBox = new BoundingBox(new Vector3(x.X, y.X, z.X), new Vector3(x.Y, y.Y, z.Y));
         }
 
+        public Vector3 GetPositionOnCurve(float percentage)
+        {
+            var distance = (Distance / 100) * Math.Clamp(percentage, 0, 100);
+            return GetBezierPointForDistance(distance).Position;
+        }
+
         /// <summary>
         /// polynominal curve has incorrect arc length parameterization. Use approximated estimated positions
         /// </summary>
@@ -171,19 +177,25 @@ namespace Stride.Engine.Splines
             for (var i = 0; i < bezierPointCount; i++)
             {
                 var estimatedExptedDistance = (Distance / (bezierPointCount - 1)) * i;
-
-                for (int j = 0; j < baseBezierPointCount; j++)
-                {
-                    var curPoint = _baseBezierPoints[j];
-                    if (curPoint.Distance >= estimatedExptedDistance)
-                    {
-                        _parameterizedBezierPoints[i] = curPoint;
-                        break;
-                    }
-                }
+                _parameterizedBezierPoints[i] = GetBezierPointForDistance(estimatedExptedDistance);
             }
 
             _parameterizedBezierPoints[bezierPointCount - 1] = _baseBezierPoints[baseBezierPointCount - 1];
+        }
+
+
+
+        private BezierPoint GetBezierPointForDistance(float distance)
+        {
+            for (int j = 0; j < baseBezierPointCount; j++)
+            {
+                var curPoint = _baseBezierPoints[j];
+                if (curPoint.Distance >= distance)
+                {
+                    return curPoint;
+                }
+            }
+            return _baseBezierPoints[_baseBezierPoints.Length - 1];
         }
 
         private Vector3 CalculateBezierPoint(float t)

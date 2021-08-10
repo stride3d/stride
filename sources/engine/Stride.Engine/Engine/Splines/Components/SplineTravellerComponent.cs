@@ -1,6 +1,8 @@
 using Stride.Core;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
+using Stride.Core.Mathematics;
+using Stride.Core.Annotations;
 
 namespace Stride.Engine.Splines.Components
 {
@@ -13,11 +15,10 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineTravellerComponent : EntityComponent
     {
-        //public SplineComponent SplineComponent { get; set; }
-        //public bool IsMoving { get; set; }
+        public SplineComponent SplineComponent { get; set; }
+        public bool IsMoving { get; set; }
         //public bool UsePhysics { get; set; }
-        //public bool IsReverseTravelling { get; set; }
-
+        public bool IsReverseTravelling { get; set; }
 
         //private int _currentNodeIndex = 0;
         //private int _currentSplinePointIndex = 0;
@@ -25,35 +26,28 @@ namespace Stride.Engine.Splines.Components
         //private BezierCurveComponent _nextSplineNodeComponent { get; set; }
         //private BezierCurveComponent _previousSplineNodeComponent { get; set; }
 
-        //public float Speed { get; set; } = 1;
-        //public Vector3 Velocity { get; set; } = new Vector3(0);
+        public float Speed { get; set; } = 1;
+        public Vector3 Velocity { get; set; } = new Vector3(0);
 
         //private Vector3 _currentTargetPos;
 
-        //[DataMemberRange(0, 100)]
-        //[Display("Percentage")]
-        //public float Percentage
-        //{
-        //    get { return _percentage; }
-        //    set
-        //    {
-        //        if (SplineComponent != null && SplineComponent.SplineNodeComponents.Count > 1)
-        //        {
-        //            _currentSplineNodeComponent = SplineComponent.SplineNodeComponents[0];
-        //            _nextSplineNodeComponent = SplineComponent.SplineNodeComponents[1];
-        //            _previousSplineNodeComponent = null;
-
-        //            var firstNodeWorldPosition = _currentSplineNodeComponent.Entity.Transform.WorldMatrix.TranslationVector;
-        //            Entity.Transform.WorldMatrix.TranslationVector = firstNodeWorldPosition;
-
-        //            _currentNodeIndex = 0;
-        //            _currentSplinePointIndex = 0;
-        //           // SetNextTarget();
-        //        }
-        //        _percentage = value;
-        //    }
-        //}
-        //private float _percentage = 0f;
+        [DataMemberRange(0.0f, 100.0f, 0.1f, 1.0f, 4)]
+        [Display("Percentage")]
+        public float Percentage
+        {
+            get { return _percentage; }
+            set
+            {
+                _percentage = value;
+                if (SplineComponent != null && SplineComponent.GetTotalSplineDistance() > 0)
+                {
+                    var position = SplineComponent.GetPositionOnSpline(_percentage);
+                    Entity.Transform.Position = position;
+                    Entity.Transform.UpdateWorldMatrix();
+                }
+            }
+        }
+        private float _percentage = 0f;
 
         /// <summary>
         /// Event triggered when the last node of the spline has been reached
@@ -94,19 +88,19 @@ namespace Stride.Engine.Splines.Components
 
 
 
-                //if self.usePhysics then
+            //if self.usePhysics then
 
-                //    self.entityJoint:SetTargetPosition(movePos, 1)
+            //    self.entityJoint:SetTargetPosition(movePos, 1)
 
-                //else
-                //entity:SetPosition(movePos)
+            //else
+            //entity:SetPosition(movePos)
 
-                //end
+            //end
 
 
-                //if (movePos:DistanceToPoint(_currentTargetPos) < 0.27){
-                //    SetNextTarget()
-                //}
+            //if (movePos:DistanceToPoint(_currentTargetPos) < 0.27){
+            //    SetNextTarget()
+            //}
         
         }
 

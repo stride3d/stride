@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-
+using Stride.Core.Mathematics;
 namespace Stride.Engine.Splines
 {
     public class Spline

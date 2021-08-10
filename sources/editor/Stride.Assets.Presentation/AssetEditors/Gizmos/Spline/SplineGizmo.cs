@@ -172,11 +172,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private void UpdateBoundingBox(SplineNodeComponent curNode)
         {
             var curve = curNode.GetBezierCurve();
-            
+
             if (curve == null)
                 return;
-            
-            var cubeMesh = GeometricPrimitive.Cube.New(GraphicsDevice, new Vector3(2,3,4)).ToMeshDraw();
+
+            var cubeMesh = GeometricPrimitive.Cube.New(GraphicsDevice, new Vector3(2, 3, 4)).ToMeshDraw();
 
 
             //gizmoBoundingBox.Transform.Position = curNode.Entity.Transform.Position;
@@ -194,45 +194,33 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         private void DrawSplineSegments(Vector3[] splinePoints)
         {
-            var lineMesh = new LineMesh(GraphicsDevice);
-            lineMesh.Build(splinePoints);
-
-            var debugLine = new Entity(){new ModelComponent{Model = new Model{greenMaterial, new Mesh { Draw = lineMesh.MeshDraw }},RenderGroup = RenderGroup.Group1}};
-            gizmoBeziers.AddChild(debugLine);
-
-
             var localPoints = new Vector3[splinePoints.Length];
             for (int i = 0; i < splinePoints.Length; i++)
             {
                 localPoints[i] = mainGizmoEntity.Transform.WorldToLocal(splinePoints[i]);
             }
+        
+            //TODO FIGURE OUT WHY LINE MESH doesnt render properly
 
-            //var correctedLocalPoints = new Vector3[localPoints.Length-1];
+            //var lineMesh = new LineMesh(GraphicsDevice);
+            //lineMesh.Build(localPoints);
 
-            //for (int i = 0; i < localPoints.Length-1; i++)
-            //{
-            //    if (i == 0)
-            //    {
-            //        correctedLocalPoints[i] = localPoints[i];
-            //    }
-            //    else
-            //    {
-            //        correctedLocalPoints[i] = localPoints[i + 1] - localPoints[i];
-            //    }
-            //}
+            //var debugLine = new Entity() { new ModelComponent { Model = new Model { greenMaterial, new Mesh { Draw = lineMesh.MeshDraw } }, RenderGroup = RenderGroup } };
+            //gizmoBeziers.AddChild(debugLine);
+            //debugLine.Transform.Position += localPoints[0];
 
+            //Temp per 2 points mesh render. 
             for (int i = 0; i < localPoints.Length - 1; i++)
             {
                 var lineMeshold = new LineMesh(GraphicsDevice);
                 lineMeshold.Build(new Vector3[2] { localPoints[i], localPoints[i + 1] - localPoints[i] });
-
                 var segment = new Entity()
                 {
                     new ModelComponent
                     {
                         Model = new Model
                         {
-                                redMaterial,
+                                redMaterial, 
                                 new Mesh { Draw = lineMeshold.MeshDraw }
                         },
                         RenderGroup = RenderGroup,
