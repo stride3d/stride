@@ -87,6 +87,18 @@ namespace Stride.Graphics
             NativeColorAttachmentView = attachmentView;
         }
 
+        public void SetFullHandles(VkImage image, VkImageView attachmentView, 
+                                   VkImageLayout layout, VkAccessFlags accessMask,
+                                   VkFormat nativeFormat, VkImageAspectFlags aspect)
+        {
+            NativeImage = image;
+            NativeColorAttachmentView = attachmentView;
+            NativeLayout = layout;
+            NativeAccessMask = accessMask;
+            NativeFormat = nativeFormat;
+            NativeImageAspect = aspect;
+        }
+
         private void InitializeFromImpl(DataBox[] dataBoxes = null)
         {
             NativeFormat = VulkanConvertExtensions.ConvertPixelFormat(ViewFormat);

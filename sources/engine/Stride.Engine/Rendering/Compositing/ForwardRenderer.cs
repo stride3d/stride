@@ -722,7 +722,7 @@ namespace Stride.Rendering.Compositing
                     }
 
                     //draw mirror to backbuffer (if size is matching and full viewport)
-                    if (VRSettings.CopyMirror)
+                    if (VRSettings.CopyMirror && VRSettings.VRDevice.MirrorTexture != null)
                     {
                         CopyOrScaleTexture(drawContext, VRSettings.VRDevice.MirrorTexture, drawContext.CommandList.RenderTarget);
                     }
