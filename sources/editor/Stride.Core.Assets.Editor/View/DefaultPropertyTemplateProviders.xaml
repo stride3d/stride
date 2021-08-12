@@ -484,64 +484,6 @@
     </DataTemplate>
   </pvdr:DictionaryTemplateProvider>
 
-  <!-- Provider for dictionary with a number key: Button to add an entry, TextBlock to describe the collection -->
-  <pvdr:DictionaryNumberKeyTemplateProvider x:Key="DictionaryNumberKeyTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
-    <pvdr:DictionaryNumberKeyTemplateProvider.OverriddenProviderNames>
-      <s:String>Dictionary</s:String>
-    </pvdr:DictionaryNumberKeyTemplateProvider.OverriddenProviderNames>
-    <DataTemplate DataType="qvm:NodeViewModel">
-      <DockPanel>
-        <ComboBox DockPanel.Dock="Right" Margin="2,0"
-                  Visibility="{sd:MultiBinding {Binding HasCommand_AddPrimitiveKey}, {Binding HasAssociatedData_ReadOnlyCollection, Converter={sd:InvertBool}},
-                                                 Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrCollapsed}}, FallbackValue={sd:Collapsed}}">
-          <ComboBox.Template>
-            <ControlTemplate TargetType="{x:Type ComboBox}">
-              <Grid x:Name="grid">
-                <ToggleButton x:Name="ToggleButton" Width="16" Height="16" Background="Transparent"
-                              Focusable="false" ClickMode="Press"
-                              ToolTip="{sd:Localize Add a new entry to the dictionary, Context=ToolTip}" SnapsToDevicePixels="True"
-                              IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
-                  <Image Source="{StaticResource ImageAdd}" Width="16" Height="16" Margin="-1"/>
-                </ToggleButton>
-                <Popup x:Name="Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Left" AllowsTransparency="True"
-                       VerticalOffset="{Binding ActualHeight, RelativeSource={RelativeSource TemplatedParent}}"
-                       HorizontalOffset="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
-                       PlacementTarget="{Binding ElementName=ToggleButton}" PopupAnimation="Slide">
-                  <DockPanel MaxHeight="{TemplateBinding MaxDropDownHeight}" SnapsToDevicePixels="True"
-                             Background="{DynamicResource ControlBackgroundBrush}" Margin="10">
-                    <TextBlock DockPanel.Dock="Left" Margin="8,0,0,0" VerticalAlignment="Center"
-                               Text="{sd:Localize Key name:}"/>
-                    <sd:TextBox sd:FocusManager.IsFocused="{Binding IsOpen, ElementName=Popup}" CancelOnLostFocus="True"
-                                  Text="0" Margin="8" SelectAllOnFocus="True" Width="160"
-                                  ValidateCommand="{Binding AddPrimitiveKey}" x:Name="TextBox"
-                                  ValidateCommandParameter="{Binding Text, RelativeSource={RelativeSource Self}}"/>
-                  </DockPanel>
-                </Popup>
-              </Grid>
-              <ControlTemplate.Triggers>
-                <Trigger Property="IsEnabled" Value="false">
-                  <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
-                  <Setter Property="Opacity" TargetName="grid" Value="0.5" />
-                </Trigger>
-                <!-- This makes sure we can validate the textbox again even if the text is not changed -->
-                <Trigger Property="IsOpen" SourceName="Popup" Value="False">
-                  <Setter Property="Text" TargetName="TextBox" Value="" />
-                </Trigger>
-                <Trigger Property="IsOpen" SourceName="Popup" Value="True">
-                  <Setter Property="Text" TargetName="TextBox" Value="0" />
-                </Trigger>
-              </ControlTemplate.Triggers>
-            </ControlTemplate>
-          </ComboBox.Template>
-        </ComboBox>
-        <TextBlock Margin="2" DockPanel.Dock="Left">
-          <Run Text="{sd:Localize Dictionary}"/> -
-          <Run Text="{sd:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
-        </TextBlock>
-      </DockPanel>
-    </DataTemplate>
-  </pvdr:DictionaryNumberKeyTemplateProvider>
-
   <!-- Provider for dictionary with a string key: Button to add an entry, TextBlock to describe the collection -->
   <pvdr:DictionaryStringKeyTemplateProvider x:Key="DictionaryStringKeyTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <pvdr:DictionaryStringKeyTemplateProvider.OverriddenProviderNames>
