@@ -150,9 +150,6 @@ namespace Stride.Graphics
                 desiredExtensionNames.Add(KHRWin32SurfaceExtensionName);
                 if (!availableExtensionNames.Contains(KHRWin32SurfaceExtensionName))
                     throw new InvalidOperationException($"Required extension {KHRWin32SurfaceExtensionName} is not available");
-
-                // OpenXR
-                desiredExtensionNames.Add("VK_KHR_image_format_list");
             }
             else if (Platform.Type == PlatformType.Android)
             {
