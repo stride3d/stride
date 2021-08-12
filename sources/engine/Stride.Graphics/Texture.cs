@@ -423,6 +423,14 @@ namespace Stride.Graphics
         {
         }
 
+        public Texture(GraphicsDevice device, TextureDescription fromDescription) : base(device)
+        {
+            textureDescription = fromDescription;
+            ViewWidth = textureDescription.Width;
+            ViewHeight = textureDescription.Height;
+            ViewDepth = textureDescription.Depth;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Texture"/> class.
         /// </summary>

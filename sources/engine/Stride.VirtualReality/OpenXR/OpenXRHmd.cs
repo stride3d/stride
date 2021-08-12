@@ -168,7 +168,7 @@ namespace Stride.VirtualReality
             _unmanagedResourcesFreed = true;
         }
 
-        private GameBase baseGame;
+        private GraphicsDevice baseDevice;
 
         private Size2 renderSize;
 
@@ -184,9 +184,9 @@ namespace Stride.VirtualReality
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private unsafe delegate Result pfnGetVulkanGraphicsDeviceKHR(Instance instance, ulong systemId, VkHandle vkInstance, VkHandle* vkPhysicalDevice);
 
-        public OpenXRHmd(GameBase game)
+        public OpenXRHmd(GraphicsDevice gd)
         {
-            baseGame = game;
+            baseDevice = gd;
             VRApi = VRApi.OpenXR;
         }
 
@@ -233,11 +233,13 @@ namespace Stride.VirtualReality
 
         public override bool CanInitialize => true;
 
-        public override Size2 OptimalRenderFrameSize => throw new NotImplementedException();
+        public override Size2 OptimalRenderFrameSize => renderSize;
 
-        public override Texture MirrorTexture { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
+        // TODO (not implemented)
+        private Texture mirrorTexture;
+        public override Texture MirrorTexture { get => mirrorTexture; protected set => mirrorTexture = value; }
 
-        public override TrackedItem[] TrackedItems => throw new NotImplementedException();
+        public override TrackedItem[] TrackedItems => null;
 
         internal Texture swapTexture;
         internal bool begunFrame, swapImageCollected;
@@ -258,7 +260,7 @@ namespace Stride.VirtualReality
             commandList.Copy(renderFrame, swapTexture);
         }
 
-        public override unsafe void Flush()
+        public unsafe void Flush()
         {
             // if we didn't wait a frame, don't commit
             if (begunFrame == false)
@@ -307,54 +309,6 @@ namespace Stride.VirtualReality
             return new Quaternion(-quat.X, -quat.Y, -quat.Z, quat.W);
         }
 
-        public override unsafe void UpdatePositions(GameTime gameTime)
-        {
-            ActiveActionSet active_actionsets = new ActiveActionSet()
-            {
-                 ActionSet = globalActionSet
-            };
-
-            ActionsSyncInfo actions_sync_info = new ActionsSyncInfo()
-            {
-                Type = StructureType.TypeActionsSyncInfo,
-                CountActiveActionSets = 1,
-                ActiveActionSets = &active_actionsets,
-            };
-
-            Xr.SyncAction(globalSession, &actions_sync_info);
-
-            leftHand.Update(gameTime);
-            rightHand.Update(gameTime);
-
-            // --- Create projection matrices and view matrices for each eye
-            ViewLocateInfo view_locate_info = new ViewLocateInfo()
-            {
-                Type = StructureType.TypeViewLocateInfo,
-                ViewConfigurationType = ViewConfigurationType.PrimaryStereo,
-                DisplayTime = globalFrameState.PredictedDisplayTime,
-                Space = globalPlaySpace
-            };
-
-            ViewState view_state = new ViewState()
-            {
-                Type = StructureType.TypeViewState
-            };
-
-            uint view_count;
-            Xr.LocateView(globalSession, &view_locate_info, &view_state, 2, &view_count, views);
-
-            // get head rotation
-            headRot.X = views[0].Pose.Orientation.X;
-            headRot.Y = views[0].Pose.Orientation.Y;
-            headRot.Z = views[0].Pose.Orientation.Z;
-            headRot.W = views[0].Pose.Orientation.W;
-
-            // since we got eye positions, our head is between our eyes
-            headPos.X = views[0].Pose.Position.X;
-            headPos.Y = views[0].Pose.Position.Y;
-            headPos.Z = views[0].Pose.Position.Z;
-        }
-
         public override unsafe void Draw(GameTime gameTime)
         {
             // wait get poses (headPos etc.)
@@ -380,7 +334,7 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override unsafe void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror)
+        public override unsafe void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight)
         {
             // Changing the form_factor may require changing the view_type too.
             ViewConfigurationType view_type = ViewConfigurationType.PrimaryStereo;
@@ -525,7 +479,7 @@ namespace Stride.VirtualReality
                 CheckResult(Xr.CreateSwapchain(session, &swapchain_create_info, &swapchain), "CreateSwapchain");
                 globalSwapchain = swapchain;
 
-                swapTexture = new Texture(baseGame.GraphicsDevice, new TextureDescription()
+                swapTexture = new Texture(baseDevice, new TextureDescription()
                 {
                     ArraySize = 1,
                     Depth = 1,
@@ -785,11 +739,50 @@ namespace Stride.VirtualReality
 
         public override unsafe void Update(GameTime gameTime)
         {
-        }
+            ActiveActionSet active_actionsets = new ActiveActionSet()
+            {
+                ActionSet = globalActionSet
+            };
 
-        public override void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight)
-        {
-            throw new NotImplementedException();
+            ActionsSyncInfo actions_sync_info = new ActionsSyncInfo()
+            {
+                Type = StructureType.TypeActionsSyncInfo,
+                CountActiveActionSets = 1,
+                ActiveActionSets = &active_actionsets,
+            };
+
+            Xr.SyncAction(globalSession, &actions_sync_info);
+
+            leftHand.Update(gameTime);
+            rightHand.Update(gameTime);
+
+            // --- Create projection matrices and view matrices for each eye
+            ViewLocateInfo view_locate_info = new ViewLocateInfo()
+            {
+                Type = StructureType.TypeViewLocateInfo,
+                ViewConfigurationType = ViewConfigurationType.PrimaryStereo,
+                DisplayTime = globalFrameState.PredictedDisplayTime,
+                Space = globalPlaySpace
+            };
+
+            ViewState view_state = new ViewState()
+            {
+                Type = StructureType.TypeViewState
+            };
+
+            uint view_count;
+            Xr.LocateView(globalSession, &view_locate_info, &view_state, 2, &view_count, views);
+
+            // get head rotation
+            headRot.X = views[0].Pose.Orientation.X;
+            headRot.Y = views[0].Pose.Orientation.Y;
+            headRot.Z = views[0].Pose.Orientation.Z;
+            headRot.W = views[0].Pose.Orientation.W;
+
+            // since we got eye positions, our head is between our eyes
+            headPos.X = views[0].Pose.Position.X;
+            headPos.Y = views[0].Pose.Position.Y;
+            headPos.Z = views[0].Pose.Position.Z;
         }
     }
 }
