@@ -398,26 +398,12 @@ namespace Stride.VirtualReality
             vulk_req.DynamicInvoke(Instance, system_id, new System.IntPtr(&vulk));
 
 #if STRIDE_GRAPHICS_API_VULKAN
-
-            VulkanGraphicsDeviceGetInfoKHR vgd = new VulkanGraphicsDeviceGetInfoKHR()
-            {
-                SystemId = system_id,
-                Type = StructureType.TypeVulkanGraphicsDeviceGetInfoKhr,
-                VulkanInstance = new VkHandle((nint)device.NativeInstance.Handle)
-            };
-
             VkHandle physicalDevice = new VkHandle();
 
             // vulkan below
             CheckResult(Xr.GetInstanceProcAddr(Instance, "xrGetVulkanGraphicsDeviceKHR", ref func), "GetInstanceProcAddr::xrGetVulkanGraphicsDeviceKHR");
             Delegate vulk_dev = Marshal.GetDelegateForFunctionPointer((IntPtr)func.Handle, typeof(pfnGetVulkanGraphicsDeviceKHR));
             vulk_dev.DynamicInvoke(Instance, system_id, new VkHandle((nint)device.NativeInstance.Handle), new System.IntPtr(&physicalDevice));
-
-            /* // vulkan2 below
-            CheckResult(Xr.GetInstanceProcAddr(Instance, "xrGetVulkanGraphicsDevice2KHR", ref func), "GetInstanceProcAddr::xrGetVulkanGraphicsDevice2KHR");
-            Delegate vulk_dev = Marshal.GetDelegateForFunctionPointer((IntPtr)func.Handle, typeof(pfnGetVulkanGraphicsDevice2KHR));
-            vulk_dev.DynamicInvoke(Instance, new System.IntPtr(&vgd), new System.IntPtr(&physicalDevice));
-            */
 
             // --- Create session
             var graphics_binding_vulkan = new GraphicsBindingVulkanKHR()
