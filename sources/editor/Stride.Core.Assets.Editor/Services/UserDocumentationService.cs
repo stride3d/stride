@@ -31,17 +31,13 @@ namespace Stride.Core.Assets.Editor.Services
             string key;
 
             var prefix = member is FieldDescriptor ? 'F' : 'P';
-            if (rootType != null)
+            if (rootType != null && CacheAssemblyDocumentation(rootType.Assembly))
             {
-                if (CacheAssemblyDocumentation(rootType.Assembly))
-                {
+                // Remove generic type arguments specifications
+                key = $"{prefix}:{rootType.FullName}.{member.Name}";
 
-                    // Remove generic type arguments specifications
-                    key = $"{prefix}:{rootType.FullName}.{member.Name}";
-
-                    if (cachedDocumentations.TryGetValue(key, out result))
-                        return result;
-                }
+                if (cachedDocumentations.TryGetValue(key, out result))
+                    return result;
             }
 
             if (!CacheAssemblyDocumentation(member.DeclaringType.Assembly))
@@ -97,39 +93,39 @@ namespace Stride.Core.Assets.Editor.Services
             if (!documentedAssemblies.Contains(assemblyName))
             {
                 var location = assembly.Location;
-                if (string.IsNullOrEmpty(location))
+                if (string.IsNullOrEmpty(location) && ViewModel.SessionViewModel.Instance.CurrentProject?.Package != null)
                 {
                     //Try to find the assembly in the loaded assemblies, since Location won't be populated in the case of User assemblies
-                    if (ViewModel.SessionViewModel.Instance.CurrentProject?.Package != null)
+                    var package = ViewModel.SessionViewModel.Instance.CurrentProject.Package;
+
+                    if (package.Container is SolutionProject solutionProject && solutionProject.Type == ProjectType.Executable)
                     {
-                        var package = ViewModel.SessionViewModel.Instance.CurrentProject.Package;
-
-                        if (package.Container is SolutionProject solutionProject && solutionProject.Type == ProjectType.Executable)
+                        Log.Info($"Package {solutionProject.Name} is a solution project. Attempting to cache documentation for dependencies.");
+                        foreach (var dep in solutionProject.DirectDependencies)
                         {
-                            Log.Info($"Package {solutionProject.Name} is a solution project. Attempting to cache documentation for dependencies.");
-                            foreach (var dep in solutionProject.DirectDependencies)
-                            {
-                                var docPath = Path.Combine(Path.GetDirectoryName(solutionProject.TargetPath) ?? "", dep.Name + ".xml");
+                            var docPath = Path.Combine(Path.GetDirectoryName(solutionProject.TargetPath) ?? "", dep.Name + ".xml");
 
-                                CacheAssemblyDocumentationFromPath(dep.Name, docPath);
-                            }
+                            CacheAssemblyDocumentationFromPath(dep.Name, docPath);
                         }
-                        else
+                    }
+                    else
+                    {
+                        foreach (var asm in package.LoadedAssemblies)
                         {
-                            foreach (var asm in package.LoadedAssemblies)
+                            var name = asm.Assembly.GetName();
+                            if (name.Name == assemblyName)
                             {
-                                var name = asm.Assembly.GetName();
-                                if (name.Name == assemblyName)
-                                {
-                                    location = asm.Path;
-                                    break;
-                                }
+                                CacheAssemblyDocumentationFromPath(assemblyName, asm.Path);
+                                break;
                             }
                         }
                     }
                 }
+                else
+                {
+                    CacheAssemblyDocumentationFromPath(assemblyName, location);
+                }
 
-                CacheAssemblyDocumentationFromPath(assemblyName, location);
             }
 
             return documentedAssemblies.Contains(assemblyName);
