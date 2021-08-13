@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace Stride.Core.Assets.Editor.Services
     {
         private static readonly Logger Log = GlobalLogger.GetLogger(nameof(UserDocumentationService));
 
-        private readonly Dictionary<string, string> cachedDocumentations = new Dictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> cachedDocumentations = new ConcurrentDictionary<string, string>();
         private readonly HashSet<string> undocumentedAssemblies = new HashSet<string>();
         private readonly HashSet<string> documentedAssemblies = new HashSet<string>();
         private readonly object lockObj = new object();
@@ -26,60 +27,58 @@ namespace Stride.Core.Assets.Editor.Services
         public string GetMemberDocumentation([NotNull] IMemberDescriptor member, Type rootType)
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
-            lock (lockObj)
+            string result;
+            string key;
+
+            var prefix = member is FieldDescriptor ? 'F' : 'P';
+            if (rootType != null)
             {
-                string result;
-                string key;
-
-                var prefix = member is FieldDescriptor ? 'F' : 'P';
-                if (rootType != null)
+                if (CacheAssemblyDocumentation(rootType.Assembly))
                 {
-                    if (CacheAssemblyDocumentation(rootType.Assembly))
-                    {
 
-                        // Remove generic type arguments specifications
-                        key = $"{prefix}:{rootType.FullName}.{member.Name}";
+                    // Remove generic type arguments specifications
+                    key = $"{prefix}:{rootType.FullName}.{member.Name}";
 
-                        if (cachedDocumentations.TryGetValue(key, out result))
-                            return result;
-                    }
+                    if (cachedDocumentations.TryGetValue(key, out result))
+                        return result;
                 }
-
-                if (!CacheAssemblyDocumentation(member.DeclaringType.Assembly))
-                    return null;
-
-                var declaringType = Regex.Replace(member.DeclaringType.FullName, @"\[.*\]", "");
-                // Remove generic type arguments specifications
-                key = $"{prefix}:{declaringType}.{member.Name}";
-
-                return cachedDocumentations.TryGetValue(key, out result) ? result : null;
             }
+
+            if (!CacheAssemblyDocumentation(member.DeclaringType.Assembly))
+                return null;
+
+            var declaringType = Regex.Replace(member.DeclaringType.FullName, @"\[.*\]", "");
+            // Remove generic type arguments specifications
+            key = $"{prefix}:{declaringType}.{member.Name}";
+
+            return cachedDocumentations.TryGetValue(key, out result) ? result : null;
         }
 
         [CanBeNull]
         public string GetPropertyKeyDocumentation([NotNull] PropertyKey propertyKey)
         {
             if (propertyKey == null) throw new ArgumentNullException(nameof(propertyKey));
-            lock (lockObj)
-            {
-                var ownerType = propertyKey.OwnerType;
-                if (ownerType == null)
-                    return null;
+            var ownerType = propertyKey.OwnerType;
+            if (ownerType == null)
+                return null;
 
-                if (!CacheAssemblyDocumentation(ownerType.Assembly))
-                    return null;
+            if (!CacheAssemblyDocumentation(ownerType.Assembly))
+                return null;
 
-                var declaringType = ownerType.FullName;
-                var suffix = propertyKey.Name.Split('.').Last();
-                var key = $"F:{declaringType}.{suffix}";
-                return cachedDocumentations.TryGetValue(key, out string result) ? result : null;
-            }
+            var declaringType = ownerType.FullName;
+            var suffix = propertyKey.Name.Split('.').Last();
+            var key = $"F:{declaringType}.{suffix}";
+            return cachedDocumentations.TryGetValue(key, out string result) ? result : null;
         }
 
         public void ClearCachedAssemblyDocumentation([NotNull] Assembly assembly)
         {
             var assemblyName = assembly.GetName().Name;
-            documentedAssemblies.Remove(assemblyName);
+
+            lock (lockObj)
+            {
+                documentedAssemblies.Remove(assemblyName);
+            }
         }
 
         public bool CacheAssemblyDocumentation([NotNull] Assembly assembly)
@@ -143,6 +142,7 @@ namespace Stride.Core.Assets.Editor.Services
                 return;
             }
 
+
             var basePath = Path.Combine(Path.GetDirectoryName(location) ?? "", Path.GetFileNameWithoutExtension(location));
             if (!CacheCustomDocumentation(basePath + ".usrdoc"))
             {
@@ -150,12 +150,18 @@ namespace Stride.Core.Assets.Editor.Services
                 // Fallback to XML assembly.
                 if (!CacheXmlDocumentation(basePath + ".xml"))
                 {
-                    undocumentedAssemblies.Add(assemblyName);
+                    lock (lockObj)
+                    {
+                        undocumentedAssemblies.Add(assemblyName);
+                    }
                     return;
                 }
             }
 
-            documentedAssemblies.Add(assemblyName);
+            lock (lockObj)
+            {
+                documentedAssemblies.Add(assemblyName);
+            }
         }
 
         /// <summary>
@@ -187,7 +193,7 @@ namespace Stride.Core.Assets.Editor.Services
                             continue;
                         }
 
-                        cachedDocumentations[key] = documentation;
+                        cachedDocumentations.TryAdd(key, documentation);
                     }
                 }
             }
@@ -216,20 +222,26 @@ namespace Stride.Core.Assets.Editor.Services
             {
                 using (var reader = new StreamReader(filePath))
                 {
+                    int lineNumber = 0;
                     while (!reader.EndOfStream)
                     {
                         var line = reader.ReadLine();
                         if (string.IsNullOrWhiteSpace(line))
                             continue;
 
+                        lineNumber++;
+
                         var separator = line.IndexOf('=');
-                        // TODO: Emit a warning here.
                         if (separator < 0 || separator >= line.Length - 1)
+                        {
+                            Log.Warning($"Invalid doc format. File: {filePath}, Line {lineNumber}");
                             continue;
+                        }
 
                         var key = line.Substring(0, separator);
                         var documentation = line.Substring(separator + 1);
-                        cachedDocumentations[key] = documentation;
+
+                        cachedDocumentations.TryAdd(key, documentation);
                     }
                 }
             }

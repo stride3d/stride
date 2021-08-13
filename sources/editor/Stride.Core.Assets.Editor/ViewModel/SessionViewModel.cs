@@ -512,7 +512,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var documentationService = ServiceProvider.Get<UserDocumentationService>();
             foreach (var packageAssembly in LocalPackages.SelectMany(p => p.LoadedAssemblies))
             {
-                documentationService.CacheAssemblyDocumentation(packageAssembly.Assembly);
+                Task.Run(() => documentationService.CacheAssemblyDocumentation(packageAssembly.Assembly));
             }
         }
 
