@@ -34,6 +34,8 @@ namespace Stride.Physics.Engine
             if (component.Constraint != null)
             {
                 component.Simulation.RemoveConstraint(component.Constraint);
+                component.Constraint = null;
+                // see RigidbodyComponent.OnDetach about disposing constraints
             }
         }
 

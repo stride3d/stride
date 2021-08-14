@@ -76,28 +76,17 @@ namespace Stride.Physics.Constraints
         public MotorDesc Motor { get; set; } = new MotorDesc();
 
         /// <inheritdoc/>
-        public Constraint Build(RigidbodyComponent rigidbodyA, RigidbodyComponent rigidbodyB)
+        public Constraint Build(RigidbodyComponent bodyA, RigidbodyComponent bodyB)
         {
-            if (rigidbodyA == null)
-                throw new ArgumentNullException(nameof(rigidbodyA));
-            if (rigidbodyB != null && rigidbodyB.Simulation != rigidbodyA.Simulation)
-                throw new Exception("Both RigidBodies must be on the same simulation");
-
-            var rbA = rigidbodyA.InternalRigidBody;
-            var rbB = rigidbodyB?.InternalRigidBody;
             var axisA = Vector3.UnitX;
             AxisInA.Rotate(ref axisA);
+
             var axisB = Vector3.UnitX;
             AxisInA.Rotate(ref axisB);
 
-            HingeConstraint hinge = new HingeConstraint
-            {
-                InternalHingeConstraint =
-                            rigidbodyB == null ?
-                                new BulletSharp.HingeConstraint(rbA, PivotInA, axisA) :
-                                new BulletSharp.HingeConstraint(rbA, rbB, PivotInA, PivotInB, axisA, axisB, UseReferenceFrameA),
-            };
-            hinge.InternalConstraint = hinge.InternalHingeConstraint;
+            var hinge = bodyB == null
+                ? Simulation.CreateHingeConstraint(bodyA, PivotInA, axisA, UseReferenceFrameA)
+                : Simulation.CreateHingeConstraint(bodyA, PivotInA, axisA, bodyB, PivotInB, axisB, UseReferenceFrameA);
 
             if (Limit.SetLimit)
             {
