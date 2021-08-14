@@ -75,7 +75,7 @@ namespace Stride.Core.Presentation.Extensions
             }
             else
             {
-                var constructorInfo = instanceType.GetConstructor(new Type[0]);
+                var constructorInfo = instanceType.GetConstructor(Array.Empty<Type>());
                 generator.Emit(OpCodes.Newobj, constructorInfo);
                 generator.Emit(OpCodes.Stloc_0);
             }

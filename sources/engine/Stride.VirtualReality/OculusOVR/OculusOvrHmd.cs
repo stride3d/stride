@@ -26,7 +26,7 @@ namespace Stride.VirtualReality
         private OculusTouchController leftHandController;
         private OculusTouchController rightHandController;
         private readonly List<OculusOverlay> overlays = new List<OculusOverlay>();
-        private IntPtr[] overlayPtrs = new IntPtr[0];
+        private IntPtr[] overlayPtrs = Array.Empty<IntPtr>();
 
         internal OculusOvrHmd()
         {
@@ -137,7 +137,7 @@ namespace Stride.VirtualReality
 
         public override TouchController RightHand => rightHandController;
 
-        public override TrackedItem[] TrackedItems => new TrackedItem[0];
+        public override TrackedItem[] TrackedItems => Array.Empty<TrackedItem>();
 
         public override bool CanInitialize
         {

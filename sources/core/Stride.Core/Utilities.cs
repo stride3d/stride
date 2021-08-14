@@ -490,7 +490,7 @@ namespace Stride.Core
 
             System.Diagnostics.Debug.Assert(num >= 0);
             if (num == 0)
-                return new byte[0];
+                return Array.Empty<byte>();
 
             var buffer = new byte[num];
             var bytesRead = 0;
