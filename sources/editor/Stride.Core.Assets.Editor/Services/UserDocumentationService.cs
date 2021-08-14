@@ -43,7 +43,8 @@ namespace Stride.Core.Assets.Editor.Services
             if (!CacheAssemblyDocumentation(member.DeclaringType.Assembly))
                 return null;
 
-            var declaringType = Regex.Replace(member.DeclaringType.FullName, @"\[.*\]", "");
+            var declaringType = Regex.Replace(member.DeclaringType.FullName, @"\[.*\]", "").Replace('+', '.');
+
             // Remove generic type arguments specifications
             key = $"{prefix}:{declaringType}.{member.Name}";
 
