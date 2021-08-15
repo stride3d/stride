@@ -46,10 +46,17 @@ namespace Stride.Physics.Constraints
         [Display(3)]
         public Quaternion AxisInB { get; set; } = Quaternion.Identity;
 
+        /// <summary>
+        /// If <c>true</c>, UseLinearReferenceFrameA sets the reference sign to -1, which is used in some correction computations regarding limits and transforms.
+        /// </summary>
+        /// <remarks>In body-world constraint the bodyA is actually passed as bodyB.</remarks>
+        [Display(4)]
+        public bool UseLinearReferenceFrameA { get; set; }
+
         /// <userdoc>
         /// Limits properties.
         /// </userdoc>
-        [Display(4)]
+        [Display(5)]
         public LimitDesc Limit { get; set; } = new LimitDesc();
 
         /// <inheritdoc/>
@@ -59,8 +66,8 @@ namespace Stride.Physics.Constraints
             var frameB = Matrix.RotationQuaternion(AxisInB) * Matrix.Translation(PivotInB);
             
             var slider = (bodyB == null
-                ? Simulation.CreateConstraint(ConstraintTypes.Slider, bodyA, frameA)
-                : Simulation.CreateConstraint(ConstraintTypes.Slider, bodyA, bodyB, frameA, frameB)
+                ? Simulation.CreateConstraint(ConstraintTypes.Slider, bodyA, frameA, UseLinearReferenceFrameA)
+                : Simulation.CreateConstraint(ConstraintTypes.Slider, bodyA, bodyB, frameA, frameB, UseLinearReferenceFrameA)
                 ) as SliderConstraint;
 
             slider.LowerLinearLimit = Limit.LowerLinearLimit;
