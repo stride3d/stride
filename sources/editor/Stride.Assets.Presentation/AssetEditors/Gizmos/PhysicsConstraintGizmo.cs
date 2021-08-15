@@ -25,6 +25,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private static Dictionary<Graphics.GraphicsDevice, GeometricPrimitive> ConeCache = new Dictionary<Graphics.GraphicsDevice, GeometricPrimitive>(1);
         private static Dictionary<Graphics.GraphicsDevice, GeometricPrimitive> CylinderCache = new Dictionary<Graphics.GraphicsDevice, GeometricPrimitive>(1);
         private static Dictionary<Graphics.GraphicsDevice, Dictionary<float, GeometricPrimitive>> LimitDiscCache = new Dictionary<Graphics.GraphicsDevice, Dictionary<float,GeometricPrimitive>>(1);
+        private static Dictionary<Graphics.GraphicsDevice, Dictionary<Color, Material>> MaterialCache = new Dictionary<Graphics.GraphicsDevice, Dictionary<Color, Material>>();
 
         // Using the same render group as transformation gizmo which means constraint gizmo is visible while inside another mesh
         private static readonly RenderGroup GizmoRenderGroup = TransformationGizmo.TransformationGizmoGroup;
@@ -133,6 +134,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             pivotMarker.Enable(true);
         }
 
+        #region Cache accessors
         private static GeometricPrimitive GetSphere(Graphics.GraphicsDevice device)
         {
             if (!SphereCache.TryGetValue(device, out var sphere))
@@ -182,6 +184,24 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             return disc;
         }
+
+        private static Material GetMaterial(Graphics.GraphicsDevice device, Color color)
+        {
+            if (!MaterialCache.TryGetValue(device, out var cache))
+            {
+                cache = new Dictionary<Color, Material>();
+                MaterialCache.Add(device, cache);
+            }
+
+            if (!cache.TryGetValue(color, out var material))
+            {
+                material = GizmoUniformColorMaterial.Create(device, color);
+                cache.Add(color, material);
+            }
+
+            return material;
+        }
+        #endregion Cache accessors
 
         /// <summary>
         /// This method normalizes rows within top left 3x3 sub matrix, which causes the scale to become (1,1,1).
@@ -282,7 +302,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 : base(pivot, graphicsDevice)
             {
                 var sphere = GetSphere(graphicsDevice).ToMeshDraw();
-                var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
+                var material = GetMaterial(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
                 AddModelEntity("Center", sphere, material);
             }
 
@@ -312,9 +332,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 lastUpperLimit = desc.Limit.SetLimit ? desc.Limit.UpperLimit : MathF.PI;
                 var limitLower = GetLimitDisc(graphicsDevice, lastLowerLimit).ToMeshDraw();
                 var limitUpper = GetLimitDisc(graphicsDevice, lastUpperLimit).ToMeshDraw();
-                var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
-                var material2 = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeNegUniformColor : PurpleNegUniformColor);
-                limitMaterial = GizmoUniformColorMaterial.Create(graphicsDevice, LimitColor);
+                var material = GetMaterial(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
+                var material2 = GetMaterial(graphicsDevice, pivot == Pivot.A ? OrangeNegUniformColor : PurpleNegUniformColor);
+                limitMaterial = GetMaterial(graphicsDevice, LimitColor);
 
                 AddModelEntity("Center", sphere, material);
 
@@ -379,9 +399,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 var limitZ = GetLimitDisc(graphicsDevice, lastLimitZ).ToMeshDraw();
                 var limitY = GetLimitDisc(graphicsDevice, lastLimitY).ToMeshDraw();
                 var limitT = GetLimitDisc(graphicsDevice, lastLimitT).ToMeshDraw();
-                var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
-                var material2 = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeNegUniformColor : PurpleNegUniformColor);
-                limitMaterial = GizmoUniformColorMaterial.Create(graphicsDevice, LimitColor);
+                var material = GetMaterial(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
+                var material2 = GetMaterial(graphicsDevice, pivot == Pivot.A ? OrangeNegUniformColor : PurpleNegUniformColor);
+                limitMaterial = GetMaterial(graphicsDevice, LimitColor);
 
                 AddModelEntity("Center", sphere, material);
 
@@ -444,8 +464,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 var pipe = GetCylinder(graphicsDevice).ToMeshDraw();
                 var tip = GetCone(graphicsDevice).ToMeshDraw();
                 var disc = GetLimitDisc(graphicsDevice, 2 * MathF.PI).ToMeshDraw();
-                var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
-                var discMaterial = GizmoUniformColorMaterial.Create(graphicsDevice, LimitColor);
+                var material = GetMaterial(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
+                var discMaterial = GetMaterial(graphicsDevice, LimitColor);
 
                 var xRotation = Quaternion.RotationZ(-MathUtil.PiOverTwo); // Yup rotated towards X
                 AddModelEntity("X", pipe, material, xRotation);
@@ -485,9 +505,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 lastUpperAngularLimit = desc.Limit.UpperAngularLimit;
                 var limitLower = GetLimitDisc(graphicsDevice, lastLowerAngularLimit).ToMeshDraw();
                 var limitUpper = GetLimitDisc(graphicsDevice, lastUpperAngularLimit).ToMeshDraw();
-                var material = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
-                var material2 = GizmoUniformColorMaterial.Create(graphicsDevice, pivot == Pivot.A ? OrangeNegUniformColor : PurpleNegUniformColor);
-                limitMaterial = GizmoUniformColorMaterial.Create(graphicsDevice, LimitColor);
+                var material = GetMaterial(graphicsDevice, pivot == Pivot.A ? OrangeUniformColor : PurpleUniformColor);
+                var material2 = GetMaterial(graphicsDevice, pivot == Pivot.A ? OrangeNegUniformColor : PurpleNegUniformColor);
+                limitMaterial = GetMaterial(graphicsDevice, LimitColor);
 
                 AddModelEntity("Center", sphere, material);
 
