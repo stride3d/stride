@@ -68,7 +68,7 @@ namespace Stride.Core.Assets.Editor.Services
             if (!CacheAssemblyDocumentation(ownerType.Assembly))
                 return null;
 
-            var declaringType = ownerType.FullName;
+            var declaringType = ownerType.FullName.Replace('+', '.');
             var suffix = propertyKey.Name.Split('.').Last();
             var key = $"F:{declaringType}.{suffix}";
 
