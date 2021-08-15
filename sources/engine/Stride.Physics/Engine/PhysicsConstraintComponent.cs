@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core;
@@ -14,7 +14,7 @@ namespace Stride.Physics
     /// </summary>
     [DataContract("PhysicsConstraintComponent")]
     [Display("Physics Constraint")]
-    [DefaultEntityComponentProcessor(typeof(PhysicsConstraintProcessor))]
+    [DefaultEntityComponentProcessor(typeof(PhysicsConstraintProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [AllowMultipleComponents]
     [ComponentOrder(3010)]
     [ComponentCategory("Physics")]
@@ -72,7 +72,7 @@ namespace Stride.Physics
         /// Removes the currently used <see cref="Constraint"/> and recreates it.
         /// </summary>
         /// <remarks>
-        /// Need to be called after modifying any of the properties.
+        /// Needs to be called after modifying any of the properties.
         /// </remarks>
         public void RecreateConstraint() => constraintProcessor.Recreate(this);
     }

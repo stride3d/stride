@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core;
@@ -54,6 +54,8 @@ namespace Stride.Physics.Constraints
         /// <inheritdoc/>
         public Constraint Build(RigidbodyComponent bodyA, RigidbodyComponent bodyB)
         {
+            if (bodyB == null) throw new System.InvalidOperationException("A Gear constraint requires two rigidbodies.");
+
             var axis = Vector3.UnitX;
             AxisInA.Rotate(ref axis);
             var frameA = Matrix.Translation(axis);
@@ -62,18 +64,7 @@ namespace Stride.Physics.Constraints
             AxisInB.Rotate(ref axis);
             var frameB = Matrix.Translation(axis);
 
-            var gear = (bodyB == null
-                // this will throw if bodyB is null, but we'll let the user worry about that
-                ? Simulation.CreateConstraint(
-                    ConstraintTypes.Gear,
-                    bodyA,
-                    frameA)
-                : Simulation.CreateConstraint(
-                    ConstraintTypes.Gear,
-                    bodyA,
-                    bodyB,
-                    frameA,
-                    frameB)) as GearConstraint;
+            var gear = Simulation.CreateConstraint(ConstraintTypes.Gear, bodyA, bodyB, frameA, frameB) as GearConstraint;
 
             gear.Ratio = Ratio;
 

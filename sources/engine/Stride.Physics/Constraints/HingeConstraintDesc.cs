@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -58,7 +58,7 @@ namespace Stride.Physics.Constraints
         public Quaternion AxisInB { get; set; } = Quaternion.Identity;
 
         /// <summary>
-        /// Use Axis in relation to body A. <!-- TODO: this isn't completely accurate -->
+        /// If <c>true</c>, UseReferenceFrameA sets the reference sign to -1, which is used in some correction computations regarding limits and when returning the current hinge angle.
         /// </summary>
         [Display(4)]
         public bool UseReferenceFrameA { get; set; }

@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core;
@@ -35,16 +35,9 @@ namespace Stride.Physics.Constraints
             var frameB = Matrix.Translation(PivotInB);
 
             var point2point = (bodyB == null
-                ? Simulation.CreateConstraint(
-                    ConstraintTypes.Point2Point,
-                    bodyA,
-                    frameA)
-                : Simulation.CreateConstraint(
-                    ConstraintTypes.Point2Point,
-                    bodyA,
-                    bodyB,
-                    frameA,
-                    frameB)) as Point2PointConstraint;
+                ? Simulation.CreateConstraint(ConstraintTypes.Point2Point, bodyA, frameA)
+                : Simulation.CreateConstraint(ConstraintTypes.Point2Point, bodyA, bodyB, frameA, frameB)
+                ) as Point2PointConstraint;
 
             return point2point;
         }

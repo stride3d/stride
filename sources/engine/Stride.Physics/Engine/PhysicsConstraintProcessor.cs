@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core;
@@ -15,12 +15,12 @@ namespace Stride.Physics.Engine
 
         public PhysicsConstraintProcessor()
         {
-            Order = 0xFFFE;
+            Order = 0xFFFE; // Before PhysicsProcessor
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] PhysicsConstraintComponent component, [NotNull] PhysicsConstraintComponent data)
         {
-            //this is mostly required for the game studio gizmos
+            // this is mostly required for the game studio gizmos
             if (Simulation.DisableSimulation)
             {
                 return;
@@ -41,7 +41,7 @@ namespace Stride.Physics.Engine
 
         public override void Update(GameTime time)
         {
-            //this is mostly required for the game studio gizmos
+            // this is mostly required for the game studio gizmos
             if (Simulation.DisableSimulation)
                 return;
 
@@ -71,12 +71,13 @@ namespace Stride.Physics.Engine
             {
                 if (component.Description == null || component.BodyA == null)
                 {
-                    logger.Warning("ConstraintComponent with an empty description or missing required body. Skipping constrain creation.");
+                    logger.Warning("ConstraintComponent with an empty description or missing required body. Skipping constraint creation.");
                     return;
                 }
 
                 if (component.BodyB != null && component.BodyB.Simulation != component.BodyA.Simulation)
                     return; // simulation mismatch - may happen when first loading the scene
+
                 if (component.BodyA?.InternalRigidBody == null || component.BodyB != null && component.BodyB.InternalRigidBody == null)
                     return; // constraint processing ran before rigidbodies were initialized by the PhysicsProcessor
 

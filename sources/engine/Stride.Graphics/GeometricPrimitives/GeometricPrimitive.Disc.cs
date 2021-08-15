@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -18,7 +18,7 @@ namespace Stride.Graphics.GeometricPrimitives
             /// Creates a disc.
             /// </summary>
             /// <param name="device">The device.</param>
-            /// <param name="radius">The radius or the base</param>
+            /// <param name="radius">The radius of the base</param>
             /// <param name="angle">The angle of the circular sector</param>
             /// <param name="tessellation">The number of segments composing the base</param>
             /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
@@ -32,9 +32,9 @@ namespace Stride.Graphics.GeometricPrimitives
             }
 
             /// <summary>
-            /// Creates a cone a circular base and a rolled face.
+            /// Creates a disc.
             /// </summary>
-            /// <param name="radius">The radius or the base</param>
+            /// <param name="radius">The radius of the base</param>
             /// <param name="sectorAngle">The angle of the circular sector</param>
             /// <param name="tessellation">The number of segments composing the base</param>
             /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
@@ -57,11 +57,15 @@ namespace Stride.Graphics.GeometricPrimitives
                 for (var f = -1; f < 2; f += 2)
                 {
                     var normal = new Vector3(0, f, 0);
+
+                    // center point
                     vertices[vertice++] = new VertexPositionNormalTexture { Position = new Vector3(), Normal = normal, TextureCoordinate = new Vector2() };
 
+                    // edge points
                     for (var i = 0; i <= tessellation; ++i)
                     {
                         var angle = i / (double)tessellation * sectorAngle;
+                        // FIXME: I don't really know how to set up texture coordinates in a sane way
                         var textureCoordinate = new Vector2((float)i / tessellation, 1);
                         textureCoordinate.X *= uScale;
                         textureCoordinate.Y *= vScale;
@@ -80,6 +84,7 @@ namespace Stride.Graphics.GeometricPrimitives
                     indices[index++] = i;
                     indices[index++] = i+1;
 
+                    // note the opposite order of vertices - this is required to make the second face look the other way
                     indices[index++] = secondFaceOffset + i + 1;
                     indices[index++] = secondFaceOffset + i;
                     indices[index++] = secondFaceOffset + 0;

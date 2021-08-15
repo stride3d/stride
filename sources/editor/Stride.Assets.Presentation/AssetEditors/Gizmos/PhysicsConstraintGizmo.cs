@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
@@ -48,8 +51,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         protected override Entity Create()
         {
-            // We want to scale pivots with the zoom. There's two of them, so we'll let
-            // base.Update to set scale on this empty entity and later copy it over.
+            // We'll use a new entity for receiving scale from the gizmo properties and later apply it to the models of the gizmo
             GizmoScalingEntity = new Entity($"{ContentEntity.Name}_gizmo_scale");
 
             return new Entity($"Physics Constraint Gizmo Root Entity (id={ContentEntity.Id})");
@@ -59,7 +61,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             base.Update();
 
-            if (Component.Description == null || !IsEnabled || !IsSelected)
+            if (Component.Description == null
+                || !IsEnabled // Gizmo type disabled in editor
+                || !IsSelected) // Entity with the component (or their parent) not selected
             {
                 PivotA.Enable(false);
                 PivotB.Enable(false);
@@ -89,6 +93,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
 
             // First we create a debug entity which will be reused by any rigidbody referenced
+            // (so if you change the rigidbody it still uses the same entity per pivot)
             if (pivotMarker.Entity == null)
             {
                 pivotMarker.Entity = new Entity(entityName);
@@ -253,7 +258,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             protected Graphics.GraphicsDevice GraphicsDevice { get; }
 
-            public Entity ModelEntity { get; } = new Entity("ModelWrapper");
+            public Entity ModelEntity { get; } = new Entity(nameof(ModelWrapper));
 
             public Pivot Pivot { get; }
 

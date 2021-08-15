@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -59,16 +59,9 @@ namespace Stride.Physics.Constraints
             var frameB = Matrix.RotationQuaternion(AxisInB) * Matrix.Translation(PivotInB);
             
             var slider = (bodyB == null
-                ? Simulation.CreateConstraint(
-                    ConstraintTypes.Slider,
-                    bodyA,
-                    frameA)
-                : Simulation.CreateConstraint(
-                    ConstraintTypes.Slider,
-                    bodyA,
-                    bodyB,
-                    frameA,
-                    frameB)) as SliderConstraint;
+                ? Simulation.CreateConstraint(ConstraintTypes.Slider, bodyA, frameA)
+                : Simulation.CreateConstraint(ConstraintTypes.Slider, bodyA, bodyB, frameA, frameB)
+                ) as SliderConstraint;
 
             slider.LowerLinearLimit = Limit.LowerLinearLimit;
             slider.UpperLinearLimit = Limit.UpperLinearLimit;
@@ -85,21 +78,21 @@ namespace Stride.Physics.Constraints
         public class LimitDesc
         {
             /// <summary>
-            /// Linear limit towards negative end of the constraint axis.
+            /// Lower linear limit along the constraint axis.
             /// </summary>
             /// <remarks>If Lower = Upper, the axis is locked; if Lower &gt; Upper, the axis is free; if Lower &lt; Upper, axis is limited in the range.</remarks>
             /// <userdoc>
-            /// Linear limit towards negative end of the constraint axis.
+            /// Lower linear limit along the constraint axis. If greater than upper limit, the axis is unconstrained.
             /// </userdoc>
             [Display(0)]
             public float LowerLinearLimit { get; set; } = 1;
 
             /// <summary>
-            /// Linear limit towards positive end of the constraint axis.
+            /// Upper linear limit along the constraint axis.
             /// </summary>
             /// <remarks>If Lower = Upper, the axis is locked; if Lower &gt; Upper, the axis is free; if Lower &lt; Upper, axis is limited in the range.</remarks>
             /// <userdoc>
-            /// Linear limit towards positive end of the constraint axis.
+            /// Upper linear limit along the constraint axis. If less than lower limit, the axis is unconstrained.
             /// </userdoc>
             [Display(1)]
             public float UpperLinearLimit { get; set; } = -1;

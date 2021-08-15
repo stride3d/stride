@@ -1,4 +1,4 @@
-// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -63,16 +63,9 @@ namespace Stride.Physics.Constraints
             var frameB = Matrix.RotationQuaternion(AxisInB) * Matrix.Translation(PivotInB);
 
             var coneTwist = (bodyB == null
-                ? Simulation.CreateConstraint(
-                    ConstraintTypes.ConeTwist,
-                    bodyA,
-                    frameA)
-                : Simulation.CreateConstraint(
-                    ConstraintTypes.ConeTwist,
-                    bodyA,
-                    bodyB,
-                    frameA,
-                    frameB)) as ConeTwistConstraint;
+                ? Simulation.CreateConstraint(ConstraintTypes.ConeTwist, bodyA, frameA)
+                : Simulation.CreateConstraint(ConstraintTypes.ConeTwist, bodyA, bodyB, frameA, frameB)
+                ) as ConeTwistConstraint;
 
             if (Limit.SetLimit)
                 coneTwist.SetLimit(Limit.SwingSpanY, Limit.SwingSpanZ, Limit.TwistSpan);
