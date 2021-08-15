@@ -33,14 +33,14 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// </summary>
         protected virtual int GridSize { get; } = 10;
 
-        public void Update(Color3 gridColor, float sceneUnit)
+        public void Update(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
         {
             if (GraphicsDevice != null)
             {
                 gridColor = gridColor.ToColorSpace(GraphicsDevice.ColorSpace);
             }
 
-            UpdateBase(gridColor, sceneUnit);
+            UpdateBase(gridColor, alpha, gridAxisIndex, sceneUnit);
         }
 
         protected override Entity Create()
@@ -49,6 +49,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             return new Entity("Scene grid");
         }
 
-        protected abstract void UpdateBase(Color3 gridColor, float sceneUnit);
+        protected abstract void UpdateBase(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit);
     }
 }

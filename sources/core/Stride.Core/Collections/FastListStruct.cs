@@ -10,7 +10,7 @@ namespace Stride.Core.Collections
 {
     public struct FastListStruct<T> : IEnumerable<T>
     {
-        private static readonly T[] EmptyArray = new T[0];
+        private static readonly T[] EmptyArray = Array.Empty<T>();
 
         public int Count;
 

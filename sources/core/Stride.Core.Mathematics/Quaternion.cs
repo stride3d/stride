@@ -181,7 +181,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         public bool IsNormalized
         {
-            get { return Math.Abs((X * X) + (Y * Y) + (Z * Z) + (W * W) - 1f) < MathUtil.ZeroTolerance; }
+            get { return MathF.Abs((X * X) + (Y * Y) + (Z * Z) + (W * W) - 1f) < MathUtil.ZeroTolerance; }
         }
 
         /// <summary>
@@ -196,7 +196,7 @@ namespace Stride.Core.Mathematics
                 if (length < MathUtil.ZeroTolerance)
                     return 0.0f;
 
-                return (float)(2.0 * Math.Acos(W));
+                return 2.0f * MathF.Acos(W);
             }
         }
 
@@ -302,7 +302,7 @@ namespace Stride.Core.Mathematics
         /// </remarks>
         public float Length()
         {
-            return (float)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
+            return MathF.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
         }
 
         /// <summary>
@@ -572,10 +572,10 @@ namespace Stride.Core.Mathematics
         /// <param name="result">When the method completes, contains the exponentiated quaternion.</param>
         public static void Exponential(ref Quaternion value, out Quaternion result)
         {
-            float angle = (float)Math.Sqrt((value.X * value.X) + (value.Y * value.Y) + (value.Z * value.Z));
-            float sin = (float)Math.Sin(angle);
+            float angle = MathF.Sqrt((value.X * value.X) + (value.Y * value.Y) + (value.Z * value.Z));
+            float sin = MathF.Sin(angle);
 
-            if (Math.Abs(sin) >= MathUtil.ZeroTolerance)
+            if (MathF.Abs(sin) >= MathUtil.ZeroTolerance)
             {
                 float coeff = sin / angle;
                 result.X = coeff * value.X;
@@ -587,7 +587,7 @@ namespace Stride.Core.Mathematics
                 result = value;
             }
 
-            result.W = (float)Math.Cos(angle);
+            result.W = MathF.Cos(angle);
         }
 
         /// <summary>
@@ -685,12 +685,12 @@ namespace Stride.Core.Mathematics
         /// <param name="result">When the method completes, contains the natural logarithm of the quaternion.</param>
         public static void Logarithm(ref Quaternion value, out Quaternion result)
         {
-            if (Math.Abs(value.W) < 1.0)
+            if (MathF.Abs(value.W) < 1.0f)
             {
-                float angle = (float)Math.Acos(value.W);
-                float sin = (float)Math.Sin(angle);
+                float angle = MathF.Acos(value.W);
+                float sin = MathF.Sin(angle);
 
-                if (Math.Abs(sin) >= MathUtil.ZeroTolerance)
+                if (MathF.Abs(sin) >= MathUtil.ZeroTolerance)
                 {
                     float coeff = angle / sin;
                     result.X = value.X * coeff;
@@ -771,8 +771,8 @@ namespace Stride.Core.Mathematics
             Vector3.Normalize(ref axis, out normalized);
 
             float half = angle * 0.5f;
-            float sin = (float)Math.Sin(half);
-            float cos = (float)Math.Cos(half);
+            float sin = MathF.Sin(half);
+            float cos = MathF.Cos(half);
 
             result.X = normalized.X * sin;
             result.Y = normalized.Y * sin;
@@ -806,7 +806,7 @@ namespace Stride.Core.Mathematics
 
             if (scale > 0.0f)
             {
-                sqrt = (float)Math.Sqrt(scale + 1.0f);
+                sqrt = MathF.Sqrt(scale + 1.0f);
                 result.W = sqrt * 0.5f;
                 sqrt = 0.5f / sqrt;
 
@@ -816,7 +816,7 @@ namespace Stride.Core.Mathematics
             }
             else if ((matrix.M11 >= matrix.M22) && (matrix.M11 >= matrix.M33))
             {
-                sqrt = (float)Math.Sqrt(1.0f + matrix.M11 - matrix.M22 - matrix.M33);
+                sqrt = MathF.Sqrt(1.0f + matrix.M11 - matrix.M22 - matrix.M33);
                 half = 0.5f / sqrt;
 
                 result.X = 0.5f * sqrt;
@@ -826,7 +826,7 @@ namespace Stride.Core.Mathematics
             }
             else if (matrix.M22 > matrix.M33)
             {
-                sqrt = (float)Math.Sqrt(1.0f + matrix.M22 - matrix.M11 - matrix.M33);
+                sqrt = MathF.Sqrt(1.0f + matrix.M22 - matrix.M11 - matrix.M33);
                 half = 0.5f / sqrt;
 
                 result.X = (matrix.M21 + matrix.M12) * half;
@@ -836,7 +836,7 @@ namespace Stride.Core.Mathematics
             }
             else
             {
-                sqrt = (float)Math.Sqrt(1.0f + matrix.M33 - matrix.M11 - matrix.M22);
+                sqrt = MathF.Sqrt(1.0f + matrix.M33 - matrix.M11 - matrix.M22);
                 half = 0.5f / sqrt;
 
                 result.X = (matrix.M31 + matrix.M13) * half;
@@ -866,7 +866,7 @@ namespace Stride.Core.Mathematics
         public static void RotationX(float angle, out Quaternion result)
         {
             float halfAngle = angle * 0.5f;
-            result = new Quaternion((float)Math.Sin(halfAngle), 0.0f, 0.0f, (float)Math.Cos(halfAngle));
+            result = new Quaternion(MathF.Sin(halfAngle), 0.0f, 0.0f, MathF.Cos(halfAngle));
         }
 
         /// <summary>
@@ -889,7 +889,7 @@ namespace Stride.Core.Mathematics
         public static void RotationY(float angle, out Quaternion result)
         {
             float halfAngle = angle * 0.5f;
-            result = new Quaternion(0.0f, (float)Math.Sin(halfAngle), 0.0f, (float)Math.Cos(halfAngle));
+            result = new Quaternion(0.0f, MathF.Sin(halfAngle), 0.0f, MathF.Cos(halfAngle));
         }
 
         /// <summary>
@@ -912,7 +912,7 @@ namespace Stride.Core.Mathematics
         public static void RotationZ(float angle, out Quaternion result)
         {
             float halfAngle = angle * 0.5f;
-            result = new Quaternion(0.0f, 0.0f, (float)Math.Sin(halfAngle), (float)Math.Cos(halfAngle));
+            result = new Quaternion(0.0f, 0.0f, MathF.Sin(halfAngle), MathF.Cos(halfAngle));
         }
 
         /// <summary>
@@ -951,16 +951,15 @@ namespace Stride.Core.Mathematics
             var yz = rotation.Y * rotation.Z;
             var xw = rotation.X * rotation.W;
 
-            pitch = (float)Math.Asin(2.0f * (xw - yz));
-            double test = Math.Cos(pitch);
-            if (test > MathUtil.ZeroTolerance)
+            pitch = MathF.Asin(2.0f * (xw - yz));
+            if (MathF.Cos(pitch) > MathUtil.ZeroTolerance)
             {
-                roll = (float)Math.Atan2(2.0f * (xy + zw), 1.0f - (2.0f * (zz + xx)));
-                yaw = (float)Math.Atan2(2.0f * (zx + yw), 1.0f - (2.0f * (yy + xx)));
+                roll = MathF.Atan2(2.0f * (xy + zw), 1.0f - (2.0f * (zz + xx)));
+                yaw = MathF.Atan2(2.0f * (zx + yw), 1.0f - (2.0f * (yy + xx)));
             }
             else
             {
-                roll = (float)Math.Atan2(-2.0f * (xy - zw), 1.0f - (2.0f * (yy + zz)));
+                roll = MathF.Atan2(-2.0f * (xy - zw), 1.0f - (2.0f * (yy + zz)));
                 yaw = 0.0f;
             }
         }
@@ -978,12 +977,12 @@ namespace Stride.Core.Mathematics
             var halfPitch = pitch * 0.5f;
             var halfYaw = yaw * 0.5f;
             
-            var sinRoll = (float)Math.Sin(halfRoll);
-            var cosRoll = (float)Math.Cos(halfRoll);
-            var sinPitch = (float)Math.Sin(halfPitch);
-            var cosPitch = (float)Math.Cos(halfPitch);
-            var sinYaw = (float)Math.Sin(halfYaw);
-            var cosYaw = (float)Math.Cos(halfYaw);
+            var sinRoll = MathF.Sin(halfRoll);
+            var cosRoll = MathF.Cos(halfRoll);
+            var sinPitch = MathF.Sin(halfPitch);
+            var cosPitch = MathF.Cos(halfPitch);
+            var sinYaw = MathF.Sin(halfYaw);
+            var cosYaw = MathF.Cos(halfYaw);
 
             var cosYawPitch = cosYaw * cosPitch;
             var sinYawPitch = sinYaw * sinPitch;
@@ -1029,13 +1028,13 @@ namespace Stride.Core.Mathematics
         /// <param name="result">The resulting quaternion corresponding to the transformation of the source vector to the target vector.</param>
         public static void BetweenDirections(ref Vector3 source, ref Vector3 target, out Quaternion result)
         {
-            var norms = (float)Math.Sqrt(source.LengthSquared() * target.LengthSquared());
+            var norms = MathF.Sqrt(source.LengthSquared() * target.LengthSquared());
             var real = norms + Vector3.Dot(source, target);
             if (real < MathUtil.ZeroTolerance * norms)
             {
                 // If source and target are exactly opposite, rotate 180 degrees around an arbitrary orthogonal axis.
                 // Axis normalisation can happen later, when we normalise the quaternion.
-                result = Math.Abs(source.X) > Math.Abs(source.Z)
+                result = MathF.Abs(source.X) > MathF.Abs(source.Z)
                     ? new Quaternion(-source.Y, source.X, 0.0f, 0.0f)
                     : new Quaternion(0.0f, -source.Z, source.Y, 0.0f);
             }
@@ -1061,18 +1060,18 @@ namespace Stride.Core.Mathematics
             float inverse;
             float dot = Dot(start, end);
 
-            if (Math.Abs(dot) > 1.0f - MathUtil.ZeroTolerance)
+            if (MathF.Abs(dot) > 1.0f - MathUtil.ZeroTolerance)
             {
                 inverse = 1.0f - amount;
-                opposite = amount * Math.Sign(dot);
+                opposite = amount * MathF.Sign(dot);
             }
             else
             {
-                float acos = (float)Math.Acos(Math.Abs(dot));
-                float invSin = (float)(1.0 / Math.Sin(acos));
+                float acos = MathF.Acos(MathF.Abs(dot));
+                float invSin = 1.0f / MathF.Sin(acos);
 
-                inverse = (float)Math.Sin((1.0f - amount) * acos) * invSin;
-                opposite = (float)Math.Sin(amount * acos) * invSin * Math.Sign(dot);
+                inverse = MathF.Sin((1.0f - amount) * acos) * invSin;
+                opposite = MathF.Sin(amount * acos) * invSin * MathF.Sign(dot);
             }
 
             result.X = (inverse * start.X) + (opposite * end.X);
@@ -1330,10 +1329,10 @@ namespace Stride.Core.Mathematics
         /// </returns>
         public bool Equals(Quaternion other)
         {
-            return ((float)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.Z - Z) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.W - W) < MathUtil.ZeroTolerance);
+            return (MathF.Abs(other.X - X) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Z - Z) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.W - W) < MathUtil.ZeroTolerance);
         }
 
         /// <summary>

@@ -65,7 +65,7 @@ namespace Stride.Extensions
                 }
 
                 //Find the real distance from the DistanceSquared.
-                boundingSphere.Radius = (float)Math.Sqrt(boundingSphere.Radius);
+                boundingSphere.Radius = MathF.Sqrt(boundingSphere.Radius);
             }
 
             return boundingBox;

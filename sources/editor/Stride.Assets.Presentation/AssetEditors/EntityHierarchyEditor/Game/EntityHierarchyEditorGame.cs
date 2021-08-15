@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -95,7 +95,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             // Ensures a ray angle with projection plane of at least 'limitAngle' to avoid the object to go to infinity.
             var dotProductValue = Vector3.Dot(ray.Direction, plane.Normal);
             var comparisonSign = Math.Sign(Vector3.Dot(ray.Position, plane.Normal) + plane.D);
-            if (comparisonSign * (Math.Acos(dotProductValue) - MathUtil.PiOverTwo) < limitAngle || !plane.Intersects(ref ray, out scenePosition))
+            if (comparisonSign * (MathF.Acos(dotProductValue) - MathUtil.PiOverTwo) < limitAngle || !plane.Intersects(ref ray, out scenePosition))
                 scenePosition = ray.Position + randomDistance * ray.Direction;
 
             return scenePosition;

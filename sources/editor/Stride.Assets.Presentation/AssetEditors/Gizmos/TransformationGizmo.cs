@@ -43,7 +43,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         public const RenderGroupMask TransformationGizmoGroupMask = RenderGroupMask.Group4;
 
         private bool transformationInitialized;
-        private bool transformationStarted;
         private bool duplicationDone;
 
         /// <summary>
@@ -55,6 +54,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// Gets the gizmo default scale in ratio of screen height ( 1 => full screen vertically )
         /// </summary>
         public float DefaultScale => GizmoDefaultSize / GraphicsDevice.Presenter.BackBuffer.Height;
+
+        /// <summary>
+        /// Returns whether the transformation has started or not
+        /// </summary>
+        protected bool TransformationStarted { get; private set; }
 
         /// <summary>
         /// The default material for the origin elements
@@ -135,9 +139,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             base.Create();
             
-            DefaultOriginMaterial = CreateUniformColorMaterial(Color.White);
-            ElementSelectedMaterial = CreateUniformColorMaterial(Color.Gold);
-            TransparentElementSelectedMaterial = CreateUniformColorMaterial(Color.Gold.WithAlpha(86));
+            DefaultOriginMaterial = CreateEmissiveColorMaterial(Color.White);
+            ElementSelectedMaterial = CreateEmissiveColorMaterial(Color.Gold);
+            TransparentElementSelectedMaterial = CreateEmissiveColorMaterial(Color.Gold.WithAlpha(86));
 
             return null;
         }
@@ -186,7 +190,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     if (AnchorEntity.GetParent() != null)
                         parentMatrix = AnchorEntity.TransformValue.Parent.WorldMatrix;
 
-                    // We don't use the entity's "WorldMatrix" because it's scale could be zero, which would break the gizmo.
+                    // We don't use the entity's "WorldMatrix" because its scale could be zero, which would break the gizmo.
                     worldMatrix = Matrix.RotationQuaternion(AnchorEntity.Transform.Rotation) *
                                   Matrix.Translation(AnchorEntity.Transform.Position) *
                                   parentMatrix;
@@ -206,8 +210,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             if (cameraService.Component.Projection == CameraProjectionMode.Perspective)
             {
-                var distanceToSelectedEntity = Math.Abs(Vector3.TransformCoordinate(AnchorEntity.Transform.WorldMatrix.TranslationVector, cameraService.ViewMatrix).Z);
-                return SizeFactor * DefaultScale * 2f * (float)Math.Tan(MathUtil.DegreesToRadians(cameraService.VerticalFieldOfView / 2)) * distanceToSelectedEntity;
+                var distanceToSelectedEntity = MathF.Abs(Vector3.TransformCoordinate(AnchorEntity.Transform.WorldMatrix.TranslationVector, cameraService.ViewMatrix).Z);
+                return SizeFactor * DefaultScale * 2f * MathF.Tan(MathUtil.DegreesToRadians(cameraService.VerticalFieldOfView / 2)) * distanceToSelectedEntity;
             }
 
             return SizeFactor * DefaultScale * cameraService.Component.OrthographicSize;
@@ -302,7 +306,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 planeNormal = Vector3.Cross(planeVector, axisVector);
 
                 //This is a temporary fix for weird rotation behavior, it's not working for translation tho
-                if (MathUtil.NearEqual(Math.Abs(Vector3.Dot(axisVector, Vector3.Normalize(cameraVector))), 1.0f))
+                if (MathUtil.NearEqual(MathF.Abs(Vector3.Dot(axisVector, Vector3.Normalize(cameraVector))), 1.0f))
                 {
                     planeNormal = axisVector;
                 }
@@ -316,7 +320,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         protected virtual void OnTransformationStarted(Vector2 mouseDragPixel)
         {
-            transformationStarted = true;
+            TransformationStarted = true;
 
             // keep in memory all initial transformation states
             InitialTransformations.Clear();
@@ -353,7 +357,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     OnTransformationFinished();
 
                 transformationInitialized = false;
-                transformationStarted = false;
+                TransformationStarted = false;
                 return;
             }
 
@@ -368,7 +372,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             var mouseDrag = mousePosition - StartMousePosition;
 
             // start the transformation only if user has dragged from a given amount of pixel. Determine direction of the transformation.
-            if (!transformationStarted)
+            if (!TransformationStarted)
             {
                 // ensure that the mouse cursor has been moved enough
                 var screenSize = new Vector2(GraphicsDevice.Presenter.BackBuffer.Width, GraphicsDevice.Presenter.BackBuffer.Height);
@@ -376,7 +380,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 if (mouseDragPixel.Length() < TransformationStartPixelThreshold)
                     return;
 
-                TransformationDirection = Math.Abs(mouseDragPixel.X) > Math.Abs(mouseDragPixel.Y) ? Vector2.UnitX : Vector2.UnitY;
+                TransformationDirection = MathF.Abs(mouseDragPixel.X) > MathF.Abs(mouseDragPixel.Y) ? Vector2.UnitX : Vector2.UnitY;
 
                 // ensure that the current transformation is not the identity (due to snap it might require more mouse movement to actually start the transformation)
                 var currentTransformation = CalculateTransformation();

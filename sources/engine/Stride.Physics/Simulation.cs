@@ -3,12 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
+using Stride.Core.MicroThreading;
 using Stride.Engine;
-using Stride.Games;
 using Stride.Rendering;
+using static BulletSharp.UnsafeNativeMethods;
 
 namespace Stride.Physics
 {
@@ -83,7 +83,7 @@ namespace Stride.Physics
 
             if (configuration.Flags == PhysicsEngineFlags.None)
             {
-                configuration.Flags = OnSimulationCreation?.Invoke() ?? configuration.Flags;              
+                configuration.Flags = OnSimulationCreation?.Invoke() ?? configuration.Flags;
             }
 
             MaxSubSteps = configuration.MaxSubSteps;
@@ -140,23 +140,223 @@ namespace Stride.Physics
                     solverInfo.SolverMode |= BulletSharp.SolverModes.Use2FrictionDirections | BulletSharp.SolverModes.RandomizeOrder;
                     dispatchInfo.UseContinuous = true;
                 }
+                else
+                {
+                    CanCcd = false;
+                    dispatchInfo.UseContinuous = false;
+                }
             }
         }
 
-        private readonly List<Collision> newCollisionsCache = new List<Collision>();
-        private readonly List<Collision> removedCollisionsCache = new List<Collision>();
-        private readonly List<ContactPoint> newContactsFastCache = new List<ContactPoint>();
-        private readonly List<ContactPoint> updatedContactsCache = new List<ContactPoint>();
-        private readonly List<ContactPoint> removedContactsCache = new List<ContactPoint>();
 
-        //private ProfilingState contactsProfilingState;
+        private readonly Dictionary<Collision, (IntPtr, IntPtr)> collisions = new();
+        private readonly Dictionary<(IntPtr, IntPtr), Collision> outdatedCollisions = new();
 
-        private readonly Dictionary<ContactPoint, Collision> contactToCollision = new Dictionary<ContactPoint, Collision>(ContactPointEqualityComparer.Default);
+        private readonly Stack<Channel<HashSet<ContactPoint>>> channelsPool = new();
+        private readonly Dictionary<Collision, (Channel<HashSet<ContactPoint>> Channel, HashSet<ContactPoint> PreviousContacts)> contactChangedChannels = new();
+
+        private readonly Stack<HashSet<ContactPoint>> contactsPool = new();
+        private readonly Dictionary<Collision, HashSet<ContactPoint>> contactsUpToDate = new();
+
+        private readonly List<Collision> markedAsNewColl = new();
+        private readonly List<Collision> markedAsDeprecatedColl = new();
+        internal readonly HashSet<Collision> EndedFromComponentRemoval = new();
+
+        /// <summary>
+        /// Every pair of components currently colliding with each other
+        /// </summary>
+        public ICollection<Collision> CurrentCollisions => collisions.Keys;
+        
+        /// <summary>
+        /// Should static - static collisions of StaticColliderComponent yield
+        /// <see cref="PhysicsComponent"/>.<see cref="PhysicsComponent.NewCollision()"/> and added to
+        /// <see cref="PhysicsComponent"/>.<see cref="PhysicsComponent.Collisions"/> ?
+        /// </summary>
+        /// <remarks>
+        /// Regardless of the state of this value you can still retrieve static-static collisions
+        /// through <see cref="CurrentCollisions"/>.
+        /// </remarks>
+        public bool IncludeStaticAgainstStaticCollisions { get; set; } = false;
+
+
+        internal void UpdateContacts()
+        {
+            EndedFromComponentRemoval.Clear();
+            // Mark previous collisions as outdated,
+            // we'll iterate through bullet's actives and remove them from here
+            // to be left with only the outdated ones.
+            foreach (var collision in collisions)
+            {
+                outdatedCollisions.Add(collision.Value, collision.Key);
+            }
+
+            // If this needs to be even faster, look into btPersistentManifold.ContactStartedCallback,
+            // not yet covered by the wrapper
+
+            int numManifolds = collisionWorld.Dispatcher.NumManifolds;
+            var dispatcherNativePtr = collisionWorld.Dispatcher.Native;
+            for (int i = 0; i < numManifolds; i++)
+            {
+                var persManifoldPtr = btDispatcher_getManifoldByIndexInternal(dispatcherNativePtr, i);
+
+                int numContacts = btPersistentManifold_getNumContacts(persManifoldPtr);
+                if (numContacts == 0)
+                    continue;
+                
+                var ptrA = btPersistentManifold_getBody0(persManifoldPtr);
+                var ptrB = btPersistentManifold_getBody1(persManifoldPtr);
+                bool aFirst;
+                unsafe { aFirst = ptrA.ToPointer() > ptrB.ToPointer(); }
+                (IntPtr, IntPtr) collId = aFirst ? (ptrA, ptrB) : (ptrB, ptrA);
+
+                // This collision is up-to-date, remove it from the outdated collisions
+                if (outdatedCollisions.Remove(collId))
+                    continue;
+                
+                // Likely a new collision, or a duplicate
+                
+                var a = BulletSharp.CollisionObject.GetManaged(collId.Item1);
+                var b = BulletSharp.CollisionObject.GetManaged(collId.Item2);
+                var collision = new Collision(a.UserObject as PhysicsComponent, b.UserObject as PhysicsComponent);
+                // PairCachingGhostObject has two identical manifolds when colliding, not 100% sure why that is,
+                // CompoundColliderShape shapes all map to the same PhysicsComponent but create unique manifolds.
+                if (collisions.TryAdd(collision, collId))
+                {
+                    markedAsNewColl.Add(collision);
+                }
+            }
+
+            // This set only contains outdated collisions by now,
+            // mark them as out of date for events and remove them from current collisions
+            foreach (var (_, outdatedCollision) in outdatedCollisions)
+            {
+                markedAsDeprecatedColl.Add(outdatedCollision);
+                collisions.Remove(outdatedCollision);
+            }
+
+            outdatedCollisions.Clear();
+        }
+
+
+        internal void ClearCollisionDataOf(PhysicsComponent component)
+        {
+            foreach (var (collision, key) in collisions)
+            {
+                if (ReferenceEquals(collision.ColliderA, component) || ReferenceEquals(collision.ColliderB, component))
+                {
+                    outdatedCollisions.Add(key, collision);
+                    EndedFromComponentRemoval.Add(collision);
+                }
+            }
+
+            // Remove collision and update contact data
+            foreach (var (_, collision) in outdatedCollisions)
+            {
+                if (contactChangedChannels.TryGetValue(collision, out var tuple))
+                {
+                    contactChangedChannels[collision] = (tuple.Channel, LatestContactPointsFor(collision));
+                    contactsUpToDate[collision] = contactsPool.Count == 0 ? new HashSet<ContactPoint>() : contactsPool.Pop();
+                }
+                else if (contactsUpToDate.TryGetValue(collision, out var set))
+                {
+                    set.Clear();
+                }
+
+                collisions.Remove(collision);
+            }
+
+            // Send contacts changed and cleanup channel-related pooled data
+            foreach (var (_, collision) in outdatedCollisions)
+            {
+                if (contactChangedChannels.TryGetValue(collision, out var tuple) == false)
+                    continue;
+
+                var channel = tuple.Channel;
+                var previousContacts = tuple.PreviousContacts;
+                var newContacts = contactsUpToDate[collision];
+
+                if (previousContacts.SetEquals(newContacts) == false)
+                {
+                    while (channel.Balance < 0)
+                    {
+                        channel.Send(previousContacts);
+                    }
+                }
+
+                previousContacts.Clear();
+                contactsPool.Push(previousContacts);
+                channelsPool.Push(channel);
+                contactChangedChannels.Remove(collision);
+            }
+
+            // Send collision ended
+            foreach (var (_, refCollision) in outdatedCollisions)
+            {
+                var collision = new Collision(refCollision.ColliderA, refCollision.ColliderB);
+                // See: SendEvents()
+                if (IncludeStaticAgainstStaticCollisions == false
+                    && collision.ColliderA is StaticColliderComponent
+                    && collision.ColliderB is StaticColliderComponent)
+                {
+                    collision.ColliderA.Collisions.Remove( collision );
+                    collision.ColliderB.Collisions.Remove( collision );
+                    continue;
+                }
+                
+                while (collision.ColliderA.PairEndedChannel.Balance < 0)
+                {
+                    collision.ColliderA.PairEndedChannel.Send(collision);
+                }
+
+                while (collision.ColliderB.PairEndedChannel.Balance < 0)
+                {
+                    collision.ColliderB.PairEndedChannel.Send(collision);
+                }
+                collision.ColliderA.Collisions.Remove( collision );
+                collision.ColliderB.Collisions.Remove( collision );
+            }
+
+            outdatedCollisions.Clear();
+        }
+
 
         internal void SendEvents()
         {
-            foreach (var collision in newCollisionsCache)
+            int previousSets = 0;
+            // Move outdated contacts back to the pool, or into contact changed to be compared for changes
+            foreach (var (coll, hashset) in contactsUpToDate)
             {
+                if (contactChangedChannels.TryGetValue(coll, out var tuple))
+                {
+                    contactChangedChannels[coll] = (tuple.Channel, hashset);
+                    previousSets++;
+                }
+                else
+                {
+                    hashset.Clear();
+                    contactsPool.Push(hashset);
+                }
+            }
+
+            contactsUpToDate.Clear();
+
+            if (previousSets != contactChangedChannels.Count)
+            {
+                throw new InvalidOperationException($"All {nameof(contactChangedChannels)} should have hashsets associated to them");
+            }
+
+            foreach (var collision in markedAsNewColl)
+            {
+                if (IncludeStaticAgainstStaticCollisions == false
+                    && collision.ColliderA is StaticColliderComponent
+                    && collision.ColliderB is StaticColliderComponent)
+                {
+                    continue;
+                }
+
+                collision.ColliderA.Collisions.Add( collision );
+                collision.ColliderB.Collisions.Add( collision );
+                
                 while (collision.ColliderA.NewPairChannel.Balance < 0)
                 {
                     collision.ColliderA.NewPairChannel.Send(collision);
@@ -168,8 +368,48 @@ namespace Stride.Physics
                 }
             }
 
-            foreach (var collision in removedCollisionsCache)
+            foreach (var (collision, (channel, previousContacts)) in contactChangedChannels)
             {
+                var newContacts = LatestContactPointsFor(collision);
+
+                if (previousContacts.SetEquals(newContacts) == false)
+                {
+                    while (channel.Balance < 0)
+                    {
+                        channel.Send(previousContacts);
+                    }
+                }
+
+                previousContacts.Clear();
+                contactsPool.Push(previousContacts);
+            }
+
+            // Deprecated collisions don't need to send contact changes, move channels to the pool
+            foreach (var collision in markedAsDeprecatedColl)
+            {
+                if (contactChangedChannels.TryGetValue(collision, out var tuple))
+                {
+                    channelsPool.Push(tuple.Channel);
+                    contactChangedChannels.Remove(collision);
+                }
+            }
+
+            foreach (var collision in markedAsDeprecatedColl)
+            {
+                if (IncludeStaticAgainstStaticCollisions == false
+                    && collision.ColliderA is StaticColliderComponent
+                    && collision.ColliderB is StaticColliderComponent)
+                {
+                    // Try to remove them still if they were added while
+                    // 'IncludeStaticAgainstStaticCollisions' was true
+                    collision.ColliderA.Collisions.Remove( collision );
+                    collision.ColliderB.Collisions.Remove( collision );
+                    continue;
+                }
+                
+                // IncludeStaticAgainstStaticCollisions:
+                // Can't do much if something is awaiting the end of a specific
+                // static-static collision below though
                 while (collision.ColliderA.PairEndedChannel.Balance < 0)
                 {
                     collision.ColliderA.PairEndedChannel.Send(collision);
@@ -179,45 +419,101 @@ namespace Stride.Physics
                 {
                     collision.ColliderB.PairEndedChannel.Send(collision);
                 }
+                
+                collision.ColliderA.Collisions.Remove( collision );
+                collision.ColliderB.Collisions.Remove( collision );
             }
 
-            foreach (var contactPoint in newContactsFastCache)
+            markedAsNewColl.Clear();
+            markedAsDeprecatedColl.Clear();
+
+            // Mark un-awaited channels for removal
+            foreach (var (collision, (channel, _)) in contactChangedChannels)
             {
-                Collision collision;
-                if (contactToCollision.TryGetValue(contactPoint, out collision))
+                if (channel.Balance < 0)
+                    continue;
+
+                markedAsDeprecatedColl.Add(collision);
+                channelsPool.Push(channel);
+            }
+
+            foreach (var collision in markedAsDeprecatedColl)
+            {
+                contactChangedChannels.Remove(collision);
+            }
+
+            markedAsDeprecatedColl.Clear();
+        }
+
+
+        internal HashSet<ContactPoint> LatestContactPointsFor(Collision coll)
+        {
+            if (contactsUpToDate.TryGetValue(coll, out var buffer))
+                return buffer;
+
+            buffer = contactsPool.Count == 0 ? new HashSet<ContactPoint>() : contactsPool.Pop();
+            contactsUpToDate[coll] = buffer;
+
+            if (collisions.ContainsKey(coll) == false)
+                return buffer;
+
+            int numManifolds = collisionWorld.Dispatcher.NumManifolds;
+            var dispatcherNativePtr = collisionWorld.Dispatcher.Native;
+            for (int i = 0; i < numManifolds; i++)
+            {
+                var persManifoldPtr = btDispatcher_getManifoldByIndexInternal(dispatcherNativePtr, i);
+
+                int numContacts = btPersistentManifold_getNumContacts(persManifoldPtr);
+                if (numContacts == 0)
+                    continue;
+                
+                var ptrA = btPersistentManifold_getBody0(persManifoldPtr);
+                var ptrB = btPersistentManifold_getBody1(persManifoldPtr);
+
+                // Distinct bullet pointer can map to the same PhysicsComponent through CompoundColliderShapes
+                // We're retrieving all contacts for a pair of PhysicsComponent here, not for a unique collider
+                var collA = BulletSharp.CollisionObject.GetManaged(ptrA).UserObject as PhysicsComponent;
+                var collB = BulletSharp.CollisionObject.GetManaged(ptrB).UserObject as PhysicsComponent;
+                
+                if (false == (coll.ColliderA == collA && coll.ColliderB == collB 
+                              || coll.ColliderA == collB && coll.ColliderB == collA))
                 {
-                    while (collision.NewContactChannel.Balance < 0)
+                    continue;
+                }
+                
+                for (int j = 0; j < numContacts; j++)
+                {
+                    var point = BulletSharp.ManifoldPoint.FromPtr(btPersistentManifold_getContactPoint(persManifoldPtr, j));
+                    buffer.Add(new ContactPoint
                     {
-                        collision.NewContactChannel.Send(contactPoint);
-                    }
+                        ColliderA = collA,
+                        ColliderB = collB,
+                        Distance = point.m_distance1,
+                        Normal = point.m_normalWorldOnB,
+                        PositionOnA = point.m_positionWorldOnA,
+                        PositionOnB = point.m_positionWorldOnB,
+                    });
                 }
             }
 
-            foreach (var contactPoint in updatedContactsCache)
-            {
-                Collision collision;
-                if (contactToCollision.TryGetValue(contactPoint, out collision))
-                {
-                    while (collision.ContactUpdateChannel.Balance < 0)
-                    {
-                        collision.ContactUpdateChannel.Send(contactPoint);
-                    }
-                }
-            }
+            return buffer;
+        }
 
-            foreach (var contactPoint in removedContactsCache)
-            {
-                Collision collision;
-                if (contactToCollision.TryGetValue(contactPoint, out collision))
-                {
-                    while (collision.ContactEndedChannel.Balance < 0)
-                    {
-                        collision.ContactEndedChannel.Send(contactPoint);
-                    }
-                }
-            }
 
-            //contactsProfilingState.End("Contacts: {0}", currentFrameContacts.Count);
+        internal ChannelMicroThreadAwaiter<HashSet<ContactPoint>> ContactChanged(Collision coll)
+        {
+            if (collisions.ContainsKey(coll) == false)
+                throw new InvalidOperationException("The collision object has been destroyed.");
+
+            // Forces this frame's contact to be retrieved and stored so that we can compare it for changes
+            LatestContactPointsFor(coll);
+
+            if (contactChangedChannels.TryGetValue(coll, out var tuple))
+                return tuple.Channel.Receive();
+
+            var channel = channelsPool.Count == 0 ? new Channel<HashSet<ContactPoint>>{ Preference = ChannelPreference.PreferSender } : channelsPool.Pop();
+            contactChangedChannels[coll] = (channel, null);
+            return channel.Receive();
         }
 
         /// <summary>
@@ -603,8 +899,6 @@ namespace Stride.Physics
         /// </value>
         /// <exception cref="System.Exception">
         /// Cannot perform this action when the physics engine is set to CollisionsOnly
-        /// or
-        /// Cannot perform this action when the physics engine is set to CollisionsOnly
         /// </exception>
         public Vector3 Gravity
         {
@@ -706,276 +1000,6 @@ namespace Stride.Physics
         {
             var handler = SimulationEnd;
             handler?.Invoke(this, e);
-        }
-
-        private readonly FastList<ContactPoint> newContacts = new FastList<ContactPoint>();
-        private readonly FastList<ContactPoint> updatedContacts = new FastList<ContactPoint>();
-        private readonly FastList<ContactPoint> removedContacts = new FastList<ContactPoint>();
-
-        private readonly Queue<Collision> collisionsPool = new Queue<Collision>();
-
-        internal void BeginContactTesting()
-        {
-            //remove previous frame removed collisions
-            foreach (var collision in removedCollisionsCache)
-            {
-                collision.Destroy();
-                collisionsPool.Enqueue(collision);
-            }
-
-            //clean caches
-            newCollisionsCache.Clear();
-            removedCollisionsCache.Clear();
-            newContactsFastCache.Clear();
-            updatedContactsCache.Clear();
-            removedContactsCache.Clear();
-
-            //swap the lists
-            var previous = currentFrameContacts;
-            currentFrameContacts = previousFrameContacts;
-            currentFrameContacts.Clear();
-            previousFrameContacts = previous;
-        }
-
-        private void ContactRemoval(ContactPoint contact, PhysicsComponent component0, PhysicsComponent component1)
-        {
-            Collision existingPair = null;
-            foreach (var x in component0.Collisions)
-            {
-                if (x.InternalEquals(component0, component1))
-                {
-                    existingPair = x;
-                    break;
-                }
-            }
-            if (existingPair == null)
-            {
-#if DEBUG
-                //should not happen?
-                Log.Warning("Pair not present.");
-#endif
-                return;
-            }
-
-            if (existingPair.Contacts.Contains(contact))
-            {
-                existingPair.Contacts.Remove(contact);
-                removedContactsCache.Add(contact);
-
-                contactToCollision.Remove(contact);
-
-                if (existingPair.Contacts.Count == 0)
-                {
-                    component0.Collisions.Remove(existingPair);
-                    component1.Collisions.Remove(existingPair);
-                    removedCollisionsCache.Add(existingPair);
-                }
-            }
-            else
-            {
-#if DEBUG
-                //should not happen?
-                Log.Warning("Contact not in pair.");
-#endif
-            }
-        }
-
-        internal void EndContactTesting()
-        {
-            newContacts.Clear(true);
-            updatedContacts.Clear(true);
-            removedContacts.Clear(true);
-
-            foreach (var currentFrameContact in currentFrameContacts)
-            {
-                if (!previousFrameContacts.Contains(currentFrameContact))
-                {
-                    newContacts.Add(currentFrameContact);
-                }
-                else
-                {
-                    updatedContacts.Add(currentFrameContact);
-                }
-            }
-
-            foreach (var previousFrameContact in previousFrameContacts)
-            {
-                if (!currentFrameContacts.Contains(previousFrameContact))
-                {
-                    removedContacts.Add(previousFrameContact);
-                }
-            }
-
-            foreach (var contact in newContacts)
-            {
-                var component0 = contact.ColliderA;
-                var component1 = contact.ColliderB;
-
-                Collision existingPair = null;
-                foreach (var x in component0.Collisions)
-                {
-                    if (x.InternalEquals(component0, component1))
-                    {
-                        existingPair = x;
-                        break;
-                    }
-                }
-                if (existingPair != null)
-                {
-                    if (existingPair.Contacts.Contains(contact))
-                    {
-#if DEBUG
-                        //should not happen?
-                        Log.Warning("Contact already added.");
-#endif
-                        continue;
-                    }
-
-                    existingPair.Contacts.Add(contact);
-                }
-                else
-                {
-                    var newPair = collisionsPool.Count == 0 ? new Collision() : collisionsPool.Dequeue();
-                    newPair.Initialize(component0, component1);
-                    newPair.Contacts.Add(contact);
-                    component0.Collisions.Add(newPair);
-                    component1.Collisions.Add(newPair);
-
-                    contactToCollision.Add(contact, newPair);
-
-                    newCollisionsCache.Add(newPair);
-                    newContactsFastCache.Add(contact);
-                }
-            }
-
-            foreach (var contact in updatedContacts)
-            {
-                var component0 = contact.ColliderA;
-                var component1 = contact.ColliderB;
-
-                Collision existingPair = null;
-                foreach (var x in component0.Collisions)
-                {
-                    if (x.InternalEquals(component0, component1))
-                    {
-                        existingPair = x;
-                        break;
-                    }
-                }
-                if (existingPair != null)
-                {
-                    if (existingPair.Contacts.Contains(contact))
-                    {
-                        //update data values (since comparison is only at pointer level internally)
-                        existingPair.Contacts.Remove(contact);
-                        existingPair.Contacts.Add(contact);
-                        updatedContactsCache.Add(contact);
-                    }
-                    else
-                    {
-#if DEBUG
-                        //should not happen?
-                        Log.Warning("Contact not in pair.");
-#endif
-                    }
-                }
-                else
-                {
-#if DEBUG
-                    //should not happen?
-                    Log.Warning("Pair not present.");
-#endif
-                }
-            }
-
-            foreach (var contact in removedContacts)
-            {
-                var component0 = contact.ColliderA;
-                var component1 = contact.ColliderB;
-
-                ContactRemoval(contact, component0, component1);
-            }     
-        }
-
-        private DefaultContactResultCallback currentFrameContacts = new DefaultContactResultCallback();
-        private DefaultContactResultCallback previousFrameContacts = new DefaultContactResultCallback();
-
-        class DefaultContactResultCallback : BulletSharp.ContactResultCallback
-        {
-            HashSet<ContactPoint> contacts = new HashSet<ContactPoint>(ContactPointEqualityComparer.Default);
-
-            public override float AddSingleResult(BulletSharp.ManifoldPoint contact, BulletSharp.CollisionObjectWrapper obj0, int partId0, int index0, BulletSharp.CollisionObjectWrapper obj1, int partId1, int index1)
-            {
-                var component0 = (PhysicsComponent)obj0.CollisionObject.UserObject;
-                var component1 = (PhysicsComponent)obj1.CollisionObject.UserObject;
-
-                //disable static-static
-                if ((component0 is StaticColliderComponent && component1 is StaticColliderComponent) || !component0.Enabled || !component1.Enabled)
-                    return 0f;
-
-                contacts.Add(new ContactPoint
-                {
-                    ColliderA = component0,
-                    ColliderB = component1,
-                    Distance = contact.m_distance1,
-                    Normal = contact.m_normalWorldOnB,
-                    PositionOnA = contact.m_positionWorldOnA,
-                    PositionOnB = contact.m_positionWorldOnB,
-                });
-                return 0f;
-            }
-
-            public void Remove(ContactPoint contact) => contacts.Remove(contact);
-            public bool Contains(ContactPoint contact) => contacts.Contains(contact);
-            public void Clear() => contacts.Clear();
-            public HashSet<ContactPoint>.Enumerator GetEnumerator() => contacts.GetEnumerator();
-        }
-
-        internal unsafe void ContactTest(PhysicsComponent component)
-        {
-            currentFrameContacts.CollisionFilterMask = (int)component.CanCollideWith;
-            currentFrameContacts.CollisionFilterGroup = (int)component.CollisionGroup;
-            collisionWorld.ContactTest( component.NativeCollisionObject, currentFrameContacts );
-        }
-
-        private readonly FastList<ContactPoint> currentToRemove = new FastList<ContactPoint>();
-        private readonly HashSet<Collision> collisionsRemovedDueToComponentRemoval = new HashSet<Collision>();
-
-        internal void CleanContacts(PhysicsComponent component)
-        {
-            currentToRemove.Clear(true);
-            collisionsRemovedDueToComponentRemoval.Clear();
-
-            foreach (var currentFrameContact in currentFrameContacts)
-            {
-                var component0 = currentFrameContact.ColliderA;
-                var component1 = currentFrameContact.ColliderB;
-                if (component == component0 || component == component1)
-                {
-                    currentToRemove.Add(currentFrameContact);
-                    collisionsRemovedDueToComponentRemoval.Add(contactToCollision[currentFrameContact]);
-                    ContactRemoval(currentFrameContact, component0, component1);
-                }
-            }
-
-            foreach (var contactPoint in currentToRemove)
-            {
-                currentFrameContacts.Remove(contactPoint);
-            }
-
-            foreach (var collision in collisionsRemovedDueToComponentRemoval)
-            {
-                collision.HasEndedFromComponentRemoval = true;
-                while (collision.ColliderA.PairEndedChannel.Balance < 0)
-                {
-                    collision.ColliderA.PairEndedChannel.Send(collision);
-                }
-
-                while (collision.ColliderB.PairEndedChannel.Balance < 0)
-                {
-                    collision.ColliderB.PairEndedChannel.Send(collision);
-                }
-            }
         }
 
         private class StrideAllHitsConvexResultCallback : StrideReusableConvexResultCallback

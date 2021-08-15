@@ -94,7 +94,7 @@ namespace Stride.Core.Mathematics
                 for (int j = 0; j < 16; ++j)
                 {
                     //*matrixData &= 0x7FFFFFFF;
-                    *matrixData = Math.Abs(*matrixData);
+                    *matrixData = MathF.Abs(*matrixData);
                     ++matrixData;
                 }
             }

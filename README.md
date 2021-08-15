@@ -79,8 +79,6 @@ Ask for help or report issues:
 3. Open a command prompt, point it to a directory and clone Stride to it: `git clone https://github.com/stride3d/stride.git`
 4. Navigate to `/Build` with the command prompt, input `dotnet restore Stride.sln` then `compile`
 
-For .Net 5.0 make sure that you have the latest SDK and runtime, navigate to `\sources\targets\Stride.Core.TargetFrameworks.Editor.props` and change `net472` to `net5.0-windows`
-
 If building failed:
 * If you skipped one of the `Prerequisites` thinking that you already have the latest version, update to the latest anyway just to be sure.
 * Visual Studio might have issues properly building if an outdated version of 2017 is present alongside 2019. If you want to keep VS 2017 make sure that it is up to date and that you are building Stride through VS 2019.

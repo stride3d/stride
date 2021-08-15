@@ -32,7 +32,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             debugRootEntity = new Entity($"Voxel volume of {Component.Entity.Name}");
 
-            material = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.CornflowerBlue);
+            material = GizmoEmissiveColorMaterial.Create(GraphicsDevice, Color.CornflowerBlue);
 
             box = new BoxMesh(GraphicsDevice);
             box.Build();

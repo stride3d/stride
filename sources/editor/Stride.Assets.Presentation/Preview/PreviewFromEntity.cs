@@ -219,7 +219,7 @@ namespace Stride.Assets.Presentation.Preview
 
                     // calculate the distance to the target needed in order to see it fully
                     // Note: we want the front face of the element to be fully visible (not only center)
-                    distance = radius + radius / (float)Math.Tan(MathUtil.DegreesToRadians(cameraComponent.VerticalFieldOfView / 2));
+                    distance = radius + radius / MathF.Tan(MathUtil.DegreesToRadians(cameraComponent.VerticalFieldOfView / 2));
                     // Make sure the distance is greater than zero
                     distance = Math.Max(distance, 2*MathUtil.ZeroTolerance);
 

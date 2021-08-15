@@ -23,6 +23,7 @@ using Stride.Core.Presentation.ViewModel;
 using Stride.Metrics;
 using Stride.Core.VisualStudio;
 using System.Diagnostics.CodeAnalysis;
+using NuGet.Configuration;
 
 namespace Stride.LauncherApp.ViewModels
 {
@@ -70,6 +71,21 @@ namespace Stride.LauncherApp.ViewModels
                 await FetchOnlineData();
             });
             StartStudioCommand = new AnonymousTaskCommand(ServiceProvider, StartStudio) { IsEnabled = false };
+            CheckDeprecatedSourcesCommand = new AnonymousTaskCommand(ServiceProvider, async () =>
+            {
+                var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
+                if (!NugetStore.CheckPackageSource(settings, "Stride"))
+                {
+                    // Add Stride package store (still used for Xenko up to 3.0)
+                    if (await ServiceProvider.Get<IDialogService>().MessageBox(Strings.AskAddNugetDeprecatedSource, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                    {
+                        NugetStore.UpdatePackageSource(settings, "Stride", "https://packages.stride3d.net/nuget");
+                        settings.SaveToDisk();
+
+                        SelfUpdater.RestartApplication();
+                    }
+                }
+            });
 
             foreach (var devVersion in LauncherSettings.DeveloperVersions)
             {
@@ -142,6 +158,8 @@ namespace Stride.LauncherApp.ViewModels
         public CommandBase ReconnectCommand { get; }
 
         public CommandBase StartStudioCommand { get; }
+
+        public CommandBase CheckDeprecatedSourcesCommand { get; }
 
         private async Task FetchOnlineData()
         {
