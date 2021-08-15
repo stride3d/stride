@@ -350,8 +350,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 var zRotation = Quaternion.RotationX(MathUtil.PiOverTwo); // Yup rotated towards Z
                 AddModelEntity("Zend", tip, material2, position: CylinderRadius * 4f * Vector3.UnitZ, rotation: zRotation);
 
-                lowerLimit = AddModelEntity("LowerLimit", limitLower, limitMaterial, Quaternion.RotationZ(MathUtil.PiOverTwo) * Quaternion.RotationX(MathUtil.PiOverTwo)).Get<ModelComponent>();
-                upperLimit = AddModelEntity("UpperLimit", limitUpper, limitMaterial, Quaternion.RotationZ(-MathUtil.PiOverTwo) * Quaternion.RotationX(-MathUtil.PiOverTwo)).Get<ModelComponent>();
+                lowerLimit = AddModelEntity("LowerLimit", limitLower, limitMaterial, Quaternion.RotationZ(-MathUtil.PiOverTwo) * Quaternion.RotationX(-MathUtil.PiOverTwo)).Get<ModelComponent>();
+                upperLimit = AddModelEntity("UpperLimit", limitUpper, limitMaterial, Quaternion.RotationZ(MathUtil.PiOverTwo) * Quaternion.RotationX(MathUtil.PiOverTwo)).Get<ModelComponent>();
 
                 Update(desc);
             }
@@ -523,8 +523,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 var zRotation = Quaternion.RotationX(MathUtil.PiOverTwo); // Yup rotated towards Z
                 AddModelEntity("Zend", tip, material2, position: CylinderRadius * 4f * Vector3.UnitZ, rotation: zRotation);
 
-                lowerAngulerLimit = AddModelEntity("LowerAngularLimit", limitLower, limitMaterial, Quaternion.RotationZ(MathUtil.PiOverTwo) * Quaternion.RotationX(MathUtil.PiOverTwo)).Get<ModelComponent>();
-                upperAngularLimit = AddModelEntity("UpperAngularLimit", limitUpper, limitMaterial, Quaternion.RotationZ(-MathUtil.PiOverTwo) * Quaternion.RotationX(-MathUtil.PiOverTwo)).Get<ModelComponent>();
+                lowerAngulerLimit = AddModelEntity("LowerAngularLimit", limitLower, limitMaterial, Quaternion.RotationZ(-MathUtil.PiOverTwo) * Quaternion.RotationX(-MathUtil.PiOverTwo)).Get<ModelComponent>();
+                upperAngularLimit = AddModelEntity("UpperAngularLimit", limitUpper, limitMaterial, Quaternion.RotationZ(MathUtil.PiOverTwo) * Quaternion.RotationX(MathUtil.PiOverTwo)).Get<ModelComponent>();
 
                 lowerLinearLimit = AddModelEntity("LowerLinearLimit", sphere, limitMaterial);
                 upperLinearLimit = AddModelEntity("UpperLinearLimit", sphere, limitMaterial);

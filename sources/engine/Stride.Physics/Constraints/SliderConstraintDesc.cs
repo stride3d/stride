@@ -101,7 +101,7 @@ namespace Stride.Physics.Constraints
             /// Negative limit (-Pi, 0). Left handed rotation when thumb points at positive X axis of the constraint.
             /// </summary>
             /// <userdoc>
-            /// Negative limit (-Pi, 0), where 0 is at positive Z axis. Left handed rotation when thumb points at positive X axis of the constraint.
+            /// Negative limit (-Pi, 0), where 0 is at the initial position. Left handed rotation when thumb points at positive X axis of the constraint.
             /// </userdoc>
             [Display(2)]
             [DataMemberRange(-Math.PI, 0, MathUtil.PiOverFour / 9, MathUtil.PiOverFour, 3)]
@@ -111,7 +111,7 @@ namespace Stride.Physics.Constraints
             /// Positive limit (0, Pi). Right handed rotation when thumb points at positive X axis of the constraint.
             /// </summary>
             /// <userdoc>
-            /// Positive limit (0, Pi), where 0 is at positive Z axis. Right handed rotation when thumb points at positive X axis of the constraint.
+            /// Positive limit (0, Pi), where 0 is at the initial position. Right handed rotation when thumb points at positive X axis of the constraint.
             /// </userdoc>
             [Display(3)]
             [DataMemberRange(0, Math.PI, MathUtil.PiOverFour / 9, MathUtil.PiOverFour, 3)]
