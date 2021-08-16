@@ -329,6 +329,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 // Automatically select a start-up package.
                 sessionViewModel.AutoSelectCurrentProject();
 
+                sessionViewModel.LoadDocumentation();
+
                 // Copy the result of the asset loading to the log panel.
                 sessionViewModel.AssetLog.AddLogger(LogKey.Get("Session"), loggerResult);
 
@@ -417,6 +419,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             sessionViewModel.AutoSelectCurrentProject();
 
+            sessionViewModel.LoadDocumentation();
+
             // Now resize the undo stack to the correct size.
             undoRedoService.Resize(200);
 
@@ -499,6 +503,16 @@ namespace Stride.Core.Assets.Editor.ViewModel
             if (currentProject != null)
             {
                 SetCurrentProject(currentProject);
+            }
+        }
+
+        private void LoadDocumentation()
+        {
+            // Load documentation into cache
+            var documentationService = ServiceProvider.Get<UserDocumentationService>();
+            foreach (var packageAssembly in LocalPackages.SelectMany(p => p.LoadedAssemblies))
+            {
+                Task.Run(() => documentationService.CacheAssemblyDocumentation(packageAssembly.Assembly));
             }
         }
 
