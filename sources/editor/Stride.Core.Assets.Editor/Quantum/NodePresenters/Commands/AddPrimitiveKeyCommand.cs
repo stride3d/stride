@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
+using System.ComponentModel;
 using Stride.Core.Annotations;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum;
@@ -56,7 +57,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
             NodeIndex? newKey;
 			if (dictionaryDescriptor.KeyType == typeof(string))
                 newKey = GenerateStringKey(value, dictionaryDescriptor, parameter as string);
-            else if (dictionaryDescriptor.KeyType.GetMethod("Parse", new Type[] { typeof(string) }) != null)
+            else if (TypeDescriptor.GetConverter(dictionaryDescriptor.KeyType).CanConvertFrom(typeof(string)))
                 newKey = GenerateGenericKey(value, dictionaryDescriptor, parameter as string);
             else if (dictionaryDescriptor.KeyType.IsEnum)
                 newKey = new NodeIndex(parameter);
@@ -107,7 +108,9 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
             object key = keyType.Default();
 
             if (!string.IsNullOrWhiteSpace(baseValue))
-                key = keyType.GetMethod("Parse", new Type[] { typeof(string) }).Invoke(null, new string[] { baseValue });
+            {
+                key = TypeDescriptor.GetConverter(keyType).ConvertFromString(baseValue);
+            }
 
             if (key != null && !dictionaryDescriptor.ContainsKey(dictionary, key))
             {
