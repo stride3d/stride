@@ -55,7 +55,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
             var value = nodePresenter.Value;
 
             NodeIndex? newKey;
-			if (parameter != null && TypeDescriptor.GetConverter(dictionaryDescriptor.KeyType).CanConvertFrom(parameter.GetType()))
+            if (parameter != null && TypeDescriptor.GetConverter(dictionaryDescriptor.KeyType).CanConvertFrom(parameter.GetType()))
                 newKey = GenerateGenericKey(value, dictionaryDescriptor, parameter);
             else if (dictionaryDescriptor.KeyType.IsEnum)
                 newKey = new NodeIndex(parameter);
