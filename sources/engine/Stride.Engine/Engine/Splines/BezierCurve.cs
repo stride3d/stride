@@ -35,9 +35,6 @@ namespace Stride.Engine.Splines
             TargetPosition = targetPosition;
             TargetTangentPosition = targetTangentPosition;
 
-            _baseBezierPoints = new BezierPoint[baseBezierPointCount];
-            _parameterizedBezierPoints = new BezierPoint[bezierPointCount];
-
             Update();
         }
 
@@ -78,7 +75,7 @@ namespace Stride.Engine.Splines
             return _parameterizedBezierPoints;
         }
 
-        public struct BezierPoint
+        public class BezierPoint
         {
             public Vector3 Position;
             public Vector3 Rotation;
@@ -88,6 +85,9 @@ namespace Stride.Engine.Splines
 
         public void Update()
         {
+            _baseBezierPoints = new BezierPoint[baseBezierPointCount];
+            _parameterizedBezierPoints = new BezierPoint[bezierPointCount];
+
             p0 = Position;
             p1 = TangentPosition;
             p2 = TargetTangentPosition;
@@ -98,7 +98,7 @@ namespace Stride.Engine.Splines
             float t = 1.0f / (baseBezierPointCount - 1);
             for (var i = 0; i < baseBezierPointCount; i++)
             {
-                _baseBezierPoints[i].Position = CalculateBezierPoint(t * i);
+                _baseBezierPoints[i] = new BezierPoint { Position = CalculateBezierPoint(t * i) };
 
                 if (i == 0)
                 {
@@ -115,47 +115,7 @@ namespace Stride.Engine.Splines
 
             Distance += _baseBezierPoints[baseBezierPointCount - 1].Distance;
 
-
             ArcLengthParameterization();
-
-            UpdateBoundingBox();
-        }
-
-        /// <summary>
-        /// Updates the boundix box of the bezier curve
-        /// </summary>
-        private void UpdateBoundingBox()
-        {
-            var x = new Vector2();
-            var y = new Vector2();
-            var z = new Vector2();
-
-            for (int i = 0; i < _parameterizedBezierPoints.Length; i++)
-            {
-                var pos = _parameterizedBezierPoints[i].Position;
-                if (i == 0)
-                {
-                    x.X = Position.X;
-                    x.Y = Position.X;
-                    x.X = Position.Y;
-                    x.Y = Position.Y;
-                    x.X = Position.Z;
-                    x.Y = Position.Z;
-                    continue;
-                }
-                else
-                {
-                    x.X = Math.Min(x.X, pos.X);
-                    x.Y = Math.Max(x.X, pos.X);
-
-                    y.X = Math.Min(y.X, pos.Y);
-                    y.Y = Math.Max(y.X, pos.Y);
-
-                    z.X = Math.Min(z.X, pos.Z);
-                    z.Y = Math.Max(z.X, pos.Z);
-                }
-            }
-            BoundingBox = new BoundingBox(new Vector3(x.X, y.X, z.X), new Vector3(x.Y, y.Y, z.Y));
         }
 
         public Vector3 GetPositionOnCurve(float percentage)

@@ -1,10 +1,7 @@
-// Copyright (c) Stride contributors (https://Stride.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
-// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Engine;
-using Stride.Engine.Splines;
 using Stride.Engine.Splines.Components;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories

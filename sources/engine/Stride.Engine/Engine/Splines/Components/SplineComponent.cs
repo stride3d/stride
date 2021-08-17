@@ -72,26 +72,44 @@ namespace Stride.Engine.Splines.Components
             _previousNodeCount = currentNodeCount;
         }
 
-        public Vector3 GetPositionOnSpline(float percentage)
+        public SplinePositionInfo GetPositionOnSpline(float percentage)
         {
+            var splinePositionInfo = new SplinePositionInfo();
             var totalSplineDistance = GetTotalSplineDistance();
-            var requiredDistance = totalSplineDistance * (percentage/100);
+            var requiredDistance = totalSplineDistance * (percentage / 100);
             var nextNodeDistance = 0.0f;
-            var prevDistance = 0.0f;
-            for (int i = 0; i < _splineNodes.Count-1; i++)
+            var prevNodeDistance = 0.0f;
+
+            for (int i = 0; i < _splineNodes.Count - 1; i++)
             {
                 var node = _splineNodes[i];
+                splinePositionInfo.CurrentSplineNode = node;
                 var curve = node.GetBezierCurve();
                 nextNodeDistance += curve.Distance;
                 if (requiredDistance < nextNodeDistance)
                 {
-                    var percentageInCurve = (requiredDistance-prevDistance) / (nextNodeDistance - prevDistance) * 100;
-                    return curve.GetPositionOnCurve(percentageInCurve);
+                    splinePositionInfo.TargetSplineNode = _splineNodes[i+1];
+
+                    var percentageInCurve = ((requiredDistance - prevNodeDistance) / (nextNodeDistance - prevNodeDistance)) * 100;
+                    //inverse lerp(betweenValue - minHeight) / (maxHeight - minHeight);
+                    
+                    splinePositionInfo.Position = curve.GetPositionOnCurve(percentageInCurve);
+                    return splinePositionInfo;
                 }
-                prevDistance += nextNodeDistance;
+
+                prevNodeDistance = nextNodeDistance;
             }
 
-            return _splineNodes[_splineNodes.Count-2].GetBezierCurve().TargetPosition;
+            splinePositionInfo.Position = _splineNodes[_splineNodes.Count - 2].GetBezierCurve().TargetPosition;
+
+            return splinePositionInfo;
+        }
+
+        public struct SplinePositionInfo
+        {
+            public SplineNodeComponent CurrentSplineNode { get; set; }  
+            public SplineNodeComponent TargetSplineNode { get; set; }  
+            public Vector3 Position { get; set; }
         }
 
         private void DeregisterSplineNodeDirtyEvents()

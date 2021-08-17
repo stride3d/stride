@@ -145,16 +145,22 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                             if (curve == null) return;
 
                             var splinePointsInfo = curve.GetBezierPoints();
+
+                            if (splinePointsInfo[0] == null)
+                                break;
+
                             var splinePoints = new Vector3[splinePointsInfo.Length];
                             for (int j = 0; j < splinePointsInfo.Length; j++)
                             {
+                                if (splinePointsInfo[j] == null) 
+                                    break;
                                 splinePoints[j] = splinePointsInfo[j].Position;
                             }
 
-                            if (Component.DebugInfo.Points)
-                            {
-                                DrawSplinePoints(splinePoints);
-                            }
+                            //if (Component.DebugInfo.Points)
+                            //{
+                            //    DrawSplinePoints(splinePoints);
+                            //}
 
                             if (Component.DebugInfo.Segments)
                             {
@@ -167,29 +173,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 GizmoRootEntity.Transform.LocalMatrix = ContentEntity.Transform.WorldMatrix;
                 GizmoRootEntity.Transform.UseTRS = false;
             }
-        }
-
-        private void UpdateBoundingBox(SplineNodeComponent curNode)
-        {
-            var curve = curNode.GetBezierCurve();
-
-            if (curve == null)
-                return;
-
-            var cubeMesh = GeometricPrimitive.Cube.New(GraphicsDevice, new Vector3(2, 3, 4)).ToMeshDraw();
-
-
-            //gizmoBoundingBox.Transform.Position = curNode.Entity.Transform.Position;
-            gizmoBoundingBox.Add(
-                new ModelComponent
-                {
-                    Model = new Model
-                    {
-                        boundingBoxMaterial,
-                        new Mesh { Draw = cubeMesh},
-                    },
-                    RenderGroup = RenderGroup,
-                });
         }
 
         private void DrawSplineSegments(Vector3[] splinePoints)

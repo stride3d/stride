@@ -2,6 +2,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
+using static Stride.Engine.Splines.BezierCurve;
 
 namespace Stride.Engine.Splines.Components
 {
@@ -116,6 +117,11 @@ namespace Stride.Engine.Splines.Components
         public BezierCurve GetBezierCurve()
         {
             return _bezierCurve;
+        }
+
+        public BezierPoint[] GetBezierCurvePoints()
+        {
+            return _bezierCurve.GetBezierPoints();
         }
     }
 }

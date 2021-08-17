@@ -1,10 +1,9 @@
-
 using Stride.Engine.Splines.Components;
 
 namespace Stride.Engine.Splines
 {
     /// <summary>
-    /// Updates <see cref="Engine.SplineFollowerComponent"/>.
+    /// Updates <see cref="Engine.SplineTravellerComponent"/>.
     /// </summary>
     public class SplineTravellerViewHierarchyTransformOperation : TransformOperation
     {
