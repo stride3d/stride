@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
+using System.ComponentModel;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
@@ -38,9 +39,9 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
             if (memberCollection?.ReadOnly == true)
                 return false;
 
-            // ... and is indexed by strings, or can be parsed from string...
+            // ... and is indexed by strings, or can be converted from string...
             if (dictionaryDescriptor.KeyType != typeof(string)
-                && dictionaryDescriptor.KeyType.GetMethod("Parse", new Type[] { typeof(string) }) == null)
+                && !TypeDescriptor.GetConverter(dictionaryDescriptor.KeyType).CanConvertFrom(typeof(string)))
             {
                 return false;
             }
@@ -55,21 +56,19 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
         {
             var currentValue = nodePresenter.Value;
             var collectionNode = ((ItemNodePresenter)nodePresenter).OwnerCollection;
-            collectionNode.RemoveItem(nodePresenter.Value, nodePresenter.Index);
+            
             DictionaryDescriptor DictionaryDescriptor = collectionNode.Descriptor as DictionaryDescriptor;
             Type keyType = DictionaryDescriptor.KeyType;
             NodeIndex? newName = null;
-            if (keyType == typeof(string))
+            if (TypeDescriptor.GetConverter(keyType).CanConvertFrom(typeof(string)))
             {
-                newName = AddPrimitiveKeyCommand.GenerateStringKey(collectionNode.Value, collectionNode.Descriptor, (string)parameter);
-            }
-            else if (keyType.GetMethod("Parse", new Type[] { typeof(string) }) != null)
-            {
-                newName = AddPrimitiveKeyCommand.GenerateGenericKey(collectionNode.Value, collectionNode.Descriptor, (string)parameter);
+                newName = AddPrimitiveKeyCommand.GenerateGenericKey(collectionNode.Value, collectionNode.Descriptor, parameter);
             }
 
             if (newName != null)
             {
+                collectionNode.RemoveItem(nodePresenter.Value, nodePresenter.Index);
+
                 collectionNode.AddItem(currentValue, newName.Value);
             }
         }

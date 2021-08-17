@@ -55,10 +55,8 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
             var value = nodePresenter.Value;
 
             NodeIndex? newKey;
-			if (dictionaryDescriptor.KeyType == typeof(string))
-                newKey = GenerateStringKey(value, dictionaryDescriptor, parameter as string);
-            else if (TypeDescriptor.GetConverter(dictionaryDescriptor.KeyType).CanConvertFrom(typeof(string)))
-                newKey = GenerateGenericKey(value, dictionaryDescriptor, parameter as string);
+			if (parameter != null && TypeDescriptor.GetConverter(dictionaryDescriptor.KeyType).CanConvertFrom(parameter.GetType()))
+                newKey = GenerateGenericKey(value, dictionaryDescriptor, parameter);
             else if (dictionaryDescriptor.KeyType.IsEnum)
                 newKey = new NodeIndex(parameter);
             else
@@ -66,12 +64,15 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
 
             if (newKey != null)
             {
-                var newItem = dictionaryDescriptor.ValueType.Default();
-                var instance = CreateInstance(dictionaryDescriptor.ValueType);
-                if (!AddNewItemCommand.IsReferenceType(dictionaryDescriptor.ValueType) && (assetNodePresenter == null || !assetNodePresenter.IsObjectReference(instance)))
-                    newItem = instance;
+                if (!dictionaryDescriptor.ContainsKey(nodePresenter.Value, newKey.Value.Value))
+                {
+                    var newItem = dictionaryDescriptor.ValueType.Default();
+                    var instance = CreateInstance(dictionaryDescriptor.ValueType);
+                    if (!AddNewItemCommand.IsReferenceType(dictionaryDescriptor.ValueType) && (assetNodePresenter == null || !assetNodePresenter.IsObjectReference(instance)))
+                        newItem = instance;
 
-                nodePresenter.AddItem(newItem, newKey.Value);
+                    nodePresenter.AddItem(newItem, newKey.Value);
+                }
             }
         }
 
@@ -100,40 +101,18 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
             return ObjectFactoryRegistry.NewInstance(type);
         }
 
-        internal static NodeIndex? GenerateGenericKey(object dictionary, ITypeDescriptor descriptor, string baseValue)
+        internal static NodeIndex? GenerateGenericKey(object dictionary, ITypeDescriptor descriptor, object baseValue)
         {
             // TODO: use a dialog service and popup a message when the given key is invalid
             DictionaryDescriptor dictionaryDescriptor = descriptor as DictionaryDescriptor;
             Type keyType = dictionaryDescriptor.KeyType;
             object key = keyType.Default();
 
-            if (!string.IsNullOrWhiteSpace(baseValue))
-            {
-                key = TypeDescriptor.GetConverter(keyType).ConvertFromString(baseValue);
-            }
+            key = TypeDescriptor.GetConverter(keyType).ConvertFrom(baseValue);
 
-            if (key != null && !dictionaryDescriptor.ContainsKey(dictionary, key))
+            if (!dictionaryDescriptor.ContainsKey(dictionary, key))
             {
                 return new NodeIndex(key);
-            }
-
-            return null;
-        }
-
-        internal static NodeIndex? GenerateStringKey(object dictionary, ITypeDescriptor descriptor, string baseValue)
-        {
-            // TODO: use a dialog service and popup a message when the given key is invalid
-            const string defaultKey = "Key";
-
-            if (string.IsNullOrWhiteSpace(baseValue))
-                baseValue = defaultKey;
-
-            var i = 1;
-            string baseName = baseValue;
-            DictionaryDescriptor dictionaryDescriptor = descriptor as DictionaryDescriptor;
-            if (!dictionaryDescriptor.ContainsKey(dictionary, baseValue))
-            {
-                return new NodeIndex(baseValue);
             }
 
             return null;

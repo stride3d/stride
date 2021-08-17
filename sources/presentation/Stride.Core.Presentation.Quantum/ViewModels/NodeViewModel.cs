@@ -396,13 +396,44 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         protected void CheckDynamicMemberConsistency()
         {
             var memberNames = new HashSet<string>();
+            // We should allow space or empty or null or '.' appear when it's a string key dictionary
+            // And we should allow space or '.' appear when it's a char key dictionary
+            bool freeName = false;
+            bool allowSpCharOnly = false;
+            if (HasDictionary)
+            {
+                Type[] genericTypes = Type.GetGenericArguments();
+                if (genericTypes[0] == typeof(string))
+                {
+                    freeName = true;
+                }
+                else if (genericTypes[0] == typeof(char))
+                {
+                    allowSpCharOnly = true;
+                }
+            }
+
             foreach (var child in Children)
             {
-                if (string.IsNullOrWhiteSpace(child.Name))
-                    throw new InvalidOperationException("This node has a child with a null or blank name");
+                if (!freeName)
+                {
+                    if (allowSpCharOnly)
+                    {
+                        if (child.Name == null)
+                            throw new InvalidOperationException("This node has a child with a null name");
+                    }
+                    else
+                    {
+                        if (string.IsNullOrWhiteSpace(child.Name))
+                            throw new InvalidOperationException("This node has a child with a null or blank name");
+                    }
 
-                if (child.Name.Contains('.'))
-                    throw new InvalidOperationException($"This node has a child which contains a period (.) in its name: {child.Name}");
+                    if (!allowSpCharOnly)
+                    {
+                        if (child.Name.Contains('.'))
+                            throw new InvalidOperationException($"This node has a child which contains a period (.) in its name: {child.Name}");
+                    }
+                }
 
                 if (memberNames.Contains(child.Name))
                     throw new InvalidOperationException($"This node contains several members named {child.Name}");
