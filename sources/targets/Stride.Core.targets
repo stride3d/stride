@@ -174,7 +174,6 @@
     </Copy>
   </Target>
 
-  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.Sign.targets" />
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.PostSettings.Dependencies.targets"/>
   <Import Condition="'$(StrideNativeOutputName)' != ''" Project="$(MSBuildThisFileDirectory)..\native\Stride.Native.targets" />
 

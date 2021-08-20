@@ -131,8 +131,6 @@
     <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)\x64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;  -fms-extensions -DWINDOWS_DESKTOP -target x86_64-pc-windows-msvc" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\WindowsDesktop\WindowsDesktop.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)x64;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibs);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\x64;Configuration=$(Configuration);Platform=x64" StopOnFirstFailure="true" />
 
-    <SignFile Condition="'$(StrideSign)' == 'true'" CertificateThumbprint="c3dd2388073e8c038a62dc57865bd0994a784c76" SigningTarget="%(StrideNativeOutput.Identity)" TimestampUrl="http://timestamp.digicert.com" />
-	
     <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
     <Delete Files="@(IntermediateAssembly)"/>
   </Target>
