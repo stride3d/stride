@@ -157,7 +157,6 @@
   <Import Project="..\..\editor\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
   <Import Project="..\..\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems" Label="Shared" />
   <Import Project="..\..\editor\Stride.Editor.CrashReport\Stride.Editor.CrashReport.projitems" Label="Shared" />
-  <Import Project="..\..\targets\Stride.Core.Sign.targets" />
   <!--   <Target Name="AfterResolveReferences">
     <ItemGroup>
       <EmbeddedResource Update="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Extension)' == '.dll'">

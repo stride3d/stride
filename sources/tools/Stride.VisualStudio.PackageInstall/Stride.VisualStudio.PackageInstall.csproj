@@ -32,5 +32,4 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <Import Project="..\..\targets\Stride.Core.Sign.targets" />
 </Project>
