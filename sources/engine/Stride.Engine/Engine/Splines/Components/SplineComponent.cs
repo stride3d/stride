@@ -15,24 +15,20 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineComponent : EntityComponent
     {
-        public SplineDebugInfo DebugInfo;
-        public bool Dirty { get; set; }
-        public float distanceTest;
-
-        private Scene _editorScene;
-
-
-        private int _previousNodeCount = 0;
+        /// <summary>
+        /// Event triggered when the spline has been update
+        /// This happens when the entity is translated or rotated, or when a SplineNode is updated
+        /// </summary>
+        public delegate void SplineUpdatedHandler();
+        public event SplineUpdatedHandler OnSplineUpdated;
 
         private List<SplineNodeComponent> _splineNodes;
+        [Display(100, "Amount")]
         public List<SplineNodeComponent> Nodes
         {
             get
             {
-                if (_splineNodes == null)
-                {
-                    _splineNodes = new List<SplineNodeComponent>();
-                }
+                _splineNodes ??= new List<SplineNodeComponent>();
                 return _splineNodes;
             }
             set
@@ -40,6 +36,14 @@ namespace Stride.Engine.Splines.Components
                 _splineNodes = value;
             }
         }
+
+        [Display(80, "Debug settings", "Settings")]
+        public SplineDebugInfo DebugInfo;
+
+        [Display(70, "Dirty", "Settings")]
+        public bool Dirty { get; set; }
+
+        private int _previousNodeCount = 0;
 
         public SplineComponent()
         {
@@ -88,11 +92,11 @@ namespace Stride.Engine.Splines.Components
                 nextNodeDistance += curve.Distance;
                 if (requiredDistance < nextNodeDistance)
                 {
-                    splinePositionInfo.TargetSplineNode = _splineNodes[i+1];
+                    splinePositionInfo.TargetSplineNode = _splineNodes[i + 1];
 
                     var percentageInCurve = ((requiredDistance - prevNodeDistance) / (nextNodeDistance - prevNodeDistance)) * 100;
                     //inverse lerp(betweenValue - minHeight) / (maxHeight - minHeight);
-                    
+
                     splinePositionInfo.Position = curve.GetPositionOnCurve(percentageInCurve);
                     return splinePositionInfo;
                 }
@@ -107,8 +111,8 @@ namespace Stride.Engine.Splines.Components
 
         public struct SplinePositionInfo
         {
-            public SplineNodeComponent CurrentSplineNode { get; set; }  
-            public SplineNodeComponent TargetSplineNode { get; set; }  
+            public SplineNodeComponent CurrentSplineNode { get; set; }
+            public SplineNodeComponent TargetSplineNode { get; set; }
             public Vector3 Position { get; set; }
         }
 
@@ -154,7 +158,8 @@ namespace Stride.Engine.Splines.Components
                         curNode?.UpdateBezierCurve(Nodes[i + 1]);
                 }
             }
-            distanceTest = GetTotalSplineDistance();
+
+            OnSplineUpdated?.Invoke();
         }
 
         private void MakeSplineDirty()

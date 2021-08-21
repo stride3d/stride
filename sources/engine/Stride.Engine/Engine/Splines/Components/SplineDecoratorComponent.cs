@@ -5,6 +5,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Annotations;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace Stride.Engine.Splines.Components
 {
@@ -17,48 +18,69 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineDecoratorComponent : EntityComponent
     {
-        public SplineComponent SplineComponent { get; set; }
+        private SplineComponent splineComponent;
+        [Display(100, "SplineComponent")]
+        public SplineComponent SplineComponent
+        {
+            get { return splineComponent; }
+            set
+            {
+                splineComponent = value;
+                if (splineComponent != null)
+                {
+                    splineComponent.OnSplineUpdated += UpdateDecorator;
+                }
+                else{
+                    ClearDecorationInstance();
+                }
+                //if (_splineComponent == null)
+                //{
+                //    _splineComponent.OnSplineUpdated -= UpdateDecorator;
+                //    _splineComponent = null;
+                //}
+                //else
+                //{
+                //    _splineComponent = value;
+                //    _splineComponent.OnSplineUpdated += UpdateDecorator;
+                //}
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="ParticleSystem"/> is enabled.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if enabled; otherwise, <c>false</c>.
+        /// </value>
+        [DataMember(-10)]
+        [DefaultValue(true)]
+        public bool Enabled { get; set; } = true;
+
+        [Display(90, "Decorations")]
 
         public List<Prefab> decorations = new List<Prefab>();
 
         private List<Entity> decorationInstances = new List<Entity>();
 
+        private bool useAmountInsteadOfInterval = true;
 
 
-        //[Display("Offset")]
-        //private Vector3 _offset = new Vector3(0,0,0);
+        private int amount = 2;
 
-        //public Vector3 Offset
-        //{
-        //    get { return _interval; }
-        //    set
-        //    {
-        //        _interval = value;
+        [Display(80, "Amount", "Settings")]
+        public int Amount
+        {
+            get { return amount; }
+            set
+            {
+                amount = Math.Max(2, value);
+                DecorateWithAmount();
+            }
+        }
 
-        //        var totalSplineDistance = SplineComponent?.GetTotalSplineDistance() > 0;
-        //        if (SplineComponent?.GetTotalSplineDistance() > 0)
-        //        {
-        //            ClearDecorationInstance();
+        private Vector2 _interval = new Vector2(1, 1);
 
-        //            var random = new Random();
-        //            var distanceLeft = true;
-
-        //            while (distanceLeft)
-        //            {
-        //                var nextInterval = random.NextDouble() * (Interval.Y - Interval.X) + Interval.X;
-
-
-        //                var splinePositionInfo = SplineComponent.GetPositionOnSpline(_percentage);
-        //                Entity.Transform.Position = splinePositionInfo.Position;
-        //                Entity.Transform.UpdateWorldMatrix();
-
-
-        //            };
-        //        }
-        //    }
-        //}
-
-        [Display("Interval")]
+        [Display(70, "Interval", "Settings")]
         public Vector2 Interval
         {
             get { return _interval; }
@@ -69,10 +91,28 @@ namespace Stride.Engine.Splines.Components
             }
         }
 
+        private void DecorateWithAmount()
+        {
+            useAmountInsteadOfInterval = true;
+          
+            ClearDecorationInstance();
+
+            if (SplineComponent != null && SplineComponent.GetTotalSplineDistance() > 0 && decorations.Count > 0)
+            {
+                var totalSplineDistance = SplineComponent.GetTotalSplineDistance();
+                var segmentLength = totalSplineDistance / amount;
+
+                for (int iteration = 1; iteration < amount; iteration++)
+                {
+                    var percentage = ((segmentLength * iteration) / totalSplineDistance) * 100;
+                    CreateInstanceAndAddToScene(iteration, percentage);
+                }
+            }
+        }
+
         private void DecorateWithInterval()
         {
-            decorations ??= new List<Prefab>();
-            decorationInstances ??= new List<Entity>();
+            useAmountInsteadOfInterval = false;
             ClearDecorationInstance();
 
             if (SplineComponent != null && SplineComponent.GetTotalSplineDistance() > 0 && decorations.Count > 0)
@@ -81,8 +121,7 @@ namespace Stride.Engine.Splines.Components
                 var random = new Random();
                 var totalIntervalDistance = 0.0f;
                 var iteration = 0;
-                var worldPos = SplineComponent.Entity.Transform.WorldMatrix.TranslationVector;
-
+   
                 while (iteration < 1000) //Hardcoded 1000?
                 {
                     var nextInterval = random.NextDouble() * (Interval.Y - Interval.X) + Interval.X;
@@ -94,32 +133,46 @@ namespace Stride.Engine.Splines.Components
                     }
 
                     var percentage = (totalIntervalDistance / totalSplineDistance) * 100;
-                    var splinePositionInfo = SplineComponent.GetPositionOnSpline(percentage);
-
-                    var instanceRoot = new Entity("Instance " + iteration);
-                    var instanceEntities = decorations[0].Instantiate();
-
-                    instanceRoot.Transform.Position = EntityTransformExtensions.WorldToLocal(Entity.Transform, splinePositionInfo.Position);
-                    instanceRoot.Transform.UpdateWorldMatrix();
-
-                    foreach (var instanceEntity in instanceEntities)
-                    {
-                        instanceRoot.AddChild(instanceEntity);
-                    }
-
-                    decorationInstances.Add(instanceRoot);
-                    Entity.AddChild(instanceRoot);
+                    CreateInstanceAndAddToScene(iteration, percentage);
 
                     iteration++;
                 };
-
             }
         }
 
-        private Vector2 _interval = new Vector2(1, 1);
+        private void CreateInstanceAndAddToScene(int iteration, float percentage)
+        {
+            var splinePositionInfo = SplineComponent.GetPositionOnSpline(percentage);
+            var instanceRoot = new Entity("Instance " + iteration);
+            var instanceEntities = decorations[0].Instantiate();
+
+            instanceRoot.Transform.Position = EntityTransformExtensions.WorldToLocal(Entity.Transform, splinePositionInfo.Position);
+            instanceRoot.Transform.UpdateWorldMatrix();
+
+            foreach (var instanceEntity in instanceEntities)
+            {
+                instanceRoot.AddChild(instanceEntity);
+            }
+
+            decorationInstances.Add(instanceRoot);
+            Entity.AddChild(instanceRoot);
+        }
+
+        private void UpdateDecorator()
+        {
+            if (useAmountInsteadOfInterval)
+            {
+                DecorateWithAmount();
+            }
+            {
+                DecorateWithInterval();
+            }
+        }
 
         private void ClearDecorationInstance()
         {
+            decorations ??= new List<Prefab>();
+
             if (decorationInstances != null)
             {
                 foreach (var decorationInstance in decorationInstances)
@@ -129,14 +182,6 @@ namespace Stride.Engine.Splines.Components
                 }
                 decorationInstances.Clear();
             }
-        }
-
-        public SplineDecoratorComponent()
-        {
-        }
-
-        internal void Initialize()
-        {
         }
 
         internal void Update(TransformComponent transformComponent)

@@ -21,35 +21,9 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineNodeComponent : EntityComponent
     {
-        #region Out
-        private Vector3 _tangentOut { get; set; }
-        public Vector3 TangentOut
-        {
-            get { return _tangentOut; }
-            set
-            {
-                _tangentOut = value;
-                MakeDirty();
-            }
-        }
-        #endregion
-
-        #region In
-        private Vector3 _tangentIn { get; set; }
-        public Vector3 TangentIn
-
-        {
-            get { return _tangentIn; }
-            set
-            {
-                _tangentIn = value;
-                MakeDirty();
-            }
-        }
-        #endregion
-
         #region Segments
         private int _segments = 2;
+        [Display(1, "Segments")]
         public int Segments
         {
             get { return _segments; }
@@ -64,6 +38,35 @@ namespace Stride.Engine.Splines.Components
                     _segments = value;
                 }
 
+                MakeDirty();
+            }
+        }
+        #endregion
+
+        #region Out
+        private Vector3 _tangentOut { get; set; }
+        [Display(2, "Tangent outgoing")]
+        public Vector3 TangentOut
+        {
+            get { return _tangentOut; }
+            set
+            {
+                _tangentOut = value;
+                MakeDirty();
+            }
+        }
+        #endregion
+
+        #region In
+        private Vector3 _tangentIn { get; set; }
+        [Display(3, "Tangent outgoing")]
+        public Vector3 TangentIn
+
+        {
+            get { return _tangentIn; }
+            set
+            {
+                _tangentIn = value;
                 MakeDirty();
             }
         }

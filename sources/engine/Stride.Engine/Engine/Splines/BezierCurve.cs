@@ -93,7 +93,8 @@ namespace Stride.Engine.Splines
             p2 = TargetTangentPosition;
             p3 = TargetPosition;
 
-            //We create a base spline that contains a large amount of segments.
+            // 2 methods of arc length parameterization: Use a larger amount of pre calculated points or devide segments per distance
+            // We create a base spline that contains a large amount of segments.
             // Later on we can distill this as a way of determining arc length parameterization
             float t = 1.0f / (baseBezierPointCount - 1);
             for (var i = 0; i < baseBezierPointCount; i++)
