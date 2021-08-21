@@ -22,75 +22,50 @@ namespace Stride.Importer.Gltf
         public static Skeleton ConvertSkeleton(SharpGLTF.Schema2.ModelRoot root)
         {
             Skeleton result = new Skeleton();
-            var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes.First()).Skin;
+            var nodes = new List<ModelNodeDefinition>();
+            var skins = root.LogicalSkins;
+            //var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes.First()).Skin;
             // If there is no corresponding skins return a skeleton with 2 bones (an empty skeleton would make the editor crash)
-            if (skin == null)
+            foreach (var skin in skins)
             {
-                result.Nodes = new List<ModelNodeDefinition>() {
-                    new ModelNodeDefinition
-                    {
-                        Name = "root",
-                        Flags = ModelNodeFlags.EnableRender,
-                        ParentIndex = -1,
-                        Transform = new TransformTRS
+                var jointList = Enumerable.Range(0, skin.JointsCount).Select(x => skin.GetJoint(x).Joint).ToList();
+                nodes.AddRange(
+                    jointList
+                    .Select(
+                        x =>
+                        new ModelNodeDefinition
                         {
-                            Position = Vector3.Zero,
-                            Rotation = Quaternion.Identity,
-                            Scale = Vector3.Zero
-                        }
-                    },
-                    new ModelNodeDefinition
-                    {
-                        Name = "Mesh",
-                        Flags = ModelNodeFlags.EnableRender,
-                        ParentIndex = -1,
-                        Transform = new TransformTRS
-                        {
-                            Position = Vector3.Zero,
-                            Rotation = Quaternion.Identity,
-                            Scale = Vector3.Zero
-                        }
-                    },
-                }.ToArray();
-                return result;
-            }
-            // for each joints we create a ModelNodeDefinition
-            var jointList = Enumerable.Range(0, skin.JointsCount).Select(x => skin.GetJoint(x).Joint).ToList();
-            var mnd =
-                jointList
-                .Select(
-                    x =>
-                    new ModelNodeDefinition
-                    {
-                        Name = x.Name ?? "Joint_" + x.LogicalIndex,
-                        Flags = ModelNodeFlags.Default,
-                        ParentIndex = jointList.IndexOf(x.VisualParent) + 1,
-                        Transform = new TransformTRS
-                        {
-                            Position = ConvertNumerics(x.LocalTransform.Translation),
-                            Rotation = ConvertNumerics(x.LocalTransform.Rotation),
-                            Scale = ConvertNumerics(x.LocalTransform.Scale)
-                        }
+                            Name = x.Name ?? "Joint_" + x.LogicalIndex,
+                            Flags = ModelNodeFlags.Default,
+                            ParentIndex = jointList.IndexOf(x.VisualParent) + 1,
+                            Transform = new TransformTRS
+                            {
+                                Position = ConvertNumerics(x.LocalTransform.Translation),
+                                Rotation = ConvertNumerics(x.LocalTransform.Rotation),
+                                Scale = ConvertNumerics(x.LocalTransform.Scale)
+                            }
 
-                    }
-                )
-                .ToList();
-            // And insert a parent one not caught by the above function (GLTF does not consider the parent bone as a bone)
-            mnd.Insert(
-                    0,
-                    new ModelNodeDefinition
-                    {
-                        Name = "Armature",
-                        Flags = ModelNodeFlags.EnableRender,
-                        ParentIndex = -1,
-                        Transform = new TransformTRS
-                        {
-                            Position = Vector3.Zero,
-                            Rotation = Quaternion.Identity,
-                            Scale = Vector3.Zero
                         }
-                    });
-            result.Nodes = mnd.ToArray();
+                    )
+                );
+                // And insert a parent one not caught by the above function (GLTF does not consider the parent bone as a bone)
+                
+            }
+            nodes.Insert(
+                        0,
+                        new ModelNodeDefinition
+                        {
+                            Name = "Armature",
+                            Flags = ModelNodeFlags.EnableRender,
+                            ParentIndex = -1,
+                            Transform = new TransformTRS
+                            {
+                                Position = Vector3.Zero,
+                                Rotation = Quaternion.Identity,
+                                Scale = Vector3.Zero
+                            }
+                        });
+            result.Nodes = nodes.ToArray();
             return result;
         }
 
@@ -117,52 +92,63 @@ namespace Stride.Importer.Gltf
         {
             var result = new Dictionary<string, AnimationCurve>();
             if (root.LogicalAnimations.Count == 0) return result;
-            var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes.First()).Skin;
+            var skins = root.LogicalSkins;
+            var skNodes = ConvertSkeleton(root).Nodes.ToList();
+            //var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes.First()).Skin;
 
             // In case there is no skin joints/bones, animate transform component
-            if (skin == null)
+            if (skins.Count() == 0)
             {
-                string base2 = "[TransformComponent].type";
+                string basestring = "[TransformComponent].type";
                 foreach (var chan in channels)
                 {
                     switch (chan.TargetNodePath)
                     {
                         case SharpGLTF.Schema2.PropertyPath.translation:
-                            result.Add(base2.Replace("type", "Position"), ConvertCurve(chan.GetTranslationSampler()));
+                            result.Add(basestring.Replace("type", "Position"), ConvertCurve(chan.GetTranslationSampler()));
                             break;
                         case SharpGLTF.Schema2.PropertyPath.rotation:
-                            result.Add(base2.Replace("type", "Rotation"), ConvertCurve(chan.GetRotationSampler()));
+                            result.Add(basestring.Replace("type", "Rotation"), ConvertCurve(chan.GetRotationSampler()));
                             break;
                         case SharpGLTF.Schema2.PropertyPath.scale:
-                            result.Add(base2.Replace("type", "Scale"), ConvertCurve(chan.GetScaleSampler()));
+                            result.Add(basestring.Replace("type", "Scale"), ConvertCurve(chan.GetScaleSampler()));
                             break;
                     };
                 }
                 return result;
             }
 
-            // Else we animate the model.
-            string baseString = "[ModelComponent.Key].Skeleton.NodeTransformations[index].Transform.type";
 
-
-
-            var jointList = Enumerable.Range(0, skin.JointsCount).Select(x => skin.GetJoint(x).Joint).ToList();
-            foreach (var chan in channels)
+            foreach (var skin in skins)
             {
-                var index = jointList.IndexOf(chan.TargetNode) + 1;
-                switch (chan.TargetNodePath)
+                var jointList = Enumerable.Range(0, skin.JointsCount).Select(x => skin.GetJoint(x).Joint).ToList();
+                foreach (var chan in channels)
                 {
-                    case SharpGLTF.Schema2.PropertyPath.translation:
-                        result.Add(baseString.Replace("index", $"{index}").Replace("type", "Position"), ConvertCurve(chan.GetTranslationSampler()));
-                        break;
-                    case SharpGLTF.Schema2.PropertyPath.rotation:
-                        result.Add(baseString.Replace("index", $"{index}").Replace("type", "Rotation"), ConvertCurve(chan.GetRotationSampler()));
-                        break;
-                    case SharpGLTF.Schema2.PropertyPath.scale:
-                        result.Add(baseString.Replace("index", $"{index}").Replace("type", "Scale"), ConvertCurve(chan.GetScaleSampler()));
-                        break;
-                };
+                    //var index0 = jointList.IndexOf(chan.TargetNode) + 1;
+                    var index = skNodes.IndexOf(skNodes.First(x => x.Name == chan.TargetNode.Name));
+                    switch (chan.TargetNodePath)
+                    {
+                        case SharpGLTF.Schema2.PropertyPath.translation:
+                            result.Add(
+                                $"[ModelComponent.Key].Skeleton.NodeTransformations[{index}].Transform.Position",
+                                ConvertCurve(chan.GetTranslationSampler())
+                            );
+                            break;
+                        case SharpGLTF.Schema2.PropertyPath.rotation:
+                            result.Add(
+                                $"[ModelComponent.Key].Skeleton.NodeTransformations[{index}].Transform.Rotation",
+                                ConvertCurve(chan.GetRotationSampler())
+                            ); 
+                            break;
+                        case SharpGLTF.Schema2.PropertyPath.scale:
+                            result.Add(
+                                $"[ModelComponent.Key].Skeleton.NodeTransformations[{index}].Transform.Scale",
+                                ConvertCurve(chan.GetScaleSampler())
+                            ); 
+                            break;
+                    };
 
+                }
             }
             return result;
 

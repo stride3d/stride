@@ -41,7 +41,7 @@ namespace Stride.Assets.Models
         protected override Dictionary<string, AnimationClip> LoadAnimation(ICommandContext commandContext, ContentManager contentManager, out TimeSpan duration)
         {
             var file = SharpGLTF.Schema2.ModelRoot.Load(SourcePath);
-            var sceneData = GltfMeshParser.ConvertAnimations(file);
+            var sceneData = GltfMeshParser.ConvertAnimations(file,SourcePath.GetFileNameWithoutExtension());
             duration = GltfMeshParser.GetAnimationDuration(file);
             return sceneData;
         }

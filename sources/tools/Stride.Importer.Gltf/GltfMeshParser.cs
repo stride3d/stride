@@ -54,9 +54,10 @@ namespace Stride.Importer.Gltf
         public static Model LoadFirstModel(SharpGLTF.Schema2.ModelRoot root)
         {
             // We load every primitives of the first mesh
+            var sk = ConvertSkeleton(root);
             var draws = 
                 root.LogicalMeshes
-                .Select(x => (x.Primitives.Select(x => LoadMesh(x)).ToList(), ConvertNumerics(x.VisualParents.First().WorldMatrix))).ToList();
+                .Select(x => (x.Primitives.Select(x => LoadMesh(x,sk)).ToList(), ConvertNumerics(x.VisualParents.First().WorldMatrix))).ToList();
             for (int i = 0; i < draws.Count; i++)
             {
                 var mat = draws[i].Item2;
@@ -72,19 +73,8 @@ namespace Stride.Importer.Gltf
             {
                 Meshes = draws.SelectMany(x => x.Item1).ToList()
             };
-            result.Skeleton = ConvertSkeleton(root);
+            result.Skeleton = sk;
             return result;
-        }
-
-        /// <summary>
-        /// Gets the first model name
-        /// </summary>
-        /// <param name="root"></param>
-        /// <returns></returns>
-        public static string FirstModelName(SharpGLTF.Schema2.ModelRoot root)
-        {
-            // TODO : Get the file name instead of `Mesh`
-            return root.LogicalMeshes.First()?.Name ?? "Mesh";
         }
 
         /// <summary>
@@ -111,7 +101,7 @@ namespace Stride.Importer.Gltf
             HashSet<string> boneNames = new HashSet<string>();
             List<NodeInfo> nodes = new List<NodeInfo>();
 
-            var meshName = FirstModelName(modelRoot);
+            var meshName = sourcePath.GetFileNameWithoutExtension();
 
 
             if (modelRoot.LogicalSkins.Where(x => x.VisualParents.First()?.Mesh == modelRoot.LogicalMeshes[0]).Count() > 0)
@@ -139,7 +129,7 @@ namespace Stride.Importer.Gltf
                 .Select(
                     x =>
                     {
-                        var materialName = x.Material != null ? FirstModelName(modelRoot) + "_" + (x.Material.Name ?? "Material" + x.Material.LogicalIndex) : "";
+                        var materialName = x.Material != null ? sourcePath.GetFileNameWithoutExtension() + "_" + (x.Material.Name ?? "Material" + x.Material.LogicalIndex) : "";
                         return (meshName + "_" + x.LogicalIndex, materialName);
                     }
                 )
@@ -157,7 +147,7 @@ namespace Stride.Importer.Gltf
 
             // Loading the animation names (should be the same as the keys used in animations
             List<string> animNodes =
-                ConvertAnimations(modelRoot).Keys.ToList();
+                ConvertAnimations(modelRoot, sourcePath.GetFileNameWithoutExtension()).Keys.ToList();
 
             return new EntityInfo
             {
@@ -176,20 +166,21 @@ namespace Stride.Importer.Gltf
         /// </summary>
         /// <param name="root"></param>
         /// <returns></returns>
-        public static MeshSkinningDefinition ConvertInverseBindMatrices(SharpGLTF.Schema2.ModelRoot root)
+        public static MeshSkinningDefinition ConvertInverseBindMatrices(SharpGLTF.Schema2.ModelRoot root, Skeleton sk)
         {
             var skin = root.LogicalNodes.First(x => x.Mesh == root.LogicalMeshes[0]).Skin;
             if (skin == null) return null;
             var jointList = Enumerable.Range(0, skin.JointsCount).Select(skin.GetJoint);
+            var nodeList = sk.Nodes.ToList();
             var mnt =
                 new MeshSkinningDefinition
                 {
                     Bones =
                         jointList
-                            .Select((x, i) =>
+                            .Select(x =>
                                 new MeshBoneDefinition
                                 {
-                                    NodeIndex = i + 1,
+                                    NodeIndex = nodeList.IndexOf(nodeList.First(n => n.Name == x.Joint.Name)),
                                     LinkToMeshMatrix = ConvertNumerics(x.InverseBindMatrix)
                                 }
                             )
@@ -203,10 +194,10 @@ namespace Stride.Importer.Gltf
         /// </summary>
         /// <param name="root"></param>
         /// <returns></returns>
-        public static Dictionary<string, AnimationClip> ConvertAnimations(SharpGLTF.Schema2.ModelRoot root)
+        public static Dictionary<string, AnimationClip> ConvertAnimations(SharpGLTF.Schema2.ModelRoot root, string filename)
         {
             var animations = root.LogicalAnimations;
-            var meshName = FirstModelName(root);
+            var meshName = filename;
 
             var clips =
                 animations
@@ -218,7 +209,7 @@ namespace Stride.Importer.Gltf
                        // Add Curve
                        ConvertCurves(x.Channels, root).ToList().ForEach(v => clip.AddCurve(v.Key, v.Value));
                        string name = x.Name == null ? meshName + "_Animation_" + x.LogicalIndex : meshName + "_" + x.Name;
-                       clip.Optimize();
+                       if(clip.Curves.Count > 1) clip.Optimize();
                        return (name, clip);
                    }
                 )
@@ -250,7 +241,7 @@ namespace Stride.Importer.Gltf
                     {
 
                         var gltfImg = chan.Texture.PrimaryImage;
-                        var textureName = gltfImg.Name ?? FirstModelName(root) + "_" + (mat.Name ?? mat.LogicalIndex.ToString()) + "_" + chan.Key;
+                        var textureName = gltfImg.Name ?? sourcePath.GetFileNameWithoutExtension() + "_" + (mat.Name ?? mat.LogicalIndex.ToString()) + "_" + chan.Key;
 
                         string imgPath;
                         if (gltfImg.Content.SourcePath == null)
@@ -288,20 +279,22 @@ namespace Stride.Importer.Gltf
                     {
                         var vt = new ComputeColor(new Color(ConvertNumerics(chan.Parameter)));
                         var x = new ComputeFloat(chan.Parameter.X);
+                        
                         switch (chan.Key)
                         {
                             case "BaseColor":
                                 material.Attributes.Diffuse = new MaterialDiffuseMapFeature(vt);
                                 material.Attributes.DiffuseModel = new MaterialDiffuseLambertModelFeature();
+                                //material.Attributes.Transparency = new MaterialTransparencyBlendFeature();
                                 break;
                             case "MetallicRoughness":
-                                material.Attributes.MicroSurface = new MaterialGlossinessMapFeature(x);
+                                material.Attributes.MicroSurface = new MaterialGlossinessMapFeature(x) { Invert = true };
                                 break;
                             case "Normal":
-                                material.Attributes.Surface = new MaterialNormalMapFeature(vt);
+                                material.Attributes.Surface = new MaterialNormalMapFeature(vt) { IsXYNormal = true };
                                 break;
                             case "Occlusion":
-                                material.Attributes.Occlusion = new MaterialOcclusionMapFeature();
+                                material.Attributes.Occlusion = new MaterialOcclusionMapFeature() {CavityMap = vt as IComputeScalar };
                                 break;
                             case "Emissive":
                                 material.Attributes.Emissive = new MaterialEmissiveMapFeature(vt);
@@ -311,7 +304,7 @@ namespace Stride.Importer.Gltf
 
                 }
                 material.Attributes.CullMode = CullMode.Back;
-                var materialName = FirstModelName(root) + "_" + (mat.Name ?? "Material") + "_" + mat.LogicalIndex;
+                var materialName = sourcePath.GetFileNameWithoutExtension() + "_" + (mat.Name ?? "Material") + "_" + mat.LogicalIndex;
 
                 result.TryAdd(materialName, material);
             }
@@ -323,7 +316,7 @@ namespace Stride.Importer.Gltf
         /// </summary>
         /// <param name="mesh"></param>
         /// <returns></returns>
-        public static Mesh LoadMesh(SharpGLTF.Schema2.MeshPrimitive mesh)
+        public static Mesh LoadMesh(SharpGLTF.Schema2.MeshPrimitive mesh, Skeleton sk)
         {
 
             var draw = new MeshDraw
@@ -338,7 +331,7 @@ namespace Stride.Importer.Gltf
 
             var result = new Mesh(draw, new ParameterCollection())
             {
-                Skinning = ConvertInverseBindMatrices(mesh.LogicalParent.LogicalParent),
+                Skinning = ConvertInverseBindMatrices(mesh.LogicalParent.LogicalParent, sk),
                 Name = mesh.LogicalParent.Name,
                 MaterialIndex = mesh.LogicalParent.LogicalParent.LogicalMaterials.ToList().IndexOf(mesh.Material)
             };

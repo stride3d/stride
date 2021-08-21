@@ -153,7 +153,7 @@ namespace Stride.Importer.Gltf
                         var gltfImg = chan.Texture.PrimaryImage;
                         if (gltfImg.Content.SourcePath == null)
                         {
-                            var textureName = gltfImg.Name ?? GltfMeshParser.FirstModelName(root) + "_" + (mat.Name ?? mat.LogicalIndex.ToString()) + "_" + chan.Key;
+                            var textureName = gltfImg.Name ?? sourcePath.GetFileNameWithoutExtension() + "_" + (mat.Name ?? mat.LogicalIndex.ToString()) + "_" + chan.Key;
                             result.Add(Path.Join(sourcePath.GetFullDirectory(), textureName + "." + gltfImg.Content.FileExtension));
 
                         }
