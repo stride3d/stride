@@ -240,6 +240,34 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Rotates the vector around the origin by the angle using the given axis of rotation.
+        /// </summary>
+        /// <param name="axis">The axis of rotation.</param>
+        /// <param name="angle">The angle of rotation.</param>
+        public void RotateAround(Vector3 axis, float angle)
+        {
+            RotateAround(Zero, axis, angle);
+        }
+
+        /// <summary>
+        /// Rotates the vector around the target by the angle using the given axis of rotation.
+        /// </summary>
+        /// <param name="target">The position vector of the target to rotate around.</param>
+        /// <param name="axis">The axis of rotation.</param>
+        /// <param name="angle">The angle of rotation.</param>
+        public void RotateAround(Vector3 target, Vector3 axis, float angle)
+        {
+            Vector3 local = this - target;
+            Quaternion q = Quaternion.RotationAxis(axis, angle);
+            q.Rotate(ref local);
+            var result = target + local;
+
+            X = result.X;
+            Y = result.Y;
+            Z = result.Z;
+        }
+
+        /// <summary>
         /// Creates an array containing the elements of the vector.
         /// </summary>
         /// <returns>A three-element array containing the components of the vector.</returns>
@@ -337,7 +365,7 @@ namespace Stride.Core.Mathematics
         {
             return new Vector3(value.X * scale, value.Y * scale, value.Z * scale);
         }
-        
+
         /// <summary>
         /// Modulates a vector with another by performing component-wise multiplication.
         /// </summary>
@@ -385,7 +413,7 @@ namespace Stride.Core.Mathematics
         {
             return new Vector3(value.X / scale, value.Y / scale, value.Z / scale);
         }
-        
+
         /// <summary>
         /// Demodulates a vector with another by performing component-wise division.
         /// </summary>
@@ -1426,6 +1454,35 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Rotates the source around the target by the rotation angle around the supplied axis. 
+        /// </summary>
+        /// <param name="source">The position to rotate.</param>
+        /// <param name="target">The point to rotate around.</param>
+        /// <param name="axis">The axis of rotation.</param>
+        /// <param name="angle">The angle to rotate by in radians.</param>
+        /// <returns>The rotated vector.</returns>
+        public static Vector3 RotateAround(Vector3 source, Vector3 target, Vector3 axis, float angle)
+        {
+            return RotateAround(ref source, ref target, ref axis, angle);
+        }
+
+        /// <summary>
+        /// Rotates the source around the target by the rotation angle around the supplied axis. 
+        /// </summary>
+        /// <param name="source">The position to rotate.</param>
+        /// <param name="target">The point to rotate around.</param>
+        /// <param name="axis">The axis of rotation.</param>
+        /// <param name="angle">The angle to rotate by in radians.</param>
+        /// <returns>The rotated vector.</returns>
+        public static Vector3 RotateAround(ref Vector3 source, ref Vector3 target, ref Vector3 axis, float angle)
+        {
+            Vector3 local = source - target;
+            Quaternion q = Quaternion.RotationAxis(axis, angle);
+            q.Rotate(ref local);
+            return target + local;
+        }
+
+        /// <summary>
         /// Adds two vectors.
         /// </summary>
         /// <param name="left">The first vector to add.</param>
@@ -1505,6 +1562,20 @@ namespace Stride.Core.Mathematics
         public static Vector3 operator *(Vector3 left, Vector3 right)
         {
             return new Vector3(left.X * right.X, left.Y * right.Y, left.Z * right.Z);
+        }
+
+        /// <summary>
+        /// Rotates the vector using the given quaternion. This is shorthand for quaternion rotation.
+        /// </summary>
+        /// <param name="rotator"></param>
+        /// <param name="value"></param>
+        /// <returns>The rotated vector.</returns>
+        public static Vector3 operator *(Quaternion rotator, Vector3 value)
+        {
+            Vector3 vec = value;
+            rotator.Rotate(ref vec);
+
+            return vec;
         }
 
         /// <summary>
@@ -1668,7 +1739,7 @@ namespace Stride.Core.Mathematics
             if (format == null)
                 return ToString();
 
-            return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2}", X.ToString(format, CultureInfo.CurrentCulture), 
+            return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2}", X.ToString(format, CultureInfo.CurrentCulture),
                 Y.ToString(format, CultureInfo.CurrentCulture), Z.ToString(format, CultureInfo.CurrentCulture));
         }
 
