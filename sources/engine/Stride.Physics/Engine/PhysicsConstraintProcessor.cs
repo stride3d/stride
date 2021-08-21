@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
@@ -15,7 +16,7 @@ namespace Stride.Physics.Engine
 
         public PhysicsConstraintProcessor()
         {
-            Order = 0xFFFE; // Before PhysicsProcessor
+            Order = 0xFFFF; // After PhysicsProcessor
         }
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] PhysicsConstraintComponent component, [NotNull] PhysicsConstraintComponent data)
@@ -26,17 +27,12 @@ namespace Stride.Physics.Engine
                 return;
             }
 
-            Recreate(component);
+            Recreate(component, skipUninitializedComponents: true);
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] PhysicsConstraintComponent component, [NotNull] PhysicsConstraintComponent data)
         {
-            if (component.Constraint != null)
-            {
-                component.Simulation.RemoveConstraint(component.Constraint);
-                component.Constraint = null;
-                // see RigidbodyComponent.OnDetach about disposing constraints
-            }
+            DisposeOf(component);
         }
 
         public override void Update(GameTime time)
@@ -51,7 +47,10 @@ namespace Stride.Physics.Engine
 
                 if (component.Constraint != null)
                 {
-                    component.Constraint.Enabled = component.Enabled;
+                    if (component.Constraint.InternalConstraint != null)
+                        component.Constraint.Enabled = component.Enabled;
+                    else
+                        DisposeOf(component); // the constraint is set but also disposed, let's clear it
                 }
                 else if (component.Constraint == null && component.Enabled)
                 {
@@ -60,11 +59,16 @@ namespace Stride.Physics.Engine
             }
         }
 
-        public void Recreate(PhysicsConstraintComponent component)
+        /// <summary>
+        /// Recreate the constraint according to the description in the <paramref name="component"/>.
+        /// </summary>
+        /// <param name="component">Constraint component.</param>
+        /// <param name="skipUninitializedComponents">If <c>true</c> and rigidbody internals have not been initialized no exception will be thrown.</param>
+        public void Recreate(PhysicsConstraintComponent component, bool skipUninitializedComponents = false)
         {
             if (component.Constraint != null)
             {
-                component.Simulation.RemoveConstraint(component.Constraint);
+                DisposeOf(component);
             }
             
             if (component.Enabled)
@@ -75,11 +79,15 @@ namespace Stride.Physics.Engine
                     return;
                 }
 
-                if (component.BodyB != null && component.BodyB.Simulation != component.BodyA.Simulation)
-                    return; // simulation mismatch - may happen when first loading the scene
-
+                // this can happen when the constraint component is added to the processor
+                // before the rigidbodies are added
                 if (component.BodyA?.InternalRigidBody == null || component.BodyB != null && component.BodyB.InternalRigidBody == null)
-                    return; // constraint processing ran before rigidbodies were initialized by the PhysicsProcessor
+                {
+                    if (skipUninitializedComponents)
+                        return;
+                    else
+                        throw new InvalidOperationException("Attempt was made to create a physics constraint, but one of the rigidbodies has not been initialized by the PhysicsProcessor.");
+                }
 
                 component.Constraint = component.Description.Build(
                     component.BodyA,
@@ -87,6 +95,21 @@ namespace Stride.Physics.Engine
                 component.Simulation = component.BodyA.Simulation;
                 component.Simulation.AddConstraint(component.Constraint, component.DisableCollisionsBetweenBodies);
             }
+        }
+
+        private void DisposeOf(PhysicsConstraintComponent component)
+        {
+            // A disposed constraint will have internal == null
+            if (component.Constraint != null && component.Constraint.InternalConstraint != null)
+            {
+                // Simulation is set on the constraint only when it's added
+                if (component.Constraint.Simulation != null)
+                    component.Constraint.Simulation.RemoveConstraint(component.Constraint);
+
+                component.Constraint.Dispose();
+            }
+
+            component.Constraint = null;
         }
     }
 }

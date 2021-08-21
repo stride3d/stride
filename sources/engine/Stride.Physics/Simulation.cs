@@ -803,7 +803,8 @@ namespace Stride.Physics
 
         static HingeConstraint CreateHingeConstraintInternal(RigidbodyComponent rigidBodyA, RigidbodyComponent rigidBodyB, Vector3 pivotInA, Vector3 pivotInB, Vector3 axisInA, Vector3 axisInB, bool useReferenceFrameA = false)
         {
-            if (rigidBodyB != null && rigidBodyB.Simulation != rigidBodyA.Simulation) throw new Exception("Both RigidBodies must be on the same simulation");
+            if (rigidBodyB != null && rigidBodyB.Simulation != rigidBodyA.Simulation)
+                throw new Exception("Both RigidBodies must be on the same simulation");
 
             var rbA = rigidBodyA.InternalRigidBody;
             var rbB = rigidBodyB?.InternalRigidBody;
