@@ -1,11 +1,9 @@
 using Stride.Core;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
-using Stride.Core.Mathematics;
-using Stride.Core.Annotations;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using Stride.Engine.Splines.Models;
 
 namespace Stride.Engine.Splines.Components
 {
@@ -19,7 +17,10 @@ namespace Stride.Engine.Splines.Components
     public sealed class SplineDecoratorComponent : EntityComponent
     {
         private SplineComponent splineComponent;
-        [Display(100, "SplineComponent")]
+        private List<Entity> decorationInstances = new List<Entity>();
+        private DecoratorDistributionSetting distribution;
+
+        [Display(50, "SplineComponent")]
         public SplineComponent SplineComponent
         {
             get { return splineComponent; }
@@ -29,80 +30,45 @@ namespace Stride.Engine.Splines.Components
                 if (splineComponent != null)
                 {
                     splineComponent.OnSplineUpdated += UpdateDecorator;
+                    UpdateDecorator();
                 }
-                else{
+                else {
                     ClearDecorationInstance();
                 }
-                //if (_splineComponent == null)
-                //{
-                //    _splineComponent.OnSplineUpdated -= UpdateDecorator;
-                //    _splineComponent = null;
-                //}
-                //else
-                //{
-                //    _splineComponent = value;
-                //    _splineComponent.OnSplineUpdated += UpdateDecorator;
-                //}
             }
         }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="ParticleSystem"/> is enabled.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if enabled; otherwise, <c>false</c>.
-        /// </value>
-        [DataMember(-10)]
-        [DefaultValue(true)]
-        public bool Enabled { get; set; } = true;
-
-        [Display(90, "Decorations")]
-
+         /// <summary>
+         /// A list of prefabs that the decorators uses to instantiate
+         /// </summary>
+        [Display(60, "Decorations")]
         public List<Prefab> decorations = new List<Prefab>();
 
-        private List<Entity> decorationInstances = new List<Entity>();
-
-        private bool useAmountInsteadOfInterval = true;
-
-
-        private int amount = 2;
-
-        [Display(80, "Amount", "Settings")]
-        public int Amount
-        {
-            get { return amount; }
-            set
-            {
-                amount = Math.Max(2, value);
-                DecorateWithAmount();
-            }
-        }
-
-        private Vector2 _interval = new Vector2(1, 1);
-
-        [Display(70, "Interval", "Settings")]
-        public Vector2 Interval
-        {
-            get { return _interval; }
-            set
-            {
-                _interval = value;
-                DecorateWithInterval();
+        /// <summary>
+        /// Decorator settings of the decorator components
+        /// </summary>
+        [DataMember(70)]
+        [Display("Distribution")]
+        public DecoratorDistributionSetting Distribution
+        { 
+            get { return distribution; }
+            set {
+                distribution = value;
+                UpdateDecorator();
             }
         }
 
         private void DecorateWithAmount()
         {
-            useAmountInsteadOfInterval = true;
-          
             ClearDecorationInstance();
 
-            if (SplineComponent != null && SplineComponent.GetTotalSplineDistance() > 0 && decorations.Count > 0)
+            if (SplineComponent != null && SplineComponent.GetTotalSplineDistance() > 0 
+                && decorations.Count > 0 && Distribution is AmountDecorator AmountDecorator && AmountDecorator.Amount > 0)
             {
                 var totalSplineDistance = SplineComponent.GetTotalSplineDistance();
-                var segmentLength = totalSplineDistance / amount;
+                var segmentLength = totalSplineDistance / AmountDecorator.Amount + 1;
 
-                for (int iteration = 1; iteration < amount; iteration++)
+                for (int iteration = 1; iteration <= AmountDecorator.Amount; iteration++)
                 {
                     var percentage = ((segmentLength * iteration) / totalSplineDistance) * 100;
                     CreateInstanceAndAddToScene(iteration, percentage);
@@ -112,10 +78,10 @@ namespace Stride.Engine.Splines.Components
 
         private void DecorateWithInterval()
         {
-            useAmountInsteadOfInterval = false;
             ClearDecorationInstance();
 
-            if (SplineComponent != null && SplineComponent.GetTotalSplineDistance() > 0 && decorations.Count > 0)
+            if (SplineComponent != null && SplineComponent.GetTotalSplineDistance() > 0
+                && decorations.Count > 0 && Distribution is IntervalDecorator IntervalDecorator)
             {
                 var totalSplineDistance = SplineComponent.GetTotalSplineDistance();
                 var random = new Random();
@@ -124,7 +90,7 @@ namespace Stride.Engine.Splines.Components
    
                 while (iteration < 1000) //Hardcoded 1000?
                 {
-                    var nextInterval = random.NextDouble() * (Interval.Y - Interval.X) + Interval.X;
+                    var nextInterval = random.NextDouble() * (IntervalDecorator.Interval.Y - IntervalDecorator.Interval.X) + IntervalDecorator.Interval.X;
                     totalIntervalDistance += (float)nextInterval;
 
                     if (totalIntervalDistance > totalSplineDistance)
@@ -160,7 +126,10 @@ namespace Stride.Engine.Splines.Components
 
         private void UpdateDecorator()
         {
-            if (useAmountInsteadOfInterval)
+            if (Distribution == null)
+                return;
+
+            if (Distribution is AmountDecorator)
             {
                 DecorateWithAmount();
             }
