@@ -11,7 +11,7 @@
     <FbxSdkVersion>2019.0</FbxSdkVersion>
     <FbxSdkUrl>https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0</FbxSdkUrl>
     <FbxSdkDir>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Autodesk FBX SDK $(FbxSdkVersion)', 'Install_Dir', null, RegistryView.Registry32))</FbxSdkDir>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <FbxLibVersionDir>vs2015\</FbxLibVersionDir>
   </PropertyGroup>
   <ItemGroup Label="ProjectConfigurations">
