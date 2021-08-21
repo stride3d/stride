@@ -20,7 +20,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private static readonly Color OrangeNegUniformColor = new Color(0xFF - 0xFF, 0xFF - 0x98, 0xFF - 0x2B);
         private static readonly Color PurpleUniformColor = new Color(0xB1, 0x24, 0xF2);
         private static readonly Color PurpleNegUniformColor = new Color(0xFF - 0xB1, 0xFF - 0x24, 0xFF - 0xF2);
-        private static readonly Color LimitColor = new Color(0xac, 0xf4, 0xa4, 0x96);
+        private static readonly Color LimitColor = new Color(0xac, 0xf4, 0xa4, 0xb4);
 
         // Each time we create a primitive we allocate memory that won't be garbage collected without calling Dispose,
         // so we need a global cache of those per a graphics device (in case there's more than one).
@@ -33,12 +33,12 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         // Using the same render group as transformation gizmo which means constraint gizmo is visible while inside another mesh
         private static readonly RenderGroup GizmoRenderGroup = TransformationGizmo.TransformationGizmoGroup;
 
-        private const float AxisConeRadius = 0.03f / 3f;
+        private const float AxisConeRadius = 0.0118f;
         private const float AxisConeHeight = 0.03f;
-        private const float CenterSphereRadius = 0.01f;
-        private const float CylinderLength = 0.2f;
-        private const float CylinderRadius = 0.005f;
-        private const float LimitDiscRadius = 0.06f;
+        private const float CenterSphereRadius = 0.012f;
+        private const float CylinderLength = 0.18f;
+        private const float CylinderRadius = 0.004f;
+        private const float LimitDiscRadius = 0.05f;
         private const int Tessellation = 16;
 
         private PivotMarker PivotA;
@@ -200,7 +200,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             if (!cache.TryGetValue(color, out var material))
             {
-                material = GizmoUniformColorMaterial.Create(device, color);
+                if (color.A == byte.MaxValue)
+                    material = GizmoEmissiveColorMaterial.Create(device, color, intensity: 0.85f);
+                else
+                    material = GizmoEmissiveColorMaterial.Create(device, color, intensity: 0.5f);
+
                 cache.Add(color, material);
             }
 
