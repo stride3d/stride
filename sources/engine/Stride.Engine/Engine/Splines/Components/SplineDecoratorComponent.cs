@@ -11,7 +11,7 @@ namespace Stride.Engine.Splines.Components
     /// Component representing a Spline decorator.
     /// </summary>
     [DataContract("SplineDecoratorComponent")]
-    [Display("SplineDecorator", Expand = ExpandRule.Once)]
+    [Display("Spline decorator", Expand = ExpandRule.Once)]
     [DefaultEntityComponentProcessor(typeof(SplineDecoratorTransformProcessor))]
     [ComponentCategory("Splines")]
     public sealed class SplineDecoratorComponent : EntityComponent
