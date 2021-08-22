@@ -70,7 +70,7 @@ namespace Stride.Rendering.Images
             // Half-radius of the hexagon
             float halfRadius = Radius * 0.5f; 
             // Half-width of an hexagon pointing up (altitude of an equilateral triangle)
-            float hexagonalHalfWidth = Radius * (float)Math.Sqrt(3f) / 2f;
+            float hexagonalHalfWidth = Radius * MathF.Sqrt(3f) / 2f;
 
             // TODO Check potential different behavior with OGL where vertical addressing (V)
             // is swapped compared to D3D textures. 
@@ -151,7 +151,7 @@ namespace Stride.Rendering.Images
 
             // Vertical blur
             var blurAngle = MathUtil.PiOverTwo + Phase;
-            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2((float)Math.Cos(blurAngle), (float)Math.Sin(blurAngle)));
+            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2(MathF.Cos(blurAngle), MathF.Sin(blurAngle)));
 
             var verticalBlurTexture = NewScopedRenderTarget2D(originalTexture.Description);
             directionalBlurEffect.SetInput(0, originalTexture);
@@ -160,7 +160,7 @@ namespace Stride.Rendering.Images
 
             // Rhombi A (top left)
             blurAngle = 7f * MathUtil.Pi / 6f + Phase;
-            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2((float)Math.Cos(blurAngle), (float)Math.Sin(blurAngle)));
+            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2(MathF.Cos(blurAngle), MathF.Sin(blurAngle)));
 
             var rhombiA = NewScopedRenderTarget2D(originalTexture.Description);
             directionalBlurEffect.SetInput(0, verticalBlurTexture);
@@ -169,7 +169,7 @@ namespace Stride.Rendering.Images
 
             // Rhombi B (top right)
             blurAngle = -MathUtil.Pi / 6f + Phase;
-            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2((float)Math.Cos(blurAngle), (float)Math.Sin(blurAngle)));
+            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2(MathF.Cos(blurAngle), MathF.Sin(blurAngle)));
 
             var rhombiB = NewScopedRenderTarget2D(originalTexture.Description);
             directionalBlurEffect.SetInput(0, verticalBlurTexture);
@@ -178,7 +178,7 @@ namespace Stride.Rendering.Images
 
             //Rhombi C (bottom)
             blurAngle = 7f * MathUtil.Pi / 6f + Phase;
-            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2((float)Math.Cos(blurAngle), (float)Math.Sin(blurAngle)));
+            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2(MathF.Cos(blurAngle), MathF.Sin(blurAngle)));
 
             var rhombiCTmp = NewScopedRenderTarget2D(originalTexture.Description);
             directionalBlurEffect.SetInput(0, originalTexture);
@@ -186,7 +186,7 @@ namespace Stride.Rendering.Images
             directionalBlurEffect.Draw(context, "TripleRhombiBokeh_RhombiCTmp_tap{0}_radius{1}", tapNumber, (int)Radius);
 
             blurAngle = -MathUtil.Pi / 6f + Phase;
-            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2((float)Math.Cos(blurAngle), (float)Math.Sin(blurAngle)));
+            directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.Direction, new Vector2(MathF.Cos(blurAngle), MathF.Sin(blurAngle)));
 
             var rhombiC = NewScopedRenderTarget2D(originalTexture.Description);
             directionalBlurEffect.SetInput(0, rhombiCTmp);

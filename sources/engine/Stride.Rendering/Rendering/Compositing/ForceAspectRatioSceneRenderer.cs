@@ -65,15 +65,15 @@ namespace Stride.Rendering.Compositing
             // Pillarbox 
             if (currentAr > requiredAr)
             {
-                var newWidth = (float)Math.Max(1.0f, Math.Round(currentViewport.Height * requiredAr));
-                var adjX = (float)Math.Round(0.5f * (currentViewport.Width - newWidth));
+                var newWidth = MathF.Max(1.0f, MathF.Round(currentViewport.Height * requiredAr));
+                var adjX = MathF.Round(0.5f * (currentViewport.Width - newWidth));
                 currentViewport = new Viewport(currentViewport.X + (int)adjX, currentViewport.Y, (int)newWidth, currentViewport.Height);
             }
             // Letterbox
             else
             {
-                var newHeight = (float)Math.Max(1.0f, Math.Round(currentViewport.Width / requiredAr));
-                var adjY = (float)Math.Round(0.5f * (currentViewport.Height - newHeight));
+                var newHeight = MathF.Max(1.0f, MathF.Round(currentViewport.Width / requiredAr));
+                var adjY = MathF.Round(0.5f * (currentViewport.Height - newHeight));
                 currentViewport = new Viewport(currentViewport.X, currentViewport.Y + (int)adjY, currentViewport.Width, (int)newHeight);
             }
         }

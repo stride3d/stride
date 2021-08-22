@@ -282,7 +282,7 @@ namespace Stride.Rendering.Shadows
         private static float ComputeSizeFactor(LightShadowMapSize shadowMapSize)
         {
             // Then reduce the size based on the shadow map size
-            var factor = (float)Math.Pow(2.0f, (int)shadowMapSize - 3.0f);
+            var factor = MathF.Pow(2.0f, (int)shadowMapSize - 3.0f);
             return factor;
         }
     }

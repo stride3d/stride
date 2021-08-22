@@ -676,6 +676,17 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
+  <DrawingImage x:Key="ImageGrid" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M14,14L2,14 2,2 14,2z" />
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M12,6L10,6 10,4 12,4z M12,9L10,9 10,7 12,7z M12,12L10,12 10,10 12,10z M9,6L7,6 7,4 9,4z M9,9L7,9 7,7 9,7z M9,12L7,12 7,10 9,10z M6,6L4,6 4,4 6,4z M6,9L4,9 4,7 6,7z M6,12L4,12 4,10 6,10z M3,13L13,13 13,3 3,3z" />
+        <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M6,10L4,10 4,12 6,12z M6,7L4,7 4,9 6,9z M6,4L4,4 4,6 6,6z M12,4L10,4 10,6 12,6z M12,10L10,10 10,12 12,12z M12,7L10,7 10,9 12,9z M9,4L7,4 7,6 9,6z M9,10L7,10 7,12 9,12z M9,9L7,9 7,7 9,7z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
   <DrawingImage x:Key="ImageLighting" >
     <DrawingImage.Drawing>
       <DrawingGroup>

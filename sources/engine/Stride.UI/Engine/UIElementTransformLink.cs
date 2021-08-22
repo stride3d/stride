@@ -54,7 +54,7 @@ namespace Stride.Engine
             var farPlane = nearPlane + virtualResolution.Z;
             var zOffset = nearPlane + virtualResolution.Z / 2;
             var aspectRatio = virtualResolution.X / virtualResolution.Y;
-            var verticalFov = (float)Math.Atan2(virtualResolution.Y / 2, zOffset) * 2;
+            var verticalFov = MathF.Atan2(virtualResolution.Y / 2, zOffset) * 2;
 
             var cameraComponent = new CameraComponent(nearPlane, farPlane)
             {

@@ -44,6 +44,8 @@ namespace Stride.Assets.Presentation.SceneEditor
         public bool SelectionMaskVisible = true;
         public bool GridVisible = true;
         public Color3 GridColor = (Color3)new Color(180, 180, 180);
+        public float GridOpacity = 0.35f;
+        public int GridAxisIndex = 1;
         public bool CameraPreviewVisible = true;
         public RenderMode RenderMode = RenderMode.SingleStream;
         public string ActiveStream = string.Empty;

@@ -63,7 +63,7 @@ namespace Stride.VirtualReality
 
         public override TouchController RightHand => rightHandController;
 
-        public override TrackedItem[] TrackedItems => new TrackedItem[0];
+        public override TrackedItem[] TrackedItems => Array.Empty<TrackedItem>();
 
         public override bool CanInitialize => true;
 

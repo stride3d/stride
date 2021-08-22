@@ -620,18 +620,15 @@ namespace Stride.Core.Mathematics
         /// <param name="roll">The roll.</param>
         public void Decompose(out float yaw, out float pitch, out float roll)
         {
-            pitch = (float)Math.Asin(-M32);
-            // Hardcoded constant - burn him, he's a witch
-            // double threshold = 0.001;
-            double test = Math.Cos(pitch);
-            if (test > MathUtil.ZeroTolerance)
+            pitch = MathF.Asin(-M32);
+            if (MathF.Cos(pitch) > MathUtil.ZeroTolerance)
             {
-                roll = (float)Math.Atan2(M12, M22);
-                yaw = (float)Math.Atan2(M31, M33);
+                roll = MathF.Atan2(M12, M22);
+                yaw = MathF.Atan2(M31, M33);
             }
             else
             {
-                roll = (float)Math.Atan2(-M21, M11);
+                roll = MathF.Atan2(-M21, M11);
                 yaw = 0.0f;
             }
         }
@@ -643,16 +640,15 @@ namespace Stride.Core.Mathematics
         /// <param name="rotation">The vector containing the 3 rotations angles to be applied in order.</param>
         public void DecomposeXYZ(out Vector3 rotation)
         {
-            rotation.Y = (float)Math.Asin(-M13);
-            double test = Math.Cos(rotation.Y);
-            if (test > 1e-6f)
+            rotation.Y = MathF.Asin(-M13);
+            if (MathF.Cos(rotation.Y) > MathUtil.ZeroTolerance)
             {
-                rotation.Z = (float)Math.Atan2(M12, M11);
-                rotation.X = (float)Math.Atan2(M23, M33);
+                rotation.Z = MathF.Atan2(M12, M11);
+                rotation.X = MathF.Atan2(M23, M33);
             }
             else
             {
-                rotation.Z = (float)Math.Atan2(-M21, M31);
+                rotation.Z = MathF.Atan2(-M21, M31);
                 rotation.X = 0.0f;
             }
         }
@@ -675,14 +671,14 @@ namespace Stride.Core.Mathematics
             translation.Z = this.M43;
 
             //Scaling is the length of the rows.
-            scale.X = (float)Math.Sqrt((M11 * M11) + (M12 * M12) + (M13 * M13));
-            scale.Y = (float)Math.Sqrt((M21 * M21) + (M22 * M22) + (M23 * M23));
-            scale.Z = (float)Math.Sqrt((M31 * M31) + (M32 * M32) + (M33 * M33));
+            scale.X = MathF.Sqrt((M11 * M11) + (M12 * M12) + (M13 * M13));
+            scale.Y = MathF.Sqrt((M21 * M21) + (M22 * M22) + (M23 * M23));
+            scale.Z = MathF.Sqrt((M31 * M31) + (M32 * M32) + (M33 * M33));
 
             //If any of the scaling factors are zero, than the rotation matrix can not exist.
-            if (Math.Abs(scale.X) < MathUtil.ZeroTolerance ||
-                Math.Abs(scale.Y) < MathUtil.ZeroTolerance ||
-                Math.Abs(scale.Z) < MathUtil.ZeroTolerance)
+            if (MathF.Abs(scale.X) < MathUtil.ZeroTolerance ||
+                MathF.Abs(scale.Y) < MathUtil.ZeroTolerance ||
+                MathF.Abs(scale.Z) < MathUtil.ZeroTolerance)
             {
                 return false;
             }
@@ -727,14 +723,14 @@ namespace Stride.Core.Mathematics
             translation.Z = this.M43;
 
             //Scaling is the length of the rows.
-            scale.X = (float)Math.Sqrt((M11 * M11) + (M12 * M12) + (M13 * M13));
-            scale.Y = (float)Math.Sqrt((M21 * M21) + (M22 * M22) + (M23 * M23));
-            scale.Z = (float)Math.Sqrt((M31 * M31) + (M32 * M32) + (M33 * M33));
+            scale.X = MathF.Sqrt((M11 * M11) + (M12 * M12) + (M13 * M13));
+            scale.Y = MathF.Sqrt((M21 * M21) + (M22 * M22) + (M23 * M23));
+            scale.Z = MathF.Sqrt((M31 * M31) + (M32 * M32) + (M33 * M33));
 
             //If any of the scaling factors are zero, than the rotation matrix can not exist.
-            if (Math.Abs(scale.X) < MathUtil.ZeroTolerance ||
-                Math.Abs(scale.Y) < MathUtil.ZeroTolerance ||
-                Math.Abs(scale.Z) < MathUtil.ZeroTolerance)
+            if (MathF.Abs(scale.X) < MathUtil.ZeroTolerance ||
+                MathF.Abs(scale.Y) < MathUtil.ZeroTolerance ||
+                MathF.Abs(scale.Z) < MathUtil.ZeroTolerance)
             {
                 rotation = Matrix.Identity;
                 return false;
@@ -1380,7 +1376,7 @@ namespace Stride.Core.Mathematics
             float d14 = value.M21 * b3 + value.M22 * -b1 + value.M23 * b0;
 
             float det = value.M11 * d11 - value.M12 * d12 + value.M13 * d13 - value.M14 * d14;
-            if (Math.Abs(det) == 0.0f)
+            if (MathF.Abs(det) == 0.0f)
             {
                 result = Matrix.Zero;
                 return;
@@ -1602,7 +1598,7 @@ namespace Stride.Core.Mathematics
 
                 int i = r;
 
-                while (Math.Abs(result[i, lead]) < MathUtil.ZeroTolerance)
+                while (MathF.Abs(result[i, lead]) < MathUtil.ZeroTolerance)
                 {
                     i++;
 
@@ -1684,7 +1680,7 @@ namespace Stride.Core.Mathematics
 
                 int i = r;
 
-                while (Math.Abs(result[i, lead]) < MathUtil.ZeroTolerance)
+                while (MathF.Abs(result[i, lead]) < MathUtil.ZeroTolerance)
                 {
                     i++;
 
@@ -1762,7 +1758,7 @@ namespace Stride.Core.Mathematics
 
                 int i = r;
 
-                while (Math.Abs(result[i, lead]) < MathUtil.ZeroTolerance)
+                while (MathF.Abs(result[i, lead]) < MathUtil.ZeroTolerance)
                 {
                     i++;
 
@@ -1957,7 +1953,7 @@ namespace Stride.Core.Mathematics
             if (lengthSq < MathUtil.ZeroTolerance)
                 difference = -cameraForwardVector;
             else
-                difference *= (float)(1.0 / Math.Sqrt(lengthSq));
+                difference *= 1.0f / MathF.Sqrt(lengthSq);
 
             Vector3.Cross(ref cameraUpVector, ref difference, out crossed);
             crossed.Normalize();
@@ -2594,8 +2590,8 @@ namespace Stride.Core.Mathematics
         /// <param name="result">When the method completes, contains the created rotation matrix.</param>
         public static void RotationX(float angle, out Matrix result)
         {
-            float cos = (float)Math.Cos(angle);
-            float sin = (float)Math.Sin(angle);
+            float cos = MathF.Cos(angle);
+            float sin = MathF.Sin(angle);
 
             result = Matrix.Identity;
             result.M22 = cos;
@@ -2623,8 +2619,8 @@ namespace Stride.Core.Mathematics
         /// <param name="result">When the method completes, contains the created rotation matrix.</param>
         public static void RotationY(float angle, out Matrix result)
         {
-            float cos = (float)Math.Cos(angle);
-            float sin = (float)Math.Sin(angle);
+            float cos = MathF.Cos(angle);
+            float sin = MathF.Sin(angle);
 
             result = Matrix.Identity;
             result.M11 = cos;
@@ -2652,8 +2648,8 @@ namespace Stride.Core.Mathematics
         /// <param name="result">When the method completes, contains the created rotation matrix.</param>
         public static void RotationZ(float angle, out Matrix result)
         {
-            float cos = (float)Math.Cos(angle);
-            float sin = (float)Math.Sin(angle);
+            float cos = MathF.Cos(angle);
+            float sin = MathF.Sin(angle);
 
             result = Matrix.Identity;
             result.M11 = cos;
@@ -2685,8 +2681,8 @@ namespace Stride.Core.Mathematics
             float x = axis.X;
             float y = axis.Y;
             float z = axis.Z;
-            float cos = (float)Math.Cos(angle);
-            float sin = (float)Math.Sin(angle);
+            float cos = MathF.Cos(angle);
+            float sin = MathF.Sin(angle);
             float xx = x * x;
             float yy = y * y;
             float zz = z * z;
@@ -3360,25 +3356,25 @@ namespace Stride.Core.Mathematics
         /// </returns>
         public bool Equals(Matrix other)
         {
-            return (Math.Abs(other.M11 - M11) < MathUtil.ZeroTolerance &&
-                Math.Abs(other.M12 - M12) < MathUtil.ZeroTolerance &&
-                Math.Abs(other.M13 - M13) < MathUtil.ZeroTolerance &&
-                Math.Abs(other.M14 - M14) < MathUtil.ZeroTolerance &&
+            return (MathF.Abs(other.M11 - M11) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M12 - M12) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M13 - M13) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M14 - M14) < MathUtil.ZeroTolerance &&
 
-                Math.Abs(other.M21 - M21) < MathUtil.ZeroTolerance &&
-                Math.Abs(other.M22 - M22) < MathUtil.ZeroTolerance &&
-                Math.Abs(other.M23 - M23) < MathUtil.ZeroTolerance &&
-                Math.Abs(other.M24 - M24) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M21 - M21) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M22 - M22) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M23 - M23) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M24 - M24) < MathUtil.ZeroTolerance &&
 
-                Math.Abs(other.M31 - M31) < MathUtil.ZeroTolerance &&
-                Math.Abs(other.M32 - M32) < MathUtil.ZeroTolerance &&
-                Math.Abs(other.M33 - M33) < MathUtil.ZeroTolerance &&
-                Math.Abs(other.M34 - M34) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M31 - M31) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M32 - M32) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M33 - M33) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M34 - M34) < MathUtil.ZeroTolerance &&
 
-                Math.Abs(other.M41 - M41) < MathUtil.ZeroTolerance &&
-                Math.Abs(other.M42 - M42) < MathUtil.ZeroTolerance &&
-                Math.Abs(other.M43 - M43) < MathUtil.ZeroTolerance &&
-                Math.Abs(other.M44 - M44) < MathUtil.ZeroTolerance);
+                MathF.Abs(other.M41 - M41) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M42 - M42) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M43 - M43) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.M44 - M44) < MathUtil.ZeroTolerance);
         }
 
         /// <summary>
