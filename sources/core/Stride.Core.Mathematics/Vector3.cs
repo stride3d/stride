@@ -1565,17 +1565,16 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Rotates the vector using the given quaternion. This is shorthand for quaternion rotation.
+        /// Return the vector rotated by the quaternion.
         /// </summary>
-        /// <param name="rotator"></param>
-        /// <param name="value"></param>
-        /// <returns>The rotated vector.</returns>
-        public static Vector3 operator *(Quaternion rotator, Vector3 value)
+        /// <remarks>
+        /// Shorthand for <see cref="Quaternion.Rotate(ref Vector3)"/>
+        /// </remarks>
+        public static Vector3 operator *(in Vector3 left, in Quaternion right)
         {
-            Vector3 vec = value;
-            rotator.Rotate(ref vec);
-
-            return vec;
+            var pureQuaternion = new Quaternion(left, 0);
+            pureQuaternion = Quaternion.Conjugate(right) * pureQuaternion * right;
+            return new Vector3(pureQuaternion.X, pureQuaternion.Y, pureQuaternion.Z);
         }
 
         /// <summary>
