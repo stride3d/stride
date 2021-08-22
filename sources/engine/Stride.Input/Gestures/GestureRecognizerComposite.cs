@@ -72,7 +72,7 @@ namespace Stride.Input
 
             // Update the gesture current rotation value
             var rotSign = beginVectorNormalized[0] * currentVectorNormalized[1] - beginVectorNormalized[1] * currentVectorNormalized[0];
-            currentRotation = Math.Sign(rotSign) * (float)Math.Acos(Vector2.Dot(currentVectorNormalized, beginVectorNormalized));
+            currentRotation = MathF.Sign(rotSign) * MathF.Acos(Vector2.Dot(currentVectorNormalized, beginVectorNormalized));
 
             // Update the gesture current center of transformation
             currentCenter = (FingerIdsToLastPos[secondFingerId] + FingerIdsToLastPos[firstFingerId]) / 2;

@@ -121,7 +121,7 @@ namespace Stride.Core.Mathematics
         /// </summary>
         public bool IsNormalized
         {
-            get { return Math.Abs((X * X) + (Y * Y) - 1f) < MathUtil.ZeroTolerance; }
+            get { return MathF.Abs((X * X) + (Y * Y) - 1f) < MathUtil.ZeroTolerance; }
         }
 
         /// <summary>
@@ -164,9 +164,9 @@ namespace Stride.Core.Mathematics
         /// and speed is of the essence.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Length()
+        public readonly float Length()
         {
-            return (float)Math.Sqrt((X * X) + (Y * Y));
+            return MathF.Sqrt((X * X) + (Y * Y));
         }
 
         /// <summary>
@@ -205,6 +205,24 @@ namespace Stride.Core.Mathematics
         public float[] ToArray()
         {
             return new float[] { X, Y };
+        }
+
+        /// <summary>
+        /// Moves the first vector2 to the second one in a straight line.
+        /// </summary>
+        /// <param name="from">The first point.</param>
+        /// <param name="to">The second point.</param>
+        /// <param name="maxTravelDistance">The rate at which the first point is going to move towards the second point.</param>
+        public static Vector2 MoveTo(in Vector2 from, in Vector2 to, float maxTravelDistance)
+        {
+            Vector2 distance = Subtract(to, from);
+
+            float length = distance.Length();
+
+            if (maxTravelDistance >= length || length == 0)
+                return to;
+            else
+                return new Vector2(from.X + distance.X / length * maxTravelDistance, from.Y + distance.Y / length * maxTravelDistance);
         }
 
         /// <summary>
@@ -250,7 +268,7 @@ namespace Stride.Core.Mathematics
         /// <param name="right">The second vector to subtract.</param>
         /// <returns>The difference of the two vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 Subtract(Vector2 left, Vector2 right)
+        public static Vector2 Subtract(in Vector2 left, in Vector2 right)
         {
             return new Vector2(left.X - right.X, left.Y - right.Y);
         }
@@ -454,7 +472,7 @@ namespace Stride.Core.Mathematics
             float x = value1.X - value2.X;
             float y = value1.Y - value2.Y;
 
-            result = (float)Math.Sqrt((x * x) + (y * y));
+            result = MathF.Sqrt((x * x) + (y * y));
         }
 
         /// <summary>
@@ -472,7 +490,7 @@ namespace Stride.Core.Mathematics
             float x = value1.X - value2.X;
             float y = value1.Y - value2.Y;
 
-            return (float)Math.Sqrt((x * x) + (y * y));
+            return MathF.Sqrt((x * x) + (y * y));
         }
 
         /// <summary>
@@ -1391,8 +1409,8 @@ namespace Stride.Core.Mathematics
         /// </returns>
         public bool Equals(Vector2 other)
         {
-            return ((float)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance);
+            return (MathF.Abs(other.X - X) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance);
         }
 
         /// <summary>

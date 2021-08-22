@@ -17,7 +17,6 @@ namespace Stride.Physics
         {
             Orientation = Quaternion.Identity;
             StepHeight = 0.1f;
-            ProcessCollisions = true;
         }
 
         /// <summary>
@@ -229,7 +228,7 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                throw new InvalidOperationException("Attempted to call a Physics function that is available only when the Entity has been already added to the Scene.");
             }
 
             KinematicCharacter.SetWalkDirection(velocity * Simulation.FixedTimeStep);

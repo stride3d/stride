@@ -7,24 +7,32 @@ using Stride.Engine;
 using Stride.Extensions;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
+using Stride.Assets.Presentation.SceneEditor;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
     public class RotationGizmo : TransformationGizmo
     {
         private const float RotationGizmoRadius = 1f; // the size of the radius of the torus used to rotate the objects
-
         private const float RotationGizmoThickness = 0.02f; // the size of the inner radius torus used to rotate the objects
+        private const float OriginRadius = GizmoOriginScale * 0.05f;
 
         private readonly Entity[] rotationAxes = new Entity[3];
+
+        private Material overlaySphereDefaultMaterial;
+        private Material overlaySphereSelectedMaterial;
+
+        private Entity overlaySphere;
 
         protected override Entity Create()
         {
             base.Create();
 
+            overlaySphereDefaultMaterial = CreateUniformColorMaterial(new Color(0.3f, 0.3f, 0.3f, 0.025f));
+            overlaySphereSelectedMaterial = CreateUniformColorMaterial(new Color(0.4f, 0.4f, 0.4f, 0.025f));
+
             var entity = new Entity("Rotation Gizmo");
-            const float OriginSize = GizmoOriginScale * GizmoExtremitySize;
-            var rotations = new[] { new Vector3(0, 0, MathUtil.Pi / 2), new Vector3(), new Vector3(MathUtil.Pi / 2, 0, 0) };
+            var rotations = new[] { new Vector3(0, 0, -MathUtil.Pi / 2), new Vector3(), new Vector3(MathUtil.Pi / 2, 0, 0) };
             var bodyMesh = GeometricPrimitive.Torus.New(GraphicsDevice, RotationGizmoRadius, RotationGizmoThickness, GizmoTessellation).ToMeshDraw();
 
             for (int axis = 0; axis < 3; ++axis)
@@ -35,10 +43,15 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 entity.AddChild(rotationAxes[axis]);
             }
 
+            // Add overlay sphere
+            var overlayMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, RotationGizmoRadius, GizmoTessellation).ToMeshDraw();
+            overlaySphere = new Entity("OverlaySphere") { new ModelComponent { Model = new Model { overlaySphereDefaultMaterial, new Mesh { Draw = overlayMeshDraw } }, RenderGroup = RenderGroup } };
+            entity.AddChild(overlaySphere);
+
             // Add middle sphere
-            var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, 0.25f * OriginSize, GizmoTessellation).ToMeshDraw();
-            var sphereEntity = new Entity("OriginCube") { new ModelComponent { Model = new Model { DefaultOriginMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
-            entity.AddChild(sphereEntity);
+            var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, OriginRadius, GizmoTessellation).ToMeshDraw();
+            var rotationOrigin = new Entity("OriginSphere") { new ModelComponent { Model = new Model { DefaultOriginMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
+            entity.Transform.Children.Add(rotationOrigin.Transform);
 
             return entity;
         }
@@ -68,7 +81,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             else
             {
                 var halfFov = MathUtil.DegreesToRadians(cameraService.VerticalFieldOfView/2f);
-                rayDirectionView = Vector3.Normalize(new Vector3(cameraService.AspectRatio*screenPosition.X, screenPosition.Y, -1/(float)Math.Tan(halfFov)));
+                rayDirectionView = Vector3.Normalize(new Vector3(cameraService.AspectRatio*screenPosition.X, screenPosition.Y, -1/MathF.Tan(halfFov)));
             }
 
             // calculate the view to gizmo space matrix 
@@ -79,8 +92,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             // calculate the length of the box depending to tessellation
             const float Alpha = 2f * MathUtil.Pi / CollisionTessellation;
-            var length = (float)Math.Sqrt(2f * RotationGizmoRadius * RotationGizmoRadius * (1 - (float)Math.Cos(Alpha)));
-            length += ClickThickness * (float)Math.Tan((MathUtil.Pi / 2 - Alpha) / 2f); // avoid small gaps between elements
+            var length = MathF.Sqrt(2f * RotationGizmoRadius * RotationGizmoRadius * (1 - MathF.Cos(Alpha)));
+            length += ClickThickness * MathF.Tan((MathUtil.Pi / 2 - Alpha) / 2f); // avoid small gaps between elements
 
             // calculate the bounding box containing the segment
             var minimum = new Vector3(-ClickThickness);
@@ -89,7 +102,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             maximum[0] = +length / 2;
             var boundingBox = new BoundingBox(minimum, maximum);
 
-            var boxRadius = RotationGizmoRadius * (float)Math.Cos(Alpha);
+            var boxRadius = RotationGizmoRadius * MathF.Cos(Alpha);
             var rotationMatrix = new[] { Matrix.RotationYawPitchRoll(MathUtil.Pi / 2, 0, 0), Matrix.RotationYawPitchRoll(0, MathUtil.Pi / 2, 0), Matrix.Identity };
 
             // select the axis whose intersection is the closest
@@ -125,6 +138,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         protected override void UpdateColors()
         {
             base.UpdateColors();
+
             for (int axis = 0; axis < 3; axis++)
             {
                 var axisMaterial = GetAxisDefaultMaterial(axis);
@@ -132,6 +146,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 bool isSelected = (TransformationAxes & transformationAxis) == transformationAxis;
                 rotationAxes[axis].Get<ModelComponent>().Model.Materials[0] = isSelected ? ElementSelectedMaterial : axisMaterial;
             }
+
+            overlaySphere.Get<ModelComponent>().Model.Materials[0] = TransformationStarted ? overlaySphereSelectedMaterial : overlaySphereDefaultMaterial;
         }
 
         /// <summary>
@@ -140,8 +156,56 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// <returns></returns>
         protected override InitialTransformation CalculateTransformation()
         {
-            var mouseDrag = Input.MousePosition - StartMousePosition;
             var transformation = new InitialTransformation { Rotation = Quaternion.Identity, Scale = Vector3.One };
+
+            // set the rotation to apply in the gizmo space
+            transformation.Rotation = SceneEditorSettings.UseLinearMovementForRotation.GetValue() ? GetRotationFromLinearMovement() : GetRotationFromCircularMovement();
+
+            return transformation;
+        }
+
+        private Quaternion GetRotationFromCircularMovement()
+        {
+            // TODO: use cameraComponent.WorldToScreenPosition instead once implemented
+            // determine the anchor entity's screen position
+            var anchorEntityWorldPosition = AnchorEntity.Transform.WorldMatrix.TranslationVector;
+            var cameraComponent = Game.EditorServices.Get<IEditorGameCameraService>().Component;
+            Vector3.TransformCoordinate(ref anchorEntityWorldPosition, ref cameraComponent.ViewProjectionMatrix, out var clipSpace);
+            Vector3.TransformCoordinate(ref anchorEntityWorldPosition, ref cameraComponent.ViewMatrix, out var viewSpace);
+            var anchorEntityScreenPosition = new Vector2
+            {
+                X = (clipSpace.X + 1f) / 2f,
+                Y = (clipSpace.Y + 1f) / 2f - 1f,
+            };
+
+            // determine the vectors going from the anchor entity's position to the start and current mouse positions
+            var anchorEntityToMouse = new Vector2(Input.MousePosition.X, -Input.MousePosition.Y) - anchorEntityScreenPosition;
+            var anchorEntityToStartMouse = new Vector2(StartMousePosition.X, -StartMousePosition.Y) - anchorEntityScreenPosition;
+
+            anchorEntityToMouse.X *= cameraComponent.AspectRatio;
+            anchorEntityToStartMouse.X *= cameraComponent.AspectRatio;
+
+            // determine the rotation angle
+            var rotationAngle = MathF.Atan2(anchorEntityToMouse.X * anchorEntityToStartMouse.Y - anchorEntityToMouse.Y * anchorEntityToStartMouse.X, Vector2.Dot(anchorEntityToStartMouse, anchorEntityToMouse));
+
+            // snap the rotation angle if necessary
+            if (UseSnap)
+            {
+                var snapValue = MathUtil.DegreesToRadians(SnapValue);
+                rotationAngle = MathUtil.Snap(rotationAngle, snapValue);
+            }
+
+            // determine the rotation axis
+            var rotationAxisWorldUp = rotationAxes[(int)TransformationAxes / 2].Transform.WorldMatrix.Up;
+            var cameraToAnchorEntity = AnchorEntity.Transform.WorldMatrix.TranslationVector - Game.EditorServices.Get<IEditorGameCameraService>().Position;
+            var rotationAxis = new Vector3(0) { [(int)TransformationAxes / 2] = MathF.Sign(Vector3.Dot(cameraToAnchorEntity, rotationAxisWorldUp)) };
+
+            return Quaternion.RotationAxis(rotationAxis, rotationAngle);
+        }
+
+        private Quaternion GetRotationFromLinearMovement()
+        {
+            var mouseDrag = Input.MousePosition - StartMousePosition;
 
             // determine the rotation angle
             var rotationAngle = Vector2.Dot(new Vector2(mouseDrag.X, -mouseDrag.Y), TransformationDirection) * 2.1f * MathUtil.Pi; // half screen size if little bit more Pi
@@ -153,19 +217,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 rotationAngle = MathUtil.Snap(rotationAngle, snapValue);
             }
 
-            // determine the rotation axis in the Gizmo
-            var rotationAxisGizmo = Vector3.Zero;
-            for (int i = 0; i < 3; i++)
-            {
-                if ((TransformationAxes & ((GizmoTransformationAxes)(1 << i))) != 0)
-                    rotationAxisGizmo[i] = 1;
-            }
-            rotationAxisGizmo.Normalize();
+            // determine the rotation axis
+            var rotationAxis = new Vector3(0) { [(int)TransformationAxes / 2] = 1 };
 
-            // set the rotation to apply in the gizmo space
-            transformation.Rotation = Quaternion.RotationAxis(rotationAxisGizmo, rotationAngle);
-
-            return transformation;
+            return Quaternion.RotationAxis(rotationAxis, rotationAngle);
         }
 
         protected override void OnTransformationFinished()

@@ -10,7 +10,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
     public static class GizmoEmissiveColorMaterial
     {
-        public static Material Create(GraphicsDevice device, Color color, float intensity)
+        public static Material Create(GraphicsDevice device, Color color, float intensity = 1f)
         {
             var material = Material.New(device, new MaterialDescriptor
             {
@@ -23,12 +23,18 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             });
 
             // set the color to the material
+            UpdateColor(device, material, color, intensity);
+
+            return material;
+        }
+
+        public static void UpdateColor(GraphicsDevice device, Material material, Color color, float intensity = 1f)
+        {
+            // set the color to the material
             material.Passes[0].Parameters.Set(MaterialKeys.DiffuseValue, new Color4(color).ToColorSpace(device.ColorSpace));
 
             material.Passes[0].Parameters.Set(MaterialKeys.EmissiveIntensity, intensity);
             material.Passes[0].Parameters.Set(MaterialKeys.EmissiveValue, new Color4(color).ToColorSpace(device.ColorSpace));
-
-            return material;
         }
     }
 }

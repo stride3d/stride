@@ -99,6 +99,7 @@ namespace Stride.Engine
         /// </userdoc>
         [Display("Record collision events")]
         [DataMemberIgnore]
+        [Obsolete("Always processed and stored by now")]
         public bool ProcessCollisions { get; set; } = false;
 
         /// <summary>

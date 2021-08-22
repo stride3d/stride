@@ -523,7 +523,7 @@
                     <ItemsControl ItemsSource="{Binding StrideVersions}" Margin="0,-2"/>
                     <ProgressBar Height="24" Margin="0,2" IsIndeterminate="True" Opacity="0.5"
                                                     Visibility="{Binding IsSynchronizing, Converter={sskk:VisibleOrCollapsed}}"/>
-                    <ToggleButton Style="{StaticResource TransparentButtonStyle}" IsChecked="{Binding ShowBetaVersions}" Margin="0,6" Content="{Binding}">
+                    <ToggleButton Style="{StaticResource TransparentButtonStyle}" IsChecked="{Binding ShowBetaVersions}" Command="{Binding CheckDeprecatedSourcesCommand}" Margin="0,6" Content="{Binding}">
                       <ToggleButton.ContentTemplate>
                         <DataTemplate>
                           <TextBlock x:Name="TextBlock" Text="{x:Static r:Strings.ToggleShowBetaVersions}"></TextBlock>

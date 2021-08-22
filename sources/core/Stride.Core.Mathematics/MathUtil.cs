@@ -474,7 +474,7 @@ namespace Stride.Core.Mathematics
         /// <returns><value>Log2(x)</value></returns>
         public static float Log2(float x)
         {
-            return (float)Math.Log(x) / 0.6931471805599453f;
+            return MathF.Log(x) / 0.6931471805599453f;
         }
 
         /// <summary>
@@ -588,7 +588,7 @@ namespace Stride.Core.Mathematics
         {
             if (gap == 0)
                 return value;
-            return (float)Math.Round((value / gap), MidpointRounding.AwayFromZero) * gap;
+            return MathF.Round((value / gap), MidpointRounding.AwayFromZero) * gap;
         }
 
         /// <summary>
@@ -615,8 +615,8 @@ namespace Stride.Core.Mathematics
             if (gap == 0)
                 return value;
             return new Vector2(
-                (float)Math.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap);
+                MathF.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
+                MathF.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap);
         }
 
         /// <summary>
@@ -630,9 +630,9 @@ namespace Stride.Core.Mathematics
             if (gap == 0)
                 return value;
             return new Vector3(
-                (float)Math.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap);
+                MathF.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
+                MathF.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap,
+                MathF.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap);
         }
 
         /// <summary>
@@ -646,10 +646,10 @@ namespace Stride.Core.Mathematics
             if (gap == 0)
                 return value;
             return new Vector4(
-                (float)Math.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.W / gap), MidpointRounding.AwayFromZero) * gap);
+                MathF.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
+                MathF.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap,
+                MathF.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap,
+                MathF.Round((value.W / gap), MidpointRounding.AwayFromZero) * gap);
         }
 
         /// <summary>

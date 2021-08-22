@@ -243,7 +243,7 @@ namespace Stride.Core.Mathematics
             }
 
             //Find the real distance from the DistanceSquared.
-            radius = (float)Math.Sqrt(radius);
+            radius = MathF.Sqrt(radius);
 
             //Construct the sphere.
             result.Center = center;
@@ -275,7 +275,7 @@ namespace Stride.Core.Mathematics
             float y = box.Minimum.Y - box.Maximum.Y;
             float z = box.Minimum.Z - box.Maximum.Z;
 
-            float distance = (float)(Math.Sqrt((x * x) + (y * y) + (z * z)));
+            float distance = MathF.Sqrt((x * x) + (y * y) + (z * z));
             result.Radius = distance * 0.5f;
         }
 
@@ -301,12 +301,12 @@ namespace Stride.Core.Mathematics
         {
             Vector3.TransformCoordinate(ref value.Center, ref transform, out result.Center);
 
-            var majorAxisLengthSquared = Math.Max(
-                (transform.M11 * transform.M11) + (transform.M12 * transform.M12) + (transform.M13 * transform.M13), Math.Max(
+            var majorAxisLengthSquared = MathF.Max(
+                (transform.M11 * transform.M11) + (transform.M12 * transform.M12) + (transform.M13 * transform.M13), MathF.Max(
                 (transform.M21 * transform.M21) + (transform.M22 * transform.M22) + (transform.M23 * transform.M23),
                 (transform.M31 * transform.M31) + (transform.M32 * transform.M32) + (transform.M33 * transform.M33)));
 
-            result.Radius = value.Radius * (float)Math.Sqrt(majorAxisLengthSquared);
+            result.Radius = value.Radius * MathF.Sqrt(majorAxisLengthSquared);
         }
 
         /// <summary>
@@ -352,8 +352,8 @@ namespace Stride.Core.Mathematics
             }
 
             Vector3 vector = difference * (1.0f / length);
-            float min = Math.Min(-radius, length - radius2);
-            float max = (Math.Max(radius, length + radius2) - min) * 0.5f;
+            float min = MathF.Min(-radius, length - radius2);
+            float max = (MathF.Max(radius, length + radius2) - min) * 0.5f;
 
             result.Center = value1.Center + vector * (max + min);
             result.Radius = max;

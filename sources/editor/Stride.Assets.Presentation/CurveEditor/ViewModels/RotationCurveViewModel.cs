@@ -212,16 +212,16 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         private static void DecomposeXYZ(Matrix matrix, out Vector3 rotation)
         {
             var rotY = Math.Abs(matrix.M13) - 1 < 1e-6f ? Math.Acos(Math.Max(Math.Abs(matrix.M11), Math.Abs(matrix.M33))) : Math.Asin(-matrix.M13);
-            rotation.Y = (float)(Math.Sign(-matrix.M13)*rotY);
+            rotation.Y = (float)(MathF.Sign(-matrix.M13)*rotY);
             var test = Math.Cos(rotY);
             if (test > 1e-6f)
             {
-                rotation.Z = (float)Math.Atan2(matrix.M12, matrix.M11);
-                rotation.X = (float)Math.Atan2(matrix.M23, matrix.M33);
+                rotation.Z = MathF.Atan2(matrix.M12, matrix.M11);
+                rotation.X = MathF.Atan2(matrix.M23, matrix.M33);
             }
             else
             {
-                rotation.Z = (float)Math.Atan2(-matrix.M21, matrix.M31);
+                rotation.Z = MathF.Atan2(-matrix.M21, matrix.M31);
                 rotation.X = 0.0f;
             }
         }

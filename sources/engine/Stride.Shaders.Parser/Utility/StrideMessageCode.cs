@@ -70,7 +70,7 @@ namespace Stride.Shaders.Parser.Utility
         public static readonly MessageCode UnknownModuleError                       = new MessageCode("E1200", "Unknown module error");
         public static readonly MessageCode ErrorClassNotFound                       = new MessageCode("E1201", "The class [{0}] was not found from the include path");
         public static readonly MessageCode ErrorDependencyNotInModule               = new MessageCode("E1202", "The mixin [{0}] in [{1}] dependency is not in the module");
-        public static readonly MessageCode ErrorClassSourceNotInstantiated          = new MessageCode("E1203", "The class source [{0}] contains generic parameters and is not instantiated");
+        public static readonly MessageCode ErrorClassSourceNotInstantiated          = new MessageCode("E1203", "The type [{0}] has generic parameters defined but only {1}/{2} arguments were passed when creating its instance");
         public static readonly MessageCode ErrorAmbiguousComposition                = new MessageCode("E1204", "The composition behind the variable [{0}] is ambiguous. Several matching variables were found.");
         
         // mix errors: E2###
