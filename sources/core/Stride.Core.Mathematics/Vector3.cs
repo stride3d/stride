@@ -146,7 +146,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Gets a value indicting whether this instance is normalized.
         /// </summary>
-        public bool IsNormalized
+        public readonly bool IsNormalized
         {
             get { return MathF.Abs((X * X) + (Y * Y) + (Z * Z) - 1f) < MathUtil.ZeroTolerance; }
         }
@@ -207,7 +207,7 @@ namespace Stride.Core.Mathematics
         /// and speed is of the essence.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float LengthSquared()
+        public readonly float LengthSquared()
         {
             return (X * X) + (Y * Y) + (Z * Z);
         }
@@ -523,11 +523,12 @@ namespace Stride.Core.Mathematics
         /// <param name="left">First source vector.</param>
         /// <param name="right">Second source vector.</param>
         /// <returns>The cross product of the two vectors.</returns>
-        public static Vector3 Cross(Vector3 left, Vector3 right)
+        public static Vector3 Cross(in Vector3 left, in Vector3 right)
         {
-            Vector3 result;
-            Cross(ref left, ref right, out result);
-            return result;
+            return new Vector3(
+                (left.Y * right.Z) - (left.Z * right.Y),
+                (left.Z * right.X) - (left.X * right.Z),
+                (left.X * right.Y) - (left.Y * right.X));
         }
 
         /// <summary>
