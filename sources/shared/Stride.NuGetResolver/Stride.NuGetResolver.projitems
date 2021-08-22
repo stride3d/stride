@@ -38,7 +38,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.loaderdata</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <DefineConstants Condition="'$(StrideNuGetResolverUX)' == 'true'">STRIDE_NUGET_RESOLVER_UX;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('netcoreapp')) Or $(TargetFramework.StartsWith('net5'))">
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('netcoreapp')) Or $(TargetFramework.StartsWith('net6'))">
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.loaderdata</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_StridePackageNuGetLoader</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>

@@ -61,7 +61,7 @@ namespace Stride.Assets
             {
                 Name = PlatformType.Windows.ToString(),
                 IsAvailable = true,
-                TargetFramework = "net5.0",
+                TargetFramework = "net6.0",
                 RuntimeIdentifier = "win-x64",
                 Type = PlatformType.Windows
             };
@@ -120,7 +120,7 @@ namespace Stride.Assets
             {
                 Name = PlatformType.Linux.ToString(),
                 IsAvailable = true,
-                TargetFramework = "net5.0",
+                TargetFramework = "net6.0",
                 RuntimeIdentifier = "linux-x64",
                 Type = PlatformType.Linux,
             };
@@ -131,7 +131,7 @@ namespace Stride.Assets
             {
                 Name = PlatformType.macOS.ToString(),
                 IsAvailable = true,
-                TargetFramework = "net5.0",
+                TargetFramework = "net6.0",
                 RuntimeIdentifier = "osx-x64",
                 Type = PlatformType.macOS,
             };
