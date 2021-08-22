@@ -226,20 +226,16 @@ namespace Stride.Rendering
             // Sync point: after extract, before prepare (game simulation could resume now)
 
             // Generate and execute prepare effect jobs
-            foreach (var renderFeature in RenderFeatures)
-            // We might be able to parallelize too as long as we resepect render feature dependency graph (probably very few dependencies in practice)
+            Dispatcher.For(0, RenderFeatures.Count, i =>
             {
-                // Divide into task chunks for parallelism
-                renderFeature.PrepareEffectPermutations(context);
-            }
+                RenderFeatures[i].PrepareEffectPermutations(context);
+            });
 
             // Generate and execute prepare jobs
-            foreach (var renderFeature in RenderFeatures)
-            // We might be able to parallelize too as long as we resepect render feature dependency graph (probably very few dependencies in practice)
+            Dispatcher.For(0, RenderFeatures.Count, i =>
             {
-                // Divide into task chunks for parallelism
-                renderFeature.Prepare(context);
-            }
+                RenderFeatures[i].Prepare(context);
+            });
 
             // Sort
             Dispatcher.ForEach(Views, view =>
