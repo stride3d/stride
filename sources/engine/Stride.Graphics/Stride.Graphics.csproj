@@ -64,6 +64,8 @@
     <PackageReference Include="Vortice.Vulkan" Version="1.2.167" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS'" />
     <PackageReference Include="Stride.OpenTK" Version="1.0.3" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'Android'" />
     <PackageReference Include="Stride.SharpFont" Version="1.0.0" />
+    <PackageReference Include="Silk.NET.Direct3D11" Version="2.7.0" />
+
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="FrameworkResources.resx">

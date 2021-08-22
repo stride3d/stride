@@ -22,20 +22,23 @@
 // THE SOFTWARE.
 
 using System;
-using SharpDX;
-using SharpDX.Mathematics.Interop;
+//using SharpDX;
+//using SharpDX.Mathematics.Interop;
 using Stride.Core.Mathematics;
+using Silk.NET.Direct3D11;
+using Silk.NET.Maths;
+using RawVector4 = Silk.NET.Maths.Vector4D<float>;
 
 namespace Stride.Graphics
 {
     internal class ColorHelper
     {
-        public static unsafe RawColor4 Convert(Color4 color)
+        public static unsafe RawVector4 Convert(Color4 color)
         {
-            return *(RawColor4*)&color;
+            return *(RawVector4*)&color;
         }
 
-        public static unsafe Color4 Convert(RawColor4 color)
+        public static unsafe Color4 Convert(RawVector4 color)
         {
             return *(Color4*)&color;
         }

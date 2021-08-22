@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using SharpDX;
-using SharpDX.Direct3D11;
+//using SharpDX.Direct3D11;
 using Stride.Core;
+using Silk.NET.Direct3D11;
+using Stride.Graphics.Direct3D;
 
 namespace Stride.Graphics
 {
@@ -20,8 +22,8 @@ namespace Stride.Graphics
         private bool simulateReset = false;
         private string rendererName;
 
-        private Device nativeDevice;
-        private DeviceContext nativeDeviceContext;
+        private ID3D11Device nativeDevice;
+        private ID3D11DeviceContext nativeDeviceContext;
         private readonly Queue<Query> disjointQueries = new Queue<Query>(4);
         private readonly Stack<Query> currentDisjointQueries = new Stack<Query>(2);
 
@@ -48,33 +50,33 @@ namespace Stride.Graphics
                     return GraphicsDeviceStatus.Reset;
                 }
 
-                var result = NativeDevice.DeviceRemovedReason;
-                if (result == SharpDX.DXGI.ResultCode.DeviceRemoved)
+                var result = (long)NativeDevice.GetDeviceRemovedReason();
+                if (result == (long)ReturnCodes.DEVICE_REMOVED)
                 {
                     return GraphicsDeviceStatus.Removed;
                 }
 
-                if (result == SharpDX.DXGI.ResultCode.DeviceReset)
+                if (result == (long)ReturnCodes.DEVICE_RESET)
                 {
                     return GraphicsDeviceStatus.Reset;
                 }
 
-                if (result == SharpDX.DXGI.ResultCode.DeviceHung)
+                if (result == (long)ReturnCodes.DEVICE_HUNG)
                 {
                     return GraphicsDeviceStatus.Hung;
                 }
 
-                if (result == SharpDX.DXGI.ResultCode.DriverInternalError)
+                if (result == (long)ReturnCodes.DRIVER_INTERNAL_ERROR)
                 {
                     return GraphicsDeviceStatus.InternalError;
                 }
 
-                if (result == SharpDX.DXGI.ResultCode.InvalidCall)
+                if (result == (long)ReturnCodes.INVALID_CALL)
                 {
                     return GraphicsDeviceStatus.InvalidCall;
                 }
 
-                if (result.Code < 0)
+                if (result < 0)
                 {
                     return GraphicsDeviceStatus.Reset;
                 }
@@ -87,7 +89,7 @@ namespace Stride.Graphics
         ///     Gets the native device.
         /// </summary>
         /// <value>The native device.</value>
-        internal SharpDX.Direct3D11.Device NativeDevice
+        internal Silk.NET.Direct3D11.ID3D11Device NativeDevice
         {
             get
             {

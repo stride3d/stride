@@ -14,9 +14,9 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResourceBase
     {
-        private SharpDX.Direct3D11.DeviceChild nativeDeviceChild;
+        private Silk.NET.Direct3D11.ID3D11DeviceChild nativeDeviceChild;
 
-        protected internal SharpDX.Direct3D11.Resource NativeResource { get; private set; }
+        protected internal Silk.NET.Direct3D11.ID3D11Resource NativeResource { get; private set; }
 
         private void Initialize()
         {
@@ -26,7 +26,7 @@ namespace Stride.Graphics
         /// Gets or sets the device child.
         /// </summary>
         /// <value>The device child.</value>
-        protected internal SharpDX.Direct3D11.DeviceChild NativeDeviceChild
+        protected internal Silk.NET.Direct3D11.ID3D11DeviceChild NativeDeviceChild
         {
             get
             {
@@ -35,7 +35,8 @@ namespace Stride.Graphics
             set
             {
                 nativeDeviceChild = value;
-                NativeResource = nativeDeviceChild as SharpDX.Direct3D11.Resource;
+                // TODO : Get the resource for NativeResource
+                //NativeResource = Resource;
                 // Associate PrivateData to this DeviceResource
                 SetDebugName(GraphicsDevice, nativeDeviceChild, Name);
             }
@@ -72,7 +73,7 @@ namespace Stride.Graphics
             return false;
         }
 
-        protected SharpDX.Direct3D11.Device NativeDevice
+        protected Silk.NET.Direct3D11.ID3D11Device NativeDevice
         {
             get
             {

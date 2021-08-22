@@ -1,0 +1,37 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Stride.Graphics.Direct3D
+{
+    public enum ReturnCodes : long
+    {
+        ACCESS_DENIED = 0x887A0006,
+        ACCESS_LOST = 0x887A0026,
+        ALREADY_EXISTS = 0x887A0036L,
+        CANNOT_PROTECT_CONTENT = 0x887A002A,
+        DEVICE_HUNG = 0x887A0006,
+        DEVICE_REMOVED = 0x887A0005,
+        DEVICE_RESET = 0x887A0007,
+        DRIVER_INTERNAL_ERROR = 0x887A0020,
+        FRAME_STATISTICS_DISJOINT = 0x887A000B,
+        GRAPHICS_VIDPN_SOURCE_IN_USE = 0x887A000C,
+        INVALID_CALL = 0x887A0001,
+        MORE_DATA = 0x887A0003,
+        NAME_ALREADY_EXISTS = 0x887A002C,
+        NONEXCLUSIVE = 0x887A0021,
+        NOT_CURRENTLY_AVAILABLE = 0x887A0022,
+        NOT_FOUND = 0x887A0002,
+        REMOTE_CLIENT_DISCONNECTED = 0x887A0023,
+        REMOTE_OUTOFMEMORY = 0x887A0024,
+        RESTRICT_TO_OUTPUT_STALE = 0x887A0029,
+        SDK_COMPONENT_MISSING = 0x887A002D,
+        SESSION_DISCONNECTED = 0x887A0028,
+        UNSUPPORTED = 0x887A0004,
+        WAIT_TIMEOUT = 0x887A0027,
+        WAS_STILL_DRAWING = 0x887A000A,
+        S_OK
+    }
+}

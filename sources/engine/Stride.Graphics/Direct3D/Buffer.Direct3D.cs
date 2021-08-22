@@ -4,21 +4,26 @@
 using System;
 using System.Collections.Generic;
 
-using SharpDX;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
+//using SharpDX;
+//using SharpDX.Direct3D11;
+//using SharpDX.DXGI;
+using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
+
+
 
 namespace Stride.Graphics
 {
     public partial class Buffer
     {
-        private SharpDX.Direct3D11.BufferDescription nativeDescription;
+        //buffer descrption
+        private Silk.NET.Direct3D11.BufferDesc nativeDescription;
 
-        internal SharpDX.Direct3D11.Buffer NativeBuffer
+        internal Silk.NET.Direct3D11.ID3D11Buffer NativeBuffer
         {
             get
             {
-                return (SharpDX.Direct3D11.Buffer)NativeDeviceChild;
+                return (Silk.NET.Direct3D11.ID3D11Buffer)NativeDeviceChild;
             }
         }
 
