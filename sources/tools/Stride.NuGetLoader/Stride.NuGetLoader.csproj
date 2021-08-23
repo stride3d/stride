@@ -18,7 +18,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Stride.NuGet.PackageManagement" Version="5.8.0" />
+    <PackageReference Include="NuGet.PackageManagement" Version="6.0.0-preview.3" />
+    <PackageReference Include="NuGet.Resolver" Version="6.0.0-preview.3" />
+    <PackageReference Include="NuGet.Commands" Version="6.0.0-preview.3" />
   </ItemGroup>
 
   <ItemGroup>
