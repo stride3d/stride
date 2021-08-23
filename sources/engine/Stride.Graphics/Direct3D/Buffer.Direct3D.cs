@@ -3,14 +3,14 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using System;
 using System.Collections.Generic;
+using SharpDX.Direct3D11;
+using Silk.NET.Direct3D11;
 
 //using SharpDX;
 //using SharpDX.Direct3D11;
 //using SharpDX.DXGI;
-using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
-
-
+using Stride.Graphics.Direct3D;
 
 namespace Stride.Graphics
 {
@@ -19,13 +19,7 @@ namespace Stride.Graphics
         //buffer descrption
         private Silk.NET.Direct3D11.BufferDesc nativeDescription;
 
-        internal Silk.NET.Direct3D11.ID3D11Buffer NativeBuffer
-        {
-            get
-            {
-                return (Silk.NET.Direct3D11.ID3D11Buffer)NativeDeviceChild;
-            }
-        }
+        internal Silk.NET.Direct3D11.ID3D11Buffer NativeBuffer { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Buffer" /> class.
@@ -200,53 +194,52 @@ namespace Stride.Graphics
             }
         }
 
-        private static SharpDX.Direct3D11.BufferDescription ConvertToNativeDescription(BufferDescription bufferDescription)
+        private static BufferDesc ConvertToNativeDescription(BufferDescription bufferDescription)
         {
-            var desc = new SharpDX.Direct3D11.BufferDescription()
+            var desc = new BufferDesc
             {
-                SizeInBytes = bufferDescription.SizeInBytes,
-                StructureByteStride = bufferDescription.StructureByteStride,
-                CpuAccessFlags = GetCpuAccessFlagsFromUsage(bufferDescription.Usage),
-                BindFlags = BindFlags.None,
-                OptionFlags = ResourceOptionFlags.None,
-                Usage = (SharpDX.Direct3D11.ResourceUsage)bufferDescription.Usage,
+                ByteWidth = (uint)bufferDescription.SizeInBytes,
+                StructureByteStride = (uint)bufferDescription.StructureByteStride,
+                CPUAccessFlags = 0,
+                BindFlags = 0,
+                Usage = (Usage)bufferDescription.Usage
             };
 
-            var bufferFlags = bufferDescription.BufferFlags;
+            var bufferFlags = (uint)bufferDescription.BufferFlags;
 
-            if ((bufferFlags & BufferFlags.ConstantBuffer) != 0)
-                desc.BindFlags |= BindFlags.ConstantBuffer;
+            if ((bufferFlags & (uint)BufferFlags.ConstantBuffer) != 0)
+                desc.BindFlags |= (uint)BindFlag.BindConstantBuffer;
 
-            if ((bufferFlags & BufferFlags.IndexBuffer) != 0)
-                desc.BindFlags |= BindFlags.IndexBuffer;
+            if ((bufferFlags & (uint)BufferFlags.IndexBuffer) != 0)
+                desc.BindFlags |= (uint)BindFlag.BindIndexBuffer;
 
-            if ((bufferFlags & BufferFlags.VertexBuffer) != 0)
-                desc.BindFlags |= BindFlags.VertexBuffer;
+            if ((bufferFlags & (uint)BufferFlags.VertexBuffer) != 0)
+                desc.BindFlags |= (uint)BindFlag.BindVertexBuffer;
 
-            if ((bufferFlags & BufferFlags.RenderTarget) != 0)
-                desc.BindFlags |= BindFlags.RenderTarget;
+            if ((bufferFlags & (uint)BufferFlags.RenderTarget) != 0)
+                desc.BindFlags |= (uint)BindFlag.BindRenderTarget;
 
-            if ((bufferFlags & BufferFlags.ShaderResource) != 0)
-                desc.BindFlags |= BindFlags.ShaderResource;
+            if ((bufferFlags & (uint)BufferFlags.ShaderResource) != 0)
+                desc.BindFlags |= (uint)BindFlag.BindShaderResource;
 
-            if ((bufferFlags & BufferFlags.UnorderedAccess) != 0)
-                desc.BindFlags |= BindFlags.UnorderedAccess;
+            if ((bufferFlags & (uint)BufferFlags.UnorderedAccess) != 0)
+                desc.BindFlags |= (uint)BindFlag.BindUnorderedAccess;
 
-            if ((bufferFlags & BufferFlags.StructuredBuffer) != 0)
+            if ((bufferFlags & (uint)BufferFlags.StructuredBuffer) != 0)
             {
-                desc.OptionFlags |= ResourceOptionFlags.BufferStructured;
+                desc.MiscFlags |= (uint) .BufferStructured;
                 if (bufferDescription.StructureByteStride <= 0)
                     throw new ArgumentException("Element size cannot be less or equal 0 for structured buffer");
             }
 
-            if ((bufferFlags & BufferFlags.RawBuffer) == BufferFlags.RawBuffer)
-                desc.OptionFlags |= ResourceOptionFlags.BufferAllowRawViews;
+            if ((bufferFlags & (uint)BufferFlags.RawBuffer) == (uint)BufferFlags.RawBuffer)
+                desc.MiscFlags |= (uint)MiscFlags.BUFFER_ALLOW_RAW_VIEWS;
 
-            if ((bufferFlags & BufferFlags.ArgumentBuffer) == BufferFlags.ArgumentBuffer)
-                desc.OptionFlags |= ResourceOptionFlags.DrawIndirectArguments;
+            if ((bufferFlags & (uint)BufferFlags.ArgumentBuffer) == (uint)BufferFlags.ArgumentBuffer)
+                desc.MiscFlags |= (uint)MiscFlags.DRAWINDIRECT_ARGS;
 
-            if ((bufferFlags & BufferFlags.StreamOutput) != 0)
-                desc.BindFlags |= BindFlags.StreamOutput;
+            if ((bufferFlags & (uint)BufferFlags.StreamOutput) != 0)
+                desc.BindFlags |= (uint)BindFlag.BindStreamOutput;
 
             return desc;
         }
