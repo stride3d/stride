@@ -50,7 +50,7 @@ namespace Stride.Graphics
                 shaderResourceView = value;
 
                 // TODO : Do some debugging here ? 
-                if (IsDebugMode)
+                //if (IsDebugMode)
                     //shaderResourceView.DebugName = Name == null ? null : $"{Name} SRV"
             }
         }

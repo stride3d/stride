@@ -126,15 +126,14 @@ namespace Stride.Graphics
                     {
                         NumElements = (uint)ElementCount,
                         FirstElement = 0,
-                        //Flags = ShaderResourceViewExtendedBufferFlags.None,
                         Flags = 0
                     },
                 };
 
                 if ((ViewFlags & BufferFlags.RawBuffer) == BufferFlags.RawBuffer)
                 {
-                    //TODO : this doesn't work but it should
-                    //description.BufferEx.Flags |= BufferexSrvFlag.BufferexSrvFlagRaw;
+                    var buff = description.BufferEx;
+                    buff.Flags |= (uint)BufferexSrvFlag.BufferexSrvFlagRaw;
                 }
                 unsafe
                 {
@@ -184,11 +183,11 @@ namespace Stride.Graphics
             base.OnNameChanged();
             if (GraphicsDevice != null && GraphicsDevice.IsDebugMode)
             {
-                if (NativeShaderResourceView != null)
-                    NativeShaderResourceView.DebugName = Name == null ? null : string.Format("{0} SRV", Name);
+                //if (NativeShaderResourceView != null)
+                //    NativeShaderResourceView.DebugName = Name == null ? null : string.Format("{0} SRV", Name);
 
-                if (NativeUnorderedAccessView != null)
-                    NativeUnorderedAccessView.DebugName = Name == null ? null : string.Format("{0} UAV", Name);
+                //if (NativeUnorderedAccessView != null)
+                //    NativeUnorderedAccessView.DebugName = Name == null ? null : string.Format("{0} UAV", Name);
             }
         }
 
@@ -303,15 +302,17 @@ namespace Stride.Graphics
                     },
                 };
 
-                // TODO : Needs to work, currently doesn't
-                //if ((ViewFlags & BufferFlags.RawBuffer) == BufferFlag.BindRawBuffer)
-                //    description.Buffer.Flags |= 1;
+                var buff = description.Buffer;
+                if ((ViewFlags & BufferFlags.RawBuffer) == BufferFlags.RawBuffer)
+                    buff.Flags |= (uint)BufferUavFlag.BufferUavFlagRaw;
 
-                //if (((ViewFlags & BufferFlags.StructuredAppendBuffer) == BufferFlags.StructuredAppendBuffer))
-                //    description.Buffer.Flags |= BufferUavFlag.BufferUavFlagAppend;
+                if ((ViewFlags & BufferFlags.StructuredAppendBuffer) == BufferFlags.StructuredAppendBuffer)
+                    buff.Flags |= (uint)BufferUavFlag.BufferUavFlagAppend;
 
                 if ((ViewFlags & BufferFlags.StructuredCounterBuffer) == BufferFlags.StructuredCounterBuffer)
-                    description.Buffer.Flags |= BufferUavFlag.BufferUavFlagCounter;
+                    buff.Flags |= (uint)BufferUavFlag.BufferUavFlagCounter;
+
+
                 unsafe
                 {
                     NativeUnorderedAccessView = new ID3D11UnorderedAccessView(GraphicsDevice.NativeDevice.LpVtbl);

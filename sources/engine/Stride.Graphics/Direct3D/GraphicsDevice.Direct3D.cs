@@ -101,7 +101,7 @@ namespace Stride.Graphics
         /// Gets the native device context.
         /// </summary>
         /// <value>The native device context.</value>
-        internal SharpDX.Direct3D11.DeviceContext NativeDeviceContext
+        internal ID3D11DeviceContext NativeDeviceContext
         {
             get
             {
@@ -122,7 +122,7 @@ namespace Stride.Graphics
             // Try to read back the oldest disjoint query and reuse it. If not ready, create a new one.
             if (disjointQueries.Count > 0 && NativeDeviceContext.GetData(disjointQueries.Peek(), out QueryDataTimestampDisjoint result))
             {
-                TimestampFrequency = result.Frequency;
+                TimestampFrequency = (long)result.Frequency;
                 currentDisjointQuery = disjointQueries.Dequeue();
             }
             else
