@@ -289,30 +289,33 @@ namespace Stride.Graphics
                 this.NativeShaderResourceView = GetShaderResourceView(srvFormat);
             }
 
-            if ((bindFlags & BindFlags.UnorderedAccess) != 0)
+            if ((bindFlags & (uint)BindFlag.BindUnorderedAccess) != 0)
             {
-                var description = new UnorderedAccessViewDescription()
+                var description = new UnorderedAccessViewDesc()
                 {
-                    Format = (SharpDX.DXGI.Format)uavFormat,
-                    Dimension = UnorderedAccessViewDimension.Buffer,
-                    Buffer =
+                    Format = (Format)uavFormat,
+                    ViewDimension = UavDimension.UavDimensionBuffer,
+                    Buffer = new BufferUav
                     {
-                        ElementCount = this.ElementCount,
+                        NumElements = (uint)ElementCount,
                         FirstElement = 0,
-                        Flags = UnorderedAccessViewBufferFlags.None,
+                        Flags = 0,
                     },
                 };
 
-                if (((ViewFlags & BufferFlags.RawBuffer) == BufferFlags.RawBuffer))
-                    description.Buffer.Flags |= UnorderedAccessViewBufferFlags.Raw;
+                // TODO : Needs to work, currently doesn't
+                //if ((ViewFlags & BufferFlags.RawBuffer) == BufferFlag.BindRawBuffer)
+                //    description.Buffer.Flags |= 1;
 
-                if (((ViewFlags & BufferFlags.StructuredAppendBuffer) == BufferFlags.StructuredAppendBuffer))
-                    description.Buffer.Flags |= UnorderedAccessViewBufferFlags.Append;
+                //if (((ViewFlags & BufferFlags.StructuredAppendBuffer) == BufferFlags.StructuredAppendBuffer))
+                //    description.Buffer.Flags |= BufferUavFlag.BufferUavFlagAppend;
 
-                if (((ViewFlags & BufferFlags.StructuredCounterBuffer) == BufferFlags.StructuredCounterBuffer))
-                    description.Buffer.Flags |= UnorderedAccessViewBufferFlags.Counter;
-
-                this.NativeUnorderedAccessView = new UnorderedAccessView(this.GraphicsDevice.NativeDevice, NativeBuffer, description);
+                if ((ViewFlags & BufferFlags.StructuredCounterBuffer) == BufferFlags.StructuredCounterBuffer)
+                    description.Buffer.Flags |= BufferUavFlag.BufferUavFlagCounter;
+                unsafe
+                {
+                    NativeUnorderedAccessView = new ID3D11UnorderedAccessView(GraphicsDevice.NativeDevice.LpVtbl);
+                }
             }
         }
     }
