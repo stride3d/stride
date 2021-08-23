@@ -1525,19 +1525,6 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Return the vector rotated by the quaternion.
-        /// </summary>
-        /// <remarks>
-        /// Shorthand for <see cref="Quaternion.Rotate(ref Vector3)"/>
-        /// </remarks>
-        public static Vector3 operator *(in Vector3 left, in Quaternion right)
-        {
-            var pureQuaternion = new Quaternion(left, 0);
-            pureQuaternion = Quaternion.Conjugate(right) * pureQuaternion * right;
-            return new Vector3(pureQuaternion.X, pureQuaternion.Y, pureQuaternion.Z);
-        }
-
-        /// <summary>
         /// Adds a vector with the given value.
         /// </summary>
         /// <param name="value">The vector to scale.</param>
