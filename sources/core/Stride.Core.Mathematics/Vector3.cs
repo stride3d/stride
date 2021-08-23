@@ -240,34 +240,6 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Rotates the vector around the origin by the angle using the given axis of rotation.
-        /// </summary>
-        /// <param name="axis">The axis of rotation.</param>
-        /// <param name="angle">The angle of rotation.</param>
-        public void RotateAround(Vector3 axis, float angle)
-        {
-            RotateAround(Zero, axis, angle);
-        }
-
-        /// <summary>
-        /// Rotates the vector around the target by the angle using the given axis of rotation.
-        /// </summary>
-        /// <param name="target">The position vector of the target to rotate around.</param>
-        /// <param name="axis">The axis of rotation.</param>
-        /// <param name="angle">The angle of rotation.</param>
-        public void RotateAround(Vector3 target, Vector3 axis, float angle)
-        {
-            Vector3 local = this - target;
-            Quaternion q = Quaternion.RotationAxis(axis, angle);
-            q.Rotate(ref local);
-            var result = target + local;
-
-            X = result.X;
-            Y = result.Y;
-            Z = result.Z;
-        }
-
-        /// <summary>
         /// Creates an array containing the elements of the vector.
         /// </summary>
         /// <returns>A three-element array containing the components of the vector.</returns>
