@@ -38,7 +38,7 @@
     Settings StridePlatform specific
   -->
   <PropertyGroup>
-    <!-- Using C# version 7.3 -->
+    <!-- Using C# version 10.0 which targets Net6.0 -->
     <LangVersion>10.0</LangVersion>
     <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP;STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</StridePlatformDefines>
 
