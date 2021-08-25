@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Engine;
@@ -20,7 +21,14 @@ namespace Stride.Physics
     [ComponentCategory("Physics")]
     public class PhysicsConstraintComponent : ActivableEntityComponent
     {
-        internal PhysicsConstraintProcessor constraintProcessor;
+        internal PhysicsConstraintProcessor ConstraintProcessor;
+
+        /// <summary>
+        /// The component becomes detached after one of the rigidbodies is detached
+        /// or the component is removed from the scene. This way we will avoid an exception
+        /// when a constraint was valid but one of its target got removed.
+        /// </summary>
+        internal bool Detached;
 
         /// <summary>
         /// (Required) Rigidbody A used for body-body and body-world constraints.
@@ -69,11 +77,19 @@ namespace Stride.Physics
         public Simulation Simulation { get; internal set; }
 
         /// <summary>
+        /// Invoked when a constraint is broken because one of the rigidbodies
+        /// involved in the constraint is removed from the scene.
+        /// </summary>
+        public event Action<PhysicsConstraintComponent> Detach;
+
+        /// <summary>
         /// Removes the currently used <see cref="Constraint"/> and recreates it.
         /// </summary>
         /// <remarks>
         /// Needs to be called after modifying any of the properties.
         /// </remarks>
-        public void RecreateConstraint() => constraintProcessor.Recreate(this);
+        public void RecreateConstraint() => ConstraintProcessor.Recreate(this);
+
+        internal void OnDetach() => Detach?.Invoke(this);
     }
 }

@@ -4,6 +4,7 @@
 using System;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Engine;
 using Stride.Games;
@@ -14,6 +15,8 @@ namespace Stride.Physics.Engine
     {
         private static readonly Logger logger = GlobalLogger.GetLogger(nameof(PhysicsConstraintProcessor));
 
+        private readonly FastList<PhysicsConstraintComponent> detachedComponents = new FastList<PhysicsConstraintComponent>();
+
         public PhysicsConstraintProcessor()
         {
             Order = 0xFFFF; // After PhysicsProcessor
@@ -21,6 +24,9 @@ namespace Stride.Physics.Engine
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] PhysicsConstraintComponent component, [NotNull] PhysicsConstraintComponent data)
         {
+            component.ConstraintProcessor = this;
+            component.Detached = false;
+
             // this is mostly required for the game studio gizmos
             if (Simulation.DisableSimulation)
             {
@@ -41,6 +47,8 @@ namespace Stride.Physics.Engine
             if (Simulation.DisableSimulation)
                 return;
 
+            detachedComponents.Clear();
+
             foreach (var datas in ComponentDatas)
             {
                 var component = datas.Key;
@@ -48,14 +56,25 @@ namespace Stride.Physics.Engine
                 if (component.Constraint != null)
                 {
                     if (component.Constraint.InternalConstraint != null)
+                    {
                         component.Constraint.Enabled = component.Enabled;
+                    }
                     else
-                        DisposeOf(component); // the constraint is set but also disposed, let's clear it
+                    {
+                        // the constraint is set but also disposed, let's clear it
+                        DisposeOf(component);
+                        detachedComponents.Add(component);
+                    }
                 }
                 else if (component.Constraint == null && component.Enabled)
                 {
-                    Recreate(component);
+                    Recreate(component, component.Detached);
                 }
+            }
+
+            foreach (var component in detachedComponents)
+            {
+                component.OnDetach();
             }
         }
 
@@ -94,6 +113,7 @@ namespace Stride.Physics.Engine
                     component.BodyB);
                 component.Simulation = component.BodyA.Simulation;
                 component.Simulation.AddConstraint(component.Constraint, component.DisableCollisionsBetweenBodies);
+                component.Detached = false;
             }
         }
 
@@ -102,14 +122,11 @@ namespace Stride.Physics.Engine
             // A disposed constraint will have internal == null
             if (component.Constraint != null && component.Constraint.InternalConstraint != null)
             {
-                // Simulation is set on the constraint only when it's added
-                if (component.Constraint.Simulation != null)
-                    component.Constraint.Simulation.RemoveConstraint(component.Constraint);
-
                 component.Constraint.Dispose();
             }
 
             component.Constraint = null;
+            component.Detached = true;
         }
     }
 }
