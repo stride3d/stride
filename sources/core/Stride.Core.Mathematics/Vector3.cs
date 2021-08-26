@@ -337,7 +337,7 @@ namespace Stride.Core.Mathematics
         {
             return new Vector3(value.X * scale, value.Y * scale, value.Z * scale);
         }
-        
+
         /// <summary>
         /// Modulates a vector with another by performing component-wise multiplication.
         /// </summary>
@@ -385,7 +385,7 @@ namespace Stride.Core.Mathematics
         {
             return new Vector3(value.X / scale, value.Y / scale, value.Z / scale);
         }
-        
+
         /// <summary>
         /// Demodulates a vector with another by performing component-wise division.
         /// </summary>
@@ -1426,6 +1426,23 @@ namespace Stride.Core.Mathematics
             Quaternion.RotationYawPitchRoll(ref quaternion, out yawPitchRoll.X, out yawPitchRoll.Y, out yawPitchRoll.Z);
         }
 
+
+        /// <summary>
+        /// Rotates the source around the target by the rotation angle around the supplied axis. 
+        /// </summary>
+        /// <param name="source">The position to rotate.</param>
+        /// <param name="target">The point to rotate around.</param>
+        /// <param name="axis">The axis of rotation.</param>
+        /// <param name="angle">The angle to rotate by in radians.</param>
+        /// <returns>The rotated vector.</returns>
+        public static Vector3 RotateAround(in Vector3 source, in Vector3 target, in Vector3 axis, float angle)
+        {
+            Vector3 local = source - target;
+            Quaternion q = Quaternion.RotationAxis(axis, angle);
+            q.Rotate(ref local);
+            return target + local;
+        }
+
         /// <summary>
         /// Adds two vectors.
         /// </summary>
@@ -1669,7 +1686,7 @@ namespace Stride.Core.Mathematics
             if (format == null)
                 return ToString();
 
-            return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2}", X.ToString(format, CultureInfo.CurrentCulture), 
+            return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2}", X.ToString(format, CultureInfo.CurrentCulture),
                 Y.ToString(format, CultureInfo.CurrentCulture), Z.ToString(format, CultureInfo.CurrentCulture));
         }
 
