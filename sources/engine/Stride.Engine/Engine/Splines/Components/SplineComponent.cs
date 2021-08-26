@@ -16,7 +16,6 @@ namespace Stride.Engine.Splines.Components
     public sealed class SplineComponent : EntityComponent
     {
         private List<SplineNodeComponent> _splineNodes;
-        private int _previousNodeCount = 0;
         private Vector3 previousPosition;
 
         /// <summary>

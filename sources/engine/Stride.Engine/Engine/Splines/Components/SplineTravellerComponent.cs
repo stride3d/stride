@@ -38,11 +38,11 @@ namespace Stride.Engine.Splines.Components
         public delegate void SplineTravellerNodeReachedHandler(SplineNodeComponent splineNode);
         public event SplineTravellerNodeReachedHandler OnSplineNodeReached;
 
-        [DataMember(1)]
-        [Display("Editor control")]
-        public SplineTravellerControl Control = new SplineTravellerControl();
+        //[DataMember(1)]
+        //[Display("Editor control")]
+        //public SplineTravellerControl Control = new SplineTravellerControl();
 
-        [Display(50, "SplineComponent")]
+        [Display(10, "SplineComponent")]
         public SplineComponent SplineComponent
         {
             get { return splineComponent; }
@@ -56,15 +56,17 @@ namespace Stride.Engine.Splines.Components
             }
         }
 
+        [Display(20, "Speed")]
         public float Speed { get; set; } = 1;
 
-
+        [Display(40, "Moving")]
         public bool IsMoving { get; set; }
 
+        [Display(50, "InReverse")]
         public bool IsReverseTravelling { get; set; }
 
         [DataMemberRange(0.0f, 100.0f, 0.1f, 1.0f, 4)]
-        [Display("Percentage")]
+        [Display(70, "Percentage")]
         public float Percentage
         {
             get { return percentage; }
@@ -90,15 +92,6 @@ namespace Stride.Engine.Splines.Components
             var currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
             //SetNewTargetPosition(currentSplinePoints);
         }
-
-        public SplineTravellerComponent()
-        {
-        }
-
-        internal void Initialize()
-        {
-        }
-
 
         internal void Update(TransformComponent transformComponent)
         {

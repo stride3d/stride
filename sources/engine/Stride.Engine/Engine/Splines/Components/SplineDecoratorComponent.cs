@@ -20,7 +20,7 @@ namespace Stride.Engine.Splines.Components
         private List<Entity> decorationInstances = new List<Entity>();
         private DecoratorDistributionSetting distribution;
 
-        [Display(50, "SplineComponent")]
+        [Display(10, "SplineComponent")]
         public SplineComponent SplineComponent
         {
             get { return splineComponent; }
