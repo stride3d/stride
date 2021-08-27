@@ -4,12 +4,12 @@
     <RootNamespace>SpriteStudioDemo</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Core" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
-    <PackageReference Include="Stride.Engine" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Particles" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Physics" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.SpriteStudio.Runtime" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.UI" Version="4.1.0.1-beta" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Core" Version="4.1.0.1-net6" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.1.0.1-net6" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
+    <PackageReference Include="Stride.Engine" Version="4.1.0.1-net6" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Particles" Version="4.1.0.1-net6" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Physics" Version="4.1.0.1-net6" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.SpriteStudio.Runtime" Version="4.1.0.1-net6" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.UI" Version="4.1.0.1-net6" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
 </Project>
