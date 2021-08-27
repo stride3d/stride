@@ -116,6 +116,24 @@ namespace Stride.Physics
             }
         }
 
+        /// <summary>
+        /// Gets the linear velocity from the kinematic character
+        /// </summary>
+        /// <value>
+        /// Vector3
+        /// </value>
+        /// <userdoc>
+        /// The linear speed of the character component
+        /// </userdoc>
+        [DataMemberIgnore]
+        public Vector3 LinearVelocity
+        {
+            get
+            {
+                return KinematicCharacter != null ? KinematicCharacter.LinearVelocity : Vector3.Zero;
+            }
+        }
+
         private float jumpSpeed = 5.0f;
 
         /// <summary>
