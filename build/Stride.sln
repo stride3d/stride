@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.352
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31612.314
 MinimumVisualStudioVersion = 16.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "90-Tools", "90-Tools", "{1AE1AC60-5D2F-4CA7-AE20-888F44551185}"
 EndProject
@@ -334,6 +334,18 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.VisualStudio.Commands.Interfaces", "..\sources\tools\Stride.VisualStudio.Commands.Interfaces\Stride.VisualStudio.Commands.Interfaces.csproj", "{83E4E436-659A-4D82-90DD-0DC67BE38D17}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.NoAssets.Tests.Windows", "..\sources\engine\Stride.Engine.NoAssets.Tests\Stride.Engine.NoAssets.Tests.Windows.csproj", "{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "99-Samples", "99-Samples", "{001F08D8-1196-48CE-955F-4014CB2EE8E9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpBeginnerNet6.Game", "..\..\proj\CSharpBeginnerNet6\CSharpBeginnerNet6.Game\CSharpBeginnerNet6.Game.csproj", "{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{72390339-B2A1-4F61-A800-31ED0975B515} = {72390339-B2A1-4F61-A800-31ED0975B515}
+		{C121A566-555E-42B9-9B0A-1696529A9088} = {C121A566-555E-42B9-9B0A-1696529A9088}
+		{2FCA2D8B-B10F-4DCA-9847-4221F74BA586} = {2FCA2D8B-B10F-4DCA-9847-4221F74BA586}
+		{0E916AB7-5A6C-4820-8AB1-AA492FE66D68} = {0E916AB7-5A6C-4820-8AB1-AA492FE66D68}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpBeginnerNet6.Windows", "..\..\proj\CSharpBeginnerNet6\CSharpBeginnerNet6.Windows\CSharpBeginnerNet6.Windows.csproj", "{918814DE-BC9C-4710-8C05-ED3FC31992E3}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -1527,6 +1539,30 @@ Global
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}.Release|Win32.ActiveCfg = Release|Any CPU
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1}.Release|Win32.Build.0 = Release|Any CPU
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}.Debug|Win32.Build.0 = Debug|Any CPU
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}.Release|Win32.ActiveCfg = Release|Any CPU
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B}.Release|Win32.Build.0 = Release|Any CPU
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3}.Debug|Win32.Build.0 = Debug|Any CPU
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3}.Release|Win32.ActiveCfg = Release|Any CPU
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3}.Release|Win32.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1654,6 +1690,8 @@ Global
 		{7FA381C8-8EBE-4515-969D-01369CC47D0E} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{83E4E436-659A-4D82-90DD-0DC67BE38D17} = {E4508D15-6503-4A29-ADC4-27B3A5E99545}
 		{1C94168A-3C0D-4C6B-883B-91627D2EF3A1} = {A7ED9F01-7D78-4381-90A6-D50E51C17250}
+		{AD01B99F-9E27-447E-8AAF-0BAE25BAB27B} = {001F08D8-1196-48CE-955F-4014CB2EE8E9}
+		{918814DE-BC9C-4710-8C05-ED3FC31992E3} = {001F08D8-1196-48CE-955F-4014CB2EE8E9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}
