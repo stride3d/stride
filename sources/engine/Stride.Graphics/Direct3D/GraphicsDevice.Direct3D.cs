@@ -24,12 +24,13 @@ namespace Stride.Graphics
 
         private ID3D11Device nativeDevice;
         private ID3D11DeviceContext nativeDeviceContext;
-        private readonly Queue<Query> disjointQueries = new Queue<Query>(4);
-        private readonly Stack<Query> currentDisjointQueries = new Stack<Query>(2);
+        private readonly Queue<ID3D11Query> disjointQueries = new Queue<ID3D11Query>(4);
+        private readonly Stack<ID3D11Query> currentDisjointQueries = new Stack<ID3D11Query>(2);
 
         internal GraphicsProfile RequestedProfile;
 
-        private SharpDX.Direct3D11.DeviceCreationFlags creationFlags;
+        //private SharpDX.Direct3D11.DeviceCreationFlags creationFlags;
+        private CreateDeviceFlag creationFlags;
 
         /// <summary>
         /// The tick frquency of timestamp queries in Hertz.
@@ -116,12 +117,16 @@ namespace Stride.Graphics
         {
             FrameTriangleCount = 0;
             FrameDrawCalls = 0;
-
-            Query currentDisjointQuery;
+            // TODO : Need review
+            
+            ID3D11Query currentDisjointQuery = disjointQueries.Peek();
+            var result = new QueryDataTimestampDisjoint();
             unsafe
             {
-                //NativeDeviceContext.GetData(disjointQueries.Peek(), out QueryDataTimestampDisjoint result)
-                NativeDeviceContext.GetData<QueryDataTimestampDisjoint>(NativeDevice.)
+                ID3D11Query* currentDisjointQueryPtr = &currentDisjointQuery;
+
+                nativeDeviceContext.GetData((ID3D11Asynchronous*)currentDisjointQueryPtr, ref result, currentDisjointQuery.GetDataSize(), (int)AsyncGetdataFlag.AsyncGetdataDonotflush);
+
                 if (disjointQueries.Count > 0 )
                 {
                     TimestampFrequency = (long)result.Frequency;
@@ -129,16 +134,17 @@ namespace Stride.Graphics
                 }
                 else
                 {
-                    var disjointQueryDiscription = new QueryDescription { Type = SharpDX.Direct3D11.QueryType.TimestampDisjoint };
-                    currentDisjointQuery = new Query(NativeDevice, disjointQueryDiscription);
+                    var disjointQueryDescription = new QueryDesc { MiscFlags = 3 };
+                    var pDquery = &currentDisjointQuery;
+                    NativeDevice.CreateQuery(ref disjointQueryDescription, &pDquery);
                 }
-
+                currentDisjointQueries.Push(currentDisjointQuery);
+                NativeDeviceContext.Begin((ID3D11Asynchronous*)currentDisjointQueryPtr);
             }
             // Try to read back the oldest disjoint query and reuse it. If not ready, create a new one.
             
 
-            currentDisjointQueries.Push(currentDisjointQuery);
-            NativeDeviceContext.Begin(currentDisjointQuery);
+            
         }
 
         /// <summary>
@@ -156,7 +162,11 @@ namespace Stride.Graphics
         {
             // If this fails, it means Begin()/End() don't match, something is very wrong
             var currentDisjointQuery = currentDisjointQueries.Pop();
-            NativeDeviceContext.End(currentDisjointQuery);
+            unsafe
+            {
+                var ptr = &currentDisjointQuery;
+                NativeDeviceContext.End((ID3D11Asynchronous*)ptr);
+            }
             disjointQueries.Enqueue(currentDisjointQuery);
         }
 
@@ -202,11 +212,7 @@ namespace Stride.Graphics
         /// <param name="windowHandle">The window handle.</param>
         private void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
-            if (nativeDevice != null)
-            {
-                // Destroy previous device
-                ReleaseDevice();
-            }
+            nativeDevice.Release();
 
             rendererName = Adapter.NativeAdapter.Description.Description;
 
@@ -214,7 +220,7 @@ namespace Stride.Graphics
             IsProfilingSupported = true;
 
             // Map GraphicsProfile to D3D11 FeatureLevel
-            creationFlags = (SharpDX.Direct3D11.DeviceCreationFlags)deviceCreationFlags;
+            creationFlags = (CreateDeviceFlag)deviceCreationFlags;
 
             // Create Device D3D11 with feature Level based on profile
             for (int index = 0; index < graphicsProfiles.Length; index++)
@@ -283,13 +289,23 @@ namespace Stride.Graphics
         {
             foreach (var query in disjointQueries)
             {
-                query.Dispose();
+                query.Release();
             }
             disjointQueries.Clear();
 
-            // Display D3D11 ref counting info
-            NativeDevice.ImmediateContext.ClearState();
-            NativeDevice.ImmediateContext.Flush();
+            unsafe 
+            {
+                // Display D3D11 ref counting info
+                fixed(ID3D11DeviceContext* ctx = &nativeDeviceContext)
+                {
+                    // TODO : Unsafe and not sure if this should be working this way
+                    NativeDevice.GetImmediateContext(&ctx);
+                    nativeDeviceContext.ClearState();
+                    nativeDeviceContext.Flush();
+                }
+                
+            }
+            
 
             if (IsDebugMode)
             {

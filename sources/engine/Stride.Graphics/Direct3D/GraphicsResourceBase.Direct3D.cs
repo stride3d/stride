@@ -16,9 +16,15 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResourceBase
     {
+        // TODO : Needs review
+        protected ID3D11Resource nativeResource;
         private ID3D11DeviceChild nativeDeviceChild;
 
-        protected internal ID3D11Resource NativeResource { get; private set; }
+        protected internal ID3D11Resource NativeResource 
+        {
+            get { return this.nativeResource; } 
+            private set {this.nativeResource = value;}
+        }
 
         private void Initialize()
         {

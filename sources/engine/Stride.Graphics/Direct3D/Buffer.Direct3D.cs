@@ -180,13 +180,10 @@ namespace Stride.Graphics
                 };
                 unsafe
                 {
-                    var rtv = new ID3D11RenderTargetView();
-                    var pRtv = &rtv;
-                    //ID3D11Resource* pR = null;
-                    //pR = &NativeResource;
-                    NativeDevice.CreateRenderTargetView(&NativeResource, &description, pRtv);
-                        
-                    
+                    // TODO : Check GraphicsResourceBase.Direct3D.cs:
+                    var pSrv = &srv;
+                    fixed(ID3D11Resource* pR = &nativeResource)
+                        NativeDevice.CreateRenderTargetView(pR, &description, &pSrv); 
                 }
                 
             }
@@ -198,6 +195,7 @@ namespace Stride.Graphics
             base.OnNameChanged();
             if (GraphicsDevice != null && GraphicsDevice.IsDebugMode)
             {
+                //TODO : Check if null?
                 //if (NativeShaderResourceView != null)
                 //    NativeShaderResourceView.DebugName = Name == null ? null : string.Format("{0} SRV", Name);
 
@@ -330,7 +328,11 @@ namespace Stride.Graphics
 
                 unsafe
                 {
-                    NativeUnorderedAccessView = new ID3D11UnorderedAccessView(GraphicsDevice.NativeDevice.LpVtbl);
+                    var uav = new ID3D11UnorderedAccessView();
+                    var pUav = &uav;
+                    fixed (ID3D11Resource* res = &nativeResource)
+                        GraphicsDevice.NativeDevice.CreateUnorderedAccessView(res, &description, &pUav);
+                    NativeUnorderedAccessView = uav;
                 }
             }
         }
