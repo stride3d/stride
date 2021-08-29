@@ -6,6 +6,8 @@ using System;
 using System.Diagnostics;
 
 using SharpDX;
+using Silk.NET.Core.Native;
+using Silk.NET.Direct3D11;
 
 namespace Stride.Graphics
 {
@@ -14,9 +16,9 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResourceBase
     {
-        private Silk.NET.Direct3D11.ID3D11DeviceChild nativeDeviceChild;
+        private ID3D11DeviceChild nativeDeviceChild;
 
-        protected internal Silk.NET.Direct3D11.ID3D11Resource NativeResource { get; private set; }
+        protected internal ID3D11Resource NativeResource { get; private set; }
 
         private void Initialize()
         {
@@ -26,7 +28,7 @@ namespace Stride.Graphics
         /// Gets or sets the device child.
         /// </summary>
         /// <value>The device child.</value>
-        protected internal Silk.NET.Direct3D11.ID3D11DeviceChild NativeDeviceChild
+        protected internal ID3D11DeviceChild NativeDeviceChild
         {
             get
             {
@@ -35,10 +37,17 @@ namespace Stride.Graphics
             set
             {
                 nativeDeviceChild = value;
-                // TODO : Get the resource for NativeResource
-                //NativeResource = Resource;
-                // Associate PrivateData to this DeviceResource
-                SetDebugName(GraphicsDevice, nativeDeviceChild, Name);
+
+                unsafe
+                {
+                    fixed(ID3D11DeviceChild* child = &nativeDeviceChild)
+                    {
+                        ID3D11Resource* res = null;
+                        SilkMarshal.ThrowHResult(child->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&res));
+                    }
+                }
+                // Todo : Debug name ? 
+                //SetDebugName(GraphicsDevice, nativeDeviceChild, Name);
             }
         }
 
@@ -60,8 +69,8 @@ namespace Stride.Graphics
         {
             Destroyed?.Invoke(this, EventArgs.Empty);
 
-            ReleaseComObject(ref nativeDeviceChild);
-            NativeResource = null;
+            nativeDeviceChild.Release();
+            NativeResource.Release();
         }
 
         /// <summary>
@@ -73,11 +82,12 @@ namespace Stride.Graphics
             return false;
         }
 
-        protected Silk.NET.Direct3D11.ID3D11Device NativeDevice
+        protected ID3D11Device NativeDevice
         {
             get
             {
-                return GraphicsDevice != null ? GraphicsDevice.NativeDevice : null;
+                //TODO : check if this is correct
+                return GraphicsDevice != null ? GraphicsDevice.NativeDevice : new ID3D11Device();
             }
         }
 
@@ -86,29 +96,19 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="usage">The usage.</param>
         /// <returns></returns>
-        internal static SharpDX.Direct3D11.CpuAccessFlags GetCpuAccessFlagsFromUsage(GraphicsResourceUsage usage)
+        internal static CpuAccessFlag GetCpuAccessFlagsFromUsage(GraphicsResourceUsage usage)
         {
             switch (usage)
             {
                 case GraphicsResourceUsage.Dynamic:
-                    return SharpDX.Direct3D11.CpuAccessFlags.Write;
+                    return CpuAccessFlag.CpuAccessWrite;
                 case GraphicsResourceUsage.Staging:
-                    return SharpDX.Direct3D11.CpuAccessFlags.Read | SharpDX.Direct3D11.CpuAccessFlags.Write;
+                    return CpuAccessFlag.CpuAccessRead | CpuAccessFlag.CpuAccessWrite;
+                default:
+                    return CpuAccessFlag.CpuAccessRead;
             }
-            return SharpDX.Direct3D11.CpuAccessFlags.None;
         }
 
-        internal static void ReleaseComObject<T>(ref T comObject) where T : class
-        {
-            // We can't put IUnknown as a constraint on the generic as it would break compilation (trying to import SharpDX in projects with InternalVisibleTo)
-            var iUnknownObject = comObject as IUnknown;
-            if (iUnknownObject != null)
-            {
-                var refCountResult = iUnknownObject.Release();
-                Debug.Assert(refCountResult >= 0);
-                comObject = null;
-            }
-        }
     }
 }
  

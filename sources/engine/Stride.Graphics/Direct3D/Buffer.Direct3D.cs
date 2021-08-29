@@ -3,12 +3,7 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using System;
 using System.Collections.Generic;
-//using SharpDX.Direct3D11;
 using Silk.NET.Direct3D11;
-
-//using SharpDX;
-//using SharpDX.Direct3D11;
-//using SharpDX.DXGI;
 using Silk.NET.DXGI;
 using Stride.Graphics.Direct3D;
 
@@ -35,11 +30,16 @@ namespace Stride.Graphics
             ViewFlags = viewFlags;
             InitCountAndViewFormat(out this.elementCount, ref viewFormat);
             ViewFormat = viewFormat;
-            NativeDeviceChild = new Silk.NET.Direct3D11.ID3D11Buffer 
+            unsafe
             {
-                
-                //GraphicsDevice.NativeDevice, dataPointer, nativeDescription
-            };
+                // TODO : This needs review
+                var buff = new ID3D11Buffer();
+                ID3D11Buffer* pBuff = &buff;
+                fixed(BufferDesc* desc = &nativeDescription)
+                NativeDevice.CreateBuffer(desc, (SubresourceData*)dataPointer, &pBuff);
+                NativeDeviceChild = buff;           
+            }
+            
 
             // Staging resource don't have any views
             if (nativeDescription.Usage != Silk.NET.Direct3D11.Usage.UsageStaging)
@@ -76,7 +76,15 @@ namespace Stride.Graphics
             //NativeDeviceChild = new SharpDX.Direct3D11.Buffer(GraphicsDevice.NativeDevice, IntPtr.Zero, nativeDescription);
             unsafe
             {
-                NativeDeviceChild = new ID3D11Buffer(lpVtbl: GraphicsDevice.NativeDevice.LpVtbl);
+                unsafe
+                {
+                    // TODO : This needs review
+                    var buff = new ID3D11Buffer();
+                    ID3D11Buffer* pBuff = &buff;
+                    fixed (BufferDesc* desc = &nativeDescription)
+                        NativeDevice.CreateBuffer(desc, null, &pBuff);
+                    NativeDeviceChild = buff;
+                }
             }
             
 
@@ -137,6 +145,7 @@ namespace Stride.Graphics
                 }
                 unsafe
                 {
+                    //TODO : Instantiate this correctly
                     srv = new ID3D11ShaderResourceView(GraphicsDevice.NativeDevice.LpVtbl);
                 }
                 
@@ -171,7 +180,13 @@ namespace Stride.Graphics
                 };
                 unsafe
                 {
-                    srv = new ID3D11RenderTargetView(NativeDevice.LpVtbl);
+                    var rtv = new ID3D11RenderTargetView();
+                    var pRtv = &rtv;
+                    //ID3D11Resource* pR = null;
+                    //pR = &NativeResource;
+                    NativeDevice.CreateRenderTargetView(&NativeResource, &description, pRtv);
+                        
+                    
                 }
                 
             }

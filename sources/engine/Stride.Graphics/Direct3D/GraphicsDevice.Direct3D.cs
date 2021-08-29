@@ -118,18 +118,24 @@ namespace Stride.Graphics
             FrameDrawCalls = 0;
 
             Query currentDisjointQuery;
+            unsafe
+            {
+                //NativeDeviceContext.GetData(disjointQueries.Peek(), out QueryDataTimestampDisjoint result)
+                NativeDeviceContext.GetData<QueryDataTimestampDisjoint>(NativeDevice.)
+                if (disjointQueries.Count > 0 )
+                {
+                    TimestampFrequency = (long)result.Frequency;
+                    currentDisjointQuery = disjointQueries.Dequeue();
+                }
+                else
+                {
+                    var disjointQueryDiscription = new QueryDescription { Type = SharpDX.Direct3D11.QueryType.TimestampDisjoint };
+                    currentDisjointQuery = new Query(NativeDevice, disjointQueryDiscription);
+                }
 
+            }
             // Try to read back the oldest disjoint query and reuse it. If not ready, create a new one.
-            if (disjointQueries.Count > 0 && NativeDeviceContext.GetData(disjointQueries.Peek(), out QueryDataTimestampDisjoint result))
-            {
-                TimestampFrequency = (long)result.Frequency;
-                currentDisjointQuery = disjointQueries.Dequeue();
-            }
-            else
-            {
-                var disjointQueryDiscription = new QueryDescription { Type = SharpDX.Direct3D11.QueryType.TimestampDisjoint };
-                currentDisjointQuery = new Query(NativeDevice, disjointQueryDiscription);
-            }
+            
 
             currentDisjointQueries.Push(currentDisjointQuery);
             NativeDeviceContext.Begin(currentDisjointQuery);
