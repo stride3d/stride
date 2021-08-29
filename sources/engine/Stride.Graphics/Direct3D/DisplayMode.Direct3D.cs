@@ -2,20 +2,20 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_DIRECT3D
 
-using SharpDX.DXGI;
+using Silk.NET.DXGI;
 
 namespace Stride.Graphics
 {
     public partial class DisplayMode
     {
-        internal ModeDescription ToDescription()
+        internal ModeDesc ToDescription()
         {
-            return new ModeDescription(Width, Height, RefreshRate.ToSharpDX(), format: (SharpDX.DXGI.Format)Format);
+            return new ModeDesc((uint)Width, (uint)Height, RefreshRate.ToSilk(), format: (Format)Format);
         }
 
-        internal static DisplayMode FromDescription(ModeDescription description)
+        internal static DisplayMode FromDescription(ModeDesc description)
         {
-            return new DisplayMode((PixelFormat)description.Format, description.Width, description.Height, new Rational(description.RefreshRate.Numerator, description.RefreshRate.Denominator));
+            return new DisplayMode((PixelFormat)description.Format, (int)description.Width, (int)description.Height, new Rational((int)description.RefreshRate.Numerator, (int)description.RefreshRate.Denominator));
         }
     }
 }

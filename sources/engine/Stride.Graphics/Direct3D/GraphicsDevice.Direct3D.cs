@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using SharpDX;
+//using SharpDX;
 //using SharpDX.Direct3D11;
 using Stride.Core;
 using Silk.NET.Direct3D11;
 using Stride.Graphics.Direct3D;
+using Silk.NET.DXGI;
+using Silk.NET.Core.Native;
 
 namespace Stride.Graphics
 {
@@ -213,8 +215,12 @@ namespace Stride.Graphics
         private void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
             nativeDevice.Release();
-
-            rendererName = Adapter.NativeAdapter.Description.Description;
+            unsafe
+            {
+                AdapterDesc1 d = new AdapterDesc1();
+                Adapter.NativeAdapter.GetDesc1(&d);
+                rendererName = new string(d.Description);
+            }
 
             // Profiling is supported through pix markers
             IsProfilingSupported = true;
@@ -234,18 +240,20 @@ namespace Stride.Graphics
                     // INTEL workaround: it seems Intel driver doesn't support properly feature level 9.x. Fallback to 10.
                     if (Adapter.VendorId == 0x8086)
                     {
-                        if (level < SharpDX.Direct3D.FeatureLevel.Level_10_0)
-                            level = SharpDX.Direct3D.FeatureLevel.Level_10_0;
+                        if (level < D3DFeatureLevel.D3DFeatureLevel100)
+                            level = D3DFeatureLevel.D3DFeatureLevel100;
                     }
 
                     if (Core.Platform.Type == PlatformType.Windows
                         && GetModuleHandle("renderdoc.dll") != IntPtr.Zero)
                     {
-                        if (level < SharpDX.Direct3D.FeatureLevel.Level_11_0)
-                            level = SharpDX.Direct3D.FeatureLevel.Level_11_0;
+                        if (level < D3DFeatureLevel.D3DFeatureLevel110)
+                            level = D3DFeatureLevel.D3DFeatureLevel110;
                     }
 
-                    nativeDevice = new SharpDX.Direct3D11.Device(Adapter.NativeAdapter, creationFlags, level);
+                    //nativeDevice = new SharpDX.Direct3D11.Device(Adapter.NativeAdapter, creationFlags, level);
+                    nativeDevice = D3D11Overloads.CreateDevice();
+
 
                     // INTEL workaround: force ShaderProfile to be 10+ as well
                     if (Adapter.VendorId == 0x8086)
@@ -264,12 +272,18 @@ namespace Stride.Graphics
                 }
             }
 
-            nativeDeviceContext = nativeDevice.ImmediateContext;
+            unsafe
+            {
+                var c = new ID3D11DeviceContext();
+                var cP = &c;
+                nativeDevice.GetImmediateContext(&cP);
+                nativeDeviceContext = c;
+            }
             // We keep one reference so that it doesn't disappear with InternalMainCommandList
-            ((IUnknown)nativeDeviceContext).AddReference();
+            ((IUnknown)nativeDeviceContext).AddRef();
             if (IsDebugMode)
             {
-                GraphicsResourceBase.SetDebugName(this, nativeDeviceContext, "ImmediateContext");
+                //GraphicsResourceBase.SetDebugName(this, nativeDeviceContext, "ImmediateContext");
             }
         }
 
@@ -309,16 +323,16 @@ namespace Stride.Graphics
 
             if (IsDebugMode)
             {
-                var debugDevice = NativeDevice.QueryInterfaceOrNull<SharpDX.Direct3D11.DeviceDebug>();
-                if (debugDevice != null)
-                {
-                    debugDevice.ReportLiveDeviceObjects(SharpDX.Direct3D11.ReportingLevel.Detail);
-                    debugDevice.Dispose();
-                }
+                //var debugDevice = NativeDevice.QueryInterfaceOrNull<SharpDX.Direct3D11.DeviceDebug>();
+                //if (debugDevice != null)
+                //{
+                //    debugDevice.ReportLiveDeviceObjects(SharpDX.Direct3D11.ReportingLevel.Detail);
+                //    debugDevice.Dispose();
+                //}
             }
 
-            nativeDevice.Dispose();
-            nativeDevice = null;
+            //nativeDevice.DisposeBy
+            nativeDevice.Release();
         }
 
         internal void OnDestroyed()

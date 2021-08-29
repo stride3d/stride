@@ -13,18 +13,18 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="rational">The rational.</param>
         /// <returns>Rational.</returns>
-        internal static Rational FromSharpDX(SharpDX.DXGI.Rational rational)
+        internal static Rational FromSilk(Silk.NET.DXGI.Rational rational)
         {
-            return new Rational(rational.Numerator, rational.Denominator);
+            return new Rational((int)rational.Numerator, (int)rational.Denominator);
         }
 
         /// <summary>
         /// Converts to SharpDX representation.
         /// </summary>
         /// <returns>SharpDX.DXGI.Rational.</returns>
-        internal SharpDX.DXGI.Rational ToSharpDX()
+        internal Silk.NET.DXGI.Rational ToSilk()
         {
-            return new SharpDX.DXGI.Rational(Numerator, Denominator);
+            return new Silk.NET.DXGI.Rational((uint)Numerator, (uint)Denominator);
         }
     }
 }

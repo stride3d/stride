@@ -23,11 +23,10 @@
 using System;
 using System.Collections.Generic;
 using System.Resources;
-using SharpDX;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
+using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
 using Stride.Core;
+using Stride.Graphics.Direct3D;
 using ComponentBase = Stride.Core.ComponentBase;
 using Utilities = Stride.Core.Utilities;
 
@@ -41,9 +40,9 @@ namespace Stride.Graphics
     /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>
     public partial class GraphicsAdapter
     {
-        private readonly Adapter1 adapter;
+        private readonly IDXGIAdapter1 adapter;
         private readonly int adapterOrdinal;
-        private readonly AdapterDescription1 description;
+        private readonly AdapterDesc1 description;
 
         private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile)int.MaxValue;
         private GraphicsProfile maximumSupportedProfile;
@@ -53,20 +52,45 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="defaultFactory">The default factory.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
-        internal GraphicsAdapter(Factory1 defaultFactory, int adapterOrdinal)
+        internal GraphicsAdapter(IDXGIFactory1 defaultFactory, int adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
-            adapter = defaultFactory.GetAdapter1(adapterOrdinal).DisposeBy(this);
-            description = adapter.Description1;
-            description.Description = description.Description.TrimEnd('\0'); // for some reason sharpDX returns an adaptater name of fixed size filled with trailing '\0'
-            //var nativeOutputs = adapter.Outputs;
+            //GetAdapter1(adapterOrdinal).DisposeBy(this);
+            
+            unsafe
+            {
+                fixed (IDXGIAdapter1* a = &adapter)
+                    defaultFactory.EnumAdapters1((uint)adapterOrdinal, &a);
+                fixed (AdapterDesc1* desc = &description)
+                {
+                    adapter.GetDesc1(desc);
+                    // for some reason sharpDX returns an adaptater name of fixed size filled with trailing '\0'
+                    //description.Description = description.Description.TrimEnd('\0');
+                }
 
-            var count = adapter.GetOutputCount();
-            outputs = new GraphicsOutput[count];
-            for (var i = 0; i < outputs.Length; i++)
-                outputs[i] = new GraphicsOutput(this, i).DisposeBy(this);
 
-            AdapterUid = adapter.Description1.Luid.ToString();
+                //var nativeOutputs = adapter.Outputs;
+
+                //TODO : This needs to be reviewed
+                IDXGIOutput* e = null;
+                int count = 0;
+                do
+                {
+                    count += 1;
+                }
+                while ((ulong)adapter.EnumOutputs((uint)adapterOrdinal, &e) == (ulong)ReturnCodes.S_OK);
+
+                outputs = new GraphicsOutput[count];
+                for (var i = 0; i < outputs.Length; i++)
+                    outputs[i] = new GraphicsOutput(this, i).DisposeBy(this);
+
+                //AdapterUid = adapter.Description1.Luid.ToString();
+                //TODO : This seems very weird, need review
+                AdapterUid = description.AdapterLuid.ToString();
+            }
+
+
+            
         }
 
         /// <summary>
@@ -77,7 +101,14 @@ namespace Stride.Graphics
         {
             get
             {
-                return description.Description;
+                // TODO: Seems very unsafe, need some review
+                unsafe
+                {
+                    fixed(AdapterDesc1* desc = &description)
+                    {
+                        return new string(desc->Description);
+                    }
+                }
             }
         }
 
@@ -89,7 +120,8 @@ namespace Stride.Graphics
         /// </value>
         public int VendorId
         {
-            get { return description.VendorId; }
+            //TODO: Doesn't seem unsafe but a little bit somehow
+            get { unsafe { fixed(AdapterDesc1* desc = &description) return (int)desc->VendorId; } }
         }
 
         /// <summary>
@@ -103,7 +135,7 @@ namespace Stride.Graphics
             }
         }
 
-        internal Adapter1 NativeAdapter
+        internal IDXGIAdapter1 NativeAdapter
         {
             get
             {
@@ -130,16 +162,31 @@ namespace Stride.Graphics
                 return false;
 
             // Check and min/max cached values
-            if (SharpDX.Direct3D11.Device.IsSupportedFeatureLevel(this.NativeAdapter, (SharpDX.Direct3D.FeatureLevel)graphicsProfile))
+            //if (SharpDX.Direct3D11.Device.IsSupportedFeatureLevel(this.NativeAdapter, (SharpDX.Direct3D.FeatureLevel)graphicsProfile))
+            //{
+            //    maximumSupportedProfile = graphicsProfile;
+            //    return true;
+            //}
+            unsafe
             {
-                maximumSupportedProfile = graphicsProfile;
-                return true;
+                long gp = (long)graphicsProfile;
+                long* gpPtr = &gp;
+                fixed (Guid* g = &IDXGIAdapter1.Guid)
+                {
+                    if ((ulong)NativeAdapter.CheckInterfaceSupport(g, gpPtr) == (ulong)ReturnCodes.S_OK)
+                    {
+                        maximumSupportedProfile = graphicsProfile;
+                        return true;
+                    }
+                    else
+                    {
+                        minimumUnsupportedProfile = graphicsProfile;
+                        return false;
+                    }
+                }
             }
-            else
-            {
-                minimumUnsupportedProfile = graphicsProfile;
-                return false;
-            }
+            
+            
 #endif
         }
     }
