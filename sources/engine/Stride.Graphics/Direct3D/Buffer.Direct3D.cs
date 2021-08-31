@@ -180,10 +180,8 @@ namespace Stride.Graphics
                 };
                 unsafe
                 {
-                    // TODO : Check GraphicsResourceBase.Direct3D.cs:
                     var pSrv = &srv;
-                    fixed(ID3D11Resource* pR = &nativeResource)
-                        NativeDevice.CreateRenderTargetView(pR, &description, &pSrv); 
+                    NativeDevice.CreateRenderTargetView(NativeResourceP, &description, &pSrv); 
                 }
                 
             }
