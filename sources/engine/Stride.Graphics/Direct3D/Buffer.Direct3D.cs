@@ -328,8 +328,7 @@ namespace Stride.Graphics
                 {
                     var uav = new ID3D11UnorderedAccessView();
                     var pUav = &uav;
-                    fixed (ID3D11Resource* res = &nativeResource)
-                        GraphicsDevice.NativeDevice.CreateUnorderedAccessView(res, &description, &pUav);
+                    GraphicsDevice.NativeDevice.CreateUnorderedAccessView(NativeResourceP, &description, &pUav);
                     NativeUnorderedAccessView = uav;
                 }
             }

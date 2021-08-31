@@ -23,8 +23,8 @@
 
 using System;
 using System.Collections.Generic;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
+using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
 
 namespace Stride.Graphics
 {
@@ -36,7 +36,7 @@ namespace Stride.Graphics
     /// </remarks>
     public partial struct GraphicsDeviceFeatures
     {
-        private static readonly List<SharpDX.DXGI.Format> ObsoleteFormatToExcludes = new List<SharpDX.DXGI.Format>() { Format.R1_UNorm, Format.B5G6R5_UNorm, Format.B5G5R5A1_UNorm };
+        private static readonly List<Format> ObsoleteFormatToExcludes = new() { Format.FormatR1Unorm, Format.FormatB5G6R5Unorm, Format.FormatB5G5R5A1Unorm };
 
         internal GraphicsDeviceFeatures(GraphicsDevice deviceRoot)
         {
@@ -48,11 +48,11 @@ namespace Stride.Graphics
 
             // Set back the real GraphicsProfile that is used
             RequestedProfile = deviceRoot.RequestedProfile;
-            CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(nativeDevice.FeatureLevel);
+            CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(nativeDevice.GetFeatureLevel();
 
             HasResourceRenaming = true;
 
-            HasComputeShaders = nativeDevice.CheckFeatureSupport(SharpDX.Direct3D11.Feature.ComputeShaders);
+            HasComputeShaders = nativeDevice.CheckFeatureSupport(Feature.ComputeShaders);
             HasDoublePrecision = nativeDevice.CheckFeatureSupport(SharpDX.Direct3D11.Feature.ShaderDoubles);
             nativeDevice.CheckThreadingSupport(out HasMultiThreadingConcurrentResources, out this.HasDriverCommandLists);
 

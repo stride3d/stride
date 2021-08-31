@@ -76,6 +76,13 @@ namespace Stride.Graphics
                 //}
             }
         }
+        protected internal unsafe ID3D11UnorderedAccessView* NativeUnorderedAccessViewP
+        {
+            get
+            {
+                fixed(ID3D11UnorderedAccessView* uav = &unorderedAccessView) return uav;
+            }
+        }
 
         protected internal override void OnDestroyed()
         {
