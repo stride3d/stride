@@ -50,6 +50,7 @@ namespace Stride.Graphics
                     {
                         ID3D11Resource* res = null;
                         SilkMarshal.ThrowHResult(child->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&res));
+                        nativeResource = *res;
                     }
                 }
                 // Todo : Debug name ? 

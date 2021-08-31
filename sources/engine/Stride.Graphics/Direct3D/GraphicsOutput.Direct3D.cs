@@ -96,7 +96,19 @@ namespace Stride.Graphics
                 }
 
                 //deviceTemp = new SharpDX.Direct3D11.Device(adapter.NativeAdapter, SharpDX.Direct3D11.DeviceCreationFlags.None, features);
-                D3D11Overloads.CreateDevice();
+                unsafe 
+                {
+                    ID3D11Device d = new ID3D11Device();
+                    var pDv = &d;
+                    Span<D3DFeatureLevel> fls = new();
+                    ID3D11DeviceContext ctx = new();
+                    var pCtx = &ctx;
+                    
+
+                    //TODO : Unsafe adapter pointer getter + unsure if cast is okay, needs review
+                    D3D11Overloads.CreateDevice(D3D11.GetApi(),(IDXGIAdapter*)adapter.pAdapter , D3DDriverType.D3DDriverTypeUnknown, , 0, features, (uint)targetProfiles.Length, D3D11.SdkVersion, &pDv,fls,&pCtx);
+                }
+                
             }
             catch (Exception) { }
 

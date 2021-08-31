@@ -142,6 +142,17 @@ namespace Stride.Graphics
                 return adapter;
             }
         }
+        internal unsafe IDXGIAdapter1* pAdapter
+        {
+            get
+            {
+                unsafe
+                {
+                    fixed(IDXGIAdapter1* a = &adapter)
+                        return a;
+                }
+            }
+        }
 
         /// <summary>
         /// Tests to see if the adapter supports the requested profile.
