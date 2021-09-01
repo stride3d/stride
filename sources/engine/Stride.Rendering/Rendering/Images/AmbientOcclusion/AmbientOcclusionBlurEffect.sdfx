@@ -10,6 +10,6 @@ namespace Stride.Rendering.Images
         using params AmbientOcclusionBlurKeys;
 
         // Mixin 
-        mixin AmbientOcclusionBlurShader<AmbientOcclusionBlurKeys.Count, AmbientOcclusionBlurKeys.VerticalBlur, AmbientOcclusionBlurKeys.BlurScale, AmbientOcclusionBlurKeys.EdgeSharpness>;
+        mixin AmbientOcclusionBlurShader<AmbientOcclusionBlurKeys.Count, AmbientOcclusionBlurKeys.VerticalBlur, AmbientOcclusionBlurKeys.BlurScale, AmbientOcclusionBlurKeys.EdgeSharpness, AmbientOcclusionBlurKeys.IsOrtho>;
     };
 }
