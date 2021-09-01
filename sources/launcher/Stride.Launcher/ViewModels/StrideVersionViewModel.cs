@@ -39,15 +39,18 @@ namespace Stride.LauncherApp.ViewModels
             Frameworks.Clear();
             if (LocalPackage != null && InstallPath != null)
             {
-                var libDirectory = Path.Combine(InstallPath, "lib");
-                var frameworks = Directory.EnumerateDirectories(libDirectory);
-                foreach (var frameworkPath in frameworks)
+                foreach (var toplevelFolder in new[] { "tools", "lib" })
                 {
-                    var frameworkFolder = new DirectoryInfo(frameworkPath).Name;
-                    if (File.Exists(Path.Combine(frameworkPath, "Stride.GameStudio.exe"))
-                        || File.Exists(Path.Combine(frameworkPath, "Xenko.GameStudio.exe")))
+                    var libDirectory = Path.Combine(InstallPath, toplevelFolder);
+                    var frameworks = Directory.EnumerateDirectories(libDirectory);
+                    foreach (var frameworkPath in frameworks)
                     {
-                        Frameworks.Add(frameworkFolder);
+                        var frameworkFolder = new DirectoryInfo(frameworkPath).Name;
+                        if (File.Exists(Path.Combine(frameworkPath, "Stride.GameStudio.exe"))
+                            || File.Exists(Path.Combine(frameworkPath, "Xenko.GameStudio.exe")))
+                        {
+                            Frameworks.Add(frameworkFolder);
+                        }
                     }
                 }
 
@@ -181,12 +184,15 @@ namespace Stride.LauncherApp.ViewModels
             // First, try to use the selected framework
             if (SelectedFramework != null)
             {
-                var gameStudioDirectory = Path.Combine(InstallPath, "lib", SelectedFramework);
-                foreach (var gameStudioExecutable in new[] { "Stride.GameStudio.exe", "Xenko.GameStudio.exe" })
+                foreach (var toplevelFolder in new[] { "tools", "lib" })
                 {
-                    var gameStudioPath = Path.Combine(gameStudioDirectory, gameStudioExecutable);
-                    if (File.Exists(gameStudioPath))
-                        return gameStudioPath;
+                    var gameStudioDirectory = Path.Combine(InstallPath, toplevelFolder, SelectedFramework);
+                    foreach (var gameStudioExecutable in new[] { "Stride.GameStudio.exe", "Xenko.GameStudio.exe" })
+                    {
+                        var gameStudioPath = Path.Combine(gameStudioDirectory, gameStudioExecutable);
+                        if (File.Exists(gameStudioPath))
+                            return gameStudioPath;
+                    }
                 }
             }
 

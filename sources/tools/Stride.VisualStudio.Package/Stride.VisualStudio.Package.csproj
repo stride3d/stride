@@ -88,6 +88,7 @@
     <Compile Include="..\..\core\Stride.Core\Annotations\NotNullAttribute.cs" Link="Core\Annotations\NotNullAttribute.cs" />
     <Compile Include="..\..\shared\AttachedChildProcessJob.cs" Link="Commands\AttachedChildProcessJob.cs" />
     <Compile Include="..\..\shared\Stride.NuGetResolver\RestoreHelper.cs" Link="NuGet\RestoreHelper.cs" />
+    <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="Core\LoaderToolLocator.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="MyControl.xaml.cs">
