@@ -87,18 +87,19 @@ namespace Stride.Engine.Processors
             if (instancingComponent.Enabled && instancingComponent.Type != null)
             {
                 var instancing = instancingComponent.Type;
+                var modelComponent = instancingData.ModelComponent;
 
                 // Calculate inverse world and bounding box
                 instancing.Update();
 
-                if (instancingData.ModelComponent != null && instancing.InstanceCount > 0)
+                if (modelComponent != null && modelComponent.Model != null && instancing.InstanceCount > 0)
                 {
                     // Bounding box
-                    var meshCount = instancingData.ModelComponent.MeshInfos.Count;
+                    var meshCount = modelComponent.MeshInfos.Count;
                     for (int i = 0; i < meshCount; i++)
                     {
-                        var mesh = instancingData.ModelComponent.Model.Meshes[i];
-                        var meshInfo = instancingData.ModelComponent.MeshInfos[i];
+                        var mesh = modelComponent.Model.Meshes[i];
+                        var meshInfo = modelComponent.MeshInfos[i];
 
                         // This must reflect the transformations in the shaders
                         // This is currently not entirely correct, it ignores cases with extreme scalings
