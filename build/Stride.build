@@ -73,7 +73,7 @@ Example of use:
       <!-- Remove Samples.Templates (we use -SkipDuplicate since version is rarely bumped) -->
       <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Stride.Samples.Templates'))"/>
     </ItemGroup>
-    <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols'/>
+    <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols -SkipDuplicate'/>
     <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.Samples.Templates*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols -SkipDuplicate'/>
     <!-- Push GameStudio so that dependencies are already uploaded -->
     <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.GameStudio*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols'/>
@@ -318,6 +318,8 @@ Example of use:
     
     <!-- Generate the nuget package for the launcher application -->
     <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\launcher\Stride.Launcher\Stride.Launcher.nuspec" -BasePath "$(StrideRoot)sources\launcher\Stride.Launcher\bin\Release\publish" -OutputDirectory "$(StrideRoot)bin\launcher"' />
+
+    <Exec Condition="'$(StrideSign)' == 'true'" Command='sign\SignClient sign -c "sign\appsettings.json" --input "..\bin\launcher\*.nupkg" --name "Stride" --user "$(StrideSignUser)" --secret "$(StrideSignSecret)"' EchoOff="true" />
   </Target>
   
   <!--
@@ -419,14 +421,8 @@ Example of use:
 
   <Target Name="SignPackage" DependsOnTargets="DownloadSignClient;SignCredentialsCheck" Condition="'$(StrideSign)' == 'true'">
     <!-- nupkg containing executables to sign -->
-    <ItemGroup>
-      <ExecutablePackageToSign Include="..\bin\packages\Stride.GameStudio*.nupkg" />
-      <ExecutablePackageToSign Include="..\bin\packages\Stride.Core.Assets.CompilerApp*.nupkg" />
-      <ExecutablePackageToSign Include="..\bin\packages\Stride.ConnectionRouter*.nupkg" />
-      <ExecutablePackageToSign Include="..\bin\packages\Stride.EffectCompilerServer*.nupkg" />
-    </ItemGroup>
     <Message Importance="high" Text="Signing packages"/> 
-    <Exec Command='sign\SignClient sign -c "sign\appsettings.json" --input "%(ExecutablePackageToSign.Identity)" --name "Stride" --user "$(StrideSignUser)" --secret "$(StrideSignSecret)" -f "sign\nupkgfilter.txt"' EchoOff="true" />
+    <Exec Command='sign\SignClient sign -c "sign\appsettings.json" --input "..\bin\packages\*.nupkg" --name "Stride" --user "$(StrideSignUser)" --secret "$(StrideSignSecret)" -f "sign\nupkgfilter.txt"' EchoOff="true" />
   </Target>
 
 </Project>
