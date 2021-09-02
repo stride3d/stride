@@ -94,7 +94,7 @@ namespace Stride.VisualStudio.Commands
                         return null;
 
                     var commandAssembly = stridePackageInfo.SdkPaths.First(x => Path.GetFileNameWithoutExtension(x) == "Stride.VisualStudio.Commands");
-                    var commandExecutable = Path.ChangeExtension(commandAssembly, ".exe"); // .NET Core: .dll => .exe
+                    var commandExecutable = LoaderToolLocator.GetExecutable(commandAssembly); // .NET Core: .dll => .exe
 
                     var startInfo = new ProcessStartInfo
                     {

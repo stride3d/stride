@@ -54,6 +54,7 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="LoaderToolLocator.cs" />
     <None Include="..\..\tools\Stride.PackageInstall\bin\$(Configuration)\*.*" PackagePath="tools\" Pack="true" />
   </ItemGroup>
   <ItemGroup>
