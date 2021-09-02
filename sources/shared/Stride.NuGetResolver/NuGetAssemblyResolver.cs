@@ -10,7 +10,7 @@ using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
+//using Newtonsoft.Json.Linq;
 using NuGet.Commands;
 using NuGet.Common;
 using NuGet.Configuration;

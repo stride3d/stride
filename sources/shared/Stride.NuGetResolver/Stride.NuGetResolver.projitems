@@ -30,7 +30,7 @@
   <Target Name="IncludeNuGetResolverAssemblies">
     <ItemGroup>
       <BuildOutputInPackage Include="$(OutputPath)NuGet*.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Newtonsoft.Json.dll" />
+      <!-- <BuildOutputInPackage Include="$(OutputPath)Newtonsoft.Json.dll" /> -->
     </ItemGroup>
   </Target>
   <!-- If .NET Core, we embed a loader which will resolve the nuget packages for us -->
