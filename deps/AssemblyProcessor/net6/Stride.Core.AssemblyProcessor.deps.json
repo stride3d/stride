@@ -1,25 +1,23 @@
 {
   "runtimeTarget": {
-    "name": ".NETStandard,Version=v2.0/",
+    "name": ".NETCoreApp,Version=v6.0",
     "signature": ""
   },
   "compilationOptions": {},
   "targets": {
-    ".NETStandard,Version=v2.0": {},
-    ".NETStandard,Version=v2.0/": {
+    ".NETCoreApp,Version=v6.0": {
       "Stride.Core.AssemblyProcessor/1.0.0": {
         "dependencies": {
-          "ILRepack": "2.0.15",
+          "ILRepack": "2.0.18",
           "Microsoft.Build.Utilities.Core": "16.11.0",
-          "Mono.Cecil": "0.11.2",
-          "Mono.Options": "5.3.0.1",
-          "NETStandard.Library": "2.0.3"
+          "Mono.Cecil": "0.11.4",
+          "Mono.Options": "6.12.0.148"
         },
         "runtime": {
           "Stride.Core.AssemblyProcessor.dll": {}
         }
       },
-      "ILRepack/2.0.15": {},
+      "ILRepack/2.0.18": {},
       "Microsoft.Build.Framework/16.11.0": {
         "dependencies": {
           "System.Security.Permissions": "4.7.0"
@@ -42,11 +40,11 @@
           "System.Runtime.CompilerServices.Unsafe": "5.0.0"
         }
       },
-      "Microsoft.NETCore.Platforms/1.1.0": {},
+      "Microsoft.NETCore.Platforms/3.1.0": {},
       "Microsoft.NETCore.Targets/1.1.0": {},
       "Microsoft.Win32.Registry/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "System.Collections": "4.3.0",
           "System.Globalization": "4.3.0",
           "System.Resources.ResourceManager": "4.3.0",
@@ -56,85 +54,79 @@
           "System.Runtime.InteropServices": "4.3.0"
         }
       },
-      "Mono.Cecil/0.11.2": {
+      "Microsoft.Win32.SystemEvents/4.7.0": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "3.1.0"
+        }
+      },
+      "Mono.Cecil/0.11.4": {
         "runtime": {
           "lib/netstandard2.0/Mono.Cecil.Mdb.dll": {
-            "assemblyVersion": "0.11.2.0",
-            "fileVersion": "0.11.2.0"
+            "assemblyVersion": "0.11.4.0",
+            "fileVersion": "0.11.4.0"
           },
           "lib/netstandard2.0/Mono.Cecil.Pdb.dll": {
-            "assemblyVersion": "0.11.2.0",
-            "fileVersion": "0.11.2.0"
+            "assemblyVersion": "0.11.4.0",
+            "fileVersion": "0.11.4.0"
           },
           "lib/netstandard2.0/Mono.Cecil.Rocks.dll": {
-            "assemblyVersion": "0.11.2.0",
-            "fileVersion": "0.11.2.0"
+            "assemblyVersion": "0.11.4.0",
+            "fileVersion": "0.11.4.0"
           },
           "lib/netstandard2.0/Mono.Cecil.dll": {
-            "assemblyVersion": "0.11.2.0",
-            "fileVersion": "0.11.2.0"
+            "assemblyVersion": "0.11.4.0",
+            "fileVersion": "0.11.4.0"
           }
         }
       },
-      "Mono.Options/5.3.0.1": {
+      "Mono.Options/6.12.0.148": {
         "runtime": {
-          "lib/netstandard1.3/Mono.Options.dll": {
-            "assemblyVersion": "5.0.0.0",
-            "fileVersion": "5.3.0.0"
+          "lib/netstandard2.0/Mono.Options.dll": {
+            "assemblyVersion": "6.0.0.0",
+            "fileVersion": "6.12.0.0"
           }
         }
       },
-      "NETStandard.Library/2.0.3": {
-        "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0"
-        }
-      },
-      "System.Buffers/4.5.1": {},
       "System.Collections/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0"
         }
       },
-      "System.Collections.Immutable/5.0.0": {
-        "dependencies": {
-          "System.Memory": "4.5.4"
-        }
-      },
+      "System.Collections.Immutable/5.0.0": {},
       "System.Configuration.ConfigurationManager/4.7.0": {
         "dependencies": {
           "System.Security.Cryptography.ProtectedData": "4.7.0",
           "System.Security.Permissions": "4.7.0"
         }
       },
+      "System.Drawing.Common/4.7.0": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "3.1.0",
+          "Microsoft.Win32.SystemEvents": "4.7.0"
+        }
+      },
       "System.Globalization/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0"
         }
       },
       "System.IO/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0",
           "System.Text.Encoding": "4.3.0",
           "System.Threading.Tasks": "4.3.0"
         }
       },
-      "System.Memory/4.5.4": {
-        "dependencies": {
-          "System.Buffers": "4.5.1",
-          "System.Numerics.Vectors": "4.4.0",
-          "System.Runtime.CompilerServices.Unsafe": "5.0.0"
-        }
-      },
-      "System.Numerics.Vectors/4.4.0": {},
+      "System.Memory/4.5.4": {},
       "System.Reflection/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.IO": "4.3.0",
           "System.Reflection.Primitives": "4.3.0",
@@ -143,14 +135,14 @@
       },
       "System.Reflection.Primitives/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0"
         }
       },
       "System.Resources.ResourceManager/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Globalization": "4.3.0",
           "System.Reflection": "4.3.0",
@@ -159,28 +151,28 @@
       },
       "System.Runtime/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "Microsoft.NETCore.Targets": "1.1.0"
         }
       },
       "System.Runtime.CompilerServices.Unsafe/5.0.0": {},
       "System.Runtime.Extensions/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0"
         }
       },
       "System.Runtime.Handles/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0"
         }
       },
       "System.Runtime.InteropServices/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Reflection": "4.3.0",
           "System.Reflection.Primitives": "4.3.0",
@@ -190,30 +182,28 @@
       },
       "System.Security.AccessControl/4.7.0": {
         "dependencies": {
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "System.Security.Principal.Windows": "4.7.0"
         }
       },
-      "System.Security.Cryptography.ProtectedData/4.7.0": {
-        "dependencies": {
-          "System.Memory": "4.5.4"
-        }
-      },
+      "System.Security.Cryptography.ProtectedData/4.7.0": {},
       "System.Security.Permissions/4.7.0": {
         "dependencies": {
-          "System.Security.AccessControl": "4.7.0"
+          "System.Security.AccessControl": "4.7.0",
+          "System.Windows.Extensions": "4.7.0"
         }
       },
       "System.Security.Principal.Windows/4.7.0": {},
       "System.Text.Encoding/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0"
         }
       },
       "System.Text.Encoding.CodePages/4.0.1": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "System.Collections": "4.3.0",
           "System.Globalization": "4.3.0",
           "System.IO": "4.3.0",
@@ -235,9 +225,14 @@
       },
       "System.Threading.Tasks/4.3.0": {
         "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0",
+          "Microsoft.NETCore.Platforms": "3.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0"
+        }
+      },
+      "System.Windows.Extensions/4.7.0": {
+        "dependencies": {
+          "System.Drawing.Common": "4.7.0"
         }
       }
     }
@@ -248,12 +243,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "ILRepack/2.0.15": {
+    "ILRepack/2.0.18": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-byDiC5xGX5wYTE1gTt0VxiHzzJQsRheh3zCKtdYYOa1THBoasCCiQekdYx+EPG+R5NjPfX4csxUChtv3Wr0FNw==",
-      "path": "ilrepack/2.0.15",
-      "hashPath": "ilrepack.2.0.15.nupkg.sha512"
+      "sha512": "sha512-sR5Aj3JLDbA8JwESfWYfigSz5k1oNSHPN434W1LX8sboWJYEOSQP/KkvZGmJKPgajzSUKkl2jDar3LPZiMFU4Q==",
+      "path": "ilrepack/2.0.18",
+      "hashPath": "ilrepack.2.0.18.nupkg.sha512"
     },
     "Microsoft.Build.Framework/16.11.0": {
       "type": "package",
@@ -276,12 +271,12 @@
       "path": "microsoft.net.stringtools/1.0.0",
       "hashPath": "microsoft.net.stringtools.1.0.0.nupkg.sha512"
     },
-    "Microsoft.NETCore.Platforms/1.1.0": {
+    "Microsoft.NETCore.Platforms/3.1.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVMCTH/+P3o2iDTak+S08V2+A==",
-      "path": "microsoft.netcore.platforms/1.1.0",
-      "hashPath": "microsoft.netcore.platforms.1.1.0.nupkg.sha512"
+      "sha512": "sha512-z7aeg8oHln2CuNulfhiLYxCVMPEwBl3rzicjvIX+4sUuCwvXw5oXQEtbiU2c0z4qYL5L3Kmx0mMA/+t/SbY67w==",
+      "path": "microsoft.netcore.platforms/3.1.0",
+      "hashPath": "microsoft.netcore.platforms.3.1.0.nupkg.sha512"
     },
     "Microsoft.NETCore.Targets/1.1.0": {
       "type": "package",
@@ -297,33 +292,26 @@
       "path": "microsoft.win32.registry/4.3.0",
       "hashPath": "microsoft.win32.registry.4.3.0.nupkg.sha512"
     },
-    "Mono.Cecil/0.11.2": {
+    "Microsoft.Win32.SystemEvents/4.7.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-hZNAnXKQsOs/SZMFtT/e82/nA/iLgkeDy+sHD8xix4f0m9/3G0RNZplE1QHB+0n8QXq54jLqR/IPgVOkLapkyg==",
-      "path": "mono.cecil/0.11.2",
-      "hashPath": "mono.cecil.0.11.2.nupkg.sha512"
+      "sha512": "sha512-mtVirZr++rq+XCDITMUdnETD59XoeMxSpLRIII7JRI6Yj0LEDiO1pPn0ktlnIj12Ix8bfvQqQDMMIF9wC98oCA==",
+      "path": "microsoft.win32.systemevents/4.7.0",
+      "hashPath": "microsoft.win32.systemevents.4.7.0.nupkg.sha512"
     },
-    "Mono.Options/5.3.0.1": {
+    "Mono.Cecil/0.11.4": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-irTJcHgEoQRf+otUaCqpMv8D4npzdWpsD3PcdPJoj/T0KkQJMKcSzlzaaELZlzu9IVAZl/lyuhEmaT4t43BBPA==",
-      "path": "mono.options/5.3.0.1",
-      "hashPath": "mono.options.5.3.0.1.nupkg.sha512"
+      "sha512": "sha512-IC1h5g0NeJGHIUgzM1P82ld57knhP0IcQfrYITDPXlNpMYGUrsG5TxuaWTjaeqDNQMBDNZkB8L0rBnwsY6JHuQ==",
+      "path": "mono.cecil/0.11.4",
+      "hashPath": "mono.cecil.0.11.4.nupkg.sha512"
     },
-    "NETStandard.Library/2.0.3": {
+    "Mono.Options/6.12.0.148": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
-      "path": "netstandard.library/2.0.3",
-      "hashPath": "netstandard.library.2.0.3.nupkg.sha512"
-    },
-    "System.Buffers/4.5.1": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-Rw7ijyl1qqRS0YQD/WycNst8hUUMgrMH4FCn1nNm27M4VxchZ1js3fVjQaANHO5f3sN4isvP4a+Met9Y4YomAg==",
-      "path": "system.buffers/4.5.1",
-      "hashPath": "system.buffers.4.5.1.nupkg.sha512"
+      "sha512": "sha512-kf6bdXnP4IzqIp4bJ1YKPI3/PAcOV6qm4mznChJ3c92zHQUXTWJSp0+h+Cfcii0O6m/EgW7KA+tbCiB2al0DDA==",
+      "path": "mono.options/6.12.0.148",
+      "hashPath": "mono.options.6.12.0.148.nupkg.sha512"
     },
     "System.Collections/4.3.0": {
       "type": "package",
@@ -346,6 +334,13 @@
       "path": "system.configuration.configurationmanager/4.7.0",
       "hashPath": "system.configuration.configurationmanager.4.7.0.nupkg.sha512"
     },
+    "System.Drawing.Common/4.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-v+XbyYHaZjDfn0ENmJEV1VYLgGgCTx1gnfOBcppowbpOAriglYgGCvFCPr2EEZyBvXlpxbEsTwkOlInl107ahA==",
+      "path": "system.drawing.common/4.7.0",
+      "hashPath": "system.drawing.common.4.7.0.nupkg.sha512"
+    },
     "System.Globalization/4.3.0": {
       "type": "package",
       "serviceable": true,
@@ -366,13 +361,6 @@
       "sha512": "sha512-1MbJTHS1lZ4bS4FmsJjnuGJOu88ZzTT2rLvrhW7Ygic+pC0NWA+3hgAen0HRdsocuQXCkUTdFn9yHJJhsijDXw==",
       "path": "system.memory/4.5.4",
       "hashPath": "system.memory.4.5.4.nupkg.sha512"
-    },
-    "System.Numerics.Vectors/4.4.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-UiLzLW+Lw6HLed1Hcg+8jSRttrbuXv7DANVj0DkL9g6EnnzbL75EB7EWsw5uRbhxd/4YdG8li5XizGWepmG3PQ==",
-      "path": "system.numerics.vectors/4.4.0",
-      "hashPath": "system.numerics.vectors.4.4.0.nupkg.sha512"
     },
     "System.Reflection/4.3.0": {
       "type": "package",
@@ -485,6 +473,13 @@
       "sha512": "sha512-LbSxKEdOUhVe8BezB/9uOGGppt+nZf6e1VFyw6v3DN6lqitm0OSn2uXMOdtP0M3W4iMcqcivm2J6UgqiwwnXiA==",
       "path": "system.threading.tasks/4.3.0",
       "hashPath": "system.threading.tasks.4.3.0.nupkg.sha512"
+    },
+    "System.Windows.Extensions/4.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-CeWTdRNfRaSh0pm2gDTJFwVaXfTq6Xwv/sA887iwPTneW7oMtMlpvDIO+U60+3GWTB7Aom6oQwv5VZVUhQRdPQ==",
+      "path": "system.windows.extensions/4.7.0",
+      "hashPath": "system.windows.extensions.4.7.0.nupkg.sha512"
     }
   }
 }
