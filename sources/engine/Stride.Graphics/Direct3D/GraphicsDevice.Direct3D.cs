@@ -100,6 +100,21 @@ namespace Stride.Graphics
             }
         }
 
+        internal unsafe ID3D11Device* NativeDeviceP
+        {
+            get
+            {
+                fixed(ID3D11Device* p = &nativeDevice) return p;
+            }
+        }
+        internal unsafe ID3D11Device** NativeDevicePP
+        {
+            get
+            {
+                fixed (ID3D11Device* p = &nativeDevice) return &p;
+            }
+        }
+
         /// <summary>
         /// Gets the native device context.
         /// </summary>
@@ -250,9 +265,13 @@ namespace Stride.Graphics
                         if (level < D3DFeatureLevel.D3DFeatureLevel110)
                             level = D3DFeatureLevel.D3DFeatureLevel110;
                     }
-
+                    unsafe
+                    {
+                        // TODO : Correct the creation
+                        D3D11Overloads.CreateDevice(D3D11.GetApi(), (IDXGIAdapter*)Adapter.AdapterPtr, D3DDriverType.D3DDriverTypeUnknown, 0, (uint)creationFlags, &level, 1, D3D11.SdkVersion, NativeDevicePP, null, null);
+                    }
                     //nativeDevice = new SharpDX.Direct3D11.Device(Adapter.NativeAdapter, creationFlags, level);
-                    nativeDevice = D3D11Overloads.CreateDevice();
+                    
 
 
                     // INTEL workaround: force ShaderProfile to be 10+ as well

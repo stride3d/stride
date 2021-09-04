@@ -60,6 +60,13 @@ namespace Stride.Graphics
                 //SetDebugName(GraphicsDevice, nativeDeviceChild, Name);
             }
         }
+        protected internal unsafe ID3D11DeviceChild* NativeDeviceChildPtr
+        {
+            get
+            {
+                fixed(ID3D11DeviceChild* c = &nativeDeviceChild) return c;
+            }
+        }
 
         /// <summary>
         /// Associates the private data to the device child, useful to get the name in PIX debugger.

@@ -2,7 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using System;
-using SharpDX.Mathematics.Interop;
+using Silk.NET.Core.Native;
+using Silk.NET.Direct3D11;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Shaders;
@@ -11,27 +12,27 @@ namespace Stride.Graphics
 {
     public partial class CommandList
     {
-        private const int ConstantBufferCount = SharpDX.Direct3D11.CommonShaderStage.ConstantBufferApiSlotCount; // 14 actually
-        private const int SamplerStateCount = SharpDX.Direct3D11.CommonShaderStage.SamplerSlotCount;
-        private const int ShaderResourceViewCount = SharpDX.Direct3D11.CommonShaderStage.InputResourceSlotCount;
-        private const int SimultaneousRenderTargetCount = SharpDX.Direct3D11.OutputMergerStage.SimultaneousRenderTargetCount;
+        private const int ConstantBufferCount = D3D11.CommonshaderConstantBufferApiSlotCount;
+        private const int SamplerStateCount = D3D11.CommonshaderSamplerSlotCount;
+        private const int ShaderResourceViewCount = D3D11.CommonshaderInputResourceSlotCount;
+        private const int SimultaneousRenderTargetCount = D3D11.SimultaneousRenderTargetCount; 
         private const int StageCount = 6;
-        private const int UnorderedAcccesViewCount = SharpDX.Direct3D11.ComputeShaderStage.UnorderedAccessViewSlotCount;
+        private const int UnorderedAcccesViewCount = D3D11.D3D111UavSlotCount;
 
-        private SharpDX.Direct3D11.DeviceContext nativeDeviceContext;
-        private SharpDX.Direct3D11.DeviceContext1 nativeDeviceContext1;
-        private SharpDX.Direct3D11.UserDefinedAnnotation nativeDeviceProfiler;
+        private ID3D11DeviceContext nativeDeviceContext;
+        private ID3D11DeviceContext1 nativeDeviceContext1;
+        private ID3DUserDefinedAnnotation nativeDeviceProfiler;
 
-        private SharpDX.Direct3D11.InputAssemblerStage inputAssembler;
-        private SharpDX.Direct3D11.OutputMergerStage outputMerger;
+        private ID3D11DeviceContext inputAssembler { get { return nativeDeviceContext; } }
+        private ID3D11DeviceContext outputMerger { get { return nativeDeviceContext; } }
 
-        private readonly SharpDX.Direct3D11.RenderTargetView[] currentRenderTargetViews = new SharpDX.Direct3D11.RenderTargetView[SimultaneousRenderTargetCount];
+        private readonly unsafe ID3D11RenderTargetView*[] currentRenderTargetViews = new ID3D11RenderTargetView*[SimultaneousRenderTargetCount];
         private          int currentRenderTargetViewsActiveCount = 0;
-        private readonly SharpDX.Direct3D11.UnorderedAccessView[] currentUARenderTargetViews = new SharpDX.Direct3D11.UnorderedAccessView[SimultaneousRenderTargetCount];
-        private readonly SharpDX.Direct3D11.CommonShaderStage[] shaderStages = new SharpDX.Direct3D11.CommonShaderStage[StageCount];
+        private readonly unsafe ID3D11UnorderedAccessView*[] currentUARenderTargetViews = new ID3D11UnorderedAccessView*[SimultaneousRenderTargetCount];
+        //private readonly SharpDX.Direct3D11.CommonShaderStage[] shaderStages = new SharpDX.Direct3D11.CommonShaderStage[StageCount];
         private readonly Buffer[] constantBuffers = new Buffer[StageCount * ConstantBufferCount];
         private readonly SamplerState[] samplerStates = new SamplerState[StageCount * SamplerStateCount];
-        private readonly SharpDX.Direct3D11.UnorderedAccessView[] unorderedAccessViews = new SharpDX.Direct3D11.UnorderedAccessView[UnorderedAcccesViewCount]; // Only CS
+        private readonly unsafe ID3D11UnorderedAccessView*[] unorderedAccessViews = new ID3D11UnorderedAccessView* [UnorderedAcccesViewCount]; // Only CS
 
         private PipelineState currentPipelineState;
 
@@ -44,9 +45,13 @@ namespace Stride.Graphics
         {
             nativeDeviceContext = device.NativeDeviceContext;
             NativeDeviceChild = nativeDeviceContext;
-            nativeDeviceContext1 = new SharpDX.Direct3D11.DeviceContext1(nativeDeviceContext.NativePointer);
-            nativeDeviceProfiler = device.IsDebugMode ? SharpDX.ComObject.QueryInterfaceOrNull<SharpDX.Direct3D11.UserDefinedAnnotation>(nativeDeviceContext.NativePointer) : null;
-
+            unsafe
+            {
+                ID3D11DeviceChild* myThing = NativeDeviceChildPtr;
+                ID3D11DeviceContext1* thingIWant = null;
+                SilkMarshal.ThrowHResult(myThing->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&thingIWant));
+                nativeDeviceContext1 = *thingIWant;
+            }
             InitializeStages();
 
             ClearState();
@@ -56,13 +61,12 @@ namespace Stride.Graphics
         /// Gets the native device context.
         /// </summary>
         /// <value>The native device context.</value>
-        internal SharpDX.Direct3D11.DeviceContext NativeDeviceContext => nativeDeviceContext;
+        internal ID3D11DeviceContext NativeDeviceContext => nativeDeviceContext;
 
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
-            Utilities.Dispose(ref nativeDeviceProfiler);
-
+            nativeDeviceProfiler.Release();
             base.OnDestroyed();
         }
 
@@ -82,17 +86,21 @@ namespace Stride.Graphics
         private void ClearStateImpl()
         {
             NativeDeviceContext.ClearState();
-
             for (int i = 0; i < samplerStates.Length; ++i)
                 samplerStates[i] = null;
             for (int i = 0; i < constantBuffers.Length; ++i)
                 constantBuffers[i] = null;
-            for (int i = 0; i < unorderedAccessViews.Length; ++i)
-                unorderedAccessViews[i] = null;
-            for (int i = 0; i < currentRenderTargetViews.Length; i++)
-                currentRenderTargetViews[i] = null;
-            for (int i = 0; i < currentUARenderTargetViews.Length; i++)
-                currentUARenderTargetViews[i] = null;
+            unsafe
+            {
+                
+                for (int i = 0; i < unorderedAccessViews.Length; ++i)
+                    unorderedAccessViews[i] = null;
+                for (int i = 0; i < currentRenderTargetViews.Length; i++)
+                    currentRenderTargetViews[i] = null;
+                for (int i = 0; i < currentUARenderTargetViews.Length; i++)
+                    currentUARenderTargetViews[i] = null;
+            }
+            
 
             // Since nothing can be drawn in default state, no need to set anything (another SetPipelineState should happen before)
             currentPipelineState = GraphicsDevice.DefaultPipelineState;
@@ -103,11 +111,14 @@ namespace Stride.Graphics
         /// </summary>
         private void ResetTargetsImpl()
         {
-            for (int i = 0; i < currentRenderTargetViews.Length; i++)
-                currentRenderTargetViews[i] = null;
-            for (int i = 0; i < currentUARenderTargetViews.Length; i++)
-                currentUARenderTargetViews[i] = null;
-            outputMerger.ResetTargets();
+            unsafe
+            {
+                for (int i = 0; i < currentRenderTargetViews.Length; i++)
+                    currentRenderTargetViews[i] = null;
+                for (int i = 0; i < currentUARenderTargetViews.Length; i++)
+                    currentUARenderTargetViews[i] = null;
+                outputMerger.OMSetRenderTargets(0, null, null);
+            }
         }
 
         /// <summary>
@@ -120,11 +131,14 @@ namespace Stride.Graphics
         private void SetRenderTargetsImpl(Texture depthStencilBuffer, int renderTargetCount, Texture[] renderTargets)
         {
             currentRenderTargetViewsActiveCount = renderTargetCount;
+            unsafe
+            {
+                for (int i = 0; i < renderTargetCount; i++)
+                    currentRenderTargetViews[i] = renderTargets[i].NativeID3D11RenderTargetViewPtr;
 
-            for (int i = 0; i < renderTargetCount; i++)
-                currentRenderTargetViews[i] = renderTargets[i].NativeRenderTargetView;
-
-            outputMerger.SetTargets(depthStencilBuffer != null ? depthStencilBuffer.NativeDepthStencilView : null, renderTargetCount, currentRenderTargetViews);
+                outputMerger.SOSetTargets(depthStencilBuffer != null ? depthStencilBuffer.NativeDepthStencilView : null, renderTargetCount, currentRenderTargetViews);
+            }
+            
         }
 
         unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle)

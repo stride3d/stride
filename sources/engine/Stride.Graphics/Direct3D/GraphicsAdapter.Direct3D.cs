@@ -142,7 +142,7 @@ namespace Stride.Graphics
                 return adapter;
             }
         }
-        internal unsafe IDXGIAdapter1* pAdapter
+        internal unsafe IDXGIAdapter1* AdapterPtr
         {
             get
             {

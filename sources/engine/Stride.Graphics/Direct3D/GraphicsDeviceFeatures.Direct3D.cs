@@ -25,6 +25,8 @@ using System;
 using System.Collections.Generic;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
+using Stride.Graphics.Direct3D;
+using Feature = Silk.NET.Direct3D11.Feature;
 
 namespace Stride.Graphics
 {
@@ -48,33 +50,55 @@ namespace Stride.Graphics
 
             // Set back the real GraphicsProfile that is used
             RequestedProfile = deviceRoot.RequestedProfile;
-            CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(nativeDevice.GetFeatureLevel();
+            CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(nativeDevice.GetFeatureLevel());
 
             HasResourceRenaming = true;
-
-            HasComputeShaders = nativeDevice.CheckFeatureSupport(Feature.ComputeShaders);
-            HasDoublePrecision = nativeDevice.CheckFeatureSupport(SharpDX.Direct3D11.Feature.ShaderDoubles);
-            nativeDevice.CheckThreadingSupport(out HasMultiThreadingConcurrentResources, out this.HasDriverCommandLists);
+            unsafe 
+            {
+                uint n = 0;
+                HasComputeShaders = (uint)nativeDevice.CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureD3D10XHardwareOptions, null, n) == (uint)ReturnCodes.S_OK;
+                HasDoublePrecision = (uint)nativeDevice.CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureDoubles,null, n) == (uint)ReturnCodes.S_OK;
+                HasDriverCommandLists = (uint)nativeDevice.CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureThreading, null, n) == (uint)ReturnCodes.S_OK;
+            }
+            
+            
+           
+            
 
             HasDepthAsSRV = (CurrentProfile >= GraphicsProfile.Level_10_0);
             HasDepthAsReadOnlyRT = CurrentProfile >= GraphicsProfile.Level_11_0;
             HasMultisampleDepthAsSRV = CurrentProfile >= GraphicsProfile.Level_11_0;
 
             // Check features for each DXGI.Format
-            foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
+            foreach (var format in Enum.GetValues(typeof(Format)))
             {
-                var dxgiFormat = (SharpDX.DXGI.Format)format;
+                var dxgiFormat = (Format)format;
                 var maximumMultisampleCount = MultisampleCount.None;
-                var computeShaderFormatSupport = ComputeShaderFormatSupport.None;
+                
+                var computeShaderFormatSupport = FormatSupport.None;
                 var formatSupport = FormatSupport.None;
 
                 if (!ObsoleteFormatToExcludes.Contains(dxgiFormat))
                 {
                     maximumMultisampleCount = GetMaximumMultisampleCount(nativeDevice, dxgiFormat);
-                    if (HasComputeShaders)
-                        computeShaderFormatSupport = nativeDevice.CheckComputeShaderFormatSupport(dxgiFormat);
+                    
+                    unsafe
+                    {
+                        uint res = 0;
+                        if (HasComputeShaders)
+                        {
+                            //TODO : To review, this seems very weird
+                            
+                            nativeDevice.CheckFormatSupport(dxgiFormat,&res);
+                            computeShaderFormatSupport = (FormatSupport)res;
+                        }
+                        nativeDevice.CheckFormatSupport(dxgiFormat, &res);
+                        formatSupport = (FormatSupport)res;
 
-                    formatSupport = (FormatSupport)nativeDevice.CheckFormatSupport(dxgiFormat);
+                    }
+                        
+
+                    
                 }
 
                 //mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, computeShaderFormatSupport, formatSupport);
@@ -88,13 +112,19 @@ namespace Stride.Graphics
         /// <param name="device">The device.</param>
         /// <param name="pixelFormat">The pixelFormat.</param>
         /// <returns>The maximum multisample count for this pixel pixelFormat</returns>
-        private static MultisampleCount GetMaximumMultisampleCount(SharpDX.Direct3D11.Device device, SharpDX.DXGI.Format pixelFormat)
+        private static MultisampleCount GetMaximumMultisampleCount(ID3D11Device device, Format pixelFormat)
         {
             int maxCount = 1;
             for (int i = 1; i <= 8; i *= 2)
             {
-                if (device.CheckMultisampleQualityLevels(pixelFormat, i) != 0)
-                    maxCount = i;
+                unsafe
+                {
+                    uint res = 0;
+                    device.CheckMultisampleQualityLevels(pixelFormat, (uint)i, &res);
+                    if (res != 0)
+                        maxCount = i;
+                }
+                
             }
             return (MultisampleCount)maxCount;
         }

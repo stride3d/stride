@@ -8,12 +8,11 @@ namespace Stride.Graphics
 {
     public partial class DisplayMode
     {
-        internal ModeDesc ToDescription()
+        internal ModeDesc1 ToDescription()
         {
-            return new ModeDesc((uint)Width, (uint)Height, RefreshRate.ToSilk(), format: (Format)Format);
+            return new ModeDesc1((uint)Width, (uint)Height, RefreshRate.ToSilk(), format: (Format)Format);
         }
-
-        internal static DisplayMode FromDescription(ModeDesc description)
+        internal static DisplayMode FromDescription(ModeDesc1 description)
         {
             return new DisplayMode((PixelFormat)description.Format, (int)description.Width, (int)description.Height, new Rational((int)description.RefreshRate.Numerator, (int)description.RefreshRate.Denominator));
         }

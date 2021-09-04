@@ -44,7 +44,7 @@ namespace Stride.Graphics
     public partial class GraphicsOutput
     {
         private readonly int outputIndex;
-        private readonly IDXGIOutput output;
+        private readonly IDXGIOutput1 output;
         private readonly OutputDesc outputDescription;
 
         /// <summary>
@@ -60,9 +60,9 @@ namespace Stride.Graphics
             this.adapter = adapter ?? throw new ArgumentNullException("adapter");
             unsafe
             {
-                IDXGIOutput o = new IDXGIOutput();
-                IDXGIOutput* oP = &o;
-                adapter.NativeAdapter.EnumOutputs((uint)outputIndex, &oP).DisposeBy(this);
+                IDXGIOutput1 o;
+                IDXGIOutput1* oP = &o;
+                adapter.NativeAdapter.EnumOutputs((uint)outputIndex, (IDXGIOutput**)&oP).DisposeBy(this);
                 this.output = o;
                 //outputDescription = 
                 var od = new OutputDesc();
@@ -84,8 +84,6 @@ namespace Stride.Graphics
         public DisplayMode FindClosestMatchingDisplayMode(GraphicsProfile[] targetProfiles, DisplayMode mode)
         {
             if (targetProfiles == null) throw new ArgumentNullException("targetProfiles");
-
-            ModeDesc closestDescription;
             ID3D11Device deviceTemp;
             try
             {
@@ -98,21 +96,21 @@ namespace Stride.Graphics
                 //deviceTemp = new SharpDX.Direct3D11.Device(adapter.NativeAdapter, SharpDX.Direct3D11.DeviceCreationFlags.None, features);
                 unsafe 
                 {
-                    ID3D11Device d = new ID3D11Device();
-                    var pDv = &d;
+                    
+                    var pDv = &deviceTemp;
                     Span<D3DFeatureLevel> fls = new();
                     ID3D11DeviceContext ctx = new();
                     var pCtx = &ctx;
                     
 
                     //TODO : Unsafe adapter pointer getter + unsure if cast is okay, needs review
-                    D3D11Overloads.CreateDevice(D3D11.GetApi(),(IDXGIAdapter*)adapter.pAdapter , D3DDriverType.D3DDriverTypeUnknown, , 0, features, (uint)targetProfiles.Length, D3D11.SdkVersion, &pDv,fls,&pCtx);
+                    D3D11Overloads.CreateDevice(D3D11.GetApi(),(IDXGIAdapter*)adapter.AdapterPtr , D3DDriverType.D3DDriverTypeUnknown, 0, 0, features, (uint)targetProfiles.Length, D3D11.SdkVersion, &pDv,fls,&pCtx);
                 }
                 
             }
             catch (Exception) { }
 
-            var description = new ModeDesc()
+            var description = new ModeDesc1()
             {
                 Width = (uint)mode.Width,
                 Height = (uint)mode.Height,
@@ -121,11 +119,14 @@ namespace Stride.Graphics
                 Scaling = ModeScaling.ModeScalingUnspecified,
                 ScanlineOrdering = ModeScanlineOrder.ModeScanlineOrderUnspecified,
             };
+            unsafe
+            {
+                ModeDesc1 result;
+                output.FindClosestMatchingMode1(&description, &result, (IUnknown*)&deviceTemp);
+                return DisplayMode.FromDescription(result);
+            }
 
-            //output.GetClosestMatchingMode(deviceTemp, description, out closestDescription);
-            output.FindClosestMatchingMode();
-
-            return DisplayMode.FromDescription(closestDescription);
+            
         }
 
         /// <summary>
@@ -167,12 +168,16 @@ namespace Stride.Graphics
                 foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
                 {
                     var dxgiFormat = (Format)format;
-#if DIRECTX11_1
-                    var modes = output1.GetDisplayModeList1(dxgiFormat, displayModeEnumerationFlags);
-#else
-                    var modes = output.GetDisplayModeList(dxgiFormat, displayModeEnumerationFlags);
-#endif
-
+                    ModeDesc1[] modes = new ModeDesc1[0];
+                    unsafe
+                    {
+                        
+                        uint size = 0;
+                        fixed(ModeDesc1* tmp = modes)
+                            output.GetDisplayModeList1(dxgiFormat, displayModeEnumerationFlags, &size, tmp);
+                        
+                    }
+                    
                     foreach (var mode in modes)
                     {
                         if (mode.Scaling == ModeScaling.ModeScalingUnspecified)
@@ -197,10 +202,6 @@ namespace Stride.Graphics
                 //    throw;
                 throw;
             }
-
-#if DIRECTX11_1
-            output1.Dispose();
-#endif
             supportedDisplayModes = modesAvailable.ToArray();
         }
 
