@@ -54,6 +54,13 @@ namespace Stride.Graphics
                 //}
             }
         }
+        internal unsafe ID3D11DepthStencilView* NativeDepthStencilViewPtr
+        {
+            get
+            {
+                fixed(ID3D11DepthStencilView* v = &depthStencilView) return v;
+            }
+        }
 
         /// <summary>
         /// Gets the ID3D11RenderTargetView attached to this GraphicsResource.
@@ -81,15 +88,8 @@ namespace Stride.Graphics
             {
                 fixed(ID3D11RenderTargetView* r = &renderTargetView) return r;
             }
-            private set
-            {
-                renderTargetView = value;
-                //if (IsDebugMode && renderTargetView != null)
-                //{
-                //    renderTargetView.DebugName = string.Format("{0} RTV", Name);
-                //}
-            }
         }
+        
 
         public void Recreate(DataBox[] dataBoxes = null)
         {

@@ -6,6 +6,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.Graphics.Direct3D;
 using Stride.Shaders;
 
 namespace Stride.Graphics
@@ -62,6 +63,8 @@ namespace Stride.Graphics
         /// </summary>
         /// <value>The native device context.</value>
         internal ID3D11DeviceContext NativeDeviceContext => nativeDeviceContext;
+
+        internal ID3D11DeviceContext ShaderStages => nativeDeviceContext;
 
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
@@ -135,26 +138,33 @@ namespace Stride.Graphics
             {
                 for (int i = 0; i < renderTargetCount; i++)
                     currentRenderTargetViews[i] = renderTargets[i].NativeID3D11RenderTargetViewPtr;
-
-                outputMerger.SOSetTargets(depthStencilBuffer != null ? depthStencilBuffer.NativeDepthStencilView : null, renderTargetCount, currentRenderTargetViews);
+                
+                fixed(ID3D11RenderTargetView** rtvs = currentRenderTargetViews)
+                    outputMerger.OMSetRenderTargets((uint)depthStencilBuffer.GetViewCount(), rtvs, depthStencilBuffer.NativeDepthStencilViewPtr);
             }
             
         }
 
         unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle)
         {
-            NativeDeviceContext.Rasterizer.SetScissorRectangle(scissorRectangle.Left, scissorRectangle.Top, scissorRectangle.Right, scissorRectangle.Bottom);
+            //NativeDeviceContext.Rasterizer.SetScissorRectangle();
+            var rect = new Silk.NET.Maths.Rectangle<int>(
+                    new Silk.NET.Maths.Vector2D<int>(scissorRectangle.X, scissorRectangle.Y),
+                    new Silk.NET.Maths.Vector2D<int>(scissorRectangle.Width, scissorRectangle.Height)
+            );
+            NativeDeviceContext.RSSetScissorRects(1,&rect);
         }
 
         unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles)
         {
             if (scissorRectangles == null) throw new ArgumentNullException("scissorRectangles");
-            var localScissorRectangles = new RawRectangle[scissorCount];
+            var localScissorRectangles = new Silk.NET.Maths.Rectangle<int>[scissorCount];
             for (int i = 0; i < scissorCount; i++)
             {
-                localScissorRectangles[i] = new RawRectangle(scissorRectangles[i].X, scissorRectangles[i].Y, scissorRectangles[i].Right, scissorRectangles[i].Bottom);
+                localScissorRectangles[i] = new Silk.NET.Maths.Rectangle<int>(new Silk.NET.Maths.Vector2D<int>(scissorRectangles[i].X, scissorRectangles[i].Y), new Silk.NET.Maths.Vector2D<int>(scissorRectangles[i].Width, scissorRectangles[i].Height));
             }
-            NativeDeviceContext.Rasterizer.SetScissorRectangles(localScissorRectangles);
+            fixed(Silk.NET.Maths.Rectangle<int>* rs = localScissorRectangles)
+                NativeDeviceContext.RSSetScissorRects((uint)scissorCount,rs);
         }
 
         /// <summary>
@@ -163,20 +173,25 @@ namespace Stride.Graphics
         /// <param name="buffers">The buffers.</param>
         public void SetStreamTargets(params Buffer[] buffers)
         {
-            SharpDX.Direct3D11.StreamOutputBufferBinding[] streamOutputBufferBindings;
+            ID3D11Buffer[] streamOutputBufferBindings;
 
             if (buffers != null)
             {
-                streamOutputBufferBindings = new SharpDX.Direct3D11.StreamOutputBufferBinding[buffers.Length];
+                streamOutputBufferBindings = new ID3D11Buffer[buffers.Length];
                 for (int i = 0; i < buffers.Length; ++i)
-                    streamOutputBufferBindings[i].Buffer = buffers[i].NativeBuffer;
+                    streamOutputBufferBindings[i] = buffers[i].NativeBuffer;
             }
             else
             {
                 streamOutputBufferBindings = null;
             }
-
-            NativeDeviceContext.StreamOutput.SetTargets(streamOutputBufferBindings);
+            unsafe
+            {
+                uint l = (uint)buffers.Length;
+                fixed (ID3D11Buffer* buffs = streamOutputBufferBindings)
+                    NativeDeviceContext.SOSetTargets(l, &buffs,null);
+            }
+            
         }
 
         /// <summary>
@@ -192,7 +207,7 @@ namespace Stride.Graphics
 
             fixed (Viewport* viewportsPtr = viewports)
             {
-                nativeDeviceContext.Rasterizer.SetViewports((RawViewportF*)viewportsPtr, renderTargetCount > 0 ? renderTargetCount : 1);
+                nativeDeviceContext.RSSetViewports(renderTargetCount > 0 ? (uint)renderTargetCount : 1, (Silk.NET.Direct3D11.Viewport*)viewportsPtr);
             }
         }
 
@@ -201,7 +216,10 @@ namespace Stride.Graphics
         /// </summary>
         public void UnsetRenderTargets()
         {
-            NativeDeviceContext.OutputMerger.ResetTargets();
+            unsafe
+            {
+                NativeDeviceContext.OMSetRenderTargets(0, null, null);
+            }
         }
 
         /// <summary>
