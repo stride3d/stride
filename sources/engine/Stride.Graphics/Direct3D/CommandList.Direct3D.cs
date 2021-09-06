@@ -410,12 +410,12 @@ namespace Stride.Graphics
         /// <param name="shaderResourceView">The shader resource view.</param>
         /// <param name="view">The native unordered access view.</param>
         /// <param name="uavInitialOffset">The Append/Consume buffer offset. See SetUnorderedAccessView for more details.</param>
-        internal void OMSetSingleUnorderedAccessView(int slot, ID3D11UnorderedAccessView view, int uavInitialOffset)
+        internal unsafe void OMSetSingleUnorderedAccessView(int slot, ID3D11UnorderedAccessView* view, int uavInitialOffset)
         {
             unsafe
             {
 
-                currentUARenderTargetViews[slot] = &view;
+                currentUARenderTargetViews[slot] = view;
 
                 int remainingSlots = currentUARenderTargetViews.Length - currentRenderTargetViewsActiveCount;
 
@@ -466,7 +466,7 @@ namespace Stride.Graphics
                 {
                     if (currentUARenderTargetViews[slot] != view)
                     {
-                        OMSetSingleUnorderedAccessView(slot, *view, uavInitialOffset);
+                        OMSetSingleUnorderedAccessView(slot, view, uavInitialOffset);
                     }
                 }
             }
@@ -478,23 +478,28 @@ namespace Stride.Graphics
         /// <param name="unorderedAccessView">The unordered access view.</param>
         internal void UnsetUnorderedAccessView(GraphicsResource unorderedAccessView)
         {
-            var view = unorderedAccessView?.NativeUnorderedAccessView;
-            if (view == null)
-                return;
+            unsafe
+            {
+                var view = unorderedAccessView.NativeUnorderedAccessViewPtr;
+                if (view == null)
+                    return;
 
-            for (int slot = 0; slot < UnorderedAcccesViewCount; slot++)
-            {
-                if (unorderedAccessViews[slot] == view)
+            
+
+                for (int slot = 0; slot < UnorderedAcccesViewCount; slot++)
                 {
-                    unorderedAccessViews[slot] = null;
-                    NativeDeviceContext.ComputeShader.SetUnorderedAccessView(slot, null);
+                    if (unorderedAccessViews[slot] == view)
+                    {
+                        unorderedAccessViews[slot] = null;
+                        NativeDeviceContext.CSSetUnorderedAccessViews((uint)slot, 0, null, null);
+                    }
                 }
-            }
-            for (int slot = 0; slot < SimultaneousRenderTargetCount; slot++)
-            {
-                if (currentUARenderTargetViews[slot] == view)
+                for (int slot = 0; slot < SimultaneousRenderTargetCount; slot++)
                 {
-                    OMSetSingleUnorderedAccessView(slot, null, -1);
+                    if (currentUARenderTargetViews[slot] == view)
+                    {
+                        OMSetSingleUnorderedAccessView(slot, null, -1);
+                    }
                 }
             }
         }
@@ -510,12 +515,25 @@ namespace Stride.Graphics
 
         public void SetStencilReference(int stencilReference)
         {
-            nativeDeviceContext.OutputMerger.DepthStencilReference = stencilReference;
+            unsafe
+            {
+                ID3D11DepthStencilState* dss = null;
+                nativeDeviceContext.OMGetDepthStencilState(&dss, null);
+                nativeDeviceContext.OMSetDepthStencilState(dss, (uint)stencilReference);
+            }
         }
 
         public void SetBlendFactor(Color4 blendFactor)
         {
-            nativeDeviceContext.OutputMerger.BlendFactor = ColorHelper.Convert(blendFactor);
+            unsafe
+            {
+                ID3D11BlendState* bs = null;
+                uint* smask = null;
+                float[] bf = blendFactor.ToVector4().ToArray();
+                nativeDeviceContext.OMGetBlendState(&bs, null,smask);
+                fixed(float* bfp = bf)
+                    nativeDeviceContext.OMSetBlendState(bs, bfp, *smask);
+            }
         }
 
         public void SetPipelineState(PipelineState pipelineState)
@@ -532,12 +550,20 @@ namespace Stride.Graphics
 
         public void SetVertexBuffer(int index, Buffer buffer, int offset, int stride)
         {
-            inputAssembler.SetVertexBuffers(index, new SharpDX.Direct3D11.VertexBufferBinding(buffer.NativeBuffer, stride, offset));
+            unsafe
+            {
+                ID3D11Buffer* buff = buffer.NativeBufferPtr;
+                var count = buffer.ElementCount;
+                inputAssembler.IASetVertexBuffers((uint)index,(uint)count, &buff, (uint*)&stride, (uint*)&offset);
+            }
         }
 
         public void SetIndexBuffer(Buffer buffer, int offset, bool is32bits)
         {
-            inputAssembler.SetIndexBuffer(buffer != null ? buffer.NativeBuffer : null, is32bits ? SharpDX.DXGI.Format.R32_UInt : SharpDX.DXGI.Format.R16_UInt, offset);
+            unsafe
+            {
+                inputAssembler.IASetIndexBuffer(buffer.NativeBufferPtr, Silk.NET.DXGI.Format.FormatR32Uint, (uint)offset);
+            }
         }
 
         public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
@@ -556,7 +582,7 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            NativeDeviceContext.Dispatch(threadCountX, threadCountY, threadCountZ);
+            NativeDeviceContext.Dispatch((uint)threadCountX, (uint)threadCountY, (uint)threadCountZ);
         }
 
         /// <summary>
@@ -569,7 +595,11 @@ namespace Stride.Graphics
             PrepareDraw();
 
             if (indirectBuffer == null) throw new ArgumentNullException("indirectBuffer");
-            NativeDeviceContext.DispatchIndirect(indirectBuffer.NativeBuffer, offsetInBytes);
+            unsafe
+            {
+                NativeDeviceContext.DispatchIndirect(indirectBuffer.NativeBufferPtr, (uint)offsetInBytes);
+            }
+            
         }
 
         /// <summary>
@@ -581,7 +611,7 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            NativeDeviceContext.Draw(vertexCount, startVertexLocation);
+            NativeDeviceContext.Draw((uint)vertexCount, (uint)startVertexLocation);
 
             GraphicsDevice.FrameTriangleCount += (uint)vertexCount;
             GraphicsDevice.FrameDrawCalls++;
@@ -609,7 +639,7 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            NativeDeviceContext.DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
+            NativeDeviceContext.DrawIndexed((uint)indexCount, (uint)startIndexLocation, baseVertexLocation);
 
             GraphicsDevice.FrameDrawCalls++;
             GraphicsDevice.FrameTriangleCount += (uint)indexCount;
@@ -627,7 +657,7 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            NativeDeviceContext.DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
+            NativeDeviceContext.DrawIndexedInstanced((uint)indexCountPerInstance, (uint)instanceCount, (uint)startIndexLocation, baseVertexLocation, (uint)startInstanceLocation);
 
             GraphicsDevice.FrameDrawCalls++;
             GraphicsDevice.FrameTriangleCount += (uint)(indexCountPerInstance * instanceCount);
@@ -643,8 +673,11 @@ namespace Stride.Graphics
             if (argumentsBuffer == null) throw new ArgumentNullException("argumentsBuffer");
 
             PrepareDraw();
-
-            NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
+            unsafe
+            {
+                NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBufferPtr, (uint)alignedByteOffsetForArgs);
+            }
+            
 
             GraphicsDevice.FrameDrawCalls++;
         }
@@ -660,7 +693,7 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            NativeDeviceContext.DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation);
+            NativeDeviceContext.DrawInstanced((uint)vertexCountPerInstance, (uint)instanceCount, (uint)startVertexLocation, (uint)startInstanceLocation);
 
             GraphicsDevice.FrameDrawCalls++;
             GraphicsDevice.FrameTriangleCount += (uint)(vertexCountPerInstance * instanceCount);
@@ -676,8 +709,11 @@ namespace Stride.Graphics
             if (argumentsBuffer == null) throw new ArgumentNullException("argumentsBuffer");
 
             PrepareDraw();
+            unsafe
+            {
+                NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBufferPtr, (uint)alignedByteOffsetForArgs);
 
-            NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
+            }
 
             GraphicsDevice.FrameDrawCalls++;
         }
@@ -689,7 +725,12 @@ namespace Stride.Graphics
         /// <param name="index">The query index.</param>
         public void WriteTimestamp(QueryPool queryPool, int index)
         {
-            nativeDeviceContext.End(queryPool.NativeQueries[index]);    
+            unsafe
+            {
+                fixed (ID3D11Query* a = &queryPool.NativeQueries[index])
+                    nativeDeviceContext.End((ID3D11Asynchronous*)a);
+
+            }
         }
 
         /// <summary>
@@ -707,7 +748,7 @@ namespace Stride.Graphics
         /// </summary>
         public void EndProfile()
         {
-            nativeDeviceProfiler?.EndEvent();
+            nativeDeviceProfiler.EndEvent();
         }
 
         /// <summary>
