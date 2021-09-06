@@ -11,10 +11,24 @@ namespace Stride.Graphics
 {
     public partial class Buffer
     {
-        //buffer descrption
-        private Silk.NET.Direct3D11.BufferDesc nativeDescription;
+        private ID3D11Buffer nativeBuffer;
 
-        internal Silk.NET.Direct3D11.ID3D11Buffer NativeBuffer { get; set; }
+        //buffer descrption
+        private BufferDesc nativeDescription;
+
+        internal ID3D11Buffer NativeBuffer 
+        {
+            get
+            {
+                return this.nativeBuffer;
+            }
+            set
+            {
+                this.nativeBuffer = value;
+            }
+        }
+
+        internal unsafe ID3D11Buffer* NativeBufferPtr { get { fixed (ID3D11Buffer* buff = &nativeBuffer) return buff; } }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Buffer" /> class.

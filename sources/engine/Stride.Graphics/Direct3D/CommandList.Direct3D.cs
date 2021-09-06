@@ -30,7 +30,7 @@ namespace Stride.Graphics
         private readonly unsafe ID3D11RenderTargetView*[] currentRenderTargetViews = new ID3D11RenderTargetView*[SimultaneousRenderTargetCount];
         private          int currentRenderTargetViewsActiveCount = 0;
         private readonly unsafe ID3D11UnorderedAccessView*[] currentUARenderTargetViews = new ID3D11UnorderedAccessView*[SimultaneousRenderTargetCount];
-        //private readonly SharpDX.Direct3D11.CommonShaderStage[] shaderStages = new SharpDX.Direct3D11.CommonShaderStage[StageCount];
+        private readonly ID3D11DeviceContext[] shaderStages = new ID3D11DeviceContext[StageCount];
         private readonly Buffer[] constantBuffers = new Buffer[StageCount * ConstantBufferCount];
         private readonly SamplerState[] samplerStates = new SamplerState[StageCount * SamplerStateCount];
         private readonly unsafe ID3D11UnorderedAccessView*[] unorderedAccessViews = new ID3D11UnorderedAccessView* [UnorderedAcccesViewCount]; // Only CS
@@ -236,11 +236,39 @@ namespace Stride.Graphics
             int stageIndex = (int)stage - 1;
 
             int slotIndex = stageIndex * ConstantBufferCount + slot;
-            if (constantBuffers[slotIndex] != buffer)
+            unsafe
             {
-                constantBuffers[slotIndex] = buffer;
-                shaderStages[stageIndex].SetConstantBuffer(slot, buffer != null ? buffer.NativeBuffer : null);
+                if (constantBuffers[slotIndex] != buffer)
+                {
+                    constantBuffers[slotIndex] = buffer;
+
+                    ID3D11Buffer* buff = buffer.NativeBufferPtr;
+                    switch (stage)
+                    {
+                        case ShaderStage.Vertex:
+                            shaderStages[stageIndex].VSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount,&buff);
+                            break;
+                        case ShaderStage.Hull:
+                            shaderStages[stageIndex].HSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            break;
+                        case ShaderStage.Domain:
+                            shaderStages[stageIndex].DSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            break;
+                        case ShaderStage.Geometry:
+                            shaderStages[stageIndex].GSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            break;
+                        case ShaderStage.Pixel:
+                            shaderStages[stageIndex].PSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            break;
+                        case ShaderStage.Compute:
+                            shaderStages[stageIndex].CSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
+
         }
 
         /// <summary>
@@ -260,7 +288,33 @@ namespace Stride.Graphics
             if (constantBuffers[slotIndex] != buffer)
             {
                 constantBuffers[slotIndex] = buffer;
-                shaderStages[stageIndex].SetConstantBuffer(slot, buffer != null ? buffer.NativeBuffer : null);
+                unsafe
+                {
+                    ID3D11Buffer* buff = buffer.NativeBufferPtr;
+                    switch (stage)
+                    {
+                        case ShaderStage.Vertex:
+                            shaderStages[stageIndex].VSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            break;
+                        case ShaderStage.Hull:
+                            shaderStages[stageIndex].HSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            break;
+                        case ShaderStage.Domain:
+                            shaderStages[stageIndex].DSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            break;
+                        case ShaderStage.Geometry:
+                            shaderStages[stageIndex].GSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            break;
+                        case ShaderStage.Pixel:
+                            shaderStages[stageIndex].PSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            break;
+                        case ShaderStage.Compute:
+                            shaderStages[stageIndex].CSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
         }
 
@@ -280,7 +334,34 @@ namespace Stride.Graphics
             if (samplerStates[slotIndex] != samplerState)
             {
                 samplerStates[slotIndex] = samplerState;
-                shaderStages[stageIndex].SetSampler(slot, samplerState != null ? (SharpDX.Direct3D11.SamplerState)samplerState.NativeDeviceChild : null);
+                //shaderStages[stageIndex].SetSampler(slot, samplerState != null ? (SharpDX.Direct3D11.SamplerState)samplerState.NativeDeviceChild : null);
+                unsafe
+                {
+                    ID3D11SamplerState* sampl = (ID3D11SamplerState*)samplerState.NativeDeviceChildPtr;
+                    switch (stage)
+                    {
+                        case ShaderStage.Vertex:
+                            shaderStages[stageIndex].VSSetSamplers((uint)slot, 1, &sampl);
+                            break;
+                        case ShaderStage.Hull:
+                            shaderStages[stageIndex].HSSetSamplers((uint)slot, 1, &sampl);
+                            break;
+                        case ShaderStage.Domain:
+                            shaderStages[stageIndex].DSSetSamplers((uint)slot, 1, &sampl);
+                            break;
+                        case ShaderStage.Geometry:
+                            shaderStages[stageIndex].GSSetSamplers((uint)slot, 1, &sampl);
+                            break;
+                        case ShaderStage.Pixel:
+                            shaderStages[stageIndex].PSSetSamplers((uint)slot, 1, &sampl);
+                            break;
+                        case ShaderStage.Compute:
+                            shaderStages[stageIndex].CSSetSamplers((uint)slot, 1, &sampl);
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
         }
 
@@ -292,7 +373,34 @@ namespace Stride.Graphics
         /// <param name="shaderResourceView">The shader resource view.</param>
         internal void SetShaderResourceView(ShaderStage stage, int slot, GraphicsResource shaderResourceView)
         {
-            shaderStages[(int)stage - 1].SetShaderResource(slot, shaderResourceView != null ? shaderResourceView.NativeShaderResourceView : null);
+            //shaderStages[(int)stage - 1].SetShaderResource(slot, shaderResourceView != null ? shaderResourceView.NativeShaderResourceView : null);
+            unsafe
+            {
+                ID3D11ShaderResourceView* srv = shaderResourceView.NativeShaderResourceViewPtr;
+                switch (stage)
+                {
+                    case ShaderStage.Vertex:
+                        shaderStages[(int)stage-1].VSSetShaderResources((uint)slot, 1, &srv);
+                        break;
+                    case ShaderStage.Hull:
+                        shaderStages[(int)stage - 1].HSSetShaderResources((uint)slot, 1, &srv);
+                        break;
+                    case ShaderStage.Domain:
+                        shaderStages[(int)stage - 1].DSSetShaderResources((uint)slot, 1, &srv);
+                        break;
+                    case ShaderStage.Geometry:
+                        shaderStages[(int)stage - 1].GSSetShaderResources((uint)slot, 1, &srv);
+                        break;
+                    case ShaderStage.Pixel:
+                        shaderStages[(int)stage - 1].PSSetShaderResources((uint)slot, 1, &srv);
+                        break;
+                    case ShaderStage.Compute:
+                        shaderStages[(int)stage - 1].CSSetShaderResources((uint)slot, 1, &srv);
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         /// <summary>
@@ -302,21 +410,26 @@ namespace Stride.Graphics
         /// <param name="shaderResourceView">The shader resource view.</param>
         /// <param name="view">The native unordered access view.</param>
         /// <param name="uavInitialOffset">The Append/Consume buffer offset. See SetUnorderedAccessView for more details.</param>
-        internal void OMSetSingleUnorderedAccessView(int slot, SharpDX.Direct3D11.UnorderedAccessView view, int uavInitialOffset)
+        internal void OMSetSingleUnorderedAccessView(int slot, ID3D11UnorderedAccessView view, int uavInitialOffset)
         {
-            currentUARenderTargetViews[slot] = view;
+            unsafe
+            {
 
-            int remainingSlots = currentUARenderTargetViews.Length - currentRenderTargetViewsActiveCount;
+                currentUARenderTargetViews[slot] = &view;
 
-            var uavs = new SharpDX.Direct3D11.UnorderedAccessView[remainingSlots];
-            Array.Copy(currentUARenderTargetViews, currentRenderTargetViewsActiveCount, uavs, 0, remainingSlots);
+                int remainingSlots = currentUARenderTargetViews.Length - currentRenderTargetViewsActiveCount;
 
-            var uavInitialCounts = new int[remainingSlots];
-            for (int i = 0; i < remainingSlots; i++)
-                uavInitialCounts[i] = -1;
-            uavInitialCounts[slot - currentRenderTargetViewsActiveCount] = uavInitialOffset;
+                var uavs = new ID3D11UnorderedAccessView*[remainingSlots];
+                Array.Copy(currentUARenderTargetViews, currentRenderTargetViewsActiveCount, uavs, 0, remainingSlots);
 
-            outputMerger.SetUnorderedAccessViews(currentRenderTargetViewsActiveCount, uavs, uavInitialCounts);
+                var uavInitialCounts = new uint[remainingSlots];
+                for (int i = 0; i < remainingSlots; i++)
+                    unchecked { uavInitialCounts[i] = (uint)-1;}
+                uavInitialCounts[slot - currentRenderTargetViewsActiveCount] = (uint)uavInitialOffset;
+                fixed (ID3D11UnorderedAccessView** puavs = uavs)
+                fixed (uint* initCounts = uavInitialCounts)
+                    outputMerger.CSSetUnorderedAccessViews(0,(uint)currentRenderTargetViewsActiveCount, puavs, initCounts);
+            }
         }
 
         /// <summary>
@@ -335,20 +448,26 @@ namespace Stride.Graphics
             if (stage != ShaderStage.Compute && stage != ShaderStage.Pixel)
                 throw new ArgumentException("Invalid stage.", "stage");
 
-            var view = unorderedAccessView?.NativeUnorderedAccessView;
-            if (stage == ShaderStage.Compute)
+            unsafe
             {
-                if (unorderedAccessViews[slot] != view)
+
+
+                var view = unorderedAccessView != null? unorderedAccessView.NativeUnorderedAccessViewPtr : null;
+                if (stage == ShaderStage.Compute)
                 {
-                    unorderedAccessViews[slot] = view;
-                    NativeDeviceContext.ComputeShader.SetUnorderedAccessView(slot, view, uavInitialOffset);
+                    if (unorderedAccessViews[slot] != view)
+                    {
+                        unorderedAccessViews[slot] = view;
+                        var count = (uint)unorderedAccessViews.Length;
+                        NativeDeviceContext.CSSetUnorderedAccessViews((uint)slot, count, &view, (uint*)&uavInitialOffset);
+                    }
                 }
-            }
-            else
-            {
-                if (currentUARenderTargetViews[slot] != view)
+                else
                 {
-                    OMSetSingleUnorderedAccessView(slot, view, uavInitialOffset);
+                    if (currentUARenderTargetViews[slot] != view)
+                    {
+                        OMSetSingleUnorderedAccessView(slot, *view, uavInitialOffset);
+                    }
                 }
             }
         }
