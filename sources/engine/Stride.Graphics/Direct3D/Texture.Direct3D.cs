@@ -530,7 +530,7 @@ namespace Stride.Graphics
             unsafe
             {
                 ID3D11UnorderedAccessView res;
-                GraphicsDevice.NativeDevice.CreateUnorderedAccessView(NativeResourceP, uavDescription, &res);
+                GraphicsDevice.NativeDevice.CreateUnorderedAccessView(NativeResourcePtr, uavDescription, &res);
                 return res;
             }
         }

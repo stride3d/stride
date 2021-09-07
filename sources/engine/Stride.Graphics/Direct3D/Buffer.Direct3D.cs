@@ -195,7 +195,7 @@ namespace Stride.Graphics
                 unsafe
                 {
                     var pSrv = &srv;
-                    NativeDevice.CreateRenderTargetView(NativeResourceP, &description, &pSrv); 
+                    NativeDevice.CreateRenderTargetView(NativeResourcePtr, &description, &pSrv); 
                 }
                 
             }
@@ -342,7 +342,7 @@ namespace Stride.Graphics
                 {
                     var uav = new ID3D11UnorderedAccessView();
                     var pUav = &uav;
-                    GraphicsDevice.NativeDevice.CreateUnorderedAccessView(NativeResourceP, &description, &pUav);
+                    GraphicsDevice.NativeDevice.CreateUnorderedAccessView(NativeResourcePtr, &description, &pUav);
                     NativeUnorderedAccessView = uav;
                 }
             }

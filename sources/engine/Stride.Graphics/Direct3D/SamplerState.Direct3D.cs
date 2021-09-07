@@ -2,8 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using System;
-using SharpDX;
-
+using Silk.NET.Direct3D11;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
@@ -36,35 +35,50 @@ namespace Stride.Graphics
 
         private void CreateNativeDeviceChild()
         {
-            SharpDX.Direct3D11.SamplerStateDescription nativeDescription;
-
-            nativeDescription.AddressU = (SharpDX.Direct3D11.TextureAddressMode)Description.AddressU;
-            nativeDescription.AddressV = (SharpDX.Direct3D11.TextureAddressMode)Description.AddressV;
-            nativeDescription.AddressW = (SharpDX.Direct3D11.TextureAddressMode)Description.AddressW;
-            nativeDescription.BorderColor = ColorHelper.Convert(Description.BorderColor);
-            nativeDescription.ComparisonFunction = (SharpDX.Direct3D11.Comparison)Description.CompareFunction;
-            nativeDescription.Filter = (SharpDX.Direct3D11.Filter)Description.Filter;
-            nativeDescription.MaximumAnisotropy = Description.MaxAnisotropy;
-            nativeDescription.MaximumLod = Description.MaxMipLevel;
-            nativeDescription.MinimumLod = Description.MinMipLevel;
-            nativeDescription.MipLodBias = Description.MipMapLevelOfDetailBias;
-
-            // For 9.1, anisotropy cannot be larger then 2
-            // mirror once is not supported either
-            if (GraphicsDevice.Features.CurrentProfile == GraphicsProfile.Level_9_1)
+            
+            unsafe
             {
-                // TODO: Min with user-value instead?
-                nativeDescription.MaximumAnisotropy = 2;
+                var nativeDescription = new SamplerDesc
+                {
+                    AddressU = (Silk.NET.Direct3D11.TextureAddressMode)Description.AddressU,
+                    AddressV = (Silk.NET.Direct3D11.TextureAddressMode)Description.AddressV,
+                    AddressW = (Silk.NET.Direct3D11.TextureAddressMode)Description.AddressW,
+                    ComparisonFunc = (ComparisonFunc)Description.CompareFunction,
+                    Filter = (Filter)Description.Filter,
+                    MaxAnisotropy = (uint)Description.MaxAnisotropy,
+                    MaxLOD = (uint)Description.MaxMipLevel,
+                    MinLOD = (uint)Description.MinMipLevel,
+                    MipLODBias = Description.MipMapLevelOfDetailBias
+                };
+                var tmp = Description.BorderColor.ToArray();
+                fixed (float* bc = tmp)
+                {
+                    nativeDescription.BorderColor = bc;
+                }
+                
+                
 
-                if (nativeDescription.AddressU == SharpDX.Direct3D11.TextureAddressMode.MirrorOnce)
-                    nativeDescription.AddressU = SharpDX.Direct3D11.TextureAddressMode.Mirror;
-                if (nativeDescription.AddressV == SharpDX.Direct3D11.TextureAddressMode.MirrorOnce)
-                    nativeDescription.AddressV = SharpDX.Direct3D11.TextureAddressMode.Mirror;
-                if (nativeDescription.AddressW == SharpDX.Direct3D11.TextureAddressMode.MirrorOnce)
-                    nativeDescription.AddressW = SharpDX.Direct3D11.TextureAddressMode.Mirror;
+                // For 9.1, anisotropy cannot be larger then 2
+                // mirror once is not supported either
+                if (GraphicsDevice.Features.CurrentProfile == GraphicsProfile.Level_9_1)
+                {
+                    // TODO: Min with user-value instead?
+                    nativeDescription.MaxAnisotropy = 2;
+
+                    if (nativeDescription.AddressU == Silk.NET.Direct3D11.TextureAddressMode.TextureAddressMirrorOnce)
+                        nativeDescription.AddressU = Silk.NET.Direct3D11.TextureAddressMode.TextureAddressMirror;
+                    if (nativeDescription.AddressV == Silk.NET.Direct3D11.TextureAddressMode.TextureAddressMirrorOnce)
+                        nativeDescription.AddressV = Silk.NET.Direct3D11.TextureAddressMode.TextureAddressMirror;
+                    if (nativeDescription.AddressW == Silk.NET.Direct3D11.TextureAddressMode.TextureAddressMirrorOnce)
+                        nativeDescription.AddressW = Silk.NET.Direct3D11.TextureAddressMode.TextureAddressMirror;
+                }
+            
+                ID3D11SamplerState* v = null;
+                NativeDevice.CreateSamplerState(&nativeDescription, &v);
+                NativeDeviceChild = *v;
             }
 
-            NativeDeviceChild = new SharpDX.Direct3D11.SamplerState(NativeDevice, nativeDescription);
+            //NativeDeviceChild = new SamplerState(NativeDevice, nativeDescription);
         }
     }
 } 

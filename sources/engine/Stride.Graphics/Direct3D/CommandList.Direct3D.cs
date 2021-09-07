@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using System;
+using System.Linq;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics.Direct3D;
@@ -740,7 +742,7 @@ namespace Stride.Graphics
         /// <param name="name">The name.</param>
         public void BeginProfile(Color4 profileColor, string name)
         {
-            nativeDeviceProfiler?.BeginEvent(name);
+            nativeDeviceProfiler.BeginEvent(name);
         }
 
         /// <summary>
@@ -763,17 +765,20 @@ namespace Stride.Graphics
         {
             if (depthStencilBuffer == null) throw new ArgumentNullException("depthStencilBuffer");
 
-            var flags = ((options & DepthStencilClearOptions.DepthBuffer) != 0) ? SharpDX.Direct3D11.DepthStencilClearFlags.Depth : 0;
+            var flags = ((options & DepthStencilClearOptions.DepthBuffer) != 0) ? ClearFlag.ClearDepth : 0;
 
             // Check that the DepthStencilBuffer has a Stencil if Clear Stencil is requested
             if ((options & DepthStencilClearOptions.Stencil) != 0)
             {
                 if (!depthStencilBuffer.HasStencil)
                     throw new InvalidOperationException(string.Format(FrameworkResources.NoStencilBufferForDepthFormat, depthStencilBuffer.ViewFormat));
-                flags |= SharpDX.Direct3D11.DepthStencilClearFlags.Stencil;
+                flags |= ClearFlag.ClearStencil;
             }
-
-            NativeDeviceContext.ClearDepthStencilView(depthStencilBuffer.NativeDepthStencilView, flags, depth, stencil);
+            unsafe
+            {
+                NativeDeviceContext.ClearDepthStencilView(depthStencilBuffer.NativeDepthStencilViewPtr, (uint)flags, depth, stencil);
+            }
+            
         }
 
         /// <summary>
@@ -785,8 +790,12 @@ namespace Stride.Graphics
         public unsafe void Clear(Texture renderTarget, Color4 color)
         {
             if (renderTarget == null) throw new ArgumentNullException("renderTarget");
-
-            NativeDeviceContext.ClearRenderTargetView(renderTarget.NativeRenderTargetView, *(RawColor4*)&color);
+            unsafe
+            {
+                var tmp = color.ToArray();
+                fixed (float* col = tmp)
+                    NativeDeviceContext.ClearRenderTargetView(renderTarget.NativeID3D11RenderTargetViewPtr, col);
+            }
         }
 
         /// <summary>
@@ -799,9 +808,12 @@ namespace Stride.Graphics
         public unsafe void ClearReadWrite(Buffer buffer, Vector4 value)
         {
             if (buffer == null) throw new ArgumentNullException(nameof(buffer));
-            if (buffer.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting buffer supporting UAV", nameof(buffer));
-
-            NativeDeviceContext.ClearUnorderedAccessView(buffer.NativeUnorderedAccessView, *(RawVector4*)&value);
+            //if (buffer.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting buffer supporting UAV", nameof(buffer));
+            unsafe
+            {
+                fixed(float* f4 = value.ToArray())
+                    NativeDeviceContext.ClearUnorderedAccessViewFloat(buffer.NativeUnorderedAccessViewPtr, f4);
+            }
         }
 
         /// <summary>
@@ -814,9 +826,14 @@ namespace Stride.Graphics
         public unsafe void ClearReadWrite(Buffer buffer, Int4 value)
         {
             if (buffer == null) throw new ArgumentNullException(nameof(buffer));
-            if (buffer.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting buffer supporting UAV", nameof(buffer));
+            //if (buffer.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting buffer supporting UAV", nameof(buffer));
+            unsafe
+            {
+                var tmp = value.ToArray().Select(x => (uint)x).ToArray();
+                fixed (uint* i4 = tmp)
+                    NativeDeviceContext.ClearUnorderedAccessViewUint(buffer.NativeUnorderedAccessViewPtr, i4);
 
-            NativeDeviceContext.ClearUnorderedAccessView(buffer.NativeUnorderedAccessView, *(RawInt4*)&value);
+            }
         }
 
         /// <summary>
@@ -829,9 +846,12 @@ namespace Stride.Graphics
         public unsafe void ClearReadWrite(Buffer buffer, UInt4 value)
         {
             if (buffer == null) throw new ArgumentNullException(nameof(buffer));
-            if (buffer.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting buffer supporting UAV", nameof(buffer));
-
-            NativeDeviceContext.ClearUnorderedAccessView(buffer.NativeUnorderedAccessView, *(RawInt4*)&value);
+            //if (buffer.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting buffer supporting UAV", nameof(buffer));
+            unsafe
+            {
+                fixed(uint* ui = value.ToArray())
+                NativeDeviceContext.ClearUnorderedAccessViewUint(buffer.NativeUnorderedAccessViewPtr, ui);
+            }
         }
 
         /// <summary>
@@ -844,9 +864,12 @@ namespace Stride.Graphics
         public unsafe void ClearReadWrite(Texture texture, Vector4 value)
         {
             if (texture == null) throw new ArgumentNullException(nameof(texture));
-            if (texture.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting texture supporting UAV", nameof(texture));
-
-            NativeDeviceContext.ClearUnorderedAccessView(texture.NativeUnorderedAccessView, *(RawVector4*)&value);
+            //if (texture.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting texture supporting UAV", nameof(texture));
+            unsafe
+            {
+                fixed (float* f4 = value.ToArray())
+                    NativeDeviceContext.ClearUnorderedAccessViewFloat(texture.NativeUnorderedAccessViewPtr, f4);
+            }
         }
 
         /// <summary>
@@ -859,9 +882,15 @@ namespace Stride.Graphics
         public unsafe void ClearReadWrite(Texture texture, Int4 value)
         {
              if (texture == null) throw new ArgumentNullException(nameof(texture));
-            if (texture.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting texture supporting UAV", nameof(texture));
+            //if (texture.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting texture supporting UAV", nameof(texture));
 
-            NativeDeviceContext.ClearUnorderedAccessView(texture.NativeUnorderedAccessView, *(RawInt4*)&value);
+            unsafe
+            {
+                var tmp = value.ToArray().Select(x => (uint)x).ToArray();
+                fixed (uint* i4 = tmp)
+                    NativeDeviceContext.ClearUnorderedAccessViewUint(texture.NativeUnorderedAccessViewPtr, i4);
+
+            }
         }
 
         /// <summary>
@@ -874,9 +903,13 @@ namespace Stride.Graphics
         public unsafe void ClearReadWrite(Texture texture, UInt4 value)
         {
             if (texture == null) throw new ArgumentNullException(nameof(texture));
-            if (texture.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting texture supporting UAV", nameof(texture));
+            //if (texture.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting texture supporting UAV", nameof(texture));
 
-            NativeDeviceContext.ClearUnorderedAccessView(texture.NativeUnorderedAccessView, *(RawInt4*)&value);
+            unsafe
+            {
+                fixed (uint* ui = value.ToArray())
+                    NativeDeviceContext.ClearUnorderedAccessViewUint(texture.NativeUnorderedAccessViewPtr, ui);
+            }
         }
 
         /// <summary>
@@ -888,7 +921,10 @@ namespace Stride.Graphics
         {
             if (source == null) throw new ArgumentNullException("source");
             if (destination == null) throw new ArgumentNullException("destination");
-            NativeDeviceContext.CopyResource(source.NativeResource, destination.NativeResource);
+            unsafe
+            {
+                NativeDeviceContext.CopyResource(source.NativeResourcePtr, destination.NativeResourcePtr);
+            }
         }
 
         public void CopyMultisample(Texture sourceMultisampleTexture, int sourceSubResource, Texture destTexture, int destSubResource, PixelFormat format = PixelFormat.None)
@@ -896,8 +932,10 @@ namespace Stride.Graphics
             if (sourceMultisampleTexture == null) throw new ArgumentNullException(nameof(sourceMultisampleTexture));
             if (destTexture == null) throw new ArgumentNullException("destTexture");
             if (!sourceMultisampleTexture.IsMultisample) throw new ArgumentOutOfRangeException(nameof(sourceMultisampleTexture), "Source texture is not a MSAA texture");
-
-            NativeDeviceContext.ResolveSubresource(sourceMultisampleTexture.NativeResource, sourceSubResource, destTexture.NativeResource, destSubResource, (SharpDX.DXGI.Format)(format == PixelFormat.None ? destTexture.Format : format));
+            unsafe
+            {
+                NativeDeviceContext.ResolveSubresource(sourceMultisampleTexture.NativeResourcePtr, (uint)sourceSubResource, destTexture.NativeResourcePtr, (uint)destSubResource, (Format)(format == PixelFormat.None ? destTexture.Format : format));
+            }
         }
 
         public void CopyRegion(GraphicsResource source, int sourceSubresource, ResourceRegion? sourecRegion, GraphicsResource destination, int destinationSubResource, int dstX = 0, int dstY = 0, int dstZ = 0)
@@ -905,15 +943,18 @@ namespace Stride.Graphics
             if (source == null) throw new ArgumentNullException("source");
             if (destination == null) throw new ArgumentNullException("destination");
 
-            var nullableSharpDxRegion = new SharpDX.Direct3D11.ResourceRegion?();
+            var nullableBox = new Box();
 
             if (sourecRegion.HasValue)
             {
                 var value = sourecRegion.Value;
-                nullableSharpDxRegion = new SharpDX.Direct3D11.ResourceRegion(value.Left, value.Top, value.Front, value.Right, value.Bottom, value.Back);
+                nullableBox = new Box((uint)value.Left, (uint)value.Top,(uint) value.Front,(uint) value.Right,(uint) value.Bottom, (uint)value.Back);
             }
+            unsafe
+            {
+                NativeDeviceContext.CopySubresourceRegion(source.NativeResourcePtr, (uint)destinationSubResource, (uint)dstX, (uint)dstY, (uint)dstZ, destination.NativeResourcePtr, (uint)sourceSubresource, &nullableBox);
 
-            NativeDeviceContext.CopySubresourceRegion(source.NativeResource, sourceSubresource, nullableSharpDxRegion, destination.NativeResource, destinationSubResource, dstX, dstY, dstZ);
+            }
         }
 
         /// <inheritdoc />
@@ -921,19 +962,29 @@ namespace Stride.Graphics
         {
             if (sourceBuffer == null) throw new ArgumentNullException("sourceBuffer");
             if (destBuffer == null) throw new ArgumentNullException("destBuffer");
-            NativeDeviceContext.CopyStructureCount(destBuffer.NativeBuffer, offsetInBytes, sourceBuffer.NativeUnorderedAccessView);
+            unsafe
+            {
+                NativeDeviceContext.CopyStructureCount(destBuffer.NativeBufferPtr, (uint)offsetInBytes, sourceBuffer.NativeUnorderedAccessViewPtr);
+            }
         }
 
         internal unsafe void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox)
         {
             if (resource == null) throw new ArgumentNullException("resource");
-            NativeDeviceContext.UpdateSubresource(*(SharpDX.DataBox*)Interop.Cast(ref databox), resource.NativeResource, subResourceIndex);
+            unsafe
+            {
+                NativeDeviceContext.UpdateSubresource(resource.NativeResourcePtr, (uint)subResourceIndex, (Box*)&databox,null,0,0);
+            }
         }
 
         internal unsafe void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox, ResourceRegion region)
         {
             if (resource == null) throw new ArgumentNullException("resource");
-            NativeDeviceContext.UpdateSubresource(*(SharpDX.DataBox*)Interop.Cast(ref databox), resource.NativeResource, subResourceIndex, *(SharpDX.Direct3D11.ResourceRegion*)Interop.Cast(ref region));
+            unsafe
+            {
+                NativeDeviceContext.UpdateSubresource(resource.NativeResourcePtr, (uint)subResourceIndex, (Box*)&databox, (Box*)&region, 0, 0);
+            }
+            //NativeDeviceContext.UpdateSubresource(*(SharpDX.DataBox*)Interop.Cast(ref databox), resource.NativeResource, subResourceIndex, *(SharpDX.Direct3D11.ResourceRegion*)Interop.Cast(ref region));
         }
 
         // TODO GRAPHICS REFACTOR what should we do with this?
@@ -954,26 +1005,31 @@ namespace Stride.Graphics
             // This resource has just been recycled by the GraphicsResourceAllocator, we force a rename to avoid GPU=>GPU sync point
             if (resource.DiscardNextMap && mapMode == MapMode.WriteNoOverwrite)
                 mapMode = MapMode.WriteDiscard;
-
-            SharpDX.DataBox dataBox = NativeDeviceContext.MapSubresource(resource.NativeResource, subResourceIndex, (SharpDX.Direct3D11.MapMode)mapMode, doNotWait ? SharpDX.Direct3D11.MapFlags.DoNotWait : SharpDX.Direct3D11.MapFlags.None);
-            var databox = *(DataBox*)Interop.Cast(ref dataBox);
-            if (!dataBox.IsEmpty)
+            MappedSubresource dataBox = new MappedSubresource();
+            unsafe
             {
-                databox.DataPointer = (IntPtr)((byte*)databox.DataPointer + offsetInBytes);
+                NativeDeviceContext.Map(resource.NativeResourcePtr, (uint)subResourceIndex, (Map)(uint)mapMode, doNotWait ? (uint)MapFlag.MapFlagDONotWait : 0, &dataBox);
+                var databox = *(DataBox*)Interop.Cast(ref dataBox);
+                if (!dataBox.)
+                {
+                    databox.DataPointer = (IntPtr)((byte*)databox.DataPointer + offsetInBytes);
+                }
             }
-            return new MappedResource(resource, subResourceIndex, databox);
+            
+            return new MappedResource(resource, subResourceIndex, dataBox);
         }
 
         // TODO GRAPHICS REFACTOR what should we do with this?
         public void UnmapSubresource(MappedResource unmapped)
         {
-            NativeDeviceContext.UnmapSubresource(unmapped.Resource.NativeResource, unmapped.SubResourceIndex);
+            unsafe
+            {
+                NativeDeviceContext.Unmap(unmapped.Resource.NativeResourcePtr, (uint)unmapped.SubResourceIndex);
+            }
         }
 
         private void InitializeStages()
-        {
-            inputAssembler = nativeDeviceContext.InputAssembler;
-            outputMerger = nativeDeviceContext.OutputMerger;
+        { 
             shaderStages[(int)ShaderStage.Vertex - 1] = nativeDeviceContext.VertexShader;
             shaderStages[(int)ShaderStage.Hull - 1] = nativeDeviceContext.HullShader;
             shaderStages[(int)ShaderStage.Domain - 1] = nativeDeviceContext.DomainShader;

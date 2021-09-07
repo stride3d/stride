@@ -21,7 +21,7 @@ namespace Stride.Graphics
         private ID3D11DeviceChild nativeDeviceChild;
 
         protected internal ID3D11Resource NativeResource { get; set; }
-        protected internal unsafe ID3D11Resource* NativeResourceP
+        protected internal unsafe ID3D11Resource* NativeResourcePtr
         {
             get
             {
