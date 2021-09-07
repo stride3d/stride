@@ -337,6 +337,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stride.Engine.NoAssets.Test
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{00b72ed7-00e9-47f7-868d-8162027cd068}*SharedItemsImports = 13
 		..\sources\assets\Stride.Core.Assets.Yaml\Stride.Core.Assets.Yaml.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
 		..\sources\shared\Stride.Core.ShellHelper\Stride.Core.ShellHelper.projitems*{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}*SharedItemsImports = 5
 		..\sources\shared\Stride.NuGetResolver\Stride.NuGetResolver.projitems*{2fc40214-a4aa-45dc-9c93-72ed800c40b0}*SharedItemsImports = 5
