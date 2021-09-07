@@ -146,7 +146,7 @@ namespace Stride.Core.Mathematics
         /// <summary>
         /// Gets a value indicting whether this instance is normalized.
         /// </summary>
-        public bool IsNormalized
+        public readonly bool IsNormalized
         {
             get { return MathF.Abs((X * X) + (Y * Y) + (Z * Z) - 1f) < MathUtil.ZeroTolerance; }
         }
@@ -207,7 +207,7 @@ namespace Stride.Core.Mathematics
         /// and speed is of the essence.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float LengthSquared()
+        public readonly float LengthSquared()
         {
             return (X * X) + (Y * Y) + (Z * Z);
         }
@@ -337,7 +337,7 @@ namespace Stride.Core.Mathematics
         {
             return new Vector3(value.X * scale, value.Y * scale, value.Z * scale);
         }
-        
+
         /// <summary>
         /// Modulates a vector with another by performing component-wise multiplication.
         /// </summary>
@@ -385,7 +385,7 @@ namespace Stride.Core.Mathematics
         {
             return new Vector3(value.X / scale, value.Y / scale, value.Z / scale);
         }
-        
+
         /// <summary>
         /// Demodulates a vector with another by performing component-wise division.
         /// </summary>
@@ -523,11 +523,12 @@ namespace Stride.Core.Mathematics
         /// <param name="left">First source vector.</param>
         /// <param name="right">Second source vector.</param>
         /// <returns>The cross product of the two vectors.</returns>
-        public static Vector3 Cross(Vector3 left, Vector3 right)
+        public static Vector3 Cross(in Vector3 left, in Vector3 right)
         {
-            Vector3 result;
-            Cross(ref left, ref right, out result);
-            return result;
+            return new Vector3(
+                (left.Y * right.Z) - (left.Z * right.Y),
+                (left.Z * right.X) - (left.X * right.Z),
+                (left.X * right.Y) - (left.Y * right.X));
         }
 
         /// <summary>
@@ -1425,6 +1426,23 @@ namespace Stride.Core.Mathematics
             Quaternion.RotationYawPitchRoll(ref quaternion, out yawPitchRoll.X, out yawPitchRoll.Y, out yawPitchRoll.Z);
         }
 
+
+        /// <summary>
+        /// Rotates the source around the target by the rotation angle around the supplied axis. 
+        /// </summary>
+        /// <param name="source">The position to rotate.</param>
+        /// <param name="target">The point to rotate around.</param>
+        /// <param name="axis">The axis of rotation.</param>
+        /// <param name="angle">The angle to rotate by in radians.</param>
+        /// <returns>The rotated vector.</returns>
+        public static Vector3 RotateAround(in Vector3 source, in Vector3 target, in Vector3 axis, float angle)
+        {
+            Vector3 local = source - target;
+            Quaternion q = Quaternion.RotationAxis(axis, angle);
+            q.Rotate(ref local);
+            return target + local;
+        }
+
         /// <summary>
         /// Adds two vectors.
         /// </summary>
@@ -1668,7 +1686,7 @@ namespace Stride.Core.Mathematics
             if (format == null)
                 return ToString();
 
-            return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2}", X.ToString(format, CultureInfo.CurrentCulture), 
+            return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2}", X.ToString(format, CultureInfo.CurrentCulture),
                 Y.ToString(format, CultureInfo.CurrentCulture), Z.ToString(format, CultureInfo.CurrentCulture));
         }
 
