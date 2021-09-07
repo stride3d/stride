@@ -22,27 +22,13 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
+  <!-- Some targets so that referencing projects include a tools folder with executables-->
   <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeNuGetResolverAssemblies</TargetsForTfmSpecificBuildOutput>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.config</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.config;.loaderdata</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <UseWPF Condition="'$(StrideNuGetResolverUX)' == 'true'">true</UseWPF>
-  </PropertyGroup>
-  <Target Name="IncludeNuGetResolverAssemblies">
-    <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)NuGet*.dll" />
-      <!-- <BuildOutputInPackage Include="$(OutputPath)Newtonsoft.Json.dll" /> -->
-    </ItemGroup>
-  </Target>
-  <!-- If .NET Core, we embed a loader which will resolve the nuget packages for us -->
-  <PropertyGroup>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.loaderdata</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <DefineConstants Condition="'$(StrideNuGetResolverUX)' == 'true'">STRIDE_NUGET_RESOLVER_UX;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('netcoreapp')) Or $(TargetFramework.StartsWith('net6'))">
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.loaderdata</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_StridePackageNuGetLoader</TargetsForTfmSpecificBuildOutput>
-  </PropertyGroup>
-  <Target Name="_StridePackageNuGetLoader">
+  <Target Name="_StridePackageNuGetLoader" AfterTargets="CopyFilesToOutputDirectory">
     <PropertyGroup>
       <_StrideNuGetLoaderWindowsDesktop Condition="'$(_MicrosoftNetSdkWindowsDesktop)' == 'true'">true</_StrideNuGetLoaderWindowsDesktop>
       <_StrideNuGetLoaderApplicationIcon Condition="'$(ApplicationIcon)' != ''">$(MSBuildProjectDirectory)\$(ApplicationIcon)</_StrideNuGetLoaderApplicationIcon>
@@ -52,12 +38,10 @@
     <!-- Write a small data file containing package and version to use for loader (let's not rely on NuGet layout/files such as .nuspec file in case it changes in the future) -->
     <WriteLinesToFile File="$(OutputPath)Stride.NuGetLoader.loaderdata" Lines="$(PackageId)/$(PackageVersion)" Overwrite="true" />
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)Stride.NuGetLoader.loaderdata" />
-      <BuildOutputInPackage Include="$(SolutionDir)..\sources\tools\Stride.NuGetLoader\bin\$(Configuration)\$(AssemblyName)\$(TargetFramework)\*.*" />
+      <None Include="$(OutputPath)Stride.NuGetLoader.loaderdata" Pack="true" PackagePath="tools\$(TargetFramework)\" />
+      <None Include="$(SolutionDir)..\sources\tools\Stride.NuGetLoader\bin\$(Configuration)\$(AssemblyName)\$(TargetFramework)\*.*" Pack="true" PackagePath="tools\$(TargetFramework)\" />
       <!-- Rename Stride.NuGetLoader.exe into the expected application name -->
-      <BuildOutputInPackage Update="@(BuildOutputInPackage->'%(Identity)')" Condition="'%(Filename)%(Extension)' == 'Stride.NuGetLoader.exe'">
-        <TargetPath>%(RecursiveDir)$(AssemblyName).exe</TargetPath>
-      </BuildOutputInPackage>
+      <None Update="@(BuildOutputInPackage->'%(Identity)')" Condition="'%(Filename)%(Extension)' == 'Stride.NuGetLoader.exe'" Pack="true" PackagePath="tools\$(TargetFramework)\$(AssemblyName).exe" />
     </ItemGroup>
   </Target>
 </Project>
