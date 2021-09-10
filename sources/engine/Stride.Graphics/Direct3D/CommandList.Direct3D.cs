@@ -1030,12 +1030,18 @@ namespace Stride.Graphics
 
         private void InitializeStages()
         { 
-            shaderStages[(int)ShaderStage.Vertex - 1] = nativeDeviceContext.VertexShader;
-            shaderStages[(int)ShaderStage.Hull - 1] = nativeDeviceContext.HullShader;
-            shaderStages[(int)ShaderStage.Domain - 1] = nativeDeviceContext.DomainShader;
-            shaderStages[(int)ShaderStage.Geometry - 1] = nativeDeviceContext.GeometryShader;
-            shaderStages[(int)ShaderStage.Pixel - 1] = nativeDeviceContext.PixelShader;
-            shaderStages[(int)ShaderStage.Compute - 1] = nativeDeviceContext.ComputeShader;
+            unsafe
+            {
+                ID3D11VertexShader* v = null;
+                nativeDeviceContext.VSGetShader(&v, null, null);
+                shaderStages[(int)ShaderStage.Vertex - 1] = nativeDeviceContext.VSGetShader
+                shaderStages[(int)ShaderStage.Hull - 1] = nativeDeviceContext.HullShader;
+                shaderStages[(int)ShaderStage.Domain - 1] = nativeDeviceContext.DomainShader;
+                shaderStages[(int)ShaderStage.Geometry - 1] = nativeDeviceContext.GeometryShader;
+                shaderStages[(int)ShaderStage.Pixel - 1] = nativeDeviceContext.PixelShader;
+                shaderStages[(int)ShaderStage.Compute - 1] = nativeDeviceContext.ComputeShader;
+
+            }
         }
     }
 }

@@ -24,12 +24,12 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D
 using System;
 using System.Reflection;
-using SharpDX;
-using SharpDX.DXGI;
-using SharpDX.Mathematics.Interop;
+using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
+//using SharpDX.Mathematics.Interop;
 using Stride.Core.Collections;
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-using BackBufferResourceType = SharpDX.Direct3D11.Texture2D;
+using BackBufferResourceType = Silk.NET.Direct3D11.ID3D11Texture2D;
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
 using BackBufferResourceType = SharpDX.Direct3D12.Resource;
 #endif
@@ -41,7 +41,7 @@ namespace Stride.Graphics
     /// </summary>
     public class SwapChainGraphicsPresenter : GraphicsPresenter
     {
-        private SwapChain swapChain;
+        private IDXGISwapChain swapChain;
 
         private readonly Texture backBuffer;
 
@@ -58,8 +58,11 @@ namespace Stride.Graphics
 
             // Initialize the swap chain
             swapChain = CreateSwapChain();
+            unsafe
+            {
+                backBuffer = new Texture(device).InitializeFromImpl(swapChain.GetBackBuffer<BackBufferResourceType>(0), Description.BackBufferFormat.IsSRgb());
 
-            backBuffer = new Texture(device).InitializeFromImpl(swapChain.GetBackBuffer<BackBufferResourceType>(0), Description.BackBufferFormat.IsSRgb());
+            }
 
             // Reload should get backbuffer from swapchain as well
             //backBufferTexture.Reload = graphicsResource => ((Texture)graphicsResource).Recreate(swapChain.GetBackBuffer<SharpDX.Direct3D11.Texture>(0));

@@ -3,6 +3,7 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using System;
 using Silk.NET.Direct3D11;
+using Silk.NET.Maths;
 using Stride.Core.Mathematics;
 
 namespace Stride.Graphics
@@ -50,13 +51,14 @@ namespace Stride.Graphics
                     MinLOD = (uint)Description.MinMipLevel,
                     MipLODBias = Description.MipMapLevelOfDetailBias
                 };
-                var tmp = Description.BorderColor.ToArray();
-                fixed (float* bc = tmp)
-                {
-                    nativeDescription.BorderColor = bc;
-                }
-                
-                
+                nativeDescription.BorderColor[0] = Description.BorderColor[0];
+                nativeDescription.BorderColor[1] = Description.BorderColor[1];
+                nativeDescription.BorderColor[2] = Description.BorderColor[2];
+                nativeDescription.BorderColor[3] = Description.BorderColor[3];
+                //call(nativeDescription)
+
+
+
 
                 // For 9.1, anisotropy cannot be larger then 2
                 // mirror once is not supported either
