@@ -12,6 +12,8 @@ namespace Stride.Particles.Components
 {
     class ParticleSystemSimulationProcessor : EntityProcessor<ParticleSystemComponent, ParticleSystemSimulationProcessor.ParticleSystemComponentState>
     {
+
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ParticleSystemSimulationProcessor"/> class.
         /// </summary>

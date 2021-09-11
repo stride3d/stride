@@ -1,5 +1,8 @@
 using Stride.Engine.Splines;
 using Stride.Engine.Splines.Components;
+using Stride.Games;
+using Stride.Rendering;
+using Stride.Core.Mathematics;
 
 namespace Stride.Engine.Processors
 {
@@ -8,6 +11,17 @@ namespace Stride.Engine.Processors
     /// </summary>
     public class SplineTravellerTransformProcessor : EntityProcessor<SplineTravellerComponent, SplineTravellerTransformProcessor.SplineTravellerTransformationInfo>
     {
+        private SplineTravellerComponent splineTravellerComponent;
+        private Entity entity;
+
+        private SplineNodeComponent currentSplineNodeComponent { get; set; }
+        private SplineNodeComponent targetSplineNodeComponent { get; set; }
+        private Vector3 currentTargetPos { get; set; } = new Vector3(0);
+        private int currentCurveIndex = 0;
+        private int currentCurvePointIndex = 0;
+        private Vector3 velocity { get; set; } = new Vector3(0);
+        private BezierCurve.BezierPoint[] currentSplinePoints = null;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SplineTransformProcessor"/> class.
         /// </summary>
@@ -33,6 +47,8 @@ namespace Stride.Engine.Processors
         {
             // Register model view hierarchy update
             entity.Transform.PostOperations.Add(data.TransformOperation);
+            splineTravellerComponent = component;
+            this.entity = entity;
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, SplineTravellerComponent component, SplineTravellerTransformationInfo data)
@@ -44,6 +60,103 @@ namespace Stride.Engine.Processors
         public class SplineTravellerTransformationInfo
         {
             public SplineTravellerViewHierarchyTransformOperation TransformOperation;
+        }
+
+        public override void Draw(RenderContext context)
+        {
+            if (splineTravellerComponent?.SplineComponent == null)
+                return;
+
+            if (splineTravellerComponent.SplineComponent.GetTotalSplineDistance() > 0 && currentSplinePoints == null)
+            {
+                SetInitialTargets();
+            }
+
+            if (splineTravellerComponent.IsMoving)
+            {
+                float deltaTime = (float)context.Time.WarpElapsed.TotalSeconds;
+                var oriPos = entity.Transform.WorldMatrix.TranslationVector;
+                velocity = (currentTargetPos - oriPos);
+                velocity.Normalize();
+                velocity *= splineTravellerComponent.Speed;
+                velocity *= deltaTime;
+
+                var movePos = oriPos + velocity;
+
+                entity.Transform.Position = movePos;
+
+                if (Vector3.Distance(movePos, currentTargetPos) < 0.2)
+                {
+                    SetNextTarget();
+                }
+            }
+        }
+
+        private void SetInitialTargets()
+        {
+            var splinePositionInfo = splineTravellerComponent.SplineComponent.GetPositionOnSpline(splineTravellerComponent.Percentage);
+            if (entity != null)
+            {
+                entity.Transform.Position = splinePositionInfo.Position;
+                entity.Transform.UpdateWorldMatrix();
+
+                currentSplineNodeComponent = splinePositionInfo.CurrentSplineNode;
+                targetSplineNodeComponent = splinePositionInfo.TargetSplineNode;
+
+                currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
+                SetNewTargetPosition(currentSplinePoints);
+            }
+        }
+
+        private void SetNewTargetPosition(BezierCurve.BezierPoint[] splinePoints)
+        {
+            //Take next splinePoint
+            currentTargetPos = splinePoints[currentCurvePointIndex].Position;
+        }
+
+        private void SetNextTarget()
+        {
+            var currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
+
+            if (currentCurvePointIndex + 1 < currentSplinePoints.Length)// is there a next curve point?
+            {
+                SetNewTargetPosition(currentSplinePoints);
+                currentCurvePointIndex++;
+            }
+            else
+            {
+                //is there a next Spline node?
+                if (currentCurveIndex + 2 < splineTravellerComponent.SplineComponent.Nodes.Count)
+                {
+                    GoToNextSplineNode();
+                }
+                else
+                {
+                    //In the end, its doesnt even matter
+                    splineTravellerComponent.ActivateOnSplineEndReached();
+                }
+            }
+
+            //currentSplineNodeComponent = currentSplinePoints[currentCurvePointIndex + 1];
+            //currentCurveIndex++;
+            //currentCurvePointIndex = 0;
+
+            ////Get next Node
+            //var nextNode = SplineComponent.Nodes _currentSplinePointIndex.script.node.nextNode;
+            //if (targetSplineNodeComponent == null)
+            //{
+            //    IsMoving = false;
+            //    //GoToNextSplineNode(nextNode);
+            //}
+        }
+
+        private void GoToNextSplineNode()
+        {
+            currentCurvePointIndex = 0;
+            currentSplineNodeComponent = targetSplineNodeComponent;
+            currentCurveIndex++;
+            targetSplineNodeComponent = splineTravellerComponent.SplineComponent.Nodes[currentCurveIndex + 1];
+            SetNextTarget();
         }
     }
 }
