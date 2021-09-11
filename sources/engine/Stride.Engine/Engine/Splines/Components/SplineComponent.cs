@@ -25,7 +25,7 @@ namespace Stride.Engine.Splines.Components
         public delegate void SplineUpdatedHandler();
         public event SplineUpdatedHandler OnSplineUpdated;
 
-        [Display(100, "Amount")]
+        [Display(100, "Nodes")]
         public List<SplineNodeComponent> Nodes
         {
             get
@@ -43,11 +43,25 @@ namespace Stride.Engine.Splines.Components
             }
         }
 
-        [Display(80, "Debug settings", "Settings")]
+        [Display(80, "Debug settings")]
         public SplineDebugInfo DebugInfo;
 
-        [Display(70, "Dirty", "Settings")]
+        [Display(70, "Dirty")]
         public bool Dirty { get; set; }
+
+        private bool loop;
+        [Display(80, "Loop")]
+        public bool Loop {
+            get
+            {
+                return loop;
+            }
+            set
+            {
+                loop = value;
+                UpdateSpline();
+            }
+        }
 
         public SplineComponent()
         {
@@ -156,8 +170,13 @@ namespace Stride.Engine.Splines.Components
                     if (curNode == null)
                         break;
 
-                    if (i < totalNodesCount - 1)
+                    if (i < totalNodesCount - 1) {
                         curNode?.UpdateBezierCurve(Nodes[i + 1]);
+                    }
+                    else if(i == totalNodesCount - 1 && Loop)
+                    {
+                        curNode?.UpdateBezierCurve(Nodes[0]);
+                    }
                 }
             }
 

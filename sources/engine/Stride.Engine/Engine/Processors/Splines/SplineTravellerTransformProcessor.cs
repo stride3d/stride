@@ -92,7 +92,7 @@ namespace Stride.Engine.Processors
 
                 var movePos = oriPos + velocity;
 
-                entity.Transform.Position += movePos;
+                entity.Transform.Position += velocity;
 
                 if (Vector3.Distance(movePos, currentTargetPos) < 0.2)
                 {

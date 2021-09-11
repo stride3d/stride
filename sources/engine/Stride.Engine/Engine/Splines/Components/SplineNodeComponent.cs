@@ -101,7 +101,7 @@ namespace Stride.Engine.Splines.Components
 
         public void UpdateBezierCurve(SplineNodeComponent nextNode)
         {
-            if (nextNode != null)
+            if (nextNode != null && nextNode.Entity != null)
             {
                 Vector3 scale;
                 Quaternion rotation;

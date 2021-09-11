@@ -109,7 +109,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 {
                     var curNode = Component.Nodes[i];
 
-
                     if (curNode == null)
                     {
                         break;
@@ -136,36 +135,37 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                         //UpdateBoundingBox(curNode);
                     }
 
-                    //Draw all, but last node
-                    if (i < totalNodesCount - 1)
+                    if (i == totalNodesCount - 1 && !Component.Loop) //Dont debugdraw when it is the last node and Loop is disabled
                     {
-                        if (Component.DebugInfo.Segments || Component.DebugInfo.Points)
+                        break;
+                    }
+
+                    if (Component.DebugInfo.Segments || Component.DebugInfo.Points)
+                    {
+                        var curve = curNode.GetBezierCurve();
+                        if (curve == null) return;
+
+                        var splinePointsInfo = curve.GetBezierPoints();
+
+                        if (splinePointsInfo[0] == null)
+                            break;
+
+                        var splinePoints = new Vector3[splinePointsInfo.Length];
+                        for (int j = 0; j < splinePointsInfo.Length; j++)
                         {
-                            var curve = curNode.GetBezierCurve();
-                            if (curve == null) return;
-
-                            var splinePointsInfo = curve.GetBezierPoints();
-
-                            if (splinePointsInfo[0] == null)
+                            if (splinePointsInfo[j] == null)
                                 break;
+                            splinePoints[j] = splinePointsInfo[j].Position;
+                        }
 
-                            var splinePoints = new Vector3[splinePointsInfo.Length];
-                            for (int j = 0; j < splinePointsInfo.Length; j++)
-                            {
-                                if (splinePointsInfo[j] == null) 
-                                    break;
-                                splinePoints[j] = splinePointsInfo[j].Position;
-                            }
+                        //if (Component.DebugInfo.Points)
+                        //{
+                        //    DrawSplinePoints(splinePoints);
+                        //}
 
-                            //if (Component.DebugInfo.Points)
-                            //{
-                            //    DrawSplinePoints(splinePoints);
-                            //}
-
-                            if (Component.DebugInfo.Segments)
-                            {
-                                DrawSplineSegments(splinePoints);
-                            }
+                        if (Component.DebugInfo.Segments)
+                        {
+                            DrawSplineSegments(splinePoints);
                         }
                     }
                 }
@@ -182,7 +182,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             {
                 localPoints[i] = mainGizmoEntity.Transform.WorldToLocal(splinePoints[i]);
             }
-        
+
             //TODO FIGURE OUT WHY LINE MESH doesnt render properly
 
             //var lineMesh = new LineMesh(GraphicsDevice);
@@ -203,7 +203,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     {
                         Model = new Model
                         {
-                                redMaterial, 
+                                redMaterial,
                                 new Mesh { Draw = lineMeshold.MeshDraw }
                         },
                         RenderGroup = RenderGroup,
