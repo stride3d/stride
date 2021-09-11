@@ -20,7 +20,7 @@ namespace Stride.Engine.Splines.Components
         private List<Entity> decorationInstances = new List<Entity>();
         private DecoratorDistributionSetting distribution;
 
-        [Display(50, "SplineComponent")]
+        [Display(10, "SplineComponent")]
         public SplineComponent SplineComponent
         {
             get { return splineComponent; }
@@ -32,15 +32,16 @@ namespace Stride.Engine.Splines.Components
                     splineComponent.OnSplineUpdated += UpdateDecorator;
                     UpdateDecorator();
                 }
-                else {
+                else
+                {
                     ClearDecorationInstance();
                 }
             }
         }
 
-         /// <summary>
-         /// A list of prefabs that the decorators uses to instantiate
-         /// </summary>
+        /// <summary>
+        /// A list of prefabs that the decorators uses to instantiate
+        /// </summary>
         [Display(60, "Decorations")]
         public List<Prefab> decorations = new List<Prefab>();
 
@@ -50,9 +51,10 @@ namespace Stride.Engine.Splines.Components
         [DataMember(70)]
         [Display("Distribution")]
         public DecoratorDistributionSetting Distribution
-        { 
+        {
             get { return distribution; }
-            set {
+            set
+            {
                 distribution = value;
                 UpdateDecorator();
             }
@@ -62,7 +64,7 @@ namespace Stride.Engine.Splines.Components
         {
             ClearDecorationInstance();
 
-            if (SplineComponent != null && SplineComponent.GetTotalSplineDistance() > 0 
+            if (SplineComponent != null && SplineComponent.GetTotalSplineDistance() > 0
                 && decorations.Count > 0 && Distribution is AmountDecorator AmountDecorator && AmountDecorator.Amount > 0)
             {
                 var totalSplineDistance = SplineComponent.GetTotalSplineDistance();
@@ -87,7 +89,7 @@ namespace Stride.Engine.Splines.Components
                 var random = new Random();
                 var totalIntervalDistance = 0.0f;
                 var iteration = 0;
-   
+
                 while (iteration < 1000) //Hardcoded 1000?
                 {
                     var nextInterval = random.NextDouble() * (IntervalDecorator.Interval.Y - IntervalDecorator.Interval.X) + IntervalDecorator.Interval.X;

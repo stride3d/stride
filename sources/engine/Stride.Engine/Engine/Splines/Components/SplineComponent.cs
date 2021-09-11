@@ -15,6 +15,9 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineComponent : EntityComponent
     {
+        private List<SplineNodeComponent> _splineNodes;
+        private Vector3 previousPosition;
+
         /// <summary>
         /// Event triggered when the spline has been update
         /// This happens when the entity is translated or rotated, or when a SplineNode is updated
@@ -22,7 +25,6 @@ namespace Stride.Engine.Splines.Components
         public delegate void SplineUpdatedHandler();
         public event SplineUpdatedHandler OnSplineUpdated;
 
-        private List<SplineNodeComponent> _splineNodes;
         [Display(100, "Amount")]
         public List<SplineNodeComponent> Nodes
         {
@@ -34,6 +36,10 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 _splineNodes = value;
+
+                DeregisterSplineNodeDirtyEvents();
+                UpdateSpline();
+                RegisterSplineNodeDirtyEvents();
             }
         }
 
@@ -43,12 +49,9 @@ namespace Stride.Engine.Splines.Components
         [Display(70, "Dirty", "Settings")]
         public bool Dirty { get; set; }
 
-        private int _previousNodeCount = 0;
-
         public SplineComponent()
         {
-            _previousNodeCount = 0;
-            Nodes = new List<SplineNodeComponent>();
+            Nodes ??= new List<SplineNodeComponent>();
         }
 
         internal void Initialize()
@@ -58,12 +61,10 @@ namespace Stride.Engine.Splines.Components
 
         internal void Update(TransformComponent transformComponent)
         {
-            int currentNodeCount = Nodes.Count;
-            if (_previousNodeCount != currentNodeCount)
+            if (previousPosition.X != Entity.Transform.Position.X || previousPosition.Y != Entity.Transform.Position.Y || previousPosition.Z != Entity.Transform.Position.Z)
             {
-                DeregisterSplineNodeDirtyEvents();
-                UpdateSpline();
-                RegisterSplineNodeDirtyEvents();
+                Dirty = true;
+                previousPosition = Entity.Transform.Position;
             }
             else
             {
@@ -72,14 +73,15 @@ namespace Stride.Engine.Splines.Components
                     UpdateSpline();
                 }
             }
-
-            _previousNodeCount = currentNodeCount;
         }
 
         public SplinePositionInfo GetPositionOnSpline(float percentage)
         {
             var splinePositionInfo = new SplinePositionInfo();
             var totalSplineDistance = GetTotalSplineDistance();
+            if (totalSplineDistance <= 0)
+                return splinePositionInfo;
+
             var requiredDistance = totalSplineDistance * (percentage / 100);
             var nextNodeDistance = 0.0f;
             var prevNodeDistance = 0.0f;
