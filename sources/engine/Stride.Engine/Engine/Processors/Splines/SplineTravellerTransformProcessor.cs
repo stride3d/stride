@@ -55,6 +55,16 @@ namespace Stride.Engine.Processors
         {
             // Unregister model view hierarchy update
             entity.Transform.PostOperations.Remove(data.TransformOperation);
+
+            splineTravellerComponent = null;
+            this.entity = null;
+            currentSplineNodeComponent = null;
+            targetSplineNodeComponent = null;
+            currentTargetPos = new Vector3(0);
+            currentCurveIndex = 0;
+            currentCurvePointIndex = 0;
+            velocity = new Vector3(0);
+            currentSplinePoints = null;
         }
 
         public class SplineTravellerTransformationInfo
@@ -74,16 +84,15 @@ namespace Stride.Engine.Processors
 
             if (splineTravellerComponent.IsMoving)
             {
-                float deltaTime = (float)context.Time.WarpElapsed.TotalSeconds;
                 var oriPos = entity.Transform.WorldMatrix.TranslationVector;
                 velocity = (currentTargetPos - oriPos);
                 velocity.Normalize();
                 velocity *= splineTravellerComponent.Speed;
-                velocity *= deltaTime;
+                velocity *= (float)context.Time.WarpElapsed.TotalSeconds;
 
                 var movePos = oriPos + velocity;
 
-                entity.Transform.Position = movePos;
+                entity.Transform.Position += movePos;
 
                 if (Vector3.Distance(movePos, currentTargetPos) < 0.2)
                 {
@@ -104,23 +113,15 @@ namespace Stride.Engine.Processors
                 targetSplineNodeComponent = splinePositionInfo.TargetSplineNode;
 
                 currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
-                SetNewTargetPosition(currentSplinePoints);
+                SetNewTargetPosition();
             }
-        }
-
-        private void SetNewTargetPosition(BezierCurve.BezierPoint[] splinePoints)
-        {
-            //Take next splinePoint
-            currentTargetPos = splinePoints[currentCurvePointIndex].Position;
         }
 
         private void SetNextTarget()
         {
-            var currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
-
             if (currentCurvePointIndex + 1 < currentSplinePoints.Length)// is there a next curve point?
             {
-                SetNewTargetPosition(currentSplinePoints);
+                SetNewTargetPosition();
                 currentCurvePointIndex++;
             }
             else
@@ -132,7 +133,7 @@ namespace Stride.Engine.Processors
                 }
                 else
                 {
-                    //In the end, its doesnt even matter
+                    //In the end, its doesn't even matter
                     splineTravellerComponent.ActivateOnSplineEndReached();
                 }
             }
@@ -154,9 +155,17 @@ namespace Stride.Engine.Processors
         {
             currentCurvePointIndex = 0;
             currentSplineNodeComponent = targetSplineNodeComponent;
+            currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
+
             currentCurveIndex++;
             targetSplineNodeComponent = splineTravellerComponent.SplineComponent.Nodes[currentCurveIndex + 1];
+
             SetNextTarget();
+        }
+
+        private void SetNewTargetPosition()
+        {
+            currentTargetPos = currentSplinePoints[currentCurvePointIndex].Position;
         }
     }
 }
