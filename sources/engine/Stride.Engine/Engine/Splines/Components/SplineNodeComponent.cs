@@ -22,20 +22,20 @@ namespace Stride.Engine.Splines.Components
     public sealed class SplineNodeComponent : EntityComponent
     {
         #region Segments
-        private int segments = 2;
+        private int _segments = 2;
         [Display(1, "Segments")]
         public int Segments
         {
-            get { return segments; }
+            get { return _segments; }
             set
             {
                 if (value < 2)
                 {
-                    segments = 2;
+                    _segments = 2;
                 }
                 else
                 {
-                    segments = value;
+                    _segments = value;
                 }
 
                 MakeDirty();
@@ -44,46 +44,47 @@ namespace Stride.Engine.Splines.Components
         #endregion
 
         #region Out
-        private Vector3 tangentOut { get; set; }
+        private Vector3 _tangentOut { get; set; }
         [Display(2, "Tangent outgoing")]
         public Vector3 TangentOut
         {
-            get { return tangentOut; }
+            get { return _tangentOut; }
             set
             {
-                tangentOut = value;
+                _tangentOut = value;
                 MakeDirty();
             }
         }
         #endregion
 
         #region In
-        private Vector3 tangentIn { get; set; }
-        [Display(3, "Tangent outgoing")]
+        private Vector3 _tangentIn { get; set; }
+        [Display(3, "Tangent incoming")]
         public Vector3 TangentIn
+
         {
-            get { return tangentIn; }
+            get { return _tangentIn; }
             set
             {
-                tangentIn = value;
+                _tangentIn = value;
                 MakeDirty();
             }
         }
         #endregion
 
-        private BezierCurve bezierCurve;
-        private Vector3 previousPosition;
+        private BezierCurve _bezierCurve;
+        private Vector3 _previousPosition;
 
         internal void Update(TransformComponent transformComponent)
         {
             CheckDirtyness();
 
-            previousPosition = Entity.Transform.Position;
+            _previousPosition = Entity.Transform.Position;
         }
 
         private void CheckDirtyness()
         {
-            if (previousPosition.X != Entity.Transform.Position.X || previousPosition.Y != Entity.Transform.Position.Y || previousPosition.Z != Entity.Transform.Position.Z)
+            if (_previousPosition.X != Entity.Transform.Position.X || _previousPosition.Y != Entity.Transform.Position.Y || _previousPosition.Z != Entity.Transform.Position.Z)
             {
                 MakeDirty();
             }
@@ -100,7 +101,7 @@ namespace Stride.Engine.Splines.Components
 
         public void UpdateBezierCurve(SplineNodeComponent nextNode)
         {
-            if (nextNode != null)
+            if (nextNode != null && nextNode.Entity != null)
             {
                 Vector3 scale;
                 Quaternion rotation;
@@ -112,18 +113,18 @@ namespace Stride.Engine.Splines.Components
                 Vector3 TangentOutWorld = entityWorldPos + TangentOut;
                 Vector3 TangentInWorld = nextWorldPos + nextNode.TangentIn;
 
-                bezierCurve = new BezierCurve(Segments, entityWorldPos, TangentOutWorld, nextWorldPos, TangentInWorld);
+                _bezierCurve = new BezierCurve(Segments, entityWorldPos, TangentOutWorld, nextWorldPos, TangentInWorld);
             }
         }
 
         public BezierCurve GetBezierCurve()
         {
-            return bezierCurve;
+            return _bezierCurve;
         }
 
         public BezierPoint[] GetBezierCurvePoints()
         {
-            return bezierCurve.GetBezierPoints();
+            return _bezierCurve.GetBezierPoints();
         }
     }
 }

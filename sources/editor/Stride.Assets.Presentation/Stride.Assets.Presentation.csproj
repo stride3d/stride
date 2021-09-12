@@ -113,8 +113,8 @@
     <None Include="Templates\Core\**" />
     <None Include="Templates\Assets\**" />
   </ItemGroup>
-    <ItemGroup>
-    <Resource Remove="Resources\Gizmos\SplineGizmo.png" />
+  <ItemGroup>
+    <None Remove="Resources\Gizmos\SplineGizmo.png" />
   </ItemGroup>
   
   <Import Project="$(StrideSdkTargets)" />
