@@ -77,7 +77,7 @@ namespace Stride.Engine.Splines
 
         public class BezierPoint
         {
-            public Vector3 WorldPosition;
+            public Vector3 Position;
             public Vector3 Rotation;
             public float PointDistance;
             public float Distance;
@@ -99,7 +99,7 @@ namespace Stride.Engine.Splines
             float t = 1.0f / (baseBezierPointCount - 1);
             for (var i = 0; i < baseBezierPointCount; i++)
             {
-                _baseBezierPoints[i] = new BezierPoint { WorldPosition = CalculateBezierPoint(t * i) };
+                _baseBezierPoints[i] = new BezierPoint { Position = CalculateBezierPoint(t * i) };
 
                 if (i == 0)
                 {
@@ -108,7 +108,7 @@ namespace Stride.Engine.Splines
                 }
                 else
                 {
-                    var distance = Vector3.Distance(_baseBezierPoints[i].WorldPosition, _baseBezierPoints[i - 1].WorldPosition);
+                    var distance = Vector3.Distance(_baseBezierPoints[i].Position, _baseBezierPoints[i - 1].Position);
                     //_baseBezierPoints[i].PointDistance = distance;
                     _baseBezierPoints[i].Distance = _baseBezierPoints[i - 1].Distance + distance;
                 }
@@ -122,7 +122,7 @@ namespace Stride.Engine.Splines
         public Vector3 GetPositionOnCurve(float percentage)
         {
             var distance = (Distance / 100) * Math.Clamp(percentage, 0, 100);
-            return GetBezierPointForDistance(distance).WorldPosition;
+            return GetBezierPointForDistance(distance).Position;
         }
 
         /// <summary>

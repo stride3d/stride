@@ -15,6 +15,10 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineTravellerComponent : EntityComponent
     {
+        public bool Dirty { get; set; }
+
+        private SplineComponent splineComponent;
+
         /// <summary>
         /// Event triggered when the last node of the spline has been reached
         /// </summary>
@@ -33,7 +37,21 @@ namespace Stride.Engine.Splines.Components
         //public SplineTravellerControl Control = new SplineTravellerControl();
 
         [Display(10, "SplineComponent")]
-        public SplineComponent SplineComponent { get; set; }
+        public SplineComponent SplineComponent
+        {
+            get { return splineComponent; }
+            set
+            {
+                splineComponent = value;
+
+                if (splineComponent == null)
+                {
+                    IsMoving = false;
+                }
+
+                Dirty = true;
+            }
+        }
 
         [Display(20, "Speed")]
         public float Speed { get; set; } = 0.1f;
@@ -47,10 +65,10 @@ namespace Stride.Engine.Splines.Components
         [DataMemberRange(0.0f, 100.0f, 0.1f, 1.0f, 4)]
         [Display(70, "Percentage")]
         public float Percentage { get; set; }
-       
+
         internal void Update(TransformComponent transformComponent)
         {
- 
+
         }
 
         public void ActivateSplineNodeReached(SplineNodeComponent splineNode)

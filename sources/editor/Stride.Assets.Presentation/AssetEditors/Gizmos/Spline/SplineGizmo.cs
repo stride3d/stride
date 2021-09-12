@@ -152,7 +152,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                         {
                             if (splinePointsInfo[j] == null)
                                 break;
-                            splinePoints[j] = splinePointsInfo[j].WorldPosition;
+                            splinePoints[j] = splinePointsInfo[j].Position;
                         }
 
                         if (Component.DebugInfo.Points)

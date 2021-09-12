@@ -73,9 +73,10 @@ namespace Stride.Engine.Processors
             if (splineTravellerComponent?.SplineComponent == null)
                 return;
 
-            if (splineTravellerComponent.SplineComponent.TotalSplineDistance > 0 && currentSplinePoints == null)
+            if (splineTravellerComponent.Dirty)//&& splineTravellerComponent.SplineComponent.TotalSplineDistance > 0
             {
                 SetInitialTargets();
+                splineTravellerComponent.Dirty = false;
             }
 
             if (splineTravellerComponent.IsMoving)
@@ -103,14 +104,20 @@ namespace Stride.Engine.Processors
             var splinePositionInfo = splineTravellerComponent.SplineComponent.GetPositionOnSpline(splineTravellerComponent.Percentage);
             if (entity != null)
             {
+                //worldposition updating goes wrong here? why?
                 entity.Transform.WorldMatrix.TranslationVector = splinePositionInfo.Position;
-                entity.Transform.UpdateLocalFromWorld();
+                entity.Transform.UpdateWorldMatrix();
+
+                //entity.Transform.WorldMatrix.TranslationVector = splinePositionInfo.Position;
+                //entity.Transform.UpdateLocalFromWorld();
+
+                //entity.Transform.Position = EntityTransformExtensions.WorldToLocal(splineTravellerComponent.SplineComponent.Entity.Transform, splinePositionInfo.Position);
 
                 currentSplineNodeComponent = splinePositionInfo.CurrentSplineNode;
                 targetSplineNodeComponent = splinePositionInfo.TargetSplineNode;
 
                 currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
-                targetCurvePointWorldPosition = currentSplinePoints[currentCurvePointIndex].WorldPosition;
+                targetCurvePointWorldPosition = currentSplinePoints[currentCurvePointIndex].Position;
                 targetCurveIndex = 1;
             }
         }
@@ -122,7 +129,7 @@ namespace Stride.Engine.Processors
             // is there a next curve point?
             if (currentCurvePointIndex + 1 < currentSplinePoints.Length) 
             {
-                targetCurvePointWorldPosition = currentSplinePoints[currentCurvePointIndex].WorldPosition;
+                targetCurvePointWorldPosition = currentSplinePoints[currentCurvePointIndex].Position;
                 currentCurvePointIndex++;
             }
             else
