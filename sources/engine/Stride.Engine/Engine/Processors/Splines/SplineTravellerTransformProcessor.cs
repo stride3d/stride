@@ -15,7 +15,7 @@ namespace Stride.Engine.Processors
 
         private SplineNodeComponent currentSplineNodeComponent { get; set; }
         private SplineNodeComponent targetSplineNodeComponent { get; set; }
-        private Vector3 targetWorldPosition { get; set; } = new Vector3(0);
+        private Vector3 targetCurvePointWorldPosition { get; set; } = new Vector3(0);
         private int targetCurveIndex = 0;
         private int currentCurvePointIndex = 0;
         private BezierCurve.BezierPoint[] currentSplinePoints = null;
@@ -58,7 +58,7 @@ namespace Stride.Engine.Processors
             this.entity = null;
             currentSplineNodeComponent = null;
             targetSplineNodeComponent = null;
-            targetWorldPosition = new Vector3(0);
+            targetCurvePointWorldPosition = new Vector3(0);
             targetCurveIndex = 0;
             currentCurvePointIndex = 0;
             currentSplinePoints = null;
@@ -82,14 +82,14 @@ namespace Stride.Engine.Processors
             {
                 var entityWorldPosition = entity.Transform.WorldMatrix.TranslationVector;
 
-                var velocity = (targetWorldPosition - entityWorldPosition);
+                var velocity = (targetCurvePointWorldPosition - entityWorldPosition);
                 velocity.Normalize();
                 velocity *= splineTravellerComponent.Speed * (float)time.Elapsed.TotalSeconds;
 
                 entity.Transform.Position += velocity;
                 entity.Transform.UpdateWorldMatrix();
 
-                var distance = Vector3.Distance(entity.Transform.WorldMatrix.TranslationVector, targetWorldPosition);
+                var distance = Vector3.Distance(entity.Transform.WorldMatrix.TranslationVector, targetCurvePointWorldPosition);
 
                 if (distance < 0.25)
                 {
@@ -104,13 +104,13 @@ namespace Stride.Engine.Processors
             if (entity != null)
             {
                 entity.Transform.WorldMatrix.TranslationVector = splinePositionInfo.Position;
-                entity.Transform.UpdateWorldMatrix();
+                entity.Transform.UpdateLocalFromWorld();
 
                 currentSplineNodeComponent = splinePositionInfo.CurrentSplineNode;
                 targetSplineNodeComponent = splinePositionInfo.TargetSplineNode;
 
                 currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
-                targetWorldPosition = currentSplinePoints[currentCurvePointIndex].Position;
+                targetCurvePointWorldPosition = currentSplinePoints[currentCurvePointIndex].WorldPosition;
                 targetCurveIndex = 1;
             }
         }
@@ -122,7 +122,7 @@ namespace Stride.Engine.Processors
             // is there a next curve point?
             if (currentCurvePointIndex + 1 < currentSplinePoints.Length) 
             {
-                targetWorldPosition = currentSplinePoints[currentCurvePointIndex].Position;
+                targetCurvePointWorldPosition = currentSplinePoints[currentCurvePointIndex].WorldPosition;
                 currentCurvePointIndex++;
             }
             else

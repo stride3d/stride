@@ -64,7 +64,7 @@ namespace Stride.Engine.Splines.Components
         {
             ClearDecorationInstance();
 
-            if (SplineComponent != null && SplineComponent.GetTotalSplineDistance() > 0
+            if (SplineComponent != null && SplineComponent.TotalSplineDistance > 0
                 && decorations.Count > 0 && Distribution is AmountDecorator AmountDecorator && AmountDecorator.Amount > 0)
             {
                 var totalSplineDistance = SplineComponent.GetTotalSplineDistance();
@@ -82,10 +82,10 @@ namespace Stride.Engine.Splines.Components
         {
             ClearDecorationInstance();
 
-            if (SplineComponent != null && SplineComponent.GetTotalSplineDistance() > 0
+            if (SplineComponent != null && SplineComponent.TotalSplineDistance > 0
                 && decorations.Count > 0 && Distribution is IntervalDecorator IntervalDecorator)
             {
-                var totalSplineDistance = SplineComponent.GetTotalSplineDistance();
+                var totalSplineDistance = SplineComponent.TotalSplineDistance;
                 var random = new Random();
                 var totalIntervalDistance = 0.0f;
                 var iteration = 0;
