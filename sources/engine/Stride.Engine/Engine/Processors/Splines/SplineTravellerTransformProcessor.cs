@@ -94,7 +94,7 @@ namespace Stride.Engine.Processors
 
                 entity.Transform.Position += velocity;
 
-                if (Vector3.Distance(movePos, currentTargetPos) < 0.2)
+                if (Vector3.Distance(movePos, currentTargetPos) < 0.02)
                 {
                     SetNextTarget();
                 }
@@ -119,6 +119,7 @@ namespace Stride.Engine.Processors
 
         private void SetNextTarget()
         {
+            var nodesCount = splineTravellerComponent.SplineComponent.Nodes.Count;
             if (currentCurvePointIndex + 1 < currentSplinePoints.Length)// is there a next curve point?
             {
                 SetNewTargetPosition();
@@ -127,9 +128,9 @@ namespace Stride.Engine.Processors
             else
             {
                 //is there a next Spline node?
-                if (currentCurveIndex + 2 < splineTravellerComponent.SplineComponent.Nodes.Count)
+                if (currentCurveIndex + 2 < nodesCount || splineTravellerComponent.SplineComponent.Loop)
                 {
-                    GoToNextSplineNode();
+                    GoToNextSplineNode(nodesCount);
                 }
                 else
                 {
@@ -151,14 +152,23 @@ namespace Stride.Engine.Processors
             //}
         }
 
-        private void GoToNextSplineNode()
+        private void GoToNextSplineNode(int nodesCount)
         {
             currentCurvePointIndex = 0;
             currentSplineNodeComponent = targetSplineNodeComponent;
             currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
 
             currentCurveIndex++;
-            targetSplineNodeComponent = splineTravellerComponent.SplineComponent.Nodes[currentCurveIndex + 1];
+            if(currentCurveIndex < nodesCount - 1)
+            {
+                targetSplineNodeComponent = splineTravellerComponent.SplineComponent.Nodes[currentCurveIndex + 1];
+
+            }
+            else if (currentCurveIndex == nodesCount - 1 && splineTravellerComponent.SplineComponent.Loop)
+            {
+                targetSplineNodeComponent = splineTravellerComponent.SplineComponent.Nodes[0];
+
+            }
 
             SetNextTarget();
         }
