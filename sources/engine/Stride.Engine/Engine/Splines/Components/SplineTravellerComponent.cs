@@ -1,9 +1,7 @@
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
-using Stride.Core.Mathematics;
-using Stride.Core.Annotations;
-using System;
 //using Stride.Editor.EditorGame.Game;
 
 namespace Stride.Engine.Splines.Components
@@ -52,10 +50,7 @@ namespace Stride.Engine.Splines.Components
        
         internal void Update(TransformComponent transformComponent)
         {
-            if (SplineComponent != null && IsMoving)
-            {
-                
-            }
+ 
         }
 
         public void ActivateSplineNodeReached(SplineNodeComponent splineNode)

@@ -3,10 +3,7 @@
 using Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Engine.Splines;
 using Stride.Engine.Splines.Components;
-using Stride.Extensions;
-using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
@@ -158,10 +155,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                             splinePoints[j] = splinePointsInfo[j].Position;
                         }
 
-                        //if (Component.DebugInfo.Points)
-                        //{
-                        //    DrawSplinePoints(splinePoints);
-                        //}
+                        if (Component.DebugInfo.Points)
+                        {
+                            DrawSplinePoints(splinePoints);
+                        }
 
                         if (Component.DebugInfo.Segments)
                         {

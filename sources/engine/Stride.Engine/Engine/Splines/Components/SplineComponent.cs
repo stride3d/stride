@@ -51,7 +51,8 @@ namespace Stride.Engine.Splines.Components
 
         private bool loop;
         [Display(80, "Loop")]
-        public bool Loop {
+        public bool Loop
+        {
             get
             {
                 return loop;
@@ -62,6 +63,8 @@ namespace Stride.Engine.Splines.Components
                 UpdateSpline();
             }
         }
+
+        public float TotalSplineDistance { get; internal set; }
 
         public SplineComponent()
         {
@@ -80,12 +83,10 @@ namespace Stride.Engine.Splines.Components
                 Dirty = true;
                 previousPosition = Entity.Transform.Position;
             }
-            else
+
+            if (Dirty)
             {
-                if (Dirty)
-                {
-                    UpdateSpline();
-                }
+                UpdateSpline();
             }
         }
 
@@ -170,15 +171,18 @@ namespace Stride.Engine.Splines.Components
                     if (curNode == null)
                         break;
 
-                    if (i < totalNodesCount - 1) {
+                    if (i < totalNodesCount - 1)
+                    {
                         curNode?.UpdateBezierCurve(Nodes[i + 1]);
                     }
-                    else if(i == totalNodesCount - 1 && Loop)
+                    else if (i == totalNodesCount - 1 && Loop)
                     {
                         curNode?.UpdateBezierCurve(Nodes[0]);
                     }
                 }
             }
+
+            TotalSplineDistance = GetTotalSplineDistance();
 
             OnSplineUpdated?.Invoke();
         }

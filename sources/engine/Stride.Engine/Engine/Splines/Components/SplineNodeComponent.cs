@@ -59,7 +59,7 @@ namespace Stride.Engine.Splines.Components
 
         #region In
         private Vector3 _tangentIn { get; set; }
-        [Display(3, "Tangent outgoing")]
+        [Display(3, "Tangent incoming")]
         public Vector3 TangentIn
 
         {
