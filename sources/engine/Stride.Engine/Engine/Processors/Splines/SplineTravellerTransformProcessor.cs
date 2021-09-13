@@ -68,6 +68,35 @@ namespace Stride.Engine.Processors
         {
             public SplineTravellerViewHierarchyTransformOperation TransformOperation;
         }
+
+        private void SetInitialTargets()
+        {
+            var splinePositionInfo = splineTravellerComponent.SplineComponent.GetPositionOnSpline(splineTravellerComponent.Percentage);
+            if (entity != null)
+            {
+                var firstNode = splineTravellerComponent.SplineComponent.Nodes[0];
+                entity.Transform.Position = EntityTransformExtensions.WorldToLocal(splineTravellerComponent.SplineComponent.Entity.Transform, splinePositionInfo.Position);
+                entity.Transform.Position += splineTravellerComponent.SplineComponent.Entity.Transform.Position;
+                entity.Transform.UpdateLocalMatrix();
+
+                currentSplineNodeComponent = splinePositionInfo.CurrentSplineNode;
+                targetSplineNodeComponent = splinePositionInfo.TargetSplineNode;
+
+                currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
+
+                if (splineTravellerComponent.SplineComponent.Nodes.Count == splinePositionInfo.CurrentSplineNodeIndex + 1)
+                {
+                    targetCurveIndex = splinePositionInfo.CurrentSplineNodeIndex + 1;
+                }
+                else
+                {
+                    targetCurveIndex = 0;
+                }
+
+                targetCurvePointWorldPosition = currentSplinePoints[currentCurvePointIndex].Position;
+            }
+        }
+
         public override void Update(GameTime time)
         {
             if (splineTravellerComponent?.SplineComponent == null)
@@ -99,35 +128,12 @@ namespace Stride.Engine.Processors
             }
         }
 
-        private void SetInitialTargets()
-        {
-            var splinePositionInfo = splineTravellerComponent.SplineComponent.GetPositionOnSpline(splineTravellerComponent.Percentage);
-            if (entity != null)
-            {
-                //worldposition updating goes wrong here? why?
-                entity.Transform.WorldMatrix.TranslationVector = splinePositionInfo.Position;
-                entity.Transform.UpdateWorldMatrix();
-
-                //entity.Transform.WorldMatrix.TranslationVector = splinePositionInfo.Position;
-                //entity.Transform.UpdateLocalFromWorld();
-
-                //entity.Transform.Position = EntityTransformExtensions.WorldToLocal(splineTravellerComponent.SplineComponent.Entity.Transform, splinePositionInfo.Position);
-
-                currentSplineNodeComponent = splinePositionInfo.CurrentSplineNode;
-                targetSplineNodeComponent = splinePositionInfo.TargetSplineNode;
-
-                currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
-                targetCurvePointWorldPosition = currentSplinePoints[currentCurvePointIndex].Position;
-                targetCurveIndex = 1;
-            }
-        }
-
         private void SetNextTarget()
         {
             var nodesCount = splineTravellerComponent.SplineComponent.Nodes.Count;
 
             // is there a next curve point?
-            if (currentCurvePointIndex + 1 < currentSplinePoints.Length) 
+            if (currentCurvePointIndex + 1 < currentSplinePoints.Length)
             {
                 targetCurvePointWorldPosition = currentSplinePoints[currentCurvePointIndex].Position;
                 currentCurvePointIndex++;
@@ -155,7 +161,7 @@ namespace Stride.Engine.Processors
             currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
 
             targetCurveIndex++;
-            if(targetCurveIndex < nodesCount)
+            if (targetCurveIndex < nodesCount)
             {
                 targetSplineNodeComponent = splineTravellerComponent.SplineComponent.Nodes[targetCurveIndex];
             }

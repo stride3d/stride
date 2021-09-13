@@ -2,7 +2,6 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
-//using Stride.Editor.EditorGame.Game;
 
 namespace Stride.Engine.Splines.Components
 {
@@ -18,6 +17,7 @@ namespace Stride.Engine.Splines.Components
         public bool Dirty { get; set; }
 
         private SplineComponent splineComponent;
+        private float percentage;
 
         /// <summary>
         /// Event triggered when the last node of the spline has been reached
@@ -25,10 +25,10 @@ namespace Stride.Engine.Splines.Components
         public delegate void SplineTravellerEndReachedHandler();
         public event SplineTravellerEndReachedHandler OnSplineEndReached;
 
-        ///// <summary>
-        ///// Event triggered when a spline node has been reached. Does not get triggered when the last node of the spline has been reached.
-        ///// </summary>
-        ///// <param name="splineNode"></param>
+        /// <summary>
+        /// Event triggered when a spline node has been reached. Does not get triggered when the last node of the spline has been reached.
+        /// </summary>
+        /// <param name="splineNode"></param>
         public delegate void SplineTravellerNodeReachedHandler(SplineNodeComponent splineNode);
         public event SplineTravellerNodeReachedHandler OnSplineNodeReached;
 
@@ -59,12 +59,22 @@ namespace Stride.Engine.Splines.Components
         [Display(40, "Moving")]
         public bool IsMoving { get; set; }
 
-        [Display(50, "InReverse")]
+        [Display(50, "Reverse")]
         public bool IsReverseTravelling { get; set; }
 
         [DataMemberRange(0.0f, 100.0f, 0.1f, 1.0f, 4)]
         [Display(70, "Percentage")]
-        public float Percentage { get; set; }
+        public float Percentage
+        {
+            get { return percentage; }
+            set
+            {
+                percentage = value;
+
+                IsMoving = false;
+                Dirty = true;
+            }
+        }
 
         internal void Update(TransformComponent transformComponent)
         {

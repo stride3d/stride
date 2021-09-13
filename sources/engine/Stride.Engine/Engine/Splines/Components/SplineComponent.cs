@@ -3,6 +3,8 @@ using Stride.Core;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Core.Mathematics;
+using System.Diagnostics;
+using Stride.Engine;
 
 namespace Stride.Engine.Splines.Components
 {
@@ -101,15 +103,19 @@ namespace Stride.Engine.Splines.Components
             var nextNodeDistance = 0.0f;
             var prevNodeDistance = 0.0f;
 
-            for (int i = 0; i < _splineNodes.Count - 1; i++)
+            for (int i = 0; i < _splineNodes.Count; i++)
             {
                 var node = _splineNodes[i];
+                splinePositionInfo.CurrentSplineNodeIndex = i;
                 splinePositionInfo.CurrentSplineNode = node;
+
                 var curve = node.GetBezierCurve();
                 nextNodeDistance += curve.Distance;
+
                 if (requiredDistance < nextNodeDistance)
                 {
-                    splinePositionInfo.TargetSplineNode = _splineNodes[i + 1];
+                    var targetIndex = (i == _splineNodes.Count - 1) ? 0 : i;
+                    splinePositionInfo.TargetSplineNode = _splineNodes[targetIndex];
 
                     var percentageInCurve = ((requiredDistance - prevNodeDistance) / (nextNodeDistance - prevNodeDistance)) * 100;
                     //inverse lerp(betweenValue - minHeight) / (maxHeight - minHeight);
@@ -131,6 +137,7 @@ namespace Stride.Engine.Splines.Components
             public SplineNodeComponent CurrentSplineNode { get; set; }
             public SplineNodeComponent TargetSplineNode { get; set; }
             public Vector3 Position { get; set; }
+            public int CurrentSplineNodeIndex { get; internal set; }
         }
 
         private void DeregisterSplineNodeDirtyEvents()
@@ -195,15 +202,18 @@ namespace Stride.Engine.Splines.Components
         public float GetTotalSplineDistance()
         {
             float distance = 0;
-            foreach (var node in Nodes)
+            for (int i = 0; i < Nodes.Count; i++)
             {
-                if (node != null)
+                var curve = Nodes[i]?.GetBezierCurve();
+                if (curve != null)
                 {
-                    var curve = node.GetBezierCurve();
-                    if (curve != null)
+                    if (Loop || (!Loop && i < Nodes.Count - 1))
+                    {
                         distance += curve.Distance;
+                    }
                 }
             }
+
             return distance;
         }
 
