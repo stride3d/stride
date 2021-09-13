@@ -92,7 +92,7 @@ namespace Stride.Engine.Processors
                 // Calculate inverse world and bounding box
                 instancing.Update();
 
-                if (modelComponent != null && modelComponent.Model != null && instancing.InstanceCount > 0)
+                if (modelComponent?.Model != null && instancing.InstanceCount > 0)
                 {
                     // Bounding box
                     var meshCount = modelComponent.MeshInfos.Count;
