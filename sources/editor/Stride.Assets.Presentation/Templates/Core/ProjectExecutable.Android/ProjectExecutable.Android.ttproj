@@ -5,3 +5,4 @@ Files:
   - {Source: Properties\AssemblyInfo.cs.t4, Target: Properties\AssemblyInfo.cs, IsTemplate: true}
   - {Source: Properties\AndroidManifest.xml.t4, Target: Properties\AndroidManifest.xml, IsTemplate: true}
   - {Source: Resources\drawable\GameIcon120.png, Target: Resources\drawable\Icon.png }
+  - {Source: Resources\Resource.Designer.cs.t4, Target: Resources\Resource.Designer.cs, IsTemplate: true }
