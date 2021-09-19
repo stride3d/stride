@@ -2,6 +2,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
+using Stride.Graphics;
 using static Stride.Engine.Splines.BezierCurve;
 
 namespace Stride.Engine.Splines.Components
@@ -74,6 +75,8 @@ namespace Stride.Engine.Splines.Components
 
         private BezierCurve _bezierCurve;
         private Vector3 _previousPosition;
+        public BoundingBox BoundingBox;
+
 
         internal void Update(TransformComponent transformComponent)
         {
@@ -114,6 +117,16 @@ namespace Stride.Engine.Splines.Components
                 Vector3 TangentInWorld = nextWorldPos + nextNode.TangentIn;
 
                 _bezierCurve = new BezierCurve(Segments, entityWorldPos, TangentOutWorld, nextWorldPos, TangentInWorld);
+
+                var curvePoints = _bezierCurve.GetBezierPoints();
+                var curvePointsPositions = new Vector3[curvePoints.Length];
+                for (int j = 0; j < curvePoints.Length; j++)
+                {
+                    if (curvePoints[j] == null)
+                        break;
+                    curvePointsPositions[j] = curvePoints[j].Position;
+                }
+                BoundingBox.FromPoints(curvePointsPositions, out BoundingBox);                
             }
         }
 

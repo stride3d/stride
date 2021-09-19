@@ -1,9 +1,15 @@
 // Copyright (c) Stride contributors (https://Stride.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using Stride.Engine.Splines;
 using Stride.Engine.Splines.Components;
+using Stride.Games;
+using Stride.Graphics;
 using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
@@ -25,6 +31,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         private float updateFrequency = 1.2f;
         private float updateTimer = 0.0f;
+        private bool boundingIter = false;
 
         private Material whiteMaterial;
         private Material redMaterial;
@@ -127,17 +134,12 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                         DrawTangentInwards(curNode);
                     }
 
-                    if (Component.DebugInfo.BoundingBox)
-                    {
-                        //UpdateBoundingBox(curNode);
-                    }
-
                     if (i == totalNodesCount - 1 && !Component.Loop) //Dont debugdraw when it is the last node and Loop is disabled
                     {
                         break;
                     }
 
-                    if (Component.DebugInfo.Segments || Component.DebugInfo.Points)
+                    if (Component.DebugInfo.Segments || Component.DebugInfo.Points || Component.DebugInfo.BoundingBox)
                     {
                         var curve = curNode.GetBezierCurve();
                         if (curve == null) return;
@@ -155,6 +157,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                             splinePoints[j] = splinePointsInfo[j].Position;
                         }
 
+                        if (Component.DebugInfo.BoundingBox)
+                        {
+                            UpdateBoundingBox(curNode);
+                        }
+
                         if (Component.DebugInfo.Points)
                         {
                             DrawSplinePoints(splinePoints);
@@ -162,7 +169,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
                         if (Component.DebugInfo.Segments)
                         {
-                            DrawSplineSegments(splinePoints);
+                            DrawSplineSegments(splinePoints.ToList());
                         }
                     }
                 }
@@ -172,44 +179,34 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
         }
 
-        private void DrawSplineSegments(Vector3[] splinePoints)
+        private void UpdateBoundingBox(SplineNodeComponent curNode)
         {
-            var localPoints = new Vector3[splinePoints.Length];
-            for (int i = 0; i < splinePoints.Length; i++)
+            var boundingBoxMesh = new BoundingBoxMesh(GraphicsDevice);
+            boundingBoxMesh.Build(curNode.BoundingBox);
+            boundingIter = !boundingIter;
+            var boundingBox = new Entity()
             {
-                localPoints[i] = mainGizmoEntity.Transform.WorldToLocal(splinePoints[i]);
-            }
-
-            //TODO FIGURE OUT WHY LINE MESH doesnt render properly
-
-            //var lineMesh = new LineMesh(GraphicsDevice);
-            //lineMesh.Build(localPoints);
-
-            //var debugLine = new Entity() { new ModelComponent { Model = new Model { greenMaterial, new Mesh { Draw = lineMesh.MeshDraw } }, RenderGroup = RenderGroup } };
-            //gizmoBeziers.AddChild(debugLine);
-            //debugLine.Transform.Position += localPoints[0];
-
-            //Temp per 2 points mesh render. 
-            for (int i = 0; i < localPoints.Length - 1; i++)
-            {
-                var lineMeshold = new LineMesh(GraphicsDevice);
-                lineMeshold.Build(new Vector3[2] { localPoints[i], localPoints[i + 1] - localPoints[i] });
-                var segment = new Entity()
+                new ModelComponent
                 {
-                    new ModelComponent
+                    Model = new Model
                     {
-                        Model = new Model
-                        {
-                                redMaterial,
-                                new Mesh { Draw = lineMeshold.MeshDraw }
-                        },
-                        RenderGroup = RenderGroup,
-                    }
-                };
+                        GizmoUniformColorMaterial.Create(GraphicsDevice, boundingIter?  Color.OrangeRed : Color.Green),
+                        new Mesh { Draw = boundingBoxMesh.MeshDraw }
+                    },
+                    RenderGroup = RenderGroup
+                }
+            };
 
-                gizmoBeziers.AddChild(segment);
-                segment.Transform.Position += localPoints[i];
-            }
+            gizmoBoundingBox.AddChild(boundingBox);
+            boundingBox.Transform.Position -= mainGizmoEntity.Transform.Position - boundingBox.Transform.Position;
+        }
+
+        private void DrawSplineSegments(List<Vector3> splinePoints)
+        {
+            var splineMeshData = new SplineMeshData(splinePoints, GraphicsDevice);       
+            var debugLine = new Entity() { new ModelComponent { Model = new Model { greenMaterial, new Mesh { Draw = splineMeshData.Build() } }, RenderGroup = RenderGroup } };
+            gizmoBeziers.AddChild(debugLine);
+            debugLine.Transform.Position -= mainGizmoEntity.Transform.Position - debugLine.Transform.Position; 
         }
 
         private void DrawSplinePoints(Vector3[] splinePoints)
@@ -236,7 +233,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 point.Transform.Position = mainGizmoEntity.Transform.WorldToLocal(splinePoints[i]);
             }
         }
-
 
         private void DrawNodes(SplineNodeComponent splineNodeComponent)
         {

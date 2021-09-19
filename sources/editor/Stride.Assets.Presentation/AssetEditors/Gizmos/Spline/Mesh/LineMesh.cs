@@ -9,7 +9,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh
     {
         public MeshDraw MeshDraw;
 
-        private Buffer vertexBuffer;
+        private Stride.Graphics.Buffer vertexBuffer;
 
         private readonly GraphicsDevice graphicsDevice;
 
@@ -18,7 +18,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh
             this.graphicsDevice = graphicsDevice;
         }
 
-        public void Build(Vector3[] positions)
+        public void Build(Vector3[] positions, PrimitiveType pimType)
         {
             var vertices = new VertexPositionNormalTexture[positions.Length];
 
@@ -28,10 +28,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh
             }
 
             vertexBuffer = Buffer.Vertex.New(graphicsDevice, vertices);
+            
             MeshDraw = new MeshDraw
             {
-                PrimitiveType = PrimitiveType.LineStrip,
-                DrawCount = 10, //? 
+                DrawCount=10,
+                PrimitiveType = pimType,
                 VertexBuffers = new[] { new VertexBufferBinding(vertexBuffer, VertexPositionNormalTexture.Layout, vertexBuffer.ElementCount) },
             };
         }
