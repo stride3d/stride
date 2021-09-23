@@ -13,8 +13,8 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResource
     {
-        private ID3D11ShaderResourceView shaderResourceView;
-        private ID3D11UnorderedAccessView unorderedAccessView;
+        public ID3D11ShaderResourceView shaderResourceView;
+        public ID3D11UnorderedAccessView unorderedAccessView;
         internal bool DiscardNextMap; // Used to internally force a WriteDiscard (to force a rename) with the GraphicsResourceAllocator
 
         protected bool IsDebugMode

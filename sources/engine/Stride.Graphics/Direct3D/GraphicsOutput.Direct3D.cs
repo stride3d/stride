@@ -44,8 +44,8 @@ namespace Stride.Graphics
     public partial class GraphicsOutput
     {
         private readonly int outputIndex;
-        private readonly IDXGIOutput1 output;
-        private readonly OutputDesc outputDescription;
+        public readonly IDXGIOutput1 output;
+        protected readonly OutputDesc outputDescription;
 
         /// <summary>
         /// Initializes a new instance of <see cref="GraphicsOutput" />.
@@ -104,7 +104,8 @@ namespace Stride.Graphics
                     
 
                     //TODO : Unsafe adapter pointer getter + unsure if cast is okay, needs review
-                    D3D11Overloads.CreateDevice(D3D11.GetApi(),(IDXGIAdapter*)adapter.AdapterPtr , D3DDriverType.D3DDriverTypeUnknown, 0, 0, features, (uint)targetProfiles.Length, D3D11.SdkVersion, &pDv,fls,&pCtx);
+                    fixed(IDXGIAdapter1* adp = &adapter.adapter)
+                    D3D11Overloads.CreateDevice(D3D11.GetApi(),(IDXGIAdapter*)&adp , D3DDriverType.D3DDriverTypeUnknown, 0, 0, features, (uint)targetProfiles.Length, D3D11.SdkVersion, &pDv,fls,&pCtx);
                 }
                 
             }

@@ -194,30 +194,34 @@ namespace Stride.Graphics
         {
             if (ParentTexture != null)
             {
-                NativeDeviceChild = ParentTexture.NativeDeviceChild;
+                nativeDeviceChild = ParentTexture.NativeDeviceChild;
             }
 
-            if (NativeDeviceChild == null)
+            //if (NativeDeviceChild)
+            //{
+            unsafe
             {
                 switch (Dimension)
                 {
                     case TextureDimension.Texture1D:
-                        NativeDeviceChild = new Texture1D(GraphicsDevice.NativeDevice, ConvertToNativeDescription1D(), ConvertDataBoxes(dataBoxes));
-                        break;
+                        NativeDeviceChild = new ID3D11Texture1D(GraphicsDevice.NativeDevice, ConvertToNativeDescription1D(), ConvertDataBoxes(dataBoxes));
+                        GraphicsDevice.NativeDevice.CreateTexture1D(ConvertToNativeDescription1D(), ConvertDataBoxes(dataBoxes));
+                    break;
                     case TextureDimension.Texture2D:
                     case TextureDimension.TextureCube:
-                        NativeDeviceChild = new Texture2D(GraphicsDevice.NativeDevice, ConvertToNativeDescription2D(), ConvertDataBoxes(dataBoxes));
+                        NativeDeviceChild = new ID3D11Texture2D(GraphicsDevice.NativeDevice, ConvertToNativeDescription2D(), ConvertDataBoxes(dataBoxes));
                         break;
                     case TextureDimension.Texture3D:
-                        NativeDeviceChild = new Texture3D(GraphicsDevice.NativeDevice, ConvertToNativeDescription3D(), ConvertDataBoxes(dataBoxes));
+                        NativeDeviceChild = new ID3D11Texture3D(GraphicsDevice.NativeDevice, ConvertToNativeDescription3D(), ConvertDataBoxes(dataBoxes));
                         break;
                 }
-
-                GraphicsDevice.RegisterTextureMemoryUsage(SizeInBytes);
             }
+            
 
-            if (NativeShaderResourceView == null)
-                NativeShaderResourceView = GetShaderResourceView(ViewType, ArraySlice, MipLevel);
+            GraphicsDevice.RegisterTextureMemoryUsage(SizeInBytes);
+            //}
+
+            NativeShaderResourceView = GetShaderResourceView(ViewType, ArraySlice, MipLevel);
             NativeUnorderedAccessView = GetUnorderedAccessView(ViewType, ArraySlice, MipLevel);
             NativeID3D11RenderTargetView = GetID3D11RenderTargetView(ViewType, ArraySlice, MipLevel);
             NativeDepthStencilView = GetDepthStencilView(out HasStencil);
@@ -600,16 +604,16 @@ namespace Stride.Graphics
             return result;
         }
 
-        internal static unsafe SharpDX.DataBox[] ConvertDataBoxes(DataBox[] dataBoxes)
+        internal static unsafe SubresourceData[] ConvertDataBoxes(DataBox[] dataBoxes)
         {
             if (dataBoxes == null || dataBoxes.Length == 0)
                 return null;
 
-            var sharpDXDataBoxes = new SharpDX.DataBox[dataBoxes.Length];
-            fixed (void* pDataBoxes = sharpDXDataBoxes)
+            var silkDataBoxes = new SubresourceData[dataBoxes.Length];
+            fixed (void* pDataBoxes = silkDataBoxes)
                 Utilities.Write((IntPtr)pDataBoxes, dataBoxes, 0, dataBoxes.Length);
 
-            return sharpDXDataBoxes;
+            return silkDataBoxes;
         }
 
         private bool IsFlipped()

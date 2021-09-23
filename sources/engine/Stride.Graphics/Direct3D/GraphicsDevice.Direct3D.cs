@@ -24,8 +24,8 @@ namespace Stride.Graphics
         private bool simulateReset = false;
         private string rendererName;
 
-        private ID3D11Device nativeDevice;
-        private ID3D11DeviceContext nativeDeviceContext;
+        public ID3D11Device nativeDevice;
+        public ID3D11DeviceContext nativeDeviceContext;
         private readonly Queue<ID3D11Query> disjointQueries = new Queue<ID3D11Query>(4);
         private readonly Stack<ID3D11Query> currentDisjointQueries = new Stack<ID3D11Query>(2);
 
@@ -253,7 +253,9 @@ namespace Stride.Graphics
                     unsafe
                     {
                         // TODO : Correct the creation
-                        D3D11Overloads.CreateDevice(D3D11.GetApi(), (IDXGIAdapter*)Adapter.AdapterPtr, D3DDriverType.D3DDriverTypeUnknown, 0, (uint)creationFlags, &level, 1, D3D11.SdkVersion, NativeDevicePP, null, null);
+                        fixed(IDXGIAdapter1* ad = &Adapter.adapter)
+                        fixed(ID3D11Device* dev = &nativeDevice)
+                            D3D11Overloads.CreateDevice(D3D11.GetApi(), (IDXGIAdapter*)ad, D3DDriverType.D3DDriverTypeUnknown, 0, (uint)creationFlags, &level, 1, D3D11.SdkVersion, &dev, null, null);
                     }
                     //nativeDevice = new SharpDX.Direct3D11.Device(Adapter.NativeAdapter, creationFlags, level);
                     

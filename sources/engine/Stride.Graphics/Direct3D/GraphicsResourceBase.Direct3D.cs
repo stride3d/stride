@@ -15,10 +15,8 @@ namespace Stride.Graphics
     public abstract partial class GraphicsResourceBase
     {
         // TODO : Needs review
-        private ID3D11Resource nativeResource;
-        private ID3D11DeviceChild nativeDeviceChild;
-
-        protected internal ID3D11Resource NativeResource { get; set; }
+        public ID3D11Resource nativeResource;
+        public ID3D11DeviceChild nativeDeviceChild;
 
         private void Initialize()
         {
@@ -68,7 +66,7 @@ namespace Stride.Graphics
             Destroyed?.Invoke(this, EventArgs.Empty);
 
             nativeDeviceChild.Release();
-            NativeResource.Release();
+            nativeResource.Release();
         }
 
         /// <summary>

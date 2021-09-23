@@ -11,7 +11,7 @@ namespace Stride.Graphics
 {
     public partial class Buffer
     {
-        private ID3D11Buffer nativeBuffer;
+        public ID3D11Buffer nativeBuffer;
 
         //buffer descrption
         private BufferDesc nativeDescription;
@@ -191,7 +191,8 @@ namespace Stride.Graphics
                 unsafe
                 {
                     var pSrv = &srv;
-                    NativeDevice.CreateRenderTargetView(NativeResourcePtr, &description, &pSrv); 
+                    fixed(ID3D11Resource* res = &nativeResource)
+                        NativeDevice.CreateRenderTargetView(res, &description, &pSrv); 
                 }
                 
             }
@@ -338,8 +339,9 @@ namespace Stride.Graphics
                 {
                     var uav = new ID3D11UnorderedAccessView();
                     var pUav = &uav;
-                    GraphicsDevice.NativeDevice.CreateUnorderedAccessView(NativeResourcePtr, &description, &pUav);
-                    NativeUnorderedAccessView = uav;
+                    fixed(ID3D11Resource* res = &nativeResource)
+                        GraphicsDevice.NativeDevice.CreateUnorderedAccessView(res, &description, &pUav);
+                    NativeUnorderedAccessView = *pUav;
                 }
             }
         }

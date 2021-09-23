@@ -56,14 +56,12 @@ namespace Stride.Graphics
             unsafe 
             {
                 uint n = 0;
+                FeatureDataThreading dt;
                 HasComputeShaders = (uint)nativeDevice.CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureD3D10XHardwareOptions, null, n) == (uint)ReturnCodes.S_OK;
                 HasDoublePrecision = (uint)nativeDevice.CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureDoubles,null, n) == (uint)ReturnCodes.S_OK;
-                HasDriverCommandLists = (uint)nativeDevice.CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureThreading, null, n) == (uint)ReturnCodes.S_OK;
-            }
-            
-            
-           
-            
+                HasDriverCommandLists = (uint)nativeDevice.CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureThreading, &dt, n) == (uint)ReturnCodes.S_OK;
+                HasMultiThreadingConcurrentResources = dt.DriverConcurrentCreates>0;
+            }            
 
             HasDepthAsSRV = (CurrentProfile >= GraphicsProfile.Level_10_0);
             HasDepthAsReadOnlyRT = CurrentProfile >= GraphicsProfile.Level_11_0;

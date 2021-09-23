@@ -51,10 +51,12 @@ namespace Stride.Graphics
             NativeDeviceChild = nativeDeviceContext;
             unsafe
             {
-                ID3D11DeviceChild* myThing = NativeDeviceChildPtr;
-                ID3D11DeviceContext1* thingIWant = null;
-                SilkMarshal.ThrowHResult(myThing->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&thingIWant));
-                nativeDeviceContext1 = *thingIWant;
+                fixed (ID3D11DeviceChild* myThing = &nativeDeviceChild)
+                {
+                    ID3D11DeviceContext1* thingIWant = null;
+                    SilkMarshal.ThrowHResult(myThing->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&thingIWant));
+                    nativeDeviceContext1 = *thingIWant;
+                }
             }
             InitializeStages();
 
@@ -241,32 +243,31 @@ namespace Stride.Graphics
             int slotIndex = stageIndex * ConstantBufferCount + slot;
             unsafe
             {
+                
                 if (constantBuffers[slotIndex] != buffer)
                 {
                     constantBuffers[slotIndex] = buffer;
 
-                    ID3D11Buffer* buff = buffer.NativeBufferPtr;
+                    fixed(ID3D11Buffer* buff = &buffer.nativeBuffer)
                     switch (stage)
                     {
                         case ShaderStage.Vertex:
-                            ID3D11ShaderReflection
-                            var tmp = DXConvert.ToVSShader(shaderStages[stageIndex]);
                             GraphicsDevice.NativeDeviceContext.VSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount,&buff);
                             break;
                         case ShaderStage.Hull:
-                            shaderStages[stageIndex].HSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            GraphicsDevice.NativeDeviceContext.HSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
                             break;
                         case ShaderStage.Domain:
-                            shaderStages[stageIndex].DSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            GraphicsDevice.NativeDeviceContext.DSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
                             break;
                         case ShaderStage.Geometry:
-                            shaderStages[stageIndex].GSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            GraphicsDevice.NativeDeviceContext.GSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
                             break;
                         case ShaderStage.Pixel:
-                            shaderStages[stageIndex].PSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            GraphicsDevice.NativeDeviceContext.PSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
                             break;
                         case ShaderStage.Compute:
-                            shaderStages[stageIndex].CSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            GraphicsDevice.NativeDeviceContext.CSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
                             break;
                         default:
                             break;
@@ -295,26 +296,26 @@ namespace Stride.Graphics
                 constantBuffers[slotIndex] = buffer;
                 unsafe
                 {
-                    ID3D11Buffer* buff = buffer.NativeBufferPtr;
+                    fixed(ID3D11Buffer* buff = &buffer.nativeBuffer)
                     switch (stage)
                     {
                         case ShaderStage.Vertex:
-                            shaderStages[stageIndex].VSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            GraphicsDevice.NativeDeviceContext.VSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
                             break;
                         case ShaderStage.Hull:
-                            shaderStages[stageIndex].HSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            GraphicsDevice.NativeDeviceContext.HSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
                             break;
                         case ShaderStage.Domain:
-                            shaderStages[stageIndex].DSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            GraphicsDevice.NativeDeviceContext.DSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
                             break;
                         case ShaderStage.Geometry:
-                            shaderStages[stageIndex].GSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            GraphicsDevice.NativeDeviceContext.GSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
                             break;
                         case ShaderStage.Pixel:
-                            shaderStages[stageIndex].PSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            GraphicsDevice.NativeDeviceContext.PSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
                             break;
                         case ShaderStage.Compute:
-                            shaderStages[stageIndex].CSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
+                            GraphicsDevice.NativeDeviceContext.CSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);
                             break;
                         default:
                             break;
@@ -342,26 +343,26 @@ namespace Stride.Graphics
                 //shaderStages[stageIndex].SetSampler(slot, samplerState != null ? (SharpDX.Direct3D11.SamplerState)samplerState.NativeDeviceChild : null);
                 unsafe
                 {
-                    ID3D11SamplerState* sampl = (ID3D11SamplerState*)samplerState.NativeDeviceChildPtr;
+                    fixed(ID3D11DeviceChild* sampl = &samplerState.nativeDeviceChild)
                     switch (stage)
                     {
                         case ShaderStage.Vertex:
-                            shaderStages[stageIndex].VSSetSamplers((uint)slot, 1, &sampl);
+                            GraphicsDevice.NativeDeviceContext.VSSetSamplers((uint)slot, 1, (ID3D11SamplerState**)&sampl);
                             break;
                         case ShaderStage.Hull:
-                            shaderStages[stageIndex].HSSetSamplers((uint)slot, 1, &sampl);
+                            GraphicsDevice.NativeDeviceContext.HSSetSamplers((uint)slot, 1, (ID3D11SamplerState**)&sampl);
                             break;
                         case ShaderStage.Domain:
-                            shaderStages[stageIndex].DSSetSamplers((uint)slot, 1, &sampl);
+                            GraphicsDevice.NativeDeviceContext.DSSetSamplers((uint)slot, 1, (ID3D11SamplerState**)&sampl);
                             break;
                         case ShaderStage.Geometry:
-                            shaderStages[stageIndex].GSSetSamplers((uint)slot, 1, &sampl);
+                            GraphicsDevice.NativeDeviceContext.GSSetSamplers((uint)slot, 1, (ID3D11SamplerState**)&sampl);
                             break;
                         case ShaderStage.Pixel:
-                            shaderStages[stageIndex].PSSetSamplers((uint)slot, 1, &sampl);
+                            GraphicsDevice.NativeDeviceContext.PSSetSamplers((uint)slot, 1, (ID3D11SamplerState**)&sampl);
                             break;
                         case ShaderStage.Compute:
-                            shaderStages[stageIndex].CSSetSamplers((uint)slot, 1, &sampl);
+                            GraphicsDevice.NativeDeviceContext.CSSetSamplers((uint)slot, 1, (ID3D11SamplerState**)&sampl);
                             break;
                         default:
                             break;
@@ -381,26 +382,26 @@ namespace Stride.Graphics
             //shaderStages[(int)stage - 1].SetShaderResource(slot, shaderResourceView != null ? shaderResourceView.NativeShaderResourceView : null);
             unsafe
             {
-                ID3D11ShaderResourceView* srv = shaderResourceView.NativeShaderResourceViewPtr;
+                fixed(ID3D11ShaderResourceView* srv = &shaderResourceView.shaderResourceView)
                 switch (stage)
                 {
                     case ShaderStage.Vertex:
-                        shaderStages[(int)stage-1].VSSetShaderResources((uint)slot, 1, &srv);
+                        GraphicsDevice.NativeDeviceContext.VSSetShaderResources((uint)slot, 1, &srv);
                         break;
                     case ShaderStage.Hull:
-                        shaderStages[(int)stage - 1].HSSetShaderResources((uint)slot, 1, &srv);
+                        GraphicsDevice.NativeDeviceContext.HSSetShaderResources((uint)slot, 1, &srv);
                         break;
                     case ShaderStage.Domain:
-                        shaderStages[(int)stage - 1].DSSetShaderResources((uint)slot, 1, &srv);
+                        GraphicsDevice.NativeDeviceContext.DSSetShaderResources((uint)slot, 1, &srv);
                         break;
                     case ShaderStage.Geometry:
-                        shaderStages[(int)stage - 1].GSSetShaderResources((uint)slot, 1, &srv);
+                        GraphicsDevice.NativeDeviceContext.GSSetShaderResources((uint)slot, 1, &srv);
                         break;
                     case ShaderStage.Pixel:
-                        shaderStages[(int)stage - 1].PSSetShaderResources((uint)slot, 1, &srv);
+                        GraphicsDevice.NativeDeviceContext.PSSetShaderResources((uint)slot, 1, &srv);
                         break;
                     case ShaderStage.Compute:
-                        shaderStages[(int)stage - 1].CSSetShaderResources((uint)slot, 1, &srv);
+                        GraphicsDevice.NativeDeviceContext.CSSetShaderResources((uint)slot, 1, &srv);
                         break;
                     default:
                         break;
@@ -457,7 +458,8 @@ namespace Stride.Graphics
             {
 
 
-                var view = unorderedAccessView != null? unorderedAccessView.NativeUnorderedAccessViewPtr : null;
+                //var view = unorderedAccessView != null? unorderedAccessView.NativeUnorderedAccessView : new ID3D11UnorderedAccessView();
+                fixed(ID3D11UnorderedAccessView* view = &unorderedAccessView.unorderedAccessView)
                 if (stage == ShaderStage.Compute)
                 {
                     if (unorderedAccessViews[slot] != view)
@@ -485,26 +487,30 @@ namespace Stride.Graphics
         {
             unsafe
             {
-                var view = unorderedAccessView.NativeUnorderedAccessViewPtr;
-                if (view == null)
-                    return;
+                fixed(ID3D11UnorderedAccessView* view = &unorderedAccessView.unorderedAccessView)
+                {
+
+                    if (view == null)
+                        return;
 
             
 
-                for (int slot = 0; slot < UnorderedAcccesViewCount; slot++)
-                {
-                    if (unorderedAccessViews[slot] == view)
+                    for (int slot = 0; slot < UnorderedAcccesViewCount; slot++)
                     {
-                        unorderedAccessViews[slot] = null;
-                        NativeDeviceContext.CSSetUnorderedAccessViews((uint)slot, 0, null, null);
+                        if (unorderedAccessViews[slot] == view)
+                        {
+                            unorderedAccessViews[slot] = null;
+                            NativeDeviceContext.CSSetUnorderedAccessViews((uint)slot, 0, null, null);
+                        }
                     }
-                }
-                for (int slot = 0; slot < SimultaneousRenderTargetCount; slot++)
-                {
-                    if (currentUARenderTargetViews[slot] == view)
+                    for (int slot = 0; slot < SimultaneousRenderTargetCount; slot++)
                     {
-                        OMSetSingleUnorderedAccessView(slot, null, -1);
+                        if (currentUARenderTargetViews[slot] == view)
+                        {
+                            OMSetSingleUnorderedAccessView(slot, null, -1);
+                        }
                     }
+
                 }
             }
         }
@@ -557,9 +563,12 @@ namespace Stride.Graphics
         {
             unsafe
             {
-                ID3D11Buffer* buff = buffer.NativeBufferPtr;
-                var count = buffer.ElementCount;
-                inputAssembler.IASetVertexBuffers((uint)index,(uint)count, &buff, (uint*)&stride, (uint*)&offset);
+                fixed(ID3D11Buffer* buff = &buffer.nativeBuffer)
+                {
+                    var count = buffer.ElementCount;
+                    inputAssembler.IASetVertexBuffers((uint)index, (uint)count, &buff, (uint*)&stride, (uint*)&offset);
+                }
+                
             }
         }
 
@@ -567,7 +576,8 @@ namespace Stride.Graphics
         {
             unsafe
             {
-                inputAssembler.IASetIndexBuffer(buffer.NativeBufferPtr, Silk.NET.DXGI.Format.FormatR32Uint, (uint)offset);
+                fixed(ID3D11Buffer* buff = &buffer.nativeBuffer)
+                inputAssembler.IASetIndexBuffer(buff, Silk.NET.DXGI.Format.FormatR32Uint, (uint)offset);
             }
         }
 
@@ -602,7 +612,8 @@ namespace Stride.Graphics
             if (indirectBuffer == null) throw new ArgumentNullException("indirectBuffer");
             unsafe
             {
-                NativeDeviceContext.DispatchIndirect(indirectBuffer.NativeBufferPtr, (uint)offsetInBytes);
+                fixed (ID3D11Buffer* buff = &indirectBuffer.nativeBuffer)
+                    NativeDeviceContext.DispatchIndirect(buff, (uint)offsetInBytes);
             }
             
         }
@@ -680,7 +691,8 @@ namespace Stride.Graphics
             PrepareDraw();
             unsafe
             {
-                NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBufferPtr, (uint)alignedByteOffsetForArgs);
+                fixed (ID3D11Buffer* buff = &argumentsBuffer.nativeBuffer)
+                    NativeDeviceContext.DrawIndexedInstancedIndirect(buff, (uint)alignedByteOffsetForArgs);
             }
             
 
@@ -716,7 +728,8 @@ namespace Stride.Graphics
             PrepareDraw();
             unsafe
             {
-                NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBufferPtr, (uint)alignedByteOffsetForArgs);
+                fixed (ID3D11Buffer* buff = &argumentsBuffer.nativeBuffer)
+                    NativeDeviceContext.DrawIndexedInstancedIndirect(buff, (uint)alignedByteOffsetForArgs);
 
             }
 
@@ -814,8 +827,9 @@ namespace Stride.Graphics
             //if (buffer.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting buffer supporting UAV", nameof(buffer));
             unsafe
             {
-                fixed(float* f4 = value.ToArray())
-                    NativeDeviceContext.ClearUnorderedAccessViewFloat(buffer.NativeUnorderedAccessViewPtr, f4);
+                fixed (ID3D11UnorderedAccessView* uav = &buffer.unorderedAccessView)
+                fixed (float* f4 = value.ToArray())
+                    NativeDeviceContext.ClearUnorderedAccessViewFloat(uav, f4);
             }
         }
 
@@ -833,8 +847,9 @@ namespace Stride.Graphics
             unsafe
             {
                 var tmp = value.ToArray().Select(x => (uint)x).ToArray();
+                fixed (ID3D11UnorderedAccessView* uav = &buffer.unorderedAccessView)
                 fixed (uint* i4 = tmp)
-                    NativeDeviceContext.ClearUnorderedAccessViewUint(buffer.NativeUnorderedAccessViewPtr, i4);
+                    NativeDeviceContext.ClearUnorderedAccessViewUint(uav, i4);
 
             }
         }
@@ -852,8 +867,9 @@ namespace Stride.Graphics
             //if (buffer.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting buffer supporting UAV", nameof(buffer));
             unsafe
             {
-                fixed(uint* ui = value.ToArray())
-                NativeDeviceContext.ClearUnorderedAccessViewUint(buffer.NativeUnorderedAccessViewPtr, ui);
+                fixed (ID3D11UnorderedAccessView* uav = &buffer.unorderedAccessView)
+                fixed (uint* ui = value.ToArray())
+                NativeDeviceContext.ClearUnorderedAccessViewUint(uav, ui);
             }
         }
 
@@ -870,8 +886,9 @@ namespace Stride.Graphics
             //if (texture.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting texture supporting UAV", nameof(texture));
             unsafe
             {
+                fixed (ID3D11UnorderedAccessView* uav = &texture.unorderedAccessView)
                 fixed (float* f4 = value.ToArray())
-                    NativeDeviceContext.ClearUnorderedAccessViewFloat(texture.NativeUnorderedAccessViewPtr, f4);
+                    NativeDeviceContext.ClearUnorderedAccessViewFloat(uav, f4);
             }
         }
 
@@ -890,8 +907,9 @@ namespace Stride.Graphics
             unsafe
             {
                 var tmp = value.ToArray().Select(x => (uint)x).ToArray();
+                fixed (ID3D11UnorderedAccessView* uav = &texture.unorderedAccessView)
                 fixed (uint* i4 = tmp)
-                    NativeDeviceContext.ClearUnorderedAccessViewUint(texture.NativeUnorderedAccessViewPtr, i4);
+                    NativeDeviceContext.ClearUnorderedAccessViewUint(uav, i4);
 
             }
         }
@@ -910,8 +928,9 @@ namespace Stride.Graphics
 
             unsafe
             {
+                fixed (ID3D11UnorderedAccessView* uav = &texture.unorderedAccessView)
                 fixed (uint* ui = value.ToArray())
-                    NativeDeviceContext.ClearUnorderedAccessViewUint(texture.NativeUnorderedAccessViewPtr, ui);
+                    NativeDeviceContext.ClearUnorderedAccessViewUint(uav, ui);
             }
         }
 
@@ -926,7 +945,9 @@ namespace Stride.Graphics
             if (destination == null) throw new ArgumentNullException("destination");
             unsafe
             {
-                NativeDeviceContext.CopyResource(source.NativeResourcePtr, destination.NativeResourcePtr);
+                fixed (ID3D11Resource* destRes = &destination.nativeResource)
+                fixed (ID3D11Resource* srcRes = &source.nativeResource)
+                    NativeDeviceContext.CopyResource(srcRes, destRes);
             }
         }
 
@@ -937,7 +958,9 @@ namespace Stride.Graphics
             if (!sourceMultisampleTexture.IsMultisample) throw new ArgumentOutOfRangeException(nameof(sourceMultisampleTexture), "Source texture is not a MSAA texture");
             unsafe
             {
-                NativeDeviceContext.ResolveSubresource(sourceMultisampleTexture.NativeResourcePtr, (uint)sourceSubResource, destTexture.NativeResourcePtr, (uint)destSubResource, (Format)(format == PixelFormat.None ? destTexture.Format : format));
+                fixed (ID3D11Resource* destRes = &destTexture.nativeResource)
+                fixed (ID3D11Resource* srcRes = &sourceMultisampleTexture.nativeResource)
+                    NativeDeviceContext.ResolveSubresource(srcRes, (uint)sourceSubResource, destRes, (uint)destSubResource, (Format)(format == PixelFormat.None ? destTexture.Format : format));
             }
         }
 
@@ -955,7 +978,9 @@ namespace Stride.Graphics
             }
             unsafe
             {
-                NativeDeviceContext.CopySubresourceRegion(source.NativeResourcePtr, (uint)destinationSubResource, (uint)dstX, (uint)dstY, (uint)dstZ, destination.NativeResourcePtr, (uint)sourceSubresource, &nullableBox);
+                fixed (ID3D11Resource* destRes = &destination.nativeResource)
+                fixed (ID3D11Resource* srcRes = &source.nativeResource)
+                    NativeDeviceContext.CopySubresourceRegion(srcRes, (uint)destinationSubResource, (uint)dstX, (uint)dstY, (uint)dstZ, destRes, (uint)sourceSubresource, &nullableBox);
 
             }
         }
@@ -967,7 +992,9 @@ namespace Stride.Graphics
             if (destBuffer == null) throw new ArgumentNullException("destBuffer");
             unsafe
             {
-                NativeDeviceContext.CopyStructureCount(destBuffer.NativeBufferPtr, (uint)offsetInBytes, sourceBuffer.NativeUnorderedAccessViewPtr);
+                fixed (ID3D11Buffer* destRes = &destBuffer.nativeBuffer)
+                fixed (ID3D11UnorderedAccessView* srcUav = &sourceBuffer.unorderedAccessView)
+                    NativeDeviceContext.CopyStructureCount(destRes, (uint)offsetInBytes, srcUav);
             }
         }
 
@@ -976,7 +1003,8 @@ namespace Stride.Graphics
             if (resource == null) throw new ArgumentNullException("resource");
             unsafe
             {
-                NativeDeviceContext.UpdateSubresource(resource.NativeResourcePtr, (uint)subResourceIndex, (Box*)&databox,null,0,0);
+                fixed (ID3D11Resource* res = &resource.nativeResource)
+                    NativeDeviceContext.UpdateSubresource(res, (uint)subResourceIndex, (Box*)&databox,null,0,0);
             }
         }
 
@@ -985,7 +1013,8 @@ namespace Stride.Graphics
             if (resource == null) throw new ArgumentNullException("resource");
             unsafe
             {
-                NativeDeviceContext.UpdateSubresource(resource.NativeResourcePtr, (uint)subResourceIndex, (Box*)&databox, (Box*)&region, 0, 0);
+                fixed (ID3D11Resource* res = &resource.nativeResource)
+                    NativeDeviceContext.UpdateSubresource(res, (uint)subResourceIndex, (Box*)&databox, (Box*)&region, 0, 0);
             }
             //NativeDeviceContext.UpdateSubresource(*(SharpDX.DataBox*)Interop.Cast(ref databox), resource.NativeResource, subResourceIndex, *(SharpDX.Direct3D11.ResourceRegion*)Interop.Cast(ref region));
         }
@@ -1011,15 +1040,17 @@ namespace Stride.Graphics
             MappedSubresource dataBox = new MappedSubresource();
             unsafe
             {
-                NativeDeviceContext.Map(resource.NativeResourcePtr, (uint)subResourceIndex, (Map)(uint)mapMode, doNotWait ? (uint)MapFlag.MapFlagDONotWait : 0, &dataBox);
+                fixed (ID3D11Resource* res = &resource.nativeResource)
+                    NativeDeviceContext.Map(res, (uint)subResourceIndex, (Map)(uint)mapMode, doNotWait ? (uint)MapFlag.MapFlagDONotWait : 0, &dataBox);
                 var databox = *(DataBox*)Interop.Cast(ref dataBox);
-                if (!dataBox.)
+                
+                if (!(databox.DataPointer == IntPtr.Zero && databox.RowPitch == 0 && databox.SlicePitch == 0))
                 {
                     databox.DataPointer = (IntPtr)((byte*)databox.DataPointer + offsetInBytes);
                 }
+                return new MappedResource(resource, subResourceIndex, databox);
             }
-            
-            return new MappedResource(resource, subResourceIndex, dataBox);
+
         }
 
         // TODO GRAPHICS REFACTOR what should we do with this?
@@ -1027,7 +1058,8 @@ namespace Stride.Graphics
         {
             unsafe
             {
-                NativeDeviceContext.Unmap(unmapped.Resource.NativeResourcePtr, (uint)unmapped.SubResourceIndex);
+                fixed(ID3D11Resource* res = &unmapped.Resource.nativeResource)
+                    NativeDeviceContext.Unmap(res, (uint)unmapped.SubResourceIndex);
             }
         }
 
@@ -1037,12 +1069,23 @@ namespace Stride.Graphics
             {
                 ID3D11VertexShader* v = null;
                 nativeDeviceContext.VSGetShader(&v, null, null);
-                shaderStages[(int)ShaderStage.Vertex - 1] = nativeDeviceContext.VSGetShader
-                shaderStages[(int)ShaderStage.Hull - 1] = nativeDeviceContext.HullShader;
-                shaderStages[(int)ShaderStage.Domain - 1] = nativeDeviceContext.DomainShader;
-                shaderStages[(int)ShaderStage.Geometry - 1] = nativeDeviceContext.GeometryShader;
-                shaderStages[(int)ShaderStage.Pixel - 1] = nativeDeviceContext.PixelShader;
-                shaderStages[(int)ShaderStage.Compute - 1] = nativeDeviceContext.ComputeShader;
+                ID3D11PixelShader* p = null;
+                nativeDeviceContext.PSGetShader(&p, null, null);
+                ID3D11HullShader* h = null;
+                nativeDeviceContext.HSGetShader(&h, null, null);
+                ID3D11DomainShader* d = null;
+                nativeDeviceContext.DSGetShader(&d, null, null);
+                ID3D11ComputeShader* c = null;
+                nativeDeviceContext.CSGetShader(&c, null, null);
+                ID3D11GeometryShader* g = null;
+                nativeDeviceContext.GSGetShader(&g, null, null);
+
+                shaderStages[(int)ShaderStage.Vertex - 1] = *v;
+                shaderStages[(int)ShaderStage.Hull - 1] = *h;
+                shaderStages[(int)ShaderStage.Domain - 1] = *d;
+                shaderStages[(int)ShaderStage.Geometry - 1] = *g;
+                shaderStages[(int)ShaderStage.Pixel - 1] = *p;
+                shaderStages[(int)ShaderStage.Compute - 1] = *c;
 
             }
         }

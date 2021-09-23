@@ -40,7 +40,7 @@ namespace Stride.Graphics
     /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>
     public partial class GraphicsAdapter
     {
-        private readonly IDXGIAdapter1 adapter;
+        public readonly IDXGIAdapter1 adapter;
         private readonly int adapterOrdinal;
         private readonly AdapterDesc1 description;
 
