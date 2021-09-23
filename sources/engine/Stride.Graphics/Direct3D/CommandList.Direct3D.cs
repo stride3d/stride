@@ -9,6 +9,7 @@ using Silk.NET.DXGI;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics.Direct3D;
+using Stride.Graphics.Direct3D.Extensions;
 using Stride.Shaders;
 
 namespace Stride.Graphics
@@ -32,7 +33,7 @@ namespace Stride.Graphics
         private readonly unsafe ID3D11RenderTargetView*[] currentRenderTargetViews = new ID3D11RenderTargetView*[SimultaneousRenderTargetCount];
         private          int currentRenderTargetViewsActiveCount = 0;
         private readonly unsafe ID3D11UnorderedAccessView*[] currentUARenderTargetViews = new ID3D11UnorderedAccessView*[SimultaneousRenderTargetCount];
-        private readonly ID3D11DeviceContext[] shaderStages = new ID3D11DeviceContext[StageCount];
+        private readonly IUnknown[] shaderStages = new IUnknown[StageCount];
         private readonly Buffer[] constantBuffers = new Buffer[StageCount * ConstantBufferCount];
         private readonly SamplerState[] samplerStates = new SamplerState[StageCount * SamplerStateCount];
         private readonly unsafe ID3D11UnorderedAccessView*[] unorderedAccessViews = new ID3D11UnorderedAccessView* [UnorderedAcccesViewCount]; // Only CS
@@ -248,7 +249,9 @@ namespace Stride.Graphics
                     switch (stage)
                     {
                         case ShaderStage.Vertex:
-                            shaderStages[stageIndex].VSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount,&buff);
+                            ID3D11ShaderReflection
+                            var tmp = DXConvert.ToVSShader(shaderStages[stageIndex]);
+                            GraphicsDevice.NativeDeviceContext.VSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount,&buff);
                             break;
                         case ShaderStage.Hull:
                             shaderStages[stageIndex].HSSetConstantBuffers((uint)slot, (uint)buffer.ElementCount, &buff);

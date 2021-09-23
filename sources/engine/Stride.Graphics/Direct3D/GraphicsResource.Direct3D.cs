@@ -54,13 +54,6 @@ namespace Stride.Graphics
                     //shaderResourceView.DebugName = Name == null ? null : $"{Name} SRV"
             }
         }
-        protected internal unsafe ID3D11ShaderResourceView* NativeShaderResourceViewPtr
-        {
-            get
-            {
-                fixed(ID3D11ShaderResourceView* srv = &shaderResourceView) return srv;
-            }
-        }
 
         /// <summary>
         /// Gets or sets the UnorderedAccessView attached to this GraphicsResource.
@@ -81,13 +74,6 @@ namespace Stride.Graphics
                 //{
                 //    unorderedAccessView.DebugName = Name == null ? null : $"{Name} UAV";
                 //}
-            }
-        }
-        protected internal unsafe ID3D11UnorderedAccessView* NativeUnorderedAccessViewPtr
-        {
-            get
-            {
-                fixed(ID3D11UnorderedAccessView* uav = &unorderedAccessView) return uav;
             }
         }
 

@@ -28,8 +28,6 @@ namespace Stride.Graphics
             }
         }
 
-        internal unsafe ID3D11Buffer* NativeBufferPtr { get { fixed (ID3D11Buffer* buff = &nativeBuffer) return buff; } }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Buffer" /> class.
         /// </summary>
@@ -88,17 +86,15 @@ namespace Stride.Graphics
                 return false;
 
             //NativeDeviceChild = new SharpDX.Direct3D11.Buffer(GraphicsDevice.NativeDevice, IntPtr.Zero, nativeDescription);
+            
             unsafe
             {
-                unsafe
-                {
-                    // TODO : This needs review
-                    var buff = new ID3D11Buffer();
-                    ID3D11Buffer* pBuff = &buff;
-                    fixed (BufferDesc* desc = &nativeDescription)
-                        NativeDevice.CreateBuffer(desc, null, &pBuff);
-                    NativeDeviceChild = buff;
-                }
+                // TODO : This needs review
+                var buff = new ID3D11Buffer();
+                ID3D11Buffer* pBuff = &buff;
+                fixed (BufferDesc* desc = &nativeDescription)
+                    NativeDevice.CreateBuffer(desc, null, &pBuff);
+                NativeDeviceChild = buff;
             }
             
 

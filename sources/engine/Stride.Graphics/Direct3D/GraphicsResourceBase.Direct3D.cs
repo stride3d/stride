@@ -4,8 +4,6 @@
 #pragma warning disable SA1405 // Debug.Assert must provide message text
 using System;
 using System.Diagnostics;
-
-using SharpDX;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 
@@ -21,14 +19,7 @@ namespace Stride.Graphics
         private ID3D11DeviceChild nativeDeviceChild;
 
         protected internal ID3D11Resource NativeResource { get; set; }
-        protected internal unsafe ID3D11Resource* NativeResourcePtr
-        {
-            get
-            {
-                fixed (ID3D11Resource* r = &nativeResource)
-                    return r;
-            }
-        }
+
         private void Initialize()
         {
         }
@@ -60,23 +51,13 @@ namespace Stride.Graphics
                 //SetDebugName(GraphicsDevice, nativeDeviceChild, Name);
             }
         }
-        protected internal unsafe ID3D11DeviceChild* NativeDeviceChildPtr
-        {
-            get
-            {
-                fixed(ID3D11DeviceChild* c = &nativeDeviceChild) return c;
-            }
-        }
 
         /// <summary>
         /// Associates the private data to the device child, useful to get the name in PIX debugger.
         /// </summary>
-        internal static void SetDebugName(GraphicsDevice graphicsDevice, SharpDX.Direct3D11.DeviceChild deviceChild, string name)
+        internal static void SetDebugName(GraphicsDevice graphicsDevice, ID3D11DeviceChild deviceChild, string name)
         {
-            if (graphicsDevice.IsDebugMode && deviceChild != null)
-            {
-                deviceChild.DebugName = name;
-            }
+            //deviceChild.Name = name;
         }
 
         /// <summary>

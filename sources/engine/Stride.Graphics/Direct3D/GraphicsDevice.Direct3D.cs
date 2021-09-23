@@ -100,21 +100,6 @@ namespace Stride.Graphics
             }
         }
 
-        internal unsafe ID3D11Device* NativeDeviceP
-        {
-            get
-            {
-                fixed(ID3D11Device* p = &nativeDevice) return p;
-            }
-        }
-        internal unsafe ID3D11Device** NativeDevicePP
-        {
-            get
-            {
-                fixed (ID3D11Device* p = &nativeDevice) return &p;
-            }
-        }
-
         /// <summary>
         /// Gets the native device context.
         /// </summary>
