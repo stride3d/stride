@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
@@ -72,9 +71,14 @@ namespace Stride.Physics.Engine
                 }
             }
 
-            foreach (var component in detachedComponents)
+            if (detachedComponents.Count != 0)
             {
-                component.OnDetach();
+                foreach (var component in detachedComponents)
+                {
+                    component.InvokeOnDetach();
+                }
+
+                detachedComponents.Clear();
             }
         }
 

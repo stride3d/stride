@@ -80,7 +80,7 @@ namespace Stride.Physics
         /// Invoked when a constraint is broken because one of the rigidbodies
         /// involved in the constraint is removed from the scene.
         /// </summary>
-        public event Action<PhysicsConstraintComponent> Detach;
+        public event Action<PhysicsConstraintComponent> OnDetach;
 
         /// <summary>
         /// Removes the currently used <see cref="Constraint"/> and recreates it.
@@ -90,6 +90,6 @@ namespace Stride.Physics
         /// </remarks>
         public void RecreateConstraint() => ConstraintProcessor.Recreate(this);
 
-        internal void OnDetach() => Detach?.Invoke(this);
+        internal void InvokeOnDetach() => OnDetach?.Invoke(this);
     }
 }
