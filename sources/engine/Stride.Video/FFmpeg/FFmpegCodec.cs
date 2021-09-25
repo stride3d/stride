@@ -6,12 +6,14 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using FFmpeg.AutoGen;
+//using FFmpeg.AutoGen;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
+using FFmpeg.AutoGen;
+using Silk.NET.DXGI;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-using SharpDX.Direct3D11;
+using Silk.NET.Direct3D11;
 #endif
 
 namespace Stride.Video.FFmpeg
@@ -32,14 +34,14 @@ namespace Stride.Video.FFmpeg
         private bool isDisposed = false;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-        private VideoDecoder videoHardwareDecoder;
-        private VideoDecoderOutputView videoHardwareDecoderView;
+        private Silk.NET.Direct3D11.ID3D11VideoDecoder videoHardwareDecoder;
+        private Silk.NET.Direct3D11.ID3D11VideoDecoderOutputView videoHardwareDecoderView;
 #endif
 
-        private PinnedObject<ID3D11VideoContext> videoContextHandle;
-        private PinnedObject<ID3D11VideoDecoder> videoDecoderHandle;
+        private PinnedObject<Silk.NET.Direct3D11.ID3D11VideoContext> videoContextHandle;
+        private PinnedObject<Silk.NET.Direct3D11.ID3D11VideoDecoder> videoDecoderHandle;
         private PinnedObject<D3D11_VIDEO_DECODER_CONFIG> decoderConfigHandle;
-        private PinnedObject<ID3D11VideoDecoderOutputView> decoderOuputViewsHandle;
+        private PinnedObject<Silk.NET.Direct3D11.ID3D11VideoDecoderOutputView> decoderOuputViewsHandle;
 
         private class PinnedObject<T>
         {
@@ -78,7 +80,7 @@ namespace Stride.Video.FFmpeg
         private AVHWDeviceType HardwareDeviceType => AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-        private static SharpDX.DXGI.Format DecoderOuputFormat => SharpDX.DXGI.Format.NV12;
+        private static Silk.NET.DXGI.Format DecoderOuputFormat => Silk.NET.DXGI.Format.FormatNV12;
 #endif
 
         public bool IsHardwareAccelerated { get; }
@@ -159,22 +161,32 @@ namespace Stride.Video.FFmpeg
 #if STRIDE_GRAPHICS_API_DIRECT3D11
         private void CreateHarwareAccelerationContext(GraphicsDevice graphicsDevice, AVCodecContext* pAVCodecContext, AVCodec* pCodec)
         {
-            var videoDevice = graphicsDevice?.NativeDevice?.QueryInterface<VideoDevice1>();
-            var videoContext = graphicsDevice?.NativeDeviceContext?.QueryInterface<VideoContext1>();
-            if (videoDevice == null || videoContext == null)
-                return;
+            ID3D11VideoDevice1 videoDevice;
+            ID3D11VideoContext1 videoContext;
+            unsafe
+            {
+                var vdguid = ID3D11VideoDevice1.Guid;
+                var vcguid = ID3D11VideoContext1.Guid;
+                ID3D11VideoDevice1* vd = &videoDevice;
+                ID3D11VideoContext1* vc = &videoContext;
+                graphicsDevice?.NativeDevice.QueryInterface(&vdguid,(void**)&vd);
+                graphicsDevice?.NativeDeviceContext.QueryInterface(&vcguid,(void**)&vc);
+            }
+            
+            //if (videoDevice == null || videoContext == null)
+            //    return;
             
             foreach (var profile in FindVideoFormatCompatibleProfiles(videoDevice, *pCodec))
             {
                 // Create and configure the video decoder
-                var videoDecoderDescription = new VideoDecoderDescription
+                var videoDecoderDescription = new VideoDecoderDesc
                 {
                     Guid = profile,
-                    SampleWidth = pAVCodecContext->width,
-                    SampleHeight = pAVCodecContext->height,
+                    SampleWidth = (uint)pAVCodecContext->width,
+                    SampleHeight = (uint)pAVCodecContext->height,
                     OutputFormat = DecoderOuputFormat,
                 };
-
+                
                 videoDevice.GetVideoDecoderConfigCount(ref videoDecoderDescription, out var configCount);
                 for (var i = 0; i < configCount; ++i)
                 {
@@ -187,11 +199,11 @@ namespace Stride.Video.FFmpeg
                     videoDevice.CreateVideoDecoder(ref videoDecoderDescription, ref decoderConfig, out videoHardwareDecoder);
 
                     // create the decoder output view 
-                    var videoDecoderOutputViewDescription = new VideoDecoderOutputViewDescription
+                    var videoDecoderOutputViewDescription = new VideoDecoderOutputViewDesc
                     {
                         DecodeProfile = profile,
-                        Dimension = VdovDimension.Texture2D,
-                        Texture2D = new Texture2DVdov { ArraySlice = 0, },
+                        ViewDimension = VdovDimension.VdovDimensionTexture2D,
+                        Texture2D = new Tex2DVdov{ ArraySlice = 0, },
                     };
                     DecoderOutputTexture = Texture.New2D(graphicsDevice, pAVCodecContext->width, pAVCodecContext->height, (PixelFormat)DecoderOuputFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource);
                     videoDevice.CreateVideoDecoderOutputView(DecoderOutputTexture.NativeResource, ref videoDecoderOutputViewDescription, out videoHardwareDecoderView);
@@ -219,17 +231,36 @@ namespace Stride.Video.FFmpeg
                 }
             }
         }
-
-        private static IEnumerable<Guid> FindVideoFormatCompatibleProfiles(VideoDevice videoDevice, AVCodec codec)
+        private static Guid GetVideoDecoderProfile(ID3D11VideoDevice1 v, int i)
         {
-            for (var i = 0; i < videoDevice.VideoDecoderProfileCount; ++i)
+            Guid profile;
+            unsafe
             {
-                videoDevice.GetVideoDecoderProfile(i, out var profile);
+                v.GetVideoDecoderProfile((uint)i, &profile);
+            }
+            return profile;
+        }
+
+        private static int CheckVideoDecoderFormat(ID3D11VideoDevice1 v,Guid p, Format f)
+        {
+            int i = 0;
+            unsafe
+            {
+                v.CheckVideoDecoderFormat(&p, f, &i);
+            }
+            return i;
+        }
+
+        private static IEnumerable<Guid> FindVideoFormatCompatibleProfiles(ID3D11VideoDevice1 videoDevice, AVCodec codec)
+        {
+            for (var i = 0; i < videoDevice.GetVideoDecoderProfileCount(); ++i)
+            {
+                Guid profile = GetVideoDecoderProfile(videoDevice,i);
 
                 // TODO Check profile id
 
-                videoDevice.CheckVideoDecoderFormat(profile, DecoderOuputFormat, out var suppported);
-                if (suppported)
+                var supported = CheckVideoDecoderFormat(videoDevice,profile, DecoderOuputFormat);
+                if (supported>0)
                     yield return profile;
             }
 
@@ -279,8 +310,8 @@ namespace Stride.Video.FFmpeg
             decoderOuputViewsHandle?.Dispose();
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-            videoHardwareDecoder?.Dispose();
-            videoHardwareDecoderView?.Dispose();
+            videoHardwareDecoder.Release();
+            videoHardwareDecoderView.Release();
 #endif
 
             DecoderOutputTexture?.Dispose();

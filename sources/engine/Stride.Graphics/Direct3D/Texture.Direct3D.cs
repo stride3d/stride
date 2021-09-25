@@ -26,6 +26,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
 using Stride.Core;
+using Stride.Graphics.Direct3D;
 
 namespace Stride.Graphics
 {
@@ -204,47 +205,73 @@ namespace Stride.Graphics
                 switch (Dimension)
                 {
                     case TextureDimension.Texture1D:
-                        NativeDeviceChild = new ID3D11Texture1D(GraphicsDevice.NativeDevice, ConvertToNativeDescription1D(), ConvertDataBoxes(dataBoxes));
-                        GraphicsDevice.NativeDevice.CreateTexture1D(ConvertToNativeDescription1D(), ConvertDataBoxes(dataBoxes));
-                    break;
+                        //NativeDeviceChild = new ID3D11Texture1D(GraphicsDevice.NativeDevice, ConvertToNativeDescription1D(), ConvertDataBoxes(dataBoxes));
+                        ID3D11Texture1D* tex = null;
+                        Texture1DDesc desc = ConvertToNativeDescription1D(); ;
+                        fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
+                            GraphicsDevice.NativeDevice.CreateTexture1D(&desc, data, &tex);
+                        var pdvc = (ID3D11DeviceChild*)tex;
+                        nativeDeviceChild = *pdvc;
+                        break;
                     case TextureDimension.Texture2D:
                     case TextureDimension.TextureCube:
-                        NativeDeviceChild = new ID3D11Texture2D(GraphicsDevice.NativeDevice, ConvertToNativeDescription2D(), ConvertDataBoxes(dataBoxes));
+                        //NativeDeviceChild = new ID3D11Texture2D(GraphicsDevice.NativeDevice, ConvertToNativeDescription2D(), ConvertDataBoxes(dataBoxes));
+                        ID3D11Texture2D* tex2d = null;
+                        Texture2DDesc desc2d = ConvertToNativeDescription2D(); ;
+                        fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
+                            GraphicsDevice.NativeDevice.CreateTexture2D(&desc2d, data, &tex2d);
+                        pdvc = (ID3D11DeviceChild*)tex2d;
+                        nativeDeviceChild = *pdvc;
                         break;
                     case TextureDimension.Texture3D:
-                        NativeDeviceChild = new ID3D11Texture3D(GraphicsDevice.NativeDevice, ConvertToNativeDescription3D(), ConvertDataBoxes(dataBoxes));
+                        //NativeDeviceChild = new ID3D11Texture3D(GraphicsDevice.NativeDevice, ConvertToNativeDescription3D(), ConvertDataBoxes(dataBoxes));
+                        ID3D11Texture3D* tex3d = null;
+                        Texture3DDesc desc3d = ConvertToNativeDescription3D(); ;
+                        fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
+                            GraphicsDevice.NativeDevice.CreateTexture3D(&desc3d, data, &tex3d);
+                        pdvc = (ID3D11DeviceChild*)tex3d;
+                        nativeDeviceChild = *pdvc;
                         break;
                 }
-            }
-            
 
-            GraphicsDevice.RegisterTextureMemoryUsage(SizeInBytes);
-            //}
 
-            NativeShaderResourceView = GetShaderResourceView(ViewType, ArraySlice, MipLevel);
-            NativeUnorderedAccessView = GetUnorderedAccessView(ViewType, ArraySlice, MipLevel);
-            NativeID3D11RenderTargetView = GetID3D11RenderTargetView(ViewType, ArraySlice, MipLevel);
-            NativeDepthStencilView = GetDepthStencilView(out HasStencil);
 
-            switch (textureDescription.Options)
-            {
-                case TextureOptions.None:
-                    SharedHandle = IntPtr.Zero;
-                    break;
-                case TextureOptions.Shared:
-                    var sharedResource = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource>();
-                    SharedHandle = sharedResource.SharedHandle;
-                    break;
+                GraphicsDevice.RegisterTextureMemoryUsage(SizeInBytes);
+                //}
+
+                NativeShaderResourceView = GetShaderResourceView(ViewType, ArraySlice, MipLevel);
+                NativeUnorderedAccessView = GetUnorderedAccessView(ViewType, ArraySlice, MipLevel);
+                NativeID3D11RenderTargetView = GetID3D11RenderTargetView(ViewType, ArraySlice, MipLevel);
+                NativeDepthStencilView = GetDepthStencilView(out HasStencil);
+
+                var resGuid = IDXGIResource.Guid;
+                var res1Guid = IDXGIResource1.Guid;
+                switch (textureDescription.Options)
+                {
+                    case TextureOptions.None:
+                        SharedHandle = IntPtr.Zero;
+                        break;
+                    case TextureOptions.Shared:
+                        IDXGIResource* sharedResource = null;
+                        NativeDeviceChild.QueryInterface(&resGuid, (void**)&sharedResource);
+                        SharedHandle = (IntPtr)sharedResource;
+                        break;
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-                case TextureOptions.SharedNthandle | TextureOptions.SharedKeyedmutex:
-                    var sharedResource1 = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource1>();
-                    var uniqueName = "Stride:" + Guid.NewGuid().ToString();
-                    SharedHandle = sharedResource1.CreateSharedHandle(uniqueName, SharpDX.DXGI.SharedResourceFlags.Write);
-                    SharedNtHandleName = uniqueName;
-                    break; 
+                    case TextureOptions.SharedNthandle | TextureOptions.SharedKeyedmutex:
+                        IDXGIResource1* sharedResource1 = null;
+                        NativeDeviceChild.QueryInterface(&res1Guid,(void**)sharedResource1);
+                        var uniqueName = "Stride:" + Guid.NewGuid().ToString();
+                        void* t = null;
+                        //sharedResource1->CreateSharedHandle(uniqueName, SharpDX.DXGI.SharedResourceFlags.Write);
+                        fixed(char* name = uniqueName.ToCharArray())
+                            sharedResource1->CreateSharedHandle(null, (uint)DXGISharedResourceAccess.DXGI_SHARED_RESOURCE_WRITE, name, &t);
+                        SharedHandle = (IntPtr)t;
+                        SharedNtHandleName = uniqueName;
+                        break;
 #endif
-                default:
-                    throw new ArgumentOutOfRangeException("textureDescription.Options");
+                    default:
+                        throw new ArgumentOutOfRangeException("textureDescription.Options");
+                }
             }
         }
 
@@ -253,15 +280,12 @@ namespace Stride.Graphics
             // If it was a View, do not release reference
             if (ParentTexture != null)
             {
-                NativeDeviceChild = null;
+                NativeDeviceChild.Release();
             }
             else if (GraphicsDevice != null)
             {
                 GraphicsDevice.RegisterTextureMemoryUsage(-SizeInBytes);
             }
-
-            ReleaseComObject(ref renderTargetView);
-            ReleaseComObject(ref depthStencilView);
 
             base.OnDestroyed();
         }
@@ -295,8 +319,8 @@ namespace Stride.Graphics
         /// <returns>An <see cref="ShaderResourceView" /></returns>
         private ID3D11ShaderResourceView GetShaderResourceView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
         {
-            if (!IsShaderResource)
-                return null;
+            //if (!IsShaderResource)
+            //    return null;
 
             int arrayCount;
             int mipCount;
@@ -311,9 +335,11 @@ namespace Stride.Graphics
                 // If texture cube
                 if (this.ViewDimension == TextureDimension.TextureCube)
                 {
-                    srvDescription.Dimension = ShaderResourceViewDimension.TextureCube;
-                    srvDescription.TextureCube.MipLevels = mipCount;
-                    srvDescription.TextureCube.MostDetailedMip = mipIndex;
+                    srvDescription.ViewDimension = D3DSrvDimension.D3DSrvDimensionTexturecube;
+                    var tmp = srvDescription.TextureCube;
+                    tmp.MipLevels = (uint)mipCount;
+                    tmp.MostDetailedMip = (uint)mipIndex;
+                    srvDescription.TextureCube = tmp;
                 }
                 else
                 {
@@ -326,17 +352,21 @@ namespace Stride.Graphics
                             throw new NotSupportedException("Multisample is only supported for 2D Textures");
                         }
 
-                        srvDescription.Dimension = ShaderResourceViewDimension.Texture2DMultisampledArray;
-                        srvDescription.Texture2DMSArray.ArraySize = arrayCount;
-                        srvDescription.Texture2DMSArray.FirstArraySlice = arrayOrDepthSlice;
+                        srvDescription.ViewDimension = D3DSrvDimension.D3D11SrvDimensionTexture2Dmsarray;
+                        var tmp = srvDescription.Texture2DMSArray;
+                        tmp.ArraySize = (uint)arrayCount;
+                        tmp.FirstArraySlice = (uint)arrayOrDepthSlice;
+                        srvDescription.Texture2DMSArray = tmp;
                     }
                     else
                     {
-                        srvDescription.Dimension = ViewDimension == TextureDimension.Texture2D ? ShaderResourceViewDimension.Texture2DArray : ShaderResourceViewDimension.Texture1DArray;
-                        srvDescription.Texture2DArray.ArraySize = arrayCount;
-                        srvDescription.Texture2DArray.FirstArraySlice = arrayOrDepthSlice;
-                        srvDescription.Texture2DArray.MipLevels = mipCount;
-                        srvDescription.Texture2DArray.MostDetailedMip = mipIndex;
+                        srvDescription.ViewDimension = ViewDimension == TextureDimension.Texture2D ? D3DSrvDimension.D3D11SrvDimensionTexture2Darray : D3DSrvDimension.D3D11SrvDimensionTexture1Darray;
+                        var tmp = srvDescription.Texture2DArray;
+                        tmp.ArraySize = (uint)arrayCount;
+                        tmp.FirstArraySlice = (uint)arrayOrDepthSlice;
+                        tmp.MipLevels = (uint)mipCount;
+                        tmp.MostDetailedMip = (uint)mipIndex;
+                        srvDescription.Texture2DArray = tmp;
                     }
                 }
             }
@@ -349,32 +379,41 @@ namespace Stride.Graphics
                         throw new NotSupportedException("Multisample is only supported for 2D Textures");
                     }
 
-                    srvDescription.Dimension = ShaderResourceViewDimension.Texture2DMultisampled;
+                    srvDescription.ViewDimension = D3DSrvDimension.D3D101SrvDimensionTexture2Dms;
                 }
                 else
                 {
                     switch (ViewDimension)
                     {
                         case TextureDimension.Texture1D:
-                            srvDescription.Dimension = ShaderResourceViewDimension.Texture1D;
+                            srvDescription.ViewDimension = D3DSrvDimension.D3D11SrvDimensionTexture1D;
                             break;
                         case TextureDimension.Texture2D:
-                            srvDescription.Dimension = ShaderResourceViewDimension.Texture2D;
+                            srvDescription.ViewDimension = D3DSrvDimension.D3D11SrvDimensionTexture2D;
                             break;
                         case TextureDimension.Texture3D:
-                            srvDescription.Dimension = ShaderResourceViewDimension.Texture3D;
+                            srvDescription.ViewDimension = D3DSrvDimension.D3D11SrvDimensionTexture3D;
                             break;
                         case TextureDimension.TextureCube:
                             throw new NotSupportedException("TextureCube dimension is expecting an arraysize > 1");
                     }
                     // Use srvDescription.Texture as it matches also Texture and Texture3D memory layout
-                    srvDescription.Texture1D.MipLevels = mipCount;
-                    srvDescription.Texture1D.MostDetailedMip = mipIndex;
+                    var tmp = srvDescription.Texture1D;
+                    tmp.MipLevels = (uint)mipCount;
+                    tmp.MostDetailedMip = (uint)mipIndex;
+                    srvDescription.Texture1D = tmp;
                 }
             }
+            unsafe
+            {
+                ID3D11ShaderResourceView* srv = null;
+                fixed (ID3D11Resource* res = &nativeResource)
+                    GraphicsDevice.NativeDevice.CreateShaderResourceView(res, &srvDescription, &srv);
+                return *srv;
 
+                //return new ShaderResourceView(this.GraphicsDevice.NativeDevice, NativeResource, srvDescription);
+            }
             // Default ShaderResourceView
-            return new ShaderResourceView(this.GraphicsDevice.NativeDevice, NativeResource, srvDescription);
         }
 
         /// <summary>
@@ -387,8 +426,8 @@ namespace Stride.Graphics
         /// <exception cref="System.NotSupportedException">ViewSlice.MipBand is not supported for render targets</exception>
         private ID3D11RenderTargetView GetID3D11RenderTargetView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
         {
-            if (!IsRenderTarget)
-                return null;
+            //if (!IsRenderTarget)
+            //    return null;
 
             if (viewType == ViewType.MipBand)
                 throw new NotSupportedException("ViewSlice.MipBand is not supported for render targets");
@@ -398,7 +437,7 @@ namespace Stride.Graphics
             GetViewSliceBounds(viewType, ref arrayOrDepthSlice, ref mipIndex, out arrayCount, out mipCount);
 
             // Create the render target view
-            var rtvDescription = new ID3D11RenderTargetViewDescription() { Format = (SharpDX.DXGI.Format)ViewFormat };
+            var rtvDescription = new RenderTargetViewDesc() { Format = (Format)ViewFormat };
 
             if (this.ArraySize > 1)
             {
@@ -409,9 +448,11 @@ namespace Stride.Graphics
                         throw new NotSupportedException("Multisample is only supported for 2D Textures");
                     }
 
-                    rtvDescription.Dimension = ID3D11RenderTargetViewDimension.Texture2DMultisampledArray;
-                    rtvDescription.Texture2DMSArray.ArraySize = arrayCount;
-                    rtvDescription.Texture2DMSArray.FirstArraySlice = arrayOrDepthSlice;
+                    rtvDescription.ViewDimension = RtvDimension.RtvDimensionTexture2Dmsarray;
+                    var tmp = rtvDescription.Texture2DMSArray;
+                    tmp.ArraySize = (uint)arrayCount;
+                    tmp.FirstArraySlice = (uint)arrayOrDepthSlice;
+                    rtvDescription.Texture2DMSArray = tmp;
                 }
                 else
                 {
@@ -420,12 +461,14 @@ namespace Stride.Graphics
                         throw new NotSupportedException("Texture Array is not supported for Texture3D");
                     }
 
-                    rtvDescription.Dimension = Dimension == TextureDimension.Texture2D || Dimension == TextureDimension.TextureCube ? ID3D11RenderTargetViewDimension.Texture2DArray : ID3D11RenderTargetViewDimension.Texture1DArray;
+                    rtvDescription.ViewDimension = Dimension == TextureDimension.Texture2D || Dimension == TextureDimension.TextureCube ? RtvDimension.RtvDimensionTexture2Darray : RtvDimension.RtvDimensionTexture1Darray;
 
                     // Use rtvDescription.Texture1DArray as it matches also Texture memory layout
-                    rtvDescription.Texture1DArray.ArraySize = arrayCount;
-                    rtvDescription.Texture1DArray.FirstArraySlice = arrayOrDepthSlice;
-                    rtvDescription.Texture1DArray.MipSlice = mipIndex;
+                    var tmp = rtvDescription.Texture1DArray;
+                    tmp.ArraySize = (uint)arrayCount;
+                    tmp.FirstArraySlice = (uint)arrayOrDepthSlice;
+                    tmp.MipSlice = (uint)mipIndex;
+                    rtvDescription.Texture1DArray = tmp;
                 }
             }
             else
@@ -437,33 +480,46 @@ namespace Stride.Graphics
                         throw new NotSupportedException("Multisample is only supported for 2D RenderTarget Textures");
                     }
 
-                    rtvDescription.Dimension = ID3D11RenderTargetViewDimension.Texture2DMultisampled;
+                    rtvDescription.ViewDimension = RtvDimension.RtvDimensionTexture2Dms;
                 }
                 else
                 {
                     switch (ViewDimension)
                     {
                         case TextureDimension.Texture1D:
-                            rtvDescription.Dimension = ID3D11RenderTargetViewDimension.Texture1D;
-                            rtvDescription.Texture1D.MipSlice = mipIndex;
+                            rtvDescription.ViewDimension = RtvDimension.RtvDimensionTexture1D;
+                            var t1d = rtvDescription.Texture1D;
+                            t1d.MipSlice = (uint)mipIndex;
+                            rtvDescription.Texture1D = t1d;
                             break;
                         case TextureDimension.Texture2D:
-                            rtvDescription.Dimension = ID3D11RenderTargetViewDimension.Texture2D;
-                            rtvDescription.Texture2D.MipSlice = mipIndex;
+
+                            rtvDescription.ViewDimension = RtvDimension.RtvDimensionTexture2D;
+                            var t2d = rtvDescription.Texture2D;
+                            t2d.MipSlice = (uint)mipIndex;
+                            rtvDescription.Texture2D = t2d;
                             break;
                         case TextureDimension.Texture3D:
-                            rtvDescription.Dimension = ID3D11RenderTargetViewDimension.Texture3D;
-                            rtvDescription.Texture3D.DepthSliceCount = arrayCount;
-                            rtvDescription.Texture3D.FirstDepthSlice = arrayOrDepthSlice;
-                            rtvDescription.Texture3D.MipSlice = mipIndex;
+                            rtvDescription.ViewDimension = RtvDimension.RtvDimensionTexture3D;
+                            var t3d = rtvDescription.Texture3D;
+                            t3d.MipSlice = (uint)arrayCount;
+                            t3d.FirstWSlice = (uint)arrayOrDepthSlice;
+                            t3d.MipSlice = (uint)mipIndex;
+                            rtvDescription.Texture3D = t3d;
                             break;
                         case TextureDimension.TextureCube:
                             throw new NotSupportedException("TextureCube dimension is expecting an arraysize > 1");
                     }
                 }
             }
-
-            return new ID3D11RenderTargetView(GraphicsDevice.NativeDevice, NativeResource, rtvDescription);
+            unsafe
+            {
+                //return new ID3D11RenderTargetView(GraphicsDevice.NativeDevice, NativeResource, rtvDescription);
+                ID3D11RenderTargetView* rtv = null;
+                fixed (ID3D11Resource* res = &nativeResource)
+                    GraphicsDevice.NativeDevice.CreateRenderTargetView(res, &rtvDescription, &rtv);
+                return *rtv;
+            }
         }
 
         /// <summary>
@@ -475,8 +531,8 @@ namespace Stride.Graphics
         /// <returns>An <see cref="UnorderedAccessView" /></returns>
         private ID3D11UnorderedAccessView GetUnorderedAccessView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
         {
-            if (!IsUnorderedAccess)
-                return null;
+            //if (!IsUnorderedAccess)
+            //    return null;
 
             if (IsMultisample)
                 throw new NotSupportedException("Multisampling is not supported for unordered access views");
@@ -485,9 +541,9 @@ namespace Stride.Graphics
             int mipCount;
             GetViewSliceBounds(viewType, ref arrayOrDepthSlice, ref mipIndex, out arrayCount, out mipCount);
 
-            var uavDescription = new UnorderedAccessViewDescription
+            var uavDescription = new UnorderedAccessViewDesc
             {
-                Format = (SharpDX.DXGI.Format)ViewFormat,
+                Format = (Format)ViewFormat,
             };
 
             if (ArraySize > 1)
@@ -495,37 +551,44 @@ namespace Stride.Graphics
                 switch (ViewDimension)
                 {
                     case TextureDimension.Texture1D:
-                        uavDescription.Dimension = UnorderedAccessViewDimension.Texture1DArray;
+                        uavDescription.ViewDimension = UavDimension.UavDimensionTexture1Darray;
                         break;
                     case TextureDimension.TextureCube:
                     case TextureDimension.Texture2D:
-                        uavDescription.Dimension = UnorderedAccessViewDimension.Texture2DArray;
+                        uavDescription.ViewDimension = UavDimension.UavDimensionTexture2Darray;
                         break;
                     case TextureDimension.Texture3D:
                         throw new NotSupportedException("Texture 3D is not supported for Texture Arrays");
                 }
-
-                uavDescription.Texture1DArray.ArraySize = arrayCount;
-                uavDescription.Texture1DArray.FirstArraySlice = arrayOrDepthSlice;
-                uavDescription.Texture1DArray.MipSlice = mipIndex;
+                var tmp = uavDescription.Texture1DArray;
+                tmp.ArraySize = (uint)arrayCount;
+                tmp.FirstArraySlice = (uint)arrayOrDepthSlice;
+                tmp.MipSlice = (uint)mipIndex;
+                uavDescription.Texture1DArray = tmp;
             }
             else
             {
                 switch (ViewDimension)
                 {
                     case TextureDimension.Texture1D:
-                        uavDescription.Dimension = UavDimension.UavDimensionTexture1D;
-                        uavDescription.Texture1D.MipSlice = mipIndex;
+                        uavDescription.ViewDimension = UavDimension.UavDimensionTexture1D;
+                        var t1d = uavDescription.Texture1D;
+                        t1d.MipSlice = (uint)mipIndex;
+                        uavDescription.Texture1D = t1d;
                         break;
                     case TextureDimension.Texture2D:
-                        uavDescription.Dimension = UavDimension.UavDimensionTexture2D;
-                        uavDescription.Texture2D.MipSlice = mipIndex;
+                        uavDescription.ViewDimension = UavDimension.UavDimensionTexture2D;
+                        var t2d = uavDescription.Texture2D;
+                        t2d.MipSlice = (uint)mipIndex;
+                        uavDescription.Texture2D = t2d;
                         break;
                     case TextureDimension.Texture3D:
-                        uavDescription.Dimension = UavDimension.UavDimensionTexture3D;
-                        uavDescription.Texture3D.FirstWSlice = arrayOrDepthSlice;
-                        uavDescription.Texture3D.MipSlice = mipIndex;
-                        uavDescription.Texture3D.WSize = arrayCount;
+                        uavDescription.ViewDimension = UavDimension.UavDimensionTexture3D;
+                        var t3d = uavDescription.Texture3D;
+                        t3d.FirstWSlice = (uint)arrayOrDepthSlice;
+                        t3d.MipSlice = (uint)mipIndex;
+                        t3d.WSize = (uint)arrayCount;
+                        uavDescription.Texture3D = t3d;
                         break;
                     case TextureDimension.TextureCube:
                         throw new NotSupportedException("TextureCube dimension is expecting an array size > 1");
@@ -533,9 +596,10 @@ namespace Stride.Graphics
             }
             unsafe
             {
-                ID3D11UnorderedAccessView res;
-                GraphicsDevice.NativeDevice.CreateUnorderedAccessView(NativeResourcePtr, uavDescription, &res);
-                return res;
+                ID3D11UnorderedAccessView* uav = null;
+                fixed(ID3D11Resource* res = &nativeResource)
+                    GraphicsDevice.NativeDevice.CreateUnorderedAccessView(res, &uavDescription, &uav);
+                return *uav;
             }
         }
 
@@ -556,24 +620,28 @@ namespace Stride.Graphics
             var depthStencilViewDescription = new DepthStencilViewDesc
             {
                 Format = ComputeDepthViewFormatFromTextureFormat(ViewFormat),
-                Flags = DepthStencilViewFlags.None,
+                Flags = 0,
             };
 
             if (ArraySize > 1)
             {
-                depthStencilViewDescription.Dimension = DepthStencilViewDimension.Texture2DArray;
-                depthStencilViewDescription.Texture2DArray.ArraySize = ArraySize;
-                depthStencilViewDescription.Texture2DArray.FirstArraySlice = 0;
-                depthStencilViewDescription.Texture2DArray.MipSlice = 0;
+                depthStencilViewDescription.ViewDimension = DsvDimension.DsvDimensionTexture2Darray;
+                var tmp = depthStencilViewDescription.Texture2DArray;
+                tmp.ArraySize = (uint)ArraySize;
+                tmp.FirstArraySlice = 0;
+                tmp.MipSlice = 0;
+                depthStencilViewDescription.Texture2DArray = tmp;
             }
             else
             {
-                depthStencilViewDescription.Dimension = DepthStencilViewDimension.Texture2D;
-                depthStencilViewDescription.Texture2D.MipSlice = 0;
+                depthStencilViewDescription.ViewDimension = DsvDimension.DsvDimensionTexture2D;
+                var tmp = depthStencilViewDescription.Texture2D;
+                tmp.MipSlice = 0;
+                depthStencilViewDescription.Texture2D = tmp;
             }
 
             if (MultisampleCount > MultisampleCount.None)
-                depthStencilViewDescription.Dimension = DepthStencilViewDimension.Texture2DMultisampled;
+                depthStencilViewDescription.ViewDimension = DsvDimension.DsvDimensionTexture2Dms;
 
             if (IsDepthStencilReadOnly)
             {
@@ -581,12 +649,18 @@ namespace Stride.Graphics
                     throw new NotSupportedException("Cannot instantiate ReadOnly DepthStencilBuffer. Not supported on this device.");
 
                 // Create a Depth stencil view on this texture2D
-                depthStencilViewDescription.Flags = DepthStencilViewFlags.ReadOnlyDepth;
+                depthStencilViewDescription.Flags = (uint)DsvFlag.DsvReadOnlyDepth;
                 if (HasStencil)
-                    depthStencilViewDescription.Flags |= DepthStencilViewFlags.ReadOnlyStencil;
+                    depthStencilViewDescription.Flags |= (uint)DsvFlag.DsvReadOnlyStencil;
             }
-
-            return new DepthStencilView(GraphicsDevice.NativeDevice, NativeResource, depthStencilViewDescription);
+            unsafe
+            {
+                //return new DepthStencilView(GraphicsDevice.NativeDevice, NativeResource, depthStencilViewDescription);
+                ID3D11DepthStencilView* dsv = null;
+                fixed (ID3D11Resource* res = &nativeResource)
+                    GraphicsDevice.NativeDevice.CreateDepthStencilView(res, &depthStencilViewDescription, &dsv);
+                return *dsv;
+            }
         }
 
         internal static BindFlag GetBindFlagsFromTextureFlags(TextureFlags flags)
@@ -640,7 +714,7 @@ namespace Stride.Graphics
         private Format ComputeShaderResourceViewFormat()
         {
             // Special case for DepthStencil ShaderResourceView that are bound as Float
-            var viewFormat = (SharpDX.DXGI.Format)ViewFormat;
+            var viewFormat = (Format)ViewFormat;
             if (IsDepthStencil)
             {
                 viewFormat = (Format)ComputeShaderResourceFormatFromDepthFormat(ViewFormat);
@@ -755,7 +829,7 @@ namespace Stride.Graphics
                 Height = (uint)textureDescription.Height,
                 ArraySize = (uint)textureDescription.ArraySize,
                 SampleDesc = new SampleDesc((uint)textureDescription.MultisampleCount, (uint)quality),
-                BindFlags = GetBindFlagsFromTextureFlags(flags),
+                BindFlags = (uint)GetBindFlagsFromTextureFlags(flags),
                 Format = format,
                 MipLevels = (uint)textureDescription.MipLevels,
                 Usage = (Usage)textureDescription.Usage,
@@ -836,7 +910,7 @@ namespace Stride.Graphics
                 Width = (uint)textureDescription.Width,
                 Height = (uint)textureDescription.Height,
                 Depth = (uint)textureDescription.Depth,
-                BindFlags = GetBindFlagsFromTextureFlags(textureDescription.Flags),
+                BindFlags = (uint)GetBindFlagsFromTextureFlags(textureDescription.Flags),
                 Format = (Format)textureDescription.Format,
                 MipLevels = (uint)textureDescription.MipLevels,
                 Usage = (Usage)textureDescription.Usage,

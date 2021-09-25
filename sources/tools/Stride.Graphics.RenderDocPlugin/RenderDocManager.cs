@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 using Microsoft.Win32;
+using Silk.NET.Direct3D11;
 
 namespace Stride.Graphics
 {
@@ -105,7 +106,14 @@ namespace Stride.Graphics
             var devicePointer = IntPtr.Zero;
 #if STRIDE_GRAPHICS_API_DIRECT3D11 || STRIDE_GRAPHICS_API_DIRECT3D12
             if (graphicsDevice != null)
-                devicePointer = ((SharpDX.CppObject)SharpDXInterop.GetNativeDevice(graphicsDevice)).NativePointer;
+            {
+                //devicePointer = ((SharpDX.CppObject)SharpDXInterop.GetNativeDevice(graphicsDevice)).NativePointer;
+                unsafe
+                {
+                    fixed (ID3D11Device* dev = &graphicsDevice.nativeDevice)
+                        devicePointer = (IntPtr)dev;
+                }
+            }
 #endif
             return devicePointer;
         }

@@ -4,7 +4,7 @@
 
 using System;
 using System.Text;
-using SharpDX.Direct3D11;
+using Silk.NET.Direct3D11;
 using Valve.VR;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -227,21 +227,31 @@ namespace Stride.VirtualReality
 
         public static bool Submit(int eyeIndex, Texture texture, ref RectangleF viewport)
         {
-            var tex = new Texture_t
+            unsafe
             {
-                eType = ETextureType.DirectX,
-                eColorSpace = EColorSpace.Auto,
-                handle = texture.NativeResource.NativePointer,
-            };
-            var bounds = new VRTextureBounds_t
-            {
-                uMin = viewport.X,
-                uMax = viewport.Width,
-                vMin = viewport.Y,
-                vMax = viewport.Height,
-            };
 
-            return Valve.VR.OpenVR.Compositor.Submit(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, ref tex, ref bounds, EVRSubmitFlags.Submit_Default) == EVRCompositorError.None;
+                fixed(ID3D11Resource* res = &texture.nativeResource)
+                {
+
+                    var tex = new Texture_t
+                    {
+                        eType = ETextureType.DirectX,
+                        eColorSpace = EColorSpace.Auto,
+                        handle = (IntPtr)res,
+                    };
+                    var bounds = new VRTextureBounds_t
+                    {
+                        uMin = viewport.X,
+                        uMax = viewport.Width,
+                        vMin = viewport.Y,
+                        vMax = viewport.Height,
+                    };
+
+
+                    return Valve.VR.OpenVR.Compositor.Submit(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, ref tex, ref bounds, EVRSubmitFlags.Submit_Default) == EVRCompositorError.None;
+
+                }
+            }
         }
 
         public static void GetEyeToHead(int eyeIndex, out Matrix pose)
@@ -403,16 +413,22 @@ namespace Stride.VirtualReality
 
         public static Texture GetMirrorTexture(GraphicsDevice device, int eyeIndex)
         {
-            var nativeDevice = device.NativeDevice.NativePointer;
-            var eyeTexSrv = IntPtr.Zero;
-            Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, nativeDevice, ref eyeTexSrv);
+            unsafe
+            {
+                var eyeTexSrv = IntPtr.Zero;
+                fixed (ID3D11Device* nativeDevice = &device.nativeDevice)
+                    Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, (IntPtr)nativeDevice, ref eyeTexSrv);
             
-            var tex = new Texture(device);
-            var srv = new ShaderResourceView(eyeTexSrv);
+                var tex = new Texture(device);
+            
+                var srv = (ID3D11ShaderResourceView*)eyeTexSrv;
 
-            tex.InitializeFromImpl(srv);
+                tex.InitializeFromImpl(*srv);
+            
+            
 
-            return tex;
+                return tex;
+            }
         }
 
         public static ulong CreateOverlay()
@@ -430,14 +446,22 @@ namespace Stride.VirtualReality
 
         public static bool SubmitOverlay(ulong overlayId, Texture texture)
         {
-            var tex = new Texture_t
+            unsafe
             {
-                eType = ETextureType.DirectX,
-                eColorSpace = EColorSpace.Auto,
-                handle = texture.NativeResource.NativePointer,
-            };
-           
-            return Valve.VR.OpenVR.Overlay.SetOverlayTexture(overlayId, ref tex) == EVROverlayError.None;
+                fixed(ID3D11Resource* res = &texture.nativeResource)
+                {
+                    var tex = new Texture_t
+                    {
+                        eType = ETextureType.DirectX,
+                        eColorSpace = EColorSpace.Auto,
+                        handle = (IntPtr)res,
+                    };
+
+                    return Valve.VR.OpenVR.Overlay.SetOverlayTexture(overlayId, ref tex) == EVROverlayError.None;
+                }
+
+            }
+            
         }
 
         public static unsafe void SetOverlayParams(ulong overlayId, Matrix transform, bool followsHead, Vector2 surfaceSize)

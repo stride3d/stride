@@ -6,7 +6,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using SharpDX.MediaFoundation;
+using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
 using Stride.Core;
 using Stride.Core.IO;
 using Stride.Core.Serialization;
@@ -19,7 +20,7 @@ namespace Stride.Video
     {
         private MediaEngine mediaEngine;
         private Texture videoOutputTexture;
-        private SharpDX.DXGI.Surface videoOutputSurface;
+        private Silk.NET.DXGI.IDXGISurface videoOutputSurface;
         private Stream videoFileStream;
         private ByteStream videoDataStream;
 
@@ -45,8 +46,8 @@ namespace Stride.Video
             //videoFileStream?.Dispose();
             //videoFileStream = null;
             
-            videoOutputSurface?.Dispose();
-            videoOutputSurface = null; 
+            videoOutputSurface.Release();
+            //videoOutputSurface = null; 
             videoOutputTexture?.Dispose();
             videoOutputTexture = null;
         }
@@ -94,7 +95,7 @@ namespace Stride.Video
 
         partial void UpdateImpl(ref TimeSpan elapsed)
         {
-            if (videoOutputSurface == null || PlayState == PlayState.Stopped)
+            if (PlayState == PlayState.Stopped)
                 return;
 
             //Transfer frame if a new one is available
@@ -132,7 +133,7 @@ namespace Stride.Video
                     }
                 }
 
-                if (videoComponent.Target != null && videoOutputSurface != null && videoOutputTexture != null)
+                if (videoComponent.Target != null && videoOutputTexture != null)
                 {
                     videoTexture.SetTargetContentToVideoStream(videoComponent.Target);
 
@@ -202,7 +203,12 @@ namespace Stride.Video
 
             //Get DXGI surface to be used by our media engine
             videoOutputTexture = Texture.New2D(GraphicsDevice, videoWidth, videoHeight, 1, PixelFormat.B8G8R8A8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
-            videoOutputSurface = videoOutputTexture.NativeResource.QueryInterface<SharpDX.DXGI.Surface>();
+            unsafe
+            {
+                var suraceGuid = ID3D11Surface
+                videoOutputSurface = videoOutputTexture.nativeResource.QueryInterface<Surface>();
+
+            }
 
             AllocateVideoTexture(videoWidth, videoHeight);
 

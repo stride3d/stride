@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SharpDX.Direct3D11;
+using Silk.NET.Direct3D11;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
@@ -56,16 +56,25 @@ namespace Stride.VirtualReality
             //Game.GraphicsDeviceManager.RequiredAdapterUid = adapterId.ToString(); //should not be needed
 
             int texturesCount;
-            if (!OculusOvr.CreateTexturesDx(ovrSession, device.NativeDevice.NativePointer, out texturesCount, RenderFrameScaling, requireMirror ? mirrorWidth : 0, requireMirror ? mirrorHeight : 0))
+            unsafe
             {
-                throw new Exception(OculusOvr.GetError());
+                fixed(ID3D11Device* dev = &device.nativeDevice)
+                if (!OculusOvr.CreateTexturesDx(ovrSession, (IntPtr)dev, out texturesCount, RenderFrameScaling, requireMirror ? mirrorWidth : 0, requireMirror ? mirrorHeight : 0))
+                {
+                    throw new Exception(OculusOvr.GetError());
+                }
             }
+            
 
             if (requireMirror)
             {
                 var mirrorTex = OculusOvr.GetMirrorTexture(ovrSession, Dx11Texture2DGuid);
                 MirrorTexture = new Texture(device);
-                MirrorTexture.InitializeFromImpl(new Texture2D(mirrorTex), false);
+                unsafe
+                {
+                    MirrorTexture.InitializeFromImpl(new ID3D11Texture2D((void**)mirrorTex), false);
+
+                }
             }
 
             textures = new Texture[texturesCount];
@@ -78,7 +87,10 @@ namespace Stride.VirtualReality
                 }
 
                 textures[i] = new Texture(device);
-                textures[i].InitializeFromImpl(new Texture2D(ptr), false);
+                unsafe
+                {
+                    textures[i].InitializeFromImpl(new ID3D11Texture2D((void**)ptr), false);
+                }
             }
 
             ActualRenderFrameSize = new Size2(textures[0].Width, textures[0].Height);
