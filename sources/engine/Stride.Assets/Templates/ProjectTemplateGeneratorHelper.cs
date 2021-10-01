@@ -120,11 +120,8 @@ namespace Stride.Assets.Templates
                     package.Session.Projects.Remove(existingProject);
                 }
 
-                if (platform.Platform.Type == PlatformType.Windows)
-                {
-                    var isNETFramework = RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework");
-                    AddOption(parameters, "TargetFramework", isNETFramework ? "net461" : "net5.0-windows");
-                }
+                AddOption(parameters, "TargetFramework", platform.Platform.TargetFramework);
+                AddOption(parameters, "RuntimeIdentifier", platform.Platform.RuntimeIdentifier);
 
                 var projectDirectory = Path.GetDirectoryName(projectFullPath.ToWindowsPath());
                 if (projectDirectory != null && Directory.Exists(projectDirectory))
@@ -280,12 +277,6 @@ namespace Stride.Assets.Templates
 
             AddOption(parameters, "ProjectType", projectType);
             AddOption(parameters, "Namespace", parameters.Namespace ?? Utilities.BuildValidNamespaceName(package.Meta.Name));
-
-            if (platformType == PlatformType.Windows)
-            {
-                var isNETFramework = RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework");
-                AddOption(parameters, "TargetFramework", isNETFramework ? "net461" : "net5.0-windows");
-            }
 
             return projectTemplate;
         }
