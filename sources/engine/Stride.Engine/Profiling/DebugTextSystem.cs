@@ -96,7 +96,7 @@ namespace Stride.Profiling
             // TODO GRAPHICS REFACTOR where to get command list from?
             Game.GraphicsContext.CommandList.SetRenderTargetAndViewport(null, Game.GraphicsDevice.Presenter.BackBuffer);
 
-            var currentColor = overlayMessages.Peek().TextColor;
+            var currentColor = TextColor;
             fastTextRenderer.Begin(Game.GraphicsContext);
             foreach (var msg in overlayMessages)
             {
