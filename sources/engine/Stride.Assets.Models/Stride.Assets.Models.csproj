@@ -13,10 +13,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tools\Stride.Assimp\Stride.Assimp.csproj" PrivateAssets="All" />
-    <ProjectReference Include="..\..\tools\Stride.Assimp.Translation\Stride.Assimp.Translation.vcxproj" PrivateAssets="All" />
-    <ProjectReference Include="..\..\tools\Stride.Importer.Assimp\Stride.Importer.Assimp.vcxproj" PrivateAssets="All" />
-    <ProjectReference Include="..\..\tools\Stride.Importer.Common\Stride.Importer.Common.vcxproj" PrivateAssets="All" />
+    <ProjectReference Include="..\..\tools\Stride.Importer.Assimp\Stride.Importer.Assimp.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.Importer.Common\Stride.Importer.Common.csproj" />
     <ProjectReference Include="..\..\tools\Stride.Importer.FBX\Stride.Importer.FBX.vcxproj" PrivateAssets="All" />
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
   </ItemGroup>
