@@ -32,10 +32,7 @@
     <ItemGroup>
       <!-- Needed by .NET Core runtime to be able to load C++/CLI assemblies -->
       <BuildOutputInPackage Include="$(OutputPath)ijwhost.dll" Condition="Exists('$(OutputPath)ijwhost.dll')" />
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Assimp.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Assimp.Translation.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Assimp.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Assimp.ssdeps" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.FBX.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.FBX.ssdeps" />
       <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Common.dll" />
@@ -47,5 +44,6 @@
       <TfmSpecificPackageFile Include="$(OutputPath)runtimes\win-x64\native\assimp-vc140-mt.dll" PackagePath="runtimes\win-x64\native\assimp-vc140-mt.dll" />
       <TfmSpecificPackageFile Include="$(OutputPath)runtimes\win-x64\native\libfbxsdk.dll" PackagePath="runtimes\win-x64\native\libfbxsdk.dll" />
     </ItemGroup>
+  </Target>
   </Target>
 </Project>
