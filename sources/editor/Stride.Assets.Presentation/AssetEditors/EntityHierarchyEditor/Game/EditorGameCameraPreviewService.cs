@@ -313,7 +313,12 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
                     // Allocate a RT for the incrust
                     GeneratedIncrust = drawContext.GraphicsContext.Allocator.GetTemporaryTexture2D(TextureDescription.New2D((int)Viewport.Width, (int)Viewport.Height, 1, drawContext.CommandList.RenderTarget.Format, TextureFlags.ShaderResource | TextureFlags.RenderTarget));
-                    var depthBuffer = drawContext.CommandList.DepthStencilBuffer != null ? drawContext.GraphicsContext.Allocator.GetTemporaryTexture2D(TextureDescription.New2D((int)Viewport.Width, (int)Viewport.Height, 1, drawContext.CommandList.DepthStencilBuffer.Format, TextureFlags.DepthStencil)) : null;
+
+                    var depthBufferTextureFlags = TextureFlags.DepthStencil;
+                    if (context.GraphicsDevice.Features.HasDepthAsSRV)
+                        depthBufferTextureFlags |= TextureFlags.ShaderResource;
+
+                    var depthBuffer = drawContext.CommandList.DepthStencilBuffer != null ? drawContext.GraphicsContext.Allocator.GetTemporaryTexture2D(TextureDescription.New2D((int)Viewport.Width, (int)Viewport.Height, 1, drawContext.CommandList.DepthStencilBuffer.Format, depthBufferTextureFlags)) : null;
 
                     // Push and set render target
                     using (drawContext.PushRenderTargetsAndRestore())
