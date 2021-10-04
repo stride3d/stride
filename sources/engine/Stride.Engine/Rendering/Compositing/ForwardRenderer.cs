@@ -118,6 +118,12 @@ namespace Stride.Rendering.Compositing
         [DefaultValue(true)]
         public bool BindDepthAsResourceDuringTransparentRendering { get; set; } = true;
 
+        /// <summary>
+        /// If true, render target generated during <see cref="OpaqueRenderStage"/> will be available as a shader resource named OpaqueBase.OpaqueRenderTarget during <see cref="TransparentRenderStage"/>.
+        /// </summary>
+        [DefaultValue(false)]
+        public bool BindOpaqueAsResourceDuringTransparentRendering { get; set; }
+
         protected override void InitializeCore()
         {
             base.InitializeCore();
@@ -546,7 +552,11 @@ namespace Stride.Rendering.Compositing
                         if (depthStencilSRV == null)
                             depthStencilSRV = ResolveDepthAsSRV(drawContext);
 
+                        var renderTargetSRV = ResolveRenderTargetAsSRV(drawContext);
+
                         renderSystem.Draw(drawContext, context.RenderView, TransparentRenderStage);
+
+                        Context.Allocator.ReleaseReference(renderTargetSRV);
                     }
                 }
 
@@ -807,6 +817,42 @@ namespace Stride.Rendering.Compositing
             context.CommandList.SetRenderTargets(depthStencilROCached, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
 
             return depthStencilSRV;
+        }
+
+        private Texture ResolveRenderTargetAsSRV(RenderDrawContext drawContext)
+        {
+            if (!BindOpaqueAsResourceDuringTransparentRendering)
+                return null;
+
+            // Create temporary texture and blit active render target to it
+            var renderTarget = drawContext.CommandList.RenderTargets[0];
+            var renderTargetTexture = Context.Allocator.GetTemporaryTexture2D(renderTarget.Description);
+
+            drawContext.CommandList.Copy(renderTarget, renderTargetTexture);
+
+            // Bind texture as srv in PerView.Opaque
+            var renderView = drawContext.RenderContext.RenderView;
+            foreach (var renderFeature in drawContext.RenderContext.RenderSystem.RenderFeatures)
+            {
+                if (!(renderFeature is RootEffectRenderFeature))
+                    continue;
+
+                var opaqueLogicalKey = ((RootEffectRenderFeature)renderFeature).CreateViewLogicalGroup("Opaque");
+                var viewFeature = renderView.Features[renderFeature.Index];
+
+                foreach (var viewLayout in viewFeature.Layouts)
+                {
+                    var resourceGroup = viewLayout.Entries[renderView.Index].Resources;
+
+                    var opaqueLogicalRenderGroup = viewLayout.GetLogicalGroup(opaqueLogicalKey);
+                    if (opaqueLogicalRenderGroup.Hash == ObjectId.Empty)
+                        continue;
+
+                    resourceGroup.DescriptorSet.SetShaderResourceView(opaqueLogicalRenderGroup.DescriptorSlotStart, renderTargetTexture);
+                }
+            }
+
+            return renderTargetTexture;
         }
 
         private void PrepareRenderTargets(RenderDrawContext drawContext, Texture outputRenderTarget, Texture outputDepthStencil)
