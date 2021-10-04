@@ -184,6 +184,12 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Casts from System.Numerics to Stride.Maths vectors
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator UInt4(System.Numerics.Vector4 v) => new((uint)v.X, (uint)v.Y,(uint)v.Z,(uint)v.W);
+
+        /// <summary>
         ///   Creates an array containing the elements of the vector.
         /// </summary>
         /// <returns>A four-element array containing the components of the vector.</returns>
