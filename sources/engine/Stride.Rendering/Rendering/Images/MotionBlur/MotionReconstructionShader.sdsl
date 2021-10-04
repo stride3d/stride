@@ -24,8 +24,10 @@ shader MotionReconstructionShader : ImageEffectShader
         float2 pos = streams.TexCoord;
         // Color sample at the center point
         const float4 initColor = Texture0.Sample(PointSampler,pos);
-        float j = Halton(-1,1);
-        float2 vmax = Texture3.Sample(PointSampler, pos + JitterTile(pos, Texture0TexelSize, j)).xy;
+        float Random  = InterleavedGradientNoise(pos, 0);
+	    float Random2 = InterleavedGradientNoise(pos, 1);
+        float j = (float2(Random, Random2) - 0.5) * 0.5;
+        float2 vmax = Texture3.Sample(AnisotropicSampler, pos + Texture3TexelSize *j).xy;
         float spMax = length(vmax);
         if(spMax < u_MinimumVelocity) return initColor;
 
@@ -102,9 +104,9 @@ shader MotionReconstructionShader : ImageEffectShader
         return Texture0.Sample(PointSampler, uv).xyz;
     }
 
-    float zCompare(float a, float b)
+    float ZCompare(float SampleDepth, float CenterDepth)
     {
-        return min(max(0,1-(a-b)/min(a,b)),1);
+	    return saturate(0.5 + float2(1, -1) * (SampleDepth - CenterDepth));
     }
 
     float Halton(int b, int i)
@@ -118,12 +120,12 @@ shader MotionReconstructionShader : ImageEffectShader
         }
         return r;
     }
-    float2 JitterTile(float2 uv, float2 txs, float j)
+    /*float2 JitterTile(float2 uv, float2 txs, float j)
     {
         float rx, ry;
-        sincos(GradientNoise(uv + float2(2.0, 0.0)) * j, ry, rx);
+        sincos(InterleavedGradientNoise(uv + float2(2.0, 0.0)) * j, ry, rx);
         return float2(rx, ry) * txs;
-    }
+    }*/
     float2 sOffset(float2 pos, float j)
     {
         float2 randv = random(pos);
@@ -165,11 +167,6 @@ shader MotionReconstructionShader : ImageEffectShader
     {
 	    return saturate(1.0 - (_a - _b) / _radius);
     }
-
-    float ZCompare(in float _a, in float _b)
-    {
-	    return min(1.0, max(0.0, 1.0 - (_a - _b) / min(_a, _b)));
-    }
     float2 RNMix(in float2 _a, in float2 _b, in float _theta)
     {
 	    return normalize(lerp(_a, _b, _theta));
@@ -182,17 +179,11 @@ shader MotionReconstructionShader : ImageEffectShader
         return -1.0 + 2.0*frac(sin(st)*43758.5453123);
     }
 
-    // Gradient Noise by Inigo Quilez - iq/2013
-    // https://www.shadertoy.com/view/XdXGW8
-    float GradientNoise(float2 st) {
-        float2 i = floor(st);
-        float2 f = frac(st);
+    float InterleavedGradientNoise( float2 uv, float FrameId )
+    {
+	    uv += FrameId * (float2(47, 17) * 0.695f);
 
-        float2 u = f*f*(3.0-2.0*f);
-
-        return lerp( lerp( dot( random2(i + float2(0.0,0.0) ), f - float2(0.0,0.0) ),
-                         dot( random2(i + float2(1.0,0.0) ), f - float2(1.0,0.0) ), u.x),
-                    lerp( dot( random2(i + float2(0.0,1.0) ), f - float2(0.0,1.0) ),
-                         dot( random2(i + float2(1.0,1.0) ), f - float2(1.0,1.0) ), u.x), u.y);
+        const float3 magic = float3( 0.06711056f, 0.00583715f, 52.9829189f );
+        return frac(magic.z * frac(dot(uv, magic.xy)));
     }
 };
