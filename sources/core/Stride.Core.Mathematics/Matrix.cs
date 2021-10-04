@@ -31,6 +31,7 @@
 #pragma warning disable SA1313 // Parameter names must begin with lower-case letter
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics
@@ -443,6 +444,23 @@ namespace Stride.Core.Mathematics
                     default: throw new ArgumentOutOfRangeException("index", "Indices for Matrix run from 0 to 15, inclusive.");
                 }
             }
+        }
+
+        /// <summary>
+        /// Casts from System.Numerics to Stride.Maths matrix
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator Matrix(System.Numerics.Matrix4x4 v)
+        {
+            return Unsafe.As<System.Numerics.Matrix4x4, Matrix>(ref v);
+        }
+        /// <summary>
+        /// Casts from Stride.Maths to System.Numerics matrix
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator System.Numerics.Matrix4x4(Matrix v)
+        {
+            return Unsafe.As<Matrix, System.Numerics.Matrix4x4>(ref v);
         }
 
         /// <summary>

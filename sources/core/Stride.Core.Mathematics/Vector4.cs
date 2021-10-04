@@ -226,6 +226,15 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Casts from Stride.Maths to System.Numerics vectors
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static implicit operator System.Numerics.Vector4(Vector4 v)
+        {
+            return Unsafe.As<Vector4, System.Numerics.Vector4>(ref v);
+        }
+
+        /// <summary>
         /// Calculates the length of the vector.
         /// </summary>
         /// <returns>The length of the vector.</returns>

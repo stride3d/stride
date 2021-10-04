@@ -211,6 +211,12 @@ namespace Stride.Core.Mathematics
         public static implicit operator Double4(System.Numerics.Vector4 v) => new(v.X, v.Y, v.Z, v.W);
 
         /// <summary>
+        /// Casts from Stride.Maths to System.Numerics vectors
+        /// </summary>
+        /// <param name="v">Value to cast</param>
+        public static explicit operator System.Numerics.Vector4(Double4 v) => new((float)v.X, (float)v.Y,(float)v.Z,(float)v.W);
+
+        /// <summary>
         /// Calculates the length of the vector.
         /// </summary>
         /// <returns>The length of the vector.</returns>
