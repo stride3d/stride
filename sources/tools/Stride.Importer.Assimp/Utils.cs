@@ -1,4 +1,4 @@
-﻿using Stride.Animations;
+using Stride.Animations;
 using Stride.Core.Mathematics;
 using System;
 using System.Collections.Generic;
@@ -36,7 +36,7 @@ namespace Stride.Importer.Assimp
         {
             var n = 0;
             var AI_MAX_NUMBER_OF_TEXTURECOORDS = 8;
-            while (n < AI_MAX_NUMBER_OF_TEXTURECOORDS && mesh->MColors[n] != null)
+            while (n < AI_MAX_NUMBER_OF_TEXTURECOORDS && mesh->MTextureCoords[n] != null)
             {
                 ++n;
             }
