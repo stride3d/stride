@@ -21,6 +21,7 @@ using Stride.Importer.Common;
 using Stride.Animations;
 using Stride.Rendering.Materials.ComputeColors;
 using System.IO;
+using Stride.Core.Serialization;
 
 namespace Stride.Importer.Assimp
 {
@@ -913,14 +914,14 @@ namespace Stride.Importer.Assimp
 
 
                 var aiMaterial = new AssimpString();
-                var materialName = assimp.GetMaterialString(lMaterial, "?mat.name", 0, 0, ref aiMaterial) == Return.ReturnSuccess ? aiMaterial.AsString : "Material";
+                var materialName = assimp.GetMaterialString(lMaterial, Silk.NET.Assimp.Assimp.MaterialNameBase, 0, 0, ref aiMaterial) == Return.ReturnSuccess ? aiMaterial.AsString : "Material";
                 baseNames.Add(materialName);
             }
 
             GenerateUniqueNames(materialNames, baseNames, i => (IntPtr)scene->MMaterials[i]);
         }
 
-        private unsafe MaterialAsset ProcessMeshMaterial(Material* pMaterial)
+        private unsafe MaterialAsset ProcessMeshMaterial(Silk.NET.Assimp.Material* pMaterial)
         {
             var finalMaterial = new MaterialAsset();
 
@@ -932,19 +933,19 @@ namespace Stride.Importer.Assimp
             var specColor = System.Numerics.Vector4.Zero;
             var dummyColor = System.Numerics.Vector4.Zero;
 
-            if (assimp.GetMaterialColor(pMaterial, "$clr.diffuse", 0, 0, ref diffColor) == Return.ReturnSuccess) // always keep black color for diffuse
+            if (assimp.GetMaterialColor(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorDiffuseBase, 0, 0, ref diffColor) == Return.ReturnSuccess) // always keep black color for diffuse
             {
                 hasDiffColor = true;
             }
 
-            if (assimp.GetMaterialColor(pMaterial, "$clr.specular", 0, 0, ref specColor) == Return.ReturnSuccess)
+            if (assimp.GetMaterialColor(pMaterial, Silk.NET.Assimp.Assimp.MaterialColorSpecularBase, 0, 0, ref specColor) == Return.ReturnSuccess)
             {
                 hasSpecColor = true;
             }
 
             BuildLayeredSurface(pMaterial, hasDiffColor, false, diffColor.ToStrideColor(), 0.0f, TextureType.TextureTypeDiffuse, finalMaterial);
             BuildLayeredSurface(pMaterial, hasSpecColor, false, specColor.ToStrideColor(), 0.0f, TextureType.TextureTypeSpecular, finalMaterial);
-            BuildLayeredSurface(pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.TextureTypeNormalCamera, finalMaterial);
+            BuildLayeredSurface(pMaterial, false, false, dummyColor.ToStrideColor(), 0.0f, TextureType.TextureTypeNormals, finalMaterial);
 
             return finalMaterial;
         }
@@ -1045,10 +1046,164 @@ namespace Stride.Importer.Assimp
             }
         }
 
-        private unsafe IComputeColor GenerateOneTextureTypeLayers(Material* pMat, TextureType textureType, int textureCount, MaterialAsset finalMaterial)
+        private unsafe IComputeColor GenerateOneTextureTypeLayers(Silk.NET.Assimp.Material* pMat, TextureType textureType, int textureCount, MaterialAsset finalMaterial)
         {
-            // TODO: Implement properly
-            return new ComputeTextureColor();
+            var stack = Material.Materials.ConvertAssimpStackCppToCs(assimp, pMat, textureType);
+
+            var compositionFathers = new Stack<IComputeColor>();
+
+            var sets = new Stack<int>();
+            sets.Push(0);
+
+            var nbTextures = assimp.GetMaterialTextureCount(pMat, textureType);
+
+            IComputeColor curComposition = null, newCompositionFather = null;
+
+            var isRootElement = true;
+            IComputeColor rootMaterial = null;
+
+            while (!stack.IsEmpty)
+            {
+                var top = stack.Pop();
+
+                IComputeColor curCompositionFather = null;
+                if (!isRootElement)
+                {
+                    if (compositionFathers.Count == 0)
+                        Logger.Error("Texture Stack Invalid : Operand without Operation.");
+
+                    curCompositionFather = compositionFathers.Pop();
+                }
+
+                var set = sets.Pop();
+
+                var type = top.type;
+                var strength = top.blend;
+                var alpha = top.alpha;
+
+                if (type == Material.StackType.Operation)
+                {
+                    var realTop = (Material.StackOperation)top;
+                    var op = realTop.operation;
+                    var binNode = new ComputeBinaryColor(null, null, BinaryOperator.Add);
+
+                    switch (op)
+                    {
+                        case Material.Operation.Add3ds:
+                        case Material.Operation.AddMaya:
+                            binNode.Operator = BinaryOperator.Add;
+                            break;
+                        case Material.Operation.Multiply3ds:
+                        case Material.Operation.MultiplyMaya:
+                            binNode.Operator = BinaryOperator.Multiply;
+                            break;
+                        default:
+                            binNode.Operator = BinaryOperator.Add;
+                            break;
+                    }
+
+                    curComposition = binNode;
+                }
+                else if (type == Material.StackType.Color)
+                {
+                    var realTop = (Material.StackColor)top;
+                    var ol = realTop.color;
+                    curComposition = new ComputeColor(new Color4(ol.R, ol.G, ol.B, alpha));
+                }
+                else if (type == Material.StackType.Texture)
+                {
+                    var realTop = (Material.StackTexture)top;
+                    var texPath = realTop.texturePath;
+                    var indexUV = realTop.channel;
+                    curComposition = GetTextureReferenceNode(vfsOutputFilename, texPath, (uint)indexUV, Vector2.One, ConvertTextureMode(realTop.mappingModeU), ConvertTextureMode(realTop.mappingModeV), finalMaterial);
+                }
+
+                newCompositionFather = curComposition;
+
+                if (strength != 1.0f)
+                {
+                    var strengthAlpha = strength;
+                    if (type != Material.StackType.Color)
+                        strengthAlpha *= alpha;
+
+                    var factorComposition = new ComputeFloat4(new Vector4(strength, strength, strength, strengthAlpha));
+                    curComposition = new ComputeBinaryColor(curComposition, factorComposition, BinaryOperator.Multiply);
+                }
+                else if (alpha != 1.0f && type != Material.StackType.Color)
+                {
+                    var factorComposition = new ComputeFloat4(new Vector4(1.0f, 1.0f, 1.0f, alpha));
+                    curComposition = new ComputeBinaryColor(curComposition, factorComposition, BinaryOperator.Multiply);
+                }
+
+                if (isRootElement)
+                {
+                    rootMaterial = curComposition;
+                    isRootElement = false;
+                    compositionFathers.Push(curCompositionFather);
+                }
+                else
+                {
+                    if (set == 0)
+                    {
+                        ((ComputeBinaryColor)curCompositionFather).LeftChild = curComposition;
+                        compositionFathers.Push(curCompositionFather);
+                        sets.Push(1);
+                    }
+                    else if (set == 1)
+                    {
+                        ((ComputeBinaryColor)curCompositionFather).RightChild = curComposition;
+                    }
+                    else
+                    {
+                        Logger.Error($"Texture Stack Invalid : Invalid Operand Number {set}.");
+                    }
+                }
+
+                if (type == Material.StackType.Operation)
+                {
+                    compositionFathers.Push(newCompositionFather);
+                    sets.Push(0);
+                }
+            }
+
+            return rootMaterial;
+        }
+
+        private static TextureAddressMode ConvertTextureMode(Material.MappingMode mappingMode)
+        {
+            switch (mappingMode)
+            {
+                case Material.MappingMode.Clamp:
+                    return TextureAddressMode.Clamp;
+                case Material.MappingMode.Decal:
+                    return TextureAddressMode.Border;
+                case Material.MappingMode.Mirror:
+                    return TextureAddressMode.Mirror;
+                default:
+                case Material.MappingMode.Wrap:
+                    return TextureAddressMode.Wrap;
+            }
+        }
+
+        private ComputeTextureColor GetTextureReferenceNode(string vfsOutputPath, string sourceTextureFile, uint textureUVSetIndex, Vector2 textureUVscaling, TextureAddressMode addressModeU, TextureAddressMode addressModeV, MaterialAsset finalMaterial)
+        {
+            // TODO: compare with FBX importer - see if there could be some conflict between texture names
+            var textureValue = TextureLayerGenerator.GenerateMaterialTextureNode(vfsOutputPath, sourceTextureFile, textureUVSetIndex, textureUVscaling, addressModeU, addressModeV, Logger);
+
+            var attachedReference = AttachedReferenceManager.GetAttachedReference(textureValue.Texture);
+            var referenceName = attachedReference.Url;
+
+            // find a new and correctName
+            if (!textureNameCount.ContainsKey(referenceName))
+                textureNameCount.Add(referenceName, 1);
+            else
+            {
+                int count = textureNameCount[referenceName];
+                textureNameCount[referenceName] = count + 1;
+                referenceName = string.Concat(referenceName, "_", count);
+            }
+
+            return textureValue;
         }
 
         private unsafe List<MeshParameters> ExtractModels(Scene* scene, Dictionary<IntPtr, string> meshNames, Dictionary<IntPtr, string> materialNames, Dictionary<IntPtr, string> nodeNames)
@@ -1202,7 +1357,7 @@ namespace Stride.Importer.Assimp
 
     public unsafe class MaterialInstances
     {
-        public Material* SourceMaterial;
+        public Silk.NET.Assimp.Material* SourceMaterial;
         public List<MaterialInstantiation> Instances = new List<MaterialInstantiation>();
         public string MaterialsName;
     }

@@ -35,7 +35,6 @@ namespace Stride.Importer.Assimp
         public static unsafe uint GetNumUVChannels(Silk.NET.Assimp.Mesh* mesh)
         {
             var n = 0;
-            var AI_MAX_NUMBER_OF_TEXTURECOORDS = 8;
             while (n < AI_MAX_NUMBER_OF_TEXTURECOORDS && mesh->MTextureCoords[n] != null)
             {
                 ++n;
@@ -47,7 +46,6 @@ namespace Stride.Importer.Assimp
         public static unsafe uint GetNumColorChannels(Silk.NET.Assimp.Mesh* mesh)
         {
             var n = 0;
-            var AI_MAX_NUMBER_OF_COLOR_SETS = 8;
             while (n < AI_MAX_NUMBER_OF_COLOR_SETS && mesh->MColors[n] != null)
             {
                 ++n;
