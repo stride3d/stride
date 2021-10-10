@@ -294,6 +294,19 @@ namespace Stride.Shaders.Parser.Mixins
             ProcessInitialValueStatus = false;
         }
 
+        public override void Visit(TypeName typeName)
+        {
+            if (typeName.IsByteAddressBufferType())
+            {
+                Write("Buffer");
+                ProcessInitialValueStatus = false;
+            }
+            else
+            {
+                base.Visit(typeName);
+            }
+        }
+
         /// <summary>
         /// Visits the specified for each statement.
         /// </summary>
