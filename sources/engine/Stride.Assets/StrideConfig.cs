@@ -7,6 +7,7 @@ using System.Linq;
 using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.VisualStudio;
+using System.Runtime.InteropServices;
 
 namespace Stride.Assets
 {
@@ -61,7 +62,7 @@ namespace Stride.Assets
             {
                 Name = PlatformType.Windows.ToString(),
                 IsAvailable = true,
-                TargetFramework = "net5.0",
+                TargetFramework = "net5.0-windows",
                 RuntimeIdentifier = "win-x64",
                 Type = PlatformType.Windows
             };

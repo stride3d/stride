@@ -59,7 +59,7 @@
   <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
     <!-- Add net5.0 no matter what (needed for references) -->
     <StrideRuntimeTargetFrameworks>net5.0</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsNet5)' == 'true'">$(StrideRuntimeTargetFrameworks);net5.0-windows</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsNet5)' == 'true'">$(StrideRuntimeTargetFrameworks);net5.0-windows7.0</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);uap10.0.16299</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);monoandroid81</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);xamarinios10</StrideRuntimeTargetFrameworks>

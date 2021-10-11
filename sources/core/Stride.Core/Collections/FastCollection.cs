@@ -28,7 +28,7 @@ namespace Stride.Core.Collections
 
         public FastCollection()
         {
-            items = ArrayHelper<T>.Empty;
+            items = Array.Empty<T>();
         }
 
         public FastCollection([NotNull] IEnumerable<T> collection)
@@ -78,7 +78,7 @@ namespace Stride.Core.Collections
                     }
                     else
                     {
-                        items = ArrayHelper<T>.Empty;
+                        items = Array.Empty<T>();
                     }
                 }
             }
