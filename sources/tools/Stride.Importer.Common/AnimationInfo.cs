@@ -7,6 +7,6 @@ namespace Stride.Importer.Common
     public class AnimationInfo
     {
         public TimeSpan Duration;
-        public Dictionary<string, AnimationClip> AnimationClips;
+        public Dictionary<string, AnimationClip> AnimationClips = new Dictionary<string, AnimationClip>();
     }
 }
