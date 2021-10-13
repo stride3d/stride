@@ -37,15 +37,21 @@ namespace Stride.Core.Quantum
         {
             if (!index.IsEmpty)
             {
-                var collectionDescriptor = Descriptor as CollectionDescriptor;
-                var dictionaryDescriptor = Descriptor as DictionaryDescriptor;
-                if (collectionDescriptor != null)
+                if (Descriptor is ListDescriptor listDescriptor)
                 {
-                    collectionDescriptor.SetValue(Value, index.Int, newValue);
+                    listDescriptor.SetValue(Value, index.Int, newValue);
                 }
-                else if (dictionaryDescriptor != null)
+                else if (Descriptor is DictionaryDescriptor dictionaryDescriptor)
                 {
                     dictionaryDescriptor.SetValue(Value, index, newValue);
+                }
+                else if (Descriptor is SetDescriptor setDescriptor)
+                {
+                    setDescriptor.SetValue(Value, index.Value, newValue);
+                }
+                else if (Descriptor is CollectionDescriptor collectionDescriptor)
+                {
+                    collectionDescriptor.SetValue(Value, index.Int, newValue);
                 }
                 else
                     throw new NotSupportedException("Unable to set the node value, the collection is unsupported");

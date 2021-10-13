@@ -37,9 +37,16 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
             if (memberCollection?.ReadOnly == true)
                 return false;
 
-            // ... and supports remove and insert
-            var collectionDescriptor = collectionNode.Descriptor as CollectionDescriptor;
-            return collectionDescriptor?.HasRemoveAt == true && collectionDescriptor.HasInsert;
+            if (collectionNode.Descriptor is ListDescriptor)
+            {
+                return true;
+            }
+            else if (collectionNode.Descriptor is CollectionDescriptor collectionDescriptor)
+            {
+                // ... and supports remove and insert
+                return collectionDescriptor.HasRemoveAt == true && collectionDescriptor.HasInsert;
+            }
+            return false;
         }
 
         /// <inheritdoc/>

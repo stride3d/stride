@@ -142,20 +142,25 @@ namespace Stride.Core.Reflection
 
         public void Push(ITypeDescriptor descriptor, object key)
         {
-            var arrayDescriptor = descriptor as ArrayDescriptor;
-            var collectionDescriptor = descriptor as CollectionDescriptor;
-            var dictionaryDescriptor = descriptor as DictionaryDescriptor;
-            if (arrayDescriptor != null)
+            if (descriptor is ArrayDescriptor arrayDescriptor)
             {
                 Push(arrayDescriptor, (int)key);
             }
-            if (collectionDescriptor != null)
+            else if (descriptor is ListDescriptor listDescriptor)
             {
-                Push(collectionDescriptor, (int)key);
+                Push(listDescriptor, (int)key);
             }
-            if (dictionaryDescriptor != null)
+            else if (descriptor is DictionaryDescriptor dictionaryDescriptor)
             {
                 Push(dictionaryDescriptor, key);
+            }
+            else if (descriptor is SetDescriptor setDescriptor)
+            {
+                Push(setDescriptor, key);
+            }
+            else if (descriptor is CollectionDescriptor collectionDescriptor)
+            {
+                Push(collectionDescriptor, (int)key);
             }
         }
 
@@ -169,6 +174,18 @@ namespace Stride.Core.Reflection
         {
             if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
             AddItem(new ArrayPathItem(descriptor, index));
+        }
+
+        /// <summary>
+        /// Pushes an list access on the path.
+        /// </summary>
+        /// <param name="descriptor">The descriptor of the list.</param>
+        /// <param name="index">The index in the list.</param>
+        /// <exception cref="System.ArgumentNullException">descriptor</exception>
+        public void Push(ListDescriptor descriptor, int index)
+        {
+            if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+            AddItem(new ListPathItem(descriptor, index));
         }
 
         /// <summary>
@@ -193,6 +210,18 @@ namespace Stride.Core.Reflection
         {
             if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
             AddItem(new DictionaryPathItem(descriptor, key));
+        }
+
+        /// <summary>
+        /// Pushes an set access on the path.
+        /// </summary>
+        /// <param name="descriptor">The descriptor of the set.</param>
+        /// <param name="index">The index in the set.</param>
+        /// <exception cref="System.ArgumentNullException">descriptor</exception>
+        public void Push(SetDescriptor descriptor, object index)
+        {
+            if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+            AddItem(new SetPathItem(descriptor, index));
         }
 
         /// <summary>
@@ -224,13 +253,13 @@ namespace Stride.Core.Reflection
             switch (actionType)
             {
                 case MemberPathAction.CollectionAdd:
-                    if (!(lastItem is CollectionPathItem))
+                    if (!(lastItem is CollectionPathItem || lastItem is ListPathItem))
                     {
                         throw new ArgumentException("Invalid path [{0}] for action [{1}]. Expecting last path to be a collection item".ToFormat(this, actionType));
                     }
                     break;
                 case MemberPathAction.CollectionRemove:
-                    if (!(lastItem is CollectionPathItem) && !(lastItem is ArrayPathItem))
+                    if (!(lastItem is CollectionPathItem || lastItem is ListPathItem || lastItem is ArrayPathItem))
                     {
                         throw new ArgumentException("Invalid path [{0}] for action [{1}]. Expecting last path to be a collection/array item".ToFormat(this, actionType));
                     }
@@ -269,10 +298,12 @@ namespace Stride.Core.Reflection
 
                 if (actionType == MemberPathAction.ValueClear)
                 {
-                    if (lastItem is CollectionPathItem)
+                    if (lastItem is ListPathItem)
                         actionType = MemberPathAction.CollectionRemove;
                     else if (lastItem is DictionaryPathItem)
                         actionType = MemberPathAction.DictionaryRemove;
+                    else if (lastItem is CollectionPathItem)
+                        actionType = MemberPathAction.CollectionRemove;
                     else
                         actionType = MemberPathAction.ValueSet;
                 }
@@ -288,12 +319,29 @@ namespace Stride.Core.Reflection
                         break;
 
                     case MemberPathAction.CollectionAdd:
-                        ((CollectionPathItem)lastItem).Descriptor.Add(nextObject, value);
-                        break;
-
+                        {
+                            if (lastItem is ListPathItem listPathItem)
+                            {
+                                listPathItem.Descriptor.Add(nextObject, value);
+                            }
+                            else if (lastItem is CollectionPathItem collectionPathItem)
+                            {
+                                collectionPathItem.Descriptor.Add(nextObject, value);
+                            }
+                            break;
+                        }
                     case MemberPathAction.CollectionRemove:
-                        ((CollectionPathItem)lastItem).Descriptor.RemoveAt(nextObject, ((CollectionPathItem)lastItem).Index);
-                        break;
+                        {
+                            if (lastItem is ListPathItem listPathItem)
+                            {
+                                listPathItem.Descriptor.RemoveAt(nextObject, listPathItem.Index);
+                            }
+                            else if (lastItem is CollectionPathItem collectionPathItem)
+                            {
+                                collectionPathItem.Descriptor.RemoveAt(nextObject, collectionPathItem.Index);
+                            }
+                            break;
+                        }
                 }
             }
             catch (Exception)
@@ -655,6 +703,68 @@ namespace Stride.Core.Reflection
             }
         }
 
+        public sealed class ListPathItem : SpecialMemberPathItemBase, IEquatable<ListPathItem>
+        {
+            public readonly ListDescriptor Descriptor;
+            public readonly int Index;
+
+            public ListPathItem(ListDescriptor descriptor, int index)
+            {
+                if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+                Descriptor = descriptor;
+                Index = index;
+            }
+
+            public override ITypeDescriptor TypeDescriptor => Descriptor;
+
+            public override object GetValue(object thisObj)
+            {
+                return Descriptor.GetValue(thisObj, Index);
+            }
+
+            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object value)
+            {
+                Descriptor.SetValue(thisObject, Index, value);
+            }
+
+            public override string GetName(bool isFirst)
+            {
+                return "[" + Index + "]";
+            }
+
+            public override object GetIndex()
+            {
+                return Index;
+            }
+
+            public override MemberPathItem Clone(MemberPathItem parent)
+            {
+                return new ListPathItem(Descriptor, Index) { Parent = parent };
+            }
+
+            public bool Equals(ListPathItem other)
+            {
+                if (ReferenceEquals(null, other)) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return Equals(Descriptor, other.Descriptor) && Index == other.Index;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                return obj is ListPathItem && Equals((ListPathItem)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return (Descriptor.GetHashCode() * 397) ^ Index;
+                }
+            }
+        }
+
         public sealed class CollectionPathItem : SpecialMemberPathItemBase, IEquatable<CollectionPathItem>
         {
             public readonly CollectionDescriptor Descriptor;
@@ -778,6 +888,68 @@ namespace Stride.Core.Reflection
                 unchecked
                 {
                     return (Descriptor.GetHashCode()*397) ^ (Key?.GetHashCode() ?? 0);
+                }
+            }
+        }
+
+        public sealed class SetPathItem : SpecialMemberPathItemBase, IEquatable<SetPathItem>
+        {
+            public readonly SetDescriptor Descriptor;
+            public readonly object Index;
+
+            public SetPathItem(SetDescriptor descriptor, object index)
+            {
+                if (descriptor == null) throw new ArgumentNullException(nameof(descriptor));
+                Descriptor = descriptor;
+                Index = index;
+            }
+
+            public override ITypeDescriptor TypeDescriptor => Descriptor;
+
+            public override object GetValue(object thisObj)
+            {
+                return Descriptor.GetValue(thisObj, Index);
+            }
+
+            public override void SetValue(List<object> stack, int objectIndex, object thisObject, object value)
+            {
+                Descriptor.SetValue(thisObject, Index, value);
+            }
+
+            public override string GetName(bool isFirst)
+            {
+                return "[" + Index + "]";
+            }
+
+            public override object GetIndex()
+            {
+                return Index;
+            }
+
+            public override MemberPathItem Clone(MemberPathItem parent)
+            {
+                return new SetPathItem(Descriptor, Index) { Parent = parent };
+            }
+
+            public bool Equals(SetPathItem other)
+            {
+                if (ReferenceEquals(null, other)) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return Equals(Descriptor, other.Descriptor) && Index == other.Index;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                return obj is SetPathItem && Equals((SetPathItem)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return (Descriptor.GetHashCode() * 397) ^ (Index?.GetHashCode() ?? 0);
                 }
             }
         }

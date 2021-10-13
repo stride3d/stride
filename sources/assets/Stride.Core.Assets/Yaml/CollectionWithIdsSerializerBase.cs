@@ -207,10 +207,23 @@ namespace Stride.Core.Yaml
 
         protected override bool CheckIsSequence(ref ObjectContext objectContext)
         {
-            var collectionDescriptor = objectContext.Descriptor as CollectionDescriptor;
+            ITypeDescriptor descriptor = objectContext.Descriptor;
 
             // If the dictionary is pure, we can directly output a sequence instead of a mapping
-            return collectionDescriptor != null && collectionDescriptor.IsPureCollection;
+            if (descriptor is ListDescriptor listDescriptor)
+            {
+                return listDescriptor.IsPureList;
+            }
+            else if (descriptor is SetDescriptor setDescriptor)
+            {
+                return setDescriptor.IsPureSet;
+            }
+            else if (descriptor is CollectionDescriptor collectionDescriptor)
+            {
+                return collectionDescriptor.IsPureCollection;
+            }
+            
+            return false;
         }
 
         protected virtual void ReadYamlAfterTransform(ref ObjectContext objectContext, bool transformed)

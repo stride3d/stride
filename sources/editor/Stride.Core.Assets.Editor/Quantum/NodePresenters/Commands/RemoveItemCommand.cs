@@ -22,10 +22,20 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
         {
             // We are in a collection or dictionary...
             var collectionNode = (nodePresenter as ItemNodePresenter)?.OwnerCollection;
-            var collectionDescriptor = collectionNode?.Descriptor as CollectionDescriptor;
-            var dictionaryDescriptor = collectionNode?.Descriptor as DictionaryDescriptor;
-            if (collectionDescriptor == null && dictionaryDescriptor == null)
+            if (collectionNode == null)
+            {
                 return false;
+            }
+
+            var descriptor = collectionNode.Descriptor;
+            var collectionDescriptor = collectionNode.Descriptor as CollectionDescriptor;
+            if (!(descriptor is ListDescriptor
+                    || descriptor is DictionaryDescriptor
+                    || descriptor is SetDescriptor
+                    || collectionDescriptor != null))
+            {
+                return false;
+            }
 
             // ... that is not read-only...
             var memberCollection = (collectionNode as MemberNodePresenter)?.MemberAttributes.OfType<MemberCollectionAttribute>().FirstOrDefault()

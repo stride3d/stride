@@ -24,11 +24,11 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// <inheritdoc/>
         public override bool CanAttach(INodePresenter nodePresenter)
         {
-            // We are not in a collection...
-            var collectionDescriptor = nodePresenter.Descriptor as CollectionDescriptor;
-            if (collectionDescriptor != null)
+            // We are not in a list or collection...
+            if (!(nodePresenter.Descriptor is ListDescriptor || nodePresenter.Descriptor is CollectionDescriptor))
+            {
                 return false;
-
+            }
             var type = nodePresenter.Type;
             var isNullableStruct = Nullable.GetUnderlyingType(type)?.IsStruct() ?? false;
             var isAbstractOrClass = type.IsAbstract || type.IsClass;

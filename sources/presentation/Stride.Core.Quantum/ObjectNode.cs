@@ -40,7 +40,7 @@ namespace Stride.Core.Quantum
         public IEnumerable<NodeIndex> Indices => GetIndices();
 
         /// <inheritdoc/>
-        public bool IsEnumerable => Descriptor is CollectionDescriptor || Descriptor is DictionaryDescriptor;
+        public bool IsEnumerable => Descriptor is ListDescriptor || Descriptor is DictionaryDescriptor || Descriptor is SetDescriptor || Descriptor is CollectionDescriptor;
 
         /// <inheritdoc/>
         public override bool IsReference => ItemReferences != null;
@@ -89,8 +89,25 @@ namespace Stride.Core.Quantum
         /// <inheritdoc/>
         public void Add(object newItem)
         {
-            var collectionDescriptor = Descriptor as CollectionDescriptor;
-            if (collectionDescriptor != null)
+            if (Descriptor is ListDescriptor listDescriptor)
+            {
+                var index = new NodeIndex(listDescriptor.GetListCount(value));
+                var args = new ItemChangeEventArgs(this, index, ContentChangeType.CollectionAdd, null, newItem);
+                NotifyItemChanging(args);
+                listDescriptor.Add(value, newItem);
+                UpdateReferences();
+                NotifyItemChanged(args);
+            }
+            else if (Descriptor is SetDescriptor setDescriptor)
+            {
+                var index = new NodeIndex(newItem);
+                var args = new ItemChangeEventArgs(this, index, ContentChangeType.CollectionAdd, null, newItem);
+                NotifyItemChanging(args);
+                setDescriptor.Add(value, newItem);
+                UpdateReferences();
+                NotifyItemChanged(args);
+            }
+            else if (Descriptor is CollectionDescriptor collectionDescriptor)
             {
                 // Some collection (such as sets) won't add item at the end but at an arbitrary location.
                 // Better send a null index in this case than sending a wrong value.
@@ -108,9 +125,39 @@ namespace Stride.Core.Quantum
         /// <inheritdoc/>
         public void Add(object newItem, NodeIndex itemIndex)
         {
-            var collectionDescriptor = Descriptor as CollectionDescriptor;
-            var dictionaryDescriptor = Descriptor as DictionaryDescriptor;
-            if (collectionDescriptor != null)
+            if (Descriptor is ListDescriptor listDescriptor)
+            {
+                var index = itemIndex;
+                var args = new ItemChangeEventArgs(this, index, ContentChangeType.CollectionAdd, null, newItem);
+                NotifyItemChanging(args);
+                if (listDescriptor.GetListCount(value) == itemIndex.Int)
+                {
+                    listDescriptor.Add(value, newItem);
+                }
+                else
+                {
+                    listDescriptor.Insert(value, itemIndex.Int, newItem);
+                }
+                UpdateReferences();
+                NotifyItemChanged(args);
+            }
+            else if (Descriptor is SetDescriptor setDescriptor)
+            {
+                var args = new ItemChangeEventArgs(this, itemIndex, ContentChangeType.CollectionAdd, null, newItem);
+                NotifyItemChanging(args);
+                setDescriptor.Add(value, newItem);
+                UpdateReferences();
+                NotifyItemChanged(args);
+            }
+            else if (Descriptor is DictionaryDescriptor dictionaryDescriptor)
+            {
+                var args = new ItemChangeEventArgs(this, itemIndex, ContentChangeType.CollectionAdd, null, newItem);
+                NotifyItemChanging(args);
+                dictionaryDescriptor.AddToDictionary(value, itemIndex.Value, newItem);
+                UpdateReferences();
+                NotifyItemChanged(args);
+            }
+            else if (Descriptor is CollectionDescriptor collectionDescriptor)
             {
                 var index = collectionDescriptor.IsList ? itemIndex : NodeIndex.Empty;
                 var args = new ItemChangeEventArgs(this, index, ContentChangeType.CollectionAdd, null, newItem);
@@ -126,14 +173,6 @@ namespace Stride.Core.Quantum
                 UpdateReferences();
                 NotifyItemChanged(args);
             }
-            else if (dictionaryDescriptor != null)
-            {
-                var args = new ItemChangeEventArgs(this, itemIndex, ContentChangeType.CollectionAdd, null, newItem);
-                NotifyItemChanging(args);
-                dictionaryDescriptor.AddToDictionary(value, itemIndex.Value, newItem);
-                UpdateReferences();
-                NotifyItemChanged(args);
-            }
             else
                 throw new NotSupportedException("Unable to set the node value, the collection is unsupported");
 
@@ -145,9 +184,19 @@ namespace Stride.Core.Quantum
             if (itemIndex.IsEmpty) throw new ArgumentException(@"The given index should not be empty.", nameof(itemIndex));
             var args = new ItemChangeEventArgs(this, itemIndex, ContentChangeType.CollectionRemove, item, null);
             NotifyItemChanging(args);
-            var collectionDescriptor = Descriptor as CollectionDescriptor;
-            var dictionaryDescriptor = Descriptor as DictionaryDescriptor;
-            if (collectionDescriptor != null)
+            if (Descriptor is ListDescriptor listDescriptor)
+            {
+                listDescriptor.RemoveAt(value, itemIndex.Int);
+            }
+            else if (Descriptor is SetDescriptor setDescriptor)
+            {
+                setDescriptor.Remove(value, itemIndex.Value);
+            }
+            else if (Descriptor is DictionaryDescriptor dictionaryDescriptor)
+            {
+                dictionaryDescriptor.Remove(value, itemIndex.Value);
+            }
+            else if (Descriptor is CollectionDescriptor collectionDescriptor)
             {
                 if (collectionDescriptor.HasRemoveAt)
                 {
@@ -157,10 +206,6 @@ namespace Stride.Core.Quantum
                 {
                     collectionDescriptor.Remove(value, item);
                 }
-            }
-            else if (dictionaryDescriptor != null)
-            {
-                dictionaryDescriptor.Remove(value, itemIndex.Value);
             }
             else
                 throw new NotSupportedException("Unable to set the node value, the collection is unsupported");
@@ -200,6 +245,16 @@ namespace Stride.Core.Quantum
         {
             if (index == NodeIndex.Empty)
                 throw new ArgumentException("index cannot be empty.");
+
+            SetDescriptor setDescriptor = Descriptor as SetDescriptor;
+            if (setDescriptor != null)
+            {
+                if (setDescriptor.Contains(Value, newValue))
+                {
+                    return;
+                }
+            }
+
             var oldValue = Retrieve(index);
             ItemChangeEventArgs itemArgs = null;
             if (sendNotification)
@@ -207,15 +262,21 @@ namespace Stride.Core.Quantum
                 itemArgs = new ItemChangeEventArgs(this, index, ContentChangeType.CollectionUpdate, oldValue, newValue);
                 NotifyItemChanging(itemArgs);
             }
-            var collectionDescriptor = Descriptor as CollectionDescriptor;
-            var dictionaryDescriptor = Descriptor as DictionaryDescriptor;
-            if (collectionDescriptor != null)
+            if (Descriptor is ListDescriptor listDescriptor)
             {
-                collectionDescriptor.SetValue(Value, index.Int, ConvertValue(newValue, collectionDescriptor.ElementType));
+                listDescriptor.SetValue(Value, index.Int, ConvertValue(newValue, listDescriptor.ElementType));
             }
-            else if (dictionaryDescriptor != null)
+            else if (Descriptor is DictionaryDescriptor dictionaryDescriptor)
             {
                 dictionaryDescriptor.SetValue(Value, index.Value, ConvertValue(newValue, dictionaryDescriptor.ValueType));
+            }
+            else if (setDescriptor != null)
+            {
+                setDescriptor.SetValue(Value, index.Value, ConvertValue(newValue, setDescriptor.ElementType));
+            }
+            else if (Descriptor is CollectionDescriptor collectionDescriptor)
+            {
+                collectionDescriptor.SetValue(Value, index.Int, ConvertValue(newValue, collectionDescriptor.ElementType));
             }
             else
                 throw new NotSupportedException("Unable to set the node value, the collection is unsupported");

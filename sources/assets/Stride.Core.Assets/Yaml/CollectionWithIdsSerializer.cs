@@ -24,7 +24,13 @@ namespace Stride.Core.Yaml
         /// <inheritdoc/>
         public override IYamlSerializable TryCreate(SerializerContext context, ITypeDescriptor typeDescriptor)
         {
-            if (typeDescriptor is CollectionDescriptor)
+            if (typeDescriptor is ListDescriptor)
+            {
+                var dataStyle = typeDescriptor.Type.GetCustomAttribute<DataStyleAttribute>();
+                if (dataStyle == null || dataStyle.Style != DataStyle.Compact)
+                    return this;
+            }
+            else if (typeDescriptor is CollectionDescriptor)
             {
                 var dataStyle = typeDescriptor.Type.GetCustomAttribute<DataStyleAttribute>();
                 if (dataStyle == null || dataStyle.Style != DataStyle.Compact)
@@ -103,8 +109,16 @@ namespace Stride.Core.Yaml
         /// <inheritdoc/>
         protected override IDictionary CreatEmptyContainer(ITypeDescriptor descriptor)
         {
-            var collectionDescriptor = (CollectionDescriptor)descriptor;
-            var type = typeof(CollectionWithItemIds<>).MakeGenericType(collectionDescriptor.ElementType);
+            Type elementType = null;
+            if (descriptor is ListDescriptor listDescriptor)
+            {
+                elementType = listDescriptor.ElementType;
+            }
+            else if (descriptor is CollectionDescriptor collectionDescriptor)
+            {
+                elementType = collectionDescriptor.ElementType;
+            }
+            var type = typeof(CollectionWithItemIds<>).MakeGenericType(elementType);
             if (type.GetConstructor(Type.EmptyTypes) == null)
                 throw new InvalidOperationException("The type of collection does not have a parameterless constructor.");
             return (IDictionary)Activator.CreateInstance(type);
@@ -113,8 +127,18 @@ namespace Stride.Core.Yaml
         /// <inheritdoc/>
         protected override void TransformAfterDeserialization(IDictionary container, ITypeDescriptor targetDescriptor, object targetCollection, ICollection<ItemId> deletedItems = null)
         {
-            var collectionDescriptor = (CollectionDescriptor)targetDescriptor;
-            var type = typeof(CollectionWithItemIds<>).MakeGenericType(collectionDescriptor.ElementType);
+            Type elementType = null;
+            ListDescriptor listDescriptor = targetDescriptor as ListDescriptor;
+            CollectionDescriptor collectionDescriptor = targetDescriptor as CollectionDescriptor;
+            if (listDescriptor != null)
+            {
+                elementType = listDescriptor.ElementType;
+            }
+            else if (collectionDescriptor != null)
+            {
+                elementType = collectionDescriptor.ElementType;
+            }
+            var type = typeof(CollectionWithItemIds<>).MakeGenericType(elementType);
             if (!type.IsInstanceOfType(container))
                 throw new InvalidOperationException("The given container does not match the expected type.");
             var identifier = CollectionItemIdHelper.GetCollectionItemIds(targetCollection);
@@ -123,7 +147,14 @@ namespace Stride.Core.Yaml
             var enumerator = container.GetEnumerator();
             while (enumerator.MoveNext())
             {
-                collectionDescriptor.Add(targetCollection, enumerator.Value);
+                if (listDescriptor != null)
+                {
+                    listDescriptor.Add(targetCollection, enumerator.Value);
+                }
+                else if (collectionDescriptor != null)
+                {
+                    collectionDescriptor.Add(targetCollection, enumerator.Value);
+                }
                 identifier.Add(i, (ItemId)enumerator.Key);
                 ++i;
             }

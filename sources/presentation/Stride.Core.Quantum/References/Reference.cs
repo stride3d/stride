@@ -46,7 +46,7 @@ namespace Stride.Core.Quantum.References
 
         private static bool HasCollectionReference(Type type)
         {
-            return type.IsArray || CollectionDescriptor.IsCollection(type) || DictionaryDescriptor.IsDictionary(type);
+            return type.IsArray || ListDescriptor.IsList(type) || DictionaryDescriptor.IsDictionary(type) || SetDescriptor.IsSet(type) || CollectionDescriptor.IsCollection(type);
         }
 
         internal static void CheckReferenceCreationSafeGuard()

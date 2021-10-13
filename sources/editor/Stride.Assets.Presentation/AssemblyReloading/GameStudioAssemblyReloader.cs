@@ -256,6 +256,13 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 base.VisitCollectionItem(collection, descriptor, index, item, itemDescriptor);
             }
 
+            public override void VisitListItem(IEnumerable list, ListDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
+            {
+                if (ProcessObject(item, descriptor.ElementType)) return;
+
+                base.VisitListItem(list, descriptor, index, item, itemDescriptor);
+            }
+
             public override void VisitArrayItem(Array array, ArrayDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
             {
                 if (ProcessObject(item, descriptor.ElementType)) return;
@@ -278,6 +285,15 @@ namespace Stride.Assets.Presentation.AssemblyReloading
 
                 Visit(value, valueDescriptor);
                 //base.VisitDictionaryKeyValue(dictionary, descriptor, key, keyDescriptor, value, valueDescriptor);
+            }
+
+            public override void VisitSetItem(object set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
+            {
+                // TODO: CurrentPath is valid for value
+                if (ProcessObject(item, itemDescriptor.Type)) return;
+
+                Visit(item, itemDescriptor);
+                //base.VisitSetItem(set, descriptor, value, valueDescriptor);
             }
 
             protected abstract bool ProcessObject(object obj, Type expectedType);

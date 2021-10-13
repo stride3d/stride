@@ -39,13 +39,23 @@ namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
             if (targetRootObject == null) throw new ArgumentNullException(nameof(targetRootObject));
             if (data == null) throw new ArgumentNullException(nameof(data));
 
-            var collectionDescriptor = (CollectionDescriptor)TypeDescriptorFactory.Default.Find(targetRootObject.GetType());
-
             var collection = data as IList<AssetItem>;
-            if (collection == null)
+            var descriptor = TypeDescriptorFactory.Default.Find(targetRootObject.GetType());
+            if (descriptor is ListDescriptor listDescriptor)
             {
-                collection = (IList<AssetItem>)Activator.CreateInstance(collectionDescriptor.Type, true);
-                collectionDescriptor.Add(collection, data);
+                if (collection == null)
+                {
+                    collection = (IList<AssetItem>)Activator.CreateInstance(listDescriptor.Type, true);
+                    listDescriptor.Add(collection, data);
+                }
+            }
+            else if (descriptor is CollectionDescriptor collectionDescriptor)
+            {
+                if (collection == null)
+                {
+                    collection = (IList<AssetItem>)Activator.CreateInstance(collectionDescriptor.Type, true);
+                    collectionDescriptor.Add(collection, data);
+                }
             }
 
             for (var i = 0; i < collection.Count; i++)

@@ -89,6 +89,16 @@ namespace Stride.Core.Reflection
                 // IDictionary
                 descriptor = new DictionaryDescriptor(this, type, emitDefaultValues, namingConvention);
             }
+            else if (ListDescriptor.IsList(type))
+            {
+                // IList
+                descriptor = new ListDescriptor(this, type, emitDefaultValues, namingConvention);
+            }
+            else if (SetDescriptor.IsSet(type))
+            {
+                // ISet
+                descriptor = new SetDescriptor(this, type, emitDefaultValues, namingConvention);
+            }
             else if (CollectionDescriptor.IsCollection(type))
             {
                 // ICollection

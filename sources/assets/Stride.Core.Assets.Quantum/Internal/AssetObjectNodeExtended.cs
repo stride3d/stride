@@ -334,17 +334,31 @@ namespace Stride.Core.Assets.Quantum.Internal
             var removedId = ItemId.Empty;
             var isOverriding = baseNode != null && !PropertyGraph.UpdatingPropertyFromBase;
             var itemIds = CollectionItemIdHelper.GetCollectionItemIds(value);
-            var collectionDescriptor = node.Descriptor as CollectionDescriptor;
+            var descriptor = node.Descriptor;
             switch (e.ChangeType)
             {
                 case ContentChangeType.CollectionUpdate:
+                {
+                    if (descriptor is SetDescriptor setDescriptor)
+                    {
+                        itemIds.Delete(e.OldValue);
+                        if (e.NewValue != null || setDescriptor.ElementType.IsNullable())
+                        {
+                            if (!itemIds.ContainsKey(e.NewValue))
+                            {
+                                var itemId = restoringId != ItemId.Empty ? restoringId : ItemId.New();
+                                itemIds[e.NewValue] = itemId;
+                            }
+                        }
+                    }
                     break;
+                }
                 case ContentChangeType.CollectionAdd:
                 {
                     // Compute the id we will add for this item
                     var itemId = restoringId != ItemId.Empty ? restoringId : ItemId.New();
                     // Add the id to the proper location (insert or add)
-                    if (collectionDescriptor != null)
+                    if (descriptor.Category == DescriptorCategory.List || descriptor.Category == DescriptorCategory.Collection)
                     {
                         if (e.Index == NodeIndex.Empty)
                             throw new InvalidOperationException("An item has been added to a collection that does not have a predictable Add. Consider using NonIdentifiableCollectionItemsAttribute on this collection.");
@@ -362,7 +376,15 @@ namespace Stride.Core.Assets.Quantum.Internal
                     var itemId = itemIds[e.Index.Value];
                     // update isOverriding, it should be true only if the item being removed exist in the base.
                     isOverriding = isOverriding && baseNode.HasId(itemId);
-                    removedId = collectionDescriptor != null ? itemIds.DeleteAndShift(e.Index.Int, isOverriding) : itemIds.Delete(e.Index.Value, isOverriding);
+                    if (descriptor.Category == DescriptorCategory.List || descriptor.Category == DescriptorCategory.Collection)
+                    {
+                        removedId = itemIds.DeleteAndShift(e.Index.Int, isOverriding);
+                    }
+                    else
+                    {
+                        removedId = itemIds.Delete(e.Index.Value, isOverriding);
+                    }
+
                     break;
                 }
                 default:

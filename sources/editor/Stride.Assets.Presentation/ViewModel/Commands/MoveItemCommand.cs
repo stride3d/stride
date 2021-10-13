@@ -36,8 +36,15 @@ namespace Stride.Assets.Presentation.ViewModel.Commands
                 return false;
 
             // ... and support remove and insert
-            var collectionDescriptor = collectionNode.Descriptor as CollectionDescriptor;
-            return collectionDescriptor?.HasRemoveAt == true && collectionDescriptor.HasInsert;
+            if (collectionNode.Descriptor is ListDescriptor)
+            {
+                return true;
+            }
+            else if (collectionNode.Descriptor is CollectionDescriptor collectionDescriptor)
+            {
+                return collectionDescriptor?.HasRemoveAt == true && collectionDescriptor.HasInsert;
+            }
+            return false;
         }
 
         /// <inheritdoc/>

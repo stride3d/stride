@@ -115,8 +115,10 @@ namespace Stride.Core.Extensions
 
         /// <summary>
         /// Attempts to return the type of inner values of an <see cref="ITypeDescriptor"/>, if it represents an enumerable type. If the given type descriptor is
-        /// a <see cref="CollectionDescriptor"/>, this method will return its <see cref="CollectionDescriptor.ElementType"/> property. If the given type descriptor
-        /// is a <see cref="DictionaryDescriptor"/>, this method will return its <see cref="DictionaryDescriptor.ValueType"/>. Otherwise, it will return the
+        /// a <see cref="ListDescriptor"/>, this method will return its <see cref="ListDescriptor.ElementType"/> property. If the given type descriptor
+        /// is a <see cref="DictionaryDescriptor"/>, this method will return its <see cref="DictionaryDescriptor.ValueType"/>. If the given type descriptor
+        /// is a <see cref="SetDescriptor"/>, this method will return its <see cref="SetDescriptor.ElementType"/>. If the given type descriptor is
+        /// a <see cref="CollectionDescriptor"/>, this method will return its <see cref="CollectionDescriptor.ElementType"/> property. Otherwise, it will return the
         /// <see cref="ITypeDescriptor.Type"/> property.
         /// </summary>
         /// <param name="typeDescriptor">The type descriptor.</param>
@@ -125,13 +127,22 @@ namespace Stride.Core.Extensions
         {
             var type = typeDescriptor.Type;
 
-            var collectionDescriptor = typeDescriptor as CollectionDescriptor;
-            if (collectionDescriptor != null)
-                type = collectionDescriptor.ElementType;
-
-            var dictionaryDescriptor = typeDescriptor as DictionaryDescriptor;
-            if (dictionaryDescriptor != null)
+            if (typeDescriptor is ListDescriptor listDescriptor)
+            {
+                type = listDescriptor.ElementType;
+            }
+            else if (typeDescriptor is DictionaryDescriptor dictionaryDescriptor)
+            {
                 type = dictionaryDescriptor.ValueType;
+            }
+            else if (typeDescriptor is SetDescriptor setDescriptor)
+            {
+                type = setDescriptor.ElementType;
+            }
+            else if (typeDescriptor is CollectionDescriptor collectionDescriptor)
+            {
+                type = collectionDescriptor.ElementType;
+            }
 
             return type;
         }

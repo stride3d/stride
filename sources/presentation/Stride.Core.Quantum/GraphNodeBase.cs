@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Annotations;
@@ -67,7 +68,22 @@ namespace Stride.Core.Quantum
 
         public static IEnumerable<NodeIndex> GetIndices([NotNull] IGraphNode node)
         {
-            if (node.Descriptor is CollectionDescriptor collectionDescriptor)
+            if (node.Descriptor is ListDescriptor listDescriptor)
+            {
+                return Enumerable.Range(0, listDescriptor.GetListCount(node.Retrieve())).Select(x => new NodeIndex(x));
+            }
+            else if (node.Descriptor is SetDescriptor setDescriptor)
+            {
+                var enumerator = (node.Retrieve() as IEnumerable).GetEnumerator();
+                NodeIndex[] valueArr = new NodeIndex[setDescriptor.GetSetCount(node.Retrieve())];
+                int i = 0;
+                while (enumerator.MoveNext())
+                {
+                    valueArr[i++] = new NodeIndex(enumerator.Current);
+                }
+                return valueArr;
+            }
+            else if (node.Descriptor is CollectionDescriptor collectionDescriptor)
             {
                 return Enumerable.Range(0, collectionDescriptor.GetCollectionCount(node.Retrieve())).Select(x => new NodeIndex(x));
             }

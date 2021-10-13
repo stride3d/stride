@@ -193,15 +193,39 @@ namespace Stride.Core.Quantum
             else
             {
                 var value = node.Retrieve();
-                var collectionDescriptor = node.Descriptor as CollectionDescriptor;
-                if (collectionDescriptor != null && index.IsInt && index.Int >= 0 && index.Int < collectionDescriptor.GetCollectionCount(value))
+                var descriptor = node.Descriptor;
+                if (descriptor is ListDescriptor listDescriptor)
                 {
-                    return true;
+                    if (index.IsInt
+                        && index.Int >= 0
+                        && index.Int < listDescriptor.GetListCount(value))
+                    {
+                        return true;
+                    }
                 }
-                var dictionaryDescriptor = node.Descriptor as DictionaryDescriptor;
-                if (dictionaryDescriptor != null && dictionaryDescriptor.KeyType.IsInstanceOfType(index.Value) && dictionaryDescriptor.ContainsKey(value, index.Value))
+                else if (descriptor is DictionaryDescriptor dictionaryDescriptor)
                 {
-                    return true;
+                    if (dictionaryDescriptor.KeyType.IsInstanceOfType(index.Value)
+                        && dictionaryDescriptor.ContainsKey(value, index.Value))
+                    {
+                        return true;
+                    }
+                }
+                if (descriptor is SetDescriptor setDescriptor)
+                {
+                    if (setDescriptor.Contains(value, index.Value))
+                    {
+                        return true;
+                    }
+                }
+                else if (descriptor is CollectionDescriptor collectionDescriptor)
+                {
+                    if (index.IsInt
+                        && index.Int >= 0
+                        && index.Int < collectionDescriptor.GetCollectionCount(value))
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -214,15 +238,22 @@ namespace Stride.Core.Quantum
                 var reference = (node as IObjectNode)?.ItemReferences;
                 return reference != null;
             }
-            var collectionDescriptor = node.Descriptor as CollectionDescriptor;
-            if (collectionDescriptor != null)
+
+            if (node.Descriptor is ListDescriptor listDescriptor)
             {
                 return index.IsInt && index.Int >= 0;
             }
-            var dictionaryDescriptor = node.Descriptor as DictionaryDescriptor;
-            if (dictionaryDescriptor != null)
+            else if (node.Descriptor is DictionaryDescriptor dictionaryDescriptor)
             {
                 return dictionaryDescriptor.KeyType.IsInstanceOfType(index.Value);
+            }
+            else if (node.Descriptor is SetDescriptor setDescriptor)
+            {
+                return setDescriptor.ElementType.IsInstanceOfType(index.Value);
+            }
+            else if (node.Descriptor is CollectionDescriptor collectionDescriptor)
+            {
+                return index.IsInt && index.Int >= 0;
             }
             return false;
         }
