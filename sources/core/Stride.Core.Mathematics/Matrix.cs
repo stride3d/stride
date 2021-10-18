@@ -31,7 +31,6 @@
 #pragma warning disable SA1313 // Parameter names must begin with lower-case letter
 using System;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core.Mathematics
@@ -444,33 +443,6 @@ namespace Stride.Core.Mathematics
                     default: throw new ArgumentOutOfRangeException("index", "Indices for Matrix run from 0 to 15, inclusive.");
                 }
             }
-        }
-
-        /// <summary>
-        /// Casts from System.Numerics to Stride.Maths matrix
-        /// </summary>
-        /// <param name="v">Value to cast</param>
-        public static implicit operator Matrix(System.Numerics.Matrix4x4 v)
-        {
-            return new(
-                v.M11, v.M12, v.M13, v.M14,
-                v.M21, v.M22, v.M23, v.M24,
-                v.M31, v.M32, v.M33, v.M34,
-                v.M41, v.M42, v.M43, v.M44
-            );
-        }
-        /// <summary>
-        /// Casts from Stride.Maths to System.Numerics matrix
-        /// </summary>
-        /// <param name="v">Value to cast</param>
-        public static implicit operator System.Numerics.Matrix4x4(Matrix v)
-        {
-            return new(
-                v.M11, v.M12, v.M13, v.M14,
-                v.M21, v.M22, v.M23, v.M24,
-                v.M31, v.M32, v.M33, v.M34,
-                v.M41, v.M42, v.M43, v.M44
-            );
         }
 
         /// <summary>
