@@ -91,7 +91,7 @@ namespace Stride.Rendering.Images
             // Hash function used in the HPG12 AlchemyAO paper
             int linearDepthInt = (int)linearDepth;
             //float randomPatternRotationAngle = (3 * screenPosition.x ^ screenPosition.y + screenPosition.x * screenPosition.y) * 10;
-            float randomPatternRotationAngle = (15 * linearDepthInt + 3 * screenPosition.x ^ 2 * screenPosition.y + screenPosition.x * screenPosition.y) * 10;
+            float randomPatternRotationAngle = ((15 * linearDepthInt + 3 * screenPosition.x ^ 2 * screenPosition.y + screenPosition.x * screenPosition.y) & 0x0000FFFF) * 10;
 
             //*****************************
             // Choose a sample radius proportional to the projected area of the half-sphere
