@@ -142,18 +142,6 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
-        /// Casts from System.Numerics to Stride.Maths vectors
-        /// </summary>
-        /// <param name="v">Value to cast</param>
-        public static implicit operator Double2(System.Numerics.Vector2 v) => new(v.X,v.Y);
-
-        /// <summary>
-        /// Casts from Stride.Maths to System.Numerics vectors
-        /// </summary>
-        /// <param name="v">Value to cast</param>
-        public static explicit operator System.Numerics.Vector2(Double2 v) => new((float)v.X, (float)v.Y);
-
-        /// <summary>
         /// Calculates the length of the vector.
         /// </summary>
         /// <returns>The length of the vector.</returns>
