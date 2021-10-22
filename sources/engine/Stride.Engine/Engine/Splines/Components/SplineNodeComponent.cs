@@ -78,6 +78,8 @@ namespace Stride.Engine.Splines.Components
         public BoundingBox BoundingBox;
 
 
+        public bool Dirty { get; set; }
+
         internal void Update(TransformComponent transformComponent)
         {
             CheckDirtyness();

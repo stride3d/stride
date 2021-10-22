@@ -134,8 +134,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             GizmoRootEntity.Transform.Position = translation;
             GizmoRootEntity.Transform.Scale = 1 * scale;
             GizmoRootEntity.Transform.UpdateWorldMatrix();
-
-            if (Component.Nodes?.Count > 1 && Component.Dirty)
+            var enoughNodes = Component.Nodes?.Count > 1;
+            if (enoughNodes && Component.Dirty)
             {
                 ClearChildren(gizmoNodes);
                 ClearChildren(gizmoBeziers);
@@ -214,7 +214,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 GizmoRootEntity.Transform.UseTRS = false;
             }
 
-            ExperimentalStuffWithTangentTranslation(deltaTime);
+            if (enoughNodes)
+            {
+                ExperimentalStuffWithTangentTranslation(deltaTime);
+            }
         }
 
         private void ExperimentalStuffWithTangentTranslation(float deltaTime)
@@ -231,52 +234,58 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             Input.UnlockMousePosition();
             Game.IsMouseVisible = true;
 
-            if (!dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-            { 
-                gizmoTangentOut.Get<ModelComponent>().Model.Materials[0] = redMaterial;
-            }
-
-
-            if (new BoundingSphere(gizmoTangentOut.Transform.Position, radius).Intersects(ref clickRay))
+            //for (int i = 0; i < Component.Nodes?.Count; i++)
+            for (int i = 0; i < 1; i++)
             {
-                gizmoTangentOut.Get<ModelComponent>().Model.Materials[0] = pinkMaterial;
-                if (Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
+                var curNode = Component.Nodes[i];
+
+                if (!dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
                 {
-                    if (!dragStarted)
+                    gizmoTangentOut.Get<ModelComponent>().Model.Materials[0] = redMaterial;
+                }
+
+
+                if (new BoundingSphere(gizmoTangentOut.Transform.Position, radius).Intersects(ref clickRay))
+                {
+                    gizmoTangentOut.Get<ModelComponent>().Model.Materials[0] = pinkMaterial;
+                    if (Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
                     {
-                        dragStarted = true;
-                        startMousePosition = Input.MousePosition;
+                        if (!dragStarted)
+                        {
+                            dragStarted = true;
+                            startMousePosition = Input.MousePosition;
+                        }
                     }
                 }
-            }
 
-            if(dragStarted && Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-            {
-                var mousePosition = Input.MousePosition;
-                var totalMouseDrag = mousePosition - startMousePosition;
-                var newMouseDrag = totalMouseDrag - prevTotalMouseDrag;
-                prevTotalMouseDrag = totalMouseDrag;
-
-                var dragMultiplier = deltaTime * 500; //dragMultiplier
-                Component.Nodes[0].TangentOut += new Vector3(-newMouseDrag.X * dragMultiplier, -newMouseDrag.Y * dragMultiplier, 0);
-            }
-            else if(dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-            {
-                prevTotalMouseDrag = new Vector2(0);
-                dragStarted = false;
-            }
-
-            if (new BoundingSphere(gizmoTangentIn.Transform.Position, radius).Intersects(ref clickRay))
-            {
-                gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = blueMaterial;
-                if (Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
+                if (dragStarted && Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
                 {
-                    Component.Nodes[0].TangentIn += 0.01f;
+                    var mousePosition = Input.MousePosition;
+                    var totalMouseDrag = mousePosition - startMousePosition;
+                    var newMouseDrag = totalMouseDrag - prevTotalMouseDrag;
+                    prevTotalMouseDrag = totalMouseDrag;
+
+                    var dragMultiplier = deltaTime * 500; //dragMultiplier
+                    Component.Nodes[0].TangentOut += new Vector3(-newMouseDrag.X * dragMultiplier, -newMouseDrag.Y * dragMultiplier, 0);
                 }
-            }
-            else
-            {
-                gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = greenMaterial;
+                else if (dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
+                {
+                    prevTotalMouseDrag = new Vector2(0);
+                    dragStarted = false;
+                }
+
+                if (new BoundingSphere(gizmoTangentIn.Transform.Position, radius).Intersects(ref clickRay))
+                {
+                    gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = blueMaterial;
+                    if (Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
+                    {
+                        Component.Nodes[0].TangentIn += 0.01f;
+                    }
+                }
+                else
+                {
+                    gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = greenMaterial;
+                }
             }
         }
 
