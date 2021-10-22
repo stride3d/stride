@@ -40,7 +40,7 @@ namespace Stride.Shaders.Parser.Utility
         public static readonly MessageCode ErrorExternMemberNotFound                = new MessageCode("E0226", "There is no member [{0}] for the type [{1}] in class [{2}]");
         public static readonly MessageCode ErrorStreamNotFound                      = new MessageCode("E0227", "Unable to find stream variable [{0}] in class [{1}]");
         public static readonly MessageCode ErrorStreamUsage                         = new MessageCode("E0228", "the stream [{0}] was read first THEN written in class [{1}]");
-        public static readonly MessageCode ErrorVariableNameAmbiguity               = new MessageCode("E0229", "The name [{0}] is ambiguous within variables in class [{2}]");
+        public static readonly MessageCode ErrorVariableNameAmbiguity               = new MessageCode("E0229", "The name [{0}] is ambiguous within variables in class [{1}]");
         public static readonly MessageCode ErrorMethodNameAmbiguity                 = new MessageCode("E0230", "The name [{0}] is ambiguous within methods in class [{1}]");
         public static readonly MessageCode ErrorMissingMethod                       = new MessageCode("E0231", "The method [{0}] in class [{1}] is not defined");
         public static readonly MessageCode ErrorCyclicMethod                        = new MessageCode("E0232", "Method [{0}] performs a cyclic call, which is not allowed in class [{1}]");

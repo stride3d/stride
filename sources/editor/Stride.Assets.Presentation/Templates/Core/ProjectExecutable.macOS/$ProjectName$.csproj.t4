@@ -2,13 +2,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
+    <TargetFramework><#= Properties.TargetFramework #></TargetFramework>
+    <RuntimeIdentifier><#= Properties.RuntimeIdentifier #></RuntimeIdentifier>
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <RootNamespace><#= Properties.Namespace #></RootNamespace>
 
-    <OutputPath>..\Bin\macOS\$(Configuration)\</OutputPath>
+    <OutputPath>..\Bin\<#= Properties.CurrentPlatform #>\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
