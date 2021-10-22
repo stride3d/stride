@@ -236,7 +236,7 @@ namespace Stride.Rendering.Images
 
             aoRawImageEffect.SetInput(0, originalDepthBuffer);
             aoRawImageEffect.SetOutput(aoTexture1);
-            aoRawImageEffect.Draw(context, "AmbientOcclusionWithOrthoRawAO");
+            aoRawImageEffect.Draw(context, "AmbientOcclusionRawAO");
 
             for (int bounces = 0; bounces < NumberOfBounces; bounces++)
             {
@@ -250,8 +250,8 @@ namespace Stride.Rendering.Images
                         //  0.111220f, 0.107798f, 0.098151f, 0.083953f, 0.067458f, 0.050920f, 0.036108f, // stddev = 3.0
                     };
 
-                    nameGaussianBlurH = string.Format("AmbientOcclusionWithOrthoBlurH{0}x{0}", offsetsWeights.Length);
-                    nameGaussianBlurV = string.Format("AmbientOcclusionWithOrthoBlurV{0}x{0}", offsetsWeights.Length);
+                    nameGaussianBlurH = string.Format("AmbientOcclusionBlurH{0}x{0}", offsetsWeights.Length);
+                    nameGaussianBlurV = string.Format("AmbientOcclusionBlurV{0}x{0}", offsetsWeights.Length);
                 }
 
                 // Set Near/Far pre-calculated factors to speed up the linear depth reconstruction
@@ -289,7 +289,7 @@ namespace Stride.Rendering.Images
             aoApplyImageEffect.SetInput(0, originalColorBuffer);
             aoApplyImageEffect.SetInput(1, aoTexture1);
             aoApplyImageEffect.SetOutput(outputTexture);
-            aoApplyImageEffect.Draw(context, "AmbientOcclusionWithOrthoApply");
+            aoApplyImageEffect.Draw(context, "AmbientOcclusionApply");
         }
 
         public enum TemporaryBufferSize
