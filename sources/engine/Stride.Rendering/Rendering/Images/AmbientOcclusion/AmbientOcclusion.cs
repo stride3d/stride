@@ -174,13 +174,13 @@ namespace Stride.Rendering.Images
             aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOKeys.Count, NumberOfSamples > 0 ? NumberOfSamples : 9);
 
             // check whether the projection matrix is orthographic
-            var isOrtho = renderView.Projection.M44 == 1;
-            aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOKeys.IsOrtho, isOrtho);
-            blurH.Parameters.Set(AmbientOcclusionBlurKeys.IsOrtho, isOrtho);
-            blurV.Parameters.Set(AmbientOcclusionBlurKeys.IsOrtho, isOrtho);
+            var isOrthographic = renderView.Projection.M44 == 1;
+            aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOKeys.IsOrthographic, isOrthographic);
+            blurH.Parameters.Set(AmbientOcclusionBlurKeys.IsOrthographic, isOrthographic);
+            blurV.Parameters.Set(AmbientOcclusionBlurKeys.IsOrthographic, isOrthographic);
 
             Vector2 zProj;
-            if (isOrtho)
+            if (isOrthographic)
             {
                 zProj = new Vector2(renderView.NearClipPlane, renderView.FarClipPlane - renderView.NearClipPlane);
             }
@@ -198,13 +198,13 @@ namespace Stride.Rendering.Images
             aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ScreenInfo, screenSize);
 
             Vector4 projInfo;
-            if (isOrtho)
+            if (isOrthographic)
             {
-                // The ortho scale to map the xy coordinates
+                // The orthographic scale to map the xy coordinates
                 float scaleX = 1 / renderView.Projection.M11;
                 float scaleY = 1 / renderView.Projection.M22;
 
-                // Constant factor to map the ProjScale parameter to the ortho scale
+                // Constant factor to map the ProjScale parameter to the orthographic scale
                 float projZScale = System.Math.Max(scaleX, scaleY) * 4;
 
                 projInfo = new Vector4(scaleX, scaleY, projZScale, 0);

@@ -18,6 +18,6 @@ namespace Stride.Rendering.Images
 
         public static readonly PermutationParameterKey<float> EdgeSharpness = ParameterKeys.NewPermutation<float>(4f);
 
-        public static readonly PermutationParameterKey<bool> IsOrtho = ParameterKeys.NewPermutation<bool>();
+        public static readonly PermutationParameterKey<bool> IsOrthographic = ParameterKeys.NewPermutation<bool>();
     }
 }

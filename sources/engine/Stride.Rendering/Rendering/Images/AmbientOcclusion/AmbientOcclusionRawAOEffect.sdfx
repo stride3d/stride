@@ -10,6 +10,6 @@ namespace Stride.Rendering.Images
         using params AmbientOcclusionRawAOKeys;
 
         // Mixin 
-        mixin AmbientOcclusionRawAOShader<AmbientOcclusionRawAOKeys.Count, AmbientOcclusionRawAOKeys.IsOrtho>;
+        mixin AmbientOcclusionRawAOShader<AmbientOcclusionRawAOKeys.Count, AmbientOcclusionRawAOKeys.IsOrthographic>;
     };
 }

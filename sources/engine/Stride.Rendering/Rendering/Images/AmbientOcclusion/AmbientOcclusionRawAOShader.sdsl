@@ -3,7 +3,7 @@
 
 namespace Stride.Rendering.Images
 {
-    shader AmbientOcclusionRawAOShader <int SamplesCount, bool IsOrtho>  : ImageEffectShader, Camera
+    shader AmbientOcclusionRawAOShader <int SamplesCount, bool IsOrthographic>  : ImageEffectShader, Camera
     {
         float4   ProjInfo;    // .x = zN * zF, .y = zN - zF, .z = zF
         float4   ScreenInfo;  // .x = Width, .y = Height, .z = Aspect
@@ -16,7 +16,7 @@ namespace Stride.Rendering.Images
 
         stage float reconstructCSZ(float depth)
         {
-            if (IsOrtho) //near + z * (far - near)
+            if (IsOrthographic) //near + z * (far - near)
                 return ZProjection.x + depth * ZProjection.y;
             else
                 return ZProjection.y / (depth - ZProjection.x);
@@ -24,7 +24,7 @@ namespace Stride.Rendering.Images
 
         stage float3 reconstructCSPosition(float2 S, float z)
         {
-            if (IsOrtho)
+            if (IsOrthographic)
             {
                 float2 uv = S.xy / ScreenInfo.xy;
                 uv = uv * 2 - 1;
@@ -109,7 +109,7 @@ namespace Stride.Rendering.Images
             // Choose a sample radius proportional to the projected area of the half-sphere
             //float diskRadius = -projScale * radius / linearDepth;
             float diskRadius;
-            if (IsOrtho) 
+            if (IsOrthographic) 
                 diskRadius = ParamProjScale / ProjInfo.z;
             else
                 diskRadius = ParamProjScale / linearDepth;
