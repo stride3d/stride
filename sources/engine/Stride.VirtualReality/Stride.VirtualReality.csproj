@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
@@ -54,7 +54,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.VirtualReality.dll.config" />
+    <StrideContent Condition="$(StridePlatforms.Contains('Linux'))" Include="Stride.VirtualReality.dll.config" />
     <None Include="Stride.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>

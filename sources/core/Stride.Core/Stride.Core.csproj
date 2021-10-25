@@ -113,7 +113,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.Core.dll.config" />
+    <StrideContent Condition="$(StridePlatforms.Contains('Linux'))" Include="Stride.Core.dll.config" />
   </ItemGroup>
   
   <ItemGroup>

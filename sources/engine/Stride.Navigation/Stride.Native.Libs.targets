@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'iOS' or '$(StridePlatform)' == 'macOS'" 
+    <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'iOS' or $(StridePlatforms.Contains('macOS'))" 
                           Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libDetour.a;$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libRecast.a" />
-    <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Android'" Include="libDetour.a;libRecast.a" />
+    <StrideNativePathLibs2 Condition="$(StridePlatforms.Contains('Linux')) Or '$(StridePlatform)' == 'Android'" Include="libDetour.a;libRecast.a" />
   </ItemGroup>
 </Project>

@@ -16,8 +16,6 @@
     <StrideNativeToolingDebug></StrideNativeToolingDebug> 
     
     <StrideNativeClang>$(StrideNativeToolingDebug) -Wno-ignored-attributes -Wno-delete-non-virtual-dtor -Wno-macro-redefined -I&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath&quot; -I&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\standard&quot;</StrideNativeClang>
-    <StrideNativeClang Condition="'$(StridePlatform)' == 'Linux'">$(StrideNativeClang) -DPLATFORM_LINUX</StrideNativeClang>
-    <StrideNativeClang Condition="'$(StridePlatform)' == 'macOS'">$(StrideNativeClang) -DPLATFORM_MACOS</StrideNativeClang>
     <StrideNativeClangCPP>-std=c++11 -fno-rtti -fno-exceptions</StrideNativeClangCPP>
   
     <!--<StrideNativeOutputPath>$([MSBuild]::MakeRelative('$(OutputPath)', '$(StridePackageStridePlatformBin)\'))</StrideNativeOutputPath>-->
@@ -38,17 +36,12 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-
-  <!-- Define NEED_DLL_EXPORT for platforms that requires it. -->
-  <PropertyGroup>
-    <StrideNativeClang Condition=" '$(StridePlatform)' == 'Windows' OR '$(StridePlatform)' == 'UWP' ">$(StrideNativeClang) -DNEED_DLL_EXPORT</StrideNativeClang>
-  </PropertyGroup>
   
   <!-- Define default CPU architectures -->
   <ItemGroup>
     <StrideNativeCPU Condition=" '$(StridePlatform)' == 'Windows' " Include="win-x64;win-x86"/>
-    <StrideNativeCPU Condition=" '$(StridePlatform)' == 'Linux' " Include="linux-x64"/>
-    <StrideNativeCPU Condition=" '$(StridePlatform)' == 'macOS' " Include="osx-x64"/>
+    <StrideNativeCPULinux Include="linux-x64"/>
+    <StrideNativeCPUMacOS Include="osx-x64"/>
     <StrideNativeCPU Condition=" '$(StridePlatform)' == 'UWP' " Include="x86;x64;ARM"/>
     <StrideNativeCPU Condition=" '$(StridePlatform)' == 'Android' " Include="arm64-v8a;armeabi-v7a;x86;x86_64"/>
   </ItemGroup>
@@ -70,12 +63,20 @@
     <_StrideNativeOutput Include="@(StrideNativeCPU->'%(Identity)\$(StrideNativeOutputName)$(StrideNativeLibraryTargetExt)')">
       <RelativePath>%(Identity)</RelativePath>
     </_StrideNativeOutput>
+    <_StrideNativeOutputLinux Include="@(StrideNativeCPULinux->'%(Identity)\$(StrideNativeOutputName).so')">
+      <RelativePath>%(Identity)</RelativePath>
+    </_StrideNativeOutputLinux>
+    <_StrideNativeOutputMacOS Include="@(StrideNativeCPUMacOS->'%(Identity)\$(StrideNativeOutputName).dylib')">
+      <RelativePath>%(Identity)</RelativePath>
+    </_StrideNativeOutputMacOS>
   </ItemGroup>
 
   <ItemGroup>
     <UpToDateCheckInput Include="@(StrideNativeCFile)" />
     <UpToDateCheckInput Include="@(StrideNativeHFile)" />
     <UpToDateCheckOutput Include="@(StrideNativeOutput)" />
+    <UpToDateCheckOutput Condition="$(StridePlatforms.Contains('Linux'))" Include="@(StrideNativeOutputLinux)" />
+    <UpToDateCheckOutput Condition="$(StridePlatforms.Contains('macOS'))" Include="@(StrideNativeOutputMacOS)" />
   </ItemGroup>
   
   <!-- Update StrideNativeOutput.Link using computed OutputPath and add to StrideNativeLib -->
@@ -90,7 +91,17 @@
       <StrideNativeOutput>
         <Link>$([MSBuild]::MakeRelative('$(_OutputPathRelative)', '$(StrideNativeOutputPath)'))\%(RelativePath)</Link>
       </StrideNativeOutput>
+      <StrideNativeOutputLinux Include="@(_StrideNativeOutputLinux->'$(StrideNativeOutputPath)%(Identity)')"/>
+      <StrideNativeOutputLinux>
+        <Link>$([MSBuild]::MakeRelative('$(_OutputPathRelative)', '$(StrideNativeOutputPath)'))\%(RelativePath)</Link>
+      </StrideNativeOutputLinux>
+      <StrideNativeOutputMacOS Include="@(_StrideNativeOutputMacOS->'$(StrideNativeOutputPath)%(Identity)')"/>
+      <StrideNativeOutputMacOS>
+        <Link>$([MSBuild]::MakeRelative('$(_OutputPathRelative)', '$(StrideNativeOutputPath)'))\%(RelativePath)</Link>
+      </StrideNativeOutputMacOS>
       <StrideNativeLib Include="@(StrideNativeOutput)"/>
+      <StrideNativeLib Condition="$(StridePlatforms.Contains('Linux'))" Include="@(StrideNativeOutputLinux)" />
+      <StrideNativeLib Condition="$(StridePlatforms.Contains('macOS'))" Include="@(StrideNativeOutputMacOS)"/>
     </ItemGroup>
   </Target>
 
@@ -122,15 +133,15 @@
     <Touch AlwaysCreate="true" Files="$(OutputPath)\$(StrideNativeOutputName).ss_native"/>
   </Target>-->
   
-  <Target Name="CompileNativeClang_Windows" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="'$(StridePlatform)' == 'Windows' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
+  <Target Name="CompileNativeClang_Windows" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="$(StridePlatforms.Contains('Windows')) And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
     <MakeDir Directories="$(OutputObjectPath)\win-x86"/>
-    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClang) -o &quot;$(OutputObjectPath)\win-x86\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fms-extensions -DWINDOWS_DESKTOP -target i686-pc-windows-msvc" />
-    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)\win-x86\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;  -fms-extensions -DWINDOWS_DESKTOP -target i686-pc-windows-msvc" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-x86\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fms-extensions -DWINDOWS_DESKTOP -target i686-pc-windows-msvc" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClangCPP) $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-x86\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;  -fms-extensions -DWINDOWS_DESKTOP -target i686-pc-windows-msvc" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\WindowsDesktop\WindowsDesktop.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\win-x86;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibs);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\win-x86;Configuration=$(Configuration);Platform=x86" StopOnFirstFailure="true" />
 
     <MakeDir Directories="$(OutputObjectPath)\win-x64"/>
-    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClang) -o &quot;$(OutputObjectPath)\win-x64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fms-extensions -DWINDOWS_DESKTOP -target x86_64-pc-windows-msvc" />
-    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)\win-x64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;  -fms-extensions -DWINDOWS_DESKTOP -target x86_64-pc-windows-msvc" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-x64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fms-extensions -DWINDOWS_DESKTOP -target x86_64-pc-windows-msvc" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(StrideNativeClangCPP) $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\win-x64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot;  -fms-extensions -DWINDOWS_DESKTOP -target x86_64-pc-windows-msvc" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\WindowsDesktop\WindowsDesktop.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\win-x64;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibs);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\win-x64;Configuration=$(Configuration);Platform=x64" StopOnFirstFailure="true" />
 
     <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
@@ -139,15 +150,15 @@
 
   <Target Name="CompileNativeClang_UWP" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)"  Condition="'$(StridePlatform)' == 'UWP' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
     <MakeDir Directories="$(OutputObjectPath)\x86"/>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang-cl.exe&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\x86\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -WX -GS- -MD -DUWP -m32" />
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang-cl.exe&quot; $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\x86\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -WX -GS- -MD -DUWP -m32" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\UWP\UWP.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\x86;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibs);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\x86;Configuration=$(Configuration);Platform=x86" StopOnFirstFailure="true" />
 
     <MakeDir Directories="$(OutputObjectPath)\x64"/>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang-cl.exe&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\x64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -WX -GS- -MD -DUWP -m64" />
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang-cl.exe&quot; $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\x64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -WX -GS- -MD -DUWP -m64" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\UWP\UWP.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\x64;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibs);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\x64;Configuration=$(Configuration);Platform=x64" StopOnFirstFailure="true" />
 
     <MakeDir Directories="$(OutputObjectPath)\ARM"/>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang-cl.exe&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\ARM\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -WX -GS- -MD -DUWP -m32 --target=thumbv7-windows-msvc" />
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang-cl.exe&quot; $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\ARM\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -WX -GS- -MD -DUWP -m32 --target=thumbv7-windows-msvc" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\UWP\UWP.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\ARM;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibs);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\ARM;Configuration=$(Configuration);Platform=ARM" StopOnFirstFailure="true" />
 
     <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
@@ -235,21 +246,23 @@
     <Delete Files="@(IntermediateAssembly)"/>
   </Target>
 
-  <Target Name="CompileNativeClang_Linux" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="'$(StridePlatform)' == 'Linux' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
+  <Target Name="CompileNativeClang_Linux" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutputLinux)" Condition="$(StridePlatforms.Contains('Linux')) And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
     <MakeDir Directories="$(OutputObjectPath)\linux-x64"/>
-    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\linux-x64\%(StrideNativeCFile.Filename)_x64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-linux-gnu" />
-    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)\linux-x64\%(StrideNativeCFile.Filename)_x64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-linux-gnu" />
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\lld.exe&quot; -flavor gnu --eh-frame-hdr -m elf_x86_64 -shared -o &quot;$(StrideNativeOutputPath)\$(StrideNativeOutputName)$(StrideNativeLibraryTargetExt)&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\linux-x64\%(Filename)_x64.o&quot;', ' ') @(StrideNativePathLibs2->'&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\dotnet\linux-x64\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\dotnet\linux-x64\libNativePath.a&quot;" />
+    <MakeDir Directories="$(StrideNativeOutputPath)\linux-x64"/>
+    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClang) -DPLATFORM_LINUX -o &quot;$(OutputObjectPath)\linux-x64\%(StrideNativeCFile.Filename)_x64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-linux-gnu" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -DPLATFORM_LINUX -o &quot;$(OutputObjectPath)\linux-x64\%(StrideNativeCFile.Filename)_x64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-linux-gnu" />
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\lld.exe&quot; -flavor gnu --eh-frame-hdr -m elf_x86_64 -shared -o &quot;$(StrideNativeOutputPath)\linux-x64\$(StrideNativeOutputName).so&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\linux-x64\%(Filename)_x64.o&quot;', ' ') @(StrideNativePathLibs2->'&quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\dotnet\linux-x64\x86_64\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\\NativePath\dotnet\linux-x64\x86_64\libNativePath.a&quot;" />
 
     <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
     <Delete Files="@(IntermediateAssembly)"/>
   </Target>
 
-  <Target Name="CompileNativeClang_macOS" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutput)" Condition="'$(StridePlatform)' == 'macOS' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
+  <Target Name="CompileNativeClang_macOS" Inputs="@(StrideNativeCFile);@(StrideNativeHFile)" Outputs="@(StrideNativeOutputMacOS)" Condition="$(StridePlatforms.Contains('macOS')) And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_StrideRegisterNativeOutputs">
     <MakeDir Directories="$(OutputObjectPath)\osx-x64"/>
-    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClang) -o &quot;$(OutputObjectPath)\osx-x64\%(StrideNativeCFile.Filename)_x64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-apple-darwin" />
-    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -o &quot;$(OutputObjectPath)\osx-x64\%(StrideNativeCFile.Filename)_x64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-apple-darwin" />
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\darwin_ld.exe&quot; -arch x86_64 -w -flat_namespace -undefined dynamic_lookup -sdk_version 10.11  -macosx_version_min 10.11 -dylib -o &quot;$(StrideNativeOutputPath)\$(StrideNativeOutputName)$(StrideNativeLibraryTargetExt)&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\osx-x64\%(Filename)_x64.o&quot;', ' ') @(StrideNativePathLibs2->'&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-x64\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-x64\libNativePath.a&quot;" />
+    <MakeDir Directories="$(StrideNativeOutputPath)\osx-x64"/>
+    <Exec Condition="'%(StrideNativeCFile.Extension)' != '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClang) -DPLATFORM_MACOS -o &quot;$(OutputObjectPath)\osx-x64\%(StrideNativeCFile.Filename)_x64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-apple-darwin" />
+    <Exec Condition="'%(StrideNativeCFile.Extension)' == '.cpp'" Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang.exe&quot; $(StrideNativeClangCPP) $(StrideNativeClang) -DPLATFORM_MACOS -o &quot;$(OutputObjectPath)\osx-x64\%(StrideNativeCFile.Filename)_x64.o&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -fPIC -target x86_64-apple-darwin" />
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\darwin_ld.exe&quot; -arch x86_64 -w -flat_namespace -undefined dynamic_lookup -sdk_version 10.11  -macosx_version_min 10.11 -dylib -o &quot;$(StrideNativeOutputPath)\osx-x64\$(StrideNativeOutputName).dylib&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\osx-x64\%(Filename)_x64.o&quot;', ' ') @(StrideNativePathLibs2->'&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-x64\%(Filename).a&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\osx-x64\libNativePath.a&quot;" />
 
     <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
     <Delete Files="@(IntermediateAssembly)"/>
@@ -262,6 +275,8 @@
       <AFiles Include="$(OutputObjectPath)\**\*.a" />
     </ItemGroup>
     <Delete Files="@(StrideNativeOutput)" />
+    <Delete Files="@(StrideNativeOutputLinux)" />
+    <Delete Files="@(StrideNativeOutputMacOS)" />
     <Delete Files="@(ObjFiles)" />
     <Delete Files="@(OFiles)" />
     <Delete Files="@(AFiles)" />

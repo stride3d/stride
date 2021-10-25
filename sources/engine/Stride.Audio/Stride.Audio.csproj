@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
     <StrideNativeOutputName>libstrideaudio</StrideNativeOutputName>
@@ -28,7 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Native\Celt.cpp" />
-    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.Audio.dll.config" />
+    <StrideContent Condition="$(StridePlatforms.Contains('Linux'))" Include="Stride.Audio.dll.config" />
     <None Include="Stride.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>
