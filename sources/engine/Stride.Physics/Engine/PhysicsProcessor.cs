@@ -37,7 +37,7 @@ namespace Stride.Physics
         public PhysicsProcessor()
             : base(typeof(TransformComponent))
         {
-            Order = 0xFFFF;
+            Order = 0xFFFE;
         }
 
         /// <summary>

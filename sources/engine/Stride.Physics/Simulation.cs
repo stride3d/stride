@@ -638,6 +638,45 @@ namespace Stride.Physics
             return CreateConstraintInternal(type, rigidBodyA, frameA, rigidBodyB, frameB, useReferenceFrameA);
         }
 
+        /// <summary>
+        /// Creates a hinge constraint using a specialized constructor.
+        /// </summary>
+        /// <param name="rigidBodyA">The rigid body a.</param>
+        /// <param name="pivotInA">Pivot point in body a.</param>
+        /// <param name="axisInA">Axis in body a.</param>
+        /// <param name="useReferenceFrameA">if set to <c>true</c> [use reference frame a].</param>
+        /// <exception cref="System.Exception">
+        /// Cannot perform this action when the physics engine is set to CollisionsOnly
+        /// or
+        /// RigidBody must be valid
+        /// </exception>
+        public static HingeConstraint CreateHingeConstraint(RigidbodyComponent rigidBodyA, Vector3 pivotInA, Vector3 axisInA, bool useReferenceFrameA = false)
+        {
+            if (rigidBodyA == null) throw new Exception("RigidBody must be valid");
+            return CreateHingeConstraintInternal(rigidBodyA, null, pivotInA, default, axisInA, default, useReferenceFrameA);
+        }
+
+        /// <summary>
+        /// Creates a hinge constraint using a specialized constructor.
+        /// </summary>
+        /// <param name="rigidBodyA">The rigid body a.</param>
+        /// <param name="pivotInA">Pivot point in body a.</param>
+        /// <param name="axisInA">Axis in body a.</param>
+        /// <param name="rigidBodyB">The rigid body b.</param>
+        /// <param name="pivotInB">Pivot point in body b.</param>
+        /// <param name="axisInB">Axis in body b.</param>
+        /// <param name="useReferenceFrameA">if set to <c>true</c> [use reference frame a].</param>
+        /// <exception cref="System.Exception">
+        /// Cannot perform this action when the physics engine is set to CollisionsOnly
+        /// or
+        /// Both RigidBodies must be valid
+        /// </exception>
+        public static HingeConstraint CreateHingeConstraint(RigidbodyComponent rigidBodyA, Vector3 pivotInA, Vector3 axisInA, RigidbodyComponent rigidBodyB, Vector3 pivotInB, Vector3 axisInB, bool useReferenceFrameA = false)
+        {
+            if (rigidBodyA == null || rigidBodyB == null) throw new Exception("Both RigidBodies must be valid");
+            return CreateHingeConstraintInternal(rigidBodyA, rigidBodyB, pivotInA, pivotInB, axisInA, axisInB, useReferenceFrameA);
+        }
+
 
         static Constraint CreateConstraintInternal(ConstraintTypes type, RigidbodyComponent rigidBodyA, Matrix frameA, RigidbodyComponent rigidBodyB = null, Matrix frameB = default, bool useReferenceFrameA = false)
         {
@@ -756,9 +795,38 @@ namespace Stride.Physics
                 constraintBase.RigidBodyB = rigidBodyB;
                 rigidBodyB.LinkedConstraints.Add(constraintBase);
             }
+            constraintBase.RigidBodyA = rigidBodyA;
             rigidBodyA.LinkedConstraints.Add(constraintBase);
 
             return constraintBase;
+        }
+
+        static HingeConstraint CreateHingeConstraintInternal(RigidbodyComponent rigidBodyA, RigidbodyComponent rigidBodyB, Vector3 pivotInA, Vector3 pivotInB, Vector3 axisInA, Vector3 axisInB, bool useReferenceFrameA = false)
+        {
+            if (rigidBodyB != null && rigidBodyB.Simulation != rigidBodyA.Simulation)
+                throw new Exception("Both RigidBodies must be on the same simulation");
+
+            var rbA = rigidBodyA.InternalRigidBody;
+            var rbB = rigidBodyB?.InternalRigidBody;
+
+            var constraint = new HingeConstraint
+            {
+                InternalHingeConstraint =
+                            rigidBodyB == null ?
+                                new BulletSharp.HingeConstraint(rbA, pivotInA, axisInA, useReferenceFrameA) :
+                                new BulletSharp.HingeConstraint(rbA, rbB, pivotInA, pivotInB, axisInA, axisInB, useReferenceFrameA),
+            };
+            constraint.InternalConstraint = constraint.InternalHingeConstraint;
+
+            if (rigidBodyB != null)
+            {
+                constraint.RigidBodyB = rigidBodyB;
+                rigidBodyB.LinkedConstraints.Add(constraint);
+            }
+            constraint.RigidBodyA = rigidBodyA;
+            rigidBodyA.LinkedConstraints.Add(constraint);
+
+            return constraint;
         }
 
 
