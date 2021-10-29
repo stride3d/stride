@@ -92,9 +92,16 @@ namespace Stride.Core.Quantum
             var collectionDescriptor = Descriptor as CollectionDescriptor;
             if (collectionDescriptor != null)
             {
-                // Some collection (such as sets) won't add item at the end but at an arbitrary location.
-                // Better send a null index in this case than sending a wrong value.
-                var index = collectionDescriptor.IsList ? new NodeIndex(collectionDescriptor.GetCollectionCount(value)) : NodeIndex.Empty;
+                NodeIndex index = NodeIndex.Empty;
+                switch (collectionDescriptor.Category)
+                {
+                    case DescriptorCategory.List:
+                        index = new NodeIndex(collectionDescriptor.GetCollectionCount(value));
+                        break;
+                    case DescriptorCategory.Set:
+                        index = new NodeIndex(newItem);
+                        break;
+                }
                 var args = new ItemChangeEventArgs(this, index, ContentChangeType.CollectionAdd, null, newItem);
                 NotifyItemChanging(args);
                 collectionDescriptor.Add(value, newItem);
@@ -108,14 +115,14 @@ namespace Stride.Core.Quantum
         /// <inheritdoc/>
         public void Add(object newItem, NodeIndex itemIndex)
         {
-            var collectionDescriptor = Descriptor as CollectionDescriptor;
-            var dictionaryDescriptor = Descriptor as DictionaryDescriptor;
-            if (collectionDescriptor != null)
+            if (Descriptor is CollectionDescriptor collectionDescriptor)
             {
-                var index = collectionDescriptor.IsList ? itemIndex : NodeIndex.Empty;
+                var index = collectionDescriptor.Category == DescriptorCategory.Collection
+                    ? NodeIndex.Empty
+                    : itemIndex;
                 var args = new ItemChangeEventArgs(this, index, ContentChangeType.CollectionAdd, null, newItem);
                 NotifyItemChanging(args);
-                if (collectionDescriptor.GetCollectionCount(value) == itemIndex.Int || !collectionDescriptor.HasInsert)
+                if (!collectionDescriptor.HasInsert || collectionDescriptor.GetCollectionCount(value) == itemIndex.Int)
                 {
                     collectionDescriptor.Add(value, newItem);
                 }
@@ -126,7 +133,7 @@ namespace Stride.Core.Quantum
                 UpdateReferences();
                 NotifyItemChanged(args);
             }
-            else if (dictionaryDescriptor != null)
+            else if (Descriptor is DictionaryDescriptor dictionaryDescriptor)
             {
                 var args = new ItemChangeEventArgs(this, itemIndex, ContentChangeType.CollectionAdd, null, newItem);
                 NotifyItemChanging(args);
@@ -145,9 +152,7 @@ namespace Stride.Core.Quantum
             if (itemIndex.IsEmpty) throw new ArgumentException(@"The given index should not be empty.", nameof(itemIndex));
             var args = new ItemChangeEventArgs(this, itemIndex, ContentChangeType.CollectionRemove, item, null);
             NotifyItemChanging(args);
-            var collectionDescriptor = Descriptor as CollectionDescriptor;
-            var dictionaryDescriptor = Descriptor as DictionaryDescriptor;
-            if (collectionDescriptor != null)
+            if (Descriptor is CollectionDescriptor collectionDescriptor)
             {
                 if (collectionDescriptor.HasRemoveAt)
                 {
@@ -158,7 +163,7 @@ namespace Stride.Core.Quantum
                     collectionDescriptor.Remove(value, item);
                 }
             }
-            else if (dictionaryDescriptor != null)
+            else if (Descriptor is DictionaryDescriptor dictionaryDescriptor)
             {
                 dictionaryDescriptor.Remove(value, itemIndex.Value);
             }
@@ -200,6 +205,15 @@ namespace Stride.Core.Quantum
         {
             if (index == NodeIndex.Empty)
                 throw new ArgumentException("index cannot be empty.");
+
+            if (Descriptor is SetDescriptor setDescriptor)
+            {
+                if (setDescriptor.Contains(Value, newValue))
+                {
+                    return;
+                }
+            }
+
             var oldValue = Retrieve(index);
             ItemChangeEventArgs itemArgs = null;
             if (sendNotification)
@@ -207,13 +221,11 @@ namespace Stride.Core.Quantum
                 itemArgs = new ItemChangeEventArgs(this, index, ContentChangeType.CollectionUpdate, oldValue, newValue);
                 NotifyItemChanging(itemArgs);
             }
-            var collectionDescriptor = Descriptor as CollectionDescriptor;
-            var dictionaryDescriptor = Descriptor as DictionaryDescriptor;
-            if (collectionDescriptor != null)
+            if (Descriptor is CollectionDescriptor collectionDescriptor)
             {
-                collectionDescriptor.SetValue(Value, index.Int, ConvertValue(newValue, collectionDescriptor.ElementType));
+                collectionDescriptor.SetValue(Value, index.Value, ConvertValue(newValue, collectionDescriptor.ElementType));
             }
-            else if (dictionaryDescriptor != null)
+            else if (Descriptor is DictionaryDescriptor dictionaryDescriptor)
             {
                 dictionaryDescriptor.SetValue(Value, index.Value, ConvertValue(newValue, dictionaryDescriptor.ValueType));
             }

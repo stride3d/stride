@@ -191,11 +191,15 @@ namespace Stride.Core.Reflection
                 case DescriptorCategory.Array:
                     VisitArray((Array)obj, (ArrayDescriptor)descriptor);
                     break;
+                case DescriptorCategory.List:
                 case DescriptorCategory.Collection:
                     VisitCollection((IEnumerable)obj, (CollectionDescriptor)descriptor);
                     break;
                 case DescriptorCategory.Dictionary:
                     VisitDictionary(obj, (DictionaryDescriptor)descriptor);
+                    break;
+                case DescriptorCategory.Set:
+                    VisitSet(obj, (SetDescriptor)descriptor);
                     break;
             }
         }
@@ -227,6 +231,10 @@ namespace Stride.Core.Reflection
         /// <inheritdoc />
         public virtual void VisitCollection(IEnumerable collection, CollectionDescriptor descriptor)
         {
+            if (descriptor.Category == DescriptorCategory.Set)
+            {
+                throw new ArgumentException("Shouldn't call VisitCollection() to visit a set");
+            }
             var i = 0;
 
             // Make a copy in case VisitCollectionItem mutates something
@@ -271,6 +279,26 @@ namespace Stride.Core.Reflection
         {
             Visit(key, keyDescriptor);
             Visit(value, valueDescriptor);
+        }
+
+        /// <inheritdoc />
+        public virtual void VisitSet(object set, SetDescriptor descriptor)
+        {
+            // Make a copy in case VisitCollectionItem mutates something
+            IEnumerator enumerator = (set as IEnumerable).GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                object item = enumerator.Current;
+                CurrentPath.Push(descriptor, item);
+                VisitSetItem(set, descriptor, item, TypeDescriptorFactory.Find(item?.GetType() ?? descriptor.ElementType));
+                CurrentPath.Pop();
+            }
+        }
+
+        /// <inheritdoc />
+        public virtual void VisitSetItem(object set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
+        {
+            Visit(item, itemDescriptor);
         }
 
         protected virtual bool CanVisit([NotNull] object obj)
