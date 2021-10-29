@@ -1,4 +1,4 @@
-// Copyright (c) 2015 SharpYaml - Alexandre Mutel
+﻿// Copyright (c) 2015 SharpYaml - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -61,28 +61,15 @@ namespace Stride.Core.Yaml.Serialization.Serializers
     {
         public override IYamlSerializable TryCreate(SerializerContext context, ITypeDescriptor typeDescriptor)
         {
-            return (typeDescriptor is ListDescriptor
-                || typeDescriptor is SetDescriptor
-                || typeDescriptor is CollectionDescriptor)
-                ? this : null;
+            return typeDescriptor is CollectionDescriptor ? this : null;
         }
 
         protected override bool CheckIsSequence(ref ObjectContext objectContext)
         {
+            var collectionDescriptor = (CollectionDescriptor) objectContext.Descriptor;
+
             // If the dictionary is pure, we can directly output a sequence instead of a mapping
-            if (objectContext.Descriptor is ListDescriptor listDescriptor)
-            {
-                return listDescriptor.IsPureList;
-            }
-            else if (objectContext.Descriptor is SetDescriptor setDescriptor)
-            {
-                return setDescriptor.IsPureSet;
-            }
-            else if (objectContext.Descriptor is CollectionDescriptor collectionDescriptor)
-            {
-                return collectionDescriptor.IsPureCollection;
-            }
-            return false;
+            return collectionDescriptor.IsPureCollection;
         }
 
         protected override void ReadMember(ref ObjectContext objectContext)
@@ -149,32 +136,21 @@ namespace Stride.Core.Yaml.Serialization.Serializers
         /// Cannot deserialize list to readonly collection type [{0}]..DoFormat(thisObject.GetType())</exception>
         protected virtual void ReadCollectionItems(ref ObjectContext objectContext)
         {
+            var collectionDescriptor = (CollectionDescriptor) objectContext.Descriptor;
             var thisObject = objectContext.Instance;
-            Type elementType = null;
-            ITypeDescriptor descriptor = objectContext.Descriptor;
-            if (descriptor is ListDescriptor listDescriptor)
+
+            if (!collectionDescriptor.HasAdd)
             {
-                elementType = listDescriptor.ElementType;
+                throw new InvalidOperationException($"Cannot deserialize list to type [{thisObject.GetType()}]. No Add method found");
             }
-            else if (descriptor is SetDescriptor setDescriptor)
+            if (collectionDescriptor.IsReadOnly(thisObject))
             {
-                elementType = setDescriptor.ElementType;
-            }
-            else if (descriptor is CollectionDescriptor collectionDescriptor)
-            {
-                if (!collectionDescriptor.HasAdd)
-                {
-                    throw new InvalidOperationException($"Cannot deserialize list to type [{thisObject.GetType()}]. No Add method found");
-                }
-                if (collectionDescriptor.IsReadOnly(thisObject))
-                {
-                    throw new InvalidOperationException($"Cannot deserialize list to readonly collection type [{thisObject.GetType()}].");
-                }
-                elementType = collectionDescriptor.ElementType;
+                throw new InvalidOperationException($"Cannot deserialize list to readonly collection type [{thisObject.GetType()}].");
             }
 
             var reader = objectContext.Reader;
-            
+
+            var elementType = collectionDescriptor.ElementType;
             var index = 0;
             while (!reader.Accept<SequenceEnd>())
             {
@@ -183,7 +159,7 @@ namespace Stride.Core.Yaml.Serialization.Serializers
 
                 try
                 {
-                    ReadAddCollectionItem(ref objectContext, elementType, descriptor, thisObject, index);
+                    ReadAddCollectionItem(ref objectContext, elementType, collectionDescriptor, thisObject, index);
                 }
                 catch (YamlException ex)
                 {
@@ -204,24 +180,13 @@ namespace Stride.Core.Yaml.Serialization.Serializers
         /// </summary>
         /// <param name="objectContext">The object context.</param>
         /// <param name="elementType">Type of the element.</param>
-        /// <param name="descriptor">The type descriptor, may be ListDescriptor or CollectionDescriptor.</param>
+        /// <param name="collectionDescriptor">The collection descriptor.</param>
         /// <param name="thisObject">The this object.</param>
         /// <param name="index">The index.</param>
-        protected virtual void ReadAddCollectionItem(ref ObjectContext objectContext, Type elementType, ITypeDescriptor descriptor, object thisObject, int index)
+        protected virtual void ReadAddCollectionItem(ref ObjectContext objectContext, Type elementType, CollectionDescriptor collectionDescriptor, object thisObject, int index)
         {
             var value = ReadCollectionItem(ref objectContext, null, elementType, index);
-            if (descriptor is ListDescriptor listDescriptor)
-            {
-                listDescriptor.Add(thisObject, value);
-            }
-            else if (descriptor is SetDescriptor setDescriptor)
-            {
-                setDescriptor.Add(thisObject, value);
-            }
-            else if (descriptor is CollectionDescriptor collectionDescriptor)
-            {
-                collectionDescriptor.Add(thisObject, value);
-            }
+            collectionDescriptor.Add(thisObject, value);
         }
 
         /// <summary>
@@ -243,24 +208,12 @@ namespace Stride.Core.Yaml.Serialization.Serializers
         /// <param name="objectContext">The object context.</param>
         protected virtual void WriteCollectionItems(ref ObjectContext objectContext)
         {
-            Type elementType = null;
-            if (objectContext.Descriptor is ListDescriptor listDescriptor)
-            {
-                elementType = listDescriptor.ElementType;
-            }
-            else if (objectContext.Descriptor is SetDescriptor setDescriptor)
-            {
-                elementType = setDescriptor.ElementType;
-            }
-            else if (objectContext.Descriptor is CollectionDescriptor collectionDescriptor)
-            {
-                elementType = collectionDescriptor.ElementType;
-            }
+            var collectionDescriptor = (CollectionDescriptor) objectContext.Descriptor;
             var collection = (IEnumerable) objectContext.Instance;
             int index = 0;
             foreach (var item in collection)
             {
-                WriteCollectionItem(ref objectContext, item, elementType, index);
+                WriteCollectionItem(ref objectContext, item, collectionDescriptor.ElementType, index);
                 index++;
             }
         }

@@ -21,8 +21,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             if (node?.Parent == null)
                 return false;
 
-            var descriptor = TypeDescriptorFactory.Default.Find(node.Parent.Type);
-            if (!(descriptor is ListDescriptor || descriptor is CollectionDescriptor))
+            if (!(TypeDescriptorFactory.Default.Find(node.Parent.Type) is CollectionDescriptor))
                 return false;
 
             object data;
@@ -38,8 +37,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             if (node?.Parent == null)
                 return Enumerable.Empty<object>();
 
-            var descriptor = TypeDescriptorFactory.Default.Find(node.Parent.Type);
-            if (!(descriptor is ListDescriptor || descriptor is CollectionDescriptor))
+            if (!(TypeDescriptorFactory.Default.Find(node.Parent.Type) is CollectionDescriptor))
                 return Enumerable.Empty<object>();
 
             object data;

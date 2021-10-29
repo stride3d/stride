@@ -121,16 +121,6 @@ namespace Stride.Core.Quantum
         }
 
         /// <inheritdoc/>
-        public override void VisitList(IEnumerable list, ListDescriptor descriptor)
-        {
-            // Don't visit items unless they are primitive or enumerable (collections within collections)
-            if (IsCollection(descriptor.ElementType))
-            {
-                base.VisitList(list, descriptor);
-            }
-        }
-
-        /// <inheritdoc/>
         public override void VisitCollection(IEnumerable collection, CollectionDescriptor descriptor)
         {
             if (!descriptor.HasIndexerAccessors)
@@ -157,16 +147,6 @@ namespace Stride.Core.Quantum
         }
 
         /// <inheritdoc/>
-        public override void VisitSet(object set, SetDescriptor descriptor)
-        {
-            // Don't visit items unless they are primitive or enumerable (collections within collections)
-            if (IsCollection(descriptor.ElementType))
-            {
-                base.VisitSet(set, descriptor);
-            }
-        }
-
-        /// <inheritdoc/>
         public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object value)
         {
             // If this member should contains a reference, create it now.
@@ -181,7 +161,7 @@ namespace Stride.Core.Quantum
             PushContextNode(content);
             if (content.TargetReference == null)
             {
-                // For enumerable references, we visit the member to allow VisitList or VisitDictionary or VisitSet or VisitCollection to enrich correctly the node.
+                // For enumerable references, we visit the member to allow VisitCollection or VisitDictionary to enrich correctly the node.
                 Visit(content.Retrieve());
             }
             PopContextNode();
@@ -198,10 +178,7 @@ namespace Stride.Core.Quantum
             }
 
             var descriptor = TypeDescriptorFactory.Find(value?.GetType());
-            if (descriptor is ListDescriptor
-                || descriptor is DictionaryDescriptor
-                || descriptor is SetDescriptor
-                || descriptor is CollectionDescriptor)
+            if (descriptor is CollectionDescriptor || descriptor is DictionaryDescriptor)
             {
                 var valueType = GetElementValueType(descriptor);
                 return !IsPrimitiveType(valueType) ? Reference.CreateReference(value, type, NodeIndex.Empty, false) : null;
@@ -233,23 +210,9 @@ namespace Stride.Core.Quantum
         [CanBeNull]
         private static Type GetElementValueType(ITypeDescriptor descriptor)
         {
-            if (descriptor is ListDescriptor listDescriptor)
-            {
-                return listDescriptor.ElementType;
-            }
-            else if (descriptor is DictionaryDescriptor dictionaryDescriptor)
-            {
-                return dictionaryDescriptor.ValueType;
-            }
-            else if (descriptor is SetDescriptor setDescriptor)
-            {
-                return setDescriptor.ElementType;
-            }
-            else if (descriptor is CollectionDescriptor collectionDescriptor)
-            {
-                return collectionDescriptor.ElementType;
-            }
-            return null;
+            var dictionaryDescriptor = descriptor as DictionaryDescriptor;
+            var collectionDescriptor = descriptor as CollectionDescriptor;
+            return dictionaryDescriptor != null ? dictionaryDescriptor.ValueType : collectionDescriptor?.ElementType;
         }
     }
 }

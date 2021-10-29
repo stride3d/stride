@@ -21,27 +21,14 @@ namespace Stride.Core.Presentation.Quantum.Presenters
             Container = container ?? throw new ArgumentNullException(nameof(container));
             Descriptor = TypeDescriptorFactory.Default.Find(container.Descriptor.GetInnerCollectionType());
             OwnerCollection = parent;
-            Type = (container.Descriptor as ListDescriptor)?.ElementType
-                ?? (container.Descriptor as CollectionDescriptor)?.ElementType
-                ?? (container.Descriptor as DictionaryDescriptor)?.ValueType
-                ?? (container.Descriptor as SetDescriptor)?.ElementType;
+            Type = (container.Descriptor as CollectionDescriptor)?.ElementType ?? (container.Descriptor as DictionaryDescriptor)?.ValueType;
             Index = index;
             Name = index.ToString();
             Order = index.IsInt ? (int?)index.Int : null; // So items are sorted by index instead of string
             CombineKey = Name;
-            var category = container.Descriptor.Category;
-            if (category == DescriptorCategory.Set)
-            {
-                DisplayName = "Item";
-            }
-            else if (Index.IsInt && category != DescriptorCategory.Dictionary)
-            {
-                DisplayName = "Item " + Index;
-            }
-            else
-            {
-                DisplayName = Index.ToString();
-            }
+            DisplayName = (container.Descriptor.Category != DescriptorCategory.Dictionary && Index.IsInt)
+                        ? "Item " + Index
+                        : Index.ToString();
 
             container.ItemChanging += OnItemChanging;
             container.ItemChanged += OnItemChanged;

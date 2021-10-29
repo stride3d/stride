@@ -58,23 +58,6 @@ namespace Stride.Core.Reflection
         void VisitArrayItem(Array array, [NotNull] ArrayDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor);
 
         /// <summary>
-        /// Visits a list.
-        /// </summary>
-        /// <param name="list">The list.</param>
-        /// <param name="descriptor">The descriptor.</param>
-        void VisitList([NotNull] IEnumerable list, [NotNull] ListDescriptor descriptor);
-
-        /// <summary>
-        /// Visits a list item.
-        /// </summary>
-        /// <param name="list">The list.</param>
-        /// <param name="descriptor">The descriptor.</param>
-        /// <param name="index">The index.</param>
-        /// <param name="item">The item.</param>
-        /// <param name="itemDescriptor">The item descriptor.</param>
-        void VisitListItem([NotNull] IEnumerable list, [NotNull] ListDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor);
-
-        /// <summary>
         /// Visits a collection.
         /// </summary>
         /// <param name="collection">The collection.</param>
@@ -108,21 +91,5 @@ namespace Stride.Core.Reflection
         /// <param name="value">The value.</param>
         /// <param name="valueDescriptor">The value descriptor.</param>
         void VisitDictionaryKeyValue([NotNull] object dictionary, [NotNull] DictionaryDescriptor descriptor, object key, ITypeDescriptor keyDescriptor, object value, ITypeDescriptor valueDescriptor);
-
-        /// <summary>
-        /// Visits a set.
-        /// </summary>
-        /// <param name="set">The set.</param>
-        /// <param name="descriptor">The descriptor.</param>
-        void VisitSet([NotNull] object set, [NotNull] SetDescriptor descriptor);
-
-        /// <summary>
-        /// Visits a set item.
-        /// </summary>
-        /// <param name="set">The set.</param>
-        /// <param name="descriptor">The descriptor.</param>
-        /// <param name="item">The item.</param>
-        /// <param name="itemDescriptor">The item descriptor.</param>
-        void VisitSetItem([NotNull] object set, [NotNull] SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor);
     }
 }

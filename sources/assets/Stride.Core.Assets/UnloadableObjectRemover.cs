@@ -58,13 +58,6 @@ namespace Stride.Core.Assets
             Visit(obj);
         }
 
-        public override void VisitListItem(IEnumerable list, ListDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
-        {
-            if (ProcessObject(item, descriptor.ElementType)) return;
-
-            base.VisitListItem(list, descriptor, index, item, itemDescriptor);
-        }
-
         public override void VisitCollectionItem(IEnumerable collection, CollectionDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
         {
             if (ProcessObject(item, descriptor.ElementType)) return;
@@ -94,13 +87,6 @@ namespace Stride.Core.Assets
 
             Visit(value, valueDescriptor);
             //base.VisitDictionaryKeyValue(dictionary, descriptor, key, keyDescriptor, value, valueDescriptor);
-        }
-
-        public override void VisitSetItem(object set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
-        {
-            if (ProcessObject(item, itemDescriptor.Type)) return;
-
-            Visit(item, itemDescriptor);
         }
 
         private bool ProcessObject(object obj, Type expectedType)

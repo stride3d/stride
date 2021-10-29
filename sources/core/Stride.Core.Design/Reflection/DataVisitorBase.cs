@@ -191,17 +191,11 @@ namespace Stride.Core.Reflection
                 case DescriptorCategory.Array:
                     VisitArray((Array)obj, (ArrayDescriptor)descriptor);
                     break;
-                case DescriptorCategory.List:
-                    VisitList((IEnumerable)obj, (ListDescriptor)descriptor);
+                case DescriptorCategory.Collection:
+                    VisitCollection((IEnumerable)obj, (CollectionDescriptor)descriptor);
                     break;
                 case DescriptorCategory.Dictionary:
                     VisitDictionary(obj, (DictionaryDescriptor)descriptor);
-                    break;
-                case DescriptorCategory.Set:
-                    VisitSet(obj, (SetDescriptor)descriptor);
-                    break;
-                case DescriptorCategory.Collection:
-                    VisitCollection((IEnumerable)obj, (CollectionDescriptor)descriptor);
                     break;
             }
         }
@@ -226,29 +220,6 @@ namespace Stride.Core.Reflection
 
         /// <inheritdoc />
         public virtual void VisitArrayItem(Array array, ArrayDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
-        {
-            Visit(item, itemDescriptor);
-        }
-
-        /// <inheritdoc />
-        public virtual void VisitList(IEnumerable list, ListDescriptor descriptor)
-        {
-            var i = 0;
-
-            // Make a copy in case VisitCollectionItem mutates something
-            var items = descriptor.GetEnumerator(list).ToList();
-
-            foreach (var item in items)
-            {
-                CurrentPath.Push(descriptor, i);
-                VisitListItem(list, descriptor, i, item, TypeDescriptorFactory.Find(item?.GetType() ?? descriptor.ElementType));
-                CurrentPath.Pop();
-                i++;
-            }
-        }
-
-        /// <inheritdoc />
-        public virtual void VisitListItem(IEnumerable list, ListDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
         {
             Visit(item, itemDescriptor);
         }
@@ -300,26 +271,6 @@ namespace Stride.Core.Reflection
         {
             Visit(key, keyDescriptor);
             Visit(value, valueDescriptor);
-        }
-
-        /// <inheritdoc />
-        public virtual void VisitSet(object set, SetDescriptor descriptor)
-        {
-            // Make a copy in case VisitCollectionItem mutates something
-            IEnumerator enumerator = (set as IEnumerable).GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                object item = enumerator.Current;
-                CurrentPath.Push(descriptor, item);
-                VisitSetItem(set, descriptor, item, TypeDescriptorFactory.Find(item?.GetType() ?? descriptor.ElementType));
-                CurrentPath.Pop();
-            }
-        }
-
-        /// <inheritdoc />
-        public virtual void VisitSetItem(object set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
-        {
-            Visit(item, itemDescriptor);
         }
 
         protected virtual bool CanVisit([NotNull] object obj)

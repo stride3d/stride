@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
@@ -13,7 +13,6 @@ using Stride.Core.Quantum;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Particles.Materials;
-using Stride.Core.Reflection;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {
@@ -176,11 +175,6 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
                     else
                     {
                         var value = RetrieveValue(assetNode, e.NewValue, e.ChangeType, index);
-
-                        if (value == null && assetNode.Descriptor.Category == DescriptorCategory.Set)
-                        {
-                            value = e.NewValue;
-                        }
                         var isReference = await PropagatePartReference(gameSideNode, value, e);
                         if (!isReference)
                         {

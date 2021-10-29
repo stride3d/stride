@@ -85,24 +85,15 @@ namespace Stride.Core.Assets.Editor.Services
             foreach (var kv in states)
             {
                 var collection = kv.Key;
-                var descriptor = TypeDescriptorFactory.Default.Find(collection.GetType());
-                if (descriptor is ListDescriptor listDescriptor)
+                var descriptor = TypeDescriptorFactory.Default.Find(collection.GetType()) as CollectionDescriptor;
+                if (descriptor == null)
+                    continue;
+
+                descriptor.Clear(collection);
+                var state = kv.Value;
+                foreach (var item in state.Ids.Select(state.GetObjectToSelect).NotNull())
                 {
-                    listDescriptor.Clear(collection);
-                    var state = kv.Value;
-                    foreach (var item in state.Ids.Select(state.GetObjectToSelect).NotNull())
-                    {
-                        listDescriptor.Add(collection, item);
-                    }
-                }
-                else if (descriptor is CollectionDescriptor collectionDescriptor)
-                {
-                    collectionDescriptor.Clear(collection);
-                    var state = kv.Value;
-                    foreach (var item in state.Ids.Select(state.GetObjectToSelect).NotNull())
-                    {
-                        collectionDescriptor.Add(collection, item);
-                    }
+                    descriptor.Add(collection, item);
                 }
             }
         }

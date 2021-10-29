@@ -50,22 +50,21 @@ namespace Stride.Core.Yaml.Serialization.Serializers
             if (style == DataStyle.Any)
             {
                 bool isPrimitiveElementType = false;
+                var collectionDescriptor = objectContext.Descriptor as CollectionDescriptor;
                 int count = 0;
-
-                if (objectContext.Descriptor is ListDescriptor listDescriptor)
-                {
-                    isPrimitiveElementType = PrimitiveDescriptor.IsPrimitive(listDescriptor.ElementType);
-                    count = listDescriptor.GetListCount(objectContext.Instance);
-                }
-                else if (objectContext.Descriptor is ArrayDescriptor arrayDescriptor)
-                {
-                    isPrimitiveElementType = PrimitiveDescriptor.IsPrimitive(arrayDescriptor.ElementType);
-                    count = ((Array)objectContext.Instance)?.Length ?? -1;
-                }
-                else if (objectContext.Descriptor is CollectionDescriptor collectionDescriptor)
+                if (collectionDescriptor != null)
                 {
                     isPrimitiveElementType = PrimitiveDescriptor.IsPrimitive(collectionDescriptor.ElementType);
                     count = collectionDescriptor.GetCollectionCount(objectContext.Instance);
+                }
+                else
+                {
+                    var arrayDescriptor = objectContext.Descriptor as ArrayDescriptor;
+                    if (arrayDescriptor != null)
+                    {
+                        isPrimitiveElementType = PrimitiveDescriptor.IsPrimitive(arrayDescriptor.ElementType);
+                        count = ((Array)objectContext.Instance)?.Length ?? -1;
+                    }
                 }
 
                 style = objectContext.Instance == null || count >= objectContext.SerializerContext.Settings.LimitPrimitiveFlowSequence || !isPrimitiveElementType

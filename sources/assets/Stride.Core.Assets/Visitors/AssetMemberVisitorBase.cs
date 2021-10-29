@@ -26,15 +26,6 @@ namespace Stride.Core.Assets.Visitors
         }
 
         /// <inheritdoc/>
-        public override void VisitListItem(IEnumerable list, ListDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
-        {
-            if (CurrentPath.Match(MemberPath))
-                VisitAssetMember(item, itemDescriptor);
-            else
-                base.VisitListItem(list, descriptor, index, item, itemDescriptor);
-        }
-
-        /// <inheritdoc/>
         public override void VisitCollectionItem(IEnumerable collection, CollectionDescriptor descriptor, int index, object item, ITypeDescriptor itemDescriptor)
         {
             if (CurrentPath.Match(MemberPath))
@@ -57,14 +48,6 @@ namespace Stride.Core.Assets.Visitors
             {
                 base.VisitDictionaryKeyValue(dictionary, descriptor, key, keyDescriptor, value, valueDescriptor);
             }
-        }
-
-        public override void VisitSetItem(object set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
-        {
-            if (CurrentPath.Match(MemberPath))
-                VisitAssetMember(item, itemDescriptor);
-            else
-                base.VisitSetItem(set, descriptor, item, itemDescriptor);
         }
 
         /// <inheritdoc />

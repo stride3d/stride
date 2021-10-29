@@ -69,20 +69,6 @@ namespace Stride.Core.Assets
             base.VisitArray(array, descriptor);
         }
 
-        public override void VisitList(IEnumerable list, ListDescriptor descriptor)
-        {
-            if (ShouldGenerateItemIdCollection(list))
-            {
-                var itemIds = CollectionItemIdHelper.GetCollectionItemIds(list);
-                var count = descriptor.GetListCount(list);
-                for (var i = 0; i < count; ++i)
-                {
-                    itemIds.Add(i, ItemId.New());
-                }
-            }
-            base.VisitList(list, descriptor);
-        }
-
         public override void VisitCollection(IEnumerable collection, CollectionDescriptor descriptor)
         {
             if (ShouldGenerateItemIdCollection(collection))
@@ -108,20 +94,6 @@ namespace Stride.Core.Assets
                 }
             }
             base.VisitDictionary(dictionary, descriptor);
-        }
-
-        public override void VisitSet(object set, SetDescriptor descriptor)
-        {
-            if (ShouldGenerateItemIdCollection(set))
-            {
-                IEnumerator enumerator = (set as IEnumerable).GetEnumerator();
-                var itemIds = CollectionItemIdHelper.GetCollectionItemIds(set);
-                while (enumerator.MoveNext())
-                {
-                    itemIds.Add(enumerator.Current, ItemId.New());
-                }
-            }
-            base.VisitSet(set, descriptor);
         }
 
         private bool ShouldGenerateItemIdCollection(object collection)

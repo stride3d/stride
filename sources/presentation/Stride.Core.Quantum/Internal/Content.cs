@@ -24,21 +24,15 @@ namespace Stride.Core.Quantum
 
             if (value == null) throw new ArgumentNullException(nameof(value));
 
-            if (descriptor is ListDescriptor listDescriptor)
-            {
-                return listDescriptor.GetValue(value, index.Int);
-            }
-            else if (descriptor is DictionaryDescriptor dictionaryDescriptor)
-            {
-                return dictionaryDescriptor.GetValue(value, index.Value);
-            }
-            else if (descriptor is SetDescriptor setDescriptor)
-            {
-                return setDescriptor.GetValue(value, index.Value);
-            }
-            else if (descriptor is CollectionDescriptor collectionDescriptor)
+            var collectionDescriptor = descriptor as CollectionDescriptor;
+            if (collectionDescriptor != null)
             {
                 return collectionDescriptor.GetValue(value, index.Int);
+            }
+            var dictionaryDescriptor = descriptor as DictionaryDescriptor;
+            if (dictionaryDescriptor != null)
+            {
+                return dictionaryDescriptor.GetValue(value, index.Value);
             }
 
             // Try with the concrete type descriptor

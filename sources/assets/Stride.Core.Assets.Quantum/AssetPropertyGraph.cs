@@ -783,8 +783,7 @@ namespace Stride.Core.Assets.Quantum
                 var baseNode = (IAssetObjectNodeInternal)assetNode.BaseNode;
                 objectNode.ResettingOverride = true;
                 // Handle collection and dictionary cases
-                if ((assetNode.Descriptor is ListDescriptor || assetNode.Descriptor is DictionaryDescriptor || assetNode.Descriptor is SetDescriptor || assetNode.Descriptor is CollectionDescriptor)
-                    && CollectionItemIdHelper.HasCollectionItemIds(objectNode.Retrieve()))
+                if ((assetNode.Descriptor is CollectionDescriptor || assetNode.Descriptor is DictionaryDescriptor) && CollectionItemIdHelper.HasCollectionItemIds(objectNode.Retrieve()))
                 {
                     // Items to add and to remove are stored in local collections and processed later, since they might affect indices
                     var itemsToRemove = new List<ItemId>();
@@ -905,7 +904,7 @@ namespace Stride.Core.Assets.Quantum
                         var baseIndex = baseNode.IdToIndex(item.Value);
                         var baseItemValue = baseNode.Retrieve(baseIndex);
                         var clonedValue = CloneValueFromBase(baseItemValue, assetNode);
-                        if (assetNode.Descriptor is ListDescriptor || assetNode.Descriptor is CollectionDescriptor)
+                        if (assetNode.Descriptor is CollectionDescriptor)
                         {
                             // In a collection, we need to find an index that matches the index on the base to maintain order.
                             // To do so, we iterate from the index in the base to zero.

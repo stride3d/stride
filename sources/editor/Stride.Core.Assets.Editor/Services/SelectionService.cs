@@ -179,15 +179,8 @@ namespace Stride.Core.Assets.Editor.Services
                     {
                         foreach (var collection in scope.Collections)
                         {
-                            var descriptor = TypeDescriptorFactory.Default.Find(collection.GetType());
-                            if (descriptor is ListDescriptor listDescriptor)
-                            {
-                                listDescriptor.Clear(collection);
-                            }
-                            else if (descriptor is CollectionDescriptor collectionDescriptor)
-                            {
-                                collectionDescriptor?.Clear(collection);
-                            }
+                            var descriptor = TypeDescriptorFactory.Default.Find(collection.GetType()) as CollectionDescriptor;
+                            descriptor?.Clear(collection);
                         }
                     }
                 }

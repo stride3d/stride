@@ -436,22 +436,12 @@ namespace Stride.Core.Quantum
                         var index = itemPath.Index;
                         var enumerableReference = ((IObjectNode)node).ItemReferences;
                         var descriptor = node.Descriptor;
-                        if (descriptor is ListDescriptor listDescriptor)
-                        {
-                            memberPath.Push(listDescriptor, index.Int);
-                        }
-                        else if (descriptor is DictionaryDescriptor dictionaryDescriptor)
-                        {
-                            memberPath.Push(dictionaryDescriptor, index.Int);
-                        }
-                        else if (descriptor is SetDescriptor setDescriptor)
-                        {
-                            memberPath.Push(setDescriptor, index.Int);
-                        }
-                        else if (descriptor is CollectionDescriptor collectionDescriptor)
-                        {
+                        var collectionDescriptor = descriptor as CollectionDescriptor;
+                        if (collectionDescriptor != null)
                             memberPath.Push(collectionDescriptor, index.Int);
-                        }
+                        var dictionaryDescriptor = descriptor as DictionaryDescriptor;
+                        if (dictionaryDescriptor != null)
+                            memberPath.Push(dictionaryDescriptor, index.Value);
 
                         if (i != path.Count - 1)
                         {
