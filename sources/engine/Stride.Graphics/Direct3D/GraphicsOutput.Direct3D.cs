@@ -104,7 +104,7 @@ namespace Stride.Graphics
                     
 
                     //TODO : Unsafe adapter pointer getter + unsure if cast is okay, needs review
-                    fixed(IDXGIAdapter1* adp = &adapter.adapter)
+                    fixed(IDXGIAdapter* adp = &adapter.adapter)
                     D3D11Overloads.CreateDevice(D3D11.GetApi(),(IDXGIAdapter*)&adp , D3DDriverType.D3DDriverTypeUnknown, 0, 0, features, (uint)targetProfiles.Length, D3D11.SdkVersion, &pDv,fls,&pCtx);
                 }
                 

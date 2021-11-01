@@ -54,30 +54,38 @@ namespace Stride.Assets.Skyboxes
             foreach (var dependency in asset.GetDependencies())
             {
                 var dependencyItem = assetItem.Package.Assets.Find(dependency.Id);
-                if (dependencyItem?.Asset is TextureAsset)
+                try
                 {
-                    var textureAsset = (TextureAsset)dependencyItem.Asset;
 
-                    // Get absolute path of asset source on disk
-                    var assetSource = GetAbsolutePath(dependencyItem, textureAsset.Source);
+                    if (dependencyItem?.Asset is TextureAsset)
+                    {
+                        var textureAsset = (TextureAsset)dependencyItem.Asset;
 
-                    // Create a synthetic url
-                    var textureUrl = SkyboxGenerator.BuildTextureForSkyboxGenerationLocation(dependencyItem.Location);
+                        // Get absolute path of asset source on disk
+                        var assetSource = GetAbsolutePath(dependencyItem, textureAsset.Source);
 
-                    var gameSettingsAsset = context.GetGameSettingsAsset();
-                    var renderingSettings = gameSettingsAsset.GetOrCreate<RenderingSettings>(context.Platform);
+                        // Create a synthetic url
+                        var textureUrl = SkyboxGenerator.BuildTextureForSkyboxGenerationLocation(dependencyItem.Location);
 
-                    // Select the best graphics profile
-                    var graphicsProfile = renderingSettings.DefaultGraphicsProfile >= GraphicsProfile.Level_10_0 ? renderingSettings.DefaultGraphicsProfile : GraphicsProfile.Level_10_0;
+                        var gameSettingsAsset = context.GetGameSettingsAsset();
+                        var renderingSettings = gameSettingsAsset.GetOrCreate<RenderingSettings>(context.Platform);
 
-                    var textureAssetItem = new AssetItem(textureUrl, textureAsset);
+                        // Select the best graphics profile
+                        var graphicsProfile = renderingSettings.DefaultGraphicsProfile >= GraphicsProfile.Level_10_0 ? renderingSettings.DefaultGraphicsProfile : GraphicsProfile.Level_10_0;
 
-                    // Create and add the texture command.
-                    var textureParameters = new TextureConvertParameters(assetSource, textureAsset, PlatformType.Windows, GraphicsPlatform.Direct3D11, graphicsProfile, gameSettingsAsset.GetOrCreate<TextureSettings>().TextureQuality, colorSpace);
-                    var prereqStep = new AssetBuildStep(textureAssetItem);
-                    prereqStep.Add(new TextureAssetCompiler.TextureConvertCommand(textureUrl, textureParameters, assetItem.Package));
-                    result.BuildSteps.Add(prereqStep);
-                    prereqs.Enqueue(prereqStep);
+                        var textureAssetItem = new AssetItem(textureUrl, textureAsset);
+
+                        // Create and add the texture command.
+                        var textureParameters = new TextureConvertParameters(assetSource, textureAsset, PlatformType.Windows, GraphicsPlatform.Direct3D11, graphicsProfile, gameSettingsAsset.GetOrCreate<TextureSettings>().TextureQuality, colorSpace);
+                        var prereqStep = new AssetBuildStep(textureAssetItem);
+                        prereqStep.Add(new TextureAssetCompiler.TextureConvertCommand(textureUrl, textureParameters, assetItem.Package));
+                        result.BuildSteps.Add(prereqStep);
+                        prereqs.Enqueue(prereqStep);
+                    }
+
+                } catch(Exception)
+                {
+
                 }
             }
 

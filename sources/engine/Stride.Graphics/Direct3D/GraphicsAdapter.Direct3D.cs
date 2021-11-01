@@ -40,9 +40,9 @@ namespace Stride.Graphics
     /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>
     public partial class GraphicsAdapter
     {
-        public readonly IDXGIAdapter1 adapter;
+        public readonly IDXGIAdapter adapter;
         private readonly int adapterOrdinal;
-        private readonly AdapterDesc1 description;
+        private readonly AdapterDesc description;
 
         private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile)int.MaxValue;
         private GraphicsProfile maximumSupportedProfile;
@@ -52,18 +52,18 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="defaultFactory">The default factory.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
-        internal GraphicsAdapter(IDXGIFactory1 defaultFactory, int adapterOrdinal)
+        internal GraphicsAdapter(IDXGIFactory defaultFactory, int adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
             //GetAdapter1(adapterOrdinal).DisposeBy(this);
             
             unsafe
             {
-                fixed (IDXGIAdapter1* a = &adapter)
-                    defaultFactory.EnumAdapters1((uint)adapterOrdinal, &a);
-                fixed (AdapterDesc1* desc = &description)
+                fixed (IDXGIAdapter* a = &adapter)
+                    defaultFactory.EnumAdapters((uint)adapterOrdinal, &a);
+                fixed (AdapterDesc* desc = &description)
                 {
-                    adapter.GetDesc1(desc);
+                    adapter.GetDesc(desc);
                     // for some reason sharpDX returns an adaptater name of fixed size filled with trailing '\0'
                     //description.Description = description.Description.TrimEnd('\0');
                 }
@@ -104,7 +104,7 @@ namespace Stride.Graphics
                 // TODO: Seems very unsafe, need some review
                 unsafe
                 {
-                    fixed(AdapterDesc1* desc = &description)
+                    fixed(AdapterDesc* desc = &description)
                     {
                         return new string(desc->Description);
                     }
@@ -121,7 +121,7 @@ namespace Stride.Graphics
         public int VendorId
         {
             //TODO: Doesn't seem unsafe but a little bit somehow
-            get { unsafe { fixed(AdapterDesc1* desc = &description) return (int)desc->VendorId; } }
+            get { unsafe { fixed(AdapterDesc* desc = &description) return (int)desc->VendorId; } }
         }
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace Stride.Graphics
             }
         }
 
-        internal IDXGIAdapter1 NativeAdapter
+        internal IDXGIAdapter NativeAdapter
         {
             get
             {

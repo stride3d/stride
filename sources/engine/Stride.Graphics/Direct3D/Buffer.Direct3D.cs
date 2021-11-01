@@ -3,6 +3,7 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using System;
 using System.Collections.Generic;
+using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
 using Stride.Graphics.Direct3D;
@@ -11,12 +12,12 @@ namespace Stride.Graphics
 {
     public partial class Buffer
     {
-        public ID3D11Buffer nativeBuffer;
+        public ComPtr<ID3D11Buffer> nativeBuffer;
 
         //buffer descrption
-        private BufferDesc nativeDescription;
+        private ComPtr<BufferDesc> nativeDescription;
 
-        internal ID3D11Buffer NativeBuffer 
+        internal ComPtr<ID3D11Buffer> NativeBuffer 
         {
             get
             {
@@ -38,7 +39,7 @@ namespace Stride.Graphics
         protected Buffer InitializeFromImpl(BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
             bufferDescription = description;
-            nativeDescription = ConvertToNativeDescription(Description);
+            nativeDescription = new ComPtr<BufferDesc>(ConvertToNativeDescription(Description));
             ViewFlags = viewFlags;
             InitCountAndViewFormat(out this.elementCount, ref viewFormat);
             ViewFormat = viewFormat;
@@ -249,6 +250,7 @@ namespace Stride.Graphics
                 BindFlags = 0,
                 Usage = (Usage)bufferDescription.Usage
             };
+
 
             var bufferFlags = (uint)bufferDescription.BufferFlags;
 

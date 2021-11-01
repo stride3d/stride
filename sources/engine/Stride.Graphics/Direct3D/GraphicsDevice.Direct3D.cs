@@ -24,10 +24,10 @@ namespace Stride.Graphics
         private bool simulateReset = false;
         private string rendererName;
 
-        public ID3D11Device nativeDevice;
-        public ID3D11DeviceContext nativeDeviceContext;
-        private readonly Queue<ID3D11Query> disjointQueries = new Queue<ID3D11Query>(4);
-        private readonly Stack<ID3D11Query> currentDisjointQueries = new Stack<ID3D11Query>(2);
+        public ComPtr<ID3D11Device >nativeDevice;
+        public ComPtr<ID3D11DeviceContext >nativeDeviceContext;
+        private readonly Queue<ComPtr<ID3D11Query>> disjointQueries = new Queue<ComPtr<ID3D11Query>>(4);
+        private readonly Stack<ComPtr<ID3D11Query>> currentDisjointQueries = new Stack<ComPtr<ID3D11Query>>(2);
 
         internal GraphicsProfile RequestedProfile;
 
@@ -53,7 +53,7 @@ namespace Stride.Graphics
                     return GraphicsDeviceStatus.Reset;
                 }
 
-                var result = (long)NativeDevice.GetDeviceRemovedReason();
+                var result = (long)NativeDevice.Get().GetDeviceRemovedReason();
                 if (result == (long)ReturnCodes.DEVICE_REMOVED)
                 {
                     return GraphicsDeviceStatus.Removed;
@@ -92,7 +92,7 @@ namespace Stride.Graphics
         ///     Gets the native device.
         /// </summary>
         /// <value>The native device.</value>
-        internal Silk.NET.Direct3D11.ID3D11Device NativeDevice
+        internal ComPtr<ID3D11Device> NativeDevice
         {
             get
             {
@@ -104,7 +104,7 @@ namespace Stride.Graphics
         /// Gets the native device context.
         /// </summary>
         /// <value>The native device context.</value>
-        internal ID3D11DeviceContext NativeDeviceContext
+        internal ComPtr<ID3D11DeviceContext> NativeDeviceContext
         {
             get
             {
@@ -121,13 +121,12 @@ namespace Stride.Graphics
             FrameDrawCalls = 0;
             // TODO : Need review
             
-            ID3D11Query currentDisjointQuery = disjointQueries.Peek();
+            ComPtr<ID3D11Query> currentDisjointQuery = disjointQueries.Peek();
             var result = new QueryDataTimestampDisjoint();
             unsafe
             {
-                ID3D11Query* currentDisjointQueryPtr = &currentDisjointQuery;
 
-                nativeDeviceContext.GetData((ID3D11Asynchronous*)currentDisjointQueryPtr, ref result, currentDisjointQuery.GetDataSize(), (int)AsyncGetdataFlag.AsyncGetdataDonotflush);
+                nativeDeviceContext.Get().GetData(currentDisjointQuery.Handle, ref result, currentDisjointQuery.Get().GetDataSize(), (int)AsyncGetdataFlag.AsyncGetdataDonotflush);
 
                 if (disjointQueries.Count > 0 )
                 {
@@ -217,8 +216,8 @@ namespace Stride.Graphics
             nativeDevice.Release();
             unsafe
             {
-                AdapterDesc1 d = new AdapterDesc1();
-                Adapter.NativeAdapter.GetDesc1(&d);
+                AdapterDesc d = new AdapterDesc();
+                Adapter.NativeAdapter.GetDesc(&d);
                 rendererName = new string(d.Description);
             }
 
@@ -253,7 +252,7 @@ namespace Stride.Graphics
                     unsafe
                     {
                         // TODO : Correct the creation
-                        fixed(IDXGIAdapter1* ad = &Adapter.adapter)
+                        fixed(IDXGIAdapter* ad = &Adapter.adapter)
                         fixed(ID3D11Device* dev = &nativeDevice)
                             D3D11Overloads.CreateDevice(D3D11.GetApi(), (IDXGIAdapter*)ad, D3DDriverType.D3DDriverTypeUnknown, 0, (uint)creationFlags, &level, 1, D3D11.SdkVersion, &dev, null, null);
                     }
