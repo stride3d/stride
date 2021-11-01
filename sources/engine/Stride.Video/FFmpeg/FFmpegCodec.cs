@@ -6,14 +6,14 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-//using FFmpeg.AutoGen;
+using FFmpeg.AutoGen;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
-using FFmpeg.AutoGen;
 using Silk.NET.DXGI;
 
+
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-using Silk.NET.Direct3D11;
+//using Silk.NET.Direct3D11;
 #endif
 
 namespace Stride.Video.FFmpeg
@@ -38,10 +38,10 @@ namespace Stride.Video.FFmpeg
         private Silk.NET.Direct3D11.ID3D11VideoDecoderOutputView videoHardwareDecoderView;
 #endif
 
-        private PinnedObject<Silk.NET.Direct3D11.ID3D11VideoContext> videoContextHandle;
-        private PinnedObject<Silk.NET.Direct3D11.ID3D11VideoDecoder> videoDecoderHandle;
+        private PinnedObject<ID3D11VideoContext> videoContextHandle;
+        private PinnedObject<ID3D11VideoDecoder> videoDecoderHandle;
         private PinnedObject<D3D11_VIDEO_DECODER_CONFIG> decoderConfigHandle;
-        private PinnedObject<Silk.NET.Direct3D11.ID3D11VideoDecoderOutputView> decoderOuputViewsHandle;
+        private PinnedObject<ID3D11VideoDecoderOutputView> decoderOuputViewsHandle;
 
         private class PinnedObject<T>
         {
@@ -161,14 +161,14 @@ namespace Stride.Video.FFmpeg
 #if STRIDE_GRAPHICS_API_DIRECT3D11
         private void CreateHarwareAccelerationContext(GraphicsDevice graphicsDevice, AVCodecContext* pAVCodecContext, AVCodec* pCodec)
         {
-            ID3D11VideoDevice1 videoDevice;
-            ID3D11VideoContext1 videoContext;
+            Silk.NET.Direct3D11.ID3D11VideoDevice1 videoDevice;
+            Silk.NET.Direct3D11.ID3D11VideoContext1 videoContext;
             unsafe
             {
-                var vdguid = ID3D11VideoDevice1.Guid;
-                var vcguid = ID3D11VideoContext1.Guid;
-                ID3D11VideoDevice1* vd = &videoDevice;
-                ID3D11VideoContext1* vc = &videoContext;
+                var vdguid = Silk.NET.Direct3D11.ID3D11VideoDevice1.Guid;
+                var vcguid = Silk.NET.Direct3D11.ID3D11VideoContext1.Guid;
+                Silk.NET.Direct3D11.ID3D11VideoDevice1* vd = &videoDevice;
+                Silk.NET.Direct3D11.ID3D11VideoContext1* vc = &videoContext;
                 graphicsDevice?.NativeDevice.QueryInterface(&vdguid,(void**)&vd);
                 graphicsDevice?.NativeDeviceContext.QueryInterface(&vcguid,(void**)&vc);
             }
@@ -179,59 +179,83 @@ namespace Stride.Video.FFmpeg
             foreach (var profile in FindVideoFormatCompatibleProfiles(videoDevice, *pCodec))
             {
                 // Create and configure the video decoder
-                var videoDecoderDescription = new VideoDecoderDesc
+                var videoDecoderDescription = new Silk.NET.Direct3D11.VideoDecoderDesc
                 {
                     Guid = profile,
                     SampleWidth = (uint)pAVCodecContext->width,
                     SampleHeight = (uint)pAVCodecContext->height,
                     OutputFormat = DecoderOuputFormat,
                 };
-                
-                videoDevice.GetVideoDecoderConfigCount(ref videoDecoderDescription, out var configCount);
+                uint configCount;
+                unsafe
+                {
+                    videoDevice.GetVideoDecoderConfigCount(&videoDecoderDescription, &configCount);
+                }
                 for (var i = 0; i < configCount; ++i)
                 {
                     // get and check the decoder configuration for the profile
-                    videoDevice.GetVideoDecoderConfig(ref videoDecoderDescription, i, out var decoderConfig);
+                    Silk.NET.Direct3D11.VideoDecoderConfig decoderConfig;
+                    unsafe
+                    {
+                        videoDevice.GetVideoDecoderConfig(&videoDecoderDescription, (uint)i, &decoderConfig);
+                    }
                     //if (check to performe on the config)
                     //    continue;
 
                     // create the decoder from the configuration
-                    videoDevice.CreateVideoDecoder(ref videoDecoderDescription, ref decoderConfig, out videoHardwareDecoder);
-
+                    Silk.NET.Direct3D11.ID3D11VideoDecoder videoHardwareDecoder;
+                    unsafe
+                    {
+                        Silk.NET.Direct3D11.ID3D11VideoDecoder* p = null;
+                        videoDevice.CreateVideoDecoder(&videoDecoderDescription, &decoderConfig, &p);
+                        videoHardwareDecoder = *p;
+                    }
                     // create the decoder output view 
-                    var videoDecoderOutputViewDescription = new VideoDecoderOutputViewDesc
+                    var videoDecoderOutputViewDescription = new Silk.NET.Direct3D11.VideoDecoderOutputViewDesc
                     {
                         DecodeProfile = profile,
-                        ViewDimension = VdovDimension.VdovDimensionTexture2D,
-                        Texture2D = new Tex2DVdov{ ArraySlice = 0, },
+                        ViewDimension = Silk.NET.Direct3D11.VdovDimension.VdovDimensionTexture2D,
+                        Texture2D = new Silk.NET.Direct3D11.Tex2DVdov { ArraySlice = 0, },
                     };
                     DecoderOutputTexture = Texture.New2D(graphicsDevice, pAVCodecContext->width, pAVCodecContext->height, (PixelFormat)DecoderOuputFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource);
-                    videoDevice.CreateVideoDecoderOutputView(DecoderOutputTexture.NativeResource, ref videoDecoderOutputViewDescription, out videoHardwareDecoderView);
-
+                    Silk.NET.Direct3D11.ID3D11VideoDecoderOutputView videoHardwareDecoderView;
+                    unsafe
+                    {
+                        fixed(Silk.NET.Direct3D11.ID3D11Resource* r = &DecoderOutputTexture.nativeResource)
+                        {
+                            Silk.NET.Direct3D11.ID3D11VideoDecoderOutputView* p = null;
+                            videoDevice.CreateVideoDecoderOutputView(r, &videoDecoderOutputViewDescription,&p);
+                            videoHardwareDecoderView = *p;
+                        }
+                    }
                     // Create and fill the hardware context
                     var contextd3d11 = ffmpeg.av_d3d11va_alloc_context();
-                                                            
-                    var iVideoContext = new ID3D11VideoContext { lpVtbl = (ID3D11VideoContextVtbl*)videoContext.NativePointer };
-                    videoContextHandle = new PinnedObject<ID3D11VideoContext>(iVideoContext);
-                    contextd3d11->video_context = (ID3D11VideoContext*)videoContextHandle.Pointer;
-                    
-                    var iVideoDecoder = new ID3D11VideoDecoder { lpVtbl = (ID3D11VideoDecoderVtbl*)videoHardwareDecoder.NativePointer };
-                    videoDecoderHandle = new PinnedObject<ID3D11VideoDecoder>(iVideoDecoder);
-                    contextd3d11->decoder = (ID3D11VideoDecoder*)videoDecoderHandle.Pointer;
+                    unsafe
+                    {
+                        var iVideoContext = new ID3D11VideoContext { lpVtbl = (ID3D11VideoContextVtbl*)videoContext.LpVtbl };
+                        videoContextHandle = new PinnedObject<ID3D11VideoContext>(iVideoContext);
+                        contextd3d11->video_context = (ID3D11VideoContext*)videoContextHandle.Pointer;
 
-                    decoderConfigHandle = new PinnedObject<D3D11_VIDEO_DECODER_CONFIG>(decoderConfig.ToFFmpegDecoderConfig());
-                    contextd3d11->cfg = (D3D11_VIDEO_DECODER_CONFIG*)decoderConfigHandle.Pointer;
+                        var iVideoDecoder = new ID3D11VideoDecoder { lpVtbl = (ID3D11VideoDecoderVtbl*)videoHardwareDecoder.LpVtbl };
+                        videoDecoderHandle = new PinnedObject<ID3D11VideoDecoder>(iVideoDecoder);
+                        contextd3d11->decoder = (ID3D11VideoDecoder*)videoDecoderHandle.Pointer;
+                        D3D11_VIDEO_DECODER_CONFIG* decoderConfigF = (D3D11_VIDEO_DECODER_CONFIG*) &decoderConfig;
+                        decoderConfigHandle = new PinnedObject<D3D11_VIDEO_DECODER_CONFIG>(*decoderConfigF);
+                        contextd3d11->cfg = (D3D11_VIDEO_DECODER_CONFIG*)decoderConfigHandle.Pointer;
 
-                    var iVideoOutputView = new ID3D11VideoDecoderOutputView { lpVtbl = (ID3D11VideoDecoderOutputViewVtbl*)videoHardwareDecoderView.NativePointer };
-                    decoderOuputViewsHandle = new PinnedObject<ID3D11VideoDecoderOutputView>(iVideoOutputView, true);
-                    contextd3d11->surface = (ID3D11VideoDecoderOutputView**)decoderOuputViewsHandle.Pointer;
-                    contextd3d11->surface_count = 1;
+                        var iVideoOutputView = new ID3D11VideoDecoderOutputView { lpVtbl = (ID3D11VideoDecoderOutputViewVtbl*)videoHardwareDecoderView.LpVtbl};
+                        decoderOuputViewsHandle = new PinnedObject<ID3D11VideoDecoderOutputView>(iVideoOutputView, true);
+                        contextd3d11->surface = (ID3D11VideoDecoderOutputView**)decoderOuputViewsHandle.Pointer;
+                        contextd3d11->surface_count = 1;
+                        pAVCodecContext->hwaccel_context = contextd3d11;
 
-                    pAVCodecContext->hwaccel_context = contextd3d11;
+                    }
+
+
                 }
             }
         }
-        private static Guid GetVideoDecoderProfile(ID3D11VideoDevice1 v, int i)
+        private static Guid GetVideoDecoderProfile(Silk.NET.Direct3D11.ID3D11VideoDevice1 v, int i)
         {
             Guid profile;
             unsafe
@@ -241,7 +265,7 @@ namespace Stride.Video.FFmpeg
             return profile;
         }
 
-        private static int CheckVideoDecoderFormat(ID3D11VideoDevice1 v,Guid p, Format f)
+        private static int CheckVideoDecoderFormat(Silk.NET.Direct3D11.ID3D11VideoDevice1 v,Guid p, Format f)
         {
             int i = 0;
             unsafe
@@ -251,7 +275,7 @@ namespace Stride.Video.FFmpeg
             return i;
         }
 
-        private static IEnumerable<Guid> FindVideoFormatCompatibleProfiles(ID3D11VideoDevice1 videoDevice, AVCodec codec)
+        private static IEnumerable<Guid> FindVideoFormatCompatibleProfiles(Silk.NET.Direct3D11.ID3D11VideoDevice1 videoDevice, AVCodec codec)
         {
             for (var i = 0; i < videoDevice.GetVideoDecoderProfileCount(); ++i)
             {
