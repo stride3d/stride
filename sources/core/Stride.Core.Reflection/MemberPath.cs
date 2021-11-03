@@ -850,7 +850,7 @@ namespace Stride.Core.Reflection
 
             public override bool Equals(object obj)
             {
-                return obj is SetPathItem && Equals((SetPathItem)obj);
+                return obj is SetPathItem spi && Equals(spi);
             }
 
             public override int GetHashCode()
