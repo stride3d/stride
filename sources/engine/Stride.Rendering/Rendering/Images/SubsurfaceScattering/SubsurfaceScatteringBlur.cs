@@ -120,12 +120,35 @@ namespace Stride.Rendering.SubsurfaceScattering
             blurVShader.Parameters.Set(SubsurfaceScatteringKeys.BlurHorizontally, false);
         }
 
+        private Vector2 CalculateProjectionSizeOnPlane(RenderView renderView, float viewSpaceDistance)
+        {
+            Vector3 centerViewSpace = new Vector3(0.0f, 0.0f, -viewSpaceDistance);  // Negate because we are using right handed projection matrices (-Z points into the screen).
+            Vector3 topRightViewSpace = new Vector3(1.0f, 1.0f, -viewSpaceDistance);
+
+            Vector3 centerClipSpace = Vector3.TransformCoordinate(centerViewSpace, renderView.Projection);
+            Vector3 topRightClipSpace = Vector3.TransformCoordinate(topRightViewSpace, renderView.Projection);
+
+            Vector2 sphereDimensions = new Vector2(topRightClipSpace.X - centerClipSpace.X, topRightClipSpace.Y - centerClipSpace.Y);
+            return sphereDimensions;
+        }
+
+        private bool UsesOrthographicProjection(RenderView renderView)
+        {
+            // TODO: STABILITY: Find a more accurate (and maybe faster?) way of detecting orthographic matrices.
+            Vector2 projectedSphereDimensionsOnNearPlane = CalculateProjectionSizeOnPlane(renderView, renderView.NearClipPlane);
+            Vector2 projectedSphereDimensionsOnFarPlane = CalculateProjectionSizeOnPlane(renderView, renderView.FarClipPlane);
+
+            Vector2 nearFarPlaneRatio = projectedSphereDimensionsOnFarPlane / projectedSphereDimensionsOnNearPlane;
+
+            return nearFarPlaneRatio.Y > 0.01f ? true : false;
+        }
+
         private void UpdatePermutationParameters(RenderDrawContext context)
         {
             SetPermutationParameterForBothShaders(SubsurfaceScatteringKeys.KernelSizeJittering, JitterKernelSize);
             SetPermutationParameterForBothShaders(SubsurfaceScatteringKeys.FollowSurface, FollowSurface ? 1 : 0);
             SetPermutationParameterForBothShaders(SubsurfaceScatteringKeys.MaxMaterialCount, (int)MaxMaterialCount);
-            SetPermutationParameterForBothShaders(SubsurfaceScatteringKeys.OrthographicProjection, context.RenderContext.RenderView.Projection.M44 == 1);
+            SetPermutationParameterForBothShaders(SubsurfaceScatteringKeys.OrthographicProjection, UsesOrthographicProjection(context.RenderContext.RenderView));
             SetPermutationParameterForBothShaders(SubsurfaceScatteringKeys.KernelLength, SubsurfaceScatteringSettings.SamplesPerScatteringKernel2);
             SetPermutationParameterForBothShaders(SubsurfaceScatteringKeys.RenderMode, (int)ActiveRenderMode);
 
