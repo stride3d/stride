@@ -97,7 +97,7 @@ namespace Stride.Core.Reflection
         /// </summary>
         /// <param name="set">The set.</param>
         /// <param name="descriptor">The descriptor.</param>
-        void VisitSet([NotNull] object set, [NotNull] SetDescriptor descriptor);
+        void VisitSet([NotNull] IEnumerable set, [NotNull] SetDescriptor descriptor);
 
         /// <summary>
         /// Visits a set item.
@@ -106,6 +106,6 @@ namespace Stride.Core.Reflection
         /// <param name="descriptor">The descriptor.</param>
         /// <param name="item">The item.</param>
         /// <param name="itemDescriptor">The item descriptor.</param>
-        void VisitSetItem([NotNull] object set, [NotNull] SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor);
+        void VisitSetItem([NotNull] IEnumerable set, [NotNull] SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor);
     }
 }

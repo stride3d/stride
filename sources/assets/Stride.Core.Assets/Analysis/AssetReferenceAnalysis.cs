@@ -240,7 +240,7 @@ namespace Stride.Core.Assets.Analysis
                 }
             }
 
-            public override void VisitSetItem(object setObject, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
+            public override void VisitSetItem(IEnumerable setObject, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
             {
                 base.VisitSetItem(setObject, descriptor, item, itemDescriptor);
                 var assetReference = item as AssetReference;

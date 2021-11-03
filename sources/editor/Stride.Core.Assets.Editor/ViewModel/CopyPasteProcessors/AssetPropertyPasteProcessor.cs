@@ -37,10 +37,11 @@ namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
             var sourceCategory = sourceTypeDescriptor.Category;
             var targetCategory = targetTypeDescriptor.Category;
             // Can only paste a collection into another collection, or a dictionary into a dictionary
-            if (sourceCategory != targetCategory && (sourceCategory == DescriptorCategory.List ||
-                sourceCategory == DescriptorCategory.Dictionary ||
-                sourceCategory == DescriptorCategory.Set ||
-                sourceCategory == DescriptorCategory.Collection))
+            if (sourceCategory != targetCategory &&
+                (sourceCategory == DescriptorCategory.List ||
+                    sourceCategory == DescriptorCategory.Dictionary ||
+                    sourceCategory == DescriptorCategory.Set ||
+                    sourceCategory == DescriptorCategory.Collection))
             {
                 return false;
             }

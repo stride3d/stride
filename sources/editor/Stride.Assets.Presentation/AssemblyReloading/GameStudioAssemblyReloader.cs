@@ -280,13 +280,11 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 //base.VisitDictionaryKeyValue(dictionary, descriptor, key, keyDescriptor, value, valueDescriptor);
             }
 
-            public override void VisitSetItem(object set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
+            public override void VisitSetItem(IEnumerable set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
             {
-                // TODO: CurrentPath is valid for value
                 if (ProcessObject(item, itemDescriptor.Type)) return;
 
-                Visit(item, itemDescriptor);
-                //base.VisitSetItem(set, descriptor, value, valueDescriptor);
+                base.VisitSetItem(set, descriptor, item, itemDescriptor);
             }
 
             protected abstract bool ProcessObject(object obj, Type expectedType);

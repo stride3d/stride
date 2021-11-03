@@ -50,7 +50,7 @@ namespace Stride.Core.Assets.Visitors
             }
         }
 
-        public override void VisitSetItem(object set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
+        public override void VisitSetItem(IEnumerable set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
         {
             if (CurrentPath.Match(MemberPath))
                 VisitAssetMember(item, itemDescriptor);

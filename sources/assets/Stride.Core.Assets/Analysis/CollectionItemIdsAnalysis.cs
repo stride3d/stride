@@ -53,7 +53,7 @@ namespace Stride.Core.Assets.Analysis
                 base.VisitDictionary(dictionary, descriptor);
             }
 
-            public override void VisitSet(object set, SetDescriptor descriptor)
+            public override void VisitSet(IEnumerable set, SetDescriptor descriptor)
             {
                 Fixup(set);
                 base.VisitSet(set, descriptor);

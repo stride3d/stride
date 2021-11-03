@@ -199,7 +199,7 @@ namespace Stride.Core.Reflection
                     VisitDictionary(obj, (DictionaryDescriptor)descriptor);
                     break;
                 case DescriptorCategory.Set:
-                    VisitSet(obj, (SetDescriptor)descriptor);
+                    VisitSet((IEnumerable)obj, (SetDescriptor)descriptor);
                     break;
             }
         }
@@ -282,10 +282,10 @@ namespace Stride.Core.Reflection
         }
 
         /// <inheritdoc />
-        public virtual void VisitSet(object set, SetDescriptor descriptor)
+        public virtual void VisitSet(IEnumerable set, SetDescriptor descriptor)
         {
             // Make a copy in case VisitCollectionItem mutates something
-            IEnumerator enumerator = (set as IEnumerable).GetEnumerator();
+            IEnumerator enumerator = set.GetEnumerator();
             while (enumerator.MoveNext())
             {
                 object item = enumerator.Current;
@@ -296,7 +296,7 @@ namespace Stride.Core.Reflection
         }
 
         /// <inheritdoc />
-        public virtual void VisitSetItem(object set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
+        public virtual void VisitSetItem(IEnumerable set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
         {
             Visit(item, itemDescriptor);
         }

@@ -96,7 +96,7 @@ namespace Stride.Core.Assets
             base.VisitDictionary(dictionary, descriptor);
         }
 
-        public override void VisitSet(object set, SetDescriptor descriptor)
+        public override void VisitSet(IEnumerable set, SetDescriptor descriptor)
         {
             if (ShouldGenerateItemIdCollection(set))
             {

@@ -850,8 +850,6 @@ namespace Stride.Core.Reflection
 
             public override bool Equals(object obj)
             {
-                if (ReferenceEquals(null, obj)) return false;
-                if (ReferenceEquals(this, obj)) return true;
                 return obj is SetPathItem && Equals((SetPathItem)obj);
             }
 
