@@ -50,16 +50,16 @@ namespace Stride.Graphics
 
             // Set back the real GraphicsProfile that is used
             RequestedProfile = deviceRoot.RequestedProfile;
-            CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(nativeDevice.GetFeatureLevel());
+            CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(nativeDevice.Get().GetFeatureLevel());
 
             HasResourceRenaming = true;
             unsafe 
             {
                 uint n = 0;
                 FeatureDataThreading dt;
-                HasComputeShaders = (uint)nativeDevice.CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureD3D10XHardwareOptions, null, n) == (uint)ReturnCodes.S_OK;
-                HasDoublePrecision = (uint)nativeDevice.CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureDoubles,null, n) == (uint)ReturnCodes.S_OK;
-                HasDriverCommandLists = (uint)nativeDevice.CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureThreading, &dt, n) == (uint)ReturnCodes.S_OK;
+                HasComputeShaders = (uint)nativeDevice.Get().CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureD3D10XHardwareOptions, null, n) == (uint)ReturnCodes.S_OK;
+                HasDoublePrecision = (uint)nativeDevice.Get().CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureDoubles,null, n) == (uint)ReturnCodes.S_OK;
+                HasDriverCommandLists = (uint)nativeDevice.Get().CheckFeatureSupport(Silk.NET.Direct3D11.Feature.FeatureThreading, &dt, n) == (uint)ReturnCodes.S_OK;
                 HasMultiThreadingConcurrentResources = dt.DriverConcurrentCreates>0;
             }            
 
@@ -78,7 +78,7 @@ namespace Stride.Graphics
 
                 if (!ObsoleteFormatToExcludes.Contains(dxgiFormat))
                 {
-                    maximumMultisampleCount = GetMaximumMultisampleCount(nativeDevice, dxgiFormat);
+                    maximumMultisampleCount = GetMaximumMultisampleCount(nativeDevice.Get(), dxgiFormat);
                     
                     unsafe
                     {
@@ -87,10 +87,10 @@ namespace Stride.Graphics
                         {
                             //TODO : To review, this seems very weird
                             
-                            nativeDevice.CheckFormatSupport(dxgiFormat,&res);
+                            nativeDevice.Get().CheckFormatSupport(dxgiFormat,&res);
                             computeShaderFormatSupport = (FormatSupport)res;
                         }
-                        nativeDevice.CheckFormatSupport(dxgiFormat, &res);
+                        nativeDevice.Get().CheckFormatSupport(dxgiFormat, &res);
                         formatSupport = (FormatSupport)res;
 
                     }

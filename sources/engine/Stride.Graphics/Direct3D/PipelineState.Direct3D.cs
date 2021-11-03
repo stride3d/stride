@@ -21,22 +21,22 @@ namespace Stride.Graphics
         private readonly EffectBytecode effectBytecode;
         internal ResourceBinder ResourceBinder;
 
-        private Silk.NET.Direct3D11.ID3D11VertexShader vertexShader;
-        private Silk.NET.Direct3D11.ID3D11GeometryShader geometryShader;
-        private Silk.NET.Direct3D11.ID3D11PixelShader pixelShader;
-        private Silk.NET.Direct3D11.ID3D11HullShader hullShader;
-        private Silk.NET.Direct3D11.ID3D11DomainShader domainShader;
-        private Silk.NET.Direct3D11.ID3D11ComputeShader computeShader;
+        private ComPtr<ID3D11VertexShader> vertexShader;
+        private ComPtr<ID3D11GeometryShader> geometryShader;
+        private ComPtr<ID3D11PixelShader> pixelShader;
+        private ComPtr<ID3D11HullShader> hullShader;
+        private ComPtr<ID3D11DomainShader> domainShader;
+        private ComPtr<ID3D11ComputeShader> computeShader;
         private byte[] inputSignature;
 
-        private readonly Silk.NET.Direct3D11.ID3D11BlendState blendState;
+        private readonly ComPtr<ID3D11BlendState> blendState;
         private readonly uint sampleMask;
-        private readonly Silk.NET.Direct3D11.ID3D11RasterizerState rasterizerState;
-        private readonly Silk.NET.Direct3D11.ID3D11DepthStencilState depthStencilState;
+        private readonly ComPtr<ID3D11RasterizerState> rasterizerState;
+        private readonly ComPtr<ID3D11DepthStencilState> depthStencilState;
 
-        private Silk.NET.Direct3D11.ID3D11InputLayout inputLayout;
+        private ComPtr<ID3D11InputLayout> inputLayout;
 
-        private readonly Silk.NET.Core.Native.D3DPrimitiveTopology primitiveTopology;
+        private readonly D3DPrimitiveTopology primitiveTopology;
         // Note: no need to store RTV/DSV formats
 
         internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
@@ -81,56 +81,46 @@ namespace Stride.Graphics
             {
                 if (effectBytecode != previousPipeline.effectBytecode)
                 {
-                    fixed(ID3D11ComputeShader* cs = &computeShader)
-                        if (!computeShader.Equals(previousPipeline.computeShader))
-                            nativeDeviceContext.CSSetShader(cs,null,0);
-                    fixed (ID3D11VertexShader* vs = &vertexShader)
-                        if (!vertexShader.Equals(previousPipeline.vertexShader))
-                            nativeDeviceContext.VSSetShader(vs,null,0);
-                    fixed (ID3D11PixelShader* ps = &pixelShader)
-                        if (!pixelShader.Equals(previousPipeline.pixelShader))
-                            nativeDeviceContext.PSSetShader(ps,null,0);
-                    fixed (ID3D11HullShader* hs = &hullShader)
-                        if (!hullShader.Equals(previousPipeline.hullShader))
-                            nativeDeviceContext.HSSetShader(hs,null,0);
-                    fixed (ID3D11DomainShader* ds = &domainShader)
-                        if (!domainShader.Equals(previousPipeline.domainShader))
-                            nativeDeviceContext.DSSetShader(ds,null,0);
-                    fixed (ID3D11GeometryShader* gs = &geometryShader)
-                        if (!geometryShader.Equals(previousPipeline.geometryShader))
-                            nativeDeviceContext.GSSetShader(gs,null,0);
+                    if (!computeShader.Equals(previousPipeline.computeShader))
+                        nativeDeviceContext.Get().CSSetShader(previousPipeline.computeShader, null, 0);
+                    if (!vertexShader.Equals(previousPipeline.vertexShader))
+                        nativeDeviceContext.Get().VSSetShader(previousPipeline.vertexShader, null, 0);
+                    if (!pixelShader.Equals(previousPipeline.pixelShader))
+                        nativeDeviceContext.Get().PSSetShader(previousPipeline.pixelShader, null, 0);
+                    if (!hullShader.Equals(previousPipeline.hullShader))
+                        nativeDeviceContext.Get().HSSetShader(previousPipeline.hullShader,null,0);
+                    if (!domainShader.Equals(previousPipeline.domainShader))
+                        nativeDeviceContext.Get().DSSetShader(previousPipeline.domainShader,null,0);
+                    if (!geometryShader.Equals(previousPipeline.geometryShader))
+                        nativeDeviceContext.Get().GSSetShader(previousPipeline.geometryShader,null,0);
                 }
 
                 if (!blendState.Equals(previousPipeline.blendState) || sampleMask != previousPipeline.sampleMask)
                 {
                     float* bf = null;
-                    nativeDeviceContext.OMGetBlendState(null, bf, null);
-                    fixed(ID3D11BlendState* bs = &blendState)
-                        nativeDeviceContext.OMSetBlendState(bs, bf, sampleMask);
+                    nativeDeviceContext.Get().OMGetBlendState(null, bf, null);
+                    nativeDeviceContext.Get().OMSetBlendState(blendState, bf, sampleMask);
                 }
 
                 if (!rasterizerState.Equals(previousPipeline.rasterizerState))
                 {
-                    fixed(ID3D11RasterizerState* rs = &rasterizerState)
-                        nativeDeviceContext.RSSetState(rs);
+                    nativeDeviceContext.Get().RSSetState(rasterizerState);
                     //nativeDeviceContext.Rasterizer.State = rasterizerState;
                 }
 
                 if (!depthStencilState.Equals(previousPipeline.depthStencilState))
                 {
-                    fixed(ID3D11DepthStencilState* ds = &depthStencilState)
-                        nativeDeviceContext.OMSetDepthStencilState(ds,0);
+                    nativeDeviceContext.Get().OMSetDepthStencilState(depthStencilState, 0);
                 }
 
                 if (!inputLayout.Equals(previousPipeline.inputLayout))
                 {
-                    fixed (ID3D11InputLayout* il = &inputLayout)
-                        nativeDeviceContext.IASetInputLayout(il);
+                    nativeDeviceContext.Get().IASetInputLayout(inputLayout);
                 }
 
                 if (primitiveTopology != previousPipeline.primitiveTopology)
                 {
-                    nativeDeviceContext.IASetPrimitiveTopology(primitiveTopology);
+                    nativeDeviceContext.Get().IASetPrimitiveTopology(primitiveTopology);
                 }
             }
 
@@ -139,20 +129,24 @@ namespace Stride.Graphics
 
         protected internal override void OnDestroyed()
         {
-            var pipelineStateCache = GetPipelineStateCache();
+            unsafe
+            {
 
-            pipelineStateCache.BlendStateCache.Release(blendState);
-            pipelineStateCache.RasterizerStateCache.Release(rasterizerState);
-            pipelineStateCache.DepthStencilStateCache.Release(depthStencilState);
+                var pipelineStateCache = GetPipelineStateCache();
 
-            pipelineStateCache.VertexShaderCache.Release(vertexShader);
-            pipelineStateCache.PixelShaderCache.Release(pixelShader);
-            pipelineStateCache.GeometryShaderCache.Release(geometryShader);
-            pipelineStateCache.HullShaderCache.Release(hullShader);
-            pipelineStateCache.DomainShaderCache.Release(domainShader);
-            pipelineStateCache.ComputeShaderCache.Release(computeShader);
+                pipelineStateCache.BlendStateCache.Release(new ComPtr<IUnknown>((IUnknown*)blendState.Handle));
+                pipelineStateCache.RasterizerStateCache.Release(new ComPtr<IUnknown>((IUnknown*)rasterizerState.Handle));
+                pipelineStateCache.DepthStencilStateCache.Release(new ComPtr<IUnknown>((IUnknown*)depthStencilState.Handle));
 
-            inputLayout.Release();
+                pipelineStateCache.VertexShaderCache.Release(new ComPtr<IUnknown>((IUnknown*)vertexShader.Handle));
+                pipelineStateCache.PixelShaderCache.Release(new ComPtr<IUnknown>((IUnknown*)pixelShader.Handle));
+                pipelineStateCache.GeometryShaderCache.Release(new ComPtr<IUnknown>((IUnknown*)geometryShader.Handle));
+                pipelineStateCache.HullShaderCache.Release(new ComPtr<IUnknown>((IUnknown*)hullShader.Handle));
+                pipelineStateCache.DomainShaderCache.Release(new ComPtr<IUnknown>((IUnknown*)domainShader.Handle));
+                pipelineStateCache.ComputeShaderCache.Release(new ComPtr<IUnknown>((IUnknown*)computeShader.Handle));
+
+                inputLayout.Release();
+            }
 
             base.OnDestroyed();
         }
@@ -189,9 +183,8 @@ namespace Stride.Graphics
                 ID3D11InputLayout* res = null;
                 fixed(InputElementDesc* ie = nativeInputElements)
                 fixed (void* bytecode = inputSignature)
-                    NativeDevice.CreateInputLayout(ie, numel, bytecode, lenbc, &res);
-
-                inputLayout = *res;
+                    NativeDevice.Get().CreateInputLayout(ie, numel, bytecode, lenbc, &res);
+                inputLayout = new ComPtr<ID3D11InputLayout>(res);
                 
             }
         }
@@ -257,8 +250,8 @@ namespace Stride.Graphics
                                 fixed (uint* soStrides = reflection.StreamOutputStrides.Select(x => (uint)x).ToArray())
                                 fixed (SODeclarationEntry* soE = soElements.ToArray())
                                 fixed (void* pBuff = shaderBytecode.Data)
-                                    GraphicsDevice.NativeDevice.CreateGeometryShaderWithStreamOutput(pBuff, (uint)bclen, soE, (uint)soElemLen, soStrides, (uint)soStridesLen, (uint)reflection.StreamOutputRasterizedStream, null, &res);
-                                geometryShader = *res;
+                                    GraphicsDevice.NativeDevice.Get().CreateGeometryShaderWithStreamOutput(pBuff, (uint)bclen, soE, (uint)soElemLen, soStrides, (uint)soStridesLen, (uint)reflection.StreamOutputRasterizedStream, null, &res);
+                                geometryShader = new ComPtr<ID3D11GeometryShader>(res);
                             }
                         }
                         else
@@ -282,26 +275,26 @@ namespace Stride.Graphics
             private object lockObject = new object();
 
             // Store instantiated objects
-            private readonly Dictionary<TKey, IUnknown> storage = new Dictionary<TKey, IUnknown>();
+            private readonly Dictionary<TKey, ComPtr<IUnknown>> storage = new Dictionary<TKey, ComPtr<IUnknown>>();
             // Used for quick removal
-            private readonly Dictionary<IUnknown, TKey> reverse = new Dictionary<IUnknown, TKey>();
+            private readonly Dictionary<ComPtr<IUnknown>, TKey> reverse = new Dictionary<ComPtr<IUnknown>, TKey>();
 
-            private readonly Dictionary<IUnknown, int> counter = new Dictionary<IUnknown, int>();
+            private readonly Dictionary<ComPtr<IUnknown>, int> counter = new Dictionary<ComPtr<IUnknown>, int>();
 
             private readonly Func<TSource, TKey> computeKey;
-            private readonly Func<TSource, IUnknown> computeValue;
+            private readonly Func<TSource, ComPtr<IUnknown>> computeValue;
 
-            public GraphicsCache(Func<TSource, TKey> computeKey, Func<TSource, IUnknown> computeValue)
+            public GraphicsCache(Func<TSource, TKey> computeKey, Func<TSource, ComPtr<IUnknown>> computeValue)
             {
                 this.computeKey = computeKey;
                 this.computeValue = computeValue;
             }
 
-            public IUnknown Instantiate(TSource source)
+            public ComPtr<IUnknown> Instantiate(TSource source)
             {
                 lock (lockObject)
                 {
-                    IUnknown value;
+                    ComPtr<IUnknown> value;
                     var key = computeKey(source);
                     if (!storage.TryGetValue(key, out value))
                     {
@@ -319,7 +312,7 @@ namespace Stride.Graphics
                 }
             }
 
-            public void Release(IUnknown value)
+            public void Release(ComPtr<IUnknown> value)
             {
                 // Should we remove it from the cache?
                 lock (lockObject)
@@ -369,100 +362,100 @@ namespace Stride.Graphics
         // Caches
         private class DevicePipelineStateCache : IDisposable
         {
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, ID3D11VertexShader> VertexShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, ID3D11PixelShader> PixelShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, ID3D11GeometryShader> GeometryShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, ID3D11HullShader> HullShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, ID3D11DomainShader> DomainShaderCache;
-            public readonly GraphicsCache<ShaderBytecode, ObjectId, ID3D11ComputeShader> ComputeShaderCache;
-            public readonly GraphicsCache<BlendStateDescription, BlendStateDescription, ID3D11BlendState> BlendStateCache;
-            public readonly GraphicsCache<RasterizerStateDescription, RasterizerStateDescription, ID3D11RasterizerState> RasterizerStateCache;
-            public readonly GraphicsCache<DepthStencilStateDescription, DepthStencilStateDescription, ID3D11DepthStencilState> DepthStencilStateCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11VertexShader>> VertexShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11PixelShader>> PixelShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11GeometryShader>> GeometryShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11HullShader>> HullShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11DomainShader>> DomainShaderCache;
+            public readonly GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11ComputeShader>> ComputeShaderCache;
+            public readonly GraphicsCache<BlendStateDescription, BlendStateDescription, ComPtr<ID3D11BlendState>> BlendStateCache;
+            public readonly GraphicsCache<RasterizerStateDescription, RasterizerStateDescription, ComPtr<ID3D11RasterizerState>> RasterizerStateCache;
+            public readonly GraphicsCache<DepthStencilStateDescription, DepthStencilStateDescription, ComPtr<ID3D11DepthStencilState>> DepthStencilStateCache;
 
             public DevicePipelineStateCache(GraphicsDevice graphicsDevice)
             {
                 // Shaders
-                VertexShaderCache = new GraphicsCache<ShaderBytecode, ObjectId, ID3D11VertexShader>(source => source.Id, source => CreateVertexShader(graphicsDevice.NativeDevice, source));
-                PixelShaderCache = new GraphicsCache<ShaderBytecode, ObjectId, ID3D11PixelShader>(source => source.Id, source => CreatePixelShader(graphicsDevice.NativeDevice, source));
-                GeometryShaderCache = new GraphicsCache<ShaderBytecode, ObjectId, ID3D11GeometryShader>(source => source.Id, source => CreateGeometryShader(graphicsDevice.NativeDevice, source));
-                HullShaderCache = new GraphicsCache<ShaderBytecode, ObjectId, ID3D11HullShader>(source => source.Id, source => CreateHullShader(graphicsDevice.NativeDevice, source));
-                DomainShaderCache = new GraphicsCache<ShaderBytecode, ObjectId, ID3D11DomainShader>(source => source.Id, source => CreateDomainShader(graphicsDevice.NativeDevice, source));
-                ComputeShaderCache = new GraphicsCache<ShaderBytecode, ObjectId, ID3D11ComputeShader>(source => source.Id, source => CreateComputeShader(graphicsDevice.NativeDevice, source));
+                VertexShaderCache = new GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11VertexShader>>(source => source.Id, source => CreateVertexShader(graphicsDevice.NativeDevice, source));
+                PixelShaderCache = new GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11PixelShader>>(source => source.Id, source => CreatePixelShader(graphicsDevice.NativeDevice, source));
+                GeometryShaderCache = new GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11GeometryShader>>(source => source.Id, source => CreateGeometryShader(graphicsDevice.NativeDevice, source));
+                HullShaderCache = new GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11HullShader>>(source => source.Id, source => CreateHullShader(graphicsDevice.NativeDevice, source));
+                DomainShaderCache = new GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11DomainShader>>(source => source.Id, source => CreateDomainShader(graphicsDevice.NativeDevice, source));
+                ComputeShaderCache = new GraphicsCache<ShaderBytecode, ObjectId, ComPtr<ID3D11ComputeShader>>(source => source.Id, source => CreateComputeShader(graphicsDevice.NativeDevice, source));
 
                 // States
-                BlendStateCache = new GraphicsCache<BlendStateDescription, BlendStateDescription, ID3D11BlendState>(source => source, source => CreateBlendState(graphicsDevice.NativeDevice, source));
-                RasterizerStateCache = new GraphicsCache<RasterizerStateDescription, RasterizerStateDescription, ID3D11RasterizerState>(source => source, source => CreateRasterizerState(graphicsDevice.NativeDevice, source));
-                DepthStencilStateCache = new GraphicsCache<DepthStencilStateDescription, DepthStencilStateDescription, ID3D11DepthStencilState>(source => source, source => CreateDepthStencilState(graphicsDevice.NativeDevice, source));
+                BlendStateCache = new GraphicsCache<BlendStateDescription, BlendStateDescription, ComPtr<ID3D11BlendState>>(source => source, source => CreateBlendState(graphicsDevice.NativeDevice, source));
+                RasterizerStateCache = new GraphicsCache<RasterizerStateDescription, RasterizerStateDescription, ComPtr<ID3D11RasterizerState>>(source => source, source => CreateRasterizerState(graphicsDevice.NativeDevice, source));
+                DepthStencilStateCache = new GraphicsCache<DepthStencilStateDescription, DepthStencilStateDescription, ComPtr<ID3D11DepthStencilState>>(source => source, source => CreateDepthStencilState(graphicsDevice.NativeDevice, source));
             }
 
-            private IUnknown CreateVertexShader(ID3D11Device nativeDevice, ShaderBytecode source)
+            private ComPtr<IUnknown> CreateVertexShader(ComPtr<ID3D11Device> nativeDevice, ShaderBytecode source)
             {
                 unsafe
                 {
                     var bclen = source.Data.Length;
                     ID3D11VertexShader* v = null;
                     fixed(byte* psb = source.Data)
-                        nativeDevice.CreateVertexShader(psb, (uint)bclen, null, &v);
-                    return *v;
+                        nativeDevice.Get().CreateVertexShader(psb, (uint)bclen, null, &v);
+                    return new ComPtr<IUnknown>((IUnknown*)v);
                 }
             }
-            private IUnknown CreateHullShader(ID3D11Device nativeDevice, ShaderBytecode source)
+            private ComPtr<IUnknown> CreateHullShader(ComPtr<ID3D11Device> nativeDevice, ShaderBytecode source)
             {
                 unsafe
                 {
                     var bclen = source.Data.Length;
                     ID3D11HullShader* v = null;
                     fixed (byte* psb = source.Data)
-                        nativeDevice.CreateHullShader(psb, (uint)bclen, null, &v);
-                    return *v;
+                        nativeDevice.Get().CreateHullShader(psb, (uint)bclen, null, &v);
+                    return new ComPtr<IUnknown>((IUnknown*)v);
                 }
             }
-            private IUnknown CreateDomainShader(ID3D11Device nativeDevice, ShaderBytecode source)
+            private ComPtr<IUnknown> CreateDomainShader(ComPtr<ID3D11Device> nativeDevice, ShaderBytecode source)
             {
                 unsafe
                 {
                     var bclen = source.Data.Length;
                     ID3D11DomainShader* v = null;
                     fixed (byte* psb = source.Data)
-                        nativeDevice.CreateDomainShader(psb, (uint)bclen, null, &v);
-                    return *v;
+                        nativeDevice.Get().CreateDomainShader(psb, (uint)bclen, null, &v);
+                    return new ComPtr<IUnknown>((IUnknown*)v);
                 }
             }
-            private IUnknown CreatePixelShader(ID3D11Device nativeDevice, ShaderBytecode source)
+            private ComPtr<IUnknown> CreatePixelShader(ComPtr<ID3D11Device> nativeDevice, ShaderBytecode source)
             {
                 unsafe
                 {
                     var bclen = source.Data.Length;
                     ID3D11PixelShader* v = null;
                     fixed (byte* psb = source.Data)
-                        nativeDevice.CreatePixelShader(psb, (uint)bclen, null, &v);
-                    return *v;
+                        nativeDevice.Get().CreatePixelShader(psb, (uint)bclen, null, &v);
+                    return new ComPtr<IUnknown>((IUnknown*)v);
                 }
             }
-            private IUnknown CreateComputeShader(ID3D11Device nativeDevice, ShaderBytecode source)
+            private ComPtr<IUnknown> CreateComputeShader(ComPtr<ID3D11Device> nativeDevice, ShaderBytecode source)
             {
                 unsafe
                 {
                     var bclen = source.Data.Length;
                     ID3D11ComputeShader* v = null;
                     fixed (byte* psb = source.Data)
-                        nativeDevice.CreateComputeShader(psb, (uint)bclen, null, &v);
-                    return *v;
+                        nativeDevice.Get().CreateComputeShader(psb, (uint)bclen, null, &v);
+                    return new ComPtr<IUnknown>((IUnknown*)v);
                 }
             }
-            private IUnknown CreateGeometryShader(ID3D11Device nativeDevice, ShaderBytecode source)
+            private ComPtr<IUnknown> CreateGeometryShader(ComPtr<ID3D11Device> nativeDevice, ShaderBytecode source)
             {
                 unsafe
                 {
                     var bclen = source.Data.Length;
                     ID3D11GeometryShader* v = null;
                     fixed (byte* psb = source.Data)
-                        nativeDevice.CreateGeometryShader(psb, (uint)bclen, null, &v);
-                    return *v;
+                        nativeDevice.Get().CreateGeometryShader(psb, (uint)bclen, null, &v);
+                    return new ComPtr<IUnknown>((IUnknown*)v);
                 }
             }
 
-            private unsafe IUnknown CreateBlendState(ID3D11Device nativeDevice, BlendStateDescription description)
+            private unsafe ComPtr<IUnknown> CreateBlendState(ComPtr<ID3D11Device> nativeDevice, BlendStateDescription description)
             {
                 var nativeDescription = new BlendDesc
                 {
@@ -485,11 +478,11 @@ namespace Stride.Graphics
                     nativeRenderTarget.RenderTargetWriteMask = (byte)renderTarget.ColorWriteChannels;
                 }
                 ID3D11BlendState* res = null;
-                nativeDevice.CreateBlendState(&nativeDescription, &res);
-                return *res;                
+                nativeDevice.Get().CreateBlendState(&nativeDescription, &res);
+                return new ComPtr<IUnknown>((IUnknown*)res);                
             }
 
-            private unsafe IUnknown CreateRasterizerState(ID3D11Device nativeDevice, RasterizerStateDescription description)
+            private unsafe ComPtr<IUnknown> CreateRasterizerState(ComPtr<ID3D11Device> nativeDevice, RasterizerStateDescription description)
             {
                 RasterizerDesc nativeDescription;
 
@@ -505,11 +498,11 @@ namespace Stride.Graphics
                 nativeDescription.AntialiasedLineEnable = description.MultisampleAntiAliasLine ? 1 : 0;
 
                 ID3D11RasterizerState* res = null;
-                nativeDevice.CreateRasterizerState(&nativeDescription, &res);
-                return *res;
+                nativeDevice.Get().CreateRasterizerState(&nativeDescription, &res);
+                return new ComPtr<IUnknown>((IUnknown*)res);
             }
 
-            private unsafe IUnknown CreateDepthStencilState(ID3D11Device nativeDevice, DepthStencilStateDescription description)
+            private unsafe ComPtr<IUnknown> CreateDepthStencilState(ComPtr<ID3D11Device> nativeDevice, DepthStencilStateDescription description)
             {
                 DepthStencilDesc nativeDescription;
 
@@ -532,8 +525,8 @@ namespace Stride.Graphics
                 nativeDescription.BackFace.StencilFunc = (ComparisonFunc)description.BackFace.StencilFunction;
 
                 ID3D11DepthStencilState* res = null;
-                nativeDevice.CreateDepthStencilState(&nativeDescription, &res);
-                return *res;
+                nativeDevice.Get().CreateDepthStencilState(&nativeDescription, &res);
+                return new ComPtr<IUnknown>((IUnknown*)res);
             }
 
             public void Dispose()

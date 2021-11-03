@@ -116,9 +116,8 @@ namespace Stride.Graphics
 
                         // check if the current fullscreen monitor is the same as new one
                         // If not fullscreen, currentOutput will be null but output won't be, so don't compare them
-                        fixed (IDXGIOutput1* o = &output.output)
-                            if (isCurrentlyFullscreen > 0 == value && (isCurrentlyFullscreen == 0 || (output != null && currentOutput != null && currentOutput == o)))
-                                return;
+                        if (isCurrentlyFullscreen > 0 == value && (isCurrentlyFullscreen == 0 || (output != null && currentOutput != null && currentOutput == output.NativeOutput)))
+                            return;
                     }
                     finally
                     {
@@ -444,10 +443,9 @@ namespace Stride.Graphics
             unsafe
             {
                 IDXGISwapChain* pNewSwapChain = null;
-                fixed (ID3D11Device* d = &GraphicsDevice.nativeDevice)
-                {
-                    GraphicsAdapterFactory.NativeFactory.CreateSwapChain((IUnknown*)d, &description, &pNewSwapChain);
-                }
+                
+                GraphicsAdapterFactory.NativeFactory.Get().CreateSwapChain((IUnknown*)GraphicsDevice.NativeDevice.Handle, &description, &pNewSwapChain);
+                
                 newSwapChain = *pNewSwapChain;
             }
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
@@ -455,7 +453,7 @@ namespace Stride.Graphics
 #endif
 
             //prevent normal alt-tab
-            GraphicsAdapterFactory.NativeFactory.MakeWindowAssociation(handle, (uint)DXGIMwaFlags.NO_ALT_ENTER);
+            GraphicsAdapterFactory.NativeFactory.Get().MakeWindowAssociation(handle, (uint)DXGIMwaFlags.NO_ALT_ENTER);
 
             if (Description.IsFullScreen)
             {

@@ -58,8 +58,8 @@ namespace Stride.VirtualReality
             int texturesCount;
             unsafe
             {
-                fixed(ID3D11Device* dev = &device.nativeDevice)
-                if (!OculusOvr.CreateTexturesDx(ovrSession, (IntPtr)dev, out texturesCount, RenderFrameScaling, requireMirror ? mirrorWidth : 0, requireMirror ? mirrorHeight : 0))
+                
+                if (!OculusOvr.CreateTexturesDx(ovrSession, (IntPtr)device.NativeDevice.Handle, out texturesCount, RenderFrameScaling, requireMirror ? mirrorWidth : 0, requireMirror ? mirrorHeight : 0))
                 {
                     throw new Exception(OculusOvr.GetError());
                 }

@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using System;
+using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.Maths;
 using Stride.Core.Mathematics;
@@ -76,8 +77,8 @@ namespace Stride.Graphics
                 }
             
                 ID3D11SamplerState* v = null;
-                NativeDevice.CreateSamplerState(&nativeDescription, &v);
-                NativeDeviceChild = *v;
+                NativeDevice.Get().CreateSamplerState(&nativeDescription, &v);
+                NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)v);
             }
 
             //NativeDeviceChild = new SamplerState(NativeDevice, nativeDescription);

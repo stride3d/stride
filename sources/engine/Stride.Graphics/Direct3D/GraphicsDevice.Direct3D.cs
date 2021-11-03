@@ -24,8 +24,8 @@ namespace Stride.Graphics
         private bool simulateReset = false;
         private string rendererName;
 
-        public ComPtr<ID3D11Device >nativeDevice;
-        public ComPtr<ID3D11DeviceContext >nativeDeviceContext;
+        private ComPtr<ID3D11Device >nativeDevice;
+        private ComPtr<ID3D11DeviceContext >nativeDeviceContext;
         private readonly Queue<ComPtr<ID3D11Query>> disjointQueries = new Queue<ComPtr<ID3D11Query>>(4);
         private readonly Stack<ComPtr<ID3D11Query>> currentDisjointQueries = new Stack<ComPtr<ID3D11Query>>(2);
 
@@ -92,7 +92,7 @@ namespace Stride.Graphics
         ///     Gets the native device.
         /// </summary>
         /// <value>The native device.</value>
-        internal ComPtr<ID3D11Device> NativeDevice
+        public ComPtr<ID3D11Device> NativeDevice
         {
             get
             {
@@ -126,7 +126,7 @@ namespace Stride.Graphics
             unsafe
             {
 
-                nativeDeviceContext.Get().GetData(currentDisjointQuery.Handle, ref result, currentDisjointQuery.Get().GetDataSize(), (int)AsyncGetdataFlag.AsyncGetdataDonotflush);
+                nativeDeviceContext.Get().GetData((ID3D11Asynchronous*)currentDisjointQuery.Handle, ref result, currentDisjointQuery.Get().GetDataSize(), (int)AsyncGetdataFlag.AsyncGetdataDonotflush);
 
                 if (disjointQueries.Count > 0 )
                 {
@@ -136,11 +136,10 @@ namespace Stride.Graphics
                 else
                 {
                     var disjointQueryDescription = new QueryDesc { MiscFlags = 3 };
-                    var pDquery = &currentDisjointQuery;
-                    NativeDevice.CreateQuery(ref disjointQueryDescription, &pDquery);
+                    NativeDevice.Get().CreateQuery(ref disjointQueryDescription, ref currentDisjointQuery.Handle);
                 }
                 currentDisjointQueries.Push(currentDisjointQuery);
-                NativeDeviceContext.Begin((ID3D11Asynchronous*)currentDisjointQueryPtr);
+                NativeDeviceContext.Get().Begin((ID3D11Asynchronous*)currentDisjointQuery.Handle);
             }
             // Try to read back the oldest disjoint query and reuse it. If not ready, create a new one.
             
@@ -166,7 +165,7 @@ namespace Stride.Graphics
             unsafe
             {
                 var ptr = &currentDisjointQuery;
-                NativeDeviceContext.End((ID3D11Asynchronous*)ptr);
+                NativeDeviceContext.Get().End((ID3D11Asynchronous*)ptr);
             }
             disjointQueries.Enqueue(currentDisjointQuery);
         }
@@ -217,7 +216,7 @@ namespace Stride.Graphics
             unsafe
             {
                 AdapterDesc d = new AdapterDesc();
-                Adapter.NativeAdapter.GetDesc(&d);
+                Adapter.NativeAdapter.Get().GetDesc(&d);
                 rendererName = new string(d.Description);
             }
 
@@ -252,9 +251,7 @@ namespace Stride.Graphics
                     unsafe
                     {
                         // TODO : Correct the creation
-                        fixed(IDXGIAdapter* ad = &Adapter.adapter)
-                        fixed(ID3D11Device* dev = &nativeDevice)
-                            D3D11Overloads.CreateDevice(D3D11.GetApi(), (IDXGIAdapter*)ad, D3DDriverType.D3DDriverTypeUnknown, 0, (uint)creationFlags, &level, 1, D3D11.SdkVersion, &dev, null, null);
+                        D3D11.GetApi().CreateDevice((IDXGIAdapter*)Adapter.NativeAdapter.Handle, D3DDriverType.D3DDriverTypeUnknown, 0, (uint)creationFlags, &level, 1, D3D11.SdkVersion, ref nativeDevice.Handle, null, null);
                     }
                     //nativeDevice = new SharpDX.Direct3D11.Device(Adapter.NativeAdapter, creationFlags, level);
                     
@@ -279,15 +276,15 @@ namespace Stride.Graphics
 
             unsafe
             {
-                var c = new ID3D11DeviceContext();
-                var cP = &c;
-                nativeDevice.GetImmediateContext(&cP);
+                var c = new ComPtr<ID3D11DeviceContext>();
+                nativeDevice.Get().GetImmediateContext(ref c.Handle);
                 nativeDeviceContext = c;
             }
             // We keep one reference so that it doesn't disappear with InternalMainCommandList
-            ((IUnknown)nativeDeviceContext).AddRef();
+            ((IUnknown)nativeDeviceContext.Get()).AddRef();
             if (IsDebugMode)
             {
+                //Todo marshall with com pointer
                 //GraphicsResourceBase.SetDebugName(this, nativeDeviceContext, "ImmediateContext");
             }
         }
@@ -315,14 +312,9 @@ namespace Stride.Graphics
             unsafe 
             {
                 // Display D3D11 ref counting info
-                fixed(ID3D11DeviceContext* ctx = &nativeDeviceContext)
-                {
-                    // TODO : Unsafe and not sure if this should be working this way
-                    NativeDevice.GetImmediateContext(&ctx);
-                    nativeDeviceContext.ClearState();
-                    nativeDeviceContext.Flush();
-                }
-                
+                NativeDevice.Get().GetImmediateContext(ref nativeDeviceContext.Handle);
+                nativeDeviceContext.Get().ClearState();
+                nativeDeviceContext.Get().Flush();
             }
             
 

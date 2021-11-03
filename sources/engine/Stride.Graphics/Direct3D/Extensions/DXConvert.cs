@@ -10,61 +10,59 @@ namespace Stride.Graphics.Direct3D.Extensions
 {
     public static class DXConvert
     {
-        public static unsafe ID3D11RasterizerState ToRasterizeState(IUnknown source)
+        public static unsafe ComPtr<ID3D11BlendState> ToBlendState(ComPtr<IUnknown> source)
         {
-            var pSource = &source;
+            ID3D11BlendState* result = null;
+            SilkMarshal.ThrowHResult(source.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11BlendState>(), (void**)&result));
+            return new ComPtr<ID3D11BlendState>(result);
+        }
+        public static unsafe ComPtr<ID3D11RasterizerState> ToRasterizeState(ComPtr<IUnknown> source)
+        {
             ID3D11RasterizerState* result = null;
-            SilkMarshal.ThrowHResult(pSource->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&result));
-            return *result;
+            SilkMarshal.ThrowHResult(source.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11RasterizerState>(), (void**)&result));
+            return new ComPtr<ID3D11RasterizerState>(result);
         }
-        public static unsafe ID3D11DepthStencilState ToDepthStencilState(IUnknown source)
+        public static unsafe ComPtr<ID3D11DepthStencilState> ToDepthStencilState(ComPtr<IUnknown> source)
         {
-            var pSource = &source;
             ID3D11DepthStencilState* result = null;
-            SilkMarshal.ThrowHResult(pSource->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&result));
-            return *result;
+            SilkMarshal.ThrowHResult(source.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DepthStencilState>(), (void**)&result));
+            return new ComPtr<ID3D11DepthStencilState>(result);
         }
-        public static unsafe ID3D11VertexShader ToVSShader(IUnknown source)
+        public static unsafe ComPtr<ID3D11VertexShader> ToVSShader(ComPtr<IUnknown> source)
         {
-            var pSource = &source;
             ID3D11VertexShader* result = null;
-            SilkMarshal.ThrowHResult(pSource->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&result));
-            return *result;
+            SilkMarshal.ThrowHResult(source.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11VertexShader>(), (void**)&result));
+            return new ComPtr<ID3D11VertexShader>(result);
         }
-        public static unsafe ID3D11ComputeShader ToCSShader(IUnknown source)
+        public static unsafe ComPtr<ID3D11ComputeShader> ToCSShader(ComPtr<IUnknown> source)
         {
-            var pSource = &source;
             ID3D11ComputeShader* result = null;
-            SilkMarshal.ThrowHResult(pSource->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&result));
-            return *result;
+            SilkMarshal.ThrowHResult(source.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11ComputeShader>(), (void**)&result));
+            return new ComPtr<ID3D11ComputeShader>(result);
         }
-        public static unsafe ID3D11GeometryShader ToGSShader(IUnknown source)
+        public static unsafe ComPtr<ID3D11GeometryShader> ToGSShader(ComPtr<IUnknown> source)
         {
-            var pSource = &source;
             ID3D11GeometryShader* result = null;
-            SilkMarshal.ThrowHResult(pSource->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&result));
-            return *result;
+            SilkMarshal.ThrowHResult(source.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11GeometryShader>(), (void**)&result));
+            return new ComPtr<ID3D11GeometryShader>(result);
         }
-        public static unsafe ID3D11PixelShader ToPSShader(IUnknown source)
+        public static unsafe ComPtr<ID3D11PixelShader> ToPSShader(ComPtr<IUnknown> source)
         {
-            var pSource = &source;
             ID3D11PixelShader* result = null;
-            SilkMarshal.ThrowHResult(pSource->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&result));
-            return *result;
+            SilkMarshal.ThrowHResult(source.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11PixelShader>(), (void**)&result));
+            return new ComPtr<ID3D11PixelShader>(result);
         }
-        public static unsafe ID3D11HullShader ToHSShader(IUnknown source)
+        public static unsafe ComPtr<ID3D11HullShader> ToHSShader(ComPtr<IUnknown> source)
         {
-            var pSource = &source;
             ID3D11HullShader* result = null;
-            SilkMarshal.ThrowHResult(pSource->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&result));
-            return *result;
+            SilkMarshal.ThrowHResult(source.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11HullShader>(), (void**)&result));
+            return new ComPtr<ID3D11HullShader>(result);
         }
-        public static unsafe ID3D11DomainShader ToDSShader(IUnknown source)
+        public static unsafe ComPtr<ID3D11DomainShader> ToDSShader(ComPtr<IUnknown> source)
         {
-            var pSource = &source;
             ID3D11DomainShader* result = null;
-            SilkMarshal.ThrowHResult(pSource->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&result));
-            return *result;
+            SilkMarshal.ThrowHResult(source.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DomainShader>(), (void**)&result));
+            return new ComPtr<ID3D11DomainShader>(result);
         }
     }
 }

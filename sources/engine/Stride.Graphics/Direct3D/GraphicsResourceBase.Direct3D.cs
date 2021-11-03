@@ -15,18 +15,26 @@ namespace Stride.Graphics
     public abstract partial class GraphicsResourceBase
     {
         // TODO : Needs review
-        public ID3D11Resource nativeResource;
-        public ID3D11DeviceChild nativeDeviceChild;
+        private ComPtr<ID3D11Resource> nativeResource;
+        private ComPtr<ID3D11DeviceChild> nativeDeviceChild;
 
         private void Initialize()
         {
+        }
+
+        protected internal ComPtr<ID3D11Resource> NativeResource
+        {
+            get
+            {
+                return nativeResource;
+            }
         }
 
         /// <summary>
         /// Gets or sets the device child.
         /// </summary>
         /// <value>The device child.</value>
-        protected internal ID3D11DeviceChild NativeDeviceChild
+        protected internal ComPtr<ID3D11DeviceChild> NativeDeviceChild
         {
             get
             {
@@ -38,12 +46,9 @@ namespace Stride.Graphics
 
                 unsafe
                 {
-                    fixed(ID3D11DeviceChild* child = &nativeDeviceChild)
-                    {
-                        ID3D11Resource* res = null;
-                        SilkMarshal.ThrowHResult(child->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&res));
-                        nativeResource = *res;
-                    }
+                    ID3D11Resource* res = null;
+                    SilkMarshal.ThrowHResult(nativeDeviceChild.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&res));
+                    nativeResource.Handle = res;
                 }
                 // Todo : Debug name ? 
                 //SetDebugName(GraphicsDevice, nativeDeviceChild, Name);
@@ -53,7 +58,7 @@ namespace Stride.Graphics
         /// <summary>
         /// Associates the private data to the device child, useful to get the name in PIX debugger.
         /// </summary>
-        internal static void SetDebugName(GraphicsDevice graphicsDevice, ID3D11DeviceChild deviceChild, string name)
+        internal static void SetDebugName(GraphicsDevice graphicsDevice, ComPtr<ID3D11DeviceChild> deviceChild, string name)
         {
             //deviceChild.Name = name;
         }
@@ -78,12 +83,12 @@ namespace Stride.Graphics
             return false;
         }
 
-        protected ID3D11Device NativeDevice
+        protected ComPtr<ID3D11Device> NativeDevice
         {
             get
             {
                 //TODO : check if this is correct
-                return GraphicsDevice != null ? GraphicsDevice.NativeDevice : new ID3D11Device();
+                return GraphicsDevice != null ? GraphicsDevice.NativeDevice : null;
             }
         }
 

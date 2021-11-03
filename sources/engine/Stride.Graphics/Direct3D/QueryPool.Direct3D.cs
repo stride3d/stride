@@ -2,13 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using System;
+using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 
 namespace Stride.Graphics
 {
     public partial class QueryPool
     {
-        internal ID3D11Query[] NativeQueries;
+        internal ComPtr<ID3D11Query>[] NativeQueries;
 
         public bool TryGetData(long[] dataArray)
         {
@@ -19,7 +20,7 @@ namespace Stride.Graphics
                     var tmp = NativeQueries[index];
                     var a = (ID3D11Asynchronous*)&tmp;
                     fixed( void* pd = &dataArray[index])
-                    if (GraphicsDevice.NativeDeviceContext.GetData(a, pd, sizeof(long), 0) != 0)
+                    if (GraphicsDevice.NativeDeviceContext.Get().GetData(a, pd, sizeof(long), 0) != 0)
                         return false;
                 }
                 
@@ -54,14 +55,14 @@ namespace Stride.Graphics
                     throw new NotImplementedException();
             }
 
-            NativeQueries = new ID3D11Query[QueryCount];
+            NativeQueries = new ComPtr<ID3D11Query>[QueryCount];
             for (var i = 0; i < QueryCount; i++)
             {
                 unsafe
                 {
                     ID3D11Query* q = null;
-                    NativeDevice.CreateQuery(&queryDescription, &q);
-                    NativeQueries[i] = *q;
+                    NativeDevice.Get().CreateQuery(&queryDescription, &q);
+                    NativeQueries[i] = new ComPtr<ID3D11Query>(q);
                 }
                 
             }

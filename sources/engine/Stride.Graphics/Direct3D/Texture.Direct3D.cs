@@ -32,15 +32,15 @@ namespace Stride.Graphics
 {
     public partial class Texture
     {
-        private ID3D11RenderTargetView renderTargetView;
-        private ID3D11DepthStencilView depthStencilView;
+        private ComPtr<ID3D11RenderTargetView> renderTargetView;
+        private ComPtr<ID3D11DepthStencilView> depthStencilView;
         internal bool HasStencil;
 
         private int TexturePixelSize => Format.SizeInBytes();
         private const int TextureRowPitchAlignment = 1;
         private const int TextureSubresourceAlignment = 1;
 
-        internal ID3D11DepthStencilView NativeDepthStencilView
+        internal ComPtr<ID3D11DepthStencilView> NativeDepthStencilView
         {
             get
             {
@@ -55,20 +55,13 @@ namespace Stride.Graphics
                 //}
             }
         }
-        internal unsafe ID3D11DepthStencilView* NativeDepthStencilViewPtr
-        {
-            get
-            {
-                fixed(ID3D11DepthStencilView* v = &depthStencilView) return v;
-            }
-        }
 
         /// <summary>
         /// Gets the ID3D11RenderTargetView attached to this GraphicsResource.
         /// Note that only Texture, Texture3D, RenderTarget2D, RenderTarget3D, DepthStencil are using this ShaderResourceView
         /// </summary>
         /// <value>The device child.</value>
-        internal ID3D11RenderTargetView NativeID3D11RenderTargetView
+        internal ComPtr<ID3D11RenderTargetView> NativeID3D11RenderTargetView
         {
             get
             {
@@ -81,13 +74,6 @@ namespace Stride.Graphics
                 //{
                 //    renderTargetView.DebugName = string.Format("{0} RTV", Name);
                 //}
-            }
-        }
-        internal unsafe ID3D11RenderTargetView* NativeID3D11RenderTargetViewPtr
-        {
-            get
-            {
-                fixed(ID3D11RenderTargetView* r = &renderTargetView) return r;
             }
         }
         
@@ -108,13 +94,14 @@ namespace Stride.Graphics
         /// <param name="texture">The texture.</param>
         internal Texture InitializeFromImpl(ID3D11Texture2D texture, bool isSrgb)
         {
-            NativeDeviceChild = texture;
-            Texture2DDesc desc = new();
+            var desc = new ComPtr<Texture2DDesc>();
             unsafe
             {
-                texture.GetDesc(&desc);
+                NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)&texture);
+                
+                texture.GetDesc(desc);
             }
-            var newTextureDescription = ConvertFromNativeDescription(desc);
+            var newTextureDescription = ConvertFromNativeDescription(desc.Get());
 
             // We might have created the swapchain as a non-srgb format (esp on Win10&RT) but we want it to behave like it is (esp. for the view and render target)
             if (isSrgb)
@@ -146,8 +133,10 @@ namespace Stride.Graphics
                 }
 
                 //var dxTexture2D = new Texture2D(srv.Resource.NativePointer);
-                
-                NativeDeviceChild = dxTexture2D;
+                unsafe
+                {
+                    NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)&dxTexture2D);
+                }
 
                 var newTextureDescription = ConvertFromNativeDescription(desc);
                 var newTextureViewDescription = new TextureViewDescription
@@ -195,7 +184,7 @@ namespace Stride.Graphics
         {
             if (ParentTexture != null)
             {
-                nativeDeviceChild = ParentTexture.NativeDeviceChild;
+                NativeDeviceChild = ParentTexture.NativeDeviceChild;
             }
 
             //if (NativeDeviceChild)
@@ -207,30 +196,27 @@ namespace Stride.Graphics
                     case TextureDimension.Texture1D:
                         //NativeDeviceChild = new ID3D11Texture1D(GraphicsDevice.NativeDevice, ConvertToNativeDescription1D(), ConvertDataBoxes(dataBoxes));
                         ID3D11Texture1D* tex = null;
-                        Texture1DDesc desc = ConvertToNativeDescription1D(); ;
+                        Texture1DDesc desc = ConvertToNativeDescription1D();
                         fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
-                            GraphicsDevice.NativeDevice.CreateTexture1D(&desc, data, &tex);
-                        var pdvc = (ID3D11DeviceChild*)tex;
-                        nativeDeviceChild = *pdvc;
+                            GraphicsDevice.NativeDevice.Get().CreateTexture1D(&desc, data, &tex);
+                        NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)tex);
                         break;
                     case TextureDimension.Texture2D:
                     case TextureDimension.TextureCube:
                         //NativeDeviceChild = new ID3D11Texture2D(GraphicsDevice.NativeDevice, ConvertToNativeDescription2D(), ConvertDataBoxes(dataBoxes));
                         ID3D11Texture2D* tex2d = null;
-                        Texture2DDesc desc2d = ConvertToNativeDescription2D(); ;
+                        Texture2DDesc desc2d = ConvertToNativeDescription2D();
                         fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
-                            GraphicsDevice.NativeDevice.CreateTexture2D(&desc2d, data, &tex2d);
-                        pdvc = (ID3D11DeviceChild*)tex2d;
-                        nativeDeviceChild = *pdvc;
+                            GraphicsDevice.NativeDevice.Get().CreateTexture2D(&desc2d, data, &tex2d);
+                        NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)tex2d);
                         break;
                     case TextureDimension.Texture3D:
                         //NativeDeviceChild = new ID3D11Texture3D(GraphicsDevice.NativeDevice, ConvertToNativeDescription3D(), ConvertDataBoxes(dataBoxes));
                         ID3D11Texture3D* tex3d = null;
-                        Texture3DDesc desc3d = ConvertToNativeDescription3D(); ;
+                        Texture3DDesc desc3d = ConvertToNativeDescription3D();
                         fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
-                            GraphicsDevice.NativeDevice.CreateTexture3D(&desc3d, data, &tex3d);
-                        pdvc = (ID3D11DeviceChild*)tex3d;
-                        nativeDeviceChild = *pdvc;
+                            GraphicsDevice.NativeDevice.Get().CreateTexture3D(&desc3d, data, &tex3d);
+                        NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)tex3d);
                         break;
                 }
 
@@ -253,13 +239,13 @@ namespace Stride.Graphics
                         break;
                     case TextureOptions.Shared:
                         IDXGIResource* sharedResource = null;
-                        NativeDeviceChild.QueryInterface(&resGuid, (void**)&sharedResource);
+                        NativeDeviceChild.Get().QueryInterface(&resGuid, (void**)&sharedResource);
                         SharedHandle = (IntPtr)sharedResource;
                         break;
 #if STRIDE_GRAPHICS_API_DIRECT3D11
                     case TextureOptions.SharedNthandle | TextureOptions.SharedKeyedmutex:
                         IDXGIResource1* sharedResource1 = null;
-                        NativeDeviceChild.QueryInterface(&res1Guid,(void**)sharedResource1);
+                        NativeDeviceChild.Get().QueryInterface(&res1Guid,(void**)sharedResource1);
                         var uniqueName = "Stride:" + Guid.NewGuid().ToString();
                         void* t = null;
                         //sharedResource1->CreateSharedHandle(uniqueName, SharpDX.DXGI.SharedResourceFlags.Write);
@@ -317,7 +303,7 @@ namespace Stride.Graphics
         /// <param name="arrayOrDepthSlice">The texture array slice index.</param>
         /// <param name="mipIndex">The mip map slice index.</param>
         /// <returns>An <see cref="ShaderResourceView" /></returns>
-        private ID3D11ShaderResourceView GetShaderResourceView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
+        private ComPtr<ID3D11ShaderResourceView> GetShaderResourceView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
         {
             //if (!IsShaderResource)
             //    return null;
@@ -407,9 +393,8 @@ namespace Stride.Graphics
             unsafe
             {
                 ID3D11ShaderResourceView* srv = null;
-                fixed (ID3D11Resource* res = &nativeResource)
-                    GraphicsDevice.NativeDevice.CreateShaderResourceView(res, &srvDescription, &srv);
-                return *srv;
+                GraphicsDevice.NativeDevice.Get().CreateShaderResourceView((ID3D11Resource*)NativeDeviceChild.Handle, &srvDescription, &srv);
+                return new ComPtr<ID3D11ShaderResourceView>(srv);
 
                 //return new ShaderResourceView(this.GraphicsDevice.NativeDevice, NativeResource, srvDescription);
             }
@@ -424,7 +409,7 @@ namespace Stride.Graphics
         /// <param name="mipIndex">Index of the mip.</param>
         /// <returns>An <see cref="ID3D11RenderTargetView" /></returns>
         /// <exception cref="System.NotSupportedException">ViewSlice.MipBand is not supported for render targets</exception>
-        private ID3D11RenderTargetView GetID3D11RenderTargetView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
+        private ComPtr<ID3D11RenderTargetView> GetID3D11RenderTargetView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
         {
             //if (!IsRenderTarget)
             //    return null;
@@ -516,9 +501,8 @@ namespace Stride.Graphics
             {
                 //return new ID3D11RenderTargetView(GraphicsDevice.NativeDevice, NativeResource, rtvDescription);
                 ID3D11RenderTargetView* rtv = null;
-                fixed (ID3D11Resource* res = &nativeResource)
-                    GraphicsDevice.NativeDevice.CreateRenderTargetView(res, &rtvDescription, &rtv);
-                return *rtv;
+                GraphicsDevice.NativeDevice.Get().CreateRenderTargetView(NativeResource, &rtvDescription, &rtv);
+                return new ComPtr<ID3D11RenderTargetView>(rtv);
             }
         }
 
@@ -529,7 +513,7 @@ namespace Stride.Graphics
         /// <param name="arrayOrDepthSlice">The texture array slice index.</param>
         /// <param name="mipIndex">Index of the mip.</param>
         /// <returns>An <see cref="UnorderedAccessView" /></returns>
-        private ID3D11UnorderedAccessView GetUnorderedAccessView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
+        private ComPtr<ID3D11UnorderedAccessView> GetUnorderedAccessView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
         {
             //if (!IsUnorderedAccess)
             //    return null;
@@ -597,13 +581,12 @@ namespace Stride.Graphics
             unsafe
             {
                 ID3D11UnorderedAccessView* uav = null;
-                fixed(ID3D11Resource* res = &nativeResource)
-                    GraphicsDevice.NativeDevice.CreateUnorderedAccessView(res, &uavDescription, &uav);
-                return *uav;
+                GraphicsDevice.NativeDevice.Get().CreateUnorderedAccessView(NativeResource, &uavDescription, &uav);
+                return new ComPtr<ID3D11UnorderedAccessView>(uav);
             }
         }
 
-        private ID3D11DepthStencilView GetDepthStencilView(out bool hasStencil)
+        private ComPtr<ID3D11DepthStencilView> GetDepthStencilView(out bool hasStencil)
         {
             hasStencil = false;
             //if (!IsDepthStencil)
@@ -657,9 +640,8 @@ namespace Stride.Graphics
             {
                 //return new DepthStencilView(GraphicsDevice.NativeDevice, NativeResource, depthStencilViewDescription);
                 ID3D11DepthStencilView* dsv = null;
-                fixed (ID3D11Resource* res = &nativeResource)
-                    GraphicsDevice.NativeDevice.CreateDepthStencilView(res, &depthStencilViewDescription, &dsv);
-                return *dsv;
+                GraphicsDevice.NativeDevice.Get().CreateDepthStencilView(NativeResource, &depthStencilViewDescription, &dsv);
+                return new ComPtr<ID3D11DepthStencilView>(dsv);
             }
         }
 

@@ -44,8 +44,8 @@ namespace Stride.Graphics
     public partial class GraphicsOutput
     {
         private readonly int outputIndex;
-        public readonly IDXGIOutput1 output;
-        protected readonly OutputDesc outputDescription;
+        private readonly ComPtr<IDXGIOutput> output;
+        protected readonly ComPtr<OutputDesc> outputDescription;
 
         /// <summary>
         /// Initializes a new instance of <see cref="GraphicsOutput" />.
@@ -60,15 +60,14 @@ namespace Stride.Graphics
             this.adapter = adapter ?? throw new ArgumentNullException("adapter");
             unsafe
             {
-                IDXGIOutput1 o;
-                IDXGIOutput1* oP = &o;
-                adapter.NativeAdapter.EnumOutputs((uint)outputIndex, (IDXGIOutput**)&oP).DisposeBy(this);
-                this.output = o;
+                IDXGIOutput* oP = null;
+                adapter.NativeAdapter.Get().EnumOutputs((uint)outputIndex, &oP).DisposeBy(this);
+                output = new ComPtr<IDXGIOutput>(oP);
                 //outputDescription = 
                 var od = new OutputDesc();
-                output.GetDesc(&od);
-                outputDescription = od;
-                var rectangle = outputDescription.DesktopCoordinates;
+                output.Get().GetDesc(&od);
+                outputDescription = new ComPtr<OutputDesc>(&od);
+                var rectangle = outputDescription.Get().DesktopCoordinates;
                 desktopBounds = *(Rectangle*)&rectangle;
             }
         }
@@ -103,15 +102,13 @@ namespace Stride.Graphics
                     var pCtx = &ctx;
                     
 
-                    //TODO : Unsafe adapter pointer getter + unsure if cast is okay, needs review
-                    fixed(IDXGIAdapter* adp = &adapter.adapter)
-                    D3D11Overloads.CreateDevice(D3D11.GetApi(),(IDXGIAdapter*)&adp , D3DDriverType.D3DDriverTypeUnknown, 0, 0, features, (uint)targetProfiles.Length, D3D11.SdkVersion, &pDv,fls,&pCtx);
+                    D3D11.GetApi().CreateDevice((IDXGIAdapter*)adapter.NativeAdapter.Handle , D3DDriverType.D3DDriverTypeUnknown, 0, 0, features, (uint)targetProfiles.Length, D3D11.SdkVersion, &pDv,fls,&pCtx);
                 }
                 
             }
             catch (Exception) { }
 
-            var description = new ModeDesc1()
+            var description = new ModeDesc()
             {
                 Width = (uint)mode.Width,
                 Height = (uint)mode.Height,
@@ -122,8 +119,8 @@ namespace Stride.Graphics
             };
             unsafe
             {
-                ModeDesc1 result;
-                output.FindClosestMatchingMode1(&description, &result, (IUnknown*)&deviceTemp);
+                ModeDesc result;
+                output.Get().FindClosestMatchingMode(&description, &result, (IUnknown*)&deviceTemp);
                 return DisplayMode.FromDescription(result);
             }
 
@@ -136,13 +133,13 @@ namespace Stride.Graphics
         /// <msdn-id>bb173068</msdn-id>
         /// <unmanaged>HMONITOR Monitor</unmanaged>
         /// <unmanaged-short>HMONITOR Monitor</unmanaged-short>
-        public IntPtr MonitorHandle { get { return outputDescription.Monitor; } }
+        public IntPtr MonitorHandle { get { return outputDescription.Get().Monitor; } }
 
         /// <summary>
         /// Gets the native output.
         /// </summary>
         /// <value>The native output.</value>
-        internal IDXGIOutput NativeOutput
+        internal ComPtr<IDXGIOutput> NativeOutput
         {
             get
             {
@@ -169,13 +166,13 @@ namespace Stride.Graphics
                 foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
                 {
                     var dxgiFormat = (Format)format;
-                    ModeDesc1[] modes = new ModeDesc1[0];
+                    ModeDesc[] modes = new ModeDesc[0];
                     unsafe
                     {
                         
                         uint size = 0;
-                        fixed(ModeDesc1* tmp = modes)
-                            output.GetDisplayModeList1(dxgiFormat, displayModeEnumerationFlags, &size, tmp);
+                        fixed(ModeDesc* tmp = modes)
+                            output.Get().GetDisplayModeList(dxgiFormat, displayModeEnumerationFlags, &size, tmp);
                         
                     }
                     
@@ -225,7 +222,7 @@ namespace Stride.Graphics
         /// <returns>A matched <see cref="DisplayMode"/> or null if nothing is found.</returns>
         private DisplayMode TryFindMatchingDisplayMode(Format format)
         {
-            var desktopBounds = outputDescription.DesktopCoordinates;
+            var desktopBounds = outputDescription.Get().DesktopCoordinates;
 
             foreach (var supportedDisplayMode in SupportedDisplayModes)
             {

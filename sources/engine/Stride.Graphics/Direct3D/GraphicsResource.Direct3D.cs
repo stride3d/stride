@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 using System;
+using Silk.NET.Core.Native;
 
 //using SharpDX.Direct3D11;
 using Silk.NET.Direct3D11;
@@ -13,8 +14,8 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResource
     {
-        public ID3D11ShaderResourceView shaderResourceView;
-        public ID3D11UnorderedAccessView unorderedAccessView;
+        private ComPtr<ID3D11ShaderResourceView> shaderResourceView;
+        private ComPtr<ID3D11UnorderedAccessView> unorderedAccessView;
         internal bool DiscardNextMap; // Used to internally force a WriteDiscard (to force a rename) with the GraphicsResourceAllocator
 
         protected bool IsDebugMode
@@ -39,7 +40,7 @@ namespace Stride.Graphics
         /// Note that only Texture, Texture3D, RenderTarget2D, RenderTarget3D, DepthStencil are using this ShaderResourceView
         /// </summary>
         /// <value>The device child.</value>
-        protected internal ID3D11ShaderResourceView NativeShaderResourceView
+        protected internal ComPtr<ID3D11ShaderResourceView> NativeShaderResourceView
         {
             get
             {
@@ -59,7 +60,7 @@ namespace Stride.Graphics
         /// Gets or sets the UnorderedAccessView attached to this GraphicsResource.
         /// </summary>
         /// <value>The device child.</value>
-        protected internal ID3D11UnorderedAccessView NativeUnorderedAccessView
+        protected internal ComPtr<ID3D11UnorderedAccessView> NativeUnorderedAccessView
         {
             get
             {

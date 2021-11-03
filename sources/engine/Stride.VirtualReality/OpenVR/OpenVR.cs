@@ -229,28 +229,24 @@ namespace Stride.VirtualReality
         {
             unsafe
             {
-
-                fixed(ID3D11Resource* res = &texture.nativeResource)
+                var tex = new Texture_t
                 {
-
-                    var tex = new Texture_t
-                    {
-                        eType = ETextureType.DirectX,
-                        eColorSpace = EColorSpace.Auto,
-                        handle = (IntPtr)res,
-                    };
-                    var bounds = new VRTextureBounds_t
-                    {
-                        uMin = viewport.X,
-                        uMax = viewport.Width,
-                        vMin = viewport.Y,
-                        vMax = viewport.Height,
-                    };
+                    eType = ETextureType.DirectX,
+                    eColorSpace = EColorSpace.Auto,
+                    handle = (IntPtr)texture.NativeResource.Handle,
+                };
+                var bounds = new VRTextureBounds_t
+                {
+                    uMin = viewport.X,
+                    uMax = viewport.Width,
+                    vMin = viewport.Y,
+                    vMax = viewport.Height,
+                };
 
 
-                    return Valve.VR.OpenVR.Compositor.Submit(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, ref tex, ref bounds, EVRSubmitFlags.Submit_Default) == EVRCompositorError.None;
+                return Valve.VR.OpenVR.Compositor.Submit(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, ref tex, ref bounds, EVRSubmitFlags.Submit_Default) == EVRCompositorError.None;
 
-                }
+                
             }
         }
 
@@ -416,8 +412,7 @@ namespace Stride.VirtualReality
             unsafe
             {
                 var eyeTexSrv = IntPtr.Zero;
-                fixed (ID3D11Device* nativeDevice = &device.nativeDevice)
-                    Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, (IntPtr)nativeDevice, ref eyeTexSrv);
+                Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, (IntPtr)device.NativeDevice.Handle, ref eyeTexSrv);
             
                 var tex = new Texture(device);
             
@@ -448,17 +443,15 @@ namespace Stride.VirtualReality
         {
             unsafe
             {
-                fixed(ID3D11Resource* res = &texture.nativeResource)
+                var tex = new Texture_t
                 {
-                    var tex = new Texture_t
-                    {
-                        eType = ETextureType.DirectX,
-                        eColorSpace = EColorSpace.Auto,
-                        handle = (IntPtr)res,
-                    };
+                    eType = ETextureType.DirectX,
+                    eColorSpace = EColorSpace.Auto,
+                    handle = (IntPtr)texture.NativeResource.Handle,
+                };
 
-                    return Valve.VR.OpenVR.Overlay.SetOverlayTexture(overlayId, ref tex) == EVROverlayError.None;
-                }
+                return Valve.VR.OpenVR.Overlay.SetOverlayTexture(overlayId, ref tex) == EVROverlayError.None;
+                
 
             }
             

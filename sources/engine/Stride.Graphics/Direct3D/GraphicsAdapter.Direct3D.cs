@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Resources;
+using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
 using Stride.Core;
@@ -40,9 +41,9 @@ namespace Stride.Graphics
     /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>
     public partial class GraphicsAdapter
     {
-        public readonly IDXGIAdapter adapter;
+        private readonly ComPtr<IDXGIAdapter4> adapter;
         private readonly int adapterOrdinal;
-        private readonly AdapterDesc description;
+        private readonly ComPtr<AdapterDesc3> description;
 
         private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile)int.MaxValue;
         private GraphicsProfile maximumSupportedProfile;
@@ -59,14 +60,12 @@ namespace Stride.Graphics
             
             unsafe
             {
-                fixed (IDXGIAdapter* a = &adapter)
-                    defaultFactory.EnumAdapters((uint)adapterOrdinal, &a);
-                fixed (AdapterDesc* desc = &description)
-                {
-                    adapter.GetDesc(desc);
-                    // for some reason sharpDX returns an adaptater name of fixed size filled with trailing '\0'
-                    //description.Description = description.Description.TrimEnd('\0');
-                }
+                IDXGIAdapter* p = null;
+                defaultFactory.EnumAdapters((uint)adapterOrdinal, &p);
+                adapter.Handle = (IDXGIAdapter4 *) p;
+                adapter.Get().GetDesc3(description.Handle);
+                // for some reason sharpDX returns an adaptater name of fixed size filled with trailing '\0'
+                //description.Description = description.Description.TrimEnd('\0');
 
 
                 //var nativeOutputs = adapter.Outputs;
@@ -78,7 +77,7 @@ namespace Stride.Graphics
                 {
                     count += 1;
                 }
-                while ((ulong)adapter.EnumOutputs((uint)adapterOrdinal, &e) == (ulong)ReturnCodes.S_OK);
+                while ((ulong)adapter.Get().EnumOutputs((uint)adapterOrdinal, &e) == (ulong)ReturnCodes.S_OK);
 
                 outputs = new GraphicsOutput[count];
                 for (var i = 0; i < outputs.Length; i++)
@@ -86,7 +85,7 @@ namespace Stride.Graphics
 
                 //AdapterUid = adapter.Description1.Luid.ToString();
                 //TODO : This seems very weird, need review
-                AdapterUid = description.AdapterLuid.ToString();
+                AdapterUid = description.Get().AdapterLuid.ToString();
             }
 
 
@@ -101,13 +100,10 @@ namespace Stride.Graphics
         {
             get
             {
-                // TODO: Seems very unsafe, need some review
                 unsafe
                 {
-                    fixed(AdapterDesc* desc = &description)
-                    {
-                        return new string(desc->Description);
-                    }
+                    fixed (char* str = description.Get().Description)
+                        return SilkMarshal.PtrToString((nint)str);
                 }
             }
         }
@@ -121,7 +117,7 @@ namespace Stride.Graphics
         public int VendorId
         {
             //TODO: Doesn't seem unsafe but a little bit somehow
-            get { unsafe { fixed(AdapterDesc* desc = &description) return (int)desc->VendorId; } }
+            get { unsafe { return (int)description.Get().VendorId; } }
         }
 
         /// <summary>
@@ -135,7 +131,7 @@ namespace Stride.Graphics
             }
         }
 
-        internal IDXGIAdapter NativeAdapter
+        internal ComPtr<IDXGIAdapter4> NativeAdapter
         {
             get
             {
@@ -173,7 +169,8 @@ namespace Stride.Graphics
                 long* gpPtr = &gp;
                 fixed (Guid* g = &IDXGIAdapter1.Guid)
                 {
-                    if ((ulong)NativeAdapter.CheckInterfaceSupport(g, gpPtr) == (ulong)ReturnCodes.S_OK)
+                    //TODO change to silk marshal with Guiid
+                    if ((ulong)NativeAdapter.Get().CheckInterfaceSupport(g, gpPtr) == (ulong)ReturnCodes.S_OK)
                     {
                         maximumSupportedProfile = graphicsProfile;
                         return true;

@@ -110,8 +110,7 @@ namespace Stride.Graphics
                 //devicePointer = ((SharpDX.CppObject)SharpDXInterop.GetNativeDevice(graphicsDevice)).NativePointer;
                 unsafe
                 {
-                    fixed (ID3D11Device* dev = &graphicsDevice.nativeDevice)
-                        devicePointer = (IntPtr)dev;
+                    devicePointer = (IntPtr)graphicsDevice.NativeDevice.Handle;
                 }
             }
 #endif

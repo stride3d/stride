@@ -21,8 +21,7 @@ namespace Stride.VirtualReality
             this.ovrSession = ovrSession;
             unsafe
             {
-                fixed(ID3D11Device* dev = &device.nativeDevice)
-                    OverlayPtr = OculusOvr.CreateQuadLayerTexturesDx(ovrSession, (IntPtr)dev, out textureCount, width, height, mipLevels, sampleCount);
+                OverlayPtr = OculusOvr.CreateQuadLayerTexturesDx(ovrSession, (IntPtr)device.NativeDevice.Handle, out textureCount, width, height, mipLevels, sampleCount);
             }
             if (OverlayPtr == IntPtr.Zero)
             {
