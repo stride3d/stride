@@ -466,6 +466,72 @@
     </DataTemplate>
   </pvdr:ListTemplateProvider>
 
+  <!-- Provider for set: Button to add an entry, TextBlock to describe the collection -->
+  <pvdr:SetTemplateProvider x:Key="SetPropertyTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="qvm:NodeViewModel">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Style="{StaticResource AddNewItemButtonStyle}"/>
+          <ComboBox x:Name="InstanceTypeSelectionComboBox" Style="{StaticResource AddItemComboBox}" ItemsSource="{Binding AbstractNodeMatchingEntries}">
+            <i:Interaction.Behaviors>
+              <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
+            </i:Interaction.Behaviors>
+          </ComboBox>
+        </StackPanel>
+        <TextBlock Margin="2">
+          <Run Text="{sd:Localize Set}"/> -
+          <Run Text="{sd:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </pvdr:SetTemplateProvider>
+
+  <!-- Provider for set: Button to add an entry, in the footer -->
+  <pvdr:SetTemplateProvider x:Key="SetPropertyFooterTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate DataType="qvm:NodeViewModel">
+      <Grid x:Name="Grid" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="{StaticResource BackgroundBrush}"
+            Visibility="{sd:MultiBinding {Binding IsVisible}, {Binding HasCommand_AddNewItem}, {Binding HasSet},
+                                           {Binding VisibleChildrenCount, Converter={sd:IsGreater}, ConverterParameter={sd:Int 0}},
+                                           Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrCollapsed}}, FallbackValue={sd:Collapsed}}">
+        <Grid.ColumnDefinitions>
+          <!-- Parameters of the SumNum converters used here must be the total width of fixed columns + MinWidths of sizable columns: 8+5+64=77 -->
+          <ColumnDefinition Width="8"/>
+          <ColumnDefinition Width="{Binding NameColumnSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type sd:PropertyView}}, Mode=TwoWay}"
+                            MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sd:SumNum}, ConverterParameter={sd:Double -77}}" MinWidth="64"/>
+          <ColumnDefinition Width="5"/>
+          <ColumnDefinition Width="*" MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sd:SumNum}, ConverterParameter={sd:Double -77}}" MinWidth="64"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="1" MinHeight="23" Margin="2">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" MinWidth="{Binding Offset, RelativeSource={RelativeSource AncestorType=sd:PropertyViewItem}, Mode=OneWay}"/>
+              <ColumnDefinition Width="16"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="2" Margin="0,2,5,2" VerticalAlignment="Center">
+              <DockPanel>
+                <!-- Concrete type -->
+                <Button DockPanel.Dock="Right" Style="{StaticResource AddNewItemButtonStyle}"/>
+                <!-- Abstract type -->
+                <ComboBox DockPanel.Dock="Right" x:Name="InstanceTypeSelectionComboBox" Style="{StaticResource AddItemComboBox}"
+                          ItemsSource="{Binding AbstractNodeMatchingEntries}" Margin="2,0">
+                  <i:Interaction.Behaviors>
+                    <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
+                  </i:Interaction.Behaviors>
+                </ComboBox>
+                <TextBlock Text="{Binding DisplayName, StringFormat={sd:Localize Add to {0}}}" TextTrimming="CharacterEllipsis" FontStyle="Italic"/>
+              </DockPanel>
+            </Grid>
+          </Grid>
+        </Border>
+        <GridSplitter Grid.Column="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"/>
+      </Grid>
+    </DataTemplate>
+  </pvdr:SetTemplateProvider>
+
   <!-- Provider for dictionary: Button to add an entry, TextBlock to describe the collection -->
   <pvdr:DictionaryTemplateProvider x:Key="DictionaryTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
