@@ -34,13 +34,20 @@ namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
             var sourceTypeDescriptor = TypeDescriptorFactory.Default.Find(pastedDataType);
             var targetTypeDescriptor = TypeDescriptorFactory.Default.Find(targetMemberType);
 
+            var sourceCategory = sourceTypeDescriptor.Category;
+            var targetCategory = targetTypeDescriptor.Category;
             // Can only paste a collection into another collection, or a dictionary into a dictionary
-            if (sourceTypeDescriptor.Category == DescriptorCategory.Collection && targetTypeDescriptor.Category != DescriptorCategory.Collection ||
-                sourceTypeDescriptor.Category == DescriptorCategory.Dictionary && targetTypeDescriptor.Category != DescriptorCategory.Dictionary)
+            if (sourceCategory != targetCategory &&
+                (sourceCategory == DescriptorCategory.List ||
+                    sourceCategory == DescriptorCategory.Dictionary ||
+                    sourceCategory == DescriptorCategory.Set ||
+                    sourceCategory == DescriptorCategory.Collection))
+            {
                 return false;
+            }
 
             // Special case: KeyValuePair<,>
-            if (targetTypeDescriptor.Category == DescriptorCategory.Dictionary && sourceTypeDescriptor.Category != DescriptorCategory.Dictionary)
+            if (targetCategory == DescriptorCategory.Dictionary && sourceCategory != DescriptorCategory.Dictionary)
             {
                 // Key and Value types must be compatible
                 var sourceKeyType = sourceTypeDescriptor.Type.GetMember("Key").OfType<PropertyInfo>().FirstOrDefault()?.PropertyType;
@@ -85,11 +92,17 @@ namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
             bool result;
             switch (targetTypeDescriptor.Category)
             {
-                case DescriptorCategory.Collection:
-                    result = ConvertForCollection((CollectionDescriptor)targetTypeDescriptor, ref data);
+                case DescriptorCategory.List:
+                    result = ConvertForList((ListDescriptor)targetTypeDescriptor, ref data);
                     break;
                 case DescriptorCategory.Dictionary:
                     result = ConvertForDictionary((DictionaryDescriptor)targetTypeDescriptor, ref data);
+                    break;
+                case DescriptorCategory.Set:
+                    result = ConvertForSet((SetDescriptor)targetTypeDescriptor, ref data);
+                    break;
+                case DescriptorCategory.Collection:
+                    result = ConvertForCollection((CollectionDescriptor)targetTypeDescriptor, ref data);
                     break;
                 case DescriptorCategory.Primitive:
                 case DescriptorCategory.Object:
@@ -149,7 +162,7 @@ namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
             var copiedDataDescriptor = TypeDescriptorFactory.Default.Find(copiedDataType);
             var memberNode = targetNode as IMemberNode;
 
-            // We're pasting in a node that is not a collection (nor a dictionary), let's just do a member update
+            // We're pasting in a node that is not a collection (nor a list, a set or a dictionary), let's just do a member update
             if (!CollectionDescriptor.IsCollection(targetNode.Type))
             {
                 if (CanUpdateMember(memberNode, copiedData))
@@ -223,6 +236,194 @@ namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
                         if (CanInsertItem(collectionNode, itemIndex, kv.Value))
                         {
                             InsertItem(collectionNode, itemIndex, kv.Value);
+                        }
+                    }
+                }
+            }
+            else if (targetNode.Descriptor.Category == DescriptorCategory.List)
+            {
+                var targetListDescriptor = (ListDescriptor)targetNode.Descriptor;
+                if (replace)
+                {
+                    // No index, we're replacing the whole collection
+                    if (index.IsEmpty)
+                    {
+                        // First clear the collection
+                        var count = targetListDescriptor.GetCollectionCount(targetNode.Retrieve());
+                        for (var j = count - 1; j >= 0; j--)
+                        {
+                            var itemIndex = new NodeIndex(j);
+                            if (CanRemoveItem(collectionNode, itemIndex))
+                            {
+                                var itemToRemove = targetNode.Retrieve(itemIndex);
+                                collectionNode.Remove(itemToRemove, itemIndex);
+                            }
+                        }
+
+                        // Then add the new items
+                        var i = 0;
+                        foreach (var item in EnumerateItems(copiedData, copiedDataDescriptor))
+                        {
+                            var itemIndex = new NodeIndex(i);
+                            if (CanInsertItem(collectionNode, itemIndex, item))
+                            {
+                                InsertItem(collectionNode, itemIndex, item);
+                                i++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // We're replacing a single item with a given index...
+                        var startIndex = index.Int;
+                        var i = 0;
+                        bool firstItemReplaced = false;
+                        foreach (var item in EnumerateItems(copiedData, copiedDataDescriptor))
+                        {
+                            var itemIndex = new NodeIndex(startIndex + i);
+                            if (!firstItemReplaced)
+                            {
+                                // We replace the first item.
+                                if (CanReplaceItem(collectionNode, itemIndex, item))
+                                {
+                                    ReplaceItem(collectionNode, itemIndex, item);
+                                    firstItemReplaced = true;
+                                    i++;
+                                }
+                            }
+                            else if (CanInsertItem(collectionNode, itemIndex, item))
+                            {
+                                // We insert the following items that have no pre-existing counter-part.
+                                InsertItem(collectionNode, itemIndex, item);
+                                i++;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // No index, we're replacing the whole collection
+                    if (index.IsEmpty)
+                    {
+                        // Add the new items
+                        var i = targetListDescriptor.GetCollectionCount(targetNode.Retrieve());
+                        foreach (var item in EnumerateItems(copiedData, copiedDataDescriptor))
+                        {
+                            var itemIndex = new NodeIndex(i);
+                            if (CanInsertItem(collectionNode, itemIndex, item))
+                            {
+                                InsertItem(collectionNode, itemIndex, item);
+                                i++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Handling non-replacing paste
+                        var i = index.Int;
+                        foreach (var item in EnumerateItems(copiedData, copiedDataDescriptor))
+                        {
+                            // We're pasting a collection into the collection, let's add all items at the given index if provided or at the end of the collection.
+                            var itemIndex = new NodeIndex(i);
+                            if (CanInsertItem(collectionNode, itemIndex, item))
+                            {
+                                InsertItem(collectionNode, itemIndex, item);
+                                i++;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (targetNode.Descriptor.Category == DescriptorCategory.Set)
+            {
+                var targetSetDescriptor = (SetDescriptor)targetNode.Descriptor;
+                if (replace)
+                {
+                    // No index, we're replacing the whole collection
+                    if (index.IsEmpty)
+                    {
+                        // First clear the collection
+                        var count = targetSetDescriptor.GetCollectionCount(targetNode.Retrieve());
+                        for (var j = count - 1; j >= 0; j--)
+                        {
+                            var itemIndex = new NodeIndex(j);
+                            if (CanRemoveItem(collectionNode, itemIndex))
+                            {
+                                var itemToRemove = targetNode.Retrieve(itemIndex);
+                                collectionNode.Remove(itemToRemove, itemIndex);
+                            }
+                        }
+
+                        // Then add the new items
+                        var i = 0;
+                        foreach (var item in EnumerateItems(copiedData, copiedDataDescriptor))
+                        {
+                            var itemIndex = new NodeIndex(i);
+                            if (CanInsertItem(collectionNode, itemIndex, item))
+                            {
+                                InsertItem(collectionNode, itemIndex, item);
+                                i++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // We're replacing a single item with a given index...
+                        var startIndex = index.Int;
+                        var i = 0;
+                        bool firstItemReplaced = false;
+                        foreach (var item in EnumerateItems(copiedData, copiedDataDescriptor))
+                        {
+                            var itemIndex = new NodeIndex(startIndex + i);
+                            if (!firstItemReplaced)
+                            {
+                                // We replace the first item.
+                                if (CanReplaceItem(collectionNode, itemIndex, item))
+                                {
+                                    ReplaceItem(collectionNode, itemIndex, item);
+                                    firstItemReplaced = true;
+                                    i++;
+                                }
+                            }
+                            else if (CanInsertItem(collectionNode, itemIndex, item))
+                            {
+                                // We insert the following items that have no pre-existing counter-part.
+                                InsertItem(collectionNode, itemIndex, item);
+                                i++;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // No index, we're replacing the whole collection
+                    if (index.IsEmpty)
+                    {
+                        // Add the new items
+                        var i = targetSetDescriptor.GetCollectionCount(targetNode.Retrieve());
+                        foreach (var item in EnumerateItems(copiedData, copiedDataDescriptor))
+                        {
+                            var itemIndex = new NodeIndex(i);
+                            if (CanInsertItem(collectionNode, itemIndex, item))
+                            {
+                                InsertItem(collectionNode, itemIndex, item);
+                                i++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Handling non-replacing paste
+                        var i = index.Int;
+                        foreach (var item in EnumerateItems(copiedData, copiedDataDescriptor))
+                        {
+                            // We're pasting a collection into the collection, let's add all items at the given index if provided or at the end of the collection.
+                            var itemIndex = new NodeIndex(i);
+                            if (CanInsertItem(collectionNode, itemIndex, item))
+                            {
+                                InsertItem(collectionNode, itemIndex, item);
+                                i++;
+                            }
                         }
                     }
                 }
@@ -385,6 +586,46 @@ namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
             return true;
         }
 
+        private static bool ConvertForList(ListDescriptor listDescriptor, ref object data)
+        {
+            if (ListDescriptor.IsList(data.GetType()))
+            {
+                if (!TryConvertListData(data, listDescriptor, out data))
+                    return false;
+            }
+            else
+            {
+                object convertedData;
+                if (!TypeConverterHelper.TryConvert(data, listDescriptor.ElementType, out convertedData))
+                    return false;
+
+                var convertedCollection = Activator.CreateInstance(listDescriptor.Type, true);
+                listDescriptor.Add(convertedCollection, convertedData);
+                data = convertedCollection;
+            }
+            return true;
+        }
+
+        private static bool ConvertForSet(SetDescriptor setDescriptor, ref object data)
+        {
+            if (SetDescriptor.IsSet(data.GetType()))
+            {
+                if (!TryConvertSetData(data, setDescriptor, out data))
+                    return false;
+            }
+            else
+            {
+                object convertedData;
+                if (!TypeConverterHelper.TryConvert(data, setDescriptor.ElementType, out convertedData))
+                    return false;
+
+                var convertedCollection = Activator.CreateInstance(setDescriptor.Type, true);
+                setDescriptor.Add(convertedCollection, convertedData);
+                data = convertedCollection;
+            }
+            return true;
+        }
+
         private static bool ConvertForDictionary(DictionaryDescriptor dictionaryDescriptor, ref object data)
         {
             object convertedDictionary;
@@ -414,6 +655,15 @@ namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
         private static bool ConvertForProperty(Type targetType, ref object data)
         {
             return TypeConverterHelper.TryConvert(data, targetType, out data);
+        }
+
+        private static IEnumerable EnumerateList([NotNull] object list, [NotNull] ListDescriptor listDescriptor)
+        {
+            var count = listDescriptor.GetCollectionCount(list);
+            for (var i = 0; i < count; i++)
+            {
+                yield return listDescriptor.GetValue(list, i);
+            }
         }
 
         private static IEnumerable EnumerateCollection([NotNull] object collection, [NotNull] CollectionDescriptor collectionDescriptor)
@@ -486,6 +736,100 @@ namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
 
             // Incompatible type and no conversion available
             convertedCollection = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to convert the <paramref name="sourceList"/> to the type described by <paramref name="listDescriptor"/>.
+        /// </summary>
+        /// <param name="sourceList"></param>
+        /// <param name="listDescriptor"></param>
+        /// <param name="convertedList"></param>
+        /// <returns><c>true</c> if the <paramref name="sourceList"/> could be converted to the type described by <paramref name="listDescriptor"/>; otherwise, <c>false</c>.</returns>
+        private static bool TryConvertListData([NotNull] object sourceList, [NotNull] ListDescriptor listDescriptor, out object convertedList)
+        {
+            try
+            {
+                var sourceListType = sourceList.GetType();
+                // Already same type
+                if (listDescriptor.Type == sourceListType)
+                {
+                    convertedList = sourceList;
+                    return true;
+                }
+
+                convertedList = Activator.CreateInstance(listDescriptor.Type, true);
+                var sourceListDescriptor = (ListDescriptor)TypeDescriptorFactory.Default.Find(sourceListType);
+                foreach (var item in EnumerateList(sourceList, sourceListDescriptor))
+                {
+                    object obj;
+                    if (!TypeConverterHelper.TryConvert(item, listDescriptor.ElementType, out obj))
+                    {
+                        // (optimistic) try to convert the remaining items
+                        continue;
+                    }
+                    listDescriptor.Add(sourceList, obj);
+                }
+                return listDescriptor.GetCollectionCount(convertedList) > 0;
+            }
+            catch (InvalidCastException) { }
+            catch (InvalidOperationException) { }
+            catch (FormatException) { }
+            catch (NotSupportedException) { }
+            catch (Exception ex) when (ex.InnerException is InvalidCastException) { }
+            catch (Exception ex) when (ex.InnerException is InvalidOperationException) { }
+            catch (Exception ex) when (ex.InnerException is FormatException) { }
+            catch (Exception ex) when (ex.InnerException is NotSupportedException) { }
+
+            // Incompatible type and no conversion available
+            convertedList = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to convert the <paramref name="sourceSet"/> to the type described by <paramref name="setDescriptor"/>.
+        /// </summary>
+        /// <param name="sourceSet"></param>
+        /// <param name="setDescriptor"></param>
+        /// <param name="convertedSet"></param>
+        /// <returns><c>true</c> if the <paramref name="sourceSet"/> could be converted to the type described by <paramref name="setDescriptor"/>; otherwise, <c>false</c>.</returns>
+        private static bool TryConvertSetData([NotNull] object sourceSet, [NotNull] SetDescriptor setDescriptor, out object convertedSet)
+        {
+            try
+            {
+                var sourceSetType = sourceSet.GetType();
+                // Already same type
+                if (setDescriptor.Type == sourceSetType)
+                {
+                    convertedSet = sourceSet;
+                    return true;
+                }
+
+                convertedSet = Activator.CreateInstance(setDescriptor.Type, true);
+                var sourceSetDescriptor = (ListDescriptor)TypeDescriptorFactory.Default.Find(sourceSetType);
+                foreach (var item in EnumerateList(sourceSet, sourceSetDescriptor))
+                {
+                    object obj;
+                    if (!TypeConverterHelper.TryConvert(item, setDescriptor.ElementType, out obj))
+                    {
+                        // (optimistic) try to convert the remaining items
+                        continue;
+                    }
+                    setDescriptor.Add(sourceSet, obj);
+                }
+                return setDescriptor.GetCollectionCount(convertedSet) > 0;
+            }
+            catch (InvalidCastException) { }
+            catch (InvalidOperationException) { }
+            catch (FormatException) { }
+            catch (NotSupportedException) { }
+            catch (Exception ex) when (ex.InnerException is InvalidCastException) { }
+            catch (Exception ex) when (ex.InnerException is InvalidOperationException) { }
+            catch (Exception ex) when (ex.InnerException is FormatException) { }
+            catch (Exception ex) when (ex.InnerException is NotSupportedException) { }
+
+            // Incompatible type and no conversion available
+            convertedSet = null;
             return false;
         }
 

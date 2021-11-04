@@ -44,7 +44,7 @@ Ask for help or report issues:
 * [Chat with the community on Discord](https://discord.gg/f6aerfE) [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
 * [Discuss topics on our forums](http://forums.stride3d.net/)
 * [Report engine issues](https://github.com/stride3d/stride/issues)
-* [Donate to support the project](https://www.patreon.com/stride3d)
+* [Donate to support the project](https://opencollective.com/stride3d/)
 * [List of Projects made by users](https://github.com/stride3d/stride-community-projects)
 * [Localization](docs/localization.md)
 

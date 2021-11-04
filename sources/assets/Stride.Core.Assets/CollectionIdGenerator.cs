@@ -96,6 +96,20 @@ namespace Stride.Core.Assets
             base.VisitDictionary(dictionary, descriptor);
         }
 
+        public override void VisitSet(IEnumerable set, SetDescriptor descriptor)
+        {
+            if (ShouldGenerateItemIdCollection(set))
+            {
+                IEnumerator enumerator = (set as IEnumerable).GetEnumerator();
+                var itemIds = CollectionItemIdHelper.GetCollectionItemIds(set);
+                while (enumerator.MoveNext())
+                {
+                    itemIds.Add(enumerator.Current, ItemId.New());
+                }
+            }
+            base.VisitSet(set, descriptor);
+        }
+
         private bool ShouldGenerateItemIdCollection(object collection)
         {
             // Do not generate for value types (collections that are struct) or null

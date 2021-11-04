@@ -172,11 +172,18 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         public MemberInfo MemberInfo => null;
 
         /// <summary>
+        /// Gets whether this node contains a list.
+        /// </summary>
+        /// <remarks>Used mostly for sorting purpose.</remarks>
+        /// <seealso cref="HasList"/>
+        public bool HasList => ListDescriptor.IsList(Type);
+
+        /// <summary>
         /// Gets whether this node contains a collection.
         /// </summary>
         /// <remarks>Used mostly for sorting purpose.</remarks>
         /// <seealso cref="HasDictionary"/>
-        public bool HasCollection => CollectionDescriptor.IsCollection(Type);
+        public bool HasCollection => OldCollectionDescriptor.IsCollection(Type);
 
         /// <summary>
         /// Gets whether this node contains a dictionary.
@@ -184,6 +191,13 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         /// <remarks>Usually a dictionary is also a collection.</remarks>
         /// <seealso cref="HasCollection"/>
         public bool HasDictionary => DictionaryDescriptor.IsDictionary(Type);
+
+        /// <summary>
+        /// Gets whether this node contains a set.
+        /// </summary>
+        /// <remarks>Usually a set is also a collection.</remarks>
+        /// <seealso cref="HasCollection"/>
+        public bool HasSet => SetDescriptor.IsSet(Type);
 
         /// <summary>
         /// Gets the number of visible children.
