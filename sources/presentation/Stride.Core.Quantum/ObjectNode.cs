@@ -40,7 +40,7 @@ namespace Stride.Core.Quantum
         public IEnumerable<NodeIndex> Indices => GetIndices();
 
         /// <inheritdoc/>
-        public bool IsEnumerable => Descriptor is CollectionDescriptor || Descriptor is DictionaryDescriptor;
+        public bool IsEnumerable => Descriptor is CollectionDescriptor || Descriptor is DictionaryDescriptor || Descriptor is ArrayDescriptor;
 
         /// <inheritdoc/>
         public override bool IsReference => ItemReferences != null;
@@ -228,6 +228,10 @@ namespace Stride.Core.Quantum
             else if (Descriptor is DictionaryDescriptor dictionaryDescriptor)
             {
                 dictionaryDescriptor.SetValue(Value, index.Value, ConvertValue(newValue, dictionaryDescriptor.ValueType));
+            }
+            else if (Descriptor is ArrayDescriptor arrayDescriptor)
+            {
+                arrayDescriptor.SetValue(Value, (int)index.Value, ConvertValue(newValue, arrayDescriptor.ElementType));
             }
             else
                 throw new NotSupportedException("Unable to set the node value, the collection is unsupported");

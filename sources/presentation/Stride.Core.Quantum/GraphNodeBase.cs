@@ -86,8 +86,15 @@ namespace Stride.Core.Quantum
                     return Enumerable.Range(0, collectionDescriptor.GetCollectionCount(node.Retrieve())).Select(x => new NodeIndex(x));
                 }
             }
-            var dictionaryDescriptor = node.Descriptor as DictionaryDescriptor;
-            return dictionaryDescriptor?.GetKeys(node.Retrieve()).Cast<object>().Select(x => new NodeIndex(x));
+            else if (node.Descriptor is DictionaryDescriptor dictionaryDescriptor)
+            {
+                return dictionaryDescriptor?.GetKeys(node.Retrieve()).Cast<object>().Select(x => new NodeIndex(x));
+            }
+            else if (node.Descriptor is ArrayDescriptor arrayDescriptor)
+            {
+                return Enumerable.Range(0, arrayDescriptor.GetLength(node.Retrieve())).Select(x => new NodeIndex(x));
+            }
+            return null;
         }
 
         /// <summary>

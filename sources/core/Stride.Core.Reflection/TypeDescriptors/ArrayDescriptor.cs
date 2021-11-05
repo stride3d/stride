@@ -50,5 +50,20 @@ namespace Stride.Core.Reflection
         {
             return ((Array)array).GetValue(index);
         }
+
+        public void SetValue(object array, int index, object value)
+        {
+            ((Array)array).SetValue(value, index);
+        }
+
+        /// <summary>
+        /// Determines the number of elements of an array, -1 if it cannot determine the number of elements.
+        /// </summary>
+        /// <param name="array">The array.</param>
+        /// <returns>The number of elements of an array, -1 if it cannot determine the number of elements.</returns>
+        public int GetLength(object array)
+        {
+            return ((Array)array).Length;
+        }
     }
 }
