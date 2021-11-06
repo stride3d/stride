@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 
 using Silk.NET.Vulkan;
-using static Vortice.Vulkan.Vulkan;
+using static Silk.NET.Vulkan.Vk;
 using Stride.Core;
 using Vk = Silk.NET.Vulkan;
 
@@ -50,19 +50,19 @@ namespace Stride.Graphics
             if (NativeBufferView.Handle != 0)
             {
                 GraphicsDevice.Collect(NativeBufferView);
-                NativeBufferView = VkBufferView.Null;
+                NativeBufferView.Handle = 0;
             }
 
-            if (NativeBuffer != VkBuffer.Null)
+            if (NativeBuffer.Handle != 0)
             {
                 GraphicsDevice.Collect(NativeBuffer);
-                NativeBuffer = VkBuffer.Null;
+                NativeBuffer.Handle = 0;
             }
 
-            if (NativeMemory != VkDeviceMemory.Null)
+            if (NativeMemory.Handle == 0)
             {
                 GraphicsDevice.Collect(NativeMemory);
-                NativeMemory = VkDeviceMemory.Null;
+                NativeMemory.Handle = 0;
             }
 
             base.OnDestroyed();
@@ -89,96 +89,96 @@ namespace Stride.Graphics
         /// <param name="dataPointer"></param>
         public unsafe void Recreate(IntPtr dataPointer)
         {
-            var createInfo = new VkBufferCreateInfo
+            var createInfo = new BufferCreateInfo
             {
-                sType = VkStructureType.BufferCreateInfo,
-                size = (ulong)bufferDescription.SizeInBytes,
-                flags = VkBufferCreateFlags.None,
+                SType = StructureType.BufferCreateInfo,
+                Size = (ulong)bufferDescription.SizeInBytes,
+                Flags = 0,
             };
 
-            createInfo.usage |= VkBufferUsageFlags.TransferSrc;
+            createInfo.Usage |= BufferUsageFlags.BufferUsageTransferSrcBit;
 
             // We always fill using transfer
             //if (bufferDescription.Usage != GraphicsResourceUsage.Immutable)
-                createInfo.usage |= VkBufferUsageFlags.TransferDst;
+                createInfo.Usage |= BufferUsageFlags.BufferUsageTransferDstBit;
 
             if (Usage == GraphicsResourceUsage.Staging)
             {
-                NativeAccessMask = VkAccessFlags.HostRead | VkAccessFlags.HostWrite;
-                NativePipelineStageMask |= VkPipelineStageFlags.Host;
+                NativeAccessMask = AccessFlags.AccessHostReadBit | AccessFlags.AccessHostWriteBit;
+                NativePipelineStageMask |= PipelineStageFlags.PipelineStageHostBit;
             }
             else
             {
                 if ((ViewFlags & BufferFlags.VertexBuffer) != 0)
                 {
-                    createInfo.usage |= VkBufferUsageFlags.VertexBuffer;
-                    NativeAccessMask |= VkAccessFlags.VertexAttributeRead;
-                    NativePipelineStageMask |= VkPipelineStageFlags.VertexInput;
+                    createInfo.Usage |= BufferUsageFlags.BufferUsageVertexBufferBit;
+                    NativeAccessMask |= AccessFlags.AccessVertexAttributeReadBit;
+                    NativePipelineStageMask |= PipelineStageFlags.PipelineStageVertexInputBit;
                 }
 
                 if ((ViewFlags & BufferFlags.IndexBuffer) != 0)
                 {
-                    createInfo.usage |= VkBufferUsageFlags.IndexBuffer;
-                    NativeAccessMask |= VkAccessFlags.IndexRead;
-                    NativePipelineStageMask |= VkPipelineStageFlags.VertexInput;
+                    createInfo.Usage |= BufferUsageFlags.BufferUsageIndexBufferBit;
+                    NativeAccessMask |= AccessFlags.AccessIndexReadBit;
+                    NativePipelineStageMask |= PipelineStageFlags.PipelineStageVertexInputBit;
                 }
 
                 if ((ViewFlags & BufferFlags.ConstantBuffer) != 0)
                 {
-                    createInfo.usage |= VkBufferUsageFlags.UniformBuffer;
-                    NativeAccessMask |= VkAccessFlags.UniformRead;
-                    NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader;
+                    createInfo.Usage |= BufferUsageFlags.BufferUsageUniformBufferBit;
+                    NativeAccessMask |= AccessFlags.AccessUniformReadBit;
+                    NativePipelineStageMask |= PipelineStageFlags.PipelineStageVertexShaderBit | PipelineStageFlags.PipelineStageFragmentShaderBit;
                 }
 
                 if ((ViewFlags & BufferFlags.ShaderResource) != 0)
                 {
-                    createInfo.usage |= VkBufferUsageFlags.UniformTexelBuffer;
-                    NativeAccessMask |= VkAccessFlags.ShaderRead;
-                    NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader;
+                    createInfo.Usage |= BufferUsageFlags.BufferUsageUniformTexelBufferBit;
+                    NativeAccessMask |= AccessFlags.AccessShaderReadBit;
+                    NativePipelineStageMask |= PipelineStageFlags.PipelineStageVertexShaderBit | PipelineStageFlags.PipelineStageFragmentShaderBit;
 
                     if ((ViewFlags & BufferFlags.UnorderedAccess) != 0)
                     {
-                        createInfo.usage |= VkBufferUsageFlags.StorageTexelBuffer;
-                        NativeAccessMask |= VkAccessFlags.ShaderWrite;
+                        createInfo.Usage |= BufferUsageFlags.BufferUsageStorageTexelBufferBit;
+                        NativeAccessMask |= AccessFlags.AccessShaderWriteBit;
                     }
                 }
             }
 
             // Create buffer
-            vkCreateBuffer(GraphicsDevice.NativeDevice, &createInfo, null, out NativeBuffer);
+            GetApi().CreateBuffer(GraphicsDevice.NativeDevice, &createInfo, null, out NativeBuffer);
 
             // Allocate memory
-            var memoryProperties = VkMemoryPropertyFlags.DeviceLocal;
+            var memoryProperties = MemoryPropertyFlags.MemoryPropertyDeviceLocalBit;
             if (bufferDescription.Usage == GraphicsResourceUsage.Staging || Usage == GraphicsResourceUsage.Dynamic)
             { 
-                memoryProperties = VkMemoryPropertyFlags.HostVisible | VkMemoryPropertyFlags.HostCoherent;
+                memoryProperties = MemoryPropertyFlags.MemoryPropertyHostVisibleBit | MemoryPropertyFlags.MemoryPropertyHostCoherentBit;
             }
 
-            vkGetBufferMemoryRequirements(GraphicsDevice.NativeDevice, NativeBuffer, out var memoryRequirements);
+            GetApi().GetBufferMemoryRequirements(GraphicsDevice.NativeDevice, NativeBuffer, out var memoryRequirements);
 
             AllocateMemory(memoryProperties, memoryRequirements);
 
-            if (NativeMemory != VkDeviceMemory.Null)
+            if (NativeMemory.Handle != 0)
             {
-                vkBindBufferMemory(GraphicsDevice.NativeDevice, NativeBuffer, NativeMemory, 0);
+                GetApi().BindBufferMemory(GraphicsDevice.NativeDevice, NativeBuffer, NativeMemory, 0);
             }
 
             if (SizeInBytes > 0)
             {
                 // Begin copy command buffer
-                var commandBufferAllocateInfo = new VkCommandBufferAllocateInfo
+                var commandBufferAllocateInfo = new CommandBufferAllocateInfo
                 {
-                    sType = VkStructureType.CommandBufferAllocateInfo,
-                    commandPool = GraphicsDevice.NativeCopyCommandPools.Value,
-                    commandBufferCount = 1,
-                    level = VkCommandBufferLevel.Primary
+                    SType = StructureType.CommandBufferAllocateInfo,
+                    CommandPool = GraphicsDevice.NativeCopyCommandPools.Value,
+                    CommandBufferCount = 1,
+                    Level = CommandBufferLevel.Primary
                 };
-                VkCommandBuffer commandBuffer;
+                CommandBuffer commandBuffer;
 
-                vkAllocateCommandBuffers(GraphicsDevice.NativeDevice, &commandBufferAllocateInfo, &commandBuffer);
+                GetApi().AllocateCommandBuffers(GraphicsDevice.NativeDevice, &commandBufferAllocateInfo, &commandBuffer);
 
-                var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo, flags = VkCommandBufferUsageFlags.OneTimeSubmit };
-                vkBeginCommandBuffer(commandBuffer, &beginInfo);
+                var beginInfo = new CommandBufferBeginInfo { SType = StructureType.CommandBufferBeginInfo, Flags = CommandBufferUsageFlags.CommandBufferUsageOneTimeSubmitBit };
+                GetApi().BeginCommandBuffer(commandBuffer, &beginInfo);
 
                 // Copy to upload buffer
                 if (dataPointer != IntPtr.Zero)
@@ -186,60 +186,72 @@ namespace Stride.Graphics
                     if (Usage == GraphicsResourceUsage.Dynamic)
                     {
                         void* uploadMemory;
-                        vkMapMemory(GraphicsDevice.NativeDevice, NativeMemory, 0, (ulong)SizeInBytes, VkMemoryMapFlags.None, &uploadMemory);
+                        GetApi().MapMemory(GraphicsDevice.NativeDevice, NativeMemory, 0, (ulong)SizeInBytes, 0, &uploadMemory);
                         Utilities.CopyMemory((IntPtr)uploadMemory, dataPointer, SizeInBytes);
-                        vkUnmapMemory(GraphicsDevice.NativeDevice, NativeMemory);
+                        GetApi().UnmapMemory(GraphicsDevice.NativeDevice, NativeMemory);
                     }
                     else
                     {
                         var sizeInBytes = bufferDescription.SizeInBytes;
-                        VkBuffer uploadResource;
+                        Vk.Buffer uploadResource;
                         int uploadOffset;
                         var uploadMemory = GraphicsDevice.AllocateUploadBuffer(sizeInBytes, out uploadResource, out uploadOffset);
 
                         Utilities.CopyMemory(uploadMemory, dataPointer, sizeInBytes);
 
                         // Barrier
-                        var memoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong)uploadOffset, (ulong)sizeInBytes);
-                        vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, 0, null, 1, &memoryBarrier, 0, null);
+                        var memoryBarrier = new BufferMemoryBarrier
+                        {
+                            Buffer = uploadResource,
+                            SrcAccessMask = AccessFlags.AccessHostWriteBit,
+                            DstAccessMask = AccessFlags.AccessTransferReadBit,
+                            Offset = (ulong)uploadOffset,
+                            Size = (ulong)sizeInBytes
+                        };
+                        GetApi().CmdPipelineBarrier(commandBuffer, PipelineStageFlags.PipelineStageHostBit, PipelineStageFlags.PipelineStageTransferBit, 0, 0, null, 1, &memoryBarrier, 0, null);
 
                         // Copy
-                        var bufferCopy = new VkBufferCopy
+                        var bufferCopy = new BufferCopy
                         {
-                            srcOffset = (uint)uploadOffset,
-                            dstOffset = 0,
-                            size = (uint)sizeInBytes
+                            SrcOffset = (uint)uploadOffset,
+                            DstOffset = 0,
+                            Size = (uint)sizeInBytes
                         };
-                        vkCmdCopyBuffer(commandBuffer, uploadResource, NativeBuffer, 1, &bufferCopy);
+                        GetApi().CmdCopyBuffer(commandBuffer, uploadResource, NativeBuffer, 1, &bufferCopy);
                     }
                 }
                 else
                 {
-                    vkCmdFillBuffer(commandBuffer, NativeBuffer, 0, (uint)bufferDescription.SizeInBytes, 0);
+                    GetApi().CmdFillBuffer(commandBuffer, NativeBuffer, 0, (uint)bufferDescription.SizeInBytes, 0);
                 }
 
                 // Barrier
-                var bufferMemoryBarrier = new VkBufferMemoryBarrier(NativeBuffer, VkAccessFlags.TransferWrite, NativeAccessMask);
-                vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 1, &bufferMemoryBarrier, 0, null);
+                var bufferMemoryBarrier = new BufferMemoryBarrier
+                {
+                    Buffer = NativeBuffer, 
+                    SrcAccessMask = AccessFlags.AccessTransferWriteBit, 
+                    DstAccessMask = NativeAccessMask
+                };
+                GetApi().CmdPipelineBarrier(commandBuffer, PipelineStageFlags.PipelineStageTransferBit, PipelineStageFlags.PipelineStageAllCommandsBit, 0, 0, null, 1, &bufferMemoryBarrier, 0, null);
 
                 // Close and submit
-                vkEndCommandBuffer(commandBuffer);
+                GetApi().EndCommandBuffer(commandBuffer);
 
-                var submitInfo = new VkSubmitInfo
+                var submitInfo = new SubmitInfo
                 {
-                    sType = VkStructureType.SubmitInfo,
-                    commandBufferCount = 1,
-                    pCommandBuffers = &commandBuffer,
+                    SType = StructureType.SubmitInfo,
+                    CommandBufferCount = 1,
+                    PCommandBuffers = &commandBuffer,
                 };
 
                 lock (GraphicsDevice.QueueLock)
                 {
-                    vkQueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null);
-                    vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue);
-                    //commandBuffer.Reset(VkCommandBufferResetFlags.None);
+                    GetApi().QueueSubmit(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, new Fence());
+                    GetApi().QueueWaitIdle(GraphicsDevice.NativeCommandQueue);
+                    //commandBuffer.Reset(CommandBufferResetFlags.None);
                 }
 
-                vkFreeCommandBuffers(GraphicsDevice.NativeDevice, GraphicsDevice.NativeCopyCommandPools.Value, 1, &commandBuffer);
+                GetApi().FreeCommandBuffers(GraphicsDevice.NativeDevice, GraphicsDevice.NativeCopyCommandPools.Value, 1, &commandBuffer);
 
                 InitializeViews();
             }
@@ -263,18 +275,18 @@ namespace Stride.Graphics
             }
         }
 
-        internal unsafe VkBufferView GetShaderResourceView(PixelFormat viewFormat)
+        internal unsafe BufferView GetShaderResourceView(PixelFormat viewFormat)
         {
-            var createInfo = new VkBufferViewCreateInfo
+            var createInfo = new BufferViewCreateInfo
             {
-                sType = VkStructureType.BufferViewCreateInfo,
-                buffer = NativeBuffer,
-                format = viewFormat == PixelFormat.None ? VkFormat.Undefined : VulkanConvertExtensions.ConvertPixelFormat(viewFormat),
-                range = (ulong)SizeInBytes, // this.ElementCount
-                //view = (Description.BufferFlags & BufferFlags.RawBuffer) != 0 ? VkBufferViewType.Raw : VkBufferViewType.Formatted,
+                SType = StructureType.BufferViewCreateInfo,
+                Buffer = NativeBuffer,
+                Format = viewFormat == PixelFormat.None ? Format.Undefined : VulkanConvertExtensions.ConvertPixelFormat(viewFormat),
+                Range = (ulong)SizeInBytes, // this.ElementCount
+                //view = (Description.BufferFlags & BufferFlags.RawBuffer) != 0 ? BufferViewType.Raw : BufferViewType.Formatted,
             };
 
-            vkCreateBufferView(GraphicsDevice.NativeDevice, &createInfo, null, out var bufferView);
+            GetApi().CreateBufferView(GraphicsDevice.NativeDevice, &createInfo, null, out var bufferView);
             return bufferView;
         }
 

@@ -2,8 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
+using Silk.NET.Vulkan;
+//using static Silk.NET.Vulkan.Vk;
 
 namespace Stride.Graphics
 {
@@ -12,10 +12,10 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResource
     {
-        internal VkDeviceMemory NativeMemory;
+        internal DeviceMemory NativeMemory;
         internal long? StagingFenceValue;
         internal CommandList StagingBuilder;
-        internal VkPipelineStageFlags NativePipelineStageMask;
+        internal PipelineStageFlags NativePipelineStageMask;
 
         protected bool IsDebugMode
         {
@@ -49,38 +49,38 @@ namespace Stride.Graphics
             //}
         }
 
-        protected unsafe void AllocateMemory(VkMemoryPropertyFlags memoryProperties, VkMemoryRequirements memoryRequirements)
+        protected unsafe void AllocateMemory(MemoryPropertyFlags memoryProperties, MemoryRequirements memoryRequirements)
         {
-            if (NativeMemory != VkDeviceMemory.Null)
+            if (NativeMemory.Handle != 0)
                 return;
 
-            if (memoryRequirements.size == 0)
+            if (memoryRequirements.Size == 0)
                 return;
 
-            var allocateInfo = new VkMemoryAllocateInfo
+            var allocateInfo = new MemoryAllocateInfo
             {
-                sType = VkStructureType.MemoryAllocateInfo,
-                allocationSize = memoryRequirements.size,
+                SType = StructureType.MemoryAllocateInfo,
+                AllocationSize = memoryRequirements.Size,
             };
 
-            vkGetPhysicalDeviceMemoryProperties(GraphicsDevice.NativePhysicalDevice, out var physicalDeviceMemoryProperties);
-            var typeBits = memoryRequirements.memoryTypeBits;
-            for (uint i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; i++)
+            Vk.GetApi().GetPhysicalDeviceMemoryProperties(GraphicsDevice.NativePhysicalDevice, out var physicalDeviceMemoryProperties);
+            var typeBits = memoryRequirements.MemoryTypeBits;
+            for (uint i = 0; i < physicalDeviceMemoryProperties.MemoryTypeCount; i++)
             {
                 if ((typeBits & 1) == 1)
                 {
                     // Type is available, does it match user properties?
-                    var memoryType = *(&physicalDeviceMemoryProperties.memoryTypes_0 + i);
-                    if ((memoryType.propertyFlags & memoryProperties) == memoryProperties)
+                    var memoryType = *(&physicalDeviceMemoryProperties.MemoryTypes.Element0 + i);
+                    if ((memoryType.PropertyFlags & memoryProperties) == memoryProperties)
                     {
-                        allocateInfo.memoryTypeIndex = i;
+                        allocateInfo.MemoryTypeIndex = i;
                         break;
                     }
                 }
                 typeBits >>= 1;
             }
 
-            vkAllocateMemory(GraphicsDevice.NativeDevice, &allocateInfo, null, out NativeMemory);
+            Vk.GetApi().AllocateMemory(GraphicsDevice.NativeDevice, &allocateInfo, null, out NativeMemory);
         }
     }
 }

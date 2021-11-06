@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
+using Silk.NET.Vulkan;
+using static Silk.NET.Vulkan.Vk;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Serialization;
@@ -16,24 +16,24 @@ namespace Stride.Graphics
 {
     public partial class PipelineState
     {
-        internal VkDescriptorSetLayout NativeDescriptorSetLayout;
+        internal DescriptorSetLayout NativeDescriptorSetLayout;
         internal uint[] DescriptorTypeCounts;
         internal DescriptorSetLayout DescriptorSetLayout;
 
-        internal VkPipelineLayout NativeLayout;
-        internal VkPipeline NativePipeline;
-        internal VkRenderPass NativeRenderPass;
+        internal PipelineLayout NativeLayout;
+        internal Pipeline NativePipeline;
+        internal RenderPass NativeRenderPass;
         internal int[] ResourceGroupMapping;
         internal int ResourceGroupCount;
         internal PipelineStateDescription Description;
 
         // State exposed by the CommandList
-        private static readonly VkDynamicState[] dynamicStates =
+        private static readonly DynamicState[] dynamicStates =
         {
-            VkDynamicState.Viewport,
-            VkDynamicState.Scissor,
-            VkDynamicState.BlendConstants,
-            VkDynamicState.StencilReference,
+            DynamicState.Viewport,
+            DynamicState.Scissor,
+            DynamicState.BlendConstants,
+            DynamicState.StencilReference,
         };
 
         // GLSL converter always outputs entry point main()
@@ -61,9 +61,9 @@ namespace Stride.Graphics
             void* defaultEntryPointData = Core.Interop.Fixed(defaultEntryPoint);
             var stages = CreateShaderStages(Description, out inputAttributeNames);
 
-            var inputAttributes = new VkVertexInputAttributeDescription[Description.InputElements.Length];
+            var inputAttributes = new VertexInputAttributeDescription[Description.InputElements.Length];
             int inputAttributeCount = 0;
-            var inputBindings = new VkVertexInputBindingDescription[inputAttributes.Length];
+            var inputBindings = new VertexInputBindingDescription[inputAttributes.Length];
             int inputBindingCount = 0;
 
             for (int inputElementIndex = 0; inputElementIndex < inputAttributes.Length; inputElementIndex++)
@@ -76,7 +76,7 @@ namespace Stride.Graphics
                     throw new NotImplementedException();
                 }
 
-                VkFormat format;
+                Format format;
                 int size;
                 bool isCompressed;
                 VulkanConvertExtensions.ConvertPixelFormat(inputElement.Format, out format, out size, out isCompressed);
@@ -84,43 +84,43 @@ namespace Stride.Graphics
                 var location = inputAttributeNames.FirstOrDefault(x => x.Value == inputElement.SemanticName && inputElement.SemanticIndex == 0 || x.Value == inputElement.SemanticName + inputElement.SemanticIndex);
                 if (location.Value != null)
                 {
-                    inputAttributes[inputAttributeCount++] = new VkVertexInputAttributeDescription
+                    inputAttributes[inputAttributeCount++] = new VertexInputAttributeDescription
                     {
-                        format = format,
-                        offset = (uint)inputElement.AlignedByteOffset,
-                        binding = (uint)inputElement.InputSlot,
-                        location = (uint)location.Key
+                        Format = format,
+                        Offset = (uint)inputElement.AlignedByteOffset,
+                        Binding = (uint)inputElement.InputSlot,
+                        Location = (uint)location.Key
                     };
                 }
 
-                inputBindings[slotIndex].binding = (uint)slotIndex;
-                inputBindings[slotIndex].inputRate = inputElement.InputSlotClass == InputClassification.Vertex ? VkVertexInputRate.Vertex : VkVertexInputRate.Instance;
+                inputBindings[slotIndex].Binding = (uint)slotIndex;
+                inputBindings[slotIndex].InputRate = inputElement.InputSlotClass == InputClassification.Vertex ? VertexInputRate.Vertex : VertexInputRate.Instance;
 
                 // TODO VULKAN: This is currently an argument to Draw() overloads.
-                if (inputBindings[slotIndex].stride < inputElement.AlignedByteOffset + size)
-                    inputBindings[slotIndex].stride = (uint)(inputElement.AlignedByteOffset + size);
+                if (inputBindings[slotIndex].Stride < inputElement.AlignedByteOffset + size)
+                    inputBindings[slotIndex].Stride = (uint)(inputElement.AlignedByteOffset + size);
 
                 if (inputElement.InputSlot >= inputBindingCount)
                     inputBindingCount = inputElement.InputSlot + 1;
             }
 
-            var inputAssemblyState = new VkPipelineInputAssemblyStateCreateInfo
+            var inputAssemblyState = new PipelineInputAssemblyStateCreateInfo
             {
-                sType = VkStructureType.PipelineInputAssemblyStateCreateInfo,
-                topology = VulkanConvertExtensions.ConvertPrimitiveType(Description.PrimitiveType),
-                primitiveRestartEnable = VulkanConvertExtensions.ConvertPrimitiveRestart(Description.PrimitiveType),
+                SType = StructureType.PipelineInputAssemblyStateCreateInfo,
+                Topology = VulkanConvertExtensions.ConvertPrimitiveType(Description.PrimitiveType),
+                PrimitiveRestartEnable = VulkanConvertExtensions.ConvertPrimitiveRestart(Description.PrimitiveType),
             };
 
             // TODO VULKAN: Tessellation and multisampling
-            var multisampleState = new VkPipelineMultisampleStateCreateInfo
+            var multisampleState = new PipelineMultisampleStateCreateInfo
             {
-                sType = VkStructureType.PipelineMultisampleStateCreateInfo,
-                rasterizationSamples = VkSampleCountFlags.Count1,
+                SType = StructureType.PipelineMultisampleStateCreateInfo,
+                RasterizationSamples = SampleCountFlags.SampleCount1Bit,
             };
 
-            var tessellationState = new VkPipelineTessellationStateCreateInfo
+            var tessellationState = new PipelineTessellationStateCreateInfo
             {
-                sType = VkStructureType.PipelineTessellationStateCreateInfo,
+                SType = StructureType.PipelineTessellationStateCreateInfo,
             };
 
             var rasterizationState = CreateRasterizationState(Description.RasterizerState);
@@ -130,85 +130,85 @@ namespace Stride.Graphics
             var description = Description.BlendState;
 
             var renderTargetCount = Description.Output.RenderTargetCount;
-            var colorBlendAttachments = new VkPipelineColorBlendAttachmentState[renderTargetCount];
+            var colorBlendAttachments = new PipelineColorBlendAttachmentState[renderTargetCount];
 
             var renderTargetBlendState = &description.RenderTarget0;
             for (int i = 0; i < renderTargetCount; i++)
             {
-                colorBlendAttachments[i] = new VkPipelineColorBlendAttachmentState
+                colorBlendAttachments[i] = new PipelineColorBlendAttachmentState
                 {
-                    blendEnable = renderTargetBlendState->BlendEnable,
-                    alphaBlendOp = VulkanConvertExtensions.ConvertBlendFunction(renderTargetBlendState->AlphaBlendFunction),
-                    colorBlendOp = VulkanConvertExtensions.ConvertBlendFunction(renderTargetBlendState->ColorBlendFunction),
-                    dstAlphaBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->AlphaDestinationBlend),
-                    dstColorBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->ColorDestinationBlend),
-                    srcAlphaBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->AlphaSourceBlend),
-                    srcColorBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->ColorSourceBlend),
-                    colorWriteMask = VulkanConvertExtensions.ConvertColorWriteChannels(renderTargetBlendState->ColorWriteChannels),
+                    BlendEnable = renderTargetBlendState->BlendEnable,
+                    AlphaBlendOp = VulkanConvertExtensions.ConvertBlendFunction(renderTargetBlendState->AlphaBlendFunction),
+                    ColorBlendOp = VulkanConvertExtensions.ConvertBlendFunction(renderTargetBlendState->ColorBlendFunction),
+                    DstAlphaBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->AlphaDestinationBlend),
+                    DstColorBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->ColorDestinationBlend),
+                    SrcAlphaBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->AlphaSourceBlend),
+                    SrcColorBlendFactor = VulkanConvertExtensions.ConvertBlend(renderTargetBlendState->ColorSourceBlend),
+                    ColorWriteMask = VulkanConvertExtensions.ConvertColorWriteChannels(renderTargetBlendState->ColorWriteChannels),
                 };
 
                 if (description.IndependentBlendEnable)
                     renderTargetBlendState++;
             }
 
-            var viewportState = new VkPipelineViewportStateCreateInfo
+            var viewportState = new PipelineViewportStateCreateInfo
             {
-                sType = VkStructureType.PipelineViewportStateCreateInfo,
-                scissorCount = 1,
-                viewportCount = 1,
+                SType = StructureType.PipelineViewportStateCreateInfo,
+                ScissorCount = 1,
+                ViewportCount = 1,
             };
 
-            fixed (VkDynamicState* dynamicStatesPointer = &dynamicStates[0])
+            fixed (DynamicState* dynamicStatesPointer = &dynamicStates[0])
             {
-                var vertexInputState = new VkPipelineVertexInputStateCreateInfo
+                var vertexInputState = new PipelineVertexInputStateCreateInfo
                 {
-                    sType = VkStructureType.PipelineVertexInputStateCreateInfo,
-                    vertexAttributeDescriptionCount = (uint)inputAttributeCount,
-                    pVertexAttributeDescriptions = inputAttributes.Length > 0 ? (VkVertexInputAttributeDescription*)Core.Interop.Fixed(inputAttributes) : null,
-                    vertexBindingDescriptionCount = (uint)inputBindingCount,
-                    pVertexBindingDescriptions = inputBindings.Length > 0 ? (VkVertexInputBindingDescription*)Core.Interop.Fixed(inputBindings) : null,
+                    SType = StructureType.PipelineVertexInputStateCreateInfo,
+                    VertexAttributeDescriptionCount = (uint)inputAttributeCount,
+                    PVertexAttributeDescriptions = inputAttributes.Length > 0 ? (VertexInputAttributeDescription*)Core.Interop.Fixed(inputAttributes) : null,
+                    VertexBindingDescriptionCount = (uint)inputBindingCount,
+                    PVertexBindingDescriptions = inputBindings.Length > 0 ? (VertexInputBindingDescription*)Core.Interop.Fixed(inputBindings) : null,
                 };
 
-                var colorBlendState = new VkPipelineColorBlendStateCreateInfo
+                var colorBlendState = new PipelineColorBlendStateCreateInfo
                 {
-                    sType = VkStructureType.PipelineColorBlendStateCreateInfo,
-                    attachmentCount = (uint)renderTargetCount,
-                    pAttachments = colorBlendAttachments.Length > 0 ? (VkPipelineColorBlendAttachmentState*)Core.Interop.Fixed(colorBlendAttachments) : null,
+                    SType = StructureType.PipelineColorBlendStateCreateInfo,
+                    AttachmentCount = (uint)renderTargetCount,
+                    PAttachments = colorBlendAttachments.Length > 0 ? (PipelineColorBlendAttachmentState*)Core.Interop.Fixed(colorBlendAttachments) : null,
                 };
 
-                var dynamicState = new VkPipelineDynamicStateCreateInfo
+                var dynamicState = new PipelineDynamicStateCreateInfo
                 {
-                    sType = VkStructureType.PipelineDynamicStateCreateInfo,
-                    dynamicStateCount = (uint)dynamicStates.Length,
-                    pDynamicStates = dynamicStatesPointer,
+                    SType = StructureType.PipelineDynamicStateCreateInfo,
+                    DynamicStateCount = (uint)dynamicStates.Length,
+                    PDynamicStates = dynamicStatesPointer,
                 };
 
-                var createInfo = new VkGraphicsPipelineCreateInfo
+                var createInfo = new GraphicsPipelineCreateInfo
                 {
-                    sType = VkStructureType.GraphicsPipelineCreateInfo,
-                    layout = NativeLayout,
-                    stageCount = (uint)stages.Length,
-                    pStages = stages.Length > 0 ? (VkPipelineShaderStageCreateInfo*)Core.Interop.Fixed(stages) : null,
+                    SType = StructureType.GraphicsPipelineCreateInfo,
+                    Layout = NativeLayout,
+                    StageCount = (uint)stages.Length,
+                    PStages = stages.Length > 0 ? (PipelineShaderStageCreateInfo*)Core.Interop.Fixed(stages) : null,
                     //tessellationState = &tessellationState,
-                    pVertexInputState = &vertexInputState,
-                    pInputAssemblyState = &inputAssemblyState,
-                    pRasterizationState = &rasterizationState,
-                    pMultisampleState = &multisampleState,
-                    pDepthStencilState = &depthStencilState,
-                    pColorBlendState = &colorBlendState,
-                    pDynamicState = &dynamicState,
-                    pViewportState = &viewportState,
-                    renderPass = NativeRenderPass,
-                    subpass = 0,
+                    PVertexInputState = &vertexInputState,
+                    PInputAssemblyState = &inputAssemblyState,
+                    PRasterizationState = &rasterizationState,
+                    PMultisampleState = &multisampleState,
+                    PDepthStencilState = &depthStencilState,
+                    PColorBlendState = &colorBlendState,
+                    PDynamicState = &dynamicState,
+                    PViewportState = &viewportState,
+                    RenderPass = NativeRenderPass,
+                    Subpass = 0,
                 };
-                fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
-                    vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, 1, &createInfo, null, nativePipelinePtr);
+                fixed (Pipeline* nativePipelinePtr = &NativePipeline)
+                    GetApi().CreateGraphicsPipelines(GraphicsDevice.NativeDevice, new PipelineCache(), 1, &createInfo, null, nativePipelinePtr);
             }
 
             // Cleanup shader modules
             foreach (var stage in stages)
             {
-                vkDestroyShaderModule(GraphicsDevice.NativeDevice, stage.module, null);
+                GetApi().DestroyShaderModule(GraphicsDevice.NativeDevice, stage.Module, null);
             }
         }
 
@@ -229,8 +229,8 @@ namespace Stride.Graphics
             if (hasDepthStencilAttachment)
                 attachmentCount++;
 
-            var attachments = new VkAttachmentDescription[attachmentCount];
-            var colorAttachmentReferences = new VkAttachmentReference[renderTargetCount];
+            var attachments = new AttachmentDescription[attachmentCount];
+            var colorAttachmentReferences = new AttachmentReference[renderTargetCount];
 
             fixed (PixelFormat* renderTargetFormat = &pipelineStateDescription.Output.RenderTargetFormat0)
             fixed (BlendStateRenderTargetDescription* blendDescription = &pipelineStateDescription.BlendState.RenderTarget0)
@@ -239,60 +239,60 @@ namespace Stride.Graphics
                 {
                     var currentBlendDesc = pipelineStateDescription.BlendState.IndependentBlendEnable ? (blendDescription + i) : blendDescription;
 
-                    attachments[i] = new VkAttachmentDescription
+                    attachments[i] = new AttachmentDescription
                     {
-                        format = VulkanConvertExtensions.ConvertPixelFormat(*(renderTargetFormat + i)),
-                        samples = VkSampleCountFlags.Count1,
-                        loadOp = currentBlendDesc->BlendEnable ? VkAttachmentLoadOp.Load : VkAttachmentLoadOp.DontCare, // TODO VULKAN: Only if any destination blend?
-                        storeOp = VkAttachmentStoreOp.Store,
-                        stencilLoadOp = VkAttachmentLoadOp.DontCare,
-                        stencilStoreOp = VkAttachmentStoreOp.DontCare,
-                        initialLayout = VkImageLayout.ColorAttachmentOptimal,
-                        finalLayout = VkImageLayout.ColorAttachmentOptimal,
+                        Format = VulkanConvertExtensions.ConvertPixelFormat(*(renderTargetFormat + i)),
+                        Samples = SampleCountFlags.SampleCount1Bit,
+                        LoadOp = currentBlendDesc->BlendEnable ? AttachmentLoadOp.Load : AttachmentLoadOp.DontCare, // TODO VULKAN: Only if any destination blend?
+                        StoreOp = AttachmentStoreOp.Store,
+                        StencilLoadOp = AttachmentLoadOp.DontCare,
+                        StencilStoreOp = AttachmentStoreOp.DontCare,
+                        InitialLayout = ImageLayout.ColorAttachmentOptimal,
+                        FinalLayout = ImageLayout.ColorAttachmentOptimal,
                     };
 
-                    colorAttachmentReferences[i] = new VkAttachmentReference
+                    colorAttachmentReferences[i] = new AttachmentReference
                     {
-                        attachment = (uint)i,
-                        layout = VkImageLayout.ColorAttachmentOptimal,
+                        Attachment = (uint)i,
+                        Layout = ImageLayout.ColorAttachmentOptimal,
                     };
                 }
             }
 
             if (hasDepthStencilAttachment)
             {
-                attachments[attachmentCount - 1] = new VkAttachmentDescription
+                attachments[attachmentCount - 1] = new AttachmentDescription
                 {
-                    format = Texture.GetFallbackDepthStencilFormat(GraphicsDevice, VulkanConvertExtensions.ConvertPixelFormat(pipelineStateDescription.Output.DepthStencilFormat)),
-                    samples = VkSampleCountFlags.Count1,
-                    loadOp = VkAttachmentLoadOp.Load, // TODO VULKAN: Only if depth read enabled?
-                    storeOp = VkAttachmentStoreOp.Store, // TODO VULKAN: Only if depth write enabled?
-                    stencilLoadOp = VkAttachmentLoadOp.DontCare, // TODO VULKAN: Handle stencil
-                    stencilStoreOp = VkAttachmentStoreOp.DontCare,
-                    initialLayout = VkImageLayout.DepthStencilAttachmentOptimal,
-                    finalLayout = VkImageLayout.DepthStencilAttachmentOptimal,
+                    Format = Texture.GetFallbackDepthStencilFormat(GraphicsDevice, VulkanConvertExtensions.ConvertPixelFormat(pipelineStateDescription.Output.DepthStencilFormat)),
+                    Samples = SampleCountFlags.SampleCount1Bit,
+                    LoadOp = AttachmentLoadOp.Load, // TODO VULKAN: Only if depth read enabled?
+                    StoreOp = AttachmentStoreOp.Store, // TODO VULKAN: Only if depth write enabled?
+                    StencilLoadOp = AttachmentLoadOp.DontCare, // TODO VULKAN: Handle stencil
+                    StencilStoreOp = AttachmentStoreOp.DontCare,
+                    InitialLayout = ImageLayout.DepthStencilAttachmentOptimal,
+                    FinalLayout = ImageLayout.DepthStencilAttachmentOptimal,
                 };
             }
 
-            var depthAttachmentReference = new VkAttachmentReference
+            var depthAttachmentReference = new AttachmentReference
             {
                 attachment = (uint)attachments.Length - 1,
-                layout = VkImageLayout.DepthStencilAttachmentOptimal,
+                layout = ImageLayout.DepthStencilAttachmentOptimal,
             };
 
-            var subpass = new VkSubpassDescription
+            var subpass = new SubpassDescription
             {
-                pipelineBindPoint = VkPipelineBindPoint.Graphics,
+                pipelineBindPoint = PipelineBindPoint.Graphics,
                 colorAttachmentCount = (uint)renderTargetCount,
-                pColorAttachments = colorAttachmentReferences.Length > 0 ? (VkAttachmentReference*)Core.Interop.Fixed(colorAttachmentReferences) : null,
+                pColorAttachments = colorAttachmentReferences.Length > 0 ? (AttachmentReference*)Core.Interop.Fixed(colorAttachmentReferences) : null,
                 pDepthStencilAttachment = hasDepthStencilAttachment ? &depthAttachmentReference : null,
             };
 
-            var renderPassCreateInfo = new VkRenderPassCreateInfo
+            var renderPassCreateInfo = new RenderPassCreateInfo
             {
-                sType = VkStructureType.RenderPassCreateInfo,
+                sType = StructureType.RenderPassCreateInfo,
                 attachmentCount = (uint)attachmentCount,
-                pAttachments = attachments.Length > 0 ? (VkAttachmentDescription*)Core.Interop.Fixed(attachments) : null,
+                pAttachments = attachments.Length > 0 ? (AttachmentDescription*)Core.Interop.Fixed(attachments) : null,
                 subpassCount = 1,
                 pSubpasses = &subpass,
             };
@@ -302,7 +302,7 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override unsafe void OnDestroyed()
         {
-            if (NativePipeline != VkPipeline.Null)
+            if (NativePipeline != Pipeline.Null)
             {
                 vkDestroyRenderPass(GraphicsDevice.NativeDevice, NativeRenderPass, null);
                 vkDestroyPipeline(GraphicsDevice.NativeDevice, NativePipeline, null);
@@ -319,7 +319,7 @@ namespace Stride.Graphics
             public int SourceSet;
             public int SourceBinding;
             public int DestinationBinding;
-            public VkDescriptorType DescriptorType;
+            public DescriptorType DescriptorType;
             // Used for buffer/texture (to know what type to match)
             public bool ResourceElementIsInteger;
         }
@@ -397,19 +397,19 @@ namespace Stride.Graphics
 
             // Create pipeline layout
             var nativeDescriptorSetLayout = NativeDescriptorSetLayout;
-            var pipelineLayoutCreateInfo = new VkPipelineLayoutCreateInfo
+            var pipelineLayoutCreateInfo = new PipelineLayoutCreateInfo
             {
-                sType = VkStructureType.PipelineLayoutCreateInfo,
+                sType = StructureType.PipelineLayoutCreateInfo,
                 setLayoutCount = 1,
                 pSetLayouts = &nativeDescriptorSetLayout,
             };
             vkCreatePipelineLayout(GraphicsDevice.NativeDevice, &pipelineLayoutCreateInfo, null, out NativeLayout);
         }
 
-        private unsafe VkPipelineShaderStageCreateInfo[] CreateShaderStages(PipelineStateDescription pipelineStateDescription, out Dictionary<int, string> inputAttributeNames)
+        private unsafe PipelineShaderStageCreateInfo[] CreateShaderStages(PipelineStateDescription pipelineStateDescription, out Dictionary<int, string> inputAttributeNames)
         {
             var stages = pipelineStateDescription.EffectBytecode.Stages;
-            var nativeStages = new VkPipelineShaderStageCreateInfo[stages.Length];
+            var nativeStages = new PipelineShaderStageCreateInfo[stages.Length];
 
             inputAttributeNames = null;
 
@@ -422,9 +422,9 @@ namespace Stride.Graphics
                 fixed (byte* entryPointPointer = &defaultEntryPoint[0])
                 {
                     // Create stage
-                    nativeStages[i] = new VkPipelineShaderStageCreateInfo
+                    nativeStages[i] = new PipelineShaderStageCreateInfo
                     {
-                        sType = VkStructureType.PipelineShaderStageCreateInfo,
+                        sType = StructureType.PipelineShaderStageCreateInfo,
                         stage = VulkanConvertExtensions.Convert(stages[i].Stage),
                         pName = entryPointPointer,
                     };
@@ -435,13 +435,13 @@ namespace Stride.Graphics
             return nativeStages;
         }
 
-        private VkPipelineRasterizationStateCreateInfo CreateRasterizationState(RasterizerStateDescription description)
+        private PipelineRasterizationStateCreateInfo CreateRasterizationState(RasterizerStateDescription description)
         {
-            return new VkPipelineRasterizationStateCreateInfo
+            return new PipelineRasterizationStateCreateInfo
             {
-                sType = VkStructureType.PipelineRasterizationStateCreateInfo,
+                sType = StructureType.PipelineRasterizationStateCreateInfo,
                 cullMode = VulkanConvertExtensions.ConvertCullMode(description.CullMode),
-                frontFace = description.FrontFaceCounterClockwise ? VkFrontFace.CounterClockwise : VkFrontFace.Clockwise,
+                frontFace = description.FrontFaceCounterClockwise ? FrontFace.CounterClockwise : FrontFace.Clockwise,
                 polygonMode = VulkanConvertExtensions.ConvertFillMode(description.FillMode),
                 depthBiasEnable = true, // TODO VULKAN
                 depthBiasConstantFactor = description.DepthBias,
@@ -453,13 +453,13 @@ namespace Stride.Graphics
             };
         }
 
-        private VkPipelineDepthStencilStateCreateInfo CreateDepthStencilState(PipelineStateDescription pipelineStateDescription)
+        private PipelineDepthStencilStateCreateInfo CreateDepthStencilState(PipelineStateDescription pipelineStateDescription)
         {
             var description = pipelineStateDescription.DepthStencilState;
 
-            return new VkPipelineDepthStencilStateCreateInfo
+            return new PipelineDepthStencilStateCreateInfo
             {
-                sType = VkStructureType.PipelineDepthStencilStateCreateInfo,
+                sType = StructureType.PipelineDepthStencilStateCreateInfo,
                 depthTestEnable = description.DepthBufferEnable,
                 stencilTestEnable = description.StencilEnable,
                 depthWriteEnable = description.DepthBufferWriteEnable,
