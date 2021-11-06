@@ -18,6 +18,7 @@ using OpenTK.Platform.Android;
 using Configuration = Android.Content.Res.Configuration;
 using Android.Hardware;
 using Android.Runtime;
+using Activity = Android.App.Activity;
 
 namespace Stride.Games
 {

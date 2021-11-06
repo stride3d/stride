@@ -2,7 +2,6 @@
 Files:
   - {Source: $ProjectName$.csproj.t4, Target: $ProjectName$.csproj, IsTemplate: true}
   - {Source: $PackageGameNameShort$Activity.cs.t4, Target: $PackageGameNameShort$Activity.cs, IsTemplate: true}
-  - {Source: Properties\AssemblyInfo.cs.t4, Target: Properties\AssemblyInfo.cs, IsTemplate: true}
-  - {Source: Properties\AndroidManifest.xml.t4, Target: Properties\AndroidManifest.xml, IsTemplate: true}
-  - {Source: Resources\drawable\GameIcon120.png, Target: Resources\drawable\Icon.png }
-  - {Source: Resources\Resource.Designer.cs.t4, Target: Resources\Resource.Designer.cs, IsTemplate: true }
+  - {Source: AndroidManifest.xml.t4, Target: AndroidManifest.xml, IsTemplate: true}
+  - {Source: Resources\mipmap-mdpi\gameicon.png, Target: Resources\mipmap-mdpi\gameicon.png }
+  - {Source: Resources\layout\activity_main.xml, Target: Resources\layout\activity_main.xml }

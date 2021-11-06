@@ -25,7 +25,7 @@ using Stride.Starter;
 namespace <#= Properties.Namespace #>
 {
     [Activity(MainLauncher = true, 
-              Icon = "@drawable/icon", 
+              Icon = "@mipmap/gameicon", 
               ScreenOrientation = ScreenOrientation.<#= androidOrientation #>,
               ConfigurationChanges = ConfigChanges.UiMode | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenSize)]
     public class <#= Properties.PackageGameNameShort #>Activity : AndroidStrideActivity

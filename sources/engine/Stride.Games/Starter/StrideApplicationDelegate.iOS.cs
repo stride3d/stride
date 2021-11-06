@@ -7,6 +7,7 @@ using Foundation;
 using OpenTK;
 using UIKit;
 using Stride.Games;
+using ObjCRuntime;
 
 namespace Stride.Starter
 {
