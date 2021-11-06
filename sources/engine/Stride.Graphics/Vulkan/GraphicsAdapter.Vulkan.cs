@@ -116,14 +116,8 @@ namespace Stride.Graphics
                     //debugPhysicalDevice = Vk.Vk.GetApi().EnumeratePhysicalDevices(GraphicsAdapterFactory.GetInstance(true).NativeInstance, null, ).ToArray()[adapterOrdinal];
                     unsafe
                     {
-                        Vk.PhysicalDevice[] devices = null;
-                        uint count = 0;
-                        fixed (Vk.PhysicalDevice* d = devices)
-                            Vk.Vk.GetApi().EnumeratePhysicalDevices(GraphicsAdapterFactory.GetInstance(true).NativeInstance,&count, d);
-
+                        Vk.Vk.GetApi().EnumeratePhysicalDevices(GraphicsAdapterFactory.GetInstance(true).NativeInstance, null, (PhysicalDevice*)debugPhysicalDevice.Handle);
                     }
-
-
                 }
 
                 return debugPhysicalDevice;
