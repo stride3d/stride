@@ -4,17 +4,19 @@
 using System;
 using System.Collections.Generic;
 
-using Vortice.Vulkan;
+using Silk.NET.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
+using Vk = Silk.NET.Vulkan;
+
 
 namespace Stride.Graphics
 {
     public partial class Buffer
     {
-        internal VkBuffer NativeBuffer;
-        internal VkBufferView NativeBufferView;
-        internal VkAccessFlags NativeAccessMask;
+        internal Vk.Buffer NativeBuffer;
+        internal BufferView NativeBufferView;
+        internal AccessFlags NativeAccessMask;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Buffer" /> class.
@@ -45,7 +47,7 @@ namespace Stride.Graphics
         {
             GraphicsDevice.RegisterBufferMemoryUsage(-SizeInBytes);
 
-            if (NativeBufferView != VkBufferView.Null)
+            if (NativeBufferView.Handle != 0)
             {
                 GraphicsDevice.Collect(NativeBufferView);
                 NativeBufferView = VkBufferView.Null;

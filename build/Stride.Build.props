@@ -5,6 +5,6 @@
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">
-    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Direct3D11</StrideGraphicsApis>
+    <StrideGraphicsApis Condition="'$(StrideGraphicsApis)' == ''">Vulkan</StrideGraphicsApis>
   </PropertyGroup>
 </Project>

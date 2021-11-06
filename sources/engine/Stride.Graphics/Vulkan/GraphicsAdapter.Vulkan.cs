@@ -6,12 +6,15 @@ using System.Collections.Generic;
 using System.Resources;
 using System.Runtime.InteropServices;
 using System.Text;
-using Vortice.Vulkan;
+using Silk.NET.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 using Stride.Core;
 
+using Vk = Silk.NET.Vulkan;
+
 using ComponentBase = Stride.Core.ComponentBase;
 using Utilities = Stride.Core.Utilities;
+using Silk.NET.Core.Native;
 
 namespace Stride.Graphics
 {
@@ -23,11 +26,11 @@ namespace Stride.Graphics
     /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>	
     public partial class GraphicsAdapter
     {
-        private VkPhysicalDevice defaultPhysicalDevice;
-        private VkPhysicalDevice debugPhysicalDevice;
+        private Vk.PhysicalDevice defaultPhysicalDevice;
+        private Vk.PhysicalDevice debugPhysicalDevice;
 
         private readonly int adapterOrdinal;
-        private readonly VkPhysicalDeviceProperties properties;
+        private readonly Vk.PhysicalDeviceProperties properties;
 
         private static readonly Dictionary<int, string> VendorNames = new Dictionary<int, string>
         {
@@ -44,12 +47,13 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="physicalDevice">The default factory.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
-        internal GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, int adapterOrdinal)
+        internal GraphicsAdapter(Vk.PhysicalDevice defaultPhysicalDevice, int adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
             this.defaultPhysicalDevice = defaultPhysicalDevice;
 
-            vkGetPhysicalDeviceProperties(defaultPhysicalDevice, out properties);
+            Vk.Vk.GetApi().GetPhysicalDeviceProperties(defaultPhysicalDevice, out properties);
+
 
             // TODO VULKAN
             //var displayProperties = physicalDevice.DisplayProperties;
@@ -70,7 +74,7 @@ namespace Stride.Graphics
                 // TODO VULKAN api
                 var propertiesCopy = properties;
 
-                var description = Marshal.PtrToStringAnsi((IntPtr)propertiesCopy.deviceName);
+                var description = SilkMarshal.PtrToString((IntPtr)propertiesCopy.DeviceName);
                 if (VendorNames.TryGetValue(VendorId, out var vendorName))
                     description = $"{vendorName} {description}";
 
@@ -88,7 +92,7 @@ namespace Stride.Graphics
         {
             get
             {
-                return (int)properties.vendorID;
+                return (int)properties.VendorID;
             }
         }
 
@@ -103,13 +107,23 @@ namespace Stride.Graphics
             }
         }
 
-        internal VkPhysicalDevice GetPhysicalDevice(bool enableValidation)
+        internal Vk.PhysicalDevice GetPhysicalDevice(bool enableValidation)
         {
             if (enableValidation)
             {
-                if (debugPhysicalDevice == VkPhysicalDevice.Null)
+                if (debugPhysicalDevice.Handle == 0)
                 {
-                    debugPhysicalDevice = vkEnumeratePhysicalDevices(GraphicsAdapterFactory.GetInstance(true).NativeInstance).ToArray()[adapterOrdinal];
+                    //debugPhysicalDevice = Vk.Vk.GetApi().EnumeratePhysicalDevices(GraphicsAdapterFactory.GetInstance(true).NativeInstance, null, ).ToArray()[adapterOrdinal];
+                    unsafe
+                    {
+                        Vk.PhysicalDevice[] devices = null;
+                        uint count = 0;
+                        fixed (Vk.PhysicalDevice* d = devices)
+                            Vk.Vk.GetApi().EnumeratePhysicalDevices(GraphicsAdapterFactory.GetInstance(true).NativeInstance,&count, d);
+
+                    }
+
+
                 }
 
                 return debugPhysicalDevice;
