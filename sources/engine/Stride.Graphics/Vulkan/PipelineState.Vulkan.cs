@@ -16,9 +16,9 @@ namespace Stride.Graphics
 {
     public partial class PipelineState
     {
-        internal DescriptorSetLayout NativeDescriptorSetLayout;
+        internal Silk.NET.Vulkan.DescriptorSetLayout NativeDescriptorSetLayout;
         internal uint[] DescriptorTypeCounts;
-        internal DescriptorSetLayout DescriptorSetLayout;
+        internal DescriptorSetLayoutCreateInfo Layout;
 
         internal PipelineLayout NativeLayout;
         internal Pipeline NativePipeline;
@@ -276,39 +276,39 @@ namespace Stride.Graphics
 
             var depthAttachmentReference = new AttachmentReference
             {
-                attachment = (uint)attachments.Length - 1,
-                layout = ImageLayout.DepthStencilAttachmentOptimal,
+                Attachment = (uint)attachments.Length - 1,
+                Layout = ImageLayout.DepthStencilAttachmentOptimal,
             };
 
             var subpass = new SubpassDescription
             {
-                pipelineBindPoint = PipelineBindPoint.Graphics,
-                colorAttachmentCount = (uint)renderTargetCount,
-                pColorAttachments = colorAttachmentReferences.Length > 0 ? (AttachmentReference*)Core.Interop.Fixed(colorAttachmentReferences) : null,
-                pDepthStencilAttachment = hasDepthStencilAttachment ? &depthAttachmentReference : null,
+                PipelineBindPoint = PipelineBindPoint.Graphics,
+                ColorAttachmentCount = (uint)renderTargetCount,
+                PColorAttachments = colorAttachmentReferences.Length > 0 ? (AttachmentReference*)Core.Interop.Fixed(colorAttachmentReferences) : null,
+                PDepthStencilAttachment = hasDepthStencilAttachment ? &depthAttachmentReference : null,
             };
 
             var renderPassCreateInfo = new RenderPassCreateInfo
             {
-                sType = StructureType.RenderPassCreateInfo,
-                attachmentCount = (uint)attachmentCount,
-                pAttachments = attachments.Length > 0 ? (AttachmentDescription*)Core.Interop.Fixed(attachments) : null,
-                subpassCount = 1,
-                pSubpasses = &subpass,
+                SType = StructureType.RenderPassCreateInfo,
+                AttachmentCount = (uint)attachmentCount,
+                PAttachments = attachments.Length > 0 ? (AttachmentDescription*)Core.Interop.Fixed(attachments) : null,
+                SubpassCount = 1,
+                PSubpasses = &subpass,
             };
-            vkCreateRenderPass(GraphicsDevice.NativeDevice, &renderPassCreateInfo, null, out NativeRenderPass);
+            GetApi().CreateRenderPass(GraphicsDevice.NativeDevice, &renderPassCreateInfo, null, out NativeRenderPass);
         }
 
         /// <inheritdoc/>
         protected internal override unsafe void OnDestroyed()
         {
-            if (NativePipeline != Pipeline.Null)
+            if (NativePipeline.Handle != 0)
             {
-                vkDestroyRenderPass(GraphicsDevice.NativeDevice, NativeRenderPass, null);
-                vkDestroyPipeline(GraphicsDevice.NativeDevice, NativePipeline, null);
-                vkDestroyPipelineLayout(GraphicsDevice.NativeDevice, NativeLayout, null);
+                GetApi().DestroyRenderPass(GraphicsDevice.NativeDevice, NativeRenderPass, null);
+                GetApi().DestroyPipeline(GraphicsDevice.NativeDevice, NativePipeline, null);
+                GetApi().DestroyPipelineLayout(GraphicsDevice.NativeDevice, NativeLayout, null);
 
-                vkDestroyDescriptorSetLayout(GraphicsDevice.NativeDevice, NativeDescriptorSetLayout, null);
+                GetApi().DestroyDescriptorSetLayout(GraphicsDevice.NativeDevice, NativeDescriptorSetLayout, null);
             }
 
             base.OnDestroyed();

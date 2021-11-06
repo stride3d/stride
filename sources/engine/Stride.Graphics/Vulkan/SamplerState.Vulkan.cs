@@ -2,10 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
+using Silk.NET.Vulkan;
+using static Silk.NET.Vulkan.Vk;
 
 using Stride.Core.Mathematics;
+using Silk.NET.Core;
 
 namespace Stride.Graphics
 {
@@ -14,7 +15,7 @@ namespace Stride.Graphics
     /// </summary>
     public partial class SamplerState
     {
-        internal VkSampler NativeSampler;
+        internal Sampler NativeSampler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SamplerState"/> class.
@@ -41,24 +42,24 @@ namespace Stride.Graphics
         protected internal override void OnDestroyed()
         {
             GraphicsDevice.Collect(NativeSampler);
-            NativeSampler = VkSampler.Null;
+            NativeSampler = new Sampler(0);
 
             base.OnDestroyed();
         }
 
         private unsafe void CreateNativeSampler()
         {
-            var createInfo = new VkSamplerCreateInfo
+            var createInfo = new SamplerCreateInfo
             {
-                sType = VkStructureType.SamplerCreateInfo,
-                addressModeU = ConvertAddressMode(Description.AddressU),
-                addressModeV = ConvertAddressMode(Description.AddressV),
-                addressModeW = ConvertAddressMode(Description.AddressW),
-                mipLodBias = Description.MipMapLevelOfDetailBias,
-                maxAnisotropy = Description.MaxAnisotropy,
-                compareOp = VulkanConvertExtensions.ConvertComparisonFunction(Description.CompareFunction),
-                minLod = Description.MinMipLevel,
-                maxLod = Description.MaxMipLevel,
+                SType = StructureType.SamplerCreateInfo,
+                AddressModeU = ConvertAddressMode(Description.AddressU),
+                AddressModeV = ConvertAddressMode(Description.AddressV),
+                AddressModeW = ConvertAddressMode(Description.AddressW),
+                MipLodBias = Description.MipMapLevelOfDetailBias,
+                MaxAnisotropy = Description.MaxAnisotropy,
+                CompareOp = VulkanConvertExtensions.ConvertComparisonFunction(Description.CompareFunction),
+                MinLod = Description.MinMipLevel,
+                MaxLod = Description.MaxMipLevel,
             };
 
             if (Description.AddressU == TextureAddressMode.Border ||
@@ -66,43 +67,43 @@ namespace Stride.Graphics
                 Description.AddressW == TextureAddressMode.Border)
             {
                 if (Description.BorderColor == Color4.White)
-                    createInfo.borderColor = VkBorderColor.FloatOpaqueWhite;
+                    createInfo.BorderColor = BorderColor.FloatOpaqueWhite;
                 else if (Description.BorderColor == Color4.Black)
-                    createInfo.borderColor = VkBorderColor.FloatOpaqueBlack;
+                    createInfo.BorderColor = BorderColor.FloatOpaqueBlack;
                 else if (Description.BorderColor == Color.Transparent)
-                    createInfo.borderColor = VkBorderColor.FloatTransparentBlack;
+                    createInfo.BorderColor = BorderColor.FloatTransparentBlack;
                 else
                     throw new NotImplementedException("Vulkan: only simple BorderColor are supported");
             }
 
-            ConvertMinFilter(Description.Filter, out createInfo.minFilter, out createInfo.magFilter, out createInfo.mipmapMode, out createInfo.compareEnable, out createInfo.anisotropyEnable);
+            ConvertMinFilter(Description.Filter, out createInfo.MinFilter, out createInfo.MagFilter, out createInfo.MipmapMode, out createInfo.CompareEnable, out createInfo.AnisotropyEnable);
 
-            vkCreateSampler(GraphicsDevice.NativeDevice, &createInfo, null, out NativeSampler);
+            GetApi().CreateSampler(GraphicsDevice.NativeDevice, &createInfo, null, out NativeSampler);
         }
 
-        private static VkSamplerAddressMode ConvertAddressMode(TextureAddressMode addressMode)
+        private static SamplerAddressMode ConvertAddressMode(TextureAddressMode addressMode)
         {
             switch (addressMode)
             {
                 case TextureAddressMode.Wrap:
-                    return VkSamplerAddressMode.Repeat;
+                    return SamplerAddressMode.Repeat;
                 case TextureAddressMode.Border:
-                    return VkSamplerAddressMode.ClampToBorder;
+                    return SamplerAddressMode.ClampToBorder;
                 case TextureAddressMode.Clamp:
-                    return VkSamplerAddressMode.ClampToEdge;
+                    return SamplerAddressMode.ClampToEdge;
                 case TextureAddressMode.Mirror:
-                    return VkSamplerAddressMode.MirroredRepeat;
+                    return SamplerAddressMode.MirroredRepeat;
                 case TextureAddressMode.MirrorOnce:
-                    return VkSamplerAddressMode.MirrorClampToEdge;
+                    return SamplerAddressMode.MirrorClampToEdge;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        private void ConvertMinFilter(TextureFilter filter, out VkFilter minFilter, out VkFilter magFilter, out VkSamplerMipmapMode mipmapMode, out VkBool32 enableComparison, out VkBool32 enableAnisotropy)
+        private void ConvertMinFilter(TextureFilter filter, out Filter minFilter, out Filter magFilter, out SamplerMipmapMode mipmapMode, out Bool32 enableComparison, out Bool32 enableAnisotropy)
         {
-            minFilter = magFilter = VkFilter.Nearest;
-            mipmapMode = VkSamplerMipmapMode.Nearest;
+            minFilter = magFilter = Filter.Nearest;
+            mipmapMode = SamplerMipmapMode.Nearest;
             enableComparison = false;
             enableAnisotropy = false;
 
@@ -112,38 +113,38 @@ namespace Stride.Graphics
                 case TextureFilter.Point:
                     break;
                 case TextureFilter.MinLinearMagMipPoint:
-                    minFilter = VkFilter.Linear;
+                    minFilter = Filter.Linear;
                     break;
                 case TextureFilter.MinPointMagLinearMipPoint:
-                    magFilter = VkFilter.Linear;
+                    magFilter = Filter.Linear;
                     break;
                 case TextureFilter.MinMagLinearMipPoint:
-                    minFilter = VkFilter.Linear;
-                    magFilter = VkFilter.Linear;
+                    minFilter = Filter.Linear;
+                    magFilter = Filter.Linear;
                     break;
 
                 // Mip linear
                 case TextureFilter.MinMagPointMipLinear:
-                    mipmapMode = VkSamplerMipmapMode.Linear;
+                    mipmapMode = SamplerMipmapMode.Linear;
                     break;
                 case TextureFilter.MinLinearMagPointMipLinear:
-                    mipmapMode = VkSamplerMipmapMode.Linear;
-                    minFilter = VkFilter.Linear;
+                    mipmapMode = SamplerMipmapMode.Linear;
+                    minFilter = Filter.Linear;
                     break;
                 case TextureFilter.MinPointMagMipLinear:
-                    mipmapMode = VkSamplerMipmapMode.Linear;
-                    magFilter = VkFilter.Linear;
+                    mipmapMode = SamplerMipmapMode.Linear;
+                    magFilter = Filter.Linear;
                     break;
                 case TextureFilter.Linear:
-                    mipmapMode = VkSamplerMipmapMode.Linear;
-                    minFilter = VkFilter.Linear;
-                    magFilter = VkFilter.Linear;
+                    mipmapMode = SamplerMipmapMode.Linear;
+                    minFilter = Filter.Linear;
+                    magFilter = Filter.Linear;
                     break;
                 case TextureFilter.Anisotropic:
                     enableAnisotropy = true;
-                    mipmapMode = VkSamplerMipmapMode.Linear;
-                    minFilter = VkFilter.Linear;
-                    magFilter = VkFilter.Linear;
+                    mipmapMode = SamplerMipmapMode.Linear;
+                    minFilter = Filter.Linear;
+                    magFilter = Filter.Linear;
                     break;
 
                 // Comparison mip point
@@ -152,45 +153,45 @@ namespace Stride.Graphics
                     break;
                 case TextureFilter.ComparisonMinLinearMagMipPoint:
                     enableComparison = true;
-                    minFilter = VkFilter.Linear;
+                    minFilter = Filter.Linear;
                     break;
                 case TextureFilter.ComparisonMinPointMagLinearMipPoint:
                     enableComparison = true;
-                    magFilter = VkFilter.Linear;
+                    magFilter = Filter.Linear;
                     break;
                 case TextureFilter.ComparisonMinMagLinearMipPoint:
                     enableComparison = true;
-                    minFilter = VkFilter.Linear;
-                    magFilter = VkFilter.Linear;
+                    minFilter = Filter.Linear;
+                    magFilter = Filter.Linear;
                     break;
 
                 // Comparison mip linear
                 case TextureFilter.ComparisonMinMagPointMipLinear:
                     enableComparison = true;
-                    mipmapMode = VkSamplerMipmapMode.Linear;
+                    mipmapMode = SamplerMipmapMode.Linear;
                     break;
                 case TextureFilter.ComparisonMinLinearMagPointMipLinear:
                     enableComparison = true;
-                    mipmapMode = VkSamplerMipmapMode.Linear;
-                    minFilter = VkFilter.Linear;
+                    mipmapMode = SamplerMipmapMode.Linear;
+                    minFilter = Filter.Linear;
                     break;
                 case TextureFilter.ComparisonMinPointMagMipLinear:
                     enableComparison = true;
-                    mipmapMode = VkSamplerMipmapMode.Linear;
-                    magFilter = VkFilter.Linear;
+                    mipmapMode = SamplerMipmapMode.Linear;
+                    magFilter = Filter.Linear;
                     break;
                 case TextureFilter.ComparisonLinear:
                     enableComparison = true;
-                    mipmapMode = VkSamplerMipmapMode.Linear;
-                    minFilter = VkFilter.Linear;
-                    magFilter = VkFilter.Linear;
+                    mipmapMode = SamplerMipmapMode.Linear;
+                    minFilter = Filter.Linear;
+                    magFilter = Filter.Linear;
                     break;
                 case TextureFilter.ComparisonAnisotropic:
                     enableComparison = true;
                     enableAnisotropy = true;
-                    mipmapMode = VkSamplerMipmapMode.Linear;
-                    minFilter = VkFilter.Linear;
-                    magFilter = VkFilter.Linear;
+                    mipmapMode = SamplerMipmapMode.Linear;
+                    minFilter = Filter.Linear;
+                    magFilter = Filter.Linear;
                     break;
 
                 default:

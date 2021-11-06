@@ -7,8 +7,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Stride.Core;
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
+using Silk.NET.Vulkan;
+using static Silk.NET.Vulkan.Vk;
 
 namespace Stride.Graphics
 {

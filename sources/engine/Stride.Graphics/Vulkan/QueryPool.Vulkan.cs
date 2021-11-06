@@ -2,24 +2,24 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
+using Silk.NET.Vulkan;
+using static Silk.NET.Vulkan.Vk;
 
 namespace Stride.Graphics
 {
     public partial class QueryPool
     {
-        internal VkQueryPool NativeQueryPool;
+        internal Silk.NET.Vulkan.QueryPool NativeQueryPool;
 
         public unsafe bool TryGetData(long[] dataArray)
         {
             fixed (long* dataPointer = &dataArray[0])
             {
                 // Read back all results
-                var result = vkGetQueryPoolResults(GraphicsDevice.NativeDevice, NativeQueryPool, 0, (uint)QueryCount, (uint)QueryCount * 8, dataPointer, 8, VkQueryResultFlags._64);
+                var result = GetApi().GetQueryPoolResults(GraphicsDevice.NativeDevice, NativeQueryPool, 0, (uint)QueryCount, (uint)QueryCount * 8, dataPointer, 8, QueryResultFlags.QueryResult64Bit);
 
                 // Some queries are not ready yet
-                if (result == VkResult.NotReady)
+                if (result == Result.NotReady)
                     return false;
             }
 
@@ -28,30 +28,30 @@ namespace Stride.Graphics
 
         private unsafe void Recreate()
         {
-            var createInfo = new VkQueryPoolCreateInfo
+            var createInfo = new QueryPoolCreateInfo
             {
-                sType = VkStructureType.QueryPoolCreateInfo,
-                queryCount = (uint)QueryCount,
+                SType = StructureType.QueryPoolCreateInfo,
+                QueryCount = (uint)QueryCount,
             };
 
             switch (QueryType)
             {
                 case QueryType.Timestamp:
-                    createInfo.queryType = VkQueryType.Timestamp;
+                    createInfo.QueryType = Silk.NET.Vulkan.QueryType.Timestamp;
                     break;
 
                 default:
                     throw new NotImplementedException();
             }
 
-            vkCreateQueryPool(GraphicsDevice.NativeDevice, &createInfo, null, out NativeQueryPool);
+            GetApi().CreateQueryPool(GraphicsDevice.NativeDevice, &createInfo, null, out NativeQueryPool);
         }
 
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
             GraphicsDevice.Collect(NativeQueryPool);
-            NativeQueryPool = VkQueryPool.Null;
+            NativeQueryPool = new Silk.NET.Vulkan.QueryPool(0);
 
             base.OnDestroyed();
         }
