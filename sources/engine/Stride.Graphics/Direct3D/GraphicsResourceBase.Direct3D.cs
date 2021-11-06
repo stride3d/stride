@@ -14,7 +14,6 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResourceBase
     {
-        // TODO : Needs review
         private ComPtr<ID3D11Resource> nativeResource;
         private ComPtr<ID3D11DeviceChild> nativeDeviceChild;
 
@@ -44,12 +43,12 @@ namespace Stride.Graphics
             {
                 nativeDeviceChild = value;
 
-                unsafe
-                {
-                    ID3D11Resource* res = null;
-                    SilkMarshal.ThrowHResult(nativeDeviceChild.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&res));
-                    nativeResource.Handle = res;
-                }
+                //unsafe
+                //{
+                //    var dc = new ComPtr<ID3D11Resource>();
+                //    SilkMarshal.ThrowHResult(NativeDeviceChild.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&dc.Handle));
+                //    nativeResource.Handle = dc;
+                //}
                 // Todo : Debug name ? 
                 //SetDebugName(GraphicsDevice, nativeDeviceChild, Name);
             }

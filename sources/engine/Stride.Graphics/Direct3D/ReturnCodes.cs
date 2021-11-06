@@ -32,6 +32,6 @@ namespace Stride.Graphics.Direct3D
         UNSUPPORTED = 0x887A0004,
         WAIT_TIMEOUT = 0x887A0027,
         WAS_STILL_DRAWING = 0x887A000A,
-        S_OK
+        S_OK=0
     }
 }

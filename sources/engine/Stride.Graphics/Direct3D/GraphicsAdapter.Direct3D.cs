@@ -41,9 +41,9 @@ namespace Stride.Graphics
     /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>
     public partial class GraphicsAdapter
     {
-        private readonly ComPtr<IDXGIAdapter4> adapter;
+        private readonly ComPtr<IDXGIAdapter> adapter;
         private readonly int adapterOrdinal;
-        private readonly ComPtr<AdapterDesc3> description;
+        private readonly ComPtr<AdapterDesc> description;
 
         private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile)int.MaxValue;
         private GraphicsProfile maximumSupportedProfile;
@@ -53,17 +53,15 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="defaultFactory">The default factory.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
-        internal GraphicsAdapter(IDXGIFactory defaultFactory, int adapterOrdinal)
+        internal GraphicsAdapter(ComPtr<IDXGIFactory> defaultFactory, int adapterOrdinal)
         {
             this.adapterOrdinal = adapterOrdinal;
             //GetAdapter1(adapterOrdinal).DisposeBy(this);
-            
+
             unsafe
             {
-                IDXGIAdapter* p = null;
-                defaultFactory.EnumAdapters((uint)adapterOrdinal, &p);
-                adapter.Handle = (IDXGIAdapter4 *) p;
-                adapter.Get().GetDesc3(description.Handle);
+                SilkMarshal.ThrowHResult(defaultFactory.Get().EnumAdapters((uint)adapterOrdinal, ref adapter.Handle));
+                SilkMarshal.ThrowHResult(adapter.Get().GetDesc(description.Handle));
                 // for some reason sharpDX returns an adaptater name of fixed size filled with trailing '\0'
                 //description.Description = description.Description.TrimEnd('\0');
 
@@ -73,14 +71,13 @@ namespace Stride.Graphics
                 //TODO : This needs to be reviewed
                 IDXGIOutput* e = null;
                 int count = 0;
-                do
-                {
+
+                
+                while ((ulong)adapter.Get().EnumOutputs((uint)count, &e) == (ulong)ReturnCodes.S_OK)
                     count += 1;
-                }
-                while ((ulong)adapter.Get().EnumOutputs((uint)adapterOrdinal, &e) == (ulong)ReturnCodes.S_OK);
 
                 outputs = new GraphicsOutput[count];
-                for (var i = 0; i < outputs.Length; i++)
+                for (var i = 0; i < count; i++)
                     outputs[i] = new GraphicsOutput(this, i).DisposeBy(this);
 
                 //AdapterUid = adapter.Description1.Luid.ToString();
@@ -131,7 +128,7 @@ namespace Stride.Graphics
             }
         }
 
-        internal ComPtr<IDXGIAdapter4> NativeAdapter
+        internal ComPtr<IDXGIAdapter> NativeAdapter
         {
             get
             {

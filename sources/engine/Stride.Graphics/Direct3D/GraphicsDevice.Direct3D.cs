@@ -279,9 +279,10 @@ namespace Stride.Graphics
                 var c = new ComPtr<ID3D11DeviceContext>();
                 nativeDevice.Get().GetImmediateContext(ref c.Handle);
                 nativeDeviceContext = c;
+
+                // We keep one reference so that it doesn't disappear with InternalMainCommandList
+                nativeDeviceContext.Handle->AddRef();
             }
-            // We keep one reference so that it doesn't disappear with InternalMainCommandList
-            ((IUnknown)nativeDeviceContext.Get()).AddRef();
             if (IsDebugMode)
             {
                 //Todo marshall with com pointer

@@ -76,9 +76,13 @@ namespace Stride.Graphics
                         nativeDescription.AddressW = Silk.NET.Direct3D11.TextureAddressMode.TextureAddressMirror;
                 }
             
-                ID3D11SamplerState* v = null;
-                NativeDevice.Get().CreateSamplerState(&nativeDescription, &v);
-                NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)v);
+                var ss = new ComPtr<ID3D11SamplerState>();
+                var dc = new ComPtr<ID3D11DeviceChild>();
+                NativeDevice.Handle->CreateSamplerState(&nativeDescription, ref ss.Handle);
+                SilkMarshal.ThrowHResult(ss.Handle->QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceChild>(), (void**)&dc.Handle));
+                NativeDeviceChild = dc;
+
+
             }
 
             //NativeDeviceChild = new SamplerState(NativeDevice, nativeDescription);

@@ -53,7 +53,7 @@ namespace Stride.Graphics
             {
                 
                     ID3D11DeviceContext1* dc = null;
-                    SilkMarshal.ThrowHResult(NativeDeviceChild.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&dc));
+                    SilkMarshal.ThrowHResult(NativeDeviceChild.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceContext1>(), (void**)&dc));
                     nativeDeviceContext1.Handle = dc;
             }
             InitializeStages();
@@ -145,8 +145,9 @@ namespace Stride.Graphics
                 ID3D11RenderTargetView*[] rtvs = new ID3D11RenderTargetView*[currentRenderTargetViews.Length];
                 for (int i = 0; i < renderTargetCount; i++)
                     rtvs[i] = currentRenderTargetViews[i].Handle;
-                fixed(ID3D11RenderTargetView** r = rtvs)
-                    outputMerger.Get().OMSetRenderTargets((uint)depthStencilBuffer.GetViewCount(), r, depthStencilBuffer.NativeDepthStencilView.Handle);
+                if(depthStencilBuffer != null)
+                    fixed(ID3D11RenderTargetView** r = rtvs)
+                        outputMerger.Get().OMSetRenderTargets((uint)depthStencilBuffer.GetViewCount(), r, depthStencilBuffer.NativeDepthStencilView.Handle);
             }
             
         }

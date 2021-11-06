@@ -68,40 +68,42 @@ namespace Stride.Graphics
             HasMultisampleDepthAsSRV = CurrentProfile >= GraphicsProfile.Level_11_0;
 
             // Check features for each DXGI.Format
+
             foreach (var format in Enum.GetValues(typeof(Format)))
             {
                 var dxgiFormat = (Format)format;
+                if (dxgiFormat == Format.FormatForceUint) continue;
                 var maximumMultisampleCount = MultisampleCount.None;
-                
+
                 var computeShaderFormatSupport = FormatSupport.None;
                 var formatSupport = FormatSupport.None;
 
                 if (!ObsoleteFormatToExcludes.Contains(dxgiFormat))
                 {
                     maximumMultisampleCount = GetMaximumMultisampleCount(nativeDevice.Get(), dxgiFormat);
-                    
+
                     unsafe
                     {
                         uint res = 0;
                         if (HasComputeShaders)
                         {
                             //TODO : To review, this seems very weird
-                            
-                            nativeDevice.Get().CheckFormatSupport(dxgiFormat,&res);
+
+                            nativeDevice.Get().CheckFormatSupport(dxgiFormat, &res);
                             computeShaderFormatSupport = (FormatSupport)res;
                         }
                         nativeDevice.Get().CheckFormatSupport(dxgiFormat, &res);
                         formatSupport = (FormatSupport)res;
 
                     }
-                        
 
-                    
+
+
                 }
-
                 //mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, computeShaderFormatSupport, formatSupport);
                 mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, formatSupport);
             }
+            
         }
 
         /// <summary>

@@ -56,7 +56,7 @@ namespace Stride.Graphics
             var adapterList = new List<GraphicsAdapter>();
             for (int i = 0; i < countAdapters; i++)
             {
-                var adapter = new GraphicsAdapter(NativeFactory.Get(), i);
+                var adapter = new GraphicsAdapter(NativeFactory, i);
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
             }

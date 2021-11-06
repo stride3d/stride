@@ -60,13 +60,14 @@ namespace Stride.Graphics
             this.adapter = adapter ?? throw new ArgumentNullException("adapter");
             unsafe
             {
-                IDXGIOutput* oP = null;
-                adapter.NativeAdapter.Get().EnumOutputs((uint)outputIndex, &oP).DisposeBy(this);
-                output = new ComPtr<IDXGIOutput>(oP);
-                //outputDescription = 
-                var od = new OutputDesc();
-                output.Get().GetDesc(&od);
-                outputDescription = new ComPtr<OutputDesc>(&od);
+                var tmpOut = new IDXGIOutput();
+                adapter.NativeAdapter.Get().EnumOutputs((uint)outputIndex, ref output.Handle);
+                
+                //outputDescription 
+                
+                var tmp = new OutputDesc();
+                output.Get().GetDesc(&tmp);
+                outputDescription.Handle = &tmp;
                 var rectangle = outputDescription.Get().DesktopCoordinates;
                 desktopBounds = *(Rectangle*)&rectangle;
             }
@@ -102,7 +103,7 @@ namespace Stride.Graphics
                     var pCtx = &ctx;
                     
 
-                    D3D11.GetApi().CreateDevice((IDXGIAdapter*)adapter.NativeAdapter.Handle , D3DDriverType.D3DDriverTypeUnknown, 0, 0, features, (uint)targetProfiles.Length, D3D11.SdkVersion, &pDv,fls,&pCtx);
+                    D3D11.GetApi().CreateDevice(adapter.NativeAdapter.Handle, D3DDriverType.D3DDriverTypeUnknown, 0, 0, features, (uint)targetProfiles.Length, D3D11.SdkVersion, &pDv,fls,&pCtx);
                 }
                 
             }

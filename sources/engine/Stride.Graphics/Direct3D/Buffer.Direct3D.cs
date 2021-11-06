@@ -42,16 +42,17 @@ namespace Stride.Graphics
             unsafe
             {
                 var desc = ConvertToNativeDescription(Description);
-                nativeDescription = new ComPtr<BufferDesc>(&desc);
+                nativeDescription.Handle = &desc;
             }
             ViewFlags = viewFlags;
             InitCountAndViewFormat(out this.elementCount, ref viewFormat);
             ViewFormat = viewFormat;
             unsafe
             {
-                ID3D11Buffer* pBuff = null;
-                NativeDevice.Get().CreateBuffer(nativeDescription.Handle, (SubresourceData*)dataPointer, &pBuff);
-                NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)pBuff);           
+                ComPtr<ID3D11Buffer> pBuff = new ComPtr<ID3D11Buffer>();
+                SilkMarshal.ThrowHResult(NativeDevice.Get().CreateBuffer(nativeDescription.Handle, null, ref pBuff.Handle));
+                NativeDevice.Get().CreateBuffer(nativeDescription.Handle, (SubresourceData*)dataPointer, ref pBuff.Handle);
+                //NativeDeviceChild = pBuff;
             }
             
 

@@ -81,7 +81,8 @@ namespace Stride.Graphics
             // Setup the default render target
             var deviceDepthStencilBuffer = GraphicsDevice.Presenter?.DepthStencilBuffer;
             var deviceBackBuffer = GraphicsDevice.Presenter?.BackBuffer;
-            SetRenderTargetAndViewport(deviceDepthStencilBuffer, deviceBackBuffer);
+            if(deviceDepthStencilBuffer != null && deviceBackBuffer != null)
+                SetRenderTargetAndViewport(deviceDepthStencilBuffer, deviceBackBuffer);
         }
 
         /// <summary>
