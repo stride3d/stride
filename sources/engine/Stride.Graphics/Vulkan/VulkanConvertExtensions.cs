@@ -235,7 +235,7 @@ namespace Stride.Graphics
                 //    pixelSize = 1;
                 //    break;
                 case PixelFormat.R8_UNorm:
-                    format = Format.R8UNorm;
+                    format = Format.R8Unorm;
                     pixelSize = 1;
                     break;
                 case PixelFormat.R8_SNorm:
@@ -243,58 +243,58 @@ namespace Stride.Graphics
                     pixelSize = 1;
                     break;
                 case PixelFormat.R8_UInt:
-                    format = Format.R8UInt;
+                    format = Format.R8Uint;
                     pixelSize = 1;
                     break;
                 case PixelFormat.R8_SInt:
-                    format = Format.R8SInt;
+                    format = Format.R8Sint;
                     pixelSize = 1;
                     break;
 
                 case PixelFormat.R8G8B8A8_UNorm:
-                    format = Format.R8G8B8A8UNorm;
+                    format = Format.R8G8B8A8Unorm;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R8G8B8A8_UInt:
-                    format = Format.R8G8B8A8UInt;
+                    format = Format.R8G8B8A8Uint;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R8G8B8A8_SInt:
-                    format = Format.R8G8B8A8SInt;
+                    format = Format.R8G8B8A8Sint;
                     pixelSize = 4;
                     break;
                 case PixelFormat.B8G8R8A8_UNorm:
-                    format = Format.B8G8R8A8UNorm;
+                    format = Format.B8G8R8A8Unorm;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R8G8B8A8_UNorm_SRgb:
-                    format = Format.R8G8B8A8SRgb;
+                    format = Format.R8G8B8A8Srgb;
                     pixelSize = 4;
                     break;
                 case PixelFormat.B8G8R8A8_UNorm_SRgb:
-                    format = Format.B8G8R8A8SRgb;
+                    format = Format.B8G8R8A8Srgb;
                     pixelSize = 4;
                     break;
 
                 case PixelFormat.R16_Float:
-                    format = Format.R16SFloat;
+                    format = Format.R16Sfloat;
                     pixelSize = 2;
                     break;
                 case PixelFormat.R16_UNorm:
-                    format = Format.R16UNorm;
+                    format = Format.R16Unorm;
                     pixelSize = 2;
                     break;
                 case PixelFormat.R16_UInt:
-                    format = Format.R16UInt;
+                    format = Format.R16Uint;
                     pixelSize = 2;
                     break;
                 case PixelFormat.R16_SInt:
-                    format = Format.R16SInt;
+                    format = Format.R16Sint;
                     pixelSize = 2;
                     break;
 
                 case PixelFormat.R16G16_Float:
-                    format = Format.R16G16SFloat;
+                    format = Format.R16G16Sfloat;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R16G16_SNorm:
@@ -302,7 +302,7 @@ namespace Stride.Graphics
                     pixelSize = 4;
                     break;
                 case PixelFormat.R16G16_UNorm:
-                    format = Format.R16G16UNorm;
+                    format = Format.R16G16Unorm;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R16G16_SInt:
@@ -310,16 +310,16 @@ namespace Stride.Graphics
                     pixelSize = 4;
                     break;
                 case PixelFormat.R16G16_UInt:
-                    format = Format.R16G16UNorm;
+                    format = Format.R16G16Unorm;
                     pixelSize = 4;
                     break;
 
                 case PixelFormat.R16G16B16A16_Float:
-                    format = Format.R16G16B16A16SFloat;
+                    format = Format.R16G16B16A16Sfloat;
                     pixelSize = 8;
                     break;
                 case PixelFormat.R16G16B16A16_UNorm:
-                    format = Format.R16G16B16A16UNorm;
+                    format = Format.R16G16B16A16Unorm;
                     pixelSize = 8;
                     break;
                 case PixelFormat.R16G16B16A16_SNorm:
@@ -327,152 +327,152 @@ namespace Stride.Graphics
                     pixelSize = 8;
                     break;
                 case PixelFormat.R16G16B16A16_UInt:
-                    format = Format.R16G16B16A16UInt;
+                    format = Format.R16G16B16A16Uint;
                     pixelSize = 8;
                     break;
                 case PixelFormat.R16G16B16A16_SInt:
-                    format = Format.R16G16B16A16SInt;
+                    format = Format.R16G16B16A16Sint;
                     pixelSize = 8;
                     break;
 
                 case PixelFormat.R32_UInt:
-                    format = Format.R32UInt;
+                    format = Format.R32Uint;
                     pixelSize = 4;
                     break;
                 case PixelFormat.R32_Float:
-                    format = Format.R32SFloat;
+                    format = Format.R32Sfloat;
                     pixelSize = 4;
                     break;
 
                 case PixelFormat.R32G32_Float:
-                    format = Format.R32G32SFloat;
+                    format = Format.R32G32Sfloat;
                     pixelSize = 8;
                     break;
                 case PixelFormat.R32G32_UInt:
-                    format = Format.R32G32UInt;
+                    format = Format.R32G32Uint;
                     pixelSize = 8;
                     break;
                 case PixelFormat.R32G32_SInt:
-                    format = Format.R32G32SInt;
+                    format = Format.R32G32Sint;
                     pixelSize = 8;
                     break;
 
                 case PixelFormat.R32G32B32_Float:
-                    format = Format.R32G32B32SFloat;
+                    format = Format.R32G32B32Sfloat;
                     pixelSize = 12;
                     break;
                 case PixelFormat.R32G32B32_SInt:
-                    format = Format.R32G32B32SInt;
+                    format = Format.R32G32B32Sint;
                     pixelSize = 12;
                     break;
                 case PixelFormat.R32G32B32_UInt:
-                    format = Format.R32G32B32UInt;
+                    format = Format.R32G32B32Uint;
                     pixelSize = 12;
                     break;
 
                 case PixelFormat.R32G32B32A32_Float:
-                    format = Format.R32G32B32A32SFloat;
+                    format = Format.R32G32B32A32Sfloat;
                     pixelSize = 16;
                     break;
                 case PixelFormat.R32G32B32A32_SInt:
-                    format = Format.R32G32B32A32SInt;
+                    format = Format.R32G32B32A32Sint;
                     pixelSize = 16;
                     break;
                 case PixelFormat.R32G32B32A32_UInt:
-                    format = Format.R32G32B32A32UInt;
+                    format = Format.R32G32B32A32Uint;
                     pixelSize = 16;
                     break;
 
                 case PixelFormat.D16_UNorm:
-                    format = Format.D16UNorm;
+                    format = Format.D16Unorm;
                     pixelSize = 2;
                     break;
                 case PixelFormat.D24_UNorm_S8_UInt:
-                    format = Format.D24UNormS8UInt;
+                    format = Format.D24UnormS8Uint;
                     pixelSize = 4;
                     break;
                 // TODO: Temporary depth format (need to decide relation between RenderTarget1D and Texture)
                 case PixelFormat.D32_Float:
-                    format = Format.D32SFloat;
+                    format = Format.D32Sfloat;
                     pixelSize = 4;
                     break;
 
                 case PixelFormat.ETC1:
                 case PixelFormat.ETC2_RGB: // ETC1 upper compatible
-                    format = Format.ETC2R8G8B8UNormBlock;
+                    format = Format.Etc2R8G8B8UnormBlock;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.ETC2_RGB_SRgb:
-                    format = Format.ETC2R8G8B8SRgbBlock;
+                    format = Format.Etc2R8G8B8SrgbBlock;
                     compressed = true;
                     pixelSize = 1;
                     break;
                 case PixelFormat.ETC2_RGB_A1:
-                    format = Format.ETC2R8G8B8A1UNormBlock;
+                    format = Format.Etc2R8G8B8A1UnormBlock;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.ETC2_RGBA: // ETC2 + EAC
-                    format = Format.ETC2R8G8B8A8UNormBlock;
+                    format = Format.Etc2R8G8B8A8UnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.ETC2_RGBA_SRgb: // ETC2 + EAC
-                    format = Format.ETC2R8G8B8A8SRgbBlock;
+                    format = Format.Etc2R8G8B8A8SrgbBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.EAC_R11_Unsigned:
-                    format = Format.EACR11UNormBlock;
+                    format = Format.EacR11UnormBlock;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.EAC_R11_Signed:
-                    format = Format.EACR11SNormBlock;
+                    format = Format.EacR11SNormBlock;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.EAC_RG11_Unsigned:
-                    format = Format.EACR11G11UNormBlock;
+                    format = Format.EacR11G11UnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.EAC_RG11_Signed:
-                    format = Format.EACR11G11SNormBlock;
+                    format = Format.EacR11G11SNormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
 
                 case PixelFormat.BC1_UNorm:
-                    format = Format.BC1RGBAUNormBlock;
+                    format = Format.BC1RgbaUnormBlock;
                     //format = Format.RAD_TEXTURE_FORMAT_DXT1_RGBA;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.BC1_UNorm_SRgb:
-                    format = Format.BC1RGBASRgbBlock;
+                    format = Format.BC1RgbaSrgbBlock;
                     //format = Format.RAD_TEXTURE_FORMAT_DXT1_RGBA_SRgb;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.BC2_UNorm:
-                    format = Format.BC2UNormBlock;
+                    format = Format.BC2UnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC2_UNorm_SRgb:
-                    format = Format.BC2SRgbBlock;
+                    format = Format.BC2SrgbBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC3_UNorm:
-                    format = Format.BC3UNormBlock;
+                    format = Format.BC3UnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC3_UNorm_SRgb:
-                    format = Format.BC3SRgbBlock;
+                    format = Format.BC3SrgbBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
@@ -482,7 +482,7 @@ namespace Stride.Graphics
                     pixelSize = 1; // 4bpp
                     break;
                 case PixelFormat.BC4_UNorm:
-                    format = Format.BC4UNormBlock;
+                    format = Format.BC4UnormBlock;
                     compressed = true;
                     pixelSize = 1; // 4bpp
                     break;
@@ -492,27 +492,27 @@ namespace Stride.Graphics
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC5_UNorm:
-                    format = Format.BC5UNormBlock;
+                    format = Format.BC5UnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC6H_Sf16:
-                    format = Format.BC6HSFloatBlock;
+                    format = Format.BC6HSfloatBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC6H_Uf16:
-                    format = Format.BC6HUFloatBlock;
+                    format = Format.BC6HUfloatBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC7_UNorm:
-                    format = Format.BC7UNormBlock;
+                    format = Format.BC7UnormBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
                 case PixelFormat.BC7_UNorm_SRgb:
-                    format = Format.BC7SRgbBlock;
+                    format = Format.BC7SrgbBlock;
                     compressed = true;
                     pixelSize = 2; // 8bpp
                     break;
@@ -581,76 +581,76 @@ namespace Stride.Graphics
         {
             switch (format)
             {
-                case Format.BC1RGBUNormBlock:
-                case Format.BC1RGBSRgbBlock:
-                case Format.BC1RGBAUNormBlock:
-                case Format.BC1RGBASRgbBlock:
+                case Format.BC1RgbUnormBlock:
+                case Format.BC1RgbSrgbBlock:
+                case Format.BC1RgbaUnormBlock:
+                case Format.BC1RgbaSrgbBlock:
                     return 8;
 
-                case Format.BC2UNormBlock:
-                case Format.BC2SRgbBlock:
-                case Format.BC3UNormBlock:
-                case Format.BC3SRgbBlock:
+                case Format.BC2UnormBlock:
+                case Format.BC2SrgbBlock:
+                case Format.BC3UnormBlock:
+                case Format.BC3SrgbBlock:
                     return 16;
 
-                case Format.BC4UNormBlock:
+                case Format.BC4UnormBlock:
                 case Format.BC4SNormBlock:
                     return 8;
 
-                case Format.BC5UNormBlock:
+                case Format.BC5UnormBlock:
                 case Format.BC5SNormBlock:
-                case Format.BC6HUFloatBlock:
-                case Format.BC6HSFloatBlock:
-                case Format.BC7UNormBlock:
-                case Format.BC7SRgbBlock:
+                case Format.BC6HUfloatBlock:
+                case Format.BC6HSfloatBlock:
+                case Format.BC7UnormBlock:
+                case Format.BC7SrgbBlock:
                     return 16;
 
-                case Format.ETC2R8G8B8UNormBlock:
-                case Format.ETC2R8G8B8SRgbBlock:
-                case Format.ETC2R8G8B8A1UNormBlock:
-                case Format.ETC2R8G8B8A1SRgbBlock:
+                case Format.Etc2R8G8B8UnormBlock:
+                case Format.Etc2R8G8B8SrgbBlock:
+                case Format.Etc2R8G8B8A1UnormBlock:
+                case Format.Etc2R8G8B8A1SrgbBlock:
+                    return 8;
+                    
+                case Format.Etc2R8G8B8A8UnormBlock:
+                case Format.Etc2R8G8B8A8SrgbBlock:
+                    return 16;
+
+                case Format.EacR11UnormBlock:
+                case Format.EacR11SNormBlock:
                     return 8;
 
-                case Format.ETC2R8G8B8A8UNormBlock:
-                case Format.ETC2R8G8B8A8SRgbBlock:
+                case Format.EacR11G11UnormBlock:
+                case Format.EacR11G11SNormBlock:
                     return 16;
 
-                case Format.EACR11UNormBlock:
-                case Format.EACR11SNormBlock:
-                    return 8;
-
-                case Format.EACR11G11UNormBlock:
-                case Format.EACR11G11SNormBlock:
-                    return 16;
-
-                case Format.ASTC4x4UNormBlock:
-                case Format.ASTC4x4SRgbBlock:
-                case Format.ASTC5x4UNormBlock:
-                case Format.ASTC5x4SRgbBlock:
-                case Format.ASTC5x5UNormBlock:
-                case Format.ASTC5x5SRgbBlock:
-                case Format.ASTC6x5UNormBlock:
-                case Format.ASTC6x5SRgbBlock:
-                case Format.ASTC6x6UNormBlock:
-                case Format.ASTC6x6SRgbBlock:
-                case Format.ASTC8x5UNormBlock:
-                case Format.ASTC8x5SRgbBlock:
-                case Format.ASTC8x6UNormBlock:
-                case Format.ASTC8x6SRgbBlock:
-                case Format.ASTC8x8UNormBlock:
-                case Format.ASTC8x8SRgbBlock:
-                case Format.ASTC10x5UNormBlock:
-                case Format.ASTC10x5SRgbBlock:
-                case Format.ASTC10x6UNormBlock:
-                case Format.ASTC10x6SRgbBlock:
-                case Format.ASTC10x8UNormBlock:
-                case Format.ASTC10x8SRgbBlock:
-                case Format.ASTC10x10UNormBlock:
-                case Format.ASTC10x10SRgbBlock:
-                case Format.ASTC12x10UNormBlock:
-                case Format.ASTC12x10SRgbBlock:
-                case Format.ASTC12x12UNormBlock:
-                case Format.ASTC12x12SRgbBlock:
+                case Format.Astc4x4UnormBlock:
+                case Format.Astc4x4SrgbBlock:
+                case Format.Astc5x4UnormBlock:
+                case Format.Astc5x4SrgbBlock:
+                case Format.Astc5x5UnormBlock:
+                case Format.Astc5x5SrgbBlock:
+                case Format.Astc6x5UnormBlock:
+                case Format.Astc6x5SrgbBlock:
+                case Format.Astc6x6UnormBlock:
+                case Format.Astc6x6SrgbBlock:
+                case Format.Astc8x5UnormBlock:
+                case Format.Astc8x5SrgbBlock:
+                case Format.Astc8x6UnormBlock:
+                case Format.Astc8x6SrgbBlock:
+                case Format.Astc8x8UnormBlock:
+                case Format.Astc8x8SrgbBlock:
+                case Format.Astc10x5UnormBlock:
+                case Format.Astc10x5SrgbBlock:
+                case Format.Astc10x6UnormBlock:
+                case Format.Astc10x6SrgbBlock:
+                case Format.Astc10x8UnormBlock:
+                case Format.Astc10x8SrgbBlock:
+                case Format.Astc10x10UnormBlock:
+                case Format.Astc10x10SrgbBlock:
+                case Format.Astc12x10UnormBlock:
+                case Format.Astc12x10SrgbBlock:
+                case Format.Astc12x12UnormBlock:
+                case Format.Astc12x12SrgbBlock:
                     return 16;
 
                 //case Format.Pvrtc12BppUNormBlock:

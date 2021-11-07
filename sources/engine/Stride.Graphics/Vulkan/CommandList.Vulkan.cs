@@ -785,7 +785,7 @@ namespace Stride.Graphics
                     OldLayout = ImageLayout.TransferDstOptimal,
                     NewLayout = renderTarget.NativeLayout
             };
-            GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, PipelineStageFlags.Transfer, renderTarget.NativePipelineStageMask, DependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+            GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, PipelineStageFlags.PipelineStageTransferBit, renderTarget.NativePipelineStageMask, 0, 0, null, 0, null, 1, &memoryBarrier);
 
             renderTarget.IsInitialized = true;
         }

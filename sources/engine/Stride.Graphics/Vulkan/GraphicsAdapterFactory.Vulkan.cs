@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Silk.NET.Core.Native;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions;
 using Silk.NET.Vulkan.Extensions.EXT;
@@ -14,6 +15,7 @@ using Stride.Core;
 using Stride.Core.Diagnostics;
 
 using Vk = Silk.NET.Vulkan;
+using static Silk.NET.Vulkan.Vk;
 
 
 namespace Stride.Graphics
@@ -41,7 +43,7 @@ namespace Stride.Graphics
             {
 
                 fixed(Vk.PhysicalDevice* d = nativePhysicalDevices)
-                    Vk.Vk.GetApi().EnumeratePhysicalDevices(defaultInstance.NativeInstance, null, d);
+                    GetApi().EnumeratePhysicalDevices(defaultInstance.NativeInstance, null, d);
             }
 
             var adapterList = new List<GraphicsAdapter>();
@@ -127,7 +129,7 @@ namespace Stride.Graphics
                 LayerProperties[] layers = null;
 
                 fixed (LayerProperties* l = layers)
-                    Vk.Vk.GetApi().EnumerateInstanceLayerProperties(null, l);
+                    GetApi().EnumerateInstanceLayerProperties(null, l);
 
                 var availableLayerNames = new HashSet<string>();
 
@@ -150,7 +152,7 @@ namespace Stride.Graphics
 
             ExtensionProperties[] extensionProperties = null;
             fixed(ExtensionProperties* e = extensionProperties)
-                Vk.Vk.GetApi().EnumerateInstanceExtensionProperties("", null, e);
+                GetApi().EnumerateInstanceExtensionProperties("", null, e);
             var availableExtensionNames = new List<string>();
             var desiredExtensionNames = new List<string>();
 
@@ -214,24 +216,25 @@ namespace Stride.Graphics
                         PpEnabledExtensionNames = (byte**)enabledExtensionNamesPointer,
                     };
 
-                    Vk.Vk.GetApi().CreateInstance(&instanceCreateInfo, null, out NativeInstance);
+                    GetApi().CreateInstance(&instanceCreateInfo, null, out NativeInstance);
                     //vkLoadInstance(NativeInstance);
 
                 }
-
+                //GetApi().TryGetDeviceExtension(NativeInstance,NativeDevice,)
                 // Check if validation layer was available (otherwise detected count is 0)
                 if (enableValidation)
                 {
-                    debugReport = DebugReport;
+                    // TODO : CHeck debug report
+                    //debugReport = DebugReport;
                     var createInfo = new Vk.DebugUtilsMessengerCreateInfoEXT
                     {
-                        sType = Vk.StructureType.DebugUtilsMessengerCreateInfoEXT,
-                        messageSeverity = Vk.DebugUtilsMessageSeverityFlagsEXT.Verbose | Vk.DebugUtilsMessageSeverityFlagsEXT.Error | Vk.DebugUtilsMessageSeverityFlagsEXT.Warning,
-                        messageType = Vk.DebugUtilsMessageTypeFlagsEXT.General | Vk.DebugUtilsMessageTypeFlagsEXT.Validation | Vk.DebugUtilsMessageTypeFlagsEXT.Performance,
-                        pfnUserCallback = Marshal.GetFunctionPointerForDelegate(debugReport)
+                        SType = Vk.StructureType.DebugUtilsMessengerCreateInfoExt,
+                        MessageSeverity = Vk.DebugUtilsMessageSeverityFlagsEXT.DebugUtilsMessageSeverityVerboseBitExt | Vk.DebugUtilsMessageSeverityFlagsEXT.DebugUtilsMessageSeverityErrorBitExt | Vk.DebugUtilsMessageSeverityFlagsEXT.DebugUtilsMessageSeverityWarningBitExt,
+                        MessageType = Vk.DebugUtilsMessageTypeFlagsEXT.DebugUtilsMessageTypeGeneralBitExt | Vk.DebugUtilsMessageTypeFlagsEXT.DebugUtilsMessageTypeValidationBitExt | Vk.DebugUtilsMessageTypeFlagsEXT.DebugUtilsMessageTypePerformanceBitExt,
+                        //PfnUserCallback = SilkMarshal.DelegateToPtr(debugReport)
                     };
 
-                    Vk.CreateDebugUtilsMessengerEXT(NativeInstance, &createInfo, null, out debugReportCallback).CheckResult();
+                    //GetApi().CreateDebugUtilsMessenger(NativeInstance, &createInfo, null, out debugReportCallback).CheckResult();
                 }
             }
             finally
@@ -246,7 +249,7 @@ namespace Stride.Graphics
                     Marshal.FreeHGlobal(enabledLayerName);
                 }
 
-                Marshal.FreeHGlobal((IntPtr)applicationInfo.pEngineName);
+                Marshal.FreeHGlobal((IntPtr)applicationInfo.PEngineName);
             }
         }
 

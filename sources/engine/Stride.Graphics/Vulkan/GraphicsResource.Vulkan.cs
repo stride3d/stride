@@ -3,7 +3,7 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using Silk.NET.Vulkan;
-//using static Silk.NET.Vulkan.Vk;
+using static Silk.NET.Vulkan.Vk;
 
 namespace Stride.Graphics
 {
@@ -63,7 +63,7 @@ namespace Stride.Graphics
                 AllocationSize = memoryRequirements.Size,
             };
 
-            Vk.GetApi().GetPhysicalDeviceMemoryProperties(GraphicsDevice.NativePhysicalDevice, out var physicalDeviceMemoryProperties);
+            GetApi().GetPhysicalDeviceMemoryProperties(GraphicsDevice.NativePhysicalDevice, out var physicalDeviceMemoryProperties);
             var typeBits = memoryRequirements.MemoryTypeBits;
             for (uint i = 0; i < physicalDeviceMemoryProperties.MemoryTypeCount; i++)
             {
@@ -80,7 +80,7 @@ namespace Stride.Graphics
                 typeBits >>= 1;
             }
 
-            Vk.GetApi().AllocateMemory(GraphicsDevice.NativeDevice, &allocateInfo, null, out NativeMemory);
+            GetApi().AllocateMemory(GraphicsDevice.NativeDevice, &allocateInfo, null, out NativeMemory);
         }
     }
 }

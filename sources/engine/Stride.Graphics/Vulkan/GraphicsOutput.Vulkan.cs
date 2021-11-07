@@ -3,8 +3,8 @@
 #if STRIDE_GRAPHICS_API_VULKAN
 using System;
 using System.Collections.Generic;
-using Vortice.Vulkan;
-using static Vortice.Vulkan.Vulkan;
+using Silk.NET.Vulkan;
+using static Silk.NET.Vulkan.Vk;
 
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -20,7 +20,7 @@ namespace Stride.Graphics
     /// <unmanaged-short>IDXGIOutput</unmanaged-short>	
     public partial class GraphicsOutput
     {
-        private readonly VkDisplayPropertiesKHR displayProperties;
+        private readonly DisplayPropertiesKHR displayProperties;
         private readonly int outputIndex;
 
         /// <summary>
@@ -30,14 +30,14 @@ namespace Stride.Graphics
         /// <param name="outputIndex">Index of the output.</param>
         /// <exception cref="System.ArgumentNullException">output</exception>
         /// <exception cref="ArgumentOutOfRangeException">output</exception>
-        internal GraphicsOutput(GraphicsAdapter adapter, VkDisplayPropertiesKHR displayProperties, int outputIndex)
+        internal GraphicsOutput(GraphicsAdapter adapter, DisplayPropertiesKHR displayProperties, int outputIndex)
         {
             if (adapter == null) throw new ArgumentNullException("adapter");
 
             this.outputIndex = outputIndex;
             this.displayProperties = displayProperties;
 
-            desktopBounds = new Rectangle(0, 0, (int)displayProperties.physicalResolution.Width, (int)displayProperties.physicalResolution.Height);
+            desktopBounds = new Rectangle(0, 0, (int)displayProperties.PhysicalResolution.Width, (int)displayProperties.PhysicalResolution.Height);
         }
 
         /// <summary>
@@ -180,7 +180,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="format">The format to match with.</param>
         /// <returns>A matched <see cref="DisplayMode"/> or null if nothing is found.</returns>
-        private DisplayMode TryFindMatchingDisplayMode(VkFormat format)
+        private DisplayMode TryFindMatchingDisplayMode(Format format)
         {
             //var desktopBounds = outputDescription.DesktopBounds;
 

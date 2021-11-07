@@ -399,11 +399,11 @@ namespace Stride.Graphics
             var nativeDescriptorSetLayout = NativeDescriptorSetLayout;
             var pipelineLayoutCreateInfo = new PipelineLayoutCreateInfo
             {
-                sType = StructureType.PipelineLayoutCreateInfo,
-                setLayoutCount = 1,
-                pSetLayouts = &nativeDescriptorSetLayout,
+                SType = StructureType.PipelineLayoutCreateInfo,
+                SetLayoutCount = 1,
+                PSetLayouts = &nativeDescriptorSetLayout,
             };
-            vkCreatePipelineLayout(GraphicsDevice.NativeDevice, &pipelineLayoutCreateInfo, null, out NativeLayout);
+            GetApi().CreatePipelineLayout(GraphicsDevice.NativeDevice, &pipelineLayoutCreateInfo, null, out NativeLayout);
         }
 
         private unsafe PipelineShaderStageCreateInfo[] CreateShaderStages(PipelineStateDescription pipelineStateDescription, out Dictionary<int, string> inputAttributeNames)
@@ -419,16 +419,27 @@ namespace Stride.Graphics
                 if (stages[i].Stage == ShaderStage.Vertex)
                     inputAttributeNames = shaderBytecode.InputAttributeNames;
 
+                fixed(byte* data = shaderBytecode.Data)
                 fixed (byte* entryPointPointer = &defaultEntryPoint[0])
                 {
                     // Create stage
                     nativeStages[i] = new PipelineShaderStageCreateInfo
                     {
-                        sType = StructureType.PipelineShaderStageCreateInfo,
-                        stage = VulkanConvertExtensions.Convert(stages[i].Stage),
-                        pName = entryPointPointer,
+                        SType = StructureType.PipelineShaderStageCreateInfo,
+                        Stage = VulkanConvertExtensions.Convert(stages[i].Stage),
+                        PName = entryPointPointer,
                     };
-                    vkCreateShaderModule(GraphicsDevice.NativeDevice, shaderBytecode.Data, null, out nativeStages[i].module);
+                    
+                    var smc = new ShaderModuleCreateInfo
+                    {
+                        CodeSize = (nuint)shaderBytecode.Data.Length,
+                        SType = StructureType.ShaderModuleCreateInfo,
+                        PCode = (uint*)data,
+                        PNext = null,
+                        Flags = 0
+                    };
+                    
+                    GetApi().CreateShaderModule(GraphicsDevice.NativeDevice, smc, null, out nativeStages[i].Module);
                 }
             };
 
@@ -439,17 +450,17 @@ namespace Stride.Graphics
         {
             return new PipelineRasterizationStateCreateInfo
             {
-                sType = StructureType.PipelineRasterizationStateCreateInfo,
-                cullMode = VulkanConvertExtensions.ConvertCullMode(description.CullMode),
-                frontFace = description.FrontFaceCounterClockwise ? FrontFace.CounterClockwise : FrontFace.Clockwise,
-                polygonMode = VulkanConvertExtensions.ConvertFillMode(description.FillMode),
-                depthBiasEnable = true, // TODO VULKAN
-                depthBiasConstantFactor = description.DepthBias,
-                depthBiasSlopeFactor = description.SlopeScaleDepthBias,
-                depthBiasClamp = description.DepthBiasClamp,
-                lineWidth = 1.0f,
-                depthClampEnable = !description.DepthClipEnable,
-                rasterizerDiscardEnable = false,
+                SType = StructureType.PipelineRasterizationStateCreateInfo,
+                CullMode = VulkanConvertExtensions.ConvertCullMode(description.CullMode),
+                FrontFace = description.FrontFaceCounterClockwise ? FrontFace.CounterClockwise : FrontFace.Clockwise,
+                PolygonMode = VulkanConvertExtensions.ConvertFillMode(description.FillMode),
+                DepthBiasEnable = true, // TODO VULKAN
+                DepthBiasConstantFactor = description.DepthBias,
+                DepthBiasSlopeFactor = description.SlopeScaleDepthBias,
+                DepthBiasClamp = description.DepthBiasClamp,
+                LineWidth = 1.0f,
+                DepthClampEnable = !description.DepthClipEnable,
+                RasterizerDiscardEnable = false,
             };
         }
 
@@ -459,31 +470,31 @@ namespace Stride.Graphics
 
             return new PipelineDepthStencilStateCreateInfo
             {
-                sType = StructureType.PipelineDepthStencilStateCreateInfo,
-                depthTestEnable = description.DepthBufferEnable,
-                stencilTestEnable = description.StencilEnable,
-                depthWriteEnable = description.DepthBufferWriteEnable,
+                SType = StructureType.PipelineDepthStencilStateCreateInfo,
+                DepthTestEnable = description.DepthBufferEnable,
+                StencilTestEnable = description.StencilEnable,
+                DepthWriteEnable = description.DepthBufferWriteEnable,
 
-                minDepthBounds = 0.0f,
-                maxDepthBounds = 1.0f,
-                depthCompareOp = VulkanConvertExtensions.ConvertComparisonFunction(description.DepthBufferFunction),
-                front =
+                MinDepthBounds = 0.0f,
+                MaxDepthBounds = 1.0f,
+                DepthCompareOp = VulkanConvertExtensions.ConvertComparisonFunction(description.DepthBufferFunction),
+                Front =
                 {
-                    compareOp = VulkanConvertExtensions.ConvertComparisonFunction(description.FrontFace.StencilFunction),
-                    depthFailOp = VulkanConvertExtensions.ConvertStencilOperation(description.FrontFace.StencilDepthBufferFail),
-                    failOp = VulkanConvertExtensions.ConvertStencilOperation(description.FrontFace.StencilFail),
-                    passOp = VulkanConvertExtensions.ConvertStencilOperation(description.FrontFace.StencilPass),
-                    compareMask = description.StencilMask,
-                    writeMask = description.StencilWriteMask
+                    CompareOp = VulkanConvertExtensions.ConvertComparisonFunction(description.FrontFace.StencilFunction),
+                    DepthFailOp = VulkanConvertExtensions.ConvertStencilOperation(description.FrontFace.StencilDepthBufferFail),
+                    FailOp = VulkanConvertExtensions.ConvertStencilOperation(description.FrontFace.StencilFail),
+                    PassOp = VulkanConvertExtensions.ConvertStencilOperation(description.FrontFace.StencilPass),
+                    CompareMask = description.StencilMask,
+                    WriteMask = description.StencilWriteMask
                 },
-                back =
+                Back =
                 {
-                    compareOp = VulkanConvertExtensions.ConvertComparisonFunction(description.BackFace.StencilFunction),
-                    depthFailOp = VulkanConvertExtensions.ConvertStencilOperation(description.BackFace.StencilDepthBufferFail),
-                    failOp = VulkanConvertExtensions.ConvertStencilOperation(description.BackFace.StencilFail),
-                    passOp = VulkanConvertExtensions.ConvertStencilOperation(description.BackFace.StencilPass),
-                    compareMask = description.StencilMask,
-                    writeMask = description.StencilWriteMask
+                    CompareOp = VulkanConvertExtensions.ConvertComparisonFunction(description.BackFace.StencilFunction),
+                    DepthFailOp = VulkanConvertExtensions.ConvertStencilOperation(description.BackFace.StencilDepthBufferFail),
+                    FailOp = VulkanConvertExtensions.ConvertStencilOperation(description.BackFace.StencilFail),
+                    PassOp = VulkanConvertExtensions.ConvertStencilOperation(description.BackFace.StencilPass),
+                    CompareMask = description.StencilMask,
+                    WriteMask = description.StencilWriteMask
                 }
             };
         }
