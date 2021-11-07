@@ -889,23 +889,49 @@ namespace Stride.Graphics
                 // Initial barriers
                 if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    bufferBarriers[bufferBarrierCount++] = new BufferMemoryBarrier(sourceParent.NativeBuffer, sourceTexture.NativeAccessMask, AccessFlags.TransferRead);
+                    bufferBarriers[bufferBarrierCount++] = new BufferMemoryBarrier
+                    {
+                        Buffer= sourceParent.NativeBuffer,
+                        SrcAccessMask = sourceTexture.NativeAccessMask,
+                        DstAccessMask = AccessFlags.AccessTransferReadBit
+                    };
                 }
                 else
                 {
-                    imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier(sourceParent.NativeImage, new ImageSubresourceRange(sourceParent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), sourceTexture.NativeAccessMask, AccessFlags.TransferRead, sourceTexture.NativeLayout, ImageLayout.TransferSrcOptimal);
+                    imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier
+                    {
+                        Image = sourceParent.NativeImage,
+                        SubresourceRange = new ImageSubresourceRange(sourceParent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue),
+                        SrcAccessMask = sourceTexture.NativeAccessMask,
+                        DstAccessMask = AccessFlags.AccessTransferReadBit,
+                        OldLayout = sourceTexture.NativeLayout,
+                        NewLayout = ImageLayout.TransferSrcOptimal
+                    };
                 }
 
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    bufferBarriers[bufferBarrierCount++] = new BufferMemoryBarrier(destinationParent.NativeBuffer, destinationTexture.NativeAccessMask, AccessFlags.TransferWrite);
+                    bufferBarriers[bufferBarrierCount++] = new BufferMemoryBarrier
+                    {
+                        Buffer = destinationParent.NativeBuffer,
+                        SrcAccessMask = destinationTexture.NativeAccessMask,
+                        DstAccessMask = AccessFlags.AccessTransferWriteBit
+                    };
                 }
                 else
                 {
-                    imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier(destinationParent.NativeImage, new ImageSubresourceRange(destinationParent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), destinationTexture.NativeAccessMask, AccessFlags.TransferWrite, destinationTexture.NativeLayout, ImageLayout.TransferDstOptimal);
+                    imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier
+                    {
+                        Image = destinationParent.NativeImage,
+                        SubresourceRange = new ImageSubresourceRange(destinationParent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue),
+                        SrcAccessMask = destinationTexture.NativeAccessMask,
+                        DstAccessMask = AccessFlags.AccessTransferWriteBit,
+                        OldLayout = destinationTexture.NativeLayout,
+                        NewLayout = ImageLayout.TransferDstOptimal
+                    };
                 }
 
-                GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, PipelineStageFlags.PipelineStageTransferBit, 0, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
 
                 for (var subresource = 0; subresource < sourceTexture.MipLevels * sourceTexture.ArraySize; ++subresource)
                 {
@@ -927,9 +953,9 @@ namespace Stride.Graphics
                         {
                             var copy = new BufferCopy
                             {
-                                srcOffset = (ulong)sourceOffset,
-                                dstOffset = (ulong)destinationOffset,
-                                size = (ulong)size,
+                                SrcOffset = (ulong)sourceOffset,
+                                DstOffset = (ulong)destinationOffset,
+                                Size = (ulong)size,
                             };
                             GetApi().CmdCopyBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeBuffer, destinationParent.NativeBuffer, 1, &copy);
                         }
@@ -937,9 +963,9 @@ namespace Stride.Graphics
                         {
                             var copy = new BufferImageCopy
                             {
-                                imageSubresource = new ImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)mipLevel, (uint)arraySlice, 1),
-                                imageExtent = new Vortice.Mathematics.Size3(width, height, depth),
-                                bufferOffset = (ulong)destinationOffset,
+                                ImageSubresource = new ImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)mipLevel, (uint)arraySlice, 1),
+                                ImageExtent = new Extent3D((uint)width, (uint)height, (uint)depth),
+                                BufferOffset = (ulong)destinationOffset,
                             };
                             GetApi().CmdCopyImageToBuffer(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, ImageLayout.TransferSrcOptimal, destinationParent.NativeBuffer, 1, &copy);
                         }
@@ -957,9 +983,9 @@ namespace Stride.Graphics
                         {
                             var copy = new BufferImageCopy
                             {
-                                imageSubresource = destinationSubresource,
-                                imageExtent = new Vortice.Mathematics.Size3(width, height, depth),
-                                bufferOffset = (ulong)sourceOffset,
+                                ImageSubresource = destinationSubresource,
+                                ImageExtent = new Extent3D((uint)width, (uint)height, (uint)depth),
+                                BufferOffset = (ulong)sourceOffset,
                             };
                             GetApi().CmdCopyBufferToImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeBuffer, destinationParent.NativeImage, ImageLayout.TransferDstOptimal, 1, &copy);
                         }
@@ -967,9 +993,9 @@ namespace Stride.Graphics
                         {
                             var copy = new ImageCopy
                             {
-                                srcSubresource = new ImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)mipLevel, (uint)arraySlice, (uint)sourceTexture.ArraySize),
-                                dstSubresource = destinationSubresource,
-                                extent = new Vortice.Mathematics.Size3(width, height, depth),
+                                SrcSubresource = new ImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)mipLevel, (uint)arraySlice, (uint)sourceTexture.ArraySize),
+                                DstSubresource = destinationSubresource,
+                                Extent = new Extent3D((uint)width, (uint)height, (uint)depth),
                             };
                             GetApi().CmdCopyImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, ImageLayout.TransferSrcOptimal, destinationParent.NativeImage, ImageLayout.TransferDstOptimal, 1, &copy);
                         }
@@ -982,54 +1008,76 @@ namespace Stride.Graphics
                 // Final barriers
                 if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    bufferBarriers[bufferBarrierCount].srcAccessMask = AccessFlags.TransferRead;
-                    bufferBarriers[bufferBarrierCount].dstAccessMask = sourceParent.NativeAccessMask;
+                    bufferBarriers[bufferBarrierCount].SrcAccessMask = AccessFlags.AccessTransferReadBit;
+                    bufferBarriers[bufferBarrierCount].DstAccessMask = sourceParent.NativeAccessMask;
                     bufferBarrierCount++;
                 }
                 else
                 {
-                    imageBarriers[imageBarrierCount].oldLayout = ImageLayout.TransferSrcOptimal;
-                    imageBarriers[imageBarrierCount].newLayout = sourceParent.NativeLayout;
-                    imageBarriers[imageBarrierCount].srcAccessMask = AccessFlags.TransferRead;
-                    imageBarriers[imageBarrierCount].dstAccessMask = sourceParent.NativeAccessMask;
+                    imageBarriers[imageBarrierCount].OldLayout = ImageLayout.TransferSrcOptimal;
+                    imageBarriers[imageBarrierCount].NewLayout = sourceParent.NativeLayout;
+                    imageBarriers[imageBarrierCount].SrcAccessMask = AccessFlags.AccessTransferReadBit;
+                    imageBarriers[imageBarrierCount].DstAccessMask = sourceParent.NativeAccessMask;
                     imageBarrierCount++;
                 }
 
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    bufferBarriers[bufferBarrierCount].srcAccessMask = AccessFlags.TransferWrite;
-                    bufferBarriers[bufferBarrierCount].dstAccessMask = destinationParent.NativeAccessMask;
+                    bufferBarriers[bufferBarrierCount].SrcAccessMask = AccessFlags.AccessTransferWriteBit;
+                    bufferBarriers[bufferBarrierCount].DstAccessMask = destinationParent.NativeAccessMask;
                     bufferBarrierCount++;
                 }
                 else
                 {
-                    imageBarriers[imageBarrierCount].oldLayout = ImageLayout.TransferDstOptimal;
-                    imageBarriers[imageBarrierCount].newLayout = destinationParent.NativeLayout;
-                    imageBarriers[imageBarrierCount].srcAccessMask = AccessFlags.TransferWrite;
-                    imageBarriers[imageBarrierCount].dstAccessMask = destinationParent.NativeAccessMask;
+                    imageBarriers[imageBarrierCount].OldLayout = ImageLayout.TransferDstOptimal;
+                    imageBarriers[imageBarrierCount].NewLayout = destinationParent.NativeLayout;
+                    imageBarriers[imageBarrierCount].SrcAccessMask = AccessFlags.AccessTransferWriteBit;
+                    imageBarriers[imageBarrierCount].DstAccessMask = destinationParent.NativeAccessMask;
                     imageBarrierCount++;
                 }
 
-                GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, PipelineStageFlags.Transfer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, PipelineStageFlags.PipelineStageTransferBit, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, 0, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
             }
             else if (source is Buffer sourceBuffer && destination is Buffer destinationBuffer)
             {
                 var bufferBarriers = stackalloc BufferMemoryBarrier[2];
-                bufferBarriers[0] = new BufferMemoryBarrier(sourceBuffer.NativeBuffer, sourceBuffer.NativeAccessMask, AccessFlags.TransferRead);
-                bufferBarriers[1] = new BufferMemoryBarrier(destinationBuffer.NativeBuffer, destinationBuffer.NativeAccessMask, AccessFlags.TransferWrite);
-                GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceBuffer.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 2, bufferBarriers, 0, null);
+                bufferBarriers[0] = new BufferMemoryBarrier
+                {
+                    Buffer = sourceBuffer.NativeBuffer,
+                    SrcAccessMask = sourceBuffer.NativeAccessMask,
+                    DstAccessMask = AccessFlags.AccessTransferReadBit
+                };
+                bufferBarriers[1] = new BufferMemoryBarrier
+                {
+                    Buffer = destinationBuffer.NativeBuffer,
+                    SrcAccessMask = destinationBuffer.NativeAccessMask,
+                    DstAccessMask = AccessFlags.AccessTransferWriteBit
+                };
+                
+                
+                GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceBuffer.NativePipelineStageMask, PipelineStageFlags.PipelineStageTransferBit, 0, 0, null, 2, bufferBarriers, 0, null);
 
                 var copy = new BufferCopy
                 {
-                    srcOffset = 0,
-                    dstOffset = 0,
-                    size = (uint)sourceBuffer.SizeInBytes
+                    SrcOffset = 0,
+                    DstOffset = 0,
+                    Size = (uint)sourceBuffer.SizeInBytes
                 };
                 GetApi().CmdCopyBuffer(currentCommandList.NativeCommandBuffer, sourceBuffer.NativeBuffer, destinationBuffer.NativeBuffer, 1, &copy);
 
-                bufferBarriers[0] = new BufferMemoryBarrier(sourceBuffer.NativeBuffer, AccessFlags.TransferRead, sourceBuffer.NativeAccessMask);
-                bufferBarriers[1] = new BufferMemoryBarrier(destinationBuffer.NativeBuffer, AccessFlags.TransferWrite, destinationBuffer.NativeAccessMask);
-                GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, PipelineStageFlags.Transfer, sourceBuffer.NativePipelineStageMask, DependencyFlags.None, 0, null, 2, bufferBarriers, 0, null);
+                bufferBarriers[0] = new BufferMemoryBarrier
+                {
+                    Buffer = sourceBuffer.NativeBuffer,
+                    SrcAccessMask = AccessFlags.AccessTransferReadBit,
+                    DstAccessMask = sourceBuffer.NativeAccessMask
+                };
+                bufferBarriers[1] = new BufferMemoryBarrier
+                {
+                    Buffer = destinationBuffer.NativeBuffer, 
+                    SrcAccessMask = AccessFlags.AccessTransferWriteBit, 
+                    DstAccessMask = destinationBuffer.NativeAccessMask
+                };
+                GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, PipelineStageFlags.PipelineStageTransferBit, sourceBuffer.NativePipelineStageMask, 0, 0, null, 2, bufferBarriers, 0, null);
             }
             else
             {
@@ -1069,23 +1117,49 @@ namespace Stride.Graphics
                 // Initial barriers
                 if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    bufferBarriers[bufferBarrierCount++] = new BufferMemoryBarrier(sourceParent.NativeBuffer, sourceParent.NativeAccessMask, AccessFlags.TransferRead);
+                    bufferBarriers[bufferBarrierCount++] = new BufferMemoryBarrier
+                    {
+                        Buffer = sourceParent.NativeBuffer,
+                        SrcAccessMask = sourceParent.NativeAccessMask,
+                        DstAccessMask = AccessFlags.AccessTransferReadBit
+                    };
                 }
                 else
                 {
-                    imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier(sourceParent.NativeImage, new ImageSubresourceRange(sourceParent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), sourceParent.NativeAccessMask, AccessFlags.TransferRead, sourceParent.NativeLayout, ImageLayout.TransferSrcOptimal);
+                    imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier
+                    {
+                        Image = sourceParent.NativeImage,
+                        SubresourceRange = new ImageSubresourceRange(sourceParent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue),
+                        SrcAccessMask = sourceParent.NativeAccessMask,
+                        DstAccessMask = AccessFlags.AccessTransferReadBit,
+                        OldLayout = sourceParent.NativeLayout,
+                        NewLayout = ImageLayout.TransferSrcOptimal
+                    };
                 }
 
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    bufferBarriers[bufferBarrierCount++] = new BufferMemoryBarrier(destinationParent.NativeBuffer, destinationParent.NativeAccessMask, AccessFlags.TransferWrite);
+                    bufferBarriers[bufferBarrierCount++] = new BufferMemoryBarrier
+                    {
+                        Buffer = destinationParent.NativeBuffer, 
+                        SrcAccessMask = destinationParent.NativeAccessMask, 
+                        DstAccessMask = AccessFlags.AccessTransferWriteBit
+                    };
                 }
                 else
                 {
-                    imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier(destinationParent.NativeImage, new ImageSubresourceRange(destinationParent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), destinationParent.NativeAccessMask, AccessFlags.TransferWrite, destinationParent.NativeLayout, ImageLayout.TransferDstOptimal);
+                    imageBarriers[imageBarrierCount++] = new ImageMemoryBarrier
+                    {
+                        Image = destinationParent.NativeImage, 
+                        SubresourceRange = new ImageSubresourceRange(destinationParent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), 
+                        SrcAccessMask = destinationParent.NativeAccessMask, 
+                        DstAccessMask = AccessFlags.AccessTransferWriteBit, 
+                        OldLayout = destinationParent.NativeLayout, 
+                        NewLayout = ImageLayout.TransferDstOptimal
+                    };
                 }
 
-                GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, PipelineStageFlags.PipelineStageTransferBit, 0, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
 
                 // Copy
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
@@ -1128,12 +1202,12 @@ namespace Stride.Graphics
 
                         var copy = new BufferImageCopy
                         {
-                            imageSubresource = destinationSubresource,
-                            bufferOffset = (ulong)sourceTexture.ComputeBufferOffset(sourceSubresource, 0),
-                            bufferImageHeight = (uint)sourceTexture.Height,
-                            bufferRowLength = (uint)sourceTexture.Width,
-                            imageOffset = new Vortice.Mathematics.Point3(dstX, dstY, dstZ),
-                            imageExtent = new Vortice.Mathematics.Size3(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front),
+                            ImageSubresource = destinationSubresource,
+                            BufferOffset = (ulong)sourceTexture.ComputeBufferOffset(sourceSubresource, 0),
+                            BufferImageHeight = (uint)sourceTexture.Height,
+                            BufferRowLength = (uint)sourceTexture.Width,
+                            ImageOffset = new Offset3D(dstX, dstY, dstZ),
+                            ImageExtent = new Extent3D((uint)(region.Right - region.Left), (uint)(region.Bottom - region.Top), (uint)(region.Back - region.Front)),
                         };
                         GetApi().CmdCopyBufferToImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeBuffer, destinationParent.NativeImage, ImageLayout.TransferDstOptimal, 1, &copy);
                     }
@@ -1141,11 +1215,11 @@ namespace Stride.Graphics
                     {
                         var copy = new ImageCopy
                         {
-                            srcSubresource = new ImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)sourceTexture.MipLevel, (uint)sourceTexture.ArraySlice, (uint)sourceTexture.ArraySize),
-                            srcOffset = new Vortice.Mathematics.Point3(region.Left, region.Top, region.Front),
-                            dstSubresource = destinationSubresource,
-                            dstOffset = new Vortice.Mathematics.Point3(dstX, dstY, dstZ),
-                            extent = new Vortice.Mathematics.Size3(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front),
+                            SrcSubresource = new ImageSubresourceLayers(sourceParent.NativeImageAspect, (uint)sourceTexture.MipLevel, (uint)sourceTexture.ArraySlice, (uint)sourceTexture.ArraySize),
+                            SrcOffset = new Offset3D(region.Left, region.Top, region.Front),
+                            DstSubresource = destinationSubresource,
+                            DstOffset = new Offset3D(dstX, dstY, dstZ),
+                            Extent = new Extent3D((uint)(region.Right - region.Left), (uint)(region.Bottom - region.Top), (uint)(region.Back - region.Front)),
                         };
                         GetApi().CmdCopyImage(currentCommandList.NativeCommandBuffer, sourceParent.NativeImage, ImageLayout.TransferSrcOptimal, destinationParent.NativeImage, ImageLayout.TransferDstOptimal, 1, &copy);
                     }
@@ -1157,35 +1231,35 @@ namespace Stride.Graphics
                 // Final barriers
                 if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    bufferBarriers[bufferBarrierCount].srcAccessMask = AccessFlags.TransferRead;
-                    bufferBarriers[bufferBarrierCount].dstAccessMask = sourceParent.NativeAccessMask;
+                    bufferBarriers[bufferBarrierCount].SrcAccessMask = AccessFlags.AccessTransferReadBit;
+                    bufferBarriers[bufferBarrierCount].DstAccessMask = sourceParent.NativeAccessMask;
                     bufferBarrierCount++;
                 }
                 else
                 {
-                    imageBarriers[imageBarrierCount].oldLayout = ImageLayout.TransferSrcOptimal;
-                    imageBarriers[imageBarrierCount].newLayout = sourceParent.NativeLayout;
-                    imageBarriers[imageBarrierCount].srcAccessMask = AccessFlags.TransferRead;
-                    imageBarriers[imageBarrierCount].dstAccessMask = sourceParent.NativeAccessMask;
+                    imageBarriers[imageBarrierCount].OldLayout = ImageLayout.TransferSrcOptimal;
+                    imageBarriers[imageBarrierCount].NewLayout = sourceParent.NativeLayout;
+                    imageBarriers[imageBarrierCount].SrcAccessMask = AccessFlags.AccessTransferReadBit;
+                    imageBarriers[imageBarrierCount].DstAccessMask = sourceParent.NativeAccessMask;
                     imageBarrierCount++;
                 }
 
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    bufferBarriers[bufferBarrierCount].srcAccessMask = AccessFlags.TransferWrite;
-                    bufferBarriers[bufferBarrierCount].dstAccessMask = destinationParent.NativeAccessMask;
+                    bufferBarriers[bufferBarrierCount].SrcAccessMask = AccessFlags.AccessTransferWriteBit;
+                    bufferBarriers[bufferBarrierCount].DstAccessMask = destinationParent.NativeAccessMask;
                     bufferBarrierCount++;
                 }
                 else
                 {
-                    imageBarriers[imageBarrierCount].oldLayout = ImageLayout.TransferDstOptimal;
-                    imageBarriers[imageBarrierCount].newLayout = destinationParent.NativeLayout;
-                    imageBarriers[imageBarrierCount].srcAccessMask = AccessFlags.TransferWrite;
-                    imageBarriers[imageBarrierCount].dstAccessMask = destinationParent.NativeAccessMask;
+                    imageBarriers[imageBarrierCount].OldLayout = ImageLayout.TransferDstOptimal;
+                    imageBarriers[imageBarrierCount].NewLayout = destinationParent.NativeLayout;
+                    imageBarriers[imageBarrierCount].SrcAccessMask = AccessFlags.AccessTransferWriteBit;
+                    imageBarriers[imageBarrierCount].DstAccessMask = destinationParent.NativeAccessMask;
                     imageBarrierCount++;
                 }
 
-                GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, PipelineStageFlags.Transfer, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                GetApi().CmdPipelineBarrier(currentCommandList.NativeCommandBuffer, PipelineStageFlags.PipelineStageTransferBit, sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, DependencyFlags.None, 0, null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
             }
             else
             {
@@ -1256,7 +1330,7 @@ namespace Stride.Graphics
 
             Utilities.CopyMemory(uploadMemory + alignment, databox.DataPointer, lengthInBytes);
 
-            var uploadBufferMemoryBarrier = new BufferMemoryBarrier(uploadResource, AccessFlags.HostWrite, AccessFlags.TransferRead, (ulong)(uploadOffset + alignment), (ulong)lengthInBytes);
+            var uploadBufferMemoryBarrier = new BufferMemoryBarrier(uploadResource, AccessFlags.AccessHostWriteBit, AccessFlags.AccessTransferReadBit, (ulong)(uploadOffset + alignment), (ulong)lengthInBytes);
 
             if (texture != null)
             {
@@ -1271,12 +1345,12 @@ namespace Stride.Graphics
                 // TODO VULKAN: Handle non-packed pitches
                 var bufferCopy = new BufferImageCopy
                 {
-                    bufferOffset = (ulong)(uploadOffset + alignment),
-                    imageSubresource = new ImageSubresourceLayers { aspectMask = ImageAspectFlags.Color, baseArrayLayer = (uint)arraySlice, layerCount = 1, mipLevel = (uint)mipSlice },
-                    bufferRowLength = (uint)(databox.RowPitch * texture.Format.BlockWidth() / texture.Format.BlockSize()),
-                    bufferImageHeight = (uint)(databox.SlicePitch * texture.Format.BlockHeight() / databox.RowPitch),
-                    imageOffset = new Vortice.Mathematics.Point3(region.Left, region.Top, region.Front),
-                    imageExtent = new Vortice.Mathematics.Size3(region.Right - region.Left, region.Bottom - region.Top, region.Back - region.Front),
+                    BufferOffset = (ulong)(uploadOffset + alignment),
+                    ImageSubresource = new ImageSubresourceLayers { AspectMask = ImageAspectFlags.ImageAspectColorBit, BaseArrayLayer = (uint)arraySlice, LayerCount = 1, MipLevel = (uint)mipSlice },
+                    BufferRowLength = (uint)(databox.RowPitch * texture.Format.BlockWidth() / texture.Format.BlockSize()),
+                    BufferImageHeight = (uint)(databox.SlicePitch * texture.Format.BlockHeight() / databox.RowPitch),
+                    ImageOffset = new Offset3D(region.Left, region.Top, region.Front),
+                    ImageExtent = new Extent3D((uint)(region.Right - region.Left), (uint)(region.Bottom - region.Top), (uint)(region.Back - region.Front)),
                 };
                 GetApi().CmdCopyBufferToImage(currentCommandList.NativeCommandBuffer, uploadResource, texture.NativeImage, ImageLayout.TransferDstOptimal, 1, &bufferCopy);
 
