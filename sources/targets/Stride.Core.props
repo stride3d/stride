@@ -38,8 +38,8 @@
     Settings StridePlatform specific
   -->
   <PropertyGroup>
-    <!-- Using C# version 7.3 -->
-    <LangVersion>9.0</LangVersion>
+    <!-- Using C# version 10.0 which targets Net6.0 -->
+    <LangVersion>10.0</LangVersion>
     <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP;STRIDE_PLATFORM_WINDOWS;STRIDE_PLATFORM_WINDOWS_DESKTOP</StridePlatformDefines>
 
     <!-- Note: ideally we would split using ItemGroup but then PropertyGroup are not properly evaluated if they contain ItemGroup (unless using Targets) -->
@@ -57,9 +57,9 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(StrideRuntime)' == 'true' ">
-    <!-- Add net5.0 no matter what (needed for references) -->
-    <StrideRuntimeTargetFrameworks>net5.0</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsNet5)' == 'true'">$(StrideRuntimeTargetFrameworks);net5.0-windows7.0</StrideRuntimeTargetFrameworks>
+    <!-- Add net6.0 no matter what (needed for references) -->
+    <StrideRuntimeTargetFrameworks>net6.0</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsNet6)' == 'true'">$(StrideRuntimeTargetFrameworks);net6.0-windows7.0</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);uap10.0.16299</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);monoandroid81</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);xamarinios10</StrideRuntimeTargetFrameworks>
@@ -137,7 +137,7 @@
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" $(TargetFramework.StartsWith('net5')) ">
+  <PropertyGroup Condition=" $(TargetFramework.StartsWith('net6')) ">
     <StridePlatformDefines>STRIDE_PLATFORM_DESKTOP</StridePlatformDefines>
   </PropertyGroup>
 
@@ -207,7 +207,7 @@
   <!-- 
     Settings StrideNETRuntime specific
   -->
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('netcoreapp')) Or $(TargetFramework.StartsWith('net5'))">
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('netcoreapp')) Or $(TargetFramework.StartsWith('net6'))">
     <StrideNETRuntimeDefines>STRIDE_RUNTIME_CORECLR</StrideNETRuntimeDefines>
   </PropertyGroup>
 

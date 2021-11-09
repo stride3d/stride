@@ -171,9 +171,9 @@ namespace Stride.VisualStudio.Commands
             // Try to find the package with the expected version
             if (packageInfo.ExpectedVersion != null && packageInfo.ExpectedVersion >= MinimumVersion)
             {
-                // Try both net5.0 and net472
+                // Try both net6.0 and net472
                 var success = false;
-                foreach (var folder in new[] { "net5.0-windows7.0", "net472" })
+                foreach (var folder in new[] { "net6.0-windows7.0", "net472" })
                 {
                     var logger = new Logger();
                     var solutionRoot = Path.GetDirectoryName(solution);

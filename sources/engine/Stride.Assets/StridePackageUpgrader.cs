@@ -212,12 +212,12 @@ namespace Stride.Assets
                                 || (tfm.EvaluatedValue.StartsWith("net4") && solutionProject.Type == ProjectType.Library))
                             {
                                 tfm.Xml.Name = "TargetFrameworks";
-                                tfm.Xml.Value = "net5.0";
+                                tfm.Xml.Value = "net6.0";
                                 isProjectDirty = true;
                             }
                             else if (tfm.EvaluatedValue.StartsWith("net4") && solutionProject.Type == ProjectType.Executable)
                             {
-                                tfm.Xml.Value = "net5.0-windows";
+                                tfm.Xml.Value = "net6.0-windows7.0";
                                 isProjectDirty = true;
                             }
                         }
