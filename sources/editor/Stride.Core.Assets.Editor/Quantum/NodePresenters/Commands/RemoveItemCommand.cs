@@ -38,7 +38,8 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
             {
                 var elementType = collectionDescriptor.ElementType;
                 // We also add the same conditions that for AddNewItem
-                return collectionDescriptor.HasRemoveAt && AddNewItemCommand.CanAdd(elementType);
+                return (collectionDescriptor.HasRemoveAt || collectionDescriptor.HasRemove)
+                    && AddNewItemCommand.CanAdd(elementType);
             }
             // TODO: add a HasRemove in the dictionary descriptor and test it!
             return true;
