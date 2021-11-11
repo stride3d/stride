@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_PLATFORM_DESKTOP && STRIDE_GRAPHICS_API_OPENGL
 using Stride.Core.Mathematics;
-using OpenTK;
 using Rectangle = Stride.Core.Mathematics.Rectangle;
 #if STRIDE_UI_SDL
 using WindowState = Stride.Graphics.SDL.FormWindowState;
@@ -10,12 +9,6 @@ using OpenGLWindow = Stride.Graphics.SDL.Window;
 #else
 using WindowState = OpenTK.WindowState;
 using OpenGLWindow = OpenTK.GameWindow;
-#endif
-
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-#else
-using OpenTK.Graphics.OpenGL;
 #endif
 
 namespace Stride.Graphics
@@ -66,8 +59,8 @@ namespace Stride.Graphics
                 // On macOS, `SwapBuffers` will swap whatever framebuffer is active and in our case it is not the window provided
                 // framebuffer, and in addition if the active framebuffer is single buffered, it won't do anything. Forcing a bind
                 // will ensure the window is updated.
-                GL.BindFramebuffer(FramebufferTarget.Framebuffer, GraphicsDevice.WindowProvidedFrameBuffer);
-                OpenTK.Graphics.GraphicsContext.CurrentContext.SwapBuffers();
+                commandList.GL.BindFramebuffer(FramebufferTarget.Framebuffer, GraphicsDevice.WindowProvidedFrameBuffer);
+                commandList.GraphicsDevice.MainGraphicsContext.SwapBuffers();
             }
         }
 

@@ -3,9 +3,10 @@
 
 #if STRIDE_UI_SDL
 using System;
-using SDL2;
+using Silk.NET.SDL;
 using Stride.Core.Mathematics;
 using Stride.Graphics.SDL;
+using Window = Stride.Graphics.SDL.Window;
 
 namespace Stride.Games
 {
@@ -81,13 +82,13 @@ namespace Stride.Games
         //private DisplayMonitor monitor;
         private bool isUserResizing;
 
-        private void GameForm_MinimizedActions(SDL.SDL_WindowEvent e)
+        private void GameForm_MinimizedActions(WindowEvent e)
         {
             previousWindowState = FormWindowState.Minimized;
             PauseRendering?.Invoke(this, EventArgs.Empty);
         }
 
-        private void GameForm_MaximizedActions(SDL.SDL_WindowEvent e)
+        private void GameForm_MaximizedActions(WindowEvent e)
         {
             if (previousWindowState == FormWindowState.Minimized)
                 ResumeRendering?.Invoke(this, EventArgs.Empty);
@@ -99,7 +100,7 @@ namespace Stride.Games
             cachedSize = Size;
         }
 
-        private void GameForm_RestoredActions(SDL.SDL_WindowEvent e)
+        private void GameForm_RestoredActions(WindowEvent e)
         {
             if (previousWindowState == FormWindowState.Minimized)
             {
@@ -108,24 +109,24 @@ namespace Stride.Games
             previousWindowState = FormWindowState.Normal;
         }
 
-        private void GameForm_ActivateActions(SDL.SDL_WindowEvent e)
+        private void GameForm_ActivateActions(WindowEvent e)
         {
             AppActivated?.Invoke(this, EventArgs.Empty);
         }
 
-        private void GameForm_DeActivateActions(SDL.SDL_WindowEvent e)
+        private void GameForm_DeActivateActions(WindowEvent e)
         {
             AppDeactivated?.Invoke(this, EventArgs.Empty);
         }
 
-        private void GameForm_ResizeBeginActions(SDL.SDL_WindowEvent e)
+        private void GameForm_ResizeBeginActions(WindowEvent e)
         {
             isUserResizing = true;
             cachedSize = Size;
             PauseRendering?.Invoke(this, EventArgs.Empty);
         }
 
-        private void GameForm_ResizeEndActions(SDL.SDL_WindowEvent e)
+        private void GameForm_ResizeEndActions(WindowEvent e)
         {
             if (isUserResizing && cachedSize.Equals(Size))
             {
@@ -137,10 +138,10 @@ namespace Stride.Games
             ResumeRendering?.Invoke(this, EventArgs.Empty);
         }
 
-        private void GameFormSDL_KeyDownActions(SDL.SDL_KeyboardEvent e)
+        private void GameFormSDL_KeyDownActions(KeyboardEvent e)
         {
-            var altReturn = (e.keysym.sym == SDL.SDL_Keycode.SDLK_RETURN) && ((e.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0);
-            var altEnter = (e.keysym.sym == SDL.SDL_Keycode.SDLK_KP_ENTER) && ((e.keysym.mod & SDL.SDL_Keymod.KMOD_ALT) != 0);
+            var altReturn = ((KeyCode)e.Keysym.Sym == KeyCode.KReturn) && (((Keymod)e.Keysym.Mod & Keymod.KmodAlt) != 0);
+            var altEnter = ((KeyCode)e.Keysym.Sym == KeyCode.KKPEnter) && (((Keymod)e.Keysym.Mod & Keymod.KmodAlt) != 0);
             if (altReturn || altEnter)
             {
                 FullscreenToggle?.Invoke(this, EventArgs.Empty);

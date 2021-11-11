@@ -135,6 +135,7 @@
     <StrideCommonDependenciesDir Condition="'$(StrideCommonDependenciesDir)' != '' and !HasTrailingSlash('$(StrideCommonDependenciesDir)')">$(StrideCommonDependenciesDir)\</StrideCommonDependenciesDir>
     <ErrorReport>prompt</ErrorReport>
     <FileAlignment>512</FileAlignment>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
   <PropertyGroup Condition=" $(TargetFramework.StartsWith('net6')) ">

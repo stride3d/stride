@@ -2,17 +2,19 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_UI_SDL
 using System;
+using Silk.NET.SDL;
 using Stride.Core.Mathematics;
+using Point = Stride.Core.Mathematics.Point;
 
 namespace Stride.Graphics.SDL
 {
-    using SDL2;
-
     /// <summary>
     /// Basic operations to show, hide and load a cursor.
     /// </summary>
-    public class Cursor
+    public unsafe class Cursor
     {
+        private static Sdl SDL = Window.SDL;
+
 #region Initialization
         /// <summary>
         ///  Initialize a cursor with <paramref name="data"/> and <paramref name="mask"/>. For more details, see 
@@ -28,7 +30,7 @@ namespace Stride.Graphics.SDL
         {
             fixed (byte* dataPtr = data)
             fixed (byte* maskPtr = mask)
-                Handle = SDL.SDL_CreateCursor((IntPtr)dataPtr, (IntPtr)maskPtr, w, h, hot_x, hot_y);
+                Handle = (IntPtr)SDL.CreateCursor(dataPtr, maskPtr, w, h, hot_x, hot_y);
         }
 #endregion
 
@@ -55,7 +57,7 @@ namespace Stride.Graphics.SDL
         /// </summary>
         public static void Hide()
         {
-            SDL.SDL_ShowCursor(SDL2.SDL.SDL_DISABLE);
+            SDL.ShowCursor(0);
         }
 
         /// <summary>
@@ -63,7 +65,7 @@ namespace Stride.Graphics.SDL
         /// </summary>
         public static void Show()
         {
-            SDL.SDL_ShowCursor(SDL2.SDL.SDL_ENABLE);
+            SDL.ShowCursor(1);
         }
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace Stride.Graphics.SDL
         /// <param name="cur">New cursor to show.</param>
         public static void SetCursor(Cursor cur)
         {
-            SDL.SDL_SetCursor(cur.Handle);
+            SDL.SetCursor((Silk.NET.SDL.Cursor*)cur.Handle);
         }
 #endregion
     }

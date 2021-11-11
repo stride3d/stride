@@ -5,12 +5,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using OpenTK.Graphics;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-#else
-using OpenTK.Graphics.OpenGL;
-#endif
+using Silk.NET.Core.Contexts;
 
 namespace Stride.Graphics
 {
@@ -28,57 +23,28 @@ namespace Stride.Graphics
         private readonly bool asyncCreationLockTaken;
         private readonly object asyncCreationLockObject;
 
-        private readonly IGraphicsContext deviceCreationContext;
-
-#if STRIDE_PLATFORM_ANDROID
-        private readonly bool tegraWorkaround;
-#endif
-
-#if STRIDE_PLATFORM_IOS
-        private OpenGLES.EAGLContext previousContext;
-#endif
+        private readonly IGLContext deviceCreationContext;
+        private readonly GL GL;
 
         public bool UseDeviceCreationContext => useDeviceCreationContext;
 
         public UseOpenGLCreationContext(GraphicsDevice graphicsDevice)
             : this()
         {
-            if (OpenTK.Graphics.GraphicsContext.CurrentContextHandle.Handle == IntPtr.Zero)
+            GL = graphicsDevice.GL;
+            if (graphicsDevice.CurrentGraphicsContext == IntPtr.Zero)
             {
                 needUnbindContext = true;
                 useDeviceCreationContext = true;
-
-#if STRIDE_PLATFORM_ANDROID
-                tegraWorkaround = graphicsDevice.Workaround_Context_Tegra2_Tegra3;
-
-                // Notify main rendering thread there is some pending async work to do
-                if (tegraWorkaround)
-                {
-                    useDeviceCreationContext = false; // We actually use real main context, so states will be kept
-                    graphicsDevice.AsyncPendingTaskWaiting = true;
-                }
-#endif
 
                 // Lock, since there is only one deviceCreationContext.
                 // TODO: Support multiple deviceCreationContext (TLS creation of context was crashing, need to investigate why)
                 asyncCreationLockObject = graphicsDevice.asyncCreationLockObject;
                 Monitor.Enter(graphicsDevice.asyncCreationLockObject, ref asyncCreationLockTaken);
 
-#if STRIDE_PLATFORM_ANDROID
-                if (tegraWorkaround)
-                    graphicsDevice.AsyncPendingTaskWaiting = false;
-#endif
-
-
-#if STRIDE_PLATFORM_IOS
-                previousContext = OpenGLES.EAGLContext.CurrentContext;
-                var localContext = graphicsDevice.ThreadLocalContext.Value;
-                OpenGLES.EAGLContext.SetCurrentContext(localContext);
-#else
                 // Bind the context
                 deviceCreationContext = graphicsDevice.deviceCreationContext;
-                deviceCreationContext.MakeCurrent(graphicsDevice.deviceCreationWindowInfo);
-#endif
+                deviceCreationContext.MakeCurrent();
             }
             else
             {
@@ -109,13 +75,6 @@ namespace Stride.Graphics
                 // Unlock
                 if (asyncCreationLockTaken)
                 {
-#if STRIDE_PLATFORM_ANDROID
-                    if (tegraWorkaround)
-                    {
-                        // Notify GraphicsDevice.ExecutePendingTasks() that we are done.
-                        Monitor.Pulse(asyncCreationLockObject);
-                    }
-#endif
                     Monitor.Exit(asyncCreationLockObject);
                 }
             }
