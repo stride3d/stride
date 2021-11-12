@@ -60,8 +60,10 @@ namespace Stride.Graphics
 
             unsafe
             {
+                AdapterDesc d = new();
+                description.Handle = &d;
                 SilkMarshal.ThrowHResult(defaultFactory.Get().EnumAdapters((uint)adapterOrdinal, ref adapter.Handle));
-                SilkMarshal.ThrowHResult(adapter.Get().GetDesc(description.Handle));
+                SilkMarshal.ThrowHResult(adapter.Get().GetDesc(description));
                 // for some reason sharpDX returns an adaptater name of fixed size filled with trailing '\0'
                 //description.Description = description.Description.TrimEnd('\0');
 
@@ -69,11 +71,11 @@ namespace Stride.Graphics
                 //var nativeOutputs = adapter.Outputs;
 
                 //TODO : This needs to be reviewed
-                IDXGIOutput* e = null;
+                ComPtr<IDXGIOutput> e = new();
                 int count = 0;
 
                 
-                while ((ulong)adapter.Get().EnumOutputs((uint)count, &e) == (ulong)ReturnCodes.S_OK)
+                while ((ulong)adapter.Get().EnumOutputs((uint)count, &e.Handle) == (ulong)ReturnCodes.S_OK)
                     count += 1;
 
                 outputs = new GraphicsOutput[count];
@@ -82,7 +84,7 @@ namespace Stride.Graphics
 
                 //AdapterUid = adapter.Description1.Luid.ToString();
                 //TODO : This seems very weird, need review
-                AdapterUid = description.Get().AdapterLuid.ToString();
+                AdapterUid = description.Get().AdapterLuid.High.ToString("X") + description.Get().AdapterLuid.Low.ToString("X");
             }
 
 

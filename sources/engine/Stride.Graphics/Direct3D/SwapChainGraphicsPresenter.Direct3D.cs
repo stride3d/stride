@@ -62,10 +62,9 @@ namespace Stride.Graphics
             swapChain = CreateSwapChain();
             unsafe
             {
-                BackBufferResourceType* buff = null;
-                var guid = BackBufferResourceType.Guid;
-                swapChain.GetBuffer(0, &guid, (void**)&buff);
-                backBuffer = new Texture(device).InitializeFromImpl(*buff, Description.BackBufferFormat.IsSRgb());
+                ComPtr<BackBufferResourceType> buff = null;
+                swapChain.GetBuffer(0, SilkMarshal.GuidPtrOf<BackBufferResourceType>(), (void**)&buff.Handle);
+                backBuffer = new Texture(device).InitializeFromImpl(buff, Description.BackBufferFormat.IsSRgb());
 
             }
 
@@ -219,13 +218,13 @@ namespace Stride.Graphics
             unsafe
             {
                 var guid = BackBufferResourceType.Guid;
-                BackBufferResourceType* backBufferTexture = null;
-                swapChain.GetBuffer(0, &guid, (void**)&backBufferTexture);
+                ComPtr<BackBufferResourceType> backBufferTexture = new();
+                swapChain.GetBuffer(0, &guid, (void**)&backBufferTexture.Handle);
 
 
                 // Put it in our back buffer texture
                 // TODO: Update new size
-                backBuffer.InitializeFromImpl(*backBufferTexture, Description.BackBufferFormat.IsSRgb());
+                backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb());
                 backBuffer.LifetimeState = GraphicsResourceLifetimeState.Active;
             }
         }
@@ -263,12 +262,12 @@ namespace Stride.Graphics
             {
                 //var backBufferTexture = swapChain.GetBackBuffer<BackBufferResourceType>(0);
                 var guid = BackBufferResourceType.Guid;
-                BackBufferResourceType* backBufferTexture = null;
-                swapChain.GetBuffer(0, &guid, (void**)&backBufferTexture);
+                ComPtr<BackBufferResourceType> backBufferTexture = new();
+                swapChain.GetBuffer(0, &guid, (void**)&backBufferTexture.Handle);
 
 
                 // Put it in our back buffer texture
-                backBuffer.InitializeFromImpl(*backBufferTexture, Description.BackBufferFormat.IsSRgb());
+                backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb());
 
                 foreach (var texture in fastList)
                 {

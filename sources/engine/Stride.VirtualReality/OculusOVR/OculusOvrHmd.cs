@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Stride.Core.Mathematics;
 using Stride.Games;
@@ -72,7 +73,9 @@ namespace Stride.VirtualReality
                 MirrorTexture = new Texture(device);
                 unsafe
                 {
-                    MirrorTexture.InitializeFromImpl(new ID3D11Texture2D((void**)mirrorTex), false);
+                    var tex = new ID3D11Texture2D((void**)mirrorTex);
+
+                    MirrorTexture.InitializeFromImpl(new ComPtr<ID3D11Texture2D>(&tex), false);
 
                 }
             }
@@ -89,7 +92,9 @@ namespace Stride.VirtualReality
                 textures[i] = new Texture(device);
                 unsafe
                 {
-                    textures[i].InitializeFromImpl(new ID3D11Texture2D((void**)ptr), false);
+                    var tex = new ID3D11Texture2D((void**)ptr);
+
+                    textures[i].InitializeFromImpl(new ComPtr<ID3D11Texture2D>(&tex), false);
                 }
             }
 

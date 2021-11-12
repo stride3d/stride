@@ -3,6 +3,7 @@
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 
 using System;
+using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Stride.Graphics;
 using CommandList = Stride.Graphics.CommandList;
@@ -40,7 +41,8 @@ namespace Stride.VirtualReality
                 textures[i] = new Texture(device);
                 unsafe
                 {
-                    textures[i].InitializeFromImpl(new ID3D11Texture2D((void**)ptr), false);
+                    var tex = new ID3D11Texture2D((void**)ptr);
+                    textures[i].InitializeFromImpl(new ComPtr<ID3D11Texture2D>(&tex), false);
                 }
             }
         }

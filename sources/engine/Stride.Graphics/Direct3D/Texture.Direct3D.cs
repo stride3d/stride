@@ -92,14 +92,14 @@ namespace Stride.Graphics
         /// Initializes from a native SharpDX.Texture
         /// </summary>
         /// <param name="texture">The texture.</param>
-        internal Texture InitializeFromImpl(ID3D11Texture2D texture, bool isSrgb)
+        internal Texture InitializeFromImpl(ComPtr<ID3D11Texture2D> texture, bool isSrgb)
         {
             var desc = new ComPtr<Texture2DDesc>();
             unsafe
             {
                 NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)&texture);
                 
-                texture.GetDesc(desc);
+                texture.Get().GetDesc(desc);
             }
             var newTextureDescription = ConvertFromNativeDescription(desc.Get());
 
@@ -110,23 +110,23 @@ namespace Stride.Graphics
             return InitializeFrom(newTextureDescription);
         }
 
-        internal Texture InitializeFromImpl(ID3D11ShaderResourceView srv)
+        internal Texture InitializeFromImpl(ComPtr<ID3D11ShaderResourceView> srv)
         {
             var srvDesc = new ShaderResourceViewDesc();
             unsafe
             {
-                srv.GetDesc(&srvDesc);
+                srv.Get().GetDesc(&srvDesc);
             }
             if (srvDesc.ViewDimension == D3DSrvDimension.D3D11SrvDimensionTexture2D)
             {
-                srv.AddRef();
+                srv.Get().AddRef();
                 ID3D11Resource r;
                 ID3D11Texture2D dxTexture2D;
                 Texture2DDesc desc;
                 unsafe 
                 {
                     var pR = &r;
-                    srv.GetResource(&pR);
+                    srv.Get().GetResource(&pR);
                     // TODO : To review
                     dxTexture2D = new ID3D11Texture2D((void**)&r);
                     dxTexture2D.GetDesc(&desc);
@@ -191,32 +191,37 @@ namespace Stride.Graphics
             //{
             unsafe
             {
+                ID3D11DeviceChild* dcP = null;
                 switch (Dimension)
                 {
                     case TextureDimension.Texture1D:
                         //NativeDeviceChild = new ID3D11Texture1D(GraphicsDevice.NativeDevice, ConvertToNativeDescription1D(), ConvertDataBoxes(dataBoxes));
-                        ID3D11Texture1D* tex = null;
+                        ComPtr<ID3D11Texture1D> tex = new();
                         Texture1DDesc desc = ConvertToNativeDescription1D();
                         fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
-                            GraphicsDevice.NativeDevice.Get().CreateTexture1D(&desc, data, &tex);
-                        NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)tex);
+                            GraphicsDevice.NativeDevice.Get().CreateTexture1D(&desc, data, &tex.Handle);
+                        
+                        tex.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceChild>(), (void**)&dcP);
+                        NativeDeviceChild = new ComPtr<ID3D11DeviceChild>(dcP);
                         break;
                     case TextureDimension.Texture2D:
                     case TextureDimension.TextureCube:
                         //NativeDeviceChild = new ID3D11Texture2D(GraphicsDevice.NativeDevice, ConvertToNativeDescription2D(), ConvertDataBoxes(dataBoxes));
-                        ID3D11Texture2D* tex2d = null;
+                        ComPtr<ID3D11Texture2D> tex2d = new();
                         Texture2DDesc desc2d = ConvertToNativeDescription2D();
                         fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
-                            GraphicsDevice.NativeDevice.Get().CreateTexture2D(&desc2d, data, &tex2d);
-                        NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)tex2d);
+                            GraphicsDevice.NativeDevice.Get().CreateTexture2D(&desc2d, data, &tex2d.Handle);
+                        tex2d.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceChild>(), (void**)&dcP);
+                        NativeDeviceChild = new ComPtr<ID3D11DeviceChild>(dcP);
                         break;
                     case TextureDimension.Texture3D:
                         //NativeDeviceChild = new ID3D11Texture3D(GraphicsDevice.NativeDevice, ConvertToNativeDescription3D(), ConvertDataBoxes(dataBoxes));
-                        ID3D11Texture3D* tex3d = null;
+                        ComPtr<ID3D11Texture3D> tex3d = new();
                         Texture3DDesc desc3d = ConvertToNativeDescription3D();
                         fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
-                            GraphicsDevice.NativeDevice.Get().CreateTexture3D(&desc3d, data, &tex3d);
-                        NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)tex3d);
+                            GraphicsDevice.NativeDevice.Get().CreateTexture3D(&desc3d, data, &tex3d.Handle);
+                        tex3d.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceChild>(), (void**)&dcP);
+                        NativeDeviceChild = new ComPtr<ID3D11DeviceChild>(dcP);
                         break;
                 }
 
@@ -230,27 +235,27 @@ namespace Stride.Graphics
                 NativeID3D11RenderTargetView = GetID3D11RenderTargetView(ViewType, ArraySlice, MipLevel);
                 NativeDepthStencilView = GetDepthStencilView(out HasStencil);
 
-                var resGuid = IDXGIResource.Guid;
-                var res1Guid = IDXGIResource1.Guid;
+                var resGuid = SilkMarshal.GuidPtrOf<IDXGIResource>();
+                var res1Guid = SilkMarshal.GuidPtrOf<IDXGIResource1>();
                 switch (textureDescription.Options)
                 {
                     case TextureOptions.None:
                         SharedHandle = IntPtr.Zero;
                         break;
                     case TextureOptions.Shared:
-                        IDXGIResource* sharedResource = null;
-                        NativeDeviceChild.Get().QueryInterface(&resGuid, (void**)&sharedResource);
-                        SharedHandle = (IntPtr)sharedResource;
+                        ComPtr<IDXGIResource> sharedResource = new();
+                        NativeDeviceChild.Get().QueryInterface(resGuid, (void**)&sharedResource);
+                        SharedHandle = (IntPtr)sharedResource.Handle;
                         break;
 #if STRIDE_GRAPHICS_API_DIRECT3D11
                     case TextureOptions.SharedNthandle | TextureOptions.SharedKeyedmutex:
-                        IDXGIResource1* sharedResource1 = null;
-                        NativeDeviceChild.Get().QueryInterface(&res1Guid,(void**)sharedResource1);
+                        ComPtr<IDXGIResource1> sharedResource1 = new();
+                        NativeDeviceChild.Get().QueryInterface(res1Guid,(void**)&sharedResource1);
                         var uniqueName = "Stride:" + Guid.NewGuid().ToString();
                         void* t = null;
                         //sharedResource1->CreateSharedHandle(uniqueName, SharpDX.DXGI.SharedResourceFlags.Write);
                         fixed(char* name = uniqueName.ToCharArray())
-                            sharedResource1->CreateSharedHandle(null, (uint)DXGISharedResourceAccess.DXGI_SHARED_RESOURCE_WRITE, name, &t);
+                            sharedResource1.Get().CreateSharedHandle(null, (uint)DXGISharedResourceAccess.DXGI_SHARED_RESOURCE_WRITE, name, &t);
                         SharedHandle = (IntPtr)t;
                         SharedNtHandleName = uniqueName;
                         break;

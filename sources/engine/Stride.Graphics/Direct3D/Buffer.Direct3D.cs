@@ -50,9 +50,14 @@ namespace Stride.Graphics
             unsafe
             {
                 ComPtr<ID3D11Buffer> pBuff = new ComPtr<ID3D11Buffer>();
-                SilkMarshal.ThrowHResult(NativeDevice.Get().CreateBuffer(nativeDescription.Handle, null, ref pBuff.Handle));
-                NativeDevice.Get().CreateBuffer(nativeDescription.Handle, (SubresourceData*)dataPointer, ref pBuff.Handle);
-                //NativeDeviceChild = pBuff;
+                SubresourceData srd = new SubresourceData
+                {
+                    PSysMem = (void*)dataPointer
+                };
+                SilkMarshal.ThrowHResult(NativeDevice.Get().CreateBuffer(nativeDescription.Handle, dataPointer == IntPtr.Zero ? null : &srd, ref pBuff.Handle));
+                ComPtr<ID3D11DeviceChild> ptr = new();
+                pBuff.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceChild>(),(void**)&ptr);
+                NativeDeviceChild = ptr;
             }
             
 
@@ -253,7 +258,10 @@ namespace Stride.Graphics
             var bufferFlags = (uint)bufferDescription.BufferFlags;
 
             if ((bufferFlags & (uint)BufferFlags.ConstantBuffer) != 0)
+            {
                 desc.BindFlags |= (uint)BindFlag.BindConstantBuffer;
+                desc.StructureByteStride = (uint)bufferDescription.StructureByteStride + (16 - ((uint)bufferDescription.StructureByteStride % 16));
+            }
 
             if ((bufferFlags & (uint)BufferFlags.IndexBuffer) != 0)
                 desc.BindFlags |= (uint)BindFlag.BindIndexBuffer;

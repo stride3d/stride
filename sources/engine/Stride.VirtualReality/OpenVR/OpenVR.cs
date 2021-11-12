@@ -9,6 +9,7 @@ using Valve.VR;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using Silk.NET.Core.Native;
 
 namespace Stride.VirtualReality
 {
@@ -416,9 +417,9 @@ namespace Stride.VirtualReality
             
                 var tex = new Texture(device);
             
-                var srv = (ID3D11ShaderResourceView*)eyeTexSrv;
+                var srv = new ComPtr<ID3D11ShaderResourceView>((ID3D11ShaderResourceView*)eyeTexSrv);
 
-                tex.InitializeFromImpl(*srv);
+                tex.InitializeFromImpl(srv);
             
             
 
