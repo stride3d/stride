@@ -181,7 +181,7 @@ namespace Stride.VirtualReality
             
             var unitZTransform = Vector3.Transform(Vector3.UnitZ, GetSpaceChangeRotation() * orientationSensor.Quaternion);
             var unitZProjected = new Vector3(unitZTransform.X, 0, unitZTransform.Z);
-            var directionAdjustmentAngle = unitZProjected.Length() > MathUtil.ZeroTolerance ? -Math.Sign(unitZProjected.X) * (float)Math.Acos(unitZProjected.Z / unitZProjected.Length()) : 0;
+            var directionAdjustmentAngle = unitZProjected.Length() > MathUtil.ZeroTolerance ? -MathF.Sign(unitZProjected.X) * MathF.Acos(unitZProjected.Z / unitZProjected.Length()) : 0;
             orientationOffset = Quaternion.RotationY(directionAdjustmentAngle);
 
             // update the head rotation immediately so that it is updated from the current of the frame.

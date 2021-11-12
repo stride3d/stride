@@ -400,6 +400,7 @@ namespace Stride.Core.Assets
         {
             var context = new RemoteWalkContext(
                 request.CacheContext,
+                request.PackageNameSpaces,
                 logger);
 
             foreach (var provider in request.DependencyProviders.LocalProviders)

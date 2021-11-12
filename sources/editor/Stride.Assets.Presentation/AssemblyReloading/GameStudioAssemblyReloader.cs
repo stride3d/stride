@@ -280,6 +280,13 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 //base.VisitDictionaryKeyValue(dictionary, descriptor, key, keyDescriptor, value, valueDescriptor);
             }
 
+            public override void VisitSetItem(IEnumerable set, SetDescriptor descriptor, object item, ITypeDescriptor itemDescriptor)
+            {
+                if (ProcessObject(item, itemDescriptor.Type)) return;
+
+                base.VisitSetItem(set, descriptor, item, itemDescriptor);
+            }
+
             protected abstract bool ProcessObject(object obj, Type expectedType);
         }
 

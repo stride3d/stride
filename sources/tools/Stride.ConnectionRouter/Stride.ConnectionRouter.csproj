@@ -38,6 +38,7 @@
     <Compile Include="..\..\shared\Process\AndroidDeviceEnumerator.cs">
       <Link>AndroidDeviceEnumerator.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="LoaderToolLocator.cs" />
     <Compile Update="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

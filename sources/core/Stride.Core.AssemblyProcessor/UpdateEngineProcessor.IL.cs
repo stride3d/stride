@@ -193,7 +193,9 @@ namespace Stride.Core.AssemblyProcessor
             public override void EmitGetCode(ILProcessor il, TypeReference type)
             {
                 var calliInstance = Instruction.Create(OpCodes.Calli, new CallSite(type) { HasThis = true });
-                var calliVirtualDispatch = Instruction.Create(OpCodes.Calli, new CallSite(type) { HasThis = false, Parameters = { new ParameterDefinition(assembly.MainModule.TypeSystem.Object) } });
+                // Note: .NET 6 doesn't like IntPtr => object implicit conversion so we pretend the method expect a IntPtr rather than object
+                // (another option would be to use "castclass object" after pushing the IntPtr on the stack)
+                var calliVirtualDispatch = Instruction.Create(OpCodes.Calli, new CallSite(type) { HasThis = false, Parameters = { new ParameterDefinition(assembly.MainModule.TypeSystem.IntPtr) } });
                 var postCalli = Instruction.Create(OpCodes.Nop);
 
                 il.Emit(OpCodes.Ldarg_0);
@@ -216,7 +218,9 @@ namespace Stride.Core.AssemblyProcessor
             public override void EmitSetCodeAfterValue(ILProcessor il, TypeReference type)
             {
                 var calliInstance = Instruction.Create(OpCodes.Calli, new CallSite(assembly.MainModule.TypeSystem.Void) { HasThis = true, Parameters = { new ParameterDefinition(type) } });
-                var calliVirtualDispatch = Instruction.Create(OpCodes.Calli, new CallSite(assembly.MainModule.TypeSystem.Void) { HasThis = false, Parameters = { new ParameterDefinition(assembly.MainModule.TypeSystem.Object), new ParameterDefinition(type) } });
+                // Note: .NET 6 doesn't like IntPtr => object implicit conversion so we pretend the method expect a IntPtr rather than object
+                // (another option would be to use "castclass object" after pushing the IntPtr on the stack)
+                var calliVirtualDispatch = Instruction.Create(OpCodes.Calli, new CallSite(assembly.MainModule.TypeSystem.Void) { HasThis = false, Parameters = { new ParameterDefinition(assembly.MainModule.TypeSystem.IntPtr), new ParameterDefinition(type) } });
                 var postCalli = Instruction.Create(OpCodes.Nop);
 
                 il.Emit(OpCodes.Ldarg_0);

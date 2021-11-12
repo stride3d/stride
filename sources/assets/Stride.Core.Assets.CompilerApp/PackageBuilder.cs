@@ -457,7 +457,7 @@ namespace Stride.Core.Assets.CompilerApp
             var startInfo = new ProcessStartInfo
             {
                 // Note: try to get exec server if it exists, otherwise use CompilerApp.exe
-                FileName = Path.ChangeExtension(typeof(PackageBuilder).Assembly.Location, ".exe"),
+                FileName = LoaderToolLocator.GetExecutable(typeof(PackageBuilder).Assembly.Location),
                 Arguments = arguments,
                 WorkingDirectory = Environment.CurrentDirectory,
                 CreateNoWindow = true,

@@ -519,7 +519,7 @@ namespace Stride.UI.Panels
 
             if (IsArrangeValid)
             {
-                AdjustOffsetsAndVisualChildren((float)(side > 0 ? Math.Floor(scrollPosition + 1) : Math.Ceiling(scrollPosition - 1)));
+                AdjustOffsetsAndVisualChildren(side > 0 ? MathF.Floor(scrollPosition + 1) : MathF.Ceiling(scrollPosition - 1));
             }
             else
             {

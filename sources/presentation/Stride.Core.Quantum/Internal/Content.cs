@@ -27,7 +27,7 @@ namespace Stride.Core.Quantum
             var collectionDescriptor = descriptor as CollectionDescriptor;
             if (collectionDescriptor != null)
             {
-                return collectionDescriptor.GetValue(value, index.Int);
+                return collectionDescriptor.GetValue(value, index.Value);
             }
             var dictionaryDescriptor = descriptor as DictionaryDescriptor;
             if (dictionaryDescriptor != null)

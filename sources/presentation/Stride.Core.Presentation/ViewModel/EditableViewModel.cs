@@ -293,7 +293,7 @@ namespace Stride.Core.Presentation.ViewModel
             {
                 var toIListMethod = sender.GetType().GetMethod("ToIList");
                 if (toIListMethod != null)
-                    list = (IList)toIListMethod.Invoke(sender, new object[0]);
+                    list = (IList)toIListMethod.Invoke(sender, Array.Empty<object>());
             }
             if (!UndoRedoService.UndoRedoInProgress && !suspendedCollections.Contains(collectionName))
             {

@@ -97,14 +97,8 @@ namespace Stride.Physics
                     //update character bound entity's transforms from physics engine simulation
                     physicsScene.Processor.UpdateCharacters();
 
-                    //Perform clean ups before test contacts in this frame
-                    physicsScene.Simulation.BeginContactTesting();
-
                     //handle frame contacts
-                    physicsScene.Processor.UpdateContacts();
-
-                    //This is the heavy contact logic
-                    physicsScene.Simulation.EndContactTesting();
+                    physicsScene.Simulation.UpdateContacts();
 
                     //send contact events
                     physicsScene.Simulation.SendEvents();

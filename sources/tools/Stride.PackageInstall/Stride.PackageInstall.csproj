@@ -41,5 +41,4 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <Import Project="..\..\targets\Stride.Core.Sign.targets" />
 </Project>

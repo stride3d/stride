@@ -96,7 +96,7 @@ namespace Stride.Assets.Presentation.ViewModel
             where T : class, IComputeNode
         {
             var genericsNode = ownerNode[nameof(ComputeShaderClassBase<T>.Generics)].Target;
-            var keysToRemove = new List<object>(node.Generics.Keys);
+            var keysToRemove = new List<string>(node.Generics.Keys);
             if (shader != null)
             {
                 foreach (var generic in shader.ShaderGenerics)
@@ -131,7 +131,11 @@ namespace Stride.Assets.Presentation.ViewModel
             }
 
             // Remove all generics that we don't have anymore
-            keysToRemove.Select(x => new NodeIndex(x)).ForEach(x => genericsNode.Remove(genericsNode.Retrieve(x), x));
+            foreach (var k in keysToRemove)
+            {
+                var x = new NodeIndex(k);
+                genericsNode.Remove(genericsNode.Retrieve(x), x);
+            }
         }
 
         private void UpdateCompositionNodes<T>(ShaderClassType shader, ComputeShaderClassBase<T> node, IObjectNode ownerNode)
@@ -167,4 +171,3 @@ namespace Stride.Assets.Presentation.ViewModel
         }
     }
 }
-

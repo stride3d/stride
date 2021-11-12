@@ -26,7 +26,9 @@ namespace Stride.Core.Presentation.Quantum.Presenters
             Name = index.ToString();
             Order = index.IsInt ? (int?)index.Int : null; // So items are sorted by index instead of string
             CombineKey = Name;
-            DisplayName = Index.IsInt ? "Item " + Index : Index.ToString();
+            DisplayName = (container.Descriptor.Category != DescriptorCategory.Dictionary && Index.IsInt)
+                        ? "Item " + Index
+                        : Index.ToString();
 
             container.ItemChanging += OnItemChanging;
             container.ItemChanged += OnItemChanged;

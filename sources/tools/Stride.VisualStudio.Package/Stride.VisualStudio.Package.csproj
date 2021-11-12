@@ -33,9 +33,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="14.0.25023" />
     <PackageReference Include="VSLangProj" Version="7.0.3301" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.0.26201" />
-    <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
-    <PackageReference Include="NuGet.Commands" Version="5.8.0" />
+    <PackageReference Include="Microsoft.Build" Version="16.11.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.11.0" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.Commands" Version="6.0.0-preview.3" />
 
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Design" />
@@ -88,6 +88,7 @@
     <Compile Include="..\..\core\Stride.Core\Annotations\NotNullAttribute.cs" Link="Core\Annotations\NotNullAttribute.cs" />
     <Compile Include="..\..\shared\AttachedChildProcessJob.cs" Link="Commands\AttachedChildProcessJob.cs" />
     <Compile Include="..\..\shared\Stride.NuGetResolver\RestoreHelper.cs" Link="NuGet\RestoreHelper.cs" />
+    <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="Core\LoaderToolLocator.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="MyControl.xaml.cs">

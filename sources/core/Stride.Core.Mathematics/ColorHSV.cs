@@ -92,8 +92,8 @@ namespace Stride.Core.Mathematics
         /// <returns>A HSV color</returns>
         public static ColorHSV FromColor(Color4 color)
         {
-            float max = Math.Max(color.R, Math.Max(color.G, color.B));
-            float min = Math.Min(color.R, Math.Min(color.G, color.B));
+            float max = MathF.Max(color.R, MathF.Max(color.G, color.B));
+            float min = MathF.Min(color.R, MathF.Min(color.G, color.B));
 
             float delta = max - min;
             float h = 0.0f;
