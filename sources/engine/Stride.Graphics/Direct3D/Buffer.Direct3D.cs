@@ -261,6 +261,7 @@ namespace Stride.Graphics
             {
                 desc.BindFlags |= (uint)BindFlag.BindConstantBuffer;
                 desc.StructureByteStride = (uint)bufferDescription.StructureByteStride + (16 - ((uint)bufferDescription.StructureByteStride % 16));
+                desc.CPUAccessFlags = (uint)CpuAccessFlag.CpuAccessWrite;
             }
 
             if ((bufferFlags & (uint)BufferFlags.IndexBuffer) != 0)

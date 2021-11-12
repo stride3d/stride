@@ -191,13 +191,14 @@ namespace Stride.Graphics
             //{
             unsafe
             {
-                ID3D11DeviceChild* dcP = null;
+                ComPtr<ID3D11DeviceChild> dcP = null;
                 switch (Dimension)
                 {
                     case TextureDimension.Texture1D:
                         //NativeDeviceChild = new ID3D11Texture1D(GraphicsDevice.NativeDevice, ConvertToNativeDescription1D(), ConvertDataBoxes(dataBoxes));
                         ComPtr<ID3D11Texture1D> tex = new();
                         Texture1DDesc desc = ConvertToNativeDescription1D();
+                        SubresourceData** data1 = ConvertDataBoxes(dataBoxes);
                         fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
                             GraphicsDevice.NativeDevice.Get().CreateTexture1D(&desc, data, &tex.Handle);
                         
