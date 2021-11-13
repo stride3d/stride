@@ -235,7 +235,8 @@ namespace Stride.Graphics
                 GraphicsDevice.RegisterTextureMemoryUsage(SizeInBytes);
                 //}
 
-                NativeShaderResourceView = GetShaderResourceView(ViewType, ArraySlice, MipLevel);
+                if(NativeShaderResourceView.Handle == null)
+                    NativeShaderResourceView = GetShaderResourceView(ViewType, ArraySlice, MipLevel);
                 NativeUnorderedAccessView = GetUnorderedAccessView(ViewType, ArraySlice, MipLevel);
                 NativeID3D11RenderTargetView = GetID3D11RenderTargetView(ViewType, ArraySlice, MipLevel);
                 NativeDepthStencilView = GetDepthStencilView(out HasStencil);
