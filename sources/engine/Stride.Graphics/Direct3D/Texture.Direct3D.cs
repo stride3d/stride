@@ -197,7 +197,6 @@ namespace Stride.Graphics
                 
                 if(dataBoxes != null)
                     ConvertDataBoxes(dataBoxes).Select(x => new SubresourceData { PSysMem = x.PSysMem, SysMemPitch = x.SysMemPitch, SysMemSlicePitch = x.SysMemSlicePitch}).ToArray();
-
                 switch (Dimension)
                 {
                     case TextureDimension.Texture1D:
@@ -214,8 +213,9 @@ namespace Stride.Graphics
                         //NativeDeviceChild = new ID3D11Texture2D(GraphicsDevice.NativeDevice, ConvertToNativeDescription2D(), ConvertDataBoxes(dataBoxes));
                         ComPtr<ID3D11Texture2D> tex2d = new();
                         Texture2DDesc desc2d = ConvertToNativeDescription2D();
+                        if (dbs == null) desc2d.Usage = Silk.NET.Direct3D11.Usage.UsageDefault;
                         fixed (SubresourceData* data = dbs)
-                            GraphicsDevice.NativeDevice.Get().CreateTexture2D(&desc2d, data, &tex2d.Handle);
+                            GraphicsDevice.NativeDevice.Get().CreateTexture2D(ref desc2d, data, ref tex2d.Handle);
                         tex2d.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceChild>(), (void**)&dcP);
                         NativeDeviceChild = new ComPtr<ID3D11DeviceChild>(dcP);
                         break;
@@ -600,8 +600,8 @@ namespace Stride.Graphics
         private ComPtr<ID3D11DepthStencilView> GetDepthStencilView(out bool hasStencil)
         {
             hasStencil = false;
-            //if (!IsDepthStencil)
-            //    return null;
+            if (!IsDepthStencil)
+                return null;
 
             // Check that the format is supported
             if (ComputeShaderResourceFormatFromDepthFormat(ViewFormat) == PixelFormat.None)
