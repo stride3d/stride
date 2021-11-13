@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 using System;
+using System.Linq;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
@@ -191,15 +192,18 @@ namespace Stride.Graphics
             //{
             unsafe
             {
-                ComPtr<ID3D11DeviceChild> dcP = null;
+                ComPtr<ID3D11DeviceChild> dcP = new();
+                SubresourceData[] dbs = null;
+                
+                if(dataBoxes != null)
+                    ConvertDataBoxes(dataBoxes).Select(x => new SubresourceData { PSysMem = x.PSysMem, SysMemPitch = x.SysMemPitch, SysMemSlicePitch = x.SysMemSlicePitch}).ToArray();
+
                 switch (Dimension)
                 {
                     case TextureDimension.Texture1D:
-                        //NativeDeviceChild = new ID3D11Texture1D(GraphicsDevice.NativeDevice, ConvertToNativeDescription1D(), ConvertDataBoxes(dataBoxes));
                         ComPtr<ID3D11Texture1D> tex = new();
                         Texture1DDesc desc = ConvertToNativeDescription1D();
-                        SubresourceData** data1 = ConvertDataBoxes(dataBoxes);
-                        fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
+                        fixed (SubresourceData* data = dbs)
                             GraphicsDevice.NativeDevice.Get().CreateTexture1D(&desc, data, &tex.Handle);
                         
                         tex.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceChild>(), (void**)&dcP);
@@ -210,7 +214,7 @@ namespace Stride.Graphics
                         //NativeDeviceChild = new ID3D11Texture2D(GraphicsDevice.NativeDevice, ConvertToNativeDescription2D(), ConvertDataBoxes(dataBoxes));
                         ComPtr<ID3D11Texture2D> tex2d = new();
                         Texture2DDesc desc2d = ConvertToNativeDescription2D();
-                        fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
+                        fixed (SubresourceData* data = dbs)
                             GraphicsDevice.NativeDevice.Get().CreateTexture2D(&desc2d, data, &tex2d.Handle);
                         tex2d.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceChild>(), (void**)&dcP);
                         NativeDeviceChild = new ComPtr<ID3D11DeviceChild>(dcP);
@@ -219,7 +223,7 @@ namespace Stride.Graphics
                         //NativeDeviceChild = new ID3D11Texture3D(GraphicsDevice.NativeDevice, ConvertToNativeDescription3D(), ConvertDataBoxes(dataBoxes));
                         ComPtr<ID3D11Texture3D> tex3d = new();
                         Texture3DDesc desc3d = ConvertToNativeDescription3D();
-                        fixed (SubresourceData* data = ConvertDataBoxes(dataBoxes))
+                        fixed (SubresourceData* data = dbs)
                             GraphicsDevice.NativeDevice.Get().CreateTexture3D(&desc3d, data, &tex3d.Handle);
                         tex3d.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceChild>(), (void**)&dcP);
                         NativeDeviceChild = new ComPtr<ID3D11DeviceChild>(dcP);
