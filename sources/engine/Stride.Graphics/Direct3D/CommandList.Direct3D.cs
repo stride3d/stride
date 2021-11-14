@@ -33,7 +33,7 @@ namespace Stride.Graphics
         private readonly ComPtr<ID3D11RenderTargetView>[] currentRenderTargetViews = new ComPtr<ID3D11RenderTargetView>[SimultaneousRenderTargetCount];
         private          int currentRenderTargetViewsActiveCount = 0;
         private readonly ComPtr<ID3D11UnorderedAccessView>[] currentUARenderTargetViews = new ComPtr<ID3D11UnorderedAccessView>[SimultaneousRenderTargetCount];
-        private readonly ComPtr<IUnknown>[] shaderStages = new ComPtr<IUnknown>[StageCount];
+        private readonly GfxBox[] shaderStages = new GfxBox[StageCount];
         private readonly Buffer[] constantBuffers = new Buffer[StageCount * ConstantBufferCount];
         private readonly SamplerState[] samplerStates = new SamplerState[StageCount * SamplerStateCount];
         private readonly unsafe ComPtr<ID3D11UnorderedAccessView>[] unorderedAccessViews = new ComPtr<ID3D11UnorderedAccessView> [UnorderedAcccesViewCount]; // Only CS
@@ -52,9 +52,9 @@ namespace Stride.Graphics
             unsafe
             {
                 
-                    ID3D11DeviceContext1* dc = null;
-                    SilkMarshal.ThrowHResult(NativeDeviceChild.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceContext1>(), (void**)&dc));
-                    nativeDeviceContext1.Handle = dc;
+                    ComPtr<ID3D11DeviceContext1> dc = new();
+                    SilkMarshal.ThrowHResult(NativeDeviceChild.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceContext1>(), (void**)&dc.Handle));
+                    nativeDeviceContext1 = dc;
             }
             InitializeStages();
 
@@ -430,14 +430,20 @@ namespace Stride.Graphics
 
                 int remainingSlots = currentUARenderTargetViews.Length - currentRenderTargetViewsActiveCount;
 
-                var uavs = new ID3D11UnorderedAccessView*[remainingSlots];
+                var uavs = new ComPtr<ID3D11UnorderedAccessView>[remainingSlots];
                 Array.Copy(currentUARenderTargetViews, currentRenderTargetViewsActiveCount, uavs, 0, remainingSlots);
 
                 var uavInitialCounts = new uint[remainingSlots];
                 for (int i = 0; i < remainingSlots; i++)
                     unchecked { uavInitialCounts[i] = (uint)-1;}
                 uavInitialCounts[slot - currentRenderTargetViewsActiveCount] = (uint)uavInitialOffset;
-                fixed (ID3D11UnorderedAccessView** puavs = uavs)
+                ID3D11UnorderedAccessView*[] tmpUavs = new ID3D11UnorderedAccessView*[uavs.Length];
+                for (int i = 0; i < tmpUavs.Length; i++)
+                {
+                    tmpUavs[i] = uavs[i].Handle;
+                }
+
+                fixed (ID3D11UnorderedAccessView** puavs = tmpUavs)
                 fixed (uint* initCounts = uavInitialCounts)
                     outputMerger.Get().CSSetUnorderedAccessViews(0,(uint)currentRenderTargetViewsActiveCount, puavs, initCounts);
             }
@@ -1017,7 +1023,7 @@ namespace Stride.Graphics
         /// <returns>Pointer to the sub resource to map.</returns>
         public unsafe MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
         {
-            if (resource == null) throw new ArgumentNullException("resource");
+            if (resource == null || resource.NativeResource.Handle == null) throw new ArgumentNullException("resource");
 
             // This resource has just been recycled by the GraphicsResourceAllocator, we force a rename to avoid GPU=>GPU sync point
             if (resource.DiscardNextMap && mapMode == MapMode.WriteNoOverwrite)
@@ -1063,12 +1069,12 @@ namespace Stride.Graphics
                 ComPtr<ID3D11GeometryShader> g = new ComPtr<ID3D11GeometryShader>();
                 nativeDeviceContext.Get().GSGetShader(&g.Handle, null, null);
 
-                shaderStages[(int)ShaderStage.Vertex - 1] = new ComPtr<IUnknown>((IUnknown*)v.Handle);
-                shaderStages[(int)ShaderStage.Hull - 1] = new ComPtr<IUnknown>((IUnknown*)h.Handle);
-                shaderStages[(int)ShaderStage.Domain - 1] = new ComPtr<IUnknown>((IUnknown*)d.Handle);
-                shaderStages[(int)ShaderStage.Geometry - 1] = new ComPtr<IUnknown>((IUnknown*)g.Handle);
-                shaderStages[(int)ShaderStage.Pixel - 1] = new ComPtr<IUnknown>((IUnknown*)p.Handle);
-                shaderStages[(int)ShaderStage.Compute - 1] = new ComPtr<IUnknown>((IUnknown*)c.Handle);
+                shaderStages[(int)ShaderStage.Vertex - 1] = new VertexShader(v);
+                shaderStages[(int)ShaderStage.Hull - 1] = new HullShader(h);
+                shaderStages[(int)ShaderStage.Domain - 1] = new DomainShader(d);
+                shaderStages[(int)ShaderStage.Geometry - 1] = new GeometryShader(g);
+                shaderStages[(int)ShaderStage.Pixel - 1] = new PixelShader(p);
+                shaderStages[(int)ShaderStage.Compute - 1] = new ComputeShader(c);
 
             }
         }

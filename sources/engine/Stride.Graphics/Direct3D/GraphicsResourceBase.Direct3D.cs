@@ -43,12 +43,12 @@ namespace Stride.Graphics
             {
                 nativeDeviceChild = value;
 
-                //unsafe
-                //{
-                //    var dc = new ComPtr<ID3D11Resource>();
-                //    SilkMarshal.ThrowHResult(NativeDeviceChild.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&dc.Handle));
-                //    nativeResource.Handle = dc;
-                //}
+                unsafe
+                {
+                    //var dc = new ComPtr<ID3D11Resource>();
+                    //SilkMarshal.ThrowHResult(NativeDeviceChild.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Resource>(), (void**)&dc.Handle));
+                    nativeResource.Handle = (ID3D11Resource*)nativeDeviceChild.Handle;
+                }
                 // Todo : Debug name ? 
                 //SetDebugName(GraphicsDevice, nativeDeviceChild, Name);
             }
