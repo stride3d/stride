@@ -466,6 +466,46 @@
     </DataTemplate>
   </pvdr:ListTemplateProvider>
 
+  <!-- Provider for array items: a ContentControl for the item itself -->
+  <pvdr:ArrayItemTemplateProvider x:Key="ArrayItemPropertyTemplateProvider" OverrideRule="Most" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate>
+      <DockPanel>
+        <ContentControl Content="{Binding}" ContentTemplateSelector="{x:Static edvw:PropertyViewHelper.EditorProviders}"/>
+      </DockPanel>
+    </DataTemplate>
+  </pvdr:ArrayItemTemplateProvider>
+
+  <!-- Provider for array: Button to add an entry, TextBlock to describe the array -->
+  <pvdr:ArrayTemplateProvider x:Key="ArrayPropertyTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="qvm:NodeViewModel">
+      <DockPanel>
+        <TextBlock Margin="2">
+          <Run Text="{sd:Localize Array}"/> -
+          <Run Text="{sd:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
+        </TextBlock>
+      </DockPanel>
+    </DataTemplate>
+  </pvdr:ArrayTemplateProvider>
+
+  <!-- Provider for array -->
+  <pvdr:ArrayTemplateProvider x:Key="ArrayPropertyFooterTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyFooter">
+    <DataTemplate DataType="qvm:NodeViewModel">
+      <Grid x:Name="Grid" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="{StaticResource BackgroundBrush}"
+            Visibility="{sd:MultiBinding {Binding IsVisible}, {Binding VisibleChildrenCount, Converter={sd:IsGreater}, ConverterParameter={sd:Int 0}},
+                                           Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrCollapsed}}, FallbackValue={sd:Collapsed}}">
+        <Grid.ColumnDefinitions>
+          <!-- Parameters of the SumNum converters used here must be the total width of fixed columns + MinWidths of sizable columns: 8+5+64=77 -->
+          <ColumnDefinition Width="8"/>
+          <ColumnDefinition Width="{Binding NameColumnSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type sd:PropertyView}}, Mode=TwoWay}"
+                            MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sd:SumNum}, ConverterParameter={sd:Double -77}}" MinWidth="64"/>
+          <ColumnDefinition Width="5"/>
+          <ColumnDefinition Width="*" MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sd:SumNum}, ConverterParameter={sd:Double -77}}" MinWidth="64"/>
+        </Grid.ColumnDefinitions>
+        <GridSplitter Grid.Column="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"/>
+      </Grid>
+    </DataTemplate>
+  </pvdr:ArrayTemplateProvider>
+  
   <!-- Provider for set: Button to add an entry, TextBlock to describe the collection -->
   <pvdr:SetTemplateProvider x:Key="SetPropertyTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
