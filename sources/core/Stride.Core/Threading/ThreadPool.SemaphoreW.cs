@@ -15,7 +15,7 @@ namespace Stride.Core.Threading
         /// <summary>
         /// Mostly lifted from dotnet's LowLevelLifoSemaphore
         /// </summary>
-        private class SemaphoreW
+        private class SemaphoreW : ISemaphore
         {
             private const int SpinSleep0Threshold = 10;
             
@@ -35,6 +35,8 @@ namespace Stride.Core.Threading
             static SemaphoreW()
             {
                 // Workaround as Thread.OptimalMaxSpinWaitsPerSpinIteration is internal and only implemented in core
+                // Note that as of .Net6 (https://github.com/dotnet/runtime/issues/53509 & https://github.com/dotnet/runtime/pull/55295)
+                // the underlying value is periodically updated in case the timing changes, this property shouldn't be used under those runtimes
                 BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static;
                 var f = typeof(Thread).GetProperty("OptimalMaxSpinWaitsPerSpinIteration", flags);
                 int opti = 7;
@@ -56,6 +58,11 @@ namespace Stride.Core.Threading
                 spinCount = spinCountParam;
 
                 lifoSemaphore = new Semaphore(0, int.MaxValue);
+            }
+            
+            public void Dispose()
+            {
+                lifoSemaphore?.Dispose();
             }
 
             public void Wait(int timeout = -1) => internals.Wait(spinCount, lifoSemaphore, timeout);

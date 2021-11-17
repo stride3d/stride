@@ -4,6 +4,8 @@
 using Stride.Core.Annotations;
 using System;
 using System.Collections.Concurrent;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Stride.Core.Threading
@@ -19,14 +21,15 @@ namespace Stride.Core.Threading
         /// </summary>
         public static ThreadPool Instance = new ThreadPool();
         
+        /// <summary> Is the thread reading this property a worker thread </summary>
+        public static bool IsWorkerThread => isWorkerThread;
+        
         private static readonly bool SingleCore;
         [ThreadStatic]
-        private static bool isWorkedThread;
-        /// <summary> Is the thread reading this property a worker thread </summary>
-        public static bool IsWorkedThread => isWorkedThread;
+        private static bool isWorkerThread;
         
         private readonly ConcurrentQueue<Action> workItems = new ConcurrentQueue<Action>();
-        private readonly SemaphoreW semaphore;
+        private readonly ISemaphore semaphore;
         
         private long completionCounter;
         private int workScheduled, threadsBusy;
@@ -44,8 +47,29 @@ namespace Stride.Core.Threading
 
         public ThreadPool(int? threadCount = null)
         {
-            semaphore = new SemaphoreW(spinCountParam:70);
-            
+            int spinCount = 70;
+            if(RuntimeInformation.ProcessArchitecture is Architecture.Arm or Architecture.Arm64)
+            {
+                // Dotnet:
+                // On systems with ARM processors, more spin-waiting seems to be necessary to avoid perf regressions from incurring
+                // the full wait when work becomes available soon enough. This is more noticeable after reducing the number of
+                // thread requests made to the thread pool because otherwise the extra thread requests cause threads to do more
+                // busy-waiting instead and adding to contention in trying to look for work items, which is less preferable.
+                spinCount *= 4;
+            }
+            try
+            {
+                semaphore = new DotnetLifoSemaphore(spinCount);
+            }
+            catch
+            {
+                // For net6+ this should not happen, logging instead of throwing as this is just a performance regression
+                if(Environment.Version.Major >= 6)
+                    Console.Out?.WriteLine($"{typeof(ThreadPool).FullName}: Falling back to suboptimal semaphore");
+                
+                semaphore = new SemaphoreW(spinCountParam:70);
+            }
+
             WorkerThreadsCount = threadCount ?? (Environment.ProcessorCount == 1 ? 1 : Environment.ProcessorCount - 1);
             leftToDispose = WorkerThreadsCount;
             for (int i = 0; i < WorkerThreadsCount; i++)
@@ -129,7 +153,7 @@ namespace Stride.Core.Threading
 
         private void WorkerThreadScope()
         {
-            isWorkedThread = true;
+            isWorkerThread = true;
             try
             {
                 do
@@ -170,12 +194,9 @@ namespace Stride.Core.Threading
             }
             
             semaphore.Release(WorkerThreadsCount);
+            semaphore.Dispose();
             while (Volatile.Read(ref leftToDispose) != 0)
             {
-                if (semaphore.SignalCount == 0)
-                {
-                    semaphore.Release(1);
-                }
                 Thread.Yield();
             }
 
@@ -184,6 +205,37 @@ namespace Stride.Core.Threading
             {
                 
             }
+        }
+
+
+
+        private interface ISemaphore : IDisposable
+        {
+            public void Release( int Count );
+            public void Wait( int timeout = - 1 );
+        }
+
+
+
+        private class DotnetLifoSemaphore : ISemaphore
+        {
+            private readonly IDisposable semaphore;
+            private readonly Func<int, bool, bool> wait;
+            private readonly Action<int> release;
+            
+            public DotnetLifoSemaphore(int spinCount)
+            {
+                Type lifoType = Type.GetType("System.Threading.LowLevelLifoSemaphore");
+                semaphore = Activator.CreateInstance(lifoType, new object[]{ 0, short.MaxValue, spinCount, new Action( () => {} ) }) as IDisposable;
+                wait = lifoType.GetMethod("Wait", BindingFlags.Instance | BindingFlags.Public).CreateDelegate<Func<int, bool, bool>>(semaphore);
+                release = lifoType.GetMethod("Release", BindingFlags.Instance | BindingFlags.Public).CreateDelegate<Action<int>>(semaphore);
+            }
+
+
+
+            public void Dispose() => semaphore.Dispose();
+            public void Release(int count) => release(count);
+            public void Wait(int timeout = -1) => wait(timeout, true);
         }
     }
 }
