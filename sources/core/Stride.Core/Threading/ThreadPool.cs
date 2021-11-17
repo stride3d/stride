@@ -217,7 +217,7 @@ namespace Stride.Core.Threading
 
 
 
-        private class DotnetLifoSemaphore : ISemaphore
+        private sealed class DotnetLifoSemaphore : ISemaphore
         {
             private readonly IDisposable semaphore;
             private readonly Func<int, bool, bool> wait;

@@ -15,7 +15,7 @@ namespace Stride.Core.Threading
         /// <summary>
         /// Mostly lifted from dotnet's LowLevelLifoSemaphore
         /// </summary>
-        private class SemaphoreW : ISemaphore
+        private sealed class SemaphoreW : ISemaphore
         {
             private const int SpinSleep0Threshold = 10;
             
