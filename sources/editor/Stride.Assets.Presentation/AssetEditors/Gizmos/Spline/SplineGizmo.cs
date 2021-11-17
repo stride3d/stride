@@ -71,31 +71,22 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             gizmoNodeLinks = new Entity();
             gizmoBeziers = new Entity();
             gizmoPoints = new Entity();
+            gizmoBoundingBox = new Entity();
             gizmoTangentOut = new Entity();
             gizmoTangentIn = new Entity();
-            gizmoBoundingBox = new Entity();
 
-
-
-            // Add middle sphere
-            var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, 0.3f, 48).ToMeshDraw();
-            gizmoTangentOut = new Entity("TangentSphereOut") { new ModelComponent { Model = new Model { redMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
-            gizmoTangentIn = new Entity("TangentSphereIn") { new ModelComponent { Model = new Model { greenMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
+            //mainGizmoEntity.AddChild(gizmoTangentOut);
+            //mainGizmoEntity.AddChild(gizmoTangentIn);
+            //TranslationGizmo.AnchorEntity = gizmoTangentIn;
 
             mainGizmoEntity.AddChild(gizmoNodes);
             mainGizmoEntity.AddChild(gizmoNodeLinks);
             mainGizmoEntity.AddChild(gizmoBeziers);
             mainGizmoEntity.AddChild(gizmoPoints);
-            mainGizmoEntity.AddChild(gizmoTangentOut);
-            mainGizmoEntity.AddChild(gizmoTangentIn);
             mainGizmoEntity.AddChild(gizmoBoundingBox);
-
-
 
             TranslationGizmo = new TranslationGizmo();
             TranslationGizmo.IsEnabled = true;
-            TranslationGizmo.AnchorEntity = gizmoTangentIn;
-
 
 
             Update();
@@ -214,10 +205,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 GizmoRootEntity.Transform.UseTRS = false;
             }
 
-            if (enoughNodes)
-            {
-                ExperimentalStuffWithTangentTranslation(deltaTime);
-            }
+            //if (enoughNodes)
+            //{
+            //    ExperimentalStuffWithTangentTranslation(deltaTime);
+            //}
         }
 
         private void ExperimentalStuffWithTangentTranslation(float deltaTime)
@@ -234,10 +225,19 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             Input.UnlockMousePosition();
             Game.IsMouseVisible = true;
 
-            //for (int i = 0; i < Component.Nodes?.Count; i++)
-            for (int i = 0; i < 1; i++)
+            var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, 0.3f, 48).ToMeshDraw();
+
+            for (int i = 0; i < Component.Nodes?.Count; i++)
             {
                 var curNode = Component.Nodes[i];
+
+
+                // Add middle sphere
+                var tangentOut = new Entity("TangentSphereOut") { new ModelComponent { Model = new Model { redMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
+                var tangentIn = new Entity("TangentSphereIn") { new ModelComponent { Model = new Model { greenMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
+
+                gizmoTangentOut.AddChild(tangentOut);
+                gizmoTangentIn.AddChild(tangentIn);
 
                 if (!dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
                 {

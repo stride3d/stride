@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -53,7 +54,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
 
             // Add middle sphere
-            var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, 0.3f, 48).ToMeshDraw();
+            var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, 0.18f, 48).ToMeshDraw();
             gizmoTangentOut = new Entity("TangentSphereOut") { new ModelComponent { Model = new Model { redMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
             gizmoTangentIn = new Entity("TangentSphereIn") { new ModelComponent { Model = new Model { greenMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
 
@@ -86,33 +87,22 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 return;
 
 
-            // calculate the world matrix of the gizmo so that it is positioned exactly as the corresponding scene entity
-            // except the scale that is re-adjusted to the gizmo desired size (gizmo are insert at scene root so LocalMatrix = WorldMatrix)
             Vector3 scale;
             Quaternion rotation;
             Vector3 translation;
             ContentEntity.Transform.WorldMatrix.Decompose(out scale, out rotation, out translation);
 
-            // Translation and Scale but no rotation on bounding boxes
             GizmoRootEntity.Transform.Position = translation;
             GizmoRootEntity.Transform.Scale = 1 * scale;
             GizmoRootEntity.Transform.UpdateWorldMatrix();
 
+            gizmoTangentOut.Transform.Position = Component.TangentOut;
+            gizmoTangentIn.Transform.Position = Component.TangentIn;
+
             if (Component.Dirty)
             {
-                ClearChildren(gizmoTangentOut);
-                ClearChildren(gizmoTangentIn);
 
-
-
-
-
-                DrawNodes(curNode);
-                DrawTangentOutwards(curNode);
-
-                Component.Dirty = false;
-                GizmoRootEntity.Transform.LocalMatrix = ContentEntity.Transform.WorldMatrix;
-                GizmoRootEntity.Transform.UseTRS = false;
+                
             }
 
             ExperimentalStuffWithTangentTranslation(deltaTime);
@@ -158,8 +148,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 var newMouseDrag = totalMouseDrag - prevTotalMouseDrag;
                 prevTotalMouseDrag = totalMouseDrag;
 
-                var dragMultiplier = deltaTime * 500; //dragMultiplier
-                Component.Nodes[0].TangentOut += new Vector3(-newMouseDrag.X * dragMultiplier, -newMouseDrag.Y * dragMultiplier, 0);
+                //var viewProjection = cameraService.ViewMatrix * cameraService.ProjectionMatrix;
+
+
+                var dragMultiplier = deltaTime * 1500; //dragMultiplier
+                Component.TangentOut += new Vector3(-newMouseDrag.X * dragMultiplier, -newMouseDrag.Y * dragMultiplier, 0);
             }
             else if (dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
             {
@@ -172,23 +165,13 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = blueMaterial;
                 if (Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
                 {
-                    Component.diTangentIn += 0.01f;
+                    Component.TangentIn += 0.01f;
                 }
             }
             else
             {
                 gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = greenMaterial;
             }
-        }
-
-        private void DrawTangentOutwards(SplineNodeComponent splineNodeComponent)
-        {
-            gizmoTangentOut.Transform.Position = splineNodeComponent.TangentOut;
-        }
-
-        private void DrawTangentInwards(SplineNodeComponent splineNodeComponent)
-        {
-            gizmoTangentIn.Transform.Position = splineNodeComponent.TangentIn;
         }
 
         private void ClearChildren(Entity entity)
