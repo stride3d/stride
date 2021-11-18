@@ -15,7 +15,7 @@ namespace Stride.Graphics.SDL
 
         private Silk.NET.SDL.Window* sdlHandle;
 
-        #region Initialization
+#region Initialization
 
         /// <summary>
         /// Initializes static members of the <see cref="Window"/> class.
@@ -39,15 +39,23 @@ namespace Stride.Graphics.SDL
         /// <param name="title">Title of the window, see Text property.</param>
         public unsafe Window(string title)
         {
+            WindowFlags flags = WindowFlags.WindowAllowHighdpi;
 #if STRIDE_GRAPHICS_API_OPENGL
-            var flags = WindowFlags.WindowHidden | WindowFlags.WindowOpengl;
+            flags |= WindowFlags.WindowOpengl;
 #elif STRIDE_GRAPHICS_API_VULKAN
-            var flags = WindowFlags.WindowHidden | WindowFlags.WindowVulkan;
+            flags |= WindowFlags.WindowVulkan;
+#endif
+#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
+            flags |= WindowFlags.WindowBorderless | WindowFlags.WindowFullscreen | WindowFlags.WindowShown;
 #else
-            var flags = WindowFlags.WindowHidden;
+            flags |= WindowFlags.WindowHidden | WindowFlags.WindowResizable;
 #endif
             // Create the SDL window and then extract the native handle.
             sdlHandle = SDL.CreateWindow(title, Sdl.WindowposUndefined, Sdl.WindowposUndefined, 640, 480, (uint)flags);
+
+#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
+            GraphicsAdapter.DefaultWindow = sdlHandle;
+#endif
 
             if (sdlHandle == null)
             {
@@ -70,6 +78,11 @@ namespace Stride.Graphics.SDL
                 Handle = (IntPtr)info.Info.X11.Window;
                 Display = (IntPtr)info.Info.X11.Display;
             }
+            else if (Core.Platform.Type == Core.PlatformType.Android)
+            {
+                Handle = (IntPtr)info.Info.Android.Window;
+                Surface = (IntPtr)info.Info.Android.Surface;
+            }
             else if (Core.Platform.Type == Core.PlatformType.macOS)
             {
                 Handle = (IntPtr)info.Info.Cocoa.Window;
@@ -77,7 +90,7 @@ namespace Stride.Graphics.SDL
             Application.RegisterWindow(this);
             Application.ProcessEvents();
         }
-        #endregion
+#endregion
 
         /// <summary>
         /// Move window to back.
@@ -576,6 +589,11 @@ namespace Stride.Graphics.SDL
         public IntPtr Display { get; private set; }
 
         /// <summary>
+        /// Surface of current Window (valid only for Android).
+        /// </summary>
+        public IntPtr Surface { get; private set; }
+
+        /// <summary>
         /// The SDL window handle.
         /// </summary>
         public IntPtr SdlHandle => (IntPtr)sdlHandle;
@@ -588,7 +606,7 @@ namespace Stride.Graphics.SDL
             get { return SdlHandle != IntPtr.Zero; }
         }
 
-        #region Disposal
+#region Disposal
         ~Window()
         {
             Dispose(false);

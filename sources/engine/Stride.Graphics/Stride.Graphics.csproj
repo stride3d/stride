@@ -55,6 +55,7 @@
     <PackageReference Include="Silk.NET.OpenGLES" Version="2.10.1" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'Android'" />
     <PackageReference Include="Silk.NET.OpenGLES.Extensions.EXT" Version="2.10.1" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'Android'" />
     <PackageReference Include="Silk.NET.Sdl" Version="2.10.1" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'iOS' Or '$(StridePlatform)' == 'Android'" />
+    <PackageReference Include="Silk.NET.Windowing.Sdl" Version="2.10.1" Condition="'$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS'" />
     <PackageReference Include="Stride.SharpFont" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>

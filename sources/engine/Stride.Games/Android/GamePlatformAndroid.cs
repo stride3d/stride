@@ -46,7 +46,7 @@ namespace Stride.Games
         {
             if (type == AppContextType.Android)
             {
-                return new GameWindowAndroid();
+                return new GameWindowSDL();
             }
             else
             {
@@ -56,7 +56,7 @@ namespace Stride.Games
 
         public override List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters preferredParameters)
         {
-            var gameWindowAndroid = gameWindow as GameWindowAndroid;
+            var gameWindowAndroid = gameWindow as GameWindowSDL;
             if (gameWindowAndroid != null)
             {
                 var graphicsAdapter = GraphicsAdapterFactory.Default;

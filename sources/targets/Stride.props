@@ -80,7 +80,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <StrideUI Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS'">SDL</StrideUI>
+    <StrideUI Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS' Or '$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS'">SDL</StrideUI>
     <StrideUI Condition="$(TargetFramework.Contains('-windows')) AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
 
     <DefineConstants Condition="$(StrideUI.Contains('SDL'))">$(DefineConstants);STRIDE_UI_SDL</DefineConstants>

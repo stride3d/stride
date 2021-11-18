@@ -222,10 +222,8 @@ namespace Stride.Graphics
                     pixelSize = 4;
                     break;
                 case PixelFormat.B8G8R8A8_UNorm:
-#if STRIDE_GRAPHICS_API_OPENGLES
                     if (!graphicsDevice.HasExtTextureFormatBGRA8888)
                         throw new NotSupportedException();
-#endif
 
                     internalFormat = (InternalFormat)PixelFormatGl.Bgra;
                     format = PixelFormatGl.Bgra;

@@ -11,13 +11,15 @@ namespace Stride.Graphics
     /// <summary>
     /// Provides methods to retrieve and manipulate graphics adapters.
     /// </summary>
-    public partial class GraphicsAdapter
+    public unsafe partial class GraphicsAdapter
     {
         private GraphicsProfile supportedGraphicsProfile;
         internal int OpenGLVersion;
         internal string OpenGLRenderer;
 
-        internal unsafe GraphicsAdapter()
+        internal static Silk.NET.SDL.Window* DefaultWindow;
+
+        internal GraphicsAdapter()
         {
             outputs = new [] { new GraphicsOutput() };
 
@@ -28,7 +30,11 @@ namespace Stride.Graphics
             int versionMajor, versionMinor;
 
             var SDL = Stride.Graphics.SDL.Window.SDL;
-            var sdlWindow = SDL.CreateWindow("Stride Hidden OpenGL", 50, 50, 1280, 720, (uint)(WindowFlags.WindowHidden | WindowFlags.WindowOpengl));
+            // Some platforms (i.e. Android) can only have a single window
+            var sdlWindow = DefaultWindow;
+            if (sdlWindow == null)
+                sdlWindow = SDL.CreateWindow("Stride Hidden OpenGL", 50, 50, 1280, 720, (uint)(WindowFlags.WindowHidden | WindowFlags.WindowOpengl));
+
             using (var sdlContext = new SdlContext(SDL, sdlWindow))
             using (var gl = GL.GetApi(sdlContext))
             {
@@ -44,7 +50,8 @@ namespace Stride.Graphics
                 gl.GetInteger(GetPName.MajorVersion, out versionMajor);
                 gl.GetInteger(GetPName.MinorVersion, out versionMinor);
             }
-            SDL.DestroyWindow(sdlWindow);
+            if (sdlWindow != DefaultWindow)
+                SDL.DestroyWindow(sdlWindow);
 
             // Stay close to D3D: Cut renderer after first / (ex: "GeForce 670/PCIe/SSE2")
             var rendererSlash = renderer.IndexOf('/');

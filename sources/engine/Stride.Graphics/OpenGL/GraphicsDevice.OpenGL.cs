@@ -14,15 +14,12 @@ using Stride.Shaders;
 using Stride.Graphics.OpenGL;
 using Color4 = Stride.Core.Mathematics.Color4;
 #if STRIDE_PLATFORM_ANDROID
-using System.Text;
-using System.Runtime.InteropServices;
+using Monitor = System.Threading.Monitor;
 #endif
 
 #if STRIDE_UI_SDL
 using Silk.NET.SDL;
 using WindowState = Stride.Graphics.SDL.FormWindowState;
-#else
-using WindowState = OpenTK.WindowState;
 #endif
 
 namespace Stride.Graphics
@@ -79,10 +76,7 @@ namespace Stride.Graphics
         internal bool HasKhronosDebug;
         internal bool HasTimerQueries;
 
-#if STRIDE_GRAPHICS_API_OPENGLES
-        internal bool HasKhronosDebugKHR;
         internal bool HasExtTextureFormatBGRA8888;
-#endif
 
         private bool isFramebufferSRGB;
 
@@ -111,17 +105,11 @@ namespace Stride.Graphics
             }
         }
 
-#if STRIDE_PLATFORM_DESKTOP
+#if STRIDE_UI_SDL
         private Stride.Graphics.SDL.Window gameWindow;
         internal IGLContext MainGraphicsContext;
 
         internal unsafe IntPtr CurrentGraphicsContext => (IntPtr)Graphics.SDL.Window.SDL.GLGetCurrentContext();
-
-#elif STRIDE_PLATFORM_ANDROID
-        private AndroidGameView gameWindow;
-
-        [DllImport("libEGL.dll", EntryPoint = "eglGetCurrentContext")]
-        internal static extern IntPtr EglGetCurrentContext();
 #endif
 
 #if STRIDE_GRAPHICS_API_OPENGLES
@@ -162,13 +150,6 @@ namespace Stride.Graphics
         {
             get
             {
-#if STRIDE_PLATFORM_ANDROID
-                if (graphicsContext != gameWindow.GraphicsContext)
-                {
-                    return GraphicsDeviceStatus.Reset;
-                }
-#endif
-
                 // TODO implement GraphicsDeviceStatus for OpenGL
                 return GraphicsDeviceStatus.Normal;
             }
@@ -210,23 +191,6 @@ namespace Stride.Graphics
             {
                 FrameCounter++;
 
-#if STRIDE_PLATFORM_ANDROID
-                if (Workaround_Context_Tegra2_Tegra3)
-                {
-                    Monitor.Enter(asyncCreationLockObject, ref asyncCreationLockTaken);
-                }
-                else
-                {
-                    // On first set, check if context was not already set before,
-                    // in which case we won't unset it during End().
-                    keepContextOnEnd = graphicsContextEglPtr == GraphicsDevice.EglGetCurrentContext();
-
-                    if (keepContextOnEnd)
-                    {
-                        return;
-                    }
-                }
-#endif
                 MainGraphicsContext.MakeCurrent();
             }
         }
@@ -243,25 +207,7 @@ namespace Stride.Graphics
             --contextBeginCounter;
             if (contextBeginCounter == 0)
             {
-#if STRIDE_PLATFORM_ANDROID
-                if (Workaround_Context_Tegra2_Tegra3)
-                {
-                    MainGraphicsContext.MakeCurrent(null);
-
-                    // Notify that main context can be used from now on
-                    if (asyncCreationLockTaken)
-                    {
-                        Monitor.Exit(asyncCreationLockObject);
-                        asyncCreationLockTaken = false;
-                    }
-                }
-                else if (!keepContextOnEnd)
-                {
-                    GraphicsDevice.UnbindGraphicsContext(graphicsContext);
-                }
-#else
                 UnbindGraphicsContext(MainGraphicsContext);
-#endif
             }
             else if (contextBeginCounter < 0)
             {
@@ -381,14 +327,9 @@ namespace Stride.Graphics
         internal void EnsureContextActive()
         {
             // TODO: Better checks (is active context the expected one?)
-#if STRIDE_PLATFORM_ANDROID
-            if (EglGetCurrentContext() == IntPtr.Zero)
+            var context = CurrentGraphicsContext;
+            if (context == IntPtr.Zero)
                 throw new InvalidOperationException("No OpenGL context bound.");
-#else
-            var context = MainGraphicsContext.Handle; //static cannot be debugged easy
-            if (context == null)
-                throw new InvalidOperationException("No OpenGL context bound.");
-#endif
         }
 
         public void ExecuteCommandList(CompiledCommandList commandList)
@@ -711,31 +652,14 @@ namespace Stride.Graphics
             currentVersion = Adapter.OpenGLVersion;
             renderer = Adapter.OpenGLRenderer;
 
-#if STRIDE_PLATFORM_DESKTOP
-            gameWindow = (Stride.Graphics.SDL.Window)windowHandle.NativeWindow;
-#elif STRIDE_PLATFORM_ANDROID
-            gameWindow = (AndroidGameView)windowHandle.NativeWindow;
+#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
+            //gameWindow.Load += OnApplicationResumed;
+            //gameWindow.Unload += OnApplicationPaused;
 #endif
 
-            // Doesn't seems to be working on Android
-#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
-            MainGraphicsContext = gameWindow.GraphicsContext;
-            gameWindow.Load += OnApplicationResumed;
-            gameWindow.Unload += OnApplicationPaused;
-            
-            if (deviceCreationContext != null)
-            {
-                deviceCreationContext.Dispose();
-                deviceCreationWindowInfo.Dispose();
-            }
+#if STRIDE_UI_SDL
+            gameWindow = (Stride.Graphics.SDL.Window)windowHandle.NativeWindow;
 
-            // Create PBuffer
-            ((AndroidWindow)deviceCreationWindowInfo).CreateSurface(graphicsContext.GraphicsMode.Index.Value);
-
-            deviceCreationContext = new OpenTK.Graphics.GraphicsContext(graphicsContext.GraphicsMode, deviceCreationWindowInfo, version / 100, (version % 100) / 10, creationFlags);
-
-            graphicsContextEglPtr = EglGetCurrentContext();
-#elif STRIDE_UI_SDL
             var SDL = Graphics.SDL.Window.SDL;
 
 #if STRIDE_GRAPHICS_API_OPENGLES
@@ -752,8 +676,7 @@ namespace Stride.Graphics
             SDL.GLSetAttribute(GLattr.GLContextMajorVersion, currentVersion / 100);
             SDL.GLSetAttribute(GLattr.GLContextMinorVersion, (currentVersion / 10) % 10);
 
-
-            MainGraphicsContext = new SdlContext(SDL, (Window*)gameWindow.SdlHandle);
+            MainGraphicsContext = new SdlContext(SDL, (Silk.NET.SDL.Window*)gameWindow.SdlHandle);
             ((SdlContext)MainGraphicsContext).Create();
             if (MainGraphicsContext.Handle == IntPtr.Zero)
             {
@@ -762,11 +685,13 @@ namespace Stride.Graphics
 
             // The context must be made current to initialize OpenGL
             MainGraphicsContext.MakeCurrent();
+#else
+#error Creating context is only implemented for SDL
 #endif
 
             // Create shared context for creating graphics resources from other threads
             SDL.GLSetAttribute(GLattr.GLShareWithCurrentContext, 1);
-            deviceCreationContext = new SdlContext(SDL, (Window*)gameWindow.SdlHandle);
+            deviceCreationContext = new SdlContext(SDL, (Silk.NET.SDL.Window*)gameWindow.SdlHandle);
             ((SdlContext)deviceCreationContext).Create();
 
             MainGraphicsContext.MakeCurrent();
@@ -839,8 +764,8 @@ namespace Stride.Graphics
             }
 
 #if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
-            gameWindow.Load -= OnApplicationResumed;
-            gameWindow.Unload -= OnApplicationPaused;
+            //gameWindow.Load -= OnApplicationResumed;
+            //gameWindow.Unload -= OnApplicationPaused;
 #endif
         }
 
@@ -985,22 +910,6 @@ namespace Stride.Graphics
 #endif
             }
         }
-
-#if STRIDE_PLATFORM_ANDROID
-    // Execute pending asynchronous object creation
-    // (on android devices where we can't create background context such as Tegra2/Tegra3)
-        internal void ExecutePendingTasks()
-        {
-            // Unbind context
-            MainGraphicsContext.Clear();
-
-            // Release and reacquire lock
-            Monitor.Wait(asyncCreationLockObject);
-
-            // Rebind context
-            MainGraphicsContext.MakeCurrent();
-        }
-#endif
 
         internal struct FBOTexture : IEquatable<FBOTexture>
         {

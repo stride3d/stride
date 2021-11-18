@@ -116,12 +116,13 @@ namespace Stride.Graphics
             HasMultisampleDepthAsSRV = true;
 
             deviceRoot.HasDepthClamp = SupportedExtensions.Contains("GL_ARB_depth_clamp");
-  
+
             // TODO: from 3.1: draw indirect, separate shader object
             // TODO: check tessellation & geometry shaders: GL_ANDROID_extension_pack_es31a
 #else
             deviceRoot.HasDXT = SupportedExtensions.Contains("GL_EXT_texture_compression_s3tc");
             deviceRoot.HasTextureBuffers = true;
+            deviceRoot.HasExtTextureFormatBGRA8888 = true;
             deviceRoot.HasKhronosDebug = deviceRoot.currentVersion >= 430 || SupportedExtensions.Contains("GL_KHR_debug");
             deviceRoot.HasTimerQueries = deviceRoot.version >= 320;
 
