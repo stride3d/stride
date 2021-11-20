@@ -7,7 +7,7 @@ using Stride.Graphics.SDL;
 namespace Stride.Games
 {
     /// <summary>
-    /// A <see cref="GameContext"/> to use for rendering to an existing <see cref="IView"/>.
+    /// A <see cref="GameContext"/> to use for rendering on Android.
     /// </summary>
     public partial class GameContextAndroid : GameContextSDL
     {

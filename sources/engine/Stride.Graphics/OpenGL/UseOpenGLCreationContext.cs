@@ -61,13 +61,8 @@ namespace Stride.Graphics
                 {
                     GL.Flush();
 
-#if STRIDE_PLATFORM_IOS
-                    if (previousContext != null)
-                        OpenGLES.EAGLContext.SetCurrentContext(previousContext);
-#else
                     // Restore graphics context
                     GraphicsDevice.UnbindGraphicsContext(deviceCreationContext);
-#endif
                 }
             }
             finally

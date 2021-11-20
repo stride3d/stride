@@ -81,7 +81,7 @@ namespace Stride.Games
         public static GameContext NewGameContextiOS()
         {
 #if STRIDE_PLATFORM_IOS
-            return new GameContextiOS(new iOSWindow(null, null, null), 0, 0);
+            return new GameContextiOS(null);
 #else
             return null;
 #endif
