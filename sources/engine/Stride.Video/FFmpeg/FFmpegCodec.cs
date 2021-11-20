@@ -9,12 +9,13 @@ using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
 using Stride.Core.Diagnostics;
 using Stride.Graphics;
-using Silk.NET.DXGI;
-using Silk.NET.Core.Native;
+
 
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
 //using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
+using Silk.NET.Core.Native;
 #endif
 
 namespace Stride.Video.FFmpeg
@@ -177,7 +178,7 @@ namespace Stride.Video.FFmpeg
             //if (videoDevice == null || videoContext == null)
             //    return;
             
-            foreach (var profile in FindVideoFormatCompatibleProfiles(videoDevice.Get(), *pCodec))
+            foreach (var profile in FindVideoFormatCompatibleProfiles(videoDevice, *pCodec))
             {
                 // Create and configure the video decoder
                 var videoDecoderDescription = new Silk.NET.Direct3D11.VideoDecoderDesc
@@ -250,29 +251,29 @@ namespace Stride.Video.FFmpeg
                 }
             }
         }
-        private static Guid GetVideoDecoderProfile(Silk.NET.Direct3D11.ID3D11VideoDevice1 v, int i)
+        private static Guid GetVideoDecoderProfile(ComPtr<Silk.NET.Direct3D11.ID3D11VideoDevice1> v, int i)
         {
             Guid profile;
             unsafe
             {
-                v.GetVideoDecoderProfile((uint)i, &profile);
+                v.Get().GetVideoDecoderProfile((uint)i, &profile);
             }
             return profile;
         }
 
-        private static int CheckVideoDecoderFormat(Silk.NET.Direct3D11.ID3D11VideoDevice1 v,Guid p, Format f)
+        private static int CheckVideoDecoderFormat(ComPtr<Silk.NET.Direct3D11.ID3D11VideoDevice1> v,Guid p, Format f)
         {
             int i = 0;
             unsafe
             {
-                v.CheckVideoDecoderFormat(&p, f, &i);
+                v.Get().CheckVideoDecoderFormat(&p, f, &i);
             }
             return i;
         }
 
-        private static IEnumerable<Guid> FindVideoFormatCompatibleProfiles(Silk.NET.Direct3D11.ID3D11VideoDevice1 videoDevice, AVCodec codec)
+        private static IEnumerable<Guid> FindVideoFormatCompatibleProfiles(ComPtr<Silk.NET.Direct3D11.ID3D11VideoDevice1> videoDevice, AVCodec codec)
         {
-            for (var i = 0; i < videoDevice.GetVideoDecoderProfileCount(); ++i)
+            for (var i = 0; i < videoDevice.Get().GetVideoDecoderProfileCount(); ++i)
             {
                 Guid profile = GetVideoDecoderProfile(videoDevice,i);
 
