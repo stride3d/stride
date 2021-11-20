@@ -41,8 +41,8 @@ namespace Stride.VirtualReality
                 textures[i] = new Texture(device);
                 unsafe
                 {
-                    var tex = new ID3D11Texture2D((void**)ptr);
-                    textures[i].InitializeFromImpl(new ComPtr<ID3D11Texture2D>(&tex), false);
+                    var tex = new ComPtr<ID3D11Texture2D>((ID3D11Texture2D*)ptr);
+                    textures[i].InitializeFromImpl(tex, false);
                 }
             }
         }
