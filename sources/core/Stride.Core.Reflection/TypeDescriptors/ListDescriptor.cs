@@ -220,6 +220,11 @@ namespace Stride.Core.Reflection
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
             var typeInfo = type.GetTypeInfo();
+            if (typeInfo.IsArray)
+            {
+                return false;
+            }
+
             if (typeof(IList).GetTypeInfo().IsAssignableFrom(typeInfo))
             {
                 return true;
