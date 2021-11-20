@@ -140,6 +140,9 @@
   <data name="Issues" xml:space="preserve">
     <value>https://github.com/stride3d/stride/issues/</value>
   </data>
+  <data name="OpenCollective" xml:space="preserve">
+    <value>https://opencollective.com/stride3d</value>
+  </data>
   <data name="Reddit" xml:space="preserve">
     <value>https://www.reddit.com/r/stride3d</value>
   </data>

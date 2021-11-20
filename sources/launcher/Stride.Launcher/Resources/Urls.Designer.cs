@@ -124,6 +124,15 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to https://opencollective.com/stride3d.
+        /// </summary>
+        public static string OpenCollective {
+            get {
+                return ResourceManager.GetString("OpenCollective", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to https://www.reddit.com/r/stride3d.
         /// </summary>
         public static string Reddit {

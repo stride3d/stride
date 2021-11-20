@@ -32,6 +32,7 @@
       <BitmapImage x:Key="ImageTwitter" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/twitter_bird_24.png"/>
       <BitmapImage x:Key="ImageFacebook" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/facebook_24.png"/>
       <BitmapImage x:Key="ImageReddit" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/reddit_24.png"/>
+      <BitmapImage x:Key="ImageOpenCollective" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/opencollective-24.png"/>
       
       <BitmapImage x:Key="ImageDownload" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/download-26-dark.png"/>
       <BitmapImage x:Key="ImageUpdate" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/update.png"/>
@@ -329,6 +330,17 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                   </Button>
+                  <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
+                        Command="{Binding OpenUrlCommand}"
+                        CommandParameter="{x:Static r:Urls.OpenCollective}" SnapsToDevicePixels="True" Margin="2"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
+                        Content="{sskk:Image {StaticResource ImageOpenCollective}, 24, 24, NearestNeighbor}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
+                  </Button>                  
                   <!--<Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="https://www.google.com/" SnapsToDevicePixels="True" Margin="2"
