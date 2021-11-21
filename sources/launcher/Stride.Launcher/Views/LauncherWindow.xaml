@@ -302,7 +302,7 @@
                         CommandParameter="{x:Static r:Urls.Twitter}" SnapsToDevicePixels="True" Margin="2"
                         ToolTipService.IsEnabled="False"
                         ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
-                        Content="{sskk:Image {StaticResource ImageTwitter}, 24, 24, NearestNeighbor}">
+                        Content="{sskk:Image {StaticResource ImageTwitter}, 24, 24, HighQuality}">
                     <i:Interaction.Behaviors>
                       <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
@@ -335,7 +335,7 @@
                         CommandParameter="{x:Static r:Urls.OpenCollective}" SnapsToDevicePixels="True" Margin="2"
                         ToolTipService.IsEnabled="False"
                         ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
-                        Content="{sskk:Image {StaticResource ImageOpenCollective}, 24, 24, NearestNeighbor}">
+                        Content="{sskk:Image {StaticResource ImageOpenCollective}, 24, 24, HighQuality}">
                     <i:Interaction.Behaviors>
                       <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
