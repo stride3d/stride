@@ -134,7 +134,7 @@ namespace Stride.Graphics
         {
             get
             {
-                return adapter;
+                return new ComPtr<IDXGIAdapter>(adapter);
             }
         }
 
@@ -165,26 +165,23 @@ namespace Stride.Graphics
             unsafe
             {
                 long gp = (long)graphicsProfile;
-                long* gpPtr = &gp;
-                fixed (Guid* g = &IDXGIAdapter1.Guid)
+                var guid = SilkMarshal.GuidPtrOf<IDXGIAdapter1>();
+               
+                //TODO change to silk marshal with Guiid
+                if ((ulong)NativeAdapter.Get().CheckInterfaceSupport(guid, &gp) == (ulong)ReturnCodes.S_OK)
                 {
-                    //TODO change to silk marshal with Guiid
-                    if ((ulong)NativeAdapter.Get().CheckInterfaceSupport(g, gpPtr) == (ulong)ReturnCodes.S_OK)
-                    {
-                        maximumSupportedProfile = graphicsProfile;
-                        return true;
-                    }
-                    else
-                    {
-                        minimumUnsupportedProfile = graphicsProfile;
-                        return false;
-                    }
+                    maximumSupportedProfile = graphicsProfile;
+                    return true;
                 }
+                else
+                {
+                    minimumUnsupportedProfile = graphicsProfile;
+                    return false;
+                }
+                
             }
-            
-            
-#endif
         }
     }
-} 
+}
+#endif
 #endif

@@ -437,15 +437,10 @@ namespace Stride.Graphics
                 for (int i = 0; i < remainingSlots; i++)
                     unchecked { uavInitialCounts[i] = (uint)-1;}
                 uavInitialCounts[slot - currentRenderTargetViewsActiveCount] = (uint)uavInitialOffset;
-                ID3D11UnorderedAccessView*[] tmpUavs = new ID3D11UnorderedAccessView*[uavs.Length];
-                for (int i = 0; i < tmpUavs.Length; i++)
-                {
-                    tmpUavs[i] = uavs[i].Handle;
-                }
 
-                fixed (ID3D11UnorderedAccessView** puavs = tmpUavs)
+                fixed (nint* puavs = uavs.Select(x => (nint)x.Handle).ToArray())
                 fixed (uint* initCounts = uavInitialCounts)
-                    outputMerger.Get().CSSetUnorderedAccessViews(0,(uint)currentRenderTargetViewsActiveCount, puavs, initCounts);
+                    outputMerger.Get().CSSetUnorderedAccessViews(0,(uint)currentRenderTargetViewsActiveCount, (ID3D11UnorderedAccessView**)puavs, initCounts);
             }
         }
 
@@ -487,9 +482,9 @@ namespace Stride.Graphics
                 }
                 else
                 {
-                    if (currentUARenderTargetViews[slot] != unorderedAccessView.NativeUnorderedAccessView.Handle)
+                    if (!currentUARenderTargetViews[slot].Equals(unorderedAccessView.NativeUnorderedAccessView))
                     {
-                        OMSetSingleUnorderedAccessView(slot, unorderedAccessView.NativeUnorderedAccessView.Handle, uavInitialOffset);
+                        OMSetSingleUnorderedAccessView(slot, unorderedAccessView.NativeUnorderedAccessView, uavInitialOffset);
                     }
                 }
             }
@@ -520,7 +515,7 @@ namespace Stride.Graphics
                 }
                 for (int slot = 0; slot < SimultaneousRenderTargetCount; slot++)
                 {
-                    if (currentUARenderTargetViews[slot].Handle == view.Handle)
+                    if (currentUARenderTargetViews[slot].Equals(view))
                     {
                         OMSetSingleUnorderedAccessView(slot, null, -1);
                     }

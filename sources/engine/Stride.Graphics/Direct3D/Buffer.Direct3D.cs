@@ -49,15 +49,13 @@ namespace Stride.Graphics
             ViewFormat = viewFormat;
             unsafe
             {
-                ComPtr<ID3D11Buffer> pBuff = new ComPtr<ID3D11Buffer>();
+                ID3D11Buffer* pBuff = null;
                 SubresourceData srd = new SubresourceData
                 {
                     PSysMem = (void*)dataPointer
                 };
-                SilkMarshal.ThrowHResult(NativeDevice.Get().CreateBuffer(nativeDescription.Handle, dataPointer == IntPtr.Zero ? null : &srd, ref pBuff.Handle));
-                ComPtr<ID3D11DeviceChild> ptr = new();
-                pBuff.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceChild>(),(void**)&ptr);
-                NativeDeviceChild = ptr;
+                SilkMarshal.ThrowHResult(NativeDevice.Get().CreateBuffer(nativeDescription.Handle, dataPointer == IntPtr.Zero ? null : &srd, &pBuff));
+                NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)pBuff);
             }
             
 
@@ -294,6 +292,12 @@ namespace Stride.Graphics
 
             if ((bufferFlags & (uint)BufferFlags.StreamOutput) != 0)
                 desc.BindFlags |= (uint)BindFlag.BindStreamOutput;
+
+            if(desc.Usage == Silk.NET.Direct3D11.Usage.UsageDynamic)
+            {
+                desc.CPUAccessFlags = (uint)CpuAccessFlag.CpuAccessWrite;
+                if (desc.BindFlags == 0) desc.BindFlags = (uint)BindFlag.BindConstantBuffer;
+            }
 
             return desc;
         }

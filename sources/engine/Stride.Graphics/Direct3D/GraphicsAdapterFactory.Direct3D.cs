@@ -35,10 +35,10 @@ namespace Stride.Graphics
             {
                 var riid = new Span<Guid>(new Guid[] { IDXGIFactory.Guid });
                 var dxgi = DXGI.GetApi();
-                ComPtr<IDXGIFactory> factory;
-                var x = dxgi.CreateDXGIFactory(SilkMarshal.GuidPtrOf<IDXGIFactory>(), (void**)&factory.Handle);
+                IDXGIFactory* factoryPtr = null;
+                var x = dxgi.CreateDXGIFactory(SilkMarshal.GuidPtrOf<IDXGIFactory>(), (void**)&factoryPtr);
                 SilkMarshal.ThrowHResult(x);
-                NativeFactory = factory;
+                NativeFactory = new ComPtr<IDXGIFactory>(factoryPtr);
             }
 
 #endif
