@@ -95,14 +95,18 @@ namespace Stride.Graphics
         /// <param name="texture">The texture.</param>
         internal Texture InitializeFromImpl(ComPtr<ID3D11Texture2D> texture, bool isSrgb)
         {
-            var desc = new ComPtr<Texture2DDesc>();
+            Texture2DDesc desc = new();
+
             unsafe
             {
-                NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)&texture);
+
+                ID3D11DeviceChild* ptr = null;
+                texture.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11DeviceChild>(),(void**)&ptr);
+                NativeDeviceChild = new(ptr);
                 
-                texture.Get().GetDesc(desc);
+                texture.Get().GetDesc(&desc);
             }
-            var newTextureDescription = ConvertFromNativeDescription(desc.Get());
+            var newTextureDescription = ConvertFromNativeDescription(desc);
 
             // We might have created the swapchain as a non-srgb format (esp on Win10&RT) but we want it to behave like it is (esp. for the view and render target)
             if (isSrgb)
