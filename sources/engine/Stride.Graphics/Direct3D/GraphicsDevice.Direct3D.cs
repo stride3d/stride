@@ -24,8 +24,8 @@ namespace Stride.Graphics
         private bool simulateReset = false;
         private string rendererName;
 
-        private ComPtr<ID3D11Device >nativeDevice;
-        private ComPtr<ID3D11DeviceContext >nativeDeviceContext;
+        private ComPtr<ID3D11Device> nativeDevice;
+        private ComPtr<ID3D11DeviceContext> nativeDeviceContext;
         private readonly Queue<ComPtr<ID3D11Query>> disjointQueries = new Queue<ComPtr<ID3D11Query>>(4);
         private readonly Stack<ComPtr<ID3D11Query>> currentDisjointQueries = new Stack<ComPtr<ID3D11Query>>(2);
 
@@ -119,32 +119,31 @@ namespace Stride.Graphics
         {
             FrameTriangleCount = 0;
             FrameDrawCalls = 0;
-            // TODO : Need review
-            
-            ComPtr<ID3D11Query> currentDisjointQuery = disjointQueries.Peek();
+
+
             var result = new QueryDataTimestampDisjoint();
             unsafe
             {
+                ComPtr<ID3D11Query> currentDisjointQuery = null;
 
-                nativeDeviceContext.Get().GetData((ID3D11Asynchronous*)currentDisjointQuery.Handle, ref result, currentDisjointQuery.Get().GetDataSize(), (int)AsyncGetdataFlag.AsyncGetdataDonotflush);
-
-                if (disjointQueries.Count > 0 )
+                if (disjointQueries.Count > 0)
                 {
+                    currentDisjointQuery = new(disjointQueries.Peek());
+                    SilkMarshal.ThrowHResult(nativeDeviceContext.Get().GetData((ID3D11Asynchronous*)currentDisjointQuery.Handle, ref result, currentDisjointQuery.Get().GetDataSize(), (int)AsyncGetdataFlag.AsyncGetdataDonotflush));
                     TimestampFrequency = (long)result.Frequency;
                     currentDisjointQuery = disjointQueries.Dequeue();
                 }
                 else
                 {
-                    var disjointQueryDescription = new QueryDesc { MiscFlags = 3 };
-                    NativeDevice.Get().CreateQuery(ref disjointQueryDescription, ref currentDisjointQuery.Handle);
+                    var disjointQueryDescription = new QueryDesc { Query = Query.QueryTimestampDisjoint };
+                    SilkMarshal.ThrowHResult(NativeDevice.Get().CreateQuery(&disjointQueryDescription, &currentDisjointQuery.Handle));
                 }
                 currentDisjointQueries.Push(currentDisjointQuery);
                 NativeDeviceContext.Get().Begin((ID3D11Asynchronous*)currentDisjointQuery.Handle);
+                //currentDisjointQuery.Release();
             }
             // Try to read back the oldest disjoint query and reuse it. If not ready, create a new one.
-            
 
-            
         }
 
         /// <summary>
@@ -164,8 +163,9 @@ namespace Stride.Graphics
             var currentDisjointQuery = currentDisjointQueries.Pop();
             unsafe
             {
-                var ptr = &currentDisjointQuery;
-                NativeDeviceContext.Get().End((ID3D11Asynchronous*)ptr);
+                ID3D11Asynchronous* ptr = null;
+                currentDisjointQuery.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11Asynchronous>(), (void**)&ptr);
+                NativeDeviceContext.Get().End(ptr);
             }
             disjointQueries.Enqueue(currentDisjointQuery);
         }
@@ -254,7 +254,7 @@ namespace Stride.Graphics
                         D3D11.GetApi().CreateDevice((IDXGIAdapter*)Adapter.NativeAdapter.Handle, D3DDriverType.D3DDriverTypeUnknown, 0, (uint)creationFlags, &level, 1, D3D11.SdkVersion, ref nativeDevice.Handle, null, null);
                     }
                     //nativeDevice = new SharpDX.Direct3D11.Device(Adapter.NativeAdapter, creationFlags, level);
-                    
+
 
 
                     // INTEL workaround: force ShaderProfile to be 10+ as well
@@ -310,14 +310,14 @@ namespace Stride.Graphics
             }
             disjointQueries.Clear();
 
-            unsafe 
+            unsafe
             {
                 // Display D3D11 ref counting info
                 NativeDevice.Get().GetImmediateContext(ref nativeDeviceContext.Handle);
                 nativeDeviceContext.Get().ClearState();
                 nativeDeviceContext.Get().Flush();
             }
-            
+
 
             if (IsDebugMode)
             {
