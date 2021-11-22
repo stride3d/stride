@@ -97,7 +97,7 @@ namespace Stride.Graphics
             {
 
                 ID3D11Buffer* buff = null;
-                NativeDevice.Get().CreateBuffer(nativeDescription.Handle, null, &buff);
+                SilkMarshal.ThrowHResult(NativeDevice.Get().CreateBuffer(nativeDescription.Handle, null, &buff));
                 NativeDeviceChild = new ComPtr<ID3D11DeviceChild>((ID3D11DeviceChild*)buff);
             }
             
@@ -135,9 +135,9 @@ namespace Stride.Graphics
         /// The buffer must have been declared with <see cref="Graphics.BufferFlags.ShaderResource"/>. 
         /// The ShaderResourceView instance is kept by this buffer and will be disposed when this buffer is disposed.
         /// </remarks>
-        internal ID3D11ShaderResourceView GetShaderResourceView(PixelFormat viewFormat)
+        internal ComPtr<ID3D11ShaderResourceView> GetShaderResourceView(PixelFormat viewFormat)
         {
-            ID3D11ShaderResourceView srv = new();
+            ComPtr<ID3D11ShaderResourceView> srv = new();
             if ((nativeDescription.Get().BindFlags & (uint)BindFlag.BindShaderResource) != 0)
             {
                 var description = new ShaderResourceViewDesc
@@ -160,7 +160,9 @@ namespace Stride.Graphics
                 unsafe
                 {
                     //TODO : Instantiate this correctly
-                    srv = new ID3D11ShaderResourceView(GraphicsDevice.NativeDevice.Get().LpVtbl);
+                    ID3D11ShaderResourceView* ptr = null;
+                    SilkMarshal.ThrowHResult(GraphicsDevice.NativeDevice.Get().QueryInterface(SilkMarshal.GuidPtrOf<ID3D11ShaderResourceView>(), (void**)&ptr));
+                    srv = new(ptr);
                 }
                 
             }
@@ -177,9 +179,9 @@ namespace Stride.Graphics
         /// <returns>A <see cref="RenderTargetView" /> for the particular view format.</returns>
         /// <remarks>The buffer must have been declared with <see cref="Graphics.BufferFlags.RenderTarget" />.
         /// The RenderTargetView instance is kept by this buffer and will be disposed when this buffer is disposed.</remarks>
-        internal ID3D11RenderTargetView GetRenderTargetView(PixelFormat pixelFormat, int width)
+        internal ComPtr<ID3D11RenderTargetView> GetRenderTargetView(PixelFormat pixelFormat, int width)
         {
-            var srv = new  ComPtr<ID3D11RenderTargetView>();
+            var rtv = new ComPtr<ID3D11RenderTargetView>();
             if ((nativeDescription.Get().BindFlags & (uint)BindFlag.BindRenderTarget) != 0)
             {
                 var description = new RenderTargetViewDesc
@@ -194,11 +196,13 @@ namespace Stride.Graphics
                 };
                 unsafe
                 {
-                    NativeDevice.Get().CreateRenderTargetView((ID3D11Resource*)nativeBuffer.Handle, &description, ref srv.Handle); 
+                    ID3D11RenderTargetView* ptr = null;
+                    SilkMarshal.ThrowHResult(GraphicsDevice.NativeDevice.Get().CreateRenderTargetView((ID3D11Resource*)nativeBuffer.Handle, &description, &ptr)); 
+                    rtv = new(ptr);
                 }
                 
             }
-            return srv.Get();
+            return rtv;
         }
 
         protected override void OnNameChanged()
@@ -322,9 +326,7 @@ namespace Stride.Graphics
             {
                 unsafe
                 {
-                    var srvF = GetShaderResourceView(srvFormat);
-                    NativeShaderResourceView = new ComPtr<ID3D11ShaderResourceView>(&srvF);
-
+                    NativeShaderResourceView = GetShaderResourceView(srvFormat);
                 }
             }
 
@@ -356,7 +358,7 @@ namespace Stride.Graphics
                 unsafe
                 {
                     ID3D11UnorderedAccessView* pUav = null;
-                    GraphicsDevice.NativeDevice.Get().CreateUnorderedAccessView((ID3D11Resource*)nativeBuffer.Handle, &description, &pUav);
+                    SilkMarshal.ThrowHResult(GraphicsDevice.NativeDevice.Get().CreateUnorderedAccessView((ID3D11Resource*)nativeBuffer.Handle, &description, &pUav));
                     NativeUnorderedAccessView = new ComPtr<ID3D11UnorderedAccessView>(pUav);
                 }
             }

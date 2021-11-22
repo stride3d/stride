@@ -164,21 +164,36 @@ namespace Stride.Graphics
             //}
             unsafe
             {
-                long gp = (long)graphicsProfile;
-                var guid = SilkMarshal.GuidPtrOf<IDXGIAdapter1>();
-               
                 //TODO change to silk marshal with Guiid
-                if ((ulong)NativeAdapter.Get().CheckInterfaceSupport(guid, &gp) == (ulong)ReturnCodes.S_OK)
-                {
-                    maximumSupportedProfile = graphicsProfile;
-                    return true;
-                }
-                else
-                {
-                    minimumUnsupportedProfile = graphicsProfile;
-                    return false;
-                }
-                
+
+                var featureLevels = new D3DFeatureLevel[]{
+                    D3DFeatureLevel.D3DFeatureLevel111,
+                    D3DFeatureLevel.D3DFeatureLevel110,
+                    D3DFeatureLevel.D3DFeatureLevel101,
+                    D3DFeatureLevel.D3DFeatureLevel100,
+                    D3DFeatureLevel.D3DFeatureLevel93,
+                    D3DFeatureLevel.D3DFeatureLevel92,
+                    D3DFeatureLevel.D3DFeatureLevel91
+                };
+
+                D3DFeatureLevel level = D3DFeatureLevel.D3DFeatureLevel91;
+
+                fixed (D3DFeatureLevel* levels = featureLevels)
+                SilkMarshal.ThrowHResult(D3D11.GetApi().CreateDevice(
+                    null,
+                    D3DDriverType.D3DDriverTypeHardware,
+                    0,
+                    0,
+                    levels,
+                    (uint)featureLevels.Length,
+                    D3D11.SdkVersion,
+                    null,
+                    &level,
+                    null
+                ));
+                maximumSupportedProfile = (GraphicsProfile)level;
+                minimumUnsupportedProfile = (GraphicsProfile)D3DFeatureLevel.D3DFeatureLevel91;
+                return true;
             }
         }
     }
