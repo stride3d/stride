@@ -695,8 +695,8 @@ namespace Stride.Core.Mathematics
         /// </returns>
         public bool Equals(Int2 other)
         {
-            return ((float)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance);
+            return (MathF.Abs(other.X - X) < MathUtil.ZeroTolerance &&
+                MathF.Abs(other.Y - Y) < MathUtil.ZeroTolerance);
         }
 
         /// <summary>

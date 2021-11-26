@@ -115,7 +115,6 @@ namespace Stride.Physics.Tests
                 Assert.Equal(currentPos, character.Transform.Position);
 
                 var collider = game.SceneSystem.SceneInstance.RootScene.Entities.First(ent => ent.Name == "Collider").Get<StaticColliderComponent>();
-                collider.ProcessCollisions = true;
 
                 game.Script.AddTask(async () =>
                 {

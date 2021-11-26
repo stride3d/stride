@@ -11,11 +11,11 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build" Version="16.11.0" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.11.0" ExcludeAssets="runtime" />
     <!-- Needed by MSBuild to function properly with .NET Core (when creating CreateAppHost task) -->
-    <PackageReference Include="Microsoft.NET.HostModel" Version="3.1.5" />
+    <PackageReference Include="Microsoft.NET.HostModel" Version="5.0.0-preview.1.20120.5" />
     <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.10.0" />
   </ItemGroup>

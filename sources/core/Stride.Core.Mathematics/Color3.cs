@@ -196,9 +196,9 @@ namespace Stride.Core.Mathematics
         /// <param name="exponent">The exponent.</param>
         public void Pow(float exponent)
         {
-            R = (float)Math.Pow(R, exponent);
-            G = (float)Math.Pow(G, exponent);
-            B = (float)Math.Pow(B, exponent);
+            R = MathF.Pow(R, exponent);
+            G = MathF.Pow(G, exponent);
+            B = MathF.Pow(B, exponent);
         }
 
         /// <summary>

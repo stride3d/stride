@@ -9,20 +9,15 @@ using System.Linq;
 using Android.Hardware;
 using Stride.Core.Mathematics;
 using Stride.Games;
-using Stride.Games.Android;
+using Window = Stride.Graphics.SDL.Window;
 
 namespace Stride.Input
 {
     /// <summary>
-    /// Provides support for pointer/keyboard/sensor input on Android
+    /// Provides support for sensor input on Android
     /// </summary>
-    internal class InputSourceAndroid : InputSourceBase
+    internal class InputSourceAndroid : InputSourceSDL
     {
-        private readonly AndroidStrideGameView uiControl;
-        
-        private KeyboardAndroid keyboard;
-        private PointerAndroid pointer;
-
         private AndroidSensorListener accelerometerListener;
         private AndroidSensorListener gyroscopeListener;
         private AndroidSensorListener linearAccelerationListener;
@@ -39,18 +34,13 @@ namespace Stride.Input
         private float[] quaternionArray = new float[4];
         private float[] rotationVector = new float[3];
 
-        public InputSourceAndroid(AndroidStrideGameView uiControl)
+        public InputSourceAndroid(Window uiControl) : base(uiControl)
         {
-            this.uiControl = uiControl ?? throw new ArgumentNullException(nameof(uiControl));
         }
 
         public override void Initialize(InputManager inputManager)
         {
-            // Create android pointer and keyboard
-            keyboard = new KeyboardAndroid(this, uiControl);
-            pointer = new PointerAndroid(this, uiControl);
-            RegisterDevice(keyboard);
-            RegisterDevice(pointer);
+            base.Initialize(inputManager);
 
             // Create android sensors
             if ((accelerometerListener = TryGetSensorListener(SensorType.Accelerometer)) != null)
@@ -171,6 +161,8 @@ namespace Stride.Input
 
         public override void Pause()
         {
+            base.Pause();
+
             // Disable all sensors when application is paused
             accelerometerListener?.Disable();
             gyroscopeListener?.Disable();

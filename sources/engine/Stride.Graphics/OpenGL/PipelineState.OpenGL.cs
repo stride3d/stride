@@ -7,13 +7,6 @@ using Stride.Core;
 using Stride.Core.Storage;
 using Stride.Shaders;
 using Stride.Core.Extensions;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-using PrimitiveTypeGl = OpenTK.Graphics.ES30.PrimitiveType;
-#else
-using OpenTK.Graphics.OpenGL;
-using PrimitiveTypeGl = OpenTK.Graphics.OpenGL.PrimitiveType;
-#endif
 
 namespace Stride.Graphics
 {

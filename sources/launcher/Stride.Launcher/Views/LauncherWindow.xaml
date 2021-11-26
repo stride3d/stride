@@ -32,7 +32,6 @@
       <BitmapImage x:Key="ImageTwitter" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/twitter_bird_24.png"/>
       <BitmapImage x:Key="ImageFacebook" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/facebook_24.png"/>
       <BitmapImage x:Key="ImageReddit" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/reddit_24.png"/>
-      <BitmapImage x:Key="ImagePatreon" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/patreon_mark_coral_24.png"/>
       
       <BitmapImage x:Key="ImageDownload" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/download-26-dark.png"/>
       <BitmapImage x:Key="ImageUpdate" UriSource="pack://application:,,,/Stride.Launcher;component/Resources/update.png"/>
@@ -330,17 +329,6 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                   </Button>
-                  <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
-                        Command="{Binding OpenUrlCommand}"
-                        CommandParameter="{x:Static r:Urls.Patreon}" SnapsToDevicePixels="True" Margin="2"
-                        ToolTipService.IsEnabled="False"
-                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
-                        Content="{sskk:Image {StaticResource ImagePatreon}, 24, 24, NearestNeighbor}">
-                    <i:Interaction.Behaviors>
-                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
-                    </i:Interaction.Behaviors>
-                  </Button>
                   <!--<Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="https://www.google.com/" SnapsToDevicePixels="True" Margin="2"
@@ -523,7 +511,7 @@
                     <ItemsControl ItemsSource="{Binding StrideVersions}" Margin="0,-2"/>
                     <ProgressBar Height="24" Margin="0,2" IsIndeterminate="True" Opacity="0.5"
                                                     Visibility="{Binding IsSynchronizing, Converter={sskk:VisibleOrCollapsed}}"/>
-                    <ToggleButton Style="{StaticResource TransparentButtonStyle}" IsChecked="{Binding ShowBetaVersions}" Margin="0,6" Content="{Binding}">
+                    <ToggleButton Style="{StaticResource TransparentButtonStyle}" IsChecked="{Binding ShowBetaVersions}" Command="{Binding CheckDeprecatedSourcesCommand}" Margin="0,6" Content="{Binding}">
                       <ToggleButton.ContentTemplate>
                         <DataTemplate>
                           <TextBlock x:Name="TextBlock" Text="{x:Static r:Strings.ToggleShowBetaVersions}"></TextBlock>

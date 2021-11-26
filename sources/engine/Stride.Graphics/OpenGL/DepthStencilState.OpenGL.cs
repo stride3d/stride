@@ -2,11 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_OPENGL 
 using System;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-#else
-using OpenTK.Graphics.OpenGL;
-#endif
 
 namespace Stride.Graphics
 {
@@ -103,6 +98,8 @@ namespace Stride.Graphics
 
         public void Apply(CommandList commandList)
         {
+            var GL = commandList.GL;
+
             if (commandList.DepthStencilBoundState.DepthBufferEnable != state.DepthBufferEnable)
             {
                 commandList.DepthStencilBoundState.DepthBufferEnable = state.DepthBufferEnable;
@@ -147,10 +144,10 @@ namespace Stride.Graphics
                 commandList.DepthStencilBoundState.Faces = state.Faces;
                 commandList.BoundStencilReference = commandList.NewStencilReference;
 
-                GL.StencilFuncSeparate(StencilFace.Front, state.Faces.FrontFaceStencilFunction, commandList.BoundStencilReference, state.StencilWriteMask); // set both faces
-                GL.StencilFuncSeparate(StencilFace.Back, state.Faces.BackFaceStencilFunction, commandList.BoundStencilReference, state.StencilWriteMask); // override back face
-                GL.StencilOpSeparate(StencilFace.Front, state.Faces.FrontFaceDepthFailOp, state.Faces.FrontFaceFailOp, state.Faces.FrontFacePassOp);
-                GL.StencilOpSeparate(StencilFace.Back, state.Faces.BackFaceDepthFailOp, state.Faces.BackFaceFailOp, state.Faces.BackFacePassOp);
+                GL.StencilFuncSeparate(StencilFaceDirection.Front, state.Faces.FrontFaceStencilFunction, commandList.BoundStencilReference, state.StencilWriteMask); // set both faces
+                GL.StencilFuncSeparate(StencilFaceDirection.Back, state.Faces.BackFaceStencilFunction, commandList.BoundStencilReference, state.StencilWriteMask); // override back face
+                GL.StencilOpSeparate(StencilFaceDirection.Front, state.Faces.FrontFaceDepthFailOp, state.Faces.FrontFaceFailOp, state.Faces.FrontFacePassOp);
+                GL.StencilOpSeparate(StencilFaceDirection.Back, state.Faces.BackFaceDepthFailOp, state.Faces.BackFaceFailOp, state.Faces.BackFacePassOp);
             }
         }
     }

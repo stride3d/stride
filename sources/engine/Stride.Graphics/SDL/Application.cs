@@ -4,15 +4,15 @@
 using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
+using Silk.NET.SDL;
+using Point = Stride.Core.Mathematics.Point;
 
 namespace Stride.Graphics.SDL
 {
-    using System.Diagnostics;
-    // Using is here otherwise it would conflict with the current namespace that also defines SDL.
-    using SDL2;
-
-    public static class Application
+    public unsafe static class Application
     {
+        private static Sdl SDL => Window.SDL;
+
         /// <summary>
         /// Initialize Application for handling events and available windows.
         /// </summary>
@@ -58,12 +58,12 @@ namespace Stride.Graphics.SDL
             get
             {
                 int x, y;
-                SDL.SDL_GetGlobalMouseState(out x, out y);
+                SDL.GetGlobalMouseState(&x, &y);
                 return new Point(x, y);
             }
             set
             {
-                int err = SDL.SDL_WarpMouseGlobal(value.X, value.Y);
+                int err = SDL.WarpMouseGlobal(value.X, value.Y);
                 if (err != 0)
                     throw new NotSupportedException("Current platform doesn't let you set the position of the mouse cursor.");
             }
@@ -116,11 +116,11 @@ namespace Stride.Graphics.SDL
         /// </summary>
         public static void ProcessEvents()
         {
-            SDL.SDL_Event e;
-            while (SDL.SDL_PollEvent(out e) > 0)
+            Event e;
+            while (SDL.PollEvent(&e) > 0)
             {
                 // Handy for debugging
-                //if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT)
+                //if (e.type == EventType.WINDOWEVENT)
                 //    Debug.WriteLine(e.window.windowEvent);
 
                 Application.ProcessEvent(e);
@@ -130,70 +130,70 @@ namespace Stride.Graphics.SDL
         /// <summary>
         /// Process a single event and dispatch it to the right window.
         /// </summary>
-        public static void ProcessEvent(SDL.SDL_Event e)
+        public static void ProcessEvent(Event e)
         {
             Window ctrl = null;
 
                 // Code below is to extract the associated `Window' instance and to find out the window
                 // with focus. In the future, we could even add events handled at the application level.
-            switch (e.type)
+            switch ((EventType)e.Type)
             {
-                case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
-                    ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.button.windowID));
+                case EventType.Mousebuttondown:
+                case EventType.Mousebuttonup:
+                    ctrl = WindowFromSdlHandle(SDL.GetWindowFromID(e.Button.WindowID));
                     break;
 
-                case SDL.SDL_EventType.SDL_MOUSEMOTION:
-                    ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.motion.windowID));
+                case EventType.Mousemotion:
+                    ctrl = WindowFromSdlHandle(SDL.GetWindowFromID(e.Motion.WindowID));
                     break;
 
-                case SDL.SDL_EventType.SDL_MOUSEWHEEL:
-                    ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.wheel.windowID));
+                case EventType.Mousewheel:
+                    ctrl = WindowFromSdlHandle(SDL.GetWindowFromID(e.Wheel.WindowID));
                     break;
                     
-                case SDL.SDL_EventType.SDL_KEYDOWN:
-                case SDL.SDL_EventType.SDL_KEYUP:
-                    ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.key.windowID));
+                case EventType.Keydown:
+                case EventType.Keyup:
+                    ctrl = WindowFromSdlHandle(SDL.GetWindowFromID(e.Key.WindowID));
                     break;
 
-                case SDL.SDL_EventType.SDL_TEXTEDITING:
-                    ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.edit.windowID));
+                case EventType.Textediting:
+                    ctrl = WindowFromSdlHandle(SDL.GetWindowFromID(e.Edit.WindowID));
                     break;
 
-                case SDL.SDL_EventType.SDL_TEXTINPUT:
-                    ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.text.windowID));
+                case EventType.Textinput:
+                    ctrl = WindowFromSdlHandle(SDL.GetWindowFromID(e.Text.WindowID));
                     break;
 
-                case SDL.SDL_EventType.SDL_FINGERMOTION:
-                case SDL.SDL_EventType.SDL_FINGERDOWN:
-                case SDL.SDL_EventType.SDL_FINGERUP:
+                case EventType.Fingermotion:
+                case EventType.Fingerdown:
+                case EventType.Fingerup:
                     ctrl = WindowWithFocus;
                     break;
 
-                case SDL.SDL_EventType.SDL_WINDOWEVENT:
+                case EventType.Windowevent:
                 {
-                    ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.window.windowID));
-                    switch (e.window.windowEvent)
+                    ctrl = WindowFromSdlHandle(SDL.GetWindowFromID(e.Window.WindowID));
+                    switch ((WindowEventID)e.Window.Event)
                     {
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
+                        case WindowEventID.WindoweventFocusGained:
                             WindowWithFocus = ctrl;
                             break;
 
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+                        case WindowEventID.WindoweventFocusLost:
                             WindowWithFocus = null;
                             break;
                     }
                     break;
                 }
-                case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
-                case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
+                case EventType.Joydeviceadded:
+                case EventType.Joydeviceremoved:
                     // Send these events to all the windows
                     Windows.ForEach(x => x.ProcessEvent(e));
                     break;
                 
-                case SDL.SDL_EventType.SDL_DROPTEXT:
-                case SDL.SDL_EventType.SDL_DROPFILE:
-                    ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.drop.windowID));
+                case EventType.Droptext:
+                case EventType.Dropfile:
+                    ctrl = WindowFromSdlHandle(SDL.GetWindowFromID(e.Drop.WindowID));
                     break;
             }
             ctrl?.ProcessEvent(e);
@@ -205,12 +205,12 @@ namespace Stride.Graphics.SDL
         /// </summary>
         /// <param name="w">SDL Handle of the window we are looking for</param>
         /// <returns></returns>
-        private static Window WindowFromSdlHandle(IntPtr w)
+        private static Window WindowFromSdlHandle(Silk.NET.SDL.Window* w)
         {
             lock (InternalWindows)
             {
                 WeakReference<Window> weakRef;
-                if (InternalWindows.TryGetValue(w, out weakRef))
+                if (InternalWindows.TryGetValue((IntPtr)w, out weakRef))
                 {
                     Window ctrl;
                     if (weakRef.TryGetTarget(out ctrl))
@@ -220,7 +220,7 @@ namespace Stride.Graphics.SDL
                     else
                     {
                             // Window does not exist anymore in our code. Clean `InternalWindows'.
-                        InternalWindows.Remove(w);
+                        InternalWindows.Remove((IntPtr)w);
                         return null;
                     }
                 }
@@ -238,8 +238,8 @@ namespace Stride.Graphics.SDL
     
         public static string Clipboard
         {
-            get => SDL.SDL_GetClipboardText();
-            set => SDL.SDL_SetClipboardText( value );
+            get => SDL.GetClipboardTextS();
+            set => SDL.SetClipboardText(value);
         }
     }
 }

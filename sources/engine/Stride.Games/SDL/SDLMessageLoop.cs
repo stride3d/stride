@@ -2,13 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_UI_SDL
 using System;
+using Silk.NET.SDL;
 using Stride.Graphics.SDL;
+using Window = Stride.Graphics.SDL.Window;
 
 namespace Stride.Games
 {
-        // Using is here otherwise it would conflict with the current namespace that also defines SDL.
-    using SDL2;
-
     /// <summary>
     /// RenderLoop provides a rendering loop infrastructure. See remarks for usage. 
     /// </summary>
@@ -27,8 +26,10 @@ namespace Stride.Games
     /// </code>
     /// Note that the main control can be changed at anytime inside the loop.
     /// </remarks>
-    internal class SDLMessageLoop : IMessageLoop
+    internal unsafe class SDLMessageLoop : IMessageLoop
     {
+        private static Sdl SDL = Window.SDL;
+
         private Window control;
         private bool isControlAlive;
         private bool switchControl;
@@ -91,11 +92,11 @@ namespace Stride.Games
 
             if (isControlAlive)
             {
-                SDL.SDL_Event e;
-                while (SDL.SDL_PollEvent(out e) != 0)
+                Event e;
+                while (SDL.PollEvent(&e) != 0)
                 {
                     Application.ProcessEvent(e);
-                    if (e.type == SDL.SDL_EventType.SDL_QUIT)
+                    if ((EventType)e.Type == EventType.Quit)
                     {
                         isControlAlive = false;
                     }

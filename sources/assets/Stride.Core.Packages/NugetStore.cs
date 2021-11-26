@@ -41,8 +41,6 @@ namespace Stride.Core.Packages
     /// </summary>
     public class NugetStore : INugetDownloadProgress
     {
-        public const string DefaultPackageSource = "https://packages.stride3d.net/nuget";
-
         private IPackagesLogger logger;
         private readonly ISettings settings, localSettings;
         private ProgressReport currentProgressReport;
@@ -66,8 +64,7 @@ namespace Stride.Core.Packages
             RemoveDeletedSources(settings, "Xenko Dev");
             // Note the space: we want to keep "Stride Dev" but not "Stride Dev {PATH}\bin\packages" anymore
             RemoveSources(settings, "Stride Dev ");
-            // Add Stride package store (still used for Xenko up to 3.0)
-            CheckPackageSource("Stride", DefaultPackageSource);
+
             settings.SaveToDisk();
 
             InstallPath = SettingsUtility.GetGlobalPackagesFolder(settings);
@@ -123,7 +120,24 @@ namespace Stride.Core.Packages
             }
         }
 
-        private void CheckPackageSource(string name, string url)
+        public static bool CheckPackageSource(ISettings settings, string name)
+        {
+            var packageSources = settings.GetSection("packageSources");
+            if (packageSources != null)
+            {
+                foreach (var packageSource in packageSources.Items.OfType<SourceItem>().ToList())
+                {
+                    if (packageSource.Key == name)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static void UpdatePackageSource(ISettings settings, string name, string url)
         {
             settings.AddOrUpdate("packageSources", new SourceItem(name, url));
         }
@@ -305,7 +319,7 @@ namespace Stride.Core.Packages
 
                         // In case it's a package without any TFM (i.e. Visual Studio plugin), we still need to specify one
                         if (!targetFrameworks.Any())
-                            targetFrameworks = new string[] { "net5.0" };
+                            targetFrameworks = new string[] { "net6.0" };
 
                         // Old version expects to be installed in GamePackages
                         if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0) && oldRootDirectory != null)

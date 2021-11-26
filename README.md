@@ -44,7 +44,7 @@ Ask for help or report issues:
 * [Chat with the community on Discord](https://discord.gg/f6aerfE) [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
 * [Discuss topics on our forums](http://forums.stride3d.net/)
 * [Report engine issues](https://github.com/stride3d/stride/issues)
-* [Donate to support the project](https://www.patreon.com/stride3d)
+* [Donate to support the project](https://opencollective.com/stride3d/)
 * [List of Projects made by users](https://github.com/stride3d/stride-community-projects)
 * [Localization](docs/localization.md)
 
@@ -78,8 +78,6 @@ Ask for help or report issues:
 2. Add MSBuild's directory to your system's *PATH*
 3. Open a command prompt, point it to a directory and clone Stride to it: `git clone https://github.com/stride3d/stride.git`
 4. Navigate to `/Build` with the command prompt, input `dotnet restore Stride.sln` then `compile`
-
-For .Net 5.0 make sure that you have the latest SDK and runtime, navigate to `\sources\targets\Stride.Core.TargetFrameworks.Editor.props` and change `net472` to `net5.0-windows`
 
 If building failed:
 * If you skipped one of the `Prerequisites` thinking that you already have the latest version, update to the latest anyway just to be sure.

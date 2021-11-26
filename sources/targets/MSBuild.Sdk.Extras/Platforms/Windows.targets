@@ -43,7 +43,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(_SdkShortFrameworkIdentifier)' == 'uap'">
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v6.0</TargetFrameworkVersion>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <!-- Only set for the 10.0 version -->
     <NugetTargetMoniker Condition="'$(_SdkShortFrameworkVersion)' == '10.0'">UAP,Version=v10.0</NugetTargetMoniker>

@@ -174,7 +174,7 @@ namespace Stride.Video
             //The texture is set as external (GlTextureExternalOes): the mediaCodec API will create it and fill it
             //We don't know its size and format (size / format will depend on the media and on the device implementation)
             TextureExternal = Texture.NewExternalOES(GraphicsDevice);   // TODO: Can we just allocate a mip mapped texture for this?
-            int textureId = TextureExternal.TextureId;
+            var textureId = (int)TextureExternal.TextureId;
             VideoSurfaceTexture = new SurfaceTexture(textureId);
             VideoSurface = new Surface(VideoSurfaceTexture);
 

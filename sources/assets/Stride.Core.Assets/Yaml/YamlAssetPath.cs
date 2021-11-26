@@ -240,17 +240,40 @@ namespace Stride.Core.Assets.Yaml
                         var typeDescriptor = TypeDescriptorFactory.Default.Find(currentObject.GetType());
                         if (typeDescriptor is ArrayDescriptor arrayDescriptor)
                         {
-                            if (!(item.Value is int)) throw new InvalidOperationException($"The path [{ToString()}] contains non-integer index on an array.");
-                            memberPath.Push(arrayDescriptor, (int)item.Value);
-                            currentObject = arrayDescriptor.GetValue(currentObject, (int)item.Value);
+                            if (!(item.Value is int))
+                            {
+                                throw new InvalidOperationException($"The path [{ToString()}] contains non-integer index on an array.");
+                            }
+                            int value = (int)item.Value;
+                            memberPath.Push(arrayDescriptor, value);
+                            currentObject = arrayDescriptor.GetValue(currentObject, value);
                         }
-                        if (typeDescriptor is CollectionDescriptor collectionDescriptor)
+                        else if (typeDescriptor is CollectionDescriptor collectionDescriptor)
                         {
-                            if (!(item.Value is int)) throw new InvalidOperationException($"The path [{ToString()}] contains non-integer index on a collection.");
-                            memberPath.Push(collectionDescriptor, (int)item.Value);
-                            currentObject = collectionDescriptor.GetValue(currentObject, (int)item.Value);
+                            if (collectionDescriptor is SetDescriptor setDescriptor)
+                            {
+                                if (item.Value == null && !collectionDescriptor.ElementType.IsNullable())
+                                {
+                                    throw new InvalidOperationException($"The path [{ToString()}] contains a null item on a set.");
+                                }
+                                if (!setDescriptor.Contains(currentObject, item.Value))
+                                {
+                                    throw new InvalidOperationException($"The path [{ToString()}] item doesn't exsit on a set.");
+                                }
+                                memberPath.Push(setDescriptor, item.Value);
+                                currentObject = item.Value;
+                            }
+                            else
+                            {
+                                if (!(item.Value is int))
+                                {
+                                    throw new InvalidOperationException($"The path [{ToString()}] contains non-integer index on a collection.");
+                                }
+                                memberPath.Push(collectionDescriptor, item.Value);
+                                currentObject = collectionDescriptor.GetValue(currentObject, item.Value);
+                            }
                         }
-                        if (typeDescriptor is DictionaryDescriptor dictionaryDescriptor)
+                        else if (typeDescriptor is DictionaryDescriptor dictionaryDescriptor)
                         {
                             if (item.Value == null) throw new InvalidOperationException($"The path [{ToString()}] contains a null key on an dictionary.");
                             memberPath.Push(dictionaryDescriptor, item.Value);
@@ -266,16 +289,30 @@ namespace Stride.Core.Assets.Yaml
                         if (typeDescriptor is ArrayDescriptor arrayDescriptor)
                         {
                             if (!(key is int)) throw new InvalidOperationException($"The path [{ToString()}] contains a non-valid item id on an array.");
-                            memberPath.Push(arrayDescriptor, (int)key);
-                            currentObject = arrayDescriptor.GetValue(currentObject, (int)key);
+                            int keyInt = (int)key;
+                            memberPath.Push(arrayDescriptor, keyInt);
+                            currentObject = arrayDescriptor.GetValue(currentObject, keyInt);
                         }
-                        if (typeDescriptor is CollectionDescriptor collectionDescriptor)
+                        else if (typeDescriptor is CollectionDescriptor collectionDescriptor)
                         {
-                            if (!(key is int)) throw new InvalidOperationException($"The path [{ToString()}] contains a non-valid item id on a collection.");
-                            memberPath.Push(collectionDescriptor, (int)key);
-                            currentObject = collectionDescriptor.GetValue(currentObject, (int)key);
+                            if (collectionDescriptor.Category == DescriptorCategory.Set)
+                            {
+                                if (item.Value == null && !collectionDescriptor.ElementType.IsNullable())
+                                {
+                                    throw new InvalidOperationException($"The path [{ToString()}] contains a null item on a set.");
+                                }
+                            }
+                            else
+                            {
+                                if (!(key is int))
+                                {
+                                    throw new InvalidOperationException($"The path [{ToString()}] contains a non-valid item id on a collection.");
+                                }
+                            }
+                            memberPath.Push(collectionDescriptor, key);
+                            currentObject = collectionDescriptor.GetValue(currentObject, key);
                         }
-                        if (typeDescriptor is DictionaryDescriptor dictionaryDescriptor)
+                        else if (typeDescriptor is DictionaryDescriptor dictionaryDescriptor)
                         {
                             if (key == null) throw new InvalidOperationException($"The path [{ToString()}] contains a non-valid item id on an dictionary.");
                             memberPath.Push(dictionaryDescriptor, key);
@@ -319,15 +356,20 @@ namespace Stride.Core.Assets.Yaml
                         clone.Push(arrayItem.Descriptor, arrayItem.Index);
                         index = arrayItem.Index;
                     }
-                    if (item is MemberPath.CollectionPathItem collectionItem)
+                    else if (item is MemberPath.CollectionPathItem collectionItem)
                     {
                         clone.Push(collectionItem.Descriptor, collectionItem.Index);
                         index = collectionItem.Index;
                     }
-                    if (item is MemberPath.DictionaryPathItem dictionaryItem)
+                    else if (item is MemberPath.DictionaryPathItem dictionaryItem)
                     {
                         clone.Push(dictionaryItem.Descriptor, dictionaryItem.Key);
                         index = dictionaryItem.Key;
+                    }
+                    else if (item is MemberPath.SetPathItem setItem)
+                    {
+                        clone.Push(setItem.Descriptor, setItem.Index);
+                        index = setItem.Index;
                     }
                     if (!CollectionItemIdHelper.TryGetCollectionItemIds(clone.GetValue(root), out CollectionItemIdentifiers ids))
                     {

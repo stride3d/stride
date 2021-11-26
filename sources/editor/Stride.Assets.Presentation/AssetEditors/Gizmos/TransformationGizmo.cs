@@ -210,8 +210,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             if (cameraService.Component.Projection == CameraProjectionMode.Perspective)
             {
-                var distanceToSelectedEntity = Math.Abs(Vector3.TransformCoordinate(AnchorEntity.Transform.WorldMatrix.TranslationVector, cameraService.ViewMatrix).Z);
-                return SizeFactor * DefaultScale * 2f * (float)Math.Tan(MathUtil.DegreesToRadians(cameraService.VerticalFieldOfView / 2)) * distanceToSelectedEntity;
+                var distanceToSelectedEntity = MathF.Abs(Vector3.TransformCoordinate(AnchorEntity.Transform.WorldMatrix.TranslationVector, cameraService.ViewMatrix).Z);
+                return SizeFactor * DefaultScale * 2f * MathF.Tan(MathUtil.DegreesToRadians(cameraService.VerticalFieldOfView / 2)) * distanceToSelectedEntity;
             }
 
             return SizeFactor * DefaultScale * cameraService.Component.OrthographicSize;
@@ -306,7 +306,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 planeNormal = Vector3.Cross(planeVector, axisVector);
 
                 //This is a temporary fix for weird rotation behavior, it's not working for translation tho
-                if (MathUtil.NearEqual(Math.Abs(Vector3.Dot(axisVector, Vector3.Normalize(cameraVector))), 1.0f))
+                if (MathUtil.NearEqual(MathF.Abs(Vector3.Dot(axisVector, Vector3.Normalize(cameraVector))), 1.0f))
                 {
                     planeNormal = axisVector;
                 }
@@ -380,7 +380,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 if (mouseDragPixel.Length() < TransformationStartPixelThreshold)
                     return;
 
-                TransformationDirection = Math.Abs(mouseDragPixel.X) > Math.Abs(mouseDragPixel.Y) ? Vector2.UnitX : Vector2.UnitY;
+                TransformationDirection = MathF.Abs(mouseDragPixel.X) > MathF.Abs(mouseDragPixel.Y) ? Vector2.UnitX : Vector2.UnitY;
 
                 // ensure that the current transformation is not the identity (due to snap it might require more mouse movement to actually start the transformation)
                 var currentTransformation = CalculateTransformation();

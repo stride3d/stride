@@ -24,11 +24,6 @@ using System;
 using System.Collections.Generic;
 using Stride.Graphics.OpenGL;
 using Stride.Core.Diagnostics;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-#else
-using OpenTK.Graphics.OpenGL;
-#endif
 
 namespace Stride.Graphics
 {
@@ -46,9 +41,11 @@ namespace Stride.Graphics
 
         private void EnumerateMSAASupportPerFormat(GraphicsDevice deviceRoot)
         {
+            var GL = deviceRoot.GL;
+
             // Query OpenGL for the highest supported multisample count:
             int globalMaxMSAASamples;
-            GL.GetInteger(GL_MAX_SAMPLES, out globalMaxMSAASamples);
+            GL.GetInteger(GLEnum.MaxSamples, out globalMaxMSAASamples);
 
             // Now select the highest engine-supported multisample mode:    // TODO: Adjust comment.
             MultisampleCount actualMultisampleCount = MultisampleCount.None;
@@ -86,19 +83,16 @@ namespace Stride.Graphics
 
             using (deviceRoot.UseOpenGLCreationContext())
             {
-                Vendor = GL.GetString(StringName.Vendor);
-                Renderer = GL.GetString(StringName.Renderer);
-#if STRIDE_GRAPHICS_API_OPENGLES
-                SupportedExtensions = GL.GetString(StringName.Extensions).Split(' ');
-#else
+                var GL = deviceRoot.GL;
+                Vendor = GL.GetStringS(StringName.Vendor);
+                Renderer = GL.GetStringS(StringName.Renderer);
                 int numExtensions;
                 GL.GetInteger(GetPName.NumExtensions, out numExtensions);
                 SupportedExtensions = new string[numExtensions];
                 for (int extensionIndex = 0; extensionIndex < numExtensions; ++extensionIndex)
                 {
-                    SupportedExtensions[extensionIndex] = GL.GetString(StringNameIndexed.Extensions, extensionIndex);
+                    SupportedExtensions[extensionIndex] = GL.GetStringS(StringName.Extensions, (uint)extensionIndex);
                 }
-#endif
             }
 
 #if STRIDE_GRAPHICS_API_OPENGLES
@@ -122,12 +116,13 @@ namespace Stride.Graphics
             HasMultisampleDepthAsSRV = true;
 
             deviceRoot.HasDepthClamp = SupportedExtensions.Contains("GL_ARB_depth_clamp");
-  
+
             // TODO: from 3.1: draw indirect, separate shader object
             // TODO: check tessellation & geometry shaders: GL_ANDROID_extension_pack_es31a
 #else
             deviceRoot.HasDXT = SupportedExtensions.Contains("GL_EXT_texture_compression_s3tc");
             deviceRoot.HasTextureBuffers = true;
+            deviceRoot.HasExtTextureFormatBGRA8888 = true;
             deviceRoot.HasKhronosDebug = deviceRoot.currentVersion >= 430 || SupportedExtensions.Contains("GL_KHR_debug");
             deviceRoot.HasTimerQueries = deviceRoot.version >= 320;
 

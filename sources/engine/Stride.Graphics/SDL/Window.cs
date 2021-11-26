@@ -4,106 +4,93 @@
 using System;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Silk.NET.SDL;
+using Point = Stride.Core.Mathematics.Point;
 
 namespace Stride.Graphics.SDL
 {
-#pragma warning disable SA1200 // Using directives must be placed correctly
-    // Using is here otherwise it would conflict with the current namespace that also defines SDL.
-    using SDL2;
-#pragma warning restore SA1200 // Using directives must be placed correctly
-    public class Window : IDisposable
+    public unsafe class Window : IDisposable
     {
-#if STRIDE_GRAPHICS_API_OPENGL
-        private IntPtr glContext;
-#endif
+        public static Sdl SDL;
 
-        #region Initialization
+        private Silk.NET.SDL.Window* sdlHandle;
+
+#region Initialization
 
         /// <summary>
         /// Initializes static members of the <see cref="Window"/> class.
         /// </summary>
         static Window()
         {
-            SDL.SDL_Init(SDL.SDL_INIT_EVERYTHING);
-#if STRIDE_GRAPHICS_API_OPENGL
-            // Set our OpenGL version. It has to be done before any SDL window creation
-            // SDL_GL_CONTEXT_CORE gives us only the newer version, deprecated functions are disabled
-            int res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
-            // 4.2 is the lowest version we support.
-            res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-            if (Platform.Type == PlatformType.macOS)
-                res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 1);
-            else
-                res = SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
-#endif
+            SDL = Silk.NET.SDL.Sdl.GetApi();
+
+            SDL.Init(Sdl.InitEverything);
+
             // Pass first mouse event when user clicked on window 
-            SDL.SDL_SetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+            SDL.SetHint(Sdl.HintMouseFocusClickthrough, "1");
 
             // Don't leave fullscreen on focus loss
-            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+            SDL.SetHint(Sdl.HintVideoMinimizeOnFocusLoss, "0");
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Window"/> class with <paramref name="title"/> as the title of the Window.
         /// </summary>
         /// <param name="title">Title of the window, see Text property.</param>
-        public Window(string title)
+        public unsafe Window(string title)
         {
+            WindowFlags flags = WindowFlags.WindowAllowHighdpi;
 #if STRIDE_GRAPHICS_API_OPENGL
-            var flags = SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
+            flags |= WindowFlags.WindowOpengl;
 #elif STRIDE_GRAPHICS_API_VULKAN
-            var flags = SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN;
+            flags |= WindowFlags.WindowVulkan;
+#endif
+#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
+            flags |= WindowFlags.WindowBorderless | WindowFlags.WindowFullscreen | WindowFlags.WindowShown;
 #else
-            var flags = SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN;
+            flags |= WindowFlags.WindowHidden | WindowFlags.WindowResizable;
 #endif
             // Create the SDL window and then extract the native handle.
-            SdlHandle = SDL.SDL_CreateWindow(title, SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, 640, 480, flags);
+            sdlHandle = SDL.CreateWindow(title, Sdl.WindowposUndefined, Sdl.WindowposUndefined, 640, 480, (uint)flags);
 
-            if (SdlHandle == IntPtr.Zero)
-            {
-                throw new Exception("Cannot allocate SDL Window: " + SDL.SDL_GetError()); 
-            }
-            else
-            {
-                SDL.SDL_SysWMinfo info = default(SDL.SDL_SysWMinfo);
-                SDL.SDL_VERSION(out info.version);
-                if (SDL.SDL_GetWindowWMInfo(SdlHandle, ref info) == SDL.SDL_bool.SDL_FALSE)
-                {
-                    throw new Exception("Cannot get Window information: " + SDL.SDL_GetError());
-                }
-                else if (Core.Platform.Type == Core.PlatformType.Windows)
-                {
-                    Handle = info.info.win.window;
-                }
-                else if (Core.Platform.Type == Core.PlatformType.Linux)
-                {
-                    Handle = info.info.x11.window;
-                    Display = info.info.x11.display;
-                }
-                else if (Core.Platform.Type == Core.PlatformType.macOS)
-                {
-                    Handle = info.info.cocoa.window;
-                }
-                Application.RegisterWindow(this);
-                Application.ProcessEvents();
-
-#if STRIDE_GRAPHICS_API_OPENGL
-                glContext = SDL.SDL_GL_CreateContext(SdlHandle);
-                if (glContext == IntPtr.Zero)
-                {
-                    throw new Exception("Cannot create OpenGL context: " + SDL.SDL_GetError());
-                }
-
-                // The external context must be made current to initialize OpenGL
-                SDL.SDL_GL_MakeCurrent(SdlHandle, glContext);
-
-                // Create a dummy OpenTK context, that will be used to call some OpenGL features
-                // we need to later create the various context in GraphicsDevice.OpenGL.
-                DummyGLContext = new OpenTK.Graphics.GraphicsContext(new OpenTK.ContextHandle(glContext), SDL.SDL_GL_GetProcAddress, () => new OpenTK.ContextHandle(SDL.SDL_GL_GetCurrentContext()));
+#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
+            GraphicsAdapter.DefaultWindow = sdlHandle;
 #endif
+
+            if (sdlHandle == null)
+            {
+                throw new Exception("Cannot allocate SDL Window: " + SDL.GetErrorS()); 
             }
+
+            SysWMInfo info = default;
+            SDL.GetVersion(&info.Version);
+            if (!SDL.GetWindowWMInfo(sdlHandle, &info))
+            {
+                throw new Exception("Cannot get Window information: " + SDL.GetErrorS());
+            }
+
+            if (Core.Platform.Type == Core.PlatformType.Windows)
+            {
+                Handle = info.Info.Win.Hwnd;
+            }
+            else if (Core.Platform.Type == Core.PlatformType.Linux)
+            {
+                Handle = (IntPtr)info.Info.X11.Window;
+                Display = (IntPtr)info.Info.X11.Display;
+            }
+            else if (Core.Platform.Type == Core.PlatformType.Android)
+            {
+                Handle = (IntPtr)info.Info.Android.Window;
+                Surface = (IntPtr)info.Info.Android.Surface;
+            }
+            else if (Core.Platform.Type == Core.PlatformType.macOS)
+            {
+                Handle = (IntPtr)info.Info.Cocoa.Window;
+            }
+            Application.RegisterWindow(this);
+            Application.ProcessEvents();
         }
-        #endregion
+#endregion
 
         /// <summary>
         /// Move window to back.
@@ -118,7 +105,7 @@ namespace Stride.Graphics.SDL
         /// </summary>
         public virtual void BringToFront()
         {
-            SDL.SDL_RaiseWindow(SdlHandle);
+            SDL.RaiseWindow(sdlHandle);
         }
 
         /// <summary>
@@ -137,12 +124,12 @@ namespace Stride.Graphics.SDL
             get
             {
                 int x, y;
-                SDL.SDL_GetMouseState(out x, out y);
+                SDL.GetMouseState(&x, &y);
                 return new Point(x, y);
             }
             set
             {
-                SDL.SDL_WarpMouseInWindow(SdlHandle, value.X, value.Y);
+                SDL.WarpMouseInWindow(sdlHandle, value.X, value.Y);
             }
         }
 
@@ -151,14 +138,14 @@ namespace Stride.Graphics.SDL
         /// </summary>
         public bool TopMost
         {
-            get { return SDL.SDL_GetHint(SDL.SDL_HINT_ALLOW_TOPMOST) == "1"; }
+            get { return SDL.GetHintS(Sdl.HintAllowTopmost) == "1"; }
             set
             {
                 // FIXME: This is not yet implemented on SDL. We are using SDL_SetWindowPosition in
                 // FIXME: the hope that it will apply the new hint.
                 Point loc = Location;
-                SDL.SDL_SetHint(SDL.SDL_HINT_ALLOW_TOPMOST, (value ? "1" : "0"));
-                SDL.SDL_SetWindowPosition(SdlHandle, loc.X, loc.Y);
+                SDL.SetHint(Sdl.HintAllowTopmost, (value ? "1" : "0"));
+                SDL.SetWindowPosition(sdlHandle, loc.X, loc.Y);
             }
         }
 
@@ -167,8 +154,8 @@ namespace Stride.Graphics.SDL
         /// </summary>
         public bool MinimizeOnFocusLoss
         {
-            get { return SDL.SDL_GetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS) == "1"; }
-            set { SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, (value ? "1" : "0")); }
+            get { return SDL.GetHintS(Sdl.HintVideoMinimizeOnFocusLoss) == "1"; }
+            set { SDL.SetHint(Sdl.HintVideoMinimizeOnFocusLoss, (value ? "1" : "0")); }
         }
 
         /// <summary>
@@ -176,7 +163,7 @@ namespace Stride.Graphics.SDL
         /// </summary>
         public void Show()
         {
-            SDL.SDL_ShowWindow(SdlHandle);
+            SDL.ShowWindow(sdlHandle);
         }
 
         /// <summary>
@@ -192,24 +179,24 @@ namespace Stride.Graphics.SDL
         {
             get
             {
-                var flags = SDL.SDL_GetWindowFlags(SdlHandle);
+                var flags = SDL.GetWindowFlags(sdlHandle);
                 return CheckFullscreenFlag(flags);
             }
             set
             {
                 var fsFlag = GetFullscreenFlag();
-                SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)(value ? fsFlag : 0));
+                SDL.SetWindowFullscreen(sdlHandle, (uint)(value ? fsFlag : 0));
             }
         }
 
-        private SDL.SDL_WindowFlags GetFullscreenFlag()
+        private WindowFlags GetFullscreenFlag()
         {
-            return FullscreenIsBorderlessWindow ? SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP : SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
+            return FullscreenIsBorderlessWindow ? WindowFlags.WindowFullscreenDesktop : WindowFlags.WindowFullscreen;
         }
 
         private static bool CheckFullscreenFlag(uint flags)
         {
-            return ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0) || ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) != 0);
+            return ((flags & (uint)WindowFlags.WindowFullscreen) != 0) || ((flags & (uint)WindowFlags.WindowFullscreenDesktop) != 0);
         }
 
         /// <summary>
@@ -219,17 +206,17 @@ namespace Stride.Graphics.SDL
         {
             get
             {
-                return (SDL.SDL_GetWindowFlags(SdlHandle) & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN) != 0;
+                return (SDL.GetWindowFlags(sdlHandle) & (uint)WindowFlags.WindowShown) != 0;
             }
             set
             {
                 if (value)
                 {
-                    SDL.SDL_ShowWindow(SdlHandle);
+                    SDL.ShowWindow(sdlHandle);
                 }
                 else
                 {
-                    SDL.SDL_HideWindow(SdlHandle);
+                    SDL.HideWindow(sdlHandle);
                 }
             }
         }
@@ -241,16 +228,16 @@ namespace Stride.Graphics.SDL
         {
             get
             {
-                uint flags = SDL.SDL_GetWindowFlags(SdlHandle);
+                uint flags = SDL.GetWindowFlags(sdlHandle);
                 if (CheckFullscreenFlag(flags))
                 {
                     return FormWindowState.Fullscreen;
                 }
-                if ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED) != 0)
+                if ((flags & (uint)WindowFlags.WindowMaximized) != 0)
                 {
                     return FormWindowState.Maximized;
                 }
-                else if ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_MINIMIZED) != 0)
+                else if ((flags & (uint)WindowFlags.WindowMinimized) != 0)
                 {
                     return FormWindowState.Minimized;
                 }
@@ -264,16 +251,16 @@ namespace Stride.Graphics.SDL
                 switch (value)
                 {
                     case FormWindowState.Fullscreen:
-                        SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)GetFullscreenFlag());
+                        SDL.SetWindowFullscreen(sdlHandle, (uint)GetFullscreenFlag());
                         break;
                     case FormWindowState.Maximized:
-                        SDL.SDL_MaximizeWindow(SdlHandle);
+                        SDL.MaximizeWindow(sdlHandle);
                         break;
                     case FormWindowState.Minimized:
-                        SDL.SDL_MinimizeWindow(SdlHandle);
+                        SDL.MinimizeWindow(sdlHandle);
                         break;
                     case FormWindowState.Normal:
-                        SDL.SDL_RestoreWindow(SdlHandle);
+                        SDL.RestoreWindow(sdlHandle);
                         break;
                 }
             }
@@ -286,7 +273,7 @@ namespace Stride.Graphics.SDL
         {
             get
             {
-                return (SDL.SDL_GetWindowFlags(SdlHandle) & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS) != 0;
+                return (SDL.GetWindowFlags(sdlHandle) & (uint)WindowFlags.WindowInputFocus) != 0;
             }
         }
 
@@ -311,10 +298,10 @@ namespace Stride.Graphics.SDL
             get
             {
                 int w, h;
-                SDL.SDL_GetWindowSize(SdlHandle, out w, out h);
+                SDL.GetWindowSize(sdlHandle, &w, &h);
                 return new Size2(w, h);
             }
-            set { SDL.SDL_SetWindowSize(SdlHandle, value.Width, value.Height); }
+            set { SDL.SetWindowSize(sdlHandle, value.Width, value.Height); }
         }
 
         /// <summary>
@@ -326,20 +313,20 @@ namespace Stride.Graphics.SDL
             {
 #if STRIDE_GRAPHICS_API_OPENGL || STRIDE_GRAPHICS_API_VULKAN
                 int w, h;
-                SDL.SDL_GL_GetDrawableSize(SdlHandle, out w, out h);
+                SDL.GLGetDrawableSize(sdlHandle, &w, &h);
                 return new Size2(w, h);
 #else
-                SDL.SDL_Surface *surfPtr = (SDL.SDL_Surface*)SDL.SDL_GetWindowSurface(SdlHandle);
-                return new Size2(surfPtr->w, surfPtr->h);
+                var surface = SDL.GetWindowSurface(sdlHandle);
+                return new Size2(surface->W, surface->H);
 #endif
             }
             set
             {
                 // FIXME: We need to adapt the ClientSize to an actual Size to take into account borders.
                 // FIXME: On Windows you do this by using AdjustWindowRect.
-                // SDL.SDL_GetWindowBordersSize(SdlHandle, out var top, out var left, out var bottom, out var right);
+                // SDL.SDL_GetWindowBordersSize(sdlHandle, out var top, out var left, out var bottom, out var right);
                 // From SDL documentaion: Use this function to set the size of a window's client area.
-                SDL.SDL_SetWindowSize(SdlHandle, value.Width, value.Height);
+                SDL.SetWindowSize(sdlHandle, value.Width, value.Height);
             }
         }
 
@@ -352,18 +339,18 @@ namespace Stride.Graphics.SDL
             {
 #if STRIDE_GRAPHICS_API_OPENGL || STRIDE_GRAPHICS_API_VULKAN
                 int w, h;
-                SDL.SDL_GL_GetDrawableSize(SdlHandle, out w, out h);
+                SDL.GLGetDrawableSize(sdlHandle, &w, &h);
                 return new Rectangle(0, 0, w, h);
 #else
-                SDL.SDL_Surface *surfPtr = (SDL.SDL_Surface*)SDL.SDL_GetWindowSurface(SdlHandle);
-                return new Rectangle(0, 0, surfPtr->w, surfPtr->h);
+                var surface = SDL.GetWindowSurface(sdlHandle);
+                return new Rectangle(0, 0, surface->W, surface->H);
 #endif
             }
             set
             {
                 // From SDL documentaion: Use this function to set the size of a window's client area.
-                SDL.SDL_SetWindowSize(SdlHandle, value.Width, value.Height);
-                SDL.SDL_SetWindowPosition(SdlHandle, value.X, value.Y);
+                SDL.SetWindowSize(sdlHandle, value.Width, value.Height);
+                SDL.SetWindowPosition(sdlHandle, value.X, value.Y);
             }
         }
 
@@ -375,12 +362,12 @@ namespace Stride.Graphics.SDL
             get
             {
                 int x, y;
-                SDL.SDL_GetWindowPosition(SdlHandle, out x, out y);
+                SDL.GetWindowPosition(sdlHandle, &x, &y);
                 return new Point(x, y);
             }
             set
             {
-                SDL.SDL_SetWindowPosition(SdlHandle, value.X, value.Y);
+                SDL.SetWindowPosition(sdlHandle, value.X, value.Y);
             }
         }
 
@@ -389,8 +376,8 @@ namespace Stride.Graphics.SDL
         /// </summary>
         public string Text
         {
-            get { return SDL.SDL_GetWindowTitle(SdlHandle); }
-            set { SDL.SDL_SetWindowTitle(SdlHandle, value); }
+            get { return SDL.GetWindowTitleS(sdlHandle); }
+            set { SDL.SetWindowTitle(sdlHandle, value); }
         }
 
         /// <summary>
@@ -400,9 +387,9 @@ namespace Stride.Graphics.SDL
         {
             get
             {
-                uint flags = SDL.SDL_GetWindowFlags(SdlHandle);
-                var isResizeable = (flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE) != 0;
-                var isBorderless = (flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS) != 0;
+                uint flags = SDL.GetWindowFlags(sdlHandle);
+                var isResizeable = (flags & (uint)WindowFlags.WindowResizable) != 0;
+                var isBorderless = (flags & (uint)WindowFlags.WindowBorderless) != 0;
                 if (isBorderless)
                 {
                     return FormBorderStyle.None;
@@ -414,26 +401,26 @@ namespace Stride.Graphics.SDL
             }
             set
             {
-                SDL.SDL_SetWindowBordered(SdlHandle, value == FormBorderStyle.None ? SDL.SDL_bool.SDL_FALSE : SDL.SDL_bool.SDL_TRUE);
-                SDL.SDL_SetWindowResizable(SdlHandle, value == FormBorderStyle.Sizable ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
+                SDL.SetWindowBordered(sdlHandle, value == FormBorderStyle.None ? SdlBool.False : SdlBool.True);
+                SDL.SetWindowResizable(sdlHandle, value == FormBorderStyle.Sizable ? SdlBool.True : SdlBool.False);
             }
         }
 
         public void SetRelativeMouseMode(bool enabled)
         {
-            SDL.SDL_SetRelativeMouseMode(enabled ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
+            SDL.SetRelativeMouseMode(enabled ? SdlBool.True : SdlBool.False);
         }
 
         // Events that one can hook up.
-        public delegate void MouseButtonDelegate(SDL.SDL_MouseButtonEvent e);
-        public delegate void MouseMoveDelegate(SDL.SDL_MouseMotionEvent e);
-        public delegate void MouseWheelDelegate(SDL.SDL_MouseWheelEvent e);
-        public delegate void TextEditingDelegate(SDL.SDL_TextEditingEvent e);
-        public delegate void TextInputDelegate(SDL.SDL_TextInputEvent e);
-        public delegate void WindowEventDelegate(SDL.SDL_WindowEvent e);
-        public delegate void KeyDelegate(SDL.SDL_KeyboardEvent e);
+        public delegate void MouseButtonDelegate(MouseButtonEvent e);
+        public delegate void MouseMoveDelegate(MouseMotionEvent e);
+        public delegate void MouseWheelDelegate(MouseWheelEvent e);
+        public delegate void TextEditingDelegate(TextEditingEvent e);
+        public delegate void TextInputDelegate(TextInputEvent e);
+        public delegate void WindowEventDelegate(WindowEvent e);
+        public delegate void KeyDelegate(KeyboardEvent e);
         public delegate void JoystickDeviceChangedDelegate(int which);
-        public delegate void TouchFingerDelegate(SDL.SDL_TouchFingerEvent e);
+        public delegate void TouchFingerDelegate(TouchFingerEvent e);
         public delegate void NotificationDelegate();
         public delegate void DropEventDelegate(string content);
 
@@ -467,121 +454,121 @@ namespace Stride.Graphics.SDL
         /// <summary>
         /// Process events for the current window
         /// </summary>
-        public virtual void ProcessEvent(SDL.SDL_Event e)
+        public virtual void ProcessEvent(Event e)
         {
-            switch (e.type)
+            switch ((EventType)e.Type)
             {
-                case SDL.SDL_EventType.SDL_QUIT:
+                case EventType.Quit:
                         // When SDL sends a SDL_QUIT message, we have actually clicked on the close button.
                     CloseActions?.Invoke();
                     break;
 
-                case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                    PointerButtonPressActions?.Invoke(e.button);
+                case EventType.Mousebuttondown:
+                    PointerButtonPressActions?.Invoke(e.Button);
                     break;
 
-                case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
-                    PointerButtonReleaseActions?.Invoke(e.button);
+                case EventType.Mousebuttonup:
+                    PointerButtonReleaseActions?.Invoke(e.Button);
                     break;
 
-                case SDL.SDL_EventType.SDL_MOUSEMOTION:
-                    MouseMoveActions?.Invoke(e.motion);
+                case EventType.Mousemotion:
+                    MouseMoveActions?.Invoke(e.Motion);
                     break;
 
-                case SDL.SDL_EventType.SDL_MOUSEWHEEL:
-                    MouseWheelActions?.Invoke(e.wheel);
+                case EventType.Mousewheel:
+                    MouseWheelActions?.Invoke(e.Wheel);
                     break;
 
-                case SDL.SDL_EventType.SDL_KEYDOWN:
-                    KeyDownActions?.Invoke(e.key);
+                case EventType.Keydown:
+                    KeyDownActions?.Invoke(e.Key);
                     break;
 
-                case SDL.SDL_EventType.SDL_KEYUP:
-                    KeyUpActions?.Invoke(e.key);
+                case EventType.Keyup:
+                    KeyUpActions?.Invoke(e.Key);
                     break;
 
-                case SDL.SDL_EventType.SDL_TEXTEDITING:
-                    TextEditingActions?.Invoke(e.edit);
+                case EventType.Textediting:
+                    TextEditingActions?.Invoke(e.Edit);
                     break;
 
-                case SDL.SDL_EventType.SDL_TEXTINPUT:
-                    TextInputActions?.Invoke(e.text);
+                case EventType.Textinput:
+                    TextInputActions?.Invoke(e.Text);
                     break;
 
-                case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
-                    JoystickDeviceAdded?.Invoke(e.jdevice.which);
+                case EventType.Joydeviceadded:
+                    JoystickDeviceAdded?.Invoke(e.Jdevice.Which);
                     break;
 
-                case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
-                    JoystickDeviceRemoved?.Invoke(e.jdevice.which);
+                case EventType.Joydeviceremoved:
+                    JoystickDeviceRemoved?.Invoke(e.Jdevice.Which);
                     break;
 
-                case SDL.SDL_EventType.SDL_FINGERMOTION:
-                    FingerMoveActions?.Invoke(e.tfinger);
+                case EventType.Fingermotion:
+                    FingerMoveActions?.Invoke(e.Tfinger);
                     break;
 
-                case SDL.SDL_EventType.SDL_FINGERDOWN:
-                    FingerPressActions?.Invoke(e.tfinger);
+                case EventType.Fingerdown:
+                    FingerPressActions?.Invoke(e.Tfinger);
                     break;
 
-                case SDL.SDL_EventType.SDL_FINGERUP:
-                    FingerReleaseActions?.Invoke(e.tfinger);
+                case EventType.Fingerup:
+                    FingerReleaseActions?.Invoke(e.Tfinger);
                     break;
                 
-                case SDL.SDL_EventType.SDL_DROPFILE:
-                    DropFileActions?.Invoke( SDL.UTF8_ToManaged(e.drop.file, true) );
+                case EventType.Dropfile:
+                    DropFileActions?.Invoke(Silk.NET.Core.Native.SilkMarshal.PtrToString((IntPtr)e.Drop.File, Silk.NET.Core.Native.NativeStringEncoding.UTF8));
                     break;
 
-                case SDL.SDL_EventType.SDL_WINDOWEVENT:
+                case EventType.Windowevent:
                 {
-                    switch (e.window.windowEvent)
+                    switch ((WindowEventID)e.Window.Event)
                     {
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                            ResizeBeginActions?.Invoke(e.window);
+                        case WindowEventID.WindoweventSizeChanged:
+                            ResizeBeginActions?.Invoke(e.Window);
                             break;
 
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
-                            ResizeEndActions?.Invoke(e.window);
+                        case WindowEventID.WindoweventResized:
+                            ResizeEndActions?.Invoke(e.Window);
                             break;
 
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+                        case WindowEventID.WindoweventClose:
                             CloseActions?.Invoke();
                             break;
 
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
-                            ActivateActions?.Invoke(e.window);
+                        case WindowEventID.WindoweventShown:
+                            ActivateActions?.Invoke(e.Window);
                             break;
 
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN:
-                            DeActivateActions?.Invoke(e.window);
+                        case WindowEventID.WindoweventHidden:
+                            DeActivateActions?.Invoke(e.Window);
                             break;
 
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
-                            MinimizedActions?.Invoke(e.window);
+                        case WindowEventID.WindoweventMinimized:
+                            MinimizedActions?.Invoke(e.Window);
                             break;
 
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
-                            MaximizedActions?.Invoke(e.window);
+                        case WindowEventID.WindoweventMaximized:
+                            MaximizedActions?.Invoke(e.Window);
                             break;
 
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                            RestoredActions?.Invoke(e.window);
+                        case WindowEventID.WindoweventRestored:
+                            RestoredActions?.Invoke(e.Window);
                             break;
 
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
-                            MouseEnterActions?.Invoke(e.window);
+                        case WindowEventID.WindoweventEnter:
+                            MouseEnterActions?.Invoke(e.Window);
                             break;
 
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
-                            MouseLeaveActions?.Invoke(e.window);
+                        case WindowEventID.WindoweventLeave:
+                            MouseLeaveActions?.Invoke(e.Window);
                             break;
 
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
-                            FocusGainedActions?.Invoke(e.window);
+                        case WindowEventID.WindoweventFocusGained:
+                            FocusGainedActions?.Invoke(e.Window);
                             break;
 
-                        case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
-                            FocusLostActions?.Invoke(e.window);
+                        case WindowEventID.WindoweventFocusLost:
+                            FocusLostActions?.Invoke(e.Window);
                             break;
                     }
                     break;
@@ -602,9 +589,14 @@ namespace Stride.Graphics.SDL
         public IntPtr Display { get; private set; }
 
         /// <summary>
+        /// Surface of current Window (valid only for Android).
+        /// </summary>
+        public IntPtr Surface { get; private set; }
+
+        /// <summary>
         /// The SDL window handle.
         /// </summary>
-        public IntPtr SdlHandle { get; private set; }
+        public IntPtr SdlHandle => (IntPtr)sdlHandle;
 
         /// <summary>
         /// Is the Window still alive?
@@ -613,26 +605,8 @@ namespace Stride.Graphics.SDL
         {
             get { return SdlHandle != IntPtr.Zero; }
         }
-#if STRIDE_GRAPHICS_API_OPENGL
-        /// <summary>
-        /// Current instance as seen as a IWindowInfo.
-        /// </summary>
-        public OpenTK.Platform.IWindowInfo WindowInfo
-        {
-            get
-            {
-                    // Create the proper Sdl2WindowInfo context.
-                return OpenTK.Platform.Utilities.CreateSdl2WindowInfo(SdlHandle);
-            }
-        }
 
-        /// <summary>
-        /// The OpenGL Context if any
-        /// </summary>
-        public OpenTK.Graphics.IGraphicsContext DummyGLContext;
-#endif
-
-        #region Disposal
+#region Disposal
         ~Window()
         {
             Dispose(false);
@@ -657,7 +631,7 @@ namespace Stride.Graphics.SDL
         /// <param name="disposing">If <c>false</c> we are being called from the Finalizer.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (SdlHandle != IntPtr.Zero)
+            if (sdlHandle != null)
             {
                 if (disposing)
                 {
@@ -666,20 +640,9 @@ namespace Stride.Graphics.SDL
                     Application.UnregisterWindow(this);
                 }
 
-#if STRIDE_GRAPHICS_API_OPENGL
-                // Dispose OpenGL context
-                DummyGLContext?.Dispose();
-                DummyGLContext = null;
-                if (glContext != IntPtr.Zero)
-                {
-                    SDL.SDL_GL_DeleteContext(glContext);
-                    glContext = IntPtr.Zero;
-                }
-#endif
-
                 // Free unmanaged resources (unmanaged objects) and override a finalizer below.
-                SDL.SDL_DestroyWindow(SdlHandle);
-                SdlHandle = IntPtr.Zero;
+                SDL.DestroyWindow(sdlHandle);
+                sdlHandle = null;
                 Handle = IntPtr.Zero;
             }
         }

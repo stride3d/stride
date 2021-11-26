@@ -504,8 +504,8 @@ namespace Stride.Graphics
 
             // snap the position the closest 'real' pixel
             Vector2.Modulate(ref drawCommand.Position, ref resolutionRatio, out drawCommand.Position);
-            drawCommand.Position.X = (float)Math.Round(drawCommand.Position.X);
-            drawCommand.Position.Y = (float)Math.Round(drawCommand.Position.Y);
+            drawCommand.Position.X = MathF.Round(drawCommand.Position.X);
+            drawCommand.Position.Y = MathF.Round(drawCommand.Position.Y);
             drawCommand.Position.X /= resolutionRatio.X;
             drawCommand.Position.Y /= resolutionRatio.Y;
 

@@ -193,7 +193,7 @@ namespace Stride.Core.Yaml.Tests
         {
             var attributeRegistry = new AttributeRegistry();
             var factory = new TypeDescriptorFactory(attributeRegistry);
-            var descriptor = new CollectionDescriptor(factory, typeof(List<string>), false, new DefaultNamingConvention());
+            var descriptor = new ListDescriptor(factory, typeof(List<string>), false, new DefaultNamingConvention());
             descriptor.Initialize(new DefaultKeyComparer());
 
             // No Capacity as a member
@@ -201,7 +201,7 @@ namespace Stride.Core.Yaml.Tests
             Assert.True(descriptor.IsPureCollection);
             Assert.Equal(typeof(string), descriptor.ElementType);
 
-            descriptor = new CollectionDescriptor(factory, typeof(NonPureCollection), false,
+            descriptor = new ListDescriptor(factory, typeof(NonPureCollection), false,
                 new DefaultNamingConvention());
             descriptor.Initialize(new DefaultKeyComparer());
 
@@ -210,7 +210,7 @@ namespace Stride.Core.Yaml.Tests
             Assert.False(descriptor.IsPureCollection);
             Assert.Equal(typeof(int), descriptor.ElementType);
 
-            descriptor = new CollectionDescriptor(factory, typeof(ArrayList), false, new DefaultNamingConvention());
+            descriptor = new ListDescriptor(factory, typeof(ArrayList), false, new DefaultNamingConvention());
             descriptor.Initialize(new DefaultKeyComparer());
 
             // No Capacity

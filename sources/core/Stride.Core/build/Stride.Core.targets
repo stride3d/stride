@@ -27,8 +27,10 @@
   <PropertyGroup>
     <!-- Default mappings -->
     <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetPlatformIdentifier)' == 'UAP'">UWP</StridePlatform>
-    <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'MonoAndroid'">Android</StridePlatform>
-    <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'Xamarin.iOS'">iOS</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetPlatformIdentifier)' == 'Android'">Android</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetPlatformIdentifier)' == 'iOS'">iOS</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And '$(TargetPlatformIdentifier)' == 'macOS'">macOS</StridePlatform>
+    <StridePlatform Condition="'$(StridePlatform)' == '' And $(RuntimeIdentifier.StartsWith('linux'))">Linux</StridePlatform>
     <StridePlatform Condition="'$(StridePlatform)' == ''">Windows</StridePlatform>
   </PropertyGroup>
 

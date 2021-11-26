@@ -2,12 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_OPENGL 
 using System;
-using OpenTK.Graphics;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-#else
-using OpenTK.Graphics.OpenGL;
-#endif
 
 namespace Stride.Graphics
 {
@@ -16,12 +10,12 @@ namespace Stride.Graphics
         internal readonly ColorWriteChannels ColorWriteChannels;
 
         private readonly bool blendEnable;
-        private readonly BlendEquationMode blendEquationModeColor;
-        private readonly BlendEquationMode blendEquationModeAlpha;
-        private readonly BlendingFactorSrc blendFactorSrcColor;
-        private readonly BlendingFactorSrc blendFactorSrcAlpha;
-        private readonly BlendingFactorDest blendFactorDestColor;
-        private readonly BlendingFactorDest blendFactorDestAlpha;
+        private readonly BlendEquationModeEXT blendEquationModeColor;
+        private readonly BlendEquationModeEXT blendEquationModeAlpha;
+        private readonly BlendingFactor blendFactorSrcColor;
+        private readonly BlendingFactor blendFactorSrcAlpha;
+        private readonly BlendingFactor blendFactorDestColor;
+        private readonly BlendingFactor blendFactorDestAlpha;
         private readonly uint blendEquationHash;
         private readonly uint blendFuncHash;
 
@@ -44,8 +38,8 @@ namespace Stride.Graphics
             blendEquationModeAlpha = ToOpenGL(blendStateDescription.RenderTarget0.AlphaBlendFunction);
             blendFactorSrcColor = ToOpenGL(blendStateDescription.RenderTarget0.ColorSourceBlend);
             blendFactorSrcAlpha = ToOpenGL(blendStateDescription.RenderTarget0.AlphaSourceBlend);
-            blendFactorDestColor = (BlendingFactorDest)ToOpenGL(blendStateDescription.RenderTarget0.ColorDestinationBlend);
-            blendFactorDestAlpha = (BlendingFactorDest)ToOpenGL(blendStateDescription.RenderTarget0.AlphaDestinationBlend);
+            blendFactorDestColor = ToOpenGL(blendStateDescription.RenderTarget0.ColorDestinationBlend);
+            blendFactorDestAlpha = ToOpenGL(blendStateDescription.RenderTarget0.AlphaDestinationBlend);
 
             blendEquationHash = (uint)blendStateDescription.RenderTarget0.ColorBlendFunction
                              | ((uint)blendStateDescription.RenderTarget0.AlphaBlendFunction << 8);
@@ -56,57 +50,55 @@ namespace Stride.Graphics
                          | ((uint)blendStateDescription.RenderTarget0.AlphaDestinationBlend << 24);
         }
 
-        public static BlendEquationMode ToOpenGL(BlendFunction blendFunction)
+        public static BlendEquationModeEXT ToOpenGL(BlendFunction blendFunction)
         {
             switch (blendFunction)
             {
                 case BlendFunction.Subtract:
-                    return BlendEquationMode.FuncSubtract;
+                    return BlendEquationModeEXT.FuncSubtract;
                 case BlendFunction.Add:
-                    return BlendEquationMode.FuncAdd;
-#if !STRIDE_GRAPHICS_API_OPENGLES
+                    return BlendEquationModeEXT.FuncAdd;
                 case BlendFunction.Max:
-                    return BlendEquationMode.Max;
+                    return BlendEquationModeEXT.Max;
                 case BlendFunction.Min:
-                    return BlendEquationMode.Min;
-#endif
+                    return BlendEquationModeEXT.Min;
                 case BlendFunction.ReverseSubtract:
-                    return BlendEquationMode.FuncReverseSubtract;
+                    return BlendEquationModeEXT.FuncReverseSubtract;
                 default:
                     throw new NotSupportedException();
             }
         }
 
-        public static BlendingFactorSrc ToOpenGL(Blend blend)
+        public static BlendingFactor ToOpenGL(Blend blend)
         {
             switch (blend)
             {
                 case Blend.Zero:
-                    return BlendingFactorSrc.Zero;
+                    return BlendingFactor.Zero;
                 case Blend.One:
-                    return BlendingFactorSrc.One;
+                    return BlendingFactor.One;
                 case Blend.SourceColor:
-                    return (BlendingFactorSrc)BlendingFactorDest.SrcColor;
+                    return BlendingFactor.SrcColor;
                 case Blend.InverseSourceColor:
-                    return (BlendingFactorSrc)BlendingFactorDest.OneMinusSrcColor;
+                    return BlendingFactor.OneMinusSrcColor;
                 case Blend.SourceAlpha:
-                    return BlendingFactorSrc.SrcAlpha;
+                    return BlendingFactor.SrcAlpha;
                 case Blend.InverseSourceAlpha:
-                    return BlendingFactorSrc.OneMinusSrcAlpha;
+                    return BlendingFactor.OneMinusSrcAlpha;
                 case Blend.DestinationAlpha:
-                    return BlendingFactorSrc.DstAlpha;
+                    return BlendingFactor.DstAlpha;
                 case Blend.InverseDestinationAlpha:
-                    return BlendingFactorSrc.OneMinusDstAlpha;
+                    return BlendingFactor.OneMinusDstAlpha;
                 case Blend.DestinationColor:
-                    return BlendingFactorSrc.DstColor;
+                    return BlendingFactor.DstColor;
                 case Blend.InverseDestinationColor:
-                    return BlendingFactorSrc.OneMinusDstColor;
+                    return BlendingFactor.OneMinusDstColor;
                 case Blend.SourceAlphaSaturate:
-                    return BlendingFactorSrc.SrcAlphaSaturate;
+                    return BlendingFactor.SrcAlphaSaturate;
                 case Blend.BlendFactor:
-                    return BlendingFactorSrc.ConstantColor;
+                    return BlendingFactor.ConstantColor;
                 case Blend.InverseBlendFactor:
-                    return BlendingFactorSrc.OneMinusConstantColor;
+                    return BlendingFactor.OneMinusConstantColor;
                 case Blend.SecondarySourceColor:
                 case Blend.InverseSecondarySourceColor:
                 case Blend.SecondarySourceAlpha:
@@ -117,8 +109,9 @@ namespace Stride.Graphics
             }
         }
 
-        public void Apply(CommandList commandList, BlendState oldBlendState)
+        internal void Apply(CommandList commandList, BlendState oldBlendState)
         {
+            var GL = commandList.GL;
             // note: need to update blend equation, blend function and color mask even when the blend state is disable in order to keep the hash based caching system valid
 
             if (blendEnable && !oldBlendState.blendEnable)
@@ -138,14 +131,14 @@ namespace Stride.Graphics
 
             if (ColorWriteChannels != oldBlendState.ColorWriteChannels)
             {
-                RestoreColorMask();
+                RestoreColorMask(GL);
             }
 
             if (!blendEnable && oldBlendState.blendEnable)
                 GL.Disable(EnableCap.Blend);
         }
 
-        internal void RestoreColorMask()
+        internal void RestoreColorMask(GL GL)
         {
             GL.ColorMask(
                 (ColorWriteChannels & ColorWriteChannels.Red) != 0,

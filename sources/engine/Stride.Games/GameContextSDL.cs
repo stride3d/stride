@@ -11,12 +11,6 @@ namespace Stride.Games
     /// </summary>
     public class GameContextSDL : GameContext<Window>
     {
-        static GameContextSDL()
-        {
-            // Preload proper SDL native library (depending on CPU type)
-            NativeLibraryHelper.PreloadLibrary("SDL2.dll", typeof(Window));
-        }
-
         /// <inheritDoc/>
         public GameContextSDL(Window control, int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
             : base(control ?? new GameFormSDL(), requestedWidth, requestedHeight, isUserManagingRun)

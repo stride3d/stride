@@ -10,7 +10,7 @@ using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
+//using Newtonsoft.Json.Linq;
 using NuGet.Commands;
 using NuGet.Common;
 using NuGet.Configuration;
@@ -130,7 +130,7 @@ namespace Stride.Core.Assets
                             var nugetFramework = NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance);
 
 #if NETCOREAPP
-                            // Add TargetPlatform to net5.0 TFM (i.e. net5.0 to net5.0-windows7.0)
+                            // Add TargetPlatform to net6.0 TFM (i.e. net6.0 to net6.0-windows7.0)
                             var platform = Assembly.GetEntryAssembly()?.GetCustomAttribute<TargetPlatformAttribute>()?.PlatformName ?? string.Empty;
                             if (framework.StartsWith(FrameworkConstants.FrameworkIdentifiers.NetCoreApp) && platform != string.Empty)
                             {

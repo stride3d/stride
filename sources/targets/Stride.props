@@ -80,12 +80,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <StrideUI Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS'">SDL</StrideUI>
-    <StrideUI Condition="'$(StrideGraphicsApi)' == 'OpenGL'">$(StrideUI);OPENTK</StrideUI>
-    <StrideUI Condition="$(TargetFramework.EndsWith('-windows')) AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
+    <StrideUI Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS' Or '$(StridePlatform)' == 'Android' Or '$(StridePlatform)' == 'iOS'">SDL</StrideUI>
+    <StrideUI Condition="$(TargetFramework.Contains('-windows')) AND ('$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12')">$(StrideUI);WINFORMS;WPF</StrideUI>
 
     <DefineConstants Condition="$(StrideUI.Contains('SDL'))">$(DefineConstants);STRIDE_UI_SDL</DefineConstants>
-    <DefineConstants Condition="$(StrideUI.Contains('OPENTK'))">$(DefineConstants);STRIDE_UI_OPENTK</DefineConstants>
     <DefineConstants Condition="$(StrideUI.Contains('WINFORMS'))">$(DefineConstants);STRIDE_UI_WINFORMS</DefineConstants>
     <DefineConstants Condition="$(StrideUI.Contains('WPF'))">$(DefineConstants);STRIDE_UI_WPF</DefineConstants>
   </PropertyGroup>

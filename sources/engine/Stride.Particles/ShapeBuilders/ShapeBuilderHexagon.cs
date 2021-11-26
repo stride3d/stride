@@ -87,8 +87,8 @@ namespace Stride.Particles.ShapeBuilders
                 if (hasAngle)
                 {
                     var rotationAngle = GetParticleRotation(particle, angleField, lifeField);
-                    var cosA = (float)Math.Cos(rotationAngle);
-                    var sinA = (float)Math.Sin(rotationAngle);
+                    var cosA = MathF.Cos(rotationAngle);
+                    var sinA = MathF.Sin(rotationAngle);
                     var tempX = unitX * cosA - unitY * sinA;
                     unitY = unitY * cosA + unitX * sinA;
                     unitX = tempX;

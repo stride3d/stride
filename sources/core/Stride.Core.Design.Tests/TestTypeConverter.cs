@@ -9,6 +9,7 @@ using Xunit;
 
 using Stride.Core.Mathematics;
 using Stride.Core.TypeConverters;
+using Half = Stride.Core.Mathematics.Half;
 
 namespace Stride.Core.Design.Tests
 {

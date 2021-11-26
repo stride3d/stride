@@ -4,17 +4,20 @@
 #if STRIDE_UI_SDL
 using System;
 using System.Collections.Generic;
-using SDL2;
+using Silk.NET.SDL;
 using Stride.Games;
 using Stride.Graphics.SDL;
+using Window = Stride.Graphics.SDL.Window;
 
 namespace Stride.Input
 {
     /// <summary>
     /// Provides support for mouse/touch/keyboard/gamepads using SDL
     /// </summary>
-    internal class InputSourceSDL : InputSourceBase
+    internal unsafe class InputSourceSDL : InputSourceBase
     {
+        private static Sdl SDL = Window.SDL;
+
         private readonly HashSet<Guid> devicesToRemove = new HashSet<Guid>();
         private readonly Dictionary<int, Guid> joystickInstanceIdToDeviceId = new Dictionary<int, Guid>();
         private readonly Window uiControl;
@@ -32,7 +35,7 @@ namespace Stride.Input
         {
             this.inputManager = inputManager;
 
-            SDL.SDL_InitSubSystem(SDL.SDL_INIT_JOYSTICK);
+            SDL.InitSubSystem(Sdl.InitJoystick);
 
             mouse = new MouseSDL(this, uiControl);
             keyboard = new KeyboardSDL(this, uiControl);
@@ -63,7 +66,7 @@ namespace Stride.Input
                 gameController?.Dispose();
             }
 
-            SDL.SDL_QuitSubSystem(SDL.SDL_INIT_JOYSTICK);
+            SDL.QuitSubSystem(Sdl.InitJoystick);
 
             base.Dispose();
         }
@@ -82,7 +85,7 @@ namespace Stride.Input
 
         public override void Scan()
         {
-            for (int i = 0; i < SDL.SDL_NumJoysticks(); i++)
+            for (int i = 0; i < SDL.NumJoysticks(); i++)
             { 
                 if (!joystickInstanceIdToDeviceId.ContainsKey(GetJoystickInstanceId(i)))
                 {
@@ -93,10 +96,10 @@ namespace Stride.Input
 
         private void OpenDevice(int deviceIndex)
         {
-            var joystickId = SDL.SDL_JoystickGetDeviceGUID(deviceIndex);
-            var joystickName = SDL.SDL_JoystickNameForIndex(deviceIndex);
+            var joystickId = SDL.JoystickGetDeviceGUID(deviceIndex);
+            var joystickName = SDL.JoystickNameForIndexS(deviceIndex);
             if (joystickInstanceIdToDeviceId.ContainsKey(GetJoystickInstanceId(deviceIndex)))
-                throw new InvalidOperationException($"SDL GameController already opened {deviceIndex}/{joystickId}/{joystickName}");
+                throw new InvalidOperationException($"SDL GameController already opened {deviceIndex}/{*(Guid*)&joystickId}/{joystickName}");
 
             var controller = new GameControllerSDL(this, deviceIndex);
 
@@ -141,9 +144,9 @@ namespace Stride.Input
 
         private int GetJoystickInstanceId(int deviceIndex)
         {
-            var joystick = SDL.SDL_JoystickOpen(deviceIndex);
-            var instance = SDL.SDL_JoystickInstanceID(joystick);
-            SDL.SDL_JoystickClose(joystick);
+            var joystick = SDL.JoystickOpen(deviceIndex);
+            var instance = SDL.JoystickInstanceID(joystick);
+            SDL.JoystickClose(joystick);
             return instance;
         }
     }

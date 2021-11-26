@@ -6,7 +6,8 @@
                     xmlns:engine-ui="clr-namespace:Stride.Engine;assembly=Stride.UI"
                     xmlns:font="clr-namespace:Stride.Graphics.Font;assembly=Stride.Graphics"
                     xmlns:gameEditor="clr-namespace:Stride.Assets.Presentation.AssetEditors.GameEditor"
-                    xmlns:physics="clr-namespace:Stride.Engine;assembly=Stride.Physics"
+                    xmlns:physicsEngine="clr-namespace:Stride.Engine;assembly=Stride.Physics"
+                    xmlns:physics="clr-namespace:Stride.Physics;assembly=Stride.Physics"
                     xmlns:preview="clr-namespace:Stride.Assets.Presentation.Preview"
                     xmlns:ss="clr-namespace:Stride.Engine;assembly=Stride.SpriteStudio.Runtime"
                     xmlns:ss-runtime="clr-namespace:Stride.SpriteStudio.Runtime;assembly=Stride.SpriteStudio.Runtime"
@@ -676,6 +677,17 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
+  <DrawingImage x:Key="ImageGrid" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M14,14L2,14 2,2 14,2z" />
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M12,6L10,6 10,4 12,4z M12,9L10,9 10,7 12,7z M12,12L10,12 10,10 12,10z M9,6L7,6 7,4 9,4z M9,9L7,9 7,7 9,7z M9,12L7,12 7,10 9,10z M6,6L4,6 4,4 6,4z M6,9L4,9 4,7 6,7z M6,12L4,12 4,10 6,10z M3,13L13,13 13,3 3,3z" />
+        <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M6,10L4,10 4,12 6,12z M6,7L4,7 4,9 6,9z M6,4L4,4 4,6 6,6z M12,4L10,4 10,6 12,6z M12,10L10,10 10,12 12,12z M12,7L10,7 10,9 12,9z M9,4L7,4 7,6 9,6z M9,10L7,10 7,12 9,12z M9,9L7,9 7,7 9,7z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
   <DrawingImage x:Key="ImageLighting" >
     <DrawingImage.Drawing>
       <DrawingGroup>
@@ -976,12 +988,24 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
-  <DrawingImage x:Key="{x:Type physics:PhysicsComponent}" >
+  <DrawingImage x:Key="{x:Type physicsEngine:PhysicsComponent}" >
     <DrawingImage.Drawing>
       <DrawingGroup>
         <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
         <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M3.9996,1.9996L3.9996,4.0006 2.9996,4.0006 2.9996,6.0006 1.9996,6.0006 1.9996,7.9996 0.9996,7.9996 0.9996,9.9996 -0.000399999999999956,9.9996 -0.000399999999999956,13.0006 5.6506,13.0006 6.0796,12.0356 7.1026,13.0006 16.0006,13.0006 16.0006,1.9996z" />
         <GeometryDrawing Brush="#FF424242" Geometry="F1M15,3L11,3 9.563,3.984 6.443,11.004 7.5,12 15,12z M6.334,9L2,9 2,10 5.889,10z M1,11L1,12 5,12 5.444,11z M7.223,7L3,7 3,8 6.777,8z M9,3L5,3 5,4 8.556,4z M7.666,6L4,6 4,5 8.111,5z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="{x:Type physics:PhysicsConstraintComponent}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M3.9996,1.9996L3.9996,4.0006 2.9996,4.0006 2.9996,6.0006 1.9996,6.0006 1.9996,7.9996 0.9996,7.9996 0.9996,9.9996 -0.000399999999999956,9.9996 -0.000399999999999956,13.0006 5.6506,13.0006 6.0796,12.0356 7.1026,13.0006 16.0006,13.0006 16.0006,1.9996z" />
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M15,3L11,3 9.563,3.984 6.443,11.004 7.5,12 15,12z M6.334,9L2,9 2,10 5.889,10z M1,11L1,12 5,12 5.444,11z M7.223,7L3,7 3,8 6.777,8z M9,3L5,3 5,4 8.556,4z M7.666,6L4,6 4,5 8.111,5z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,7.5C16,9.43,14.416,11,12.469,11L3.531,11C1.584,11 0,9.43 0,7.5 0,5.57 1.584,4 3.531,4L12.469,4C14.416,4,16,5.57,16,7.5" />
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M12.4687,5L7.9997,5C6.6027,5,5.5077,6.098,5.5077,7.5L6.5077,7.5C6.5077,6.659,7.1627,6,7.9997,6L12.4687,6C13.3267,6 13.9997,6.659 13.9997,7.5 13.9997,8.341 13.3267,9 12.4687,9L10.9997,9 10.9997,10 12.4687,10C13.8647,10 14.9997,8.878 14.9997,7.5 14.9997,6.121 13.8647,5 12.4687,5 M10.4917,7.484C10.4917,8.895,9.3977,10,7.9997,10L3.5307,10C2.1357,10 0.999700000000001,8.878 0.999700000000001,7.5 0.999700000000001,6.121 2.1357,5 3.5307,5L4.9997,5 4.9997,6 3.5307,6C2.6727,6 1.9997,6.659 1.9997,7.5 1.9997,8.341 2.6727,9 3.5307,9L7.9997,9C8.8367,9,9.4917,8.334,9.4917,7.484z" />
       </DrawingGroup>
     </DrawingImage.Drawing>
   </DrawingImage>

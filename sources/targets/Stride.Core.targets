@@ -23,24 +23,6 @@
     </ItemGroup>
   </Target>
 
-  <!-- Include platform dependent assembly when specified -->
-  <Choose>
-    <When Condition="'$(StridePlatformDependent)' == 'true'">
-      <Choose>
-        <When Condition=" '$(StridePlatform)' == 'Android'">
-          <ItemGroup>
-            <Reference Include="Mono.Android" />
-          </ItemGroup>
-        </When>
-        <When Condition=" '$(StridePlatform)' == 'iOS'">
-          <ItemGroup>
-            <Reference Include="Xamarin.iOS" />
-          </ItemGroup>
-        </When>
-      </Choose>
-    </When>
-  </Choose>
-
   <!-- Code Analysis -->
   <PropertyGroup Condition="'$(StrideCodeAnalysis)' == 'true'">
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Stride.ruleset</CodeAnalysisRuleSet>
@@ -160,7 +142,6 @@
     </Copy>
   </Target>
 
-  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.Sign.targets" />
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.PostSettings.Dependencies.targets"/>
   <Import Condition="'$(StrideNativeOutputName)' != ''" Project="$(MSBuildThisFileDirectory)..\native\Stride.Native.targets" />
 
@@ -225,6 +206,14 @@
   <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\Inference.targets" />
   <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\Platforms.targets" />
   <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\DefaultItems\ImplicitPackages.targets"/>
+
+    <!-- A workaround for https://github.com/microsoft/msbuild/issues/4584 and resolves https://github.com/onovotny/MSBuildSdkExtras/issues/176 -->
+  <Target Name="_RemoveNativeReferencesManifest" Condition="'$(StridePlatform)' == 'iOS'" AfterTargets="BuiltProjectOutputGroup">
+    <ItemGroup>
+      <_BuiltProjectOutputGroupOutputIntermediate Remove="$(OutDir)$(_DeploymentTargetApplicationManifestFileName)" />
+      <BuiltProjectOutputGroupOutput Remove="$(ProjectDir)$(OutDir)$(_DeploymentTargetApplicationManifestFileName)" />
+    </ItemGroup>
+  </Target>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" Condition="'$(StrideProjectType)' != 'Cpp'" />
 </Project>

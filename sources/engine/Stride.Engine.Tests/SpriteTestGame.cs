@@ -129,7 +129,7 @@ namespace Stride.Engine.Tests
 
         private void UpdateBall(float totalSeconds)
         {
-            const float rotationSpeed = (float)Math.PI / 2;
+            const float rotationSpeed = MathF.PI / 2;
 
             var deltaRotation = rotationSpeed * totalSeconds;
 
