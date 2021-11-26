@@ -13,6 +13,7 @@ using Stride.Extensions;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Importer.Common;
+using Stride.Importer.Common.Extensions;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
@@ -88,6 +89,11 @@ namespace Stride.Importer.Gltf
             return TimeSpan.FromSeconds(time);
         }
 
+        public static List<string> GetAnimatedNodes(SharpGLTF.Schema2.ModelRoot root)
+        {
+            return root.LogicalAnimations.SelectMany(x => x.Channels.SelectMany(y => x.Channels.Select(z => z.TargetNode.Name))).ToList();
+        }
+
         /// <summary>
         /// Extract the entity info. This function tells the editor informations about any assets.
         /// If any info is missing/wrong the assests won't be correctly imported.
@@ -95,7 +101,7 @@ namespace Stride.Importer.Gltf
         /// <param name="modelRoot"></param>
         /// <param name="sourcePath"></param>
         /// <returns></returns>
-        public static EntityInfo ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot modelRoot, UFile sourcePath)
+        public static EntityInfoExtended ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot modelRoot, UFile sourcePath)
         {
             SharpGLTF.Schema2.Skin skin = null;
             HashSet<string> boneNames = new HashSet<string>();
@@ -146,16 +152,16 @@ namespace Stride.Importer.Gltf
                 .ToList();
 
             // Loading the animation names (should be the same as the keys used in animations
-            List<string> animNodes =
-                ConvertAnimations(modelRoot, sourcePath.GetFileNameWithoutExtension()).Keys.ToList();
+            List<string> animNodes = GetAnimatedNodes(modelRoot);
 
-            return new EntityInfo
+            return new EntityInfoExtended
             {
                 Models = meshes,
                 AnimationNodes = animNodes,
                 Materials = LoadMaterials(modelRoot, sourcePath),
                 Nodes = nodes,
-                TextureDependencies = GenerateTextureFullPaths(modelRoot, sourcePath)
+                TextureDependencies = GenerateTextureFullPaths(modelRoot, sourcePath),
+                AnimationNames = ConvertAnimations(modelRoot, sourcePath).Keys.ToList()
             };
         }
 
@@ -198,6 +204,7 @@ namespace Stride.Importer.Gltf
         {
             var animations = root.LogicalAnimations;
             var meshName = filename;
+            var sk = ConvertSkeleton(root).Nodes.Select(x => x.Name);
 
             var clips =
                 animations
@@ -208,7 +215,7 @@ namespace Stride.Importer.Gltf
                        clip.RepeatMode = AnimationRepeatMode.LoopInfinite;
                        // Add Curve
                        ConvertCurves(x.Channels, root).ToList().ForEach(v => clip.AddCurve(v.Key, v.Value));
-                       string name = x.Name == null ? meshName + "_Animation_" + x.LogicalIndex : meshName + "_" + x.Name;
+                       string name = "Armature";//x.Channels.Count() > 0 ? x.Channels.First().TargetNode.Name : null;
                        if(clip.Curves.Count > 1) clip.Optimize();
                        return (name, clip);
                    }

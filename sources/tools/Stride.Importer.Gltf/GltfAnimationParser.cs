@@ -99,7 +99,7 @@ namespace Stride.Importer.Gltf
             // In case there is no skin joints/bones, animate transform component
             if (skins.Count() == 0)
             {
-                string basestring = "[TransformComponent].type";
+                string basestring = "[TransformComponent.Key].type";
                 foreach (var chan in channels)
                 {
                     switch (chan.TargetNodePath)

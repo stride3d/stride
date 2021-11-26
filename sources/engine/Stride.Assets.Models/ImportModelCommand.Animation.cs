@@ -76,6 +76,10 @@ namespace Stride.Assets.Models
                             {
                                 animationClip.AddCurve($"[TransformComponent.Key]." + channelName.Replace("Transform.", string.Empty), curve);
                             }
+                            else if(channelName.StartsWith("[TransformComponent.Key]"))
+                            {
+                                animationClip.AddCurve(channelName, curve);
+                            }
 
                             // Also apply Camera curves
                             // TODO: Add some other curves?

@@ -153,7 +153,7 @@ namespace Stride.Assets.Models
                         var assetSource = localPath;
 
                         var asset = new AnimationAsset { Source = assetSource, AnimationTimeMaximum = animationEndTime, AnimationTimeMinimum = animationStartTime };
-                        string animUrl = localPath.GetFileNameWithoutExtension() + (shouldPostFixName ? " Animation " + anim : "");
+                        string animUrl = anim + "_Animation";
 
                         if (skeletonAsset != null)
                             asset.Skeleton = AttachedReferenceManager.CreateProxyObject<Skeleton>(skeletonAsset.Id, skeletonAsset.Location);
