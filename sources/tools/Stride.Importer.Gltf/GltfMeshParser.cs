@@ -13,7 +13,6 @@ using Stride.Extensions;
 using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.Importer.Common;
-using Stride.Importer.Common.Extensions;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
@@ -101,7 +100,7 @@ namespace Stride.Importer.Gltf
         /// <param name="modelRoot"></param>
         /// <param name="sourcePath"></param>
         /// <returns></returns>
-        public static EntityInfoExtended ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot modelRoot, UFile sourcePath)
+        public static EntityInfo ExtractEntityInfo(SharpGLTF.Schema2.ModelRoot modelRoot, UFile sourcePath)
         {
             SharpGLTF.Schema2.Skin skin = null;
             HashSet<string> boneNames = new HashSet<string>();
@@ -154,14 +153,13 @@ namespace Stride.Importer.Gltf
             // Loading the animation names (should be the same as the keys used in animations
             List<string> animNodes = GetAnimatedNodes(modelRoot);
 
-            return new EntityInfoExtended
+            return new EntityInfo
             {
                 Models = meshes,
                 AnimationNodes = animNodes,
                 Materials = LoadMaterials(modelRoot, sourcePath),
                 Nodes = nodes,
-                TextureDependencies = GenerateTextureFullPaths(modelRoot, sourcePath),
-                AnimationNames = ConvertAnimations(modelRoot, sourcePath).Keys.ToList()
+                TextureDependencies = GenerateTextureFullPaths(modelRoot, sourcePath)
             };
         }
 
