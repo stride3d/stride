@@ -17,12 +17,7 @@
     <ProjectReference Include="..\..\engine\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\..\engine\Stride.Games\Stride.Games.csproj" />
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Stride.Importer.Common">
-      <HintPath>..\Stride.Importer.Common\bin\net5.0-windows\x64\Debug\Stride.Importer.Common.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\Stride.Importer.Common\Stride.Importer.Common.vcxproj" />
   </ItemGroup>
 
 
