@@ -124,15 +124,6 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://www.patreon.com/stride3d.
-        /// </summary>
-        public static string Patreon {
-            get {
-                return ResourceManager.GetString("Patreon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to https://www.reddit.com/r/stride3d.
         /// </summary>
         public static string Reddit {

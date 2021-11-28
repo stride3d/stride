@@ -15,8 +15,8 @@
     <StridePlatform Condition=" $(TargetFramework.StartsWith('net')) And $(RuntimeIdentifier.StartsWith('linux')) ">Linux</StridePlatform>
     <StridePlatform Condition=" $(TargetFramework.StartsWith('net')) And $(RuntimeIdentifier.StartsWith('osx')) ">macOS</StridePlatform>
     <StridePlatform Condition=" $(TargetFramework.StartsWith('uap10.0')) ">UWP</StridePlatform>
-    <StridePlatform Condition=" '$(TargetFramework)' == 'monoandroid81' ">Android</StridePlatform>
-    <StridePlatform Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</StridePlatform>
+    <StridePlatform Condition=" '$(TargetFramework)' == 'net6.0-android' ">Android</StridePlatform>
+    <StridePlatform Condition=" '$(TargetFramework)' == 'net6.0-ios' ">iOS</StridePlatform>
     <!-- Default fallback -->
     <StridePlatform Condition=" '$(StridePlatform)' == '' ">Windows</StridePlatform>
 
@@ -24,8 +24,8 @@
 
     <StridePlatformDeps Condition=" $(TargetFramework.StartsWith('net')) ">dotnet</StridePlatformDeps>
     <StridePlatformDeps Condition=" $(TargetFramework.StartsWith('uap10.0')) ">UWP</StridePlatformDeps>
-    <StridePlatformDeps Condition=" '$(TargetFramework)' == 'monoandroid81' ">Android</StridePlatformDeps>
-    <StridePlatformDeps Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</StridePlatformDeps>
+    <StridePlatformDeps Condition=" '$(TargetFramework)' == 'net6.0-android' ">Android</StridePlatformDeps>
+    <StridePlatformDeps Condition=" '$(TargetFramework)' == 'net6.0-ios' ">iOS</StridePlatformDeps>
   </PropertyGroup>
 
   <!--Import Local Pre Settings for the solution being loaded -->
@@ -61,8 +61,8 @@
     <StrideRuntimeTargetFrameworks>net6.0</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Windows;')) And '$(StrideRuntimeWindowsNet6)' == 'true'">$(StrideRuntimeTargetFrameworks);net6.0-windows7.0</StrideRuntimeTargetFrameworks>
     <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';UWP;'))">$(StrideRuntimeTargetFrameworks);uap10.0.16299</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);monoandroid81</StrideRuntimeTargetFrameworks>
-    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);xamarinios10</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';Android;'))">$(StrideRuntimeTargetFrameworks);net6.0-android</StrideRuntimeTargetFrameworks>
+    <StrideRuntimeTargetFrameworks Condition="$(_StridePlatforms.Contains(';iOS;'))">$(StrideRuntimeTargetFrameworks);net6.0-ios</StrideRuntimeTargetFrameworks>
 
     <StrideRuntimeTargetFrameworks>$([MSBuild]::Unescape($(StrideRuntimeTargetFrameworks.Trim(';'))))</StrideRuntimeTargetFrameworks>
 
@@ -135,6 +135,7 @@
     <StrideCommonDependenciesDir Condition="'$(StrideCommonDependenciesDir)' != '' and !HasTrailingSlash('$(StrideCommonDependenciesDir)')">$(StrideCommonDependenciesDir)\</StrideCommonDependenciesDir>
     <ErrorReport>prompt</ErrorReport>
     <FileAlignment>512</FileAlignment>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
   <PropertyGroup Condition=" $(TargetFramework.StartsWith('net6')) ">

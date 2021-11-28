@@ -98,7 +98,6 @@
     <Resource Include="Resources\Launcher.ico" />
     <Resource Include="Resources\delete-26-dark.png" />
     <Resource Include="Resources\download-26-dark.png" />
-    <Resource Include="Resources\patreon_mark_coral_24.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Resources\Strings.ja-JP.resx" />

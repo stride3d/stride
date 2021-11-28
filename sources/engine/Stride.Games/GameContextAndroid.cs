@@ -2,19 +2,18 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_PLATFORM_ANDROID
 using Android.Widget;
-using OpenTK.Platform.Android;
-using Stride.Games.Android;
+using Stride.Graphics.SDL;
 
 namespace Stride.Games
 {
     /// <summary>
-    /// A <see cref="GameContext"/> to use for rendering to an existing WinForm <see cref="Control"/>.
+    /// A <see cref="GameContext"/> to use for rendering on Android.
     /// </summary>
-    public partial class GameContextAndroid : GameContext<AndroidStrideGameView>
+    public partial class GameContextAndroid : GameContextSDL
     {
         /// <inheritDoc/>
-        public GameContextAndroid(AndroidStrideGameView control, RelativeLayout editTextLayout, int requestedWidth = 0, int requestedHeight = 0)
-            : base(control, requestedWidth, requestedHeight)
+        public GameContextAndroid(Window control, RelativeLayout editTextLayout)
+            : base(control)
         {
             EditTextLayout = editTextLayout;
             ContextType = AppContextType.Android;

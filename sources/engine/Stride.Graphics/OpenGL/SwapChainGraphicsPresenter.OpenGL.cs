@@ -1,29 +1,23 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if STRIDE_PLATFORM_ANDROID
-using System;
-using Stride.Core.Mathematics;
-using OpenTK;
-using OpenTK.Platform.Android;
+#if STRIDE_GRAPHICS_API_OPENGL
+using Rectangle = Stride.Core.Mathematics.Rectangle;
+using WindowState = Stride.Graphics.SDL.FormWindowState;
+using Window = Stride.Graphics.SDL.Window;
 
 namespace Stride.Graphics
 {
     public class SwapChainGraphicsPresenter : GraphicsPresenter
     {
-        internal static Action<int, int, PresentationParameters> ProcessPresentationParametersOverride;
-
-        private AndroidGameView gameWindow;
         private readonly Texture backBuffer;
         private readonly GraphicsDevice graphicsDevice;
         private readonly PresentationParameters startingPresentationParameters;
 
         public SwapChainGraphicsPresenter(GraphicsDevice device, PresentationParameters presentationParameters) : base(device, presentationParameters)
         {
-            gameWindow = (AndroidGameView)Description.DeviceWindowHandle.NativeWindow;
-
             graphicsDevice = device;
             startingPresentationParameters = presentationParameters;
-            device.InitDefaultRenderTarget(Description);
+            device.InitDefaultRenderTarget(presentationParameters);
 
             backBuffer = Texture.New2D(device, Description.BackBufferWidth, Description.BackBufferHeight, presentationParameters.BackBufferFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource);
         }
@@ -36,11 +30,13 @@ namespace Stride.Graphics
         {
             get
             {
-                return gameWindow.WindowState == WindowState.Fullscreen;
+                return ((Window)Description.DeviceWindowHandle.NativeWindow).WindowState == WindowState.Fullscreen;
             }
             set
             {
-                gameWindow.WindowState = value ? WindowState.Fullscreen : WindowState.Normal;
+                var gameWindow = (Window)Description.DeviceWindowHandle.NativeWindow;
+                if (gameWindow.Exists)
+                    gameWindow.WindowState = value ? WindowState.Fullscreen : WindowState.Normal;
             }
         }
 
@@ -48,14 +44,16 @@ namespace Stride.Graphics
         {
             if (present)
             {
-                GraphicsDevice.WindowProvidedRenderTexture.InternalSetSize(gameWindow.Width, gameWindow.Height);
-
                 // If we made a fake render target to avoid OpenGL limitations on window-provided back buffer, let's copy the rendering result to it
                 commandList.CopyScaler2D(backBuffer, GraphicsDevice.WindowProvidedRenderTexture,
-                    new Rectangle(0, 0, backBuffer.Width, backBuffer.Height),
-                    new Rectangle(0, 0, GraphicsDevice.WindowProvidedRenderTexture.Width, GraphicsDevice.WindowProvidedRenderTexture.Height), true);
+                new Rectangle(0, 0, backBuffer.Width, backBuffer.Height),
+                new Rectangle(0, 0, GraphicsDevice.WindowProvidedRenderTexture.Width, GraphicsDevice.WindowProvidedRenderTexture.Height), true);
 
-                gameWindow.GraphicsContext.SwapBuffers();
+                // On macOS, `SwapBuffers` will swap whatever framebuffer is active and in our case it is not the window provided
+                // framebuffer, and in addition if the active framebuffer is single buffered, it won't do anything. Forcing a bind
+                // will ensure the window is updated.
+                commandList.GL.BindFramebuffer(FramebufferTarget.Framebuffer, GraphicsDevice.WindowProvidedFrameBuffer);
+                commandList.GraphicsDevice.MainGraphicsContext.SwapBuffers();
             }
         }
 

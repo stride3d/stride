@@ -143,7 +143,7 @@ namespace Stride.Assets
             {
                 Name = PlatformType.Android.ToString(),
                 Type = PlatformType.Android,
-                TargetFramework = "monoandroid81",
+                TargetFramework = "net6.0-android",
                 IsAvailable = IsVSComponentAvailableAnyVersion(XamarinAndroidComponents)
             };
             androidPlatform.DefineConstants.Add("STRIDE_PLATFORM_MONO_MOBILE");
@@ -170,7 +170,7 @@ namespace Stride.Assets
                 Name = PlatformType.iOS.ToString(),
                 SolutionName = "iPhone", // For iOS, we need to use iPhone as a solution name
                 Type = PlatformType.iOS,
-                TargetFramework = "xamarinios10",
+                TargetFramework = "net6.0-ios",
                 IsAvailable = IsVSComponentAvailableAnyVersion(XamariniOSComponents)
             };
             iphonePlatform.PlatformsPart.Add(new SolutionPlatformPart("iPhoneSimulator"));

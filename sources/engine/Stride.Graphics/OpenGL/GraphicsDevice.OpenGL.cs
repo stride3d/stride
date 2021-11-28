@@ -5,8 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using OpenTK.Graphics;
-using OpenTK.Platform;
+using Silk.NET.Core.Contexts;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
@@ -15,26 +14,12 @@ using Stride.Shaders;
 using Stride.Graphics.OpenGL;
 using Color4 = Stride.Core.Mathematics.Color4;
 #if STRIDE_PLATFORM_ANDROID
-using System.Text;
-using System.Runtime.InteropServices;
-using OpenTK.Platform.Android;
-#elif STRIDE_PLATFORM_IOS
-using OpenTK.Platform.iPhoneOS;
-#endif
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-using DrawBuffersEnum = OpenTK.Graphics.ES30.DrawBufferMode;
-using FramebufferAttachmentObjectType = OpenTK.Graphics.ES30.All;
-#else
-using OpenTK.Graphics.OpenGL;
-using TextureTarget2d = OpenTK.Graphics.OpenGL.TextureTarget;
-using TextureTarget3d = OpenTK.Graphics.OpenGL.TextureTarget;
+using Monitor = System.Threading.Monitor;
 #endif
 
 #if STRIDE_UI_SDL
+using Silk.NET.SDL;
 using WindowState = Stride.Graphics.SDL.FormWindowState;
-#else
-using WindowState = OpenTK.WindowState;
 #endif
 
 namespace Stride.Graphics
@@ -56,36 +41,20 @@ namespace Stride.Graphics
         internal bool ApplicationPaused = false;
         internal bool ProfileEnabled = false;
 
-        internal IWindowInfo deviceCreationWindowInfo;
         internal object asyncCreationLockObject = new object();
-        internal OpenTK.Graphics.IGraphicsContext deviceCreationContext;
+        internal IGLContext deviceCreationContext;
 
-        internal int defaultVAO;
+        internal uint defaultVAO;
 
-        internal int CopyColorSourceFBO, CopyDepthSourceFBO;
+        internal uint CopyColorSourceFBO, CopyDepthSourceFBO;
 
         DebugProc debugCallbackInstance;
-#if STRIDE_GRAPHICS_API_OPENGLES
-        DebugProcKhr debugCallbackInstanceKHR;
-#endif
 
         private const GraphicsPlatform GraphicPlatform =
 #if STRIDE_GRAPHICS_API_OPENGLES
                                                             GraphicsPlatform.OpenGLES;
 #else
                                                             GraphicsPlatform.OpenGL;
-#endif
-
-#if STRIDE_PLATFORM_ANDROID
-        // If context was set before Begin(), try to keep it after End()
-        // (otherwise devices with no backbuffer flicker)
-        private bool keepContextOnEnd;
-
-        private IntPtr graphicsContextEglPtr;
-        internal bool AsyncPendingTaskWaiting; // Used when Workaround_Context_Tegra2_Tegra3
-
-        // Workarounds for specific GPUs
-        internal bool Workaround_Context_Tegra2_Tegra3;
 #endif
 
         internal SamplerState DefaultSamplerState;
@@ -95,7 +64,7 @@ namespace Stride.Graphics
         internal int version; // queried version
         internal int currentVersion; // glGetVersion
         internal Texture WindowProvidedRenderTexture;
-        internal int WindowProvidedFrameBuffer;
+        internal uint WindowProvidedFrameBuffer;
 
         internal bool HasDXT;
 
@@ -107,17 +76,14 @@ namespace Stride.Graphics
         internal bool HasKhronosDebug;
         internal bool HasTimerQueries;
 
-#if STRIDE_GRAPHICS_API_OPENGLES
-        internal bool HasKhronosDebugKHR;
         internal bool HasExtTextureFormatBGRA8888;
-#endif
 
         private bool isFramebufferSRGB;
 
         private int contextBeginCounter = 0;
 
         // TODO: Use some LRU scheme to clean up FBOs if not used frequently anymore.
-        internal Dictionary<FBOKey, int> existingFBOs = new Dictionary<FBOKey,int>(); 
+        internal Dictionary<FBOKey, uint> existingFBOs = new Dictionary<FBOKey, uint>(); 
 
         private static GraphicsDevice _currentGraphicsDevice = null;
 
@@ -139,37 +105,27 @@ namespace Stride.Graphics
             }
         }
 
-        private OpenTK.Graphics.IGraphicsContext graphicsContext;
-        private OpenTK.Platform.IWindowInfo windowInfo;
-
-#if STRIDE_PLATFORM_DESKTOP
 #if STRIDE_UI_SDL
         private Stride.Graphics.SDL.Window gameWindow;
-#else
-        private OpenTK.GameWindow gameWindow;
-#endif
-#elif STRIDE_PLATFORM_ANDROID
-        private AndroidGameView gameWindow;
-#elif STRIDE_PLATFORM_IOS
-        private iPhoneOSGameView gameWindow;
-        public ThreadLocal<OpenGLES.EAGLContext> ThreadLocalContext { get; private set; }
-#endif
+        internal IGLContext MainGraphicsContext;
 
-#if STRIDE_PLATFORM_ANDROID
-        [DllImport("libEGL.dll", EntryPoint = "eglGetCurrentContext")]
-        internal static extern IntPtr EglGetCurrentContext();
+        internal unsafe IntPtr CurrentGraphicsContext => (IntPtr)Graphics.SDL.Window.SDL.GLGetCurrentContext();
 #endif
 
 #if STRIDE_GRAPHICS_API_OPENGLES
         // Need to change sampler state depending on if texture has mipmap or not during PreDraw
         private bool[] hasMipmaps = new bool[64];
 #endif
+        public GL GL { get; internal set; }
+#if STRIDE_GRAPHICS_API_OPENGLES
+        public ExtDisjointTimerQuery GLExtDisjointTimerQuery { get; internal set; }
+#endif
 
-        private int copyProgram = -1;
+        private uint copyProgram = 0;
         private int copyProgramOffsetLocation = -1;
         private int copyProgramScaleLocation = -1;
 
-        private int copyProgramSRgb = -1;
+        private uint copyProgramSRgb = 0;
         private int copyProgramSRgbOffsetLocation = -1;
         private int copyProgramSRgbScaleLocation = -1;
 
@@ -194,13 +150,6 @@ namespace Stride.Graphics
         {
             get
             {
-#if STRIDE_PLATFORM_ANDROID
-                if (graphicsContext != gameWindow.GraphicsContext)
-                {
-                    return GraphicsDeviceStatus.Reset;
-                }
-#endif
-
                 // TODO implement GraphicsDeviceStatus for OpenGL
                 return GraphicsDeviceStatus.Normal;
             }
@@ -242,24 +191,7 @@ namespace Stride.Graphics
             {
                 FrameCounter++;
 
-#if STRIDE_PLATFORM_ANDROID
-                if (Workaround_Context_Tegra2_Tegra3)
-                {
-                    Monitor.Enter(asyncCreationLockObject, ref asyncCreationLockTaken);
-                }
-                else
-                {
-                    // On first set, check if context was not already set before,
-                    // in which case we won't unset it during End().
-                    keepContextOnEnd = graphicsContextEglPtr == GraphicsDevice.EglGetCurrentContext();
-
-                    if (keepContextOnEnd)
-                    {
-                        return;
-                    }
-                }
-#endif
-                graphicsContext.MakeCurrent(windowInfo);
+                MainGraphicsContext.MakeCurrent();
             }
         }
 
@@ -275,25 +207,7 @@ namespace Stride.Graphics
             --contextBeginCounter;
             if (contextBeginCounter == 0)
             {
-#if STRIDE_PLATFORM_ANDROID
-                if (Workaround_Context_Tegra2_Tegra3)
-                {
-                    graphicsContext.MakeCurrent(null);
-
-                    // Notify that main context can be used from now on
-                    if (asyncCreationLockTaken)
-                    {
-                        Monitor.Exit(asyncCreationLockObject);
-                        asyncCreationLockTaken = false;
-                    }
-                }
-                else if (!keepContextOnEnd)
-                {
-                    GraphicsDevice.UnbindGraphicsContext(graphicsContext);
-                }
-#else
-                UnbindGraphicsContext(graphicsContext);
-#endif
+                UnbindGraphicsContext(MainGraphicsContext);
             }
             else if (contextBeginCounter < 0)
             {
@@ -311,11 +225,11 @@ namespace Stride.Graphics
             return SquareBuffer;
         }
 
-        internal int GetCopyProgram(bool srgb, out int offsetLocation, out int scaleLocation)
+        internal uint GetCopyProgram(bool srgb, out int offsetLocation, out int scaleLocation)
         {
             if (srgb)
             {
-                if (copyProgramSRgb == -1)
+                if (copyProgramSRgb == 0)
                 {
                     copyProgramSRgb = CreateCopyProgram(true, out copyProgramSRgbOffsetLocation, out copyProgramSRgbScaleLocation);
                 }
@@ -325,7 +239,7 @@ namespace Stride.Graphics
             }
             else
             {
-                if (copyProgram == -1)
+                if (copyProgram == 0)
                 {
                     copyProgram = CreateCopyProgram(false, out copyProgramOffsetLocation, out copyProgramScaleLocation);
                 }
@@ -335,7 +249,7 @@ namespace Stride.Graphics
             }
         }
 
-        private int CreateCopyProgram(bool srgb, out int offsetLocation, out int scaleLocation)
+        private uint CreateCopyProgram(bool srgb, out int offsetLocation, out int scaleLocation)
         {
 #if STRIDE_GRAPHICS_API_OPENGLES
             // We aim at OpenGLES 3.0 or greater.
@@ -381,17 +295,17 @@ namespace Stride.Graphics
                 "}                                                   \n";
 
             // First initialization of shader program
-            int vertexShader = TryCompileShader(ShaderType.VertexShader, copyVertexShaderSource);
-            int fragmentShader = TryCompileShader(ShaderType.FragmentShader, srgb ? copyFragmentShaderSourceSRgb : copyFragmentShaderSource);
+            var vertexShader = TryCompileShader(ShaderType.VertexShader, copyVertexShaderSource);
+            var fragmentShader = TryCompileShader(ShaderType.FragmentShader, srgb ? copyFragmentShaderSourceSRgb : copyFragmentShaderSource);
 
-            int program = GL.CreateProgram();
+            var program = GL.CreateProgram();
             GL.AttachShader(program, vertexShader);
             GL.AttachShader(program, fragmentShader);
             GL.BindAttribLocation(program, 0, "aPosition");
             GL.LinkProgram(program);
 
             int linkStatus;
-            GL.GetProgram(program, GetProgramParameterName.LinkStatus, out linkStatus);
+            GL.GetProgram(program, ProgramPropertyARB.LinkStatus, out linkStatus);
 
             if (linkStatus != 1)
                 throw new InvalidOperationException("Error while linking GLSL shaders.");
@@ -413,14 +327,9 @@ namespace Stride.Graphics
         internal void EnsureContextActive()
         {
             // TODO: Better checks (is active context the expected one?)
-#if STRIDE_PLATFORM_ANDROID
-            if (EglGetCurrentContext() == IntPtr.Zero)
+            var context = CurrentGraphicsContext;
+            if (context == IntPtr.Zero)
                 throw new InvalidOperationException("No OpenGL context bound.");
-#else
-            var context = OpenTK.Graphics.GraphicsContext.CurrentContext; //static cannot be debugged easy
-            if (context == null)
-                throw new InvalidOperationException("No OpenGL context bound.");
-#endif
         }
 
         public void ExecuteCommandList(CompiledCommandList commandList)
@@ -441,7 +350,7 @@ namespace Stride.Graphics
             throw new NotImplementedException();
         }
 
-        internal int FindOrCreateFBO(GraphicsResourceBase graphicsResource, int subresource)
+        internal uint FindOrCreateFBO(GraphicsResourceBase graphicsResource, int subresource)
         {
             if (graphicsResource == WindowProvidedRenderTexture)
                 return WindowProvidedFrameBuffer;
@@ -455,7 +364,7 @@ namespace Stride.Graphics
             throw new NotSupportedException();
         }
 
-        internal int FindOrCreateFBO(FBOTexture texture)
+        internal uint FindOrCreateFBO(FBOTexture texture)
         {
             var isDepthBuffer = ((texture.Texture.Flags & TextureFlags.DepthStencil) != 0);
             lock (existingFBOs)
@@ -474,16 +383,14 @@ namespace Stride.Graphics
         }
 
         // TODO: I think having a class for FBOs would simplify some stuff. We could implement methods like "Bind()" for it.
-        int GenerateFBO(FBOTexture depthStencilBuffer, FBOTexture[] renderTargets, int renderTargetCount)
+        uint GenerateFBO(FBOTexture depthStencilBuffer, FBOTexture[] renderTargets, int renderTargetCount)
         {
-            int fboID;
-
-            GL.GenFramebuffers(1, out fboID);
+            GL.GenFramebuffers(1, out uint fboID);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, fboID);
             UpdateFBO(FramebufferTarget.Framebuffer, depthStencilBuffer, renderTargets, renderTargetCount);
 
             var framebufferStatus = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-            if (framebufferStatus != FramebufferErrorCode.FramebufferComplete)
+            if (framebufferStatus != GLEnum.FramebufferComplete)
             {
                 throw new InvalidOperationException(string.Format("FBO is incomplete: {0} RTs: [RT0: {1}]; Depth {2} (error: {3})",
                                                                   renderTargetCount,
@@ -504,7 +411,7 @@ namespace Stride.Graphics
             return fboID;
         }
 
-        internal int FindOrCreateFBO(FBOTexture depthStencilBuffer, FBOTexture[] renderTargets, int renderTargetCount)  // TODO: What's the point of passing an array that has reduntant elements? This could probably be reduced to only the "renderTargets" parameter.
+        internal uint FindOrCreateFBO(FBOTexture depthStencilBuffer, FBOTexture[] renderTargets, int renderTargetCount)  // TODO: What's the point of passing an array that has reduntant elements? This could probably be reduced to only the "renderTargets" parameter.
         {
             // Check for existing FBO matching this configuration
             lock (existingFBOs) // TODO: PERFORMANCE: Why is this lock here? Do we ever run this from multiple threads? If so, why?
@@ -524,8 +431,7 @@ namespace Stride.Graphics
                 // Check if there is an already existing FBO:
                 var fboKey = new FBOKey(depthStencilBuffer, renderTargets, renderTargetCount);
 
-                int fboID;
-                if (existingFBOs.TryGetValue(fboKey, out fboID))
+                if (existingFBOs.TryGetValue(fboKey, out var fboID))
                     return fboID;
 
                 // Since the desired FBO doesn't already exist, we generate it:
@@ -564,10 +470,10 @@ namespace Stride.Graphics
 #endif
             {
                 // Specify which attachments to render to (all of them in our case):
-                var drawBuffers = new DrawBuffersEnum[renderTargetCount];
+                var drawBuffers = new DrawBufferMode[renderTargetCount];
                 for (var i = 0; i < renderTargetCount; ++i)
-                    drawBuffers[i] = DrawBuffersEnum.ColorAttachment0 + i;
-                GL.DrawBuffers(renderTargetCount, drawBuffers);
+                    drawBuffers[i] = DrawBufferMode.ColorAttachment0 + i;
+                GL.DrawBuffers((uint)renderTargetCount, drawBuffers);
             }
 
             if (depthStencilBuffer.Texture != null)
@@ -597,7 +503,7 @@ namespace Stride.Graphics
             }
             else
             {
-                TextureTarget2d textureTarget = Texture.GetTextureTargetForDataSet2D(renderTarget.Texture.TextureTarget, renderTarget.ArraySlice % 6);
+                var textureTarget = Texture.GetTextureTargetForDataSet2D(renderTarget.Texture.TextureTarget, renderTarget.ArraySlice % 6);
                 GL.FramebufferTexture2D(framebufferTarget, attachment, textureTarget, renderTarget.Texture.TextureId, renderTarget.MipLevel);
             }
         }
@@ -631,7 +537,7 @@ namespace Stride.Graphics
         internal FramebufferAttachment UpdateFBODepthStencilAttachment(FramebufferTarget framebufferTarget, FBOTexture depthStencilBuffer)
         {
             bool useSharedAttachment = depthStencilBuffer.Texture.StencilId == depthStencilBuffer.Texture.TextureId;
-            var attachmentType = useSharedAttachment ? FramebufferAttachment.DepthStencilAttachment : FramebufferAttachment.DepthAttachment;
+            var attachmentType = useSharedAttachment ? (FramebufferAttachment)GLEnum.DepthStencilAttachment : FramebufferAttachment.DepthAttachment;
 
             if (depthStencilBuffer.Texture.IsRenderbuffer)
             {
@@ -646,13 +552,13 @@ namespace Stride.Graphics
             }
             else
             {
-                TextureTarget2d textureTarget2d = TextureTarget2d.Texture2D;
+                var textureTarget2d = TextureTarget.Texture2D;
                 if (depthStencilBuffer.Texture.IsMultisample)
                 {
 #if STRIDE_GRAPHICS_API_OPENGLES
                     throw new NotSupportedException("Multisample textures are not supported on OpenGL ES.");
 #else
-                    textureTarget2d = TextureTarget2d.Texture2DMultisample;
+                    textureTarget2d = TextureTarget.Texture2DMultisample;
 #endif
                 }
 
@@ -663,16 +569,15 @@ namespace Stride.Graphics
             return attachmentType;
         }
 
-        internal int TryCompileShader(ShaderType shaderType, string sourceCode)
+        internal uint TryCompileShader(ShaderType shaderType, string sourceCode)
         {
-            int shaderGL = GL.CreateShader(shaderType);
+            var shaderGL = GL.CreateShader(shaderType);
             GL.ShaderSource(shaderGL, sourceCode);
             GL.CompileShader(shaderGL);
 
             var log = GL.GetShaderInfoLog(shaderGL);
 
-            int compileStatus;
-            GL.GetShader(shaderGL, ShaderParameter.CompileStatus, out compileStatus);
+            GL.GetShader(shaderGL, ShaderParameterName.CompileStatus, out var compileStatus);
 
             if (compileStatus != 1)
                 throw new InvalidOperationException("Error while compiling GLSL shader: \n" + log);
@@ -680,9 +585,9 @@ namespace Stride.Graphics
             return shaderGL;
         }
 
-        internal static void UnbindGraphicsContext(IGraphicsContext graphicsContext)
+        internal static void UnbindGraphicsContext(IGLContext graphicsContext)
         {
-            graphicsContext.MakeCurrent(null);
+            graphicsContext.Clear();
         }
 
         private void OnApplicationPaused(object sender, EventArgs e)
@@ -698,15 +603,13 @@ namespace Stride.Graphics
             }
 
             // Unset graphics context
-            UnbindGraphicsContext(graphicsContext);
+            UnbindGraphicsContext(MainGraphicsContext);
         }
 
         private void OnApplicationResumed(object sender, EventArgs e)
         {
-            windowInfo = gameWindow.WindowInfo;
-
             // Reenable graphics context
-            graphicsContext.MakeCurrent(windowInfo);
+            MainGraphicsContext.MakeCurrent();
 
             ApplicationPaused = false;
 
@@ -725,19 +628,8 @@ namespace Stride.Graphics
             return renderer;
         }
 
-        protected void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
+        protected unsafe void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
         {
-            // Enable OpenGL context sharing
-            OpenTK.Graphics.GraphicsContext.ShareContexts = true;
-
-            // TODO: How to control Debug flags?
-            var creationFlags = GraphicsContextFlags.Default;
-
-            if (IsDebugMode)
-            {
-                creationFlags |= GraphicsContextFlags.Debug;
-            }
-
             // set default values
             version = 100;
 
@@ -757,107 +649,70 @@ namespace Stride.Graphics
             OpenGLUtils.GetGLVersion(requestedGraphicsProfile, out version);
 
             // check what is actually created
-            if (!OpenGLUtils.GetCurrentGLVersion(out currentVersion))
-            {
-                currentVersion = version;
-            }
+            currentVersion = Adapter.OpenGLVersion;
+            renderer = Adapter.OpenGLRenderer;
 
-#if STRIDE_GRAPHICS_API_OPENGLES
-            creationFlags |= GraphicsContextFlags.Embedded;
+#if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
+            //gameWindow.Load += OnApplicationResumed;
+            //gameWindow.Unload += OnApplicationPaused;
 #endif
 
-            renderer = GL.GetString(StringName.Renderer);
-
-#if STRIDE_PLATFORM_DESKTOP
 #if STRIDE_UI_SDL
             gameWindow = (Stride.Graphics.SDL.Window)windowHandle.NativeWindow;
+
+            var SDL = Graphics.SDL.Window.SDL;
+
+#if STRIDE_GRAPHICS_API_OPENGLES
+            SDL.GLSetAttribute(GLattr.GLContextProfileMask, (int)GLprofile.GLContextProfileES);
 #else
-            gameWindow = (OpenTK.GameWindow)windowHandle.NativeWindow;
-#endif
-#elif STRIDE_PLATFORM_ANDROID
-            gameWindow = (AndroidGameView)windowHandle.NativeWindow;
-#elif STRIDE_PLATFORM_IOS
-            gameWindow = (iPhoneOSGameView)windowHandle.NativeWindow;
-            ThreadLocalContext = new ThreadLocal<OpenGLES.EAGLContext>(() => new OpenGLES.EAGLContext(OpenGLES.EAGLRenderingAPI.OpenGLES3, gameWindow.EAGLContext.ShareGroup));
+            SDL.GLSetAttribute(GLattr.GLContextProfileMask, (int)GLprofile.GLContextProfileCore);
 #endif
 
-            windowInfo = gameWindow.WindowInfo;
 
-            // Doesn't seems to be working on Android
-#if STRIDE_PLATFORM_ANDROID
-            graphicsContext = gameWindow.GraphicsContext;
-            gameWindow.Load += OnApplicationResumed;
-            gameWindow.Unload += OnApplicationPaused;
-            
-            Workaround_Context_Tegra2_Tegra3 = renderer == "NVIDIA Tegra 3" || renderer == "NVIDIA Tegra 2";
+            if (IsDebugMode)
+                SDL.GLSetAttribute(GLattr.GLContextFlags, (int)GLcontextFlag.GLContextDebugFlag);
 
-            if (Workaround_Context_Tegra2_Tegra3)
+            // Setup version
+            SDL.GLSetAttribute(GLattr.GLContextMajorVersion, currentVersion / 100);
+            SDL.GLSetAttribute(GLattr.GLContextMinorVersion, (currentVersion / 10) % 10);
+
+            MainGraphicsContext = new SdlContext(SDL, (Silk.NET.SDL.Window*)gameWindow.SdlHandle);
+            ((SdlContext)MainGraphicsContext).Create();
+            if (MainGraphicsContext.Handle == IntPtr.Zero)
             {
-                // On Tegra2/Tegra3, we can't do any background context
-                // As a result, we reuse main graphics context even when loading.
-                // Of course, main graphics context need to be either available, or we register ourself for next ExecutePendingTasks().
-                deviceCreationContext = graphicsContext;
-                deviceCreationWindowInfo = windowInfo;
-
-                // We don't want context to be set or it might collide with our internal use to create async resources
-                // TODO: Reenabled, since the context seems to change otherwise. Do we need this in the first place, since we only want a single context?
-                //gameWindow.AutoSetContextOnRenderFrame = false;
-            }
-            else
-            {
-                if (deviceCreationContext != null)
-                {
-                    deviceCreationContext.Dispose();
-                    deviceCreationWindowInfo.Dispose();
-                }
-
-                // Create PBuffer
-                deviceCreationWindowInfo = new AndroidWindow(null);
-                ((AndroidWindow)deviceCreationWindowInfo).CreateSurface(graphicsContext.GraphicsMode.Index.Value);
-
-                deviceCreationContext = new OpenTK.Graphics.GraphicsContext(graphicsContext.GraphicsMode, deviceCreationWindowInfo, version / 100, (version % 100) / 10, creationFlags);
+                throw new Exception("Cannot create OpenGL context: " + SDL.GetErrorS());
             }
 
-            graphicsContextEglPtr = EglGetCurrentContext();
-#elif STRIDE_PLATFORM_IOS
-            graphicsContext = gameWindow.GraphicsContext;
-            gameWindow.Load += OnApplicationResumed;
-            gameWindow.Unload += OnApplicationPaused;
-
-            var asyncContext = new OpenGLES.EAGLContext(OpenGLES.EAGLRenderingAPI.OpenGLES3, gameWindow.EAGLContext.ShareGroup);
-            OpenGLES.EAGLContext.SetCurrentContext(asyncContext);
-            deviceCreationContext = new OpenTK.Graphics.GraphicsContext(new OpenTK.ContextHandle(asyncContext.Handle), null, graphicsContext, version / 100, (version % 100) / 10, creationFlags);
-            deviceCreationWindowInfo = windowInfo;
-            gameWindow.MakeCurrent();
+            // The context must be made current to initialize OpenGL
+            MainGraphicsContext.MakeCurrent();
 #else
-#if STRIDE_UI_SDL
-            // Because OpenTK really wants a Sdl2GraphicsContext and not a dummy one, we will create
-            // a new one using the dummy one and invalidate the dummy one.
-            graphicsContext = new OpenTK.Graphics.GraphicsContext(gameWindow.DummyGLContext.GraphicsMode, windowInfo, version / 100, (version % 100) / 10, creationFlags);
-            gameWindow.DummyGLContext.Dispose();
-#else
-            graphicsContext = gameWindow.Context;
-#endif
-            deviceCreationWindowInfo = windowInfo;
-            deviceCreationContext = new OpenTK.Graphics.GraphicsContext(graphicsContext.GraphicsMode, deviceCreationWindowInfo, version/100, (version%100)/10, creationFlags);
+#error Creating context is only implemented for SDL
 #endif
 
-            // Restore main context
-            graphicsContext.MakeCurrent(windowInfo);
+            // Create shared context for creating graphics resources from other threads
+            SDL.GLSetAttribute(GLattr.GLShareWithCurrentContext, 1);
+            deviceCreationContext = new SdlContext(SDL, (Silk.NET.SDL.Window*)gameWindow.SdlHandle);
+            ((SdlContext)deviceCreationContext).Create();
+
+            MainGraphicsContext.MakeCurrent();
+
+            GL = GL.GetApi(MainGraphicsContext);
+#if STRIDE_GRAPHICS_API_OPENGLES
+            GLExtDisjointTimerQuery = new ExtDisjointTimerQuery(MainGraphicsContext);
+#endif
 
             // Create default OpenGL State objects
             DefaultSamplerState = SamplerState.New(this, new SamplerStateDescription(TextureFilter.MinPointMagMipLinear, TextureAddressMode.Wrap) { MaxAnisotropy = 1 }).DisposeBy(this);
         }
 
-        private void InitializePostFeatures()
+        private unsafe void InitializePostFeatures()
         {
             // Create and bind default VAO
             GL.GenVertexArrays(1, out defaultVAO);
             GL.BindVertexArray(defaultVAO);
 
             // Save current FBO aside
-            int boundFBO;
-            GL.GetInteger(GetPName.FramebufferBinding, out boundFBO);
+            GL.GetInteger(GetPName.DrawFramebufferBinding, out var boundFBO);
 
             // Create FBO that will be used for copy operations
             CopyColorSourceFBO = GL.GenFramebuffer();
@@ -867,46 +722,20 @@ namespace Stride.Graphics
             GL.ReadBuffer(ReadBufferMode.None);
 
             // Restore FBO
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, boundFBO);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, (uint)boundFBO);
 
-#if !STRIDE_PLATFORM_IOS
             if (IsDebugMode && HasKhronosDebug)
             {
-#if STRIDE_GRAPHICS_API_OPENGLES
-                HasKhronosDebugKHR = false;
-                try
-                {
-                    // If properly implemented, we should use that one before ES 3.2 otherwise the other one without KHR prefix
-                    // Unfortunately, many ES implementations don't respect this so we just try both
-                    GL.Khr.DebugMessageCallback(debugCallbackInstanceKHR ?? (debugCallbackInstanceKHR = DebugCallback), IntPtr.Zero);
-                    HasKhronosDebugKHR = true;
-                }
-                catch (EntryPointNotFoundException)
-#endif
-                {
-                    GL.DebugMessageCallback(debugCallbackInstance ?? (debugCallbackInstance = DebugCallback), IntPtr.Zero);
-                }
-                GL.Enable((EnableCap)KhrDebug.DebugOutputSynchronous);
+                GL.DebugMessageCallback(debugCallbackInstance ?? (debugCallbackInstance = DebugCallback), null);
+                GL.Enable(EnableCap.DebugOutputSynchronous);
                 ProfileEnabled = true;
 
                 // Also do it on async creation context
-                deviceCreationContext.MakeCurrent(deviceCreationWindowInfo);
-#if STRIDE_GRAPHICS_API_OPENGLES
-                if (HasKhronosDebugKHR)
-                {
-                    // If properly implemented, we should use that one before ES 3.2 otherwise the other one without KHR prefix
-                    // Unfortunately, many ES implementations don't respect this so we just try both
-                    GL.Khr.DebugMessageCallback(debugCallbackInstanceKHR, IntPtr.Zero);
-                }
-                else
-#endif
-                {
-                    GL.DebugMessageCallback(debugCallbackInstance, IntPtr.Zero);
-                }
-                GL.Enable((EnableCap)KhrDebug.DebugOutputSynchronous);
-                graphicsContext.MakeCurrent(windowInfo);
+                deviceCreationContext.MakeCurrent();
+                GL.DebugMessageCallback(debugCallbackInstance, IntPtr.Zero);
+                GL.Enable(EnableCap.DebugOutputSynchronous);
+                MainGraphicsContext.MakeCurrent();
             }
-#endif
 
             // Create the main command list
             InternalMainCommandList = CommandList.New(this);
@@ -916,9 +745,9 @@ namespace Stride.Graphics
         {
         }
 
-        private static void DebugCallback(DebugSource source, DebugType type, int id, DebugSeverity severity, int length, IntPtr message, IntPtr userparam)
+        private static void DebugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, IntPtr message, IntPtr userparam)
         {
-            if (severity == DebugSeverity.DebugSeverityHigh)
+            if ((DebugSeverity)severity == DebugSeverity.DebugSeverityHigh)
             {
                 string msg = System.Runtime.InteropServices.Marshal.PtrToStringAnsi(message);
                 Log.Error($"[GL] {source}; {type}; {id}; {severity}; {msg}");
@@ -935,8 +764,8 @@ namespace Stride.Graphics
             }
 
 #if STRIDE_PLATFORM_ANDROID || STRIDE_PLATFORM_IOS
-            gameWindow.Load -= OnApplicationResumed;
-            gameWindow.Unload -= OnApplicationPaused;
+            //gameWindow.Load -= OnApplicationResumed;
+            //gameWindow.Unload -= OnApplicationPaused;
 #endif
         }
 
@@ -984,13 +813,6 @@ namespace Stride.Graphics
 #endif
 
             // TODO: Provide unified ClientSize from GameWindow
-#if STRIDE_PLATFORM_IOS
-            WindowProvidedFrameBuffer = gameWindow.Framebuffer;
-
-            // Scale for Retina display
-            var width = (int)(gameWindow.Size.Width * gameWindow.ContentScaleFactor);
-            var height = (int)(gameWindow.Size.Height * gameWindow.ContentScaleFactor);
-#else
 #if STRIDE_GRAPHICS_API_OPENGLCORE
             var width = gameWindow.ClientSize.Width;
             var height = gameWindow.ClientSize.Height;
@@ -999,7 +821,6 @@ namespace Stride.Graphics
             var height = gameWindow.Size.Height;
 #endif
             WindowProvidedFrameBuffer = 0;
-#endif
 
             // TODO OPENGL detect if created framebuffer is sRGB or not (note: improperly reported by FramebufferParameterName.FramebufferAttachmentColorEncoding)
             isFramebufferSRGB = true;
@@ -1016,12 +837,12 @@ namespace Stride.Graphics
             if (WindowProvidedFrameBuffer != 0)
             {
                 int framebufferAttachmentType;
-                GL.GetFramebufferAttachmentParameter(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, FramebufferParameterName.FramebufferAttachmentObjectType, out framebufferAttachmentType);
-                if (framebufferAttachmentType == (int)FramebufferAttachmentObjectType.Texture)
+                GL.GetFramebufferAttachmentParameter(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, FramebufferAttachmentParameterName.FramebufferAttachmentObjectType, out framebufferAttachmentType);
+                if (framebufferAttachmentType == (int)GLEnum.Texture)
                 {
                     int renderTargetTextureId;
-                    GL.GetFramebufferAttachmentParameter(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, FramebufferParameterName.FramebufferAttachmentObjectName, out renderTargetTextureId);
-                    WindowProvidedRenderTexture.TextureId = renderTargetTextureId;
+                    GL.GetFramebufferAttachmentParameter(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, FramebufferAttachmentParameterName.FramebufferAttachmentObjectName, out renderTargetTextureId);
+                    WindowProvidedRenderTexture.TextureId = (uint)renderTargetTextureId;
                 }
             }
 
@@ -1089,22 +910,6 @@ namespace Stride.Graphics
 #endif
             }
         }
-
-#if STRIDE_PLATFORM_ANDROID
-    // Execute pending asynchronous object creation
-    // (on android devices where we can't create background context such as Tegra2/Tegra3)
-        internal void ExecutePendingTasks()
-        {
-            // Unbind context
-            graphicsContext.MakeCurrent(null);
-
-            // Release and reacquire lock
-            Monitor.Wait(asyncCreationLockObject);
-
-            // Rebind context
-            graphicsContext.MakeCurrent(windowInfo);
-        }
-#endif
 
         internal struct FBOTexture : IEquatable<FBOTexture>
         {

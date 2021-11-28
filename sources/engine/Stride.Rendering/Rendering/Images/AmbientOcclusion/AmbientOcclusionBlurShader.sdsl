@@ -6,13 +6,16 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// A gaussian blur shader
     /// </summary>
-    internal shader AmbientOcclusionBlurShader<int BlurCount, bool IsVertical, float BlurScale, float EdgeSharpness> : ImageEffectShader, Camera
+    internal shader AmbientOcclusionBlurShader<int BlurCount, bool IsVertical, float BlurScale, float EdgeSharpness, bool IsOrthographic> : ImageEffectShader, Camera
     {
         stage float  Weights[BlurCount];
 
         stage float reconstructCSZ(float depth)
         {
-            return ZProjection.y / (depth - ZProjection.x);
+            if (IsOrthographic) //near + z * (far - near)
+                return ZProjection.x + depth * ZProjection.y;
+            else
+                return ZProjection.y / (depth - ZProjection.x);
         }
 
         stage override float4 Shading()
@@ -33,10 +36,9 @@ namespace Stride.Rendering.Images
                 return float4(sum, 1);
             }
 
-                // mirrored samples using bilinear filtering
-            [
-            unroll]
-            for(int i = 1; i < BlurCount; i++)
+            // mirrored samples using bilinear filtering
+            [unroll]
+            for (int i = 1; i < BlurCount; i++)
             {
                 // Handle both directions
                 [unroll]

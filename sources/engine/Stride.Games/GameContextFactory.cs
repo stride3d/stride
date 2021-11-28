@@ -20,8 +20,6 @@ namespace Stride.Games
     #if STRIDE_GRAPHICS_API_OPENGL
         #if STRIDE_UI_SDL
             type = AppContextType.DesktopSDL;
-        #elif STRIDE_UI_OPENTK
-            type = AppContextType.DesktopOpenTK;
         #endif
     #elif STRIDE_GRAPHICS_API_VULKAN
         #if STRIDE_UI_SDL && !STRIDE_UI_WINFORMS && !STRIDE_UI_WPF
@@ -55,9 +53,6 @@ namespace Stride.Games
                 case AppContextType.Desktop:
                     res = NewGameContextDesktop(requestedWidth, requestedHeight, isUserManagingRun);
                     break;
-                case AppContextType.DesktopOpenTK:
-                    res = NewGameContextOpenTK(requestedWidth, requestedHeight, isUserManagingRun);
-                    break;
                 case AppContextType.DesktopSDL:
                     res = NewGameContextSDL(requestedWidth, requestedHeight, isUserManagingRun);
                     break;
@@ -86,7 +81,7 @@ namespace Stride.Games
         public static GameContext NewGameContextiOS()
         {
 #if STRIDE_PLATFORM_IOS
-            return new GameContextiOS(new iOSWindow(null, null, null), 0, 0);
+            return new GameContextiOS(null);
 #else
             return null;
 #endif
@@ -105,16 +100,12 @@ namespace Stride.Games
         {
             if (Platform.Type != PlatformType.Windows)
                 return null;
-#if STRIDE_UI_OPENTK
-            return new GameContextOpenTK(null);
-#else
-   #if STRIDE_UI_SDL && !STRIDE_UI_WINFORMS && !STRIDE_UI_WPF
+#if STRIDE_UI_SDL && !STRIDE_UI_WINFORMS && !STRIDE_UI_WPF
             return new GameContextSDL(null, requestedWidth, requestedHeight, isUserManagingRun);
-    #elif (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
+#elif (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
             return new GameContextWinforms(null, requestedWidth, requestedHeight, isUserManagingRun);
-    #else
+#else
             return null;
-    #endif
 #endif
         }
 
@@ -131,15 +122,6 @@ namespace Stride.Games
         {
 #if STRIDE_PLATFORM_UWP
             return new GameContextUWPCoreWindow(null, requestedWidth, requestedHeight);
-#else
-            return null;
-#endif
-        }
-
-        public static GameContext NewGameContextOpenTK(int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
-        {
-#if STRIDE_PLATFORM_DESKTOP && STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
-            return new GameContextOpenTK(null, requestedWidth, requestedHeight, isUserManagingRun);
 #else
             return null;
 #endif

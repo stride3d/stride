@@ -2,11 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_OPENGL 
 using System;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-#else
-using OpenTK.Graphics.OpenGL;
-#endif
 
 namespace Stride.Graphics
 {
@@ -29,12 +24,6 @@ namespace Stride.Graphics
 
     class RasterizerState
     {
-#if STRIDE_GRAPHICS_API_OPENGLES
-        private const EnableCap DepthClamp = (EnableCap)0x864F;
-#else
-        private const EnableCap DepthClamp = (EnableCap)ArbDepthClamp.DepthClamp;
-#endif
-
         RasterizerBoundState State;
 
         internal RasterizerState(RasterizerStateDescription rasterizerStateDescription)
@@ -48,7 +37,7 @@ namespace Stride.Graphics
 
             State.FrontFaceDirection =
                 rasterizerStateDescription.FrontFaceCounterClockwise
-                ? FrontFaceDirection.Cw
+                ? FrontFaceDirection.CW
                 : FrontFaceDirection.Ccw;
 
             State.DepthBias = rasterizerStateDescription.DepthBias;
@@ -64,6 +53,8 @@ namespace Stride.Graphics
 
         public void Apply(CommandList commandList)
         {
+            var GL = commandList.GL;
+
 #if !STRIDE_GRAPHICS_API_OPENGLES
             if (commandList.RasterizerBoundState.PolygonMode != State.PolygonMode)
             {
@@ -91,9 +82,9 @@ namespace Stride.Graphics
                 {
                     commandList.RasterizerBoundState.DepthClamp = State.DepthClamp;
                     if (State.DepthClamp)
-                        GL.Enable(DepthClamp);
+                        GL.Enable(EnableCap.DepthClamp);
                     else
-                        GL.Disable(DepthClamp);
+                        GL.Disable(EnableCap.DepthClamp);
                 }
             }
 

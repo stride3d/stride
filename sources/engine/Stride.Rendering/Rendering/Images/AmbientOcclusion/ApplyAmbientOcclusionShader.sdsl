@@ -22,7 +22,7 @@ namespace Stride.Rendering.Images
             // TODO Enable debug output as a mixin
             // color.rgba = occlusion;
 
-            color.rgba *= occlusion;
+            color.rgb *= occlusion;
 
             return color;
         }
