@@ -17,7 +17,7 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
     <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
     <!--PackageReference Include="Esent.Interop" Version="1.9.4" /-->
-    <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.6" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.4.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.4.0" />
     <PackageReference Include="SSH.NET" Version="2016.1.0" />

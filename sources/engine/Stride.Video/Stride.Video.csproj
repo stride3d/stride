@@ -40,7 +40,7 @@
     </When>
   </Choose>
   <ItemGroup>
-    <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" Condition="'$(StridePlatform)' == 'Windows'" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.6" Condition="'$(StridePlatform)' == 'Windows'" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

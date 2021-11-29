@@ -105,7 +105,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 
             }
 
-            ExperimentalStuffWithTangentTranslation(deltaTime);
+            //ExperimentalStuffWithTangentTranslation(deltaTime);
         }
 
         private void ExperimentalStuffWithTangentTranslation(float deltaTime)
