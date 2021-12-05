@@ -3,15 +3,6 @@
 
 #if STRIDE_GRAPHICS_API_OPENGL 
 
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-using PixelFormatGl = OpenTK.Graphics.ES30.PixelFormat;
-using PixelInternalFormat = OpenTK.Graphics.ES30.TextureComponentCount;
-#else
-using OpenTK.Graphics.OpenGL;
-using PixelFormatGl = OpenTK.Graphics.OpenGL.PixelFormat;
-#endif
-
 namespace Stride.Graphics
 {
     /// <summary>
@@ -22,9 +13,9 @@ namespace Stride.Graphics
         internal bool DiscardNextMap; // Used to internally force a WriteDiscard (to force a rename) with the GraphicsResourceAllocator
 
         // Shaader resource view (Texture or Texture Buffer)
-        internal int TextureId;
+        internal uint TextureId;
         internal TextureTarget TextureTarget;
-        internal PixelInternalFormat TextureInternalFormat;
+        internal InternalFormat TextureInternalFormat;
         internal PixelFormatGl TextureFormat;
         internal PixelType TextureType;
         internal int TexturePixelSize;

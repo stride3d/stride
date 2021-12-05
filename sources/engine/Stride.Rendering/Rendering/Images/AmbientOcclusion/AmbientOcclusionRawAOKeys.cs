@@ -8,5 +8,6 @@ namespace Stride.Rendering.Images
     public static partial class AmbientOcclusionRawAOKeys
     {
         public static readonly PermutationParameterKey<int> Count = ParameterKeys.NewPermutation<int>();
+        public static readonly PermutationParameterKey<bool> IsOrthographic = ParameterKeys.NewPermutation<bool>();
     }
 }

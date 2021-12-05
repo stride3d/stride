@@ -4,17 +4,20 @@
 #if STRIDE_UI_SDL
 using System;
 using System.Collections.Generic;
-using SDL2;
+using Silk.NET.SDL;
+using Window = Stride.Graphics.SDL.Window;
 
 namespace Stride.Input
 {
-    internal class GameControllerSDL : GameControllerDeviceBase, IDisposable
+    internal unsafe class GameControllerSDL : GameControllerDeviceBase, IDisposable
     {
+        private static Sdl SDL = Window.SDL;
+
         private readonly List<GameControllerButtonInfo> buttonInfos = new List<GameControllerButtonInfo>();
         private readonly List<GameControllerAxisInfo> axisInfos = new List<GameControllerAxisInfo>();
         private readonly List<GameControllerDirectionInfo> povControllerInfos = new List<GameControllerDirectionInfo>();
         
-        private readonly IntPtr joystick;
+        private readonly Joystick* joystick;
 
         private bool disposed;
 
@@ -23,25 +26,26 @@ namespace Stride.Input
         public GameControllerSDL(InputSourceSDL source, int deviceIndex)
         {
             Source = source;
-            joystick = SDL.SDL_JoystickOpen(deviceIndex);
+            joystick = SDL.JoystickOpen(deviceIndex);
 
             Id = Guid.NewGuid(); // Should be unique
-            ProductId = SDL.SDL_JoystickGetGUID(joystick); // Will identify the type of controller
-            Name = SDL.SDL_JoystickName(joystick);
+            var joystickGUID = SDL.JoystickGetGUID(joystick); // Will identify the type of controller
+            ProductId = *(Guid*)&joystickGUID;
+            Name = SDL.JoystickNameS(joystick);
 
-            InstanceId = SDL.SDL_JoystickInstanceID(joystick);
+            InstanceId = SDL.JoystickInstanceID(joystick);
 
-            for (int i = 0; i < SDL.SDL_JoystickNumButtons(joystick); i++)
+            for (int i = 0; i < SDL.JoystickNumButtons(joystick); i++)
             {
                 buttonInfos.Add(new GameControllerButtonInfo { Name = $"Button {i}" });
             }
 
-            for (int i = 0; i < SDL.SDL_JoystickNumAxes(joystick); i++)
+            for (int i = 0; i < SDL.JoystickNumAxes(joystick); i++)
             {
                 axisInfos.Add(new GameControllerAxisInfo { Name = $"Axis {i}" });
             }
 
-            for (int i = 0; i < SDL.SDL_JoystickNumHats(joystick); i++)
+            for (int i = 0; i < SDL.JoystickNumHats(joystick); i++)
             {
                 povControllerInfos.Add(new GameControllerDirectionInfo { Name = $"Hat {i}" });
             }
@@ -69,7 +73,7 @@ namespace Stride.Input
         {
             if (!disposed)
             {
-                SDL.SDL_JoystickClose(joystick);
+                SDL.JoystickClose(joystick);
                 if (Disconnected == null)
                     throw new InvalidOperationException("Something should handle controller disconnect");
                 Disconnected.Invoke(this, null);
@@ -79,7 +83,7 @@ namespace Stride.Input
 
         public override void Update(List<InputEvent> inputEvents)
         {
-            if (SDL.SDL_JoystickGetAttached(joystick) == SDL.SDL_bool.SDL_FALSE)
+            if (SDL.JoystickGetAttached(joystick) == SdlBool.False)
             {
                 Dispose();
                 return;
@@ -87,19 +91,19 @@ namespace Stride.Input
 
             for (int i = 0; i < buttonInfos.Count; i++)
             {
-                HandleButton(i, SDL.SDL_JoystickGetButton(joystick, i) != 0);
+                HandleButton(i, SDL.JoystickGetButton(joystick, i) != 0);
             }
 
             for (int i = 0; i < axisInfos.Count; i++)
             {
-                short input = SDL.SDL_JoystickGetAxis(joystick, i);
+                short input = SDL.JoystickGetAxis(joystick, i);
                 float axis = (float)input / 0x7FFF;
                 HandleAxis(i, axis);
             }
 
             for (int i = 0; i < povControllerInfos.Count; i++)
             {
-                var hat = SDL.SDL_JoystickGetHat(joystick, i);
+                var hat = SDL.JoystickGetHat(joystick, i);
                 GamePadButton buttons;
                 bool hatEnabled = ConvertJoystickHat(hat, out buttons);
                 HandleDirection(i, hatEnabled ? GameControllerUtils.ButtonsToDirection(buttons) : Direction.None);
@@ -112,7 +116,7 @@ namespace Stride.Input
         {
             buttons = 0;
 
-            if (hat == SDL.SDL_HAT_CENTERED)
+            if (hat == Sdl.HatCentered)
                 return false;
 
             for (int j = 0; j < 4; j++)
@@ -122,16 +126,16 @@ namespace Stride.Input
                 {
                     switch (mask)
                     {
-                        case SDL.SDL_HAT_UP:
+                        case Sdl.HatUp:
                             buttons |= GamePadButton.PadUp;
                             break;
-                        case SDL.SDL_HAT_RIGHT:
+                        case Sdl.HatRight:
                             buttons |= GamePadButton.PadRight;
                             break;
-                        case SDL.SDL_HAT_DOWN:
+                        case Sdl.HatDown:
                             buttons |= GamePadButton.PadDown;
                             break;
-                        case SDL.SDL_HAT_LEFT:
+                        case Sdl.HatLeft:
                             buttons |= GamePadButton.PadLeft;
                             break;
                     }

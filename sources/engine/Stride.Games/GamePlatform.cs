@@ -391,11 +391,4 @@ namespace Stride.Games
             Suspend = null;
         }
     }
-
-    internal abstract class GamePlatform<TK> : GamePlatform
-    {
-        protected GamePlatform(GameBase game) : base(game)
-        {
-        }
-    }
 }

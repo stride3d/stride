@@ -1,19 +1,14 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_OPENGL
 
 using System;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-#else
-using OpenTK.Graphics.OpenGL;
-#endif
 
 namespace Stride.Graphics
 {
     public partial class QueryPool
     {
-        internal int[] NativeQueries;
+        internal uint[] NativeQueries;
 
         public bool TryGetData(long[] dataArray)
         {
@@ -23,17 +18,17 @@ namespace Stride.Graphics
             for (var index = 0; index < NativeQueries.Length; index++)
             {
 #if STRIDE_GRAPHICS_API_OPENGLES
-                GL.Ext.GetQueryObject(NativeQueries[index], GetQueryObjectParam.QueryResultAvailable, out long availability);
+                GraphicsDevice.GLExtDisjointTimerQuery.GetQueryObject(NativeQueries[index], QueryObjectParameterName.QueryResultAvailable, out long availability);
 #else
-                GL.GetQueryObject(NativeQueries[index], GetQueryObjectParam.QueryResultAvailable, out long availability);
+                GL.GetQueryObject(NativeQueries[index], QueryObjectParameterName.QueryResultAvailable, out long availability);
 #endif
                 if (availability == 0)
                     return false;
 
 #if STRIDE_GRAPHICS_API_OPENGLES
-                GL.Ext.GetQueryObject(NativeQueries[index], GetQueryObjectParam.QueryResult, out dataArray[index]);
+                GraphicsDevice.GLExtDisjointTimerQuery.GetQueryObject(NativeQueries[index], QueryObjectParameterName.QueryResult, out dataArray[index]);
 #else
-                GL.GetQueryObject(NativeQueries[index], GetQueryObjectParam.QueryResult, out dataArray[index]);
+                GL.GetQueryObject(NativeQueries[index], QueryObjectParameterName.QueryResult, out dataArray[index]);
 #endif
             }
 
@@ -45,7 +40,7 @@ namespace Stride.Graphics
         protected internal override void OnDestroyed()
         {
 #if !STRIDE_PLATFORM_IOS
-            GL.DeleteQueries(QueryCount, NativeQueries);
+            GL.DeleteQueries((uint)QueryCount, NativeQueries);
             NativeQueries = null;
 #endif
             base.OnDestroyed();
@@ -62,9 +57,9 @@ namespace Stride.Graphics
                     throw new NotImplementedException();
             }
 
-            NativeQueries = new int[QueryCount];
+            NativeQueries = new uint[QueryCount];
 #if !STRIDE_PLATFORM_IOS
-            GL.GenQueries(QueryCount, NativeQueries);
+            GL.GenQueries((uint)QueryCount, NativeQueries);
 #endif
         }
     }

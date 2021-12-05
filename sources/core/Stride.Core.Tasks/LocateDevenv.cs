@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.VisualStudio.Setup.Configuration;
+using Task = Microsoft.Build.Utilities.Task;
 
 namespace Stride.Core.Tasks
 {

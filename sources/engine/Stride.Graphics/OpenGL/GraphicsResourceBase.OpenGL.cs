@@ -10,8 +10,11 @@ namespace Stride.Graphics
     /// </summary>
     public partial class GraphicsResourceBase
     {
+        protected internal GL GL;
+
         private void Initialize()
         {
+            GL = GraphicsDevice?.GL;
         }
         
         /// <summary>

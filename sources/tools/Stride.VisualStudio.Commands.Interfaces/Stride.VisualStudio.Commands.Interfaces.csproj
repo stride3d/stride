@@ -2,7 +2,7 @@
   <Import Project="..\..\targets\Stride.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <RootNamespace>Stride.VisualStudio.Commands</RootNamespace>
   </PropertyGroup>
 

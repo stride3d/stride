@@ -55,11 +55,6 @@ namespace Stride.Games
         {
             switch (type)
             {
-#if STRIDE_GRAPHICS_API_OPENGL && STRIDE_UI_OPENTK
-                case AppContextType.DesktopOpenTK:
-                    return new GameWindowOpenTK();
-#endif
-
 #if STRIDE_UI_SDL
                  case AppContextType.DesktopSDL:
                     return new GameWindowSDL();

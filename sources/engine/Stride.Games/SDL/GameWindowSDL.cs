@@ -3,10 +3,14 @@
 #if STRIDE_UI_SDL
 using System;
 using System.Diagnostics;
-using SDL2;
+using Silk.NET.SDL;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.SDL;
+using Cursor = Stride.Graphics.SDL.Cursor;
+using DisplayOrientation = Stride.Graphics.DisplayOrientation;
+using Point = Stride.Core.Mathematics.Point;
+using Window = Stride.Graphics.SDL.Window;
 
 namespace Stride.Games
 {
@@ -194,7 +198,7 @@ namespace Stride.Games
             return new SDLMessageLoop(window);
         }
 
-        private void WindowOnMouseEnterActions(SDL.SDL_WindowEvent sdlWindowEvent)
+        private void WindowOnMouseEnterActions(WindowEvent sdlWindowEvent)
         {
             if (!isMouseVisible && !isMouseCurrentlyHidden)
             {
@@ -203,7 +207,7 @@ namespace Stride.Games
             }
         }
 
-        private void WindowOnMouseLeaveActions(SDL.SDL_WindowEvent sdlWindowEvent)
+        private void WindowOnMouseLeaveActions(WindowEvent sdlWindowEvent)
         {
             if (isMouseCurrentlyHidden)
             {
@@ -212,7 +216,7 @@ namespace Stride.Games
             }
         }
 
-        private void WindowOnResizeEndActions(SDL.SDL_WindowEvent sdlWindowEvent)
+        private void WindowOnResizeEndActions(WindowEvent sdlWindowEvent)
         {
             OnClientSizeChanged(window, EventArgs.Empty);
         }

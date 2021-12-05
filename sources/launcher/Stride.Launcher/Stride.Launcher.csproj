@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows7.0</TargetFramework>
+    <TargetFramework>net6.0-windows7.0</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
@@ -93,12 +93,12 @@
     <Resource Include="Resources\facebook_24.png" />
     <Resource Include="Resources\reddit_24.png" />
     <Resource Include="Resources\twitter_bird_24.png" />
+    <Resource Include="Resources\opencollective-24.png" />
     <Resource Include="Resources\github.png" />
     <Resource Include="Resources\issues.png" />
     <Resource Include="Resources\Launcher.ico" />
     <Resource Include="Resources\delete-26-dark.png" />
     <Resource Include="Resources\download-26-dark.png" />
-    <Resource Include="Resources\patreon_mark_coral_24.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Resources\Strings.ja-JP.resx" />

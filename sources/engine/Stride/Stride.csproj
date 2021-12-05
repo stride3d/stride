@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
@@ -19,8 +19,6 @@
     <StrideBuildTags>*</StrideBuildTags>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
-
-  <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
 
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

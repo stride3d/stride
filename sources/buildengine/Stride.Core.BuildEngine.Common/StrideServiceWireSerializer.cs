@@ -5,7 +5,8 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
-using Newtonsoft.Json;
+//using Newtonsoft.Json;
+using System.Text.Json;
 using ServiceWire;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
@@ -66,16 +67,21 @@ namespace Stride.Core.BuildEngine
 
     public class NewtonsoftSerializer : ISerializer
     {
-        private JsonSerializerSettings settings = new JsonSerializerSettings
+        //private JsonSerializerSettings settings = new JsonSerializerSettings
+        //{
+        //    ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+        //};
+        private JsonSerializerOptions settings = new JsonSerializerOptions
         {
-            ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
         };
 
         public T Deserialize<T>(byte[] bytes)
         {
             if (null == bytes || bytes.Length == 0) return default(T);
             var json = Encoding.UTF8.GetString(bytes);
-            return JsonConvert.DeserializeObject<T>(json, settings);
+
+            return JsonSerializer.Deserialize<T>(json, settings); //return JsonConvert.DeserializeObject<T>(json, settings);
         }
 
         public object Deserialize(byte[] bytes, string typeConfigName)
@@ -84,13 +90,13 @@ namespace Stride.Core.BuildEngine
             var type = typeConfigName.ToType();
             if (null == typeConfigName || null == bytes || bytes.Length == 0) return type.GetDefault();
             var json = Encoding.UTF8.GetString(bytes);
-            return JsonConvert.DeserializeObject(json, type, settings);
+            return JsonSerializer.Deserialize(json,type, settings); //return JsonConvert.DeserializeObject(json, type, settings);
         }
 
         public byte[] Serialize<T>(T obj)
         {
             if (null == obj) return null;
-            var json = JsonConvert.SerializeObject(obj, settings);
+            var json = JsonSerializer.Serialize(obj, settings); //JsonConvert.SerializeObject(obj, settings);
             return Encoding.UTF8.GetBytes(json);
         }
 
@@ -98,7 +104,7 @@ namespace Stride.Core.BuildEngine
         {
             if (null == obj) return null;
             var type = typeConfigName.ToType();
-            var json = JsonConvert.SerializeObject(obj, type, settings);
+            var json = JsonSerializer.Serialize(obj, type, settings); //JsonConvert.SerializeObject(obj, type, settings);
             return Encoding.UTF8.GetBytes(json);
         }
     }
