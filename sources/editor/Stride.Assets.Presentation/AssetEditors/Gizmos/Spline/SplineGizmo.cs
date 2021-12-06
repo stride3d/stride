@@ -1,20 +1,16 @@
 // Copyright (c) Stride contributors (https://Stride.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Splines;
 using Stride.Engine.Splines.Components;
-using Stride.Extensions;
-using Stride.Games;
 using Stride.Graphics;
-using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
+using Stride.Rendering.Materials;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
@@ -29,28 +25,13 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private Entity gizmoNodeLinks;
         private Entity gizmoBeziers;
         private Entity gizmoPoints;
-        private Entity gizmoTangentOut;
-        private Entity gizmoTangentIn;
         private Entity gizmoBoundingBox;
 
         private float updateFrequency = 1.2f;
         private float updateTimer = 0.0f;
         private bool boundingIter = false;
 
-        private Material whiteMaterial;
-        private Material redMaterial;
-        private Material greenMaterial;
-        private Material pinkMaterial;
-        private Material blueMaterial;
-        private Material boundingBoxMaterial;
-
-        protected Vector3 StartClickPoint;
-        protected Matrix StartWorldMatrix = Matrix.Identity;
-        private bool dragStarted;
-
-        public TranslationGizmo TranslationGizmo { get; private set; }
-        public Vector2 startMousePosition { get; private set; }
-        public Vector2 prevTotalMouseDrag { get; private set; }
+        private Material splineMaterial;
 
         public SplineGizmo(EntityComponent component) : base(component, "Spline gizmo", GizmoResources.SplineGizmo)
         {
@@ -58,13 +39,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         protected override Entity Create()
         {
-            whiteMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.White);
-            redMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Red);
-            greenMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Green);
-            pinkMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Pink);
-            blueMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Blue);
-            boundingBoxMaterial = GizmoEmissiveColorMaterial.Create(GraphicsDevice, Color.Green);
-            RenderGroup = RenderGroup.Group4;
+            splineMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Green);
+            splineMaterial.Descriptor = new MaterialDescriptor();
+            splineMaterial.Descriptor.Attributes.CullMode = CullMode.None;
 
             mainGizmoEntity = new Entity();
             gizmoNodes = new Entity();
@@ -72,22 +49,12 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             gizmoBeziers = new Entity();
             gizmoPoints = new Entity();
             gizmoBoundingBox = new Entity();
-            gizmoTangentOut = new Entity();
-            gizmoTangentIn = new Entity();
-
-            //mainGizmoEntity.AddChild(gizmoTangentOut);
-            //mainGizmoEntity.AddChild(gizmoTangentIn);
-            //TranslationGizmo.AnchorEntity = gizmoTangentIn;
 
             mainGizmoEntity.AddChild(gizmoNodes);
             mainGizmoEntity.AddChild(gizmoNodeLinks);
             mainGizmoEntity.AddChild(gizmoBeziers);
             mainGizmoEntity.AddChild(gizmoPoints);
             mainGizmoEntity.AddChild(gizmoBoundingBox);
-
-            TranslationGizmo = new TranslationGizmo();
-            TranslationGizmo.IsEnabled = true;
-
 
             Update();
 
@@ -101,7 +68,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         public override void Update()
         {
-            //StartMousePosition = Input.MousePosition;
             var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
             updateTimer += deltaTime;
 
@@ -116,23 +82,22 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             // calculate the world matrix of the gizmo so that it is positioned exactly as the corresponding scene entity
             // except the scale that is re-adjusted to the gizmo desired size (gizmo are insert at scene root so LocalMatrix = WorldMatrix)
-            Vector3 scale;
-            Quaternion rotation;
-            Vector3 translation;
-            ContentEntity.Transform.WorldMatrix.Decompose(out scale, out rotation, out translation);
+            ContentEntity.Transform.WorldMatrix.Decompose(out var scale, out
+            // calculate the world matrix of the gizmo so that it is positioned exactly as the corresponding scene entity
+            // except the scale that is re-adjusted to the gizmo desired size (gizmo are insert at scene root so LocalMatrix = WorldMatrix)
+            Quaternion rotation, out var translation);
 
             // Translation and Scale but no rotation on bounding boxes
             GizmoRootEntity.Transform.Position = translation;
             GizmoRootEntity.Transform.Scale = 1 * scale;
             GizmoRootEntity.Transform.UpdateWorldMatrix();
             var enoughNodes = Component.Nodes?.Count > 1;
+
             if (enoughNodes && Component.Dirty)
             {
                 ClearChildren(gizmoNodes);
                 ClearChildren(gizmoBeziers);
                 ClearChildren(gizmoPoints);
-                ClearChildren(gizmoTangentOut);
-                ClearChildren(gizmoTangentIn);
                 ClearChildren(gizmoBoundingBox);
 
                 var totalNodesCount = Component.Nodes.Count;
@@ -145,23 +110,13 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                         break;
                     }
 
-                    //allways draw
+                    // Allways draw
                     if (Component.DebugInfo.Nodes)
                     {
                         DrawNodes(curNode);
                     }
 
-                    if (Component.DebugInfo.TangentOutwards)
-                    {
-                        DrawTangentOutwards(curNode);
-                    }
-
-                    if (Component.DebugInfo.TangentInwards)
-                    {
-                        DrawTangentInwards(curNode);
-                    }
-
-                    if (i == totalNodesCount - 1 && !Component.Loop) //Dont debugdraw when it is the last node and Loop is disabled
+                    if (i == totalNodesCount - 1 && !Component.Loop) // Dont debugdraw when it is the last node and Loop is disabled
                     {
                         break;
                     }
@@ -204,89 +159,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 GizmoRootEntity.Transform.LocalMatrix = ContentEntity.Transform.WorldMatrix;
                 GizmoRootEntity.Transform.UseTRS = false;
             }
-
-            //if (enoughNodes)
-            //{
-            //    ExperimentalStuffWithTangentTranslation(deltaTime);
-            //}
-        }
-
-        private void ExperimentalStuffWithTangentTranslation(float deltaTime)
-        {
-            //magic stuff copied from translation gizmo
-            var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
-            var gizmoMatrix = GizmoRootEntity.Transform.WorldMatrix;
-            var gizmoViewInverse = Matrix.Invert(gizmoMatrix * cameraService.ViewMatrix);
-
-            var clickRay = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, Input.MousePosition, gizmoViewInverse);
-
-            var radius = 0.35f;
-
-            Input.UnlockMousePosition();
-            Game.IsMouseVisible = true;
-
-            var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, 0.3f, 48).ToMeshDraw();
-
-            for (int i = 0; i < Component.Nodes?.Count; i++)
-            {
-                var curNode = Component.Nodes[i];
-
-
-                // Add middle sphere
-                var tangentOut = new Entity("TangentSphereOut") { new ModelComponent { Model = new Model { redMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
-                var tangentIn = new Entity("TangentSphereIn") { new ModelComponent { Model = new Model { greenMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
-
-                gizmoTangentOut.AddChild(tangentOut);
-                gizmoTangentIn.AddChild(tangentIn);
-
-                if (!dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-                {
-                    gizmoTangentOut.Get<ModelComponent>().Model.Materials[0] = redMaterial;
-                }
-
-
-                if (new BoundingSphere(gizmoTangentOut.Transform.Position, radius).Intersects(ref clickRay))
-                {
-                    gizmoTangentOut.Get<ModelComponent>().Model.Materials[0] = pinkMaterial;
-                    if (Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-                    {
-                        if (!dragStarted)
-                        {
-                            dragStarted = true;
-                            startMousePosition = Input.MousePosition;
-                        }
-                    }
-                }
-
-                if (dragStarted && Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-                {
-                    var mousePosition = Input.MousePosition;
-                    var totalMouseDrag = mousePosition - startMousePosition;
-                    var newMouseDrag = totalMouseDrag - prevTotalMouseDrag;
-                    prevTotalMouseDrag = totalMouseDrag;
-
-                    var dragMultiplier = deltaTime * 500; //dragMultiplier
-                    Component.Nodes[0].TangentOut += new Vector3(-newMouseDrag.X * dragMultiplier, -newMouseDrag.Y * dragMultiplier, 0);
-                }
-                else if (dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-                {
-                    prevTotalMouseDrag = new Vector2(0);
-                    dragStarted = false;
-                }
-
-                if (new BoundingSphere(gizmoTangentIn.Transform.Position, radius).Intersects(ref clickRay))
-                {
-                    gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = blueMaterial;
-                    if (Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-                    {
-                        Component.Nodes[0].TangentIn += 0.01f;
-                    }
-                }
-                else
-                {
-                    gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = greenMaterial;
-                }
-            }
         }
 
         private void UpdateBoundingBox(SplineNodeComponent curNode)
@@ -314,7 +186,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private void DrawSplineSegments(List<Vector3> splinePoints)
         {
             var splineMeshData = new SplineMeshData(splinePoints, GraphicsDevice);
-            var debugLine = new Entity() { new ModelComponent { Model = new Model { greenMaterial, new Mesh { Draw = splineMeshData.Build() } }, RenderGroup = RenderGroup } };
+            var debugLine = new Entity() { new ModelComponent { Model = new Model { splineMaterial, new Mesh { Draw = splineMeshData.Build() } }, RenderGroup = RenderGroup } };
             gizmoBeziers.AddChild(debugLine);
             debugLine.Transform.Position -= mainGizmoEntity.Transform.Position - debugLine.Transform.Position;
         }
@@ -366,22 +238,12 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             node.Transform.Position += splineNodeComponent.Entity.Transform.Position;
         }
 
-        private void DrawTangentOutwards(SplineNodeComponent splineNodeComponent)
-        {
-            gizmoTangentOut.Transform.Position = splineNodeComponent.TangentOut;
-        }
-
-        private void DrawTangentInwards(SplineNodeComponent splineNodeComponent)
-        {
-            gizmoTangentIn.Transform.Position = splineNodeComponent.TangentIn;
-        }
-
         private void ClearChildren(Entity entity)
         {
             var children = entity.GetChildren();
             foreach (var child in children)
             {
-                entity.RemoveChild(child);
+                entity?.RemoveChild(child);
             }
         }
     }

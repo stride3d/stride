@@ -8,8 +8,6 @@ namespace Stride.Engine.Splines
         private bool _nodes;
         private bool _segments;
         private bool _points;
-        private bool _out;
-        private bool _in;
         private bool _boundingBox;
 
         [DataMemberIgnore]
@@ -41,26 +39,6 @@ namespace Stride.Engine.Splines
             set
             {
                 _nodes = value;
-                IsDirty = true;
-            }
-        }
-
-        public bool TangentOutwards
-        {
-            get { return _out; }
-            set
-            {
-                _out = value;
-                IsDirty = true;
-            }
-        }
-
-        public bool TangentInwards
-        {
-            get { return _in; }
-            set
-            {
-                _in = value;
                 IsDirty = true;
             }
         }

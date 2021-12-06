@@ -108,13 +108,8 @@ namespace Stride.Engine.Splines.Components
         {
             if (nextNode != null && nextNode.Entity != null)
             {
-                Vector3 scale;
-                Quaternion rotation;
-                Vector3 entityWorldPos;
-                Vector3 nextWorldPos;
-
-                Entity.Transform.WorldMatrix.Decompose(out scale, out rotation, out entityWorldPos);
-                nextNode.Entity.Transform.WorldMatrix.Decompose(out scale, out rotation, out nextWorldPos);
+                Entity.Transform.WorldMatrix.Decompose(out var scale, out Quaternion rotation, out var entityWorldPos);
+                nextNode.Entity.Transform.WorldMatrix.Decompose(out scale, out rotation, out var nextWorldPos);
                 Vector3 TangentOutWorld = entityWorldPos + TangentOut;
                 Vector3 TangentInWorld = nextWorldPos + nextNode.TangentIn;
 

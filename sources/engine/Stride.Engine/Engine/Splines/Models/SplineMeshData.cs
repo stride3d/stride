@@ -25,7 +25,7 @@ namespace Stride.Engine.Splines
             var vertexCount = 0;
 
             float totalDistance = 0.0f;
-            var halfWidth = 0.1f; //component.Width
+            var halfWidth = 0.01f; //component.Width
             for (var i = 0; i < points.Count; i++)
             {
                 // Calculate forward direction

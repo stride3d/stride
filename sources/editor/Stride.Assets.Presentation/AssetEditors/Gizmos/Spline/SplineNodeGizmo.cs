@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Core;
@@ -21,16 +20,14 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private Entity gizmoTangentIn;
 
         private Material whiteMaterial;
-        private Material redMaterial;
-        private Material greenMaterial;
-        private Material pinkMaterial;
-        private Material blueMaterial;
+        private Material outMaterial;
+        private Material inMaterial;
 
         protected Vector3 StartClickPoint;
         protected Matrix StartWorldMatrix = Matrix.Identity;
         private bool dragStarted;
+        private float tangentSphereRadius = 0.09f;
 
-        public TranslationGizmo TranslationGizmo { get; private set; }
         public Vector2 startMousePosition { get; private set; }
         public Vector2 prevTotalMouseDrag { get; private set; }
 
@@ -41,31 +38,20 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         protected override Entity Create()
         {
             whiteMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.White);
-            redMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Red);
-            greenMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Green);
-            pinkMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Pink);
-            blueMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Blue);
+            inMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.LightYellow);
+            outMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.LightSteelBlue);
+
             RenderGroup = RenderGroup.Group4;
 
             mainGizmoEntity = new Entity();
 
-            gizmoTangentOut = new Entity();
-            gizmoTangentIn = new Entity();
-
-
             // Add middle sphere
-            var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, 0.18f, 48).ToMeshDraw();
-            gizmoTangentOut = new Entity("TangentSphereOut") { new ModelComponent { Model = new Model { redMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
-            gizmoTangentIn = new Entity("TangentSphereIn") { new ModelComponent { Model = new Model { greenMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
-
+            var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, tangentSphereRadius, 48).ToMeshDraw();
+            gizmoTangentOut = new Entity("TangentSphereOut") { new ModelComponent { Model = new Model { outMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
+            gizmoTangentIn = new Entity("TangentSphereIn") { new ModelComponent { Model = new Model { inMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
 
             mainGizmoEntity.AddChild(gizmoTangentOut);
-
-
-            TranslationGizmo = new TranslationGizmo();
-            TranslationGizmo.IsEnabled = true;
-            TranslationGizmo.AnchorEntity = gizmoTangentIn;
-
+            mainGizmoEntity.AddChild(gizmoTangentIn);
 
             Update();
 
@@ -79,18 +65,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         public override void Update()
         {
-            //StartMousePosition = Input.MousePosition;
-            var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
-
-
             if (ContentEntity == null || GizmoRootEntity == null)
                 return;
 
-
-            Vector3 scale;
-            Quaternion rotation;
-            Vector3 translation;
-            ContentEntity.Transform.WorldMatrix.Decompose(out scale, out rotation, out translation);
+            ContentEntity.Transform.WorldMatrix.Decompose(out var scale, out Quaternion rotation, out var translation);
 
             GizmoRootEntity.Transform.Position = translation;
             GizmoRootEntity.Transform.Scale = 1 * scale;
@@ -99,18 +77,24 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             gizmoTangentOut.Transform.Position = Component.TangentOut;
             gizmoTangentIn.Transform.Position = Component.TangentIn;
 
-            if (Component.Dirty)
-            {
+            ClearChildren(gizmoTangentOut);
+            ClearChildren(gizmoTangentIn);
 
-                
-            }
+            var tangentLineOutGoingMesh = new SplineMeshData(new List<Vector3> { new Vector3(0), -Component.TangentOut }, GraphicsDevice);
+            var tangentLineOutGoing = new Entity() { new ModelComponent { Model = new Model { outMaterial, new Mesh { Draw = tangentLineOutGoingMesh.Build() } }, RenderGroup = RenderGroup } };
+            gizmoTangentOut.AddChild(tangentLineOutGoing);
 
+            var tangentLineInwardsMesh = new SplineMeshData(new List<Vector3> { new Vector3(0), -Component.TangentIn }, GraphicsDevice);
+            var tangentLineInwards = new Entity() { new ModelComponent { Model = new Model { inMaterial, new Mesh { Draw = tangentLineInwardsMesh.Build() } }, RenderGroup = RenderGroup } };
+            gizmoTangentIn.AddChild(tangentLineInwards);
+
+            //var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
             //ExperimentalStuffWithTangentTranslation(deltaTime);
         }
 
         private void ExperimentalStuffWithTangentTranslation(float deltaTime)
         {
-            //magic stuff copied from translation gizmo
+            // Magic stuff copied from translation gizmo
             var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
             var gizmoMatrix = GizmoRootEntity.Transform.WorldMatrix;
             var gizmoViewInverse = Matrix.Invert(gizmoMatrix * cameraService.ViewMatrix);
@@ -124,13 +108,13 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             if (!dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
             {
-                gizmoTangentOut.Get<ModelComponent>().Model.Materials[0] = redMaterial;
+                gizmoTangentOut.Get<ModelComponent>().Model.Materials[0] = whiteMaterial;
             }
 
 
             if (new BoundingSphere(gizmoTangentOut.Transform.Position, radius).Intersects(ref clickRay))
             {
-                gizmoTangentOut.Get<ModelComponent>().Model.Materials[0] = pinkMaterial;
+                gizmoTangentOut.Get<ModelComponent>().Model.Materials[0] = outMaterial;
                 if (Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
                 {
                     if (!dragStarted)
@@ -149,9 +133,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 prevTotalMouseDrag = totalMouseDrag;
 
                 //var viewProjection = cameraService.ViewMatrix * cameraService.ProjectionMatrix;
-
-
-                var dragMultiplier = deltaTime * 1500; //dragMultiplier
+                var dragMultiplier = deltaTime * 1500; // crappy dragMultiplier
                 Component.TangentOut += new Vector3(-newMouseDrag.X * dragMultiplier, -newMouseDrag.Y * dragMultiplier, 0);
             }
             else if (dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
@@ -162,7 +144,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             if (new BoundingSphere(gizmoTangentIn.Transform.Position, radius).Intersects(ref clickRay))
             {
-                gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = blueMaterial;
+                gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = inMaterial;
                 if (Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
                 {
                     Component.TangentIn += 0.01f;
@@ -170,7 +152,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
             else
             {
-                gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = greenMaterial;
+                gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = whiteMaterial;
             }
         }
 
