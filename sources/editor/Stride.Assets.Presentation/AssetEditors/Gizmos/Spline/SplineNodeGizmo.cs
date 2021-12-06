@@ -39,7 +39,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
             whiteMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.White);
             inMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.LightYellow);
-            outMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.LightSteelBlue);
+            outMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.LightSalmon);
 
             RenderGroup = RenderGroup.Group4;
 

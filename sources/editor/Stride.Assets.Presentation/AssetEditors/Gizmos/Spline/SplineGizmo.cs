@@ -27,7 +27,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private Entity gizmoPoints;
         private Entity gizmoBoundingBox;
 
-        private float updateFrequency = 1.2f;
+        private float updateFrequency = 0.1f;
         private float updateTimer = 0.0f;
         private bool boundingIter = false;
 
@@ -74,9 +74,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             if (ContentEntity == null || GizmoRootEntity == null)
                 return;
 
-            if (updateTimer > updateFrequency)
+            if (updateTimer < updateFrequency)
             {
-                updateTimer = 0;
                 return;
             }
 
@@ -158,6 +157,8 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 Component.Dirty = false;
                 GizmoRootEntity.Transform.LocalMatrix = ContentEntity.Transform.WorldMatrix;
                 GizmoRootEntity.Transform.UseTRS = false;
+
+                updateTimer = 0;
             }
         }
 
