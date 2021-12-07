@@ -40,7 +40,7 @@ namespace Stride.Engine.Splines.Components
                 _splineNodes = value;
 
                 DeregisterSplineNodeDirtyEvents();
-                UpdateSpline();
+                Dirty = true;
                 RegisterSplineNodeDirtyEvents();
             }
         }
@@ -48,11 +48,11 @@ namespace Stride.Engine.Splines.Components
         [Display(80, "Debug settings")]
         public SplineDebugInfo DebugInfo;
 
-        [Display(70, "Dirty")]
+        [DataMemberIgnore]
         public bool Dirty { get; set; }
 
         private bool loop;
-        [Display(80, "Loop")]
+        [Display(60, "Loop")]
         public bool Loop
         {
             get
@@ -62,7 +62,7 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 loop = value;
-                UpdateSpline();
+                Dirty = true;
             }
         }
 
@@ -166,7 +166,6 @@ namespace Stride.Engine.Splines.Components
 
         public void UpdateSpline()
         {
-            MakeSplineDirty();
             if (Nodes.Count > 1)
             {
                 var totalNodesCount = Nodes.Count;

@@ -74,10 +74,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             if (ContentEntity == null || GizmoRootEntity == null)
                 return;
 
-            if (updateTimer < updateFrequency)
-            {
-                return;
-            }
+            //if (updateTimer < updateFrequency)
+            //{
+            //    return;
+            //}
 
             // calculate the world matrix of the gizmo so that it is positioned exactly as the corresponding scene entity
             // except the scale that is re-adjusted to the gizmo desired size (gizmo are insert at scene root so LocalMatrix = WorldMatrix)

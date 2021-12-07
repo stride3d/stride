@@ -39,7 +39,7 @@ namespace Stride.Engine.Splines.Components
                     _segments = value;
                 }
 
-                MakeDirty();
+                Dirty = true;
             }
         }
         #endregion
@@ -53,7 +53,7 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 _tangentOut = value;
-                MakeDirty();
+                Dirty = true;
             }
         }
         #endregion
@@ -68,7 +68,7 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 _tangentIn = value;
-                MakeDirty();
+                Dirty = true;
             }
         }
         #endregion
@@ -77,7 +77,7 @@ namespace Stride.Engine.Splines.Components
         private Vector3 _previousPosition;
         public BoundingBox BoundingBox;
 
-
+        [DataMemberIgnore]
         public bool Dirty { get; set; }
 
         internal void Update(TransformComponent transformComponent)
@@ -91,18 +91,17 @@ namespace Stride.Engine.Splines.Components
         {
             if (_previousPosition.X != Entity.Transform.Position.X || _previousPosition.Y != Entity.Transform.Position.Y || _previousPosition.Z != Entity.Transform.Position.Z)
             {
-                MakeDirty();
+                Dirty = true;
+            }
+
+            if (Dirty)
+            {
+                OnDirty?.Invoke();
             }
         }
 
         public delegate void BezierCurveDirtyEventHandler();
         public event BezierCurveDirtyEventHandler OnDirty;
-
-
-        public void MakeDirty()
-        {
-            OnDirty?.Invoke();
-        }
 
         public void UpdateBezierCurve(SplineNodeComponent nextNode)
         {
