@@ -146,7 +146,7 @@ namespace Stride.Engine.Splines.Components
             {
                 var curNode = Nodes[i];
                 if (curNode != null)
-                {
+                { 
                     curNode.OnDirty -= MakeSplineDirty;
                 }
             }

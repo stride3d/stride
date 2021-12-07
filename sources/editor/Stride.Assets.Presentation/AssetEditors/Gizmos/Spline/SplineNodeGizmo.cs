@@ -44,7 +44,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             RenderGroup = RenderGroup.Group4;
 
             mainGizmoEntity = new Entity();
-
+  
             // Add middle sphere
             var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, tangentSphereRadius, 48).ToMeshDraw();
             gizmoTangentOut = new Entity("TangentSphereOut") { new ModelComponent { Model = new Model { outMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
