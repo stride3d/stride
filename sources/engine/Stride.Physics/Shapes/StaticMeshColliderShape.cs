@@ -1,7 +1,6 @@
 // Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,91 +12,147 @@ using Stride.Rendering;
 
 namespace Stride.Physics
 {
+
     public class StaticMeshColliderShape : ColliderShape
     {
-        private readonly Vector3[] vertices;
-        private readonly int[] indices;
-
-        public IReadOnlyList<Vector3> Vertices => vertices;
-        public IReadOnlyList<int> Indices => indices;
-
-
-        /// <summary>
-        /// Create a static collider from the vertices provided, ICollection will be duplicated before usage, 
-        /// changes to the collection provided won't be reflected on the collider or <see cref="Vertices"/> and <see cref="Indices"/>.
-        /// </summary>
-        public StaticMeshColliderShape(ICollection<Vector3> vertices, ICollection<int> indices, Vector3 scaling) : this(vertices.ToArray(), indices.ToArray(), scaling)
+        struct DrawEdge
         {
+            public Vector3 a;
+            public Vector3 b;
 
+            public static bool operator <(DrawEdge p_edge_a, DrawEdge p_edge_b)
+            {
+                if (p_edge_a.a == p_edge_b.a)
+                {
+                    return p_edge_a.b < p_edge_b.b;
+                }
+                else
+                {
+                    return p_edge_a.a < p_edge_b.a;
+                }
+            }
+
+            public static bool operator >(DrawEdge p_edge_a, DrawEdge p_edge_b)
+            {
+                if (p_edge_a.a == p_edge_b.a)
+                {
+                    return p_edge_a.b > p_edge_b.b;
+                }
+                else
+                {
+                    return p_edge_a.a > p_edge_b.a;
+                }
+            }
+
+            public DrawEdge(Vector3 p_a, Vector3 p_b)
+            {
+                a = p_a;
+                b = p_b;
+
+                if (a < b)
+                {
+                    b = p_a;
+                    a = p_b;
+                }
+            }
         }
 
-        /// <summary>
-        /// Internal constructor, expects readonly array; any changes made to the vertices won't be reflected on the physics shape
-        /// </summary>
-        StaticMeshColliderShape(Vector3[] verticesParam, int[] indicesParam, Vector3 scaling)
+        private readonly IReadOnlyList<Vector3> faces;
+
+        public StaticMeshColliderShape(IReadOnlyList<Vector3> _faces, Vector3 scaling)
         {
             Type = ColliderShapeTypes.StaticMesh;
             Is2D = false;
 
-            vertices = verticesParam;
-            indices = indicesParam;
-            
-            var meshData = new BulletSharp.TriangleIndexVertexArray(indices, new StrideToBulletWrapper(vertices));
-            var baseCollider = new BulletSharp.BvhTriangleMeshShape(meshData, true);
-            InternalShape = new BulletSharp.ScaledBvhTriangleMeshShape(baseCollider, scaling);
+            cachedScaling = scaling;
+
+            faces = _faces;
+
+            var trimesh = new BulletSharp.TriangleMesh();
+            for (var i = 0; i < faces.Count; i += 3)
+            {
+                var a = faces[i];
+                var b = faces[i+1];
+                var c = faces[i+2];
+
+                trimesh.AddTriangle(a, b, c);
+            }
+
+            InternalShape = new BulletSharp.BvhTriangleMeshShape(trimesh, true)
+            {
+                LocalScaling = cachedScaling
+            };
+
             DebugPrimitiveMatrix = Matrix.Scaling(Vector3.One * DebugScaling);
-            Scaling = scaling;
+        }
+
+        public IReadOnlyList<Vector3> Faces
+        {
+            get { return faces; }
         }
 
         public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)
         {
-            var verts = new VertexPositionNormalTexture[vertices.Length];
-            for(int i = 0; i < vertices.Length; i++)
+            int index_count = faces.Count;
+            if ((index_count % 3) != 0)
             {
-                verts[i].Position = vertices[i];
-            }
-            var meshData = new GeometricMeshData<VertexPositionNormalTexture>(verts, indices, false);
-
-            return new GeometricPrimitive(device, meshData).ToMeshDraw();
-        }
-        
-        class StrideToBulletWrapper : ICollection<BulletSharp.Math.Vector3>
-        {
-            ICollection<Vector3> internalColl;
-            public StrideToBulletWrapper(ICollection<Vector3> collectionToConvert)
-            {
-                internalColl = collectionToConvert;
+                throw new GraphicsException("Face points count is not (index_count % 3) != 0. Size: " + index_count);
             }
 
-            public int Count => internalColl.Count;
-
-            public bool IsReadOnly => true;
-
-            public bool Contains(BulletSharp.Math.Vector3 item) => internalColl.Contains(item);
-
-            public void CopyTo(BulletSharp.Math.Vector3[] array, int arrayIndex)
+            List<DrawEdge> edges = new List<DrawEdge>();
+            for (int i = 0; i < index_count; i += 3)
             {
-                foreach (var value in internalColl)
+                for (int j = 0; j < 3; j++)
                 {
-                    if (arrayIndex >= array.Length)
-                        return;
-                    array[arrayIndex++] = value;
+                    DrawEdge de = new DrawEdge(faces[i + j], faces[i + ((j + 1) % 3)]);
+                    edges.Add(de);
                 }
             }
 
-            public void Add(BulletSharp.Math.Vector3 item) { throw new System.InvalidOperationException("Collection is read only"); }
+            var tempVerts = new List<VertexPositionNormalTexture>();
+            var tempIndicies = new List<int>();
 
-            public bool Remove(BulletSharp.Math.Vector3 item) { throw new System.InvalidOperationException("Collection is read only"); }
-
-            public void Clear() { throw new System.InvalidOperationException("Collection is read only"); }
-
-            public IEnumerator<BulletSharp.Math.Vector3> GetEnumerator()
+            int idx = 0;
+            foreach (var edge in edges)
             {
-                foreach (var value in internalColl)
-                    yield return value;
+                var vertA = new VertexPositionNormalTexture();
+                vertA.TextureCoordinate = Vector2.Zero;
+                vertA.Normal = Vector3.Zero;
+                vertA.Position = edge.a;
+
+                tempVerts.Add(vertA); // from
+
+                var vertB = new VertexPositionNormalTexture();
+                vertB.TextureCoordinate = Vector2.Zero;
+                vertB.Normal = Vector3.Zero;
+                vertB.Position = edge.b;
+
+                tempVerts.Add(vertB); // to
+                tempIndicies.Add(idx + 0);
+                tempIndicies.Add(idx + 1);
+
+                idx += 2;
             }
 
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            var verts = tempVerts.ToArray();
+            var indicies = tempIndicies.ToArray();
+
+            var meshData = new GeometricMeshData<VertexPositionNormalTexture>(verts, indicies, false);
+            var instance = new GeometricPrimitive(device, meshData);
+
+            var vertexBufferBinding = new VertexBufferBinding(instance.VertexBuffer, VertexPositionNormalTexture.Layout, instance.VertexBuffer.ElementCount);
+            var indexBufferBinding = new IndexBufferBinding(instance.IndexBuffer, instance.IsIndex32Bits, instance.IndexBuffer.ElementCount);
+
+            var data = new MeshDraw
+            {
+                StartLocation = 0,
+                PrimitiveType = PrimitiveType.LineList,
+                VertexBuffers = new[] { vertexBufferBinding },
+                IndexBuffer = indexBufferBinding,
+                DrawCount = instance.IndexBuffer.ElementCount,
+            };
+
+            return data;
         }
     }
 }

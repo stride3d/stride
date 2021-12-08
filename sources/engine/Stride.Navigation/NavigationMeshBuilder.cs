@@ -560,20 +560,17 @@ namespace Stride.Navigation
                         }
                         else if (shapeType == typeof(StaticMeshColliderShape))
                         {
-                            var mesh = (StaticMeshColliderShape)shape;
-                            Matrix transform = mesh.PositiveCenterMatrix * entityWorldMatrix;
+                            var staticShape = (StaticMeshColliderShape)shape;
+                            Matrix transform = staticShape.PositiveCenterMatrix * entityWorldMatrix;
 
-                            // Convert hull indices to int
-                            int[] indices = new int[mesh.Indices.Count];
-                            if (mesh.Indices.Count % 3 != 0) throw new InvalidOperationException($"{shapeType} does not consist of triangles");
-                            for (int i = 0; i < mesh.Indices.Count; i += 3)
+                            int[] indices = new int[staticShape.Faces.Count];
+
+                            for (int j = 0; j < staticShape.Faces.Count; j++)
                             {
-                                indices[i] = (int)mesh.Indices[i];
-                                indices[i + 2] = (int)mesh.Indices[i + 1]; // NOTE: Reversed winding to create left handed input
-                                indices[i + 1] = (int)mesh.Indices[i + 2];
+                                indices[j] = j;
                             }
 
-                            entityNavigationMeshInputBuilder.AppendArrays(mesh.Vertices.ToArray(), indices, transform);
+                            entityNavigationMeshInputBuilder.AppendArrays(staticShape.Faces.ToArray(), indices, transform);
                         }
                         else if (shapeType == typeof(HeightfieldColliderShape))
                         {

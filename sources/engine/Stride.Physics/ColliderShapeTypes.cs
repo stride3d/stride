@@ -31,6 +31,9 @@ namespace Stride.Physics
 
         StaticPlane,
 
+        /// <summary>
+        ///     3D only
+        /// </summary>
         StaticMesh,
 
         Cone,

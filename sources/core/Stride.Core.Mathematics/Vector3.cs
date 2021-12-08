@@ -319,7 +319,7 @@ namespace Stride.Core.Mathematics
         {
             return new Vector3(value.X * scale, value.Y * scale, value.Z * scale);
         }
-        
+
         /// <summary>
         /// Modulates a vector with another by performing component-wise multiplication.
         /// </summary>
@@ -367,7 +367,7 @@ namespace Stride.Core.Mathematics
         {
             return new Vector3(value.X / scale, value.Y / scale, value.Z / scale);
         }
-        
+
         /// <summary>
         /// Demodulates a vector with another by performing component-wise division.
         /// </summary>
@@ -1572,6 +1572,46 @@ namespace Stride.Core.Mathematics
         }
 
         /// <summary>
+        /// Test if an axis of the left vector is smaller then an axis of the right vector.
+        /// </summary>
+        /// <param name="left">Left value.</param>
+        /// <param name="right">Right value.</param>
+        /// <returns><c>true</c> if <paramref name="left"/> has a lower axis then <paramref name="right"/>; otherwise, <c>false</c>.</returns>
+        public static bool operator <(Vector3 left, Vector3 right)
+        {
+            if (left.X == right.X)
+            {
+                if (left.Y == right.Y)
+                {
+                    return left.Z < right.Z;
+                }
+                return left.Y < right.Y;
+            }
+
+            return left.X < right.X;
+        }
+
+        /// <summary>
+        /// Test if an axis of the left vector is greater then an axis of the right vector.
+        /// </summary>
+        /// <param name="left">Left value.</param>
+        /// <param name="right">Right value.</param>
+        /// <returns><c>true</c> if <paramref name="left"/> has a greater axis then <paramref name="right"/>; otherwise, <c>false</c>.</returns>
+        public static bool operator >(Vector3 left, Vector3 right)
+        {
+            if (left.X == right.X)
+            {
+                if (left.Y == right.Y)
+                {
+                    return left.Z > right.Z;
+                }
+                return left.Y > right.Y;
+            }
+
+            return left.X > right.X;
+        }
+
+        /// <summary>
         /// Performs an explicit conversion from <see cref="Stride.Core.Mathematics.Vector3"/> to <see cref="Stride.Core.Mathematics.Vector2"/>.
         /// </summary>
         /// <param name="value">The value.</param>
@@ -1650,7 +1690,7 @@ namespace Stride.Core.Mathematics
             if (format == null)
                 return ToString();
 
-            return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2}", X.ToString(format, CultureInfo.CurrentCulture), 
+            return string.Format(CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2}", X.ToString(format, CultureInfo.CurrentCulture),
                 Y.ToString(format, CultureInfo.CurrentCulture), Z.ToString(format, CultureInfo.CurrentCulture));
         }
 

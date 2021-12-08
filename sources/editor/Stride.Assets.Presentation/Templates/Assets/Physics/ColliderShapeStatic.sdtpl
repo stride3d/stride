@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: 5A3CD5E3-4328-36AF-A41C-8146D2D21F83
+AssetTypeName: ColliderShapeAsset
+Name: StaticMesh
+Scope: Asset
+Description: A static mesh (trimesh) based shaped collider, computed from a 3D model
+Group: Physics
+Icon: ..\.sdtpl\ColliderStatic.png
+DefaultOutputName: ColliderStaticMesh
+FactoryTypeName: ColliderShapeStaticMeshFactory

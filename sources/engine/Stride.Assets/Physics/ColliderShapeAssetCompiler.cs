@@ -25,6 +25,7 @@ namespace Stride.Assets.Physics
     [AssetCompiler(typeof(ColliderShapeAsset), typeof(AssetCompilationContext))]
     internal class ColliderShapeAssetCompiler : AssetCompilerBase
     {
+
         static ColliderShapeAssetCompiler()
         {
             NativeLibrary.PreloadLibrary("VHACD.dll", typeof(ColliderShapeAssetCompiler));
@@ -48,7 +49,7 @@ namespace Stride.Assets.Physics
 
         public override IEnumerable<Type> GetInputTypesToExclude(AssetItem assetItem)
         {
-            foreach(var type in AssetRegistry.GetAssetTypes(typeof(Material)))
+            foreach (var type in AssetRegistry.GetAssetTypes(typeof(Material)))
             {
                 yield return type;
             }
@@ -67,6 +68,19 @@ namespace Stride.Assets.Physics
                     if (convexHullDesc.Model != null)
                     {
                         var url = AttachedReferenceManager.GetUrl(convexHullDesc.Model);
+
+                        if (!string.IsNullOrEmpty(url))
+                        {
+                            yield return new ObjectUrl(UrlType.Content, url);
+                        }
+                    }
+                }
+                else if (desc is StaticMeshColliderShapeDesc)
+                {
+                    var staticDesc = desc as StaticMeshColliderShapeDesc;
+                    if (staticDesc.Model != null)
+                    {
+                        var url = AttachedReferenceManager.GetUrl(staticDesc.Model);
 
                         if (!string.IsNullOrEmpty(url))
                         {
@@ -107,6 +121,25 @@ namespace Stride.Assets.Physics
             {
             }
 
+            private Face3[] GetFaces(uint[] indicies, Vector3[] vertices)
+            {
+                var intIndices = indicies.Select(x => (int)x).ToArray();
+                var faces = new List<Face3>();
+                for (var i = 0; i < indicies.Length; i += 3)
+                {
+                    faces.Add(new Face3
+                    {
+                        points = {
+                            a = vertices[intIndices[i]],
+                            b= vertices[intIndices[i + 1]],
+                            c = vertices[intIndices[i + 2]]
+                        }
+                    });
+                }
+
+                return faces.ToArray();
+            }
+
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
                 var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
@@ -114,13 +147,10 @@ namespace Stride.Assets.Physics
                 // Cloned list of collider shapes
                 var descriptions = Parameters.ColliderShapes.ToList();
 
-                var validShapes = Parameters.ColliderShapes.Where(x => x != null
-                    && (x.GetType() != typeof(ConvexHullColliderShapeDesc) || ((ConvexHullColliderShapeDesc)x).Model != null)).ToList();
-
-                //pre process special types
                 foreach (var convexHullDesc in
-                    (from shape in validShapes let type = shape.GetType() where type == typeof(ConvexHullColliderShapeDesc) select shape)
-                    .Cast<ConvexHullColliderShapeDesc>())
+                from shape in Parameters.ColliderShapes
+                where shape is ConvexHullColliderShapeDesc hullShape && hullShape.Model != null
+                select ((ConvexHullColliderShapeDesc)shape))
                 {
                     // Clone the convex hull shape description so the fields that should not be serialized can be cleared (Model in this case)
                     ConvexHullColliderShapeDesc convexHullDescClone = new ConvexHullColliderShapeDesc
@@ -139,7 +169,6 @@ namespace Stride.Assets.Physics
                     {
                         ContentFilter = ContentManagerLoaderSettings.NewContentFilterByType(typeof(Mesh), typeof(Skeleton))
                     };
-                    
                     var modelAsset = assetManager.Load<Model>(AttachedReferenceManager.GetUrl(convexHullDesc.Model), loadSettings);
                     if (modelAsset == null) continue;
 
@@ -151,7 +180,7 @@ namespace Stride.Assets.Physics
                     var nodeTransforms = new List<Matrix>();
 
                     //pre-compute all node transforms, assuming nodes are ordered... see ModelViewHierarchyUpdater
-                    
+
                     if (modelAsset.Skeleton == null)
                     {
                         Matrix baseMatrix;
@@ -184,12 +213,12 @@ namespace Stride.Assets.Physics
                             {
                                 Matrix baseMatrix;
                                 Matrix.Transformation(ref convexHullDescClone.Scaling, ref convexHullDescClone.LocalRotation, ref convexHullDescClone.LocalOffset, out baseMatrix);
-                                nodeTransforms.Add(baseMatrix*worldMatrix);
+                                nodeTransforms.Add(baseMatrix * worldMatrix);
                             }
                             else
                             {
-                                nodeTransforms.Add(worldMatrix); 
-                            }                           
+                                nodeTransforms.Add(worldMatrix);
+                            }
                         }
                     }
 
@@ -339,10 +368,192 @@ namespace Stride.Assets.Physics
                     }
                 }
 
+                foreach (var staticMeshDesc in
+                from shape in Parameters.ColliderShapes
+                where shape is StaticMeshColliderShapeDesc staticShape && staticShape.Model != null
+                select ((StaticMeshColliderShapeDesc)shape))
+                {
+                    // Clone the convex hull shape description so the fields that should not be serialized can be cleared (Model in this case)
+                    StaticMeshColliderShapeDesc convexHullDescClone = new StaticMeshColliderShapeDesc
+                    {
+                        Scaling = staticMeshDesc.Scaling,
+                        LocalOffset = staticMeshDesc.LocalOffset,
+                        LocalRotation = staticMeshDesc.LocalRotation,
+                    };
+
+                    // Replace shape in final result with cloned description
+                    int replaceIndex = descriptions.IndexOf(staticMeshDesc);
+                    descriptions[replaceIndex] = convexHullDescClone;
+
+                    var loadSettings = new ContentManagerLoaderSettings
+                    {
+                        ContentFilter = ContentManagerLoaderSettings.NewContentFilterByType(typeof(Mesh), typeof(Skeleton))
+                    };
+                    var modelAsset = assetManager.Load<Model>(AttachedReferenceManager.GetUrl(staticMeshDesc.Model), loadSettings);
+                    if (modelAsset == null) continue;
+
+                    var faces = new List<Vector3>();
+
+                    commandContext.Logger.Info("Processing static mesh shape generation, this might take a while!");
+                    var nodeTransforms = new List<Matrix>();
+                    if (modelAsset.Skeleton == null)
+                    {
+                        Matrix baseMatrix;
+                        Matrix.Transformation(ref convexHullDescClone.Scaling, ref convexHullDescClone.LocalRotation, ref convexHullDescClone.LocalOffset, out baseMatrix);
+                        nodeTransforms.Add(baseMatrix);
+                    }
+                    else
+                    {
+                        var nodesLength = modelAsset.Skeleton.Nodes.Length;
+                        for (var i = 0; i < nodesLength; i++)
+                        {
+                            Matrix localMatrix;
+                            Matrix.Transformation(
+                                ref modelAsset.Skeleton.Nodes[i].Transform.Scale,
+                                ref modelAsset.Skeleton.Nodes[i].Transform.Rotation,
+                                ref modelAsset.Skeleton.Nodes[i].Transform.Position, out localMatrix);
+
+                            Matrix worldMatrix;
+                            if (modelAsset.Skeleton.Nodes[i].ParentIndex != -1)
+                            {
+                                var nodeTransform = nodeTransforms[modelAsset.Skeleton.Nodes[i].ParentIndex];
+                                Matrix.Multiply(ref localMatrix, ref nodeTransform, out worldMatrix);
+                            }
+                            else
+                            {
+                                worldMatrix = localMatrix;
+                            }
+
+                            if (i == 0)
+                            {
+                                Matrix baseMatrix;
+                                Matrix.Transformation(ref convexHullDescClone.Scaling, ref convexHullDescClone.LocalRotation, ref convexHullDescClone.LocalOffset, out baseMatrix);
+                                nodeTransforms.Add(baseMatrix * worldMatrix);
+                            }
+                            else
+                            {
+                                nodeTransforms.Add(worldMatrix);
+                            }
+                        }
+                    }
+
+                    int totalVertices = 0;
+                    for (var i = 0; i < nodeTransforms.Count; i++)
+                    {
+                        var i1 = i;
+                        if (modelAsset.Meshes.All(x => x.NodeIndex != i1)) continue; // no geometry in the node
+
+                        var combinedVerts = new List<float>();
+                        var combinedIndices = new List<uint>();
+
+                        foreach (var meshData in modelAsset.Meshes.Where(x => x.NodeIndex == i1))
+                        {
+                            var indexOffset = (uint)combinedVerts.Count / 3;
+
+                            var stride = meshData.Draw.VertexBuffers[0].Declaration.VertexStride;
+
+                            var vertexBufferRef = AttachedReferenceManager.GetAttachedReference(meshData.Draw.VertexBuffers[0].Buffer);
+                            byte[] vertexData;
+                            if (vertexBufferRef.Data != null)
+                            {
+                                vertexData = ((BufferData)vertexBufferRef.Data).Content;
+                            }
+                            else if (!string.IsNullOrEmpty(vertexBufferRef.Url))
+                            {
+                                var dataAsset = assetManager.Load<Buffer>(vertexBufferRef.Url);
+                                vertexData = dataAsset.GetSerializationData().Content;
+                            }
+                            else
+                            {
+                                continue;
+                            }
+
+                            var vertexIndex = meshData.Draw.VertexBuffers[0].Offset;
+                            for (var v = 0; v < meshData.Draw.VertexBuffers[0].Count; v++)
+                            {
+                                var posMatrix = Matrix.Translation(new Vector3(BitConverter.ToSingle(vertexData, vertexIndex + 0), BitConverter.ToSingle(vertexData, vertexIndex + 4), BitConverter.ToSingle(vertexData, vertexIndex + 8)));
+
+                                Matrix rotatedMatrix;
+                                var nodeTransform = nodeTransforms[i];
+                                Matrix.Multiply(ref posMatrix, ref nodeTransform, out rotatedMatrix);
+
+                                combinedVerts.Add(rotatedMatrix.TranslationVector.X);
+                                combinedVerts.Add(rotatedMatrix.TranslationVector.Y);
+                                combinedVerts.Add(rotatedMatrix.TranslationVector.Z);
+
+                                vertexIndex += stride;
+                            }
+
+                            var indexBufferRef = AttachedReferenceManager.GetAttachedReference(meshData.Draw.IndexBuffer.Buffer);
+                            byte[] indexData;
+                            if (indexBufferRef.Data != null)
+                            {
+                                indexData = ((BufferData)indexBufferRef.Data).Content;
+                            }
+                            else if (!string.IsNullOrEmpty(indexBufferRef.Url))
+                            {
+                                var dataAsset = assetManager.Load<Buffer>(indexBufferRef.Url);
+                                indexData = dataAsset.GetSerializationData().Content;
+                            }
+                            else
+                            {
+                                throw new Exception("Failed to find index buffer while building a static mesh shape.");
+                            }
+
+                            var indexIndex = meshData.Draw.IndexBuffer.Offset;
+                            for (var v = 0; v < meshData.Draw.IndexBuffer.Count; v++)
+                            {
+                                if (meshData.Draw.IndexBuffer.Is32Bit)
+                                {
+                                    combinedIndices.Add(BitConverter.ToUInt32(indexData, indexIndex) + indexOffset);
+                                    indexIndex += 4;
+                                }
+                                else
+                                {
+                                    combinedIndices.Add(BitConverter.ToUInt16(indexData, indexIndex) + indexOffset);
+                                    indexIndex += 2;
+                                }
+                            }
+                        }
+
+                        var pointList = new Vector3[combinedVerts.Count * 3];
+
+                        int vertexIdx = 0;
+                        for (var v = 0; v < combinedVerts.Count; v += 3)
+                        {
+                            var vert = new Vector3(combinedVerts[v + 0], combinedVerts[v + 1], combinedVerts[v + 2]);
+                            pointList[vertexIdx] = vert;
+                            vertexIdx++;
+                        }
+
+                        var generatedFaces = GetFaces(combinedIndices.ToArray(), pointList);
+                        Vector3[] faces_points = new Vector3[generatedFaces.Length * 3];
+
+                        for (int ix = 0; ix < faces_points.Length; ix += 3)
+                        {
+                            Face3 f = generatedFaces[ix / 3];
+
+                            faces.Add(f.points.a);
+                            faces.Add(f.points.b);
+                            faces.Add(f.points.c);
+                        }
+
+                        totalVertices += faces_points.Length;
+                    }
+
+                    commandContext.Logger.Info("For a total of " + totalVertices + " vertexes");
+                    convexHullDescClone.Faces = faces;
+                }
+
                 var runtimeShape = new PhysicsColliderShape(descriptions);
                 assetManager.Save(Url, runtimeShape);
 
                 return Task.FromResult(ResultStatus.Successful);
+            }
+
+            private struct Face3
+            {
+                public (Vector3 a, Vector3 b, Vector3 c) points;
             }
         }
     }
