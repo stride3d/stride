@@ -24,6 +24,7 @@ namespace Stride.Assets.Presentation.Templates
     public static class ModelFromFileTemplateSettings
     {
         public static SettingsKey<bool> ImportMaterials = new SettingsKey<bool>("Templates/ModelFromFile/ImportMaterials", PackageUserSettings.SettingsContainer, true);
+        public static SettingsKey<int> LodLevels = new SettingsKey<int>("Templates/ModelFromFile/LodLevels", PackageUserSettings.SettingsContainer, 0);
         public static SettingsKey<bool> DeduplicateMaterials = new SettingsKey<bool>("Templates/ModelFromFile/DeduplicateMaterials", PackageUserSettings.SettingsContainer, true);
         public static SettingsKey<bool> ImportTextures = new SettingsKey<bool>("Templates/ModelFromFile/ImportTextures", PackageUserSettings.SettingsContainer, true);
         public static SettingsKey<bool> ImportSkeleton = new SettingsKey<bool>("Templates/ModelFromFile/ImportSkeleton", PackageUserSettings.SettingsContainer, true);
@@ -37,10 +38,11 @@ namespace Stride.Assets.Presentation.Templates
         public static Guid Id = new Guid("3B778954-54C4-4FF3-97EF-4CD7AEA0B97D");
 
         protected static readonly PropertyKey<bool> ImportMaterialsKey = new PropertyKey<bool>("ImportMaterials", typeof(ModelFromFileTemplateGenerator));
-        protected static readonly PropertyKey<bool> DeduplicateMaterialsKey = new PropertyKey<bool>("DeduplicateMaterials", typeof(ModelFromFileTemplateGenerator));
         protected static readonly PropertyKey<bool> ImportTexturesKey = new PropertyKey<bool>("ImportTextures", typeof(ModelFromFileTemplateGenerator));
+        protected static readonly PropertyKey<bool> DeduplicateMaterialsKey = new PropertyKey<bool>("DeduplicateMaterials", typeof(ModelFromFileTemplateGenerator));
         protected static readonly PropertyKey<bool> ImportSkeletonKey = new PropertyKey<bool>("ImportSkeleton", typeof(ModelFromFileTemplateGenerator));
         protected static readonly PropertyKey<Skeleton> SkeletonToUseKey = new PropertyKey<Skeleton>("SkeletonToUse", typeof(ModelFromFileTemplateGenerator));
+        protected static readonly PropertyKey<int> LodLevelsKey = new PropertyKey<int>("LodLevels", typeof(ModelFromFileTemplateGenerator));
 
         public override bool IsSupportingTemplate(TemplateDescription templateDescription)
         {
@@ -70,7 +72,8 @@ namespace Stride.Assets.Presentation.Templates
                     ShowFbxDedupeNotSupportedWarning = showFbxDedupeNotSupportedWarning,
                     DeduplicateMaterials = ModelFromFileTemplateSettings.DeduplicateMaterials.GetValue(profile, true),
                     ImportTextures = ModelFromFileTemplateSettings.ImportTextures.GetValue(profile, true),
-                    ImportSkeleton = ModelFromFileTemplateSettings.ImportSkeleton.GetValue(profile, true)
+                    ImportSkeleton = ModelFromFileTemplateSettings.ImportSkeleton.GetValue(profile, true),
+                    LodLevels = ModelFromFileTemplateSettings.LodLevels.GetValue(profile, true)
                 }
             };
 
@@ -90,6 +93,7 @@ namespace Stride.Assets.Presentation.Templates
             // Apply settings
             var skeletonToReuse = window.Parameters.ReuseSkeleton ? window.Parameters.SkeletonToReuse : null;
             parameters.Tags.Set(ImportMaterialsKey, window.Parameters.ImportMaterials);
+            parameters.Tags.Set(LodLevelsKey, window.Parameters.LodLevels);
             parameters.Tags.Set(DeduplicateMaterialsKey, window.Parameters.DeduplicateMaterials);
             parameters.Tags.Set(ImportTexturesKey, window.Parameters.ImportTextures);
             parameters.Tags.Set(ImportSkeletonKey, window.Parameters.ImportSkeleton);
@@ -100,6 +104,9 @@ namespace Stride.Assets.Presentation.Templates
             ModelFromFileTemplateSettings.DeduplicateMaterials.SetValue(window.Parameters.DeduplicateMaterials, profile);
             ModelFromFileTemplateSettings.ImportTextures.SetValue(window.Parameters.ImportTextures, profile);
             ModelFromFileTemplateSettings.ImportSkeleton.SetValue(window.Parameters.ImportSkeleton, profile);
+
+            ModelFromFileTemplateSettings.LodLevels.SetValue(window.Parameters.LodLevels, profile);
+
             skeletonId = AttachedReferenceManager.GetAttachedReference(skeletonToReuse)?.Id ?? AssetId.Empty;
             ModelFromFileTemplateSettings.DefaultSkeleton.SetValue(skeletonId, profile);
             parameters.Package.UserSettings.Save();
@@ -116,11 +123,16 @@ namespace Stride.Assets.Presentation.Templates
             var importMaterials = parameters.Tags.Get(ImportMaterialsKey);
             var deduplicateMaterials = parameters.Tags.Get(DeduplicateMaterialsKey);
             var importTextures = parameters.Tags.Get(ImportTexturesKey);
+
+            var lodLevels = parameters.Tags.Get(LodLevelsKey);
+
             var importSkeleton = parameters.Tags.Get(ImportSkeletonKey);
             var skeletonToReuse = parameters.Tags.Get(SkeletonToUseKey);
 
             var importParameters = new AssetImporterParameters { Logger = parameters.Logger };
             importParameters.InputParameters.Set(ModelAssetImporter.DeduplicateMaterialsKey, deduplicateMaterials);
+            importParameters.InputParameters.Set(ModelAssetImporter.LodLevelsKey, lodLevels);
+
             importParameters.SelectedOutputTypes.Add(typeof(ModelAsset), true);
             importParameters.SelectedOutputTypes.Add(typeof(MaterialAsset), importMaterials);
             importParameters.SelectedOutputTypes.Add(typeof(TextureAsset), importTextures);

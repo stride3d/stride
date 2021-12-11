@@ -57,6 +57,55 @@ namespace Stride.Assets.Presentation.ViewModel
                 materials.AddDependency(model, false);
             }
 
+            if (node.Value is IndexingDictionary<Model> && node.Parent?.Value is ModelComponent)
+            {
+                var modelNode = (IAssetObjectNode)entity.Editor.NodeContainer.GetNode(node.Value);
+                var lodModels = node;
+                var model = GetReferencedModel();
+
+                if (model != null)
+                {
+                    int i = 0;
+                    foreach (var child in lodModels.Children.ToList())
+                    {
+                        child.IsVisible = false;
+                    }
+                    var factory = ((IAssetNodePresenter)node).Factory;
+                    foreach (var lodModel in model.Lods.ToList())
+                    {
+                        var modelLodModel = model.Lods.Count > i ? model.Lods[i] : null;
+                        var materialName = modelLodModel?.Level.ToString() ?? $"(Model {i + 1})";
+                        var index = new NodeIndex(i);
+                        var virtualMaterial = factory.CreateVirtualNodePresenter(node, lodModel.Level.ToString() + "___Virtual", typeof(Material), i,
+                                                   () => GetModelLod(modelNode, index),
+                                                   x => SetModelLod(modelNode, index, (Model)x),
+                                                   () => modelNode.BaseNode != null,
+                                                   () => modelNode.IsItemInherited(index),
+                                                   () => modelNode.IsItemOverridden(index));
+
+                        // Do not put the FetchAssetCommand, we need a custom implementation for this one.
+                        // Do not put the CreateNewInstanceCommand neither, otherwise it will display the "Clear reference" button which doesn't make sense here (null => disabled)
+                        virtualMaterial.Commands.RemoveWhere(x => x.Name == FetchAssetCommand.CommandName || x.Name == CreateNewInstanceCommand.CommandName);
+
+                        // Override the FetchAsset command to be able to fetch the model material when it is null in the component
+                        var fetchAsset = new AnonymousNodePresenterCommand(FetchAssetCommand.CommandName, (x, param) => FetchLodModel(modelNode, index));
+                        virtualMaterial.Commands.Add(fetchAsset);
+                        virtualMaterial.DisplayName = materialName;
+                        virtualMaterial.RegisterAssociatedNode(new NodeAccessor(modelNode, index));
+
+                        var enabledNode = factory.CreateVirtualNodePresenter(virtualMaterial, "Enabled", typeof(bool), 0,
+                               () => IsModelLodEnabled(modelNode, index),
+                               x => SetModelLodEnabled(modelNode, index, (bool)x),
+                               () => modelNode.BaseNode != null,
+                               () => modelNode.IsItemInherited(index),
+                               () => modelNode.IsItemOverridden(index));
+                        enabledNode.RegisterAssociatedNode(new NodeAccessor(modelNode, index));
+                        enabledNode.IsVisible = false;
+                        i++;
+                    }
+                }
+            }
+
             if (node.Value is IndexingDictionary<Material> && node.Parent?.Value is ModelComponent)
             {
                 var materialsNode = (IAssetObjectNode)entity.Editor.NodeContainer.GetNode(node.Value);
@@ -112,7 +161,25 @@ namespace Stride.Assets.Presentation.ViewModel
             return FetchAssetCommand.Fetch(entity.Editor.Session, material);
         }
 
+        private Task FetchLodModel(IObjectNode materialsNode, NodeIndex index)
+        {
+            var model = GetModelLod(materialsNode, index);
+            return FetchAssetCommand.Fetch(entity.Editor.Session, model);
+        }
+
         private static void SetMaterial(IObjectNode materialNode, NodeIndex index, Material value)
+        {
+            if (materialNode.Indices.Contains(index))
+            {
+                materialNode.Update(value, index);
+            }
+            else
+            {
+                materialNode.Add(value, index);
+            }
+        }
+
+        private static void SetModelLod(IObjectNode materialNode, NodeIndex index, Model value)
         {
             if (materialNode.Indices.Contains(index))
             {
@@ -143,6 +210,25 @@ namespace Stride.Assets.Presentation.ViewModel
             return model?.Materials[index.Int].MaterialInstance.Material;
         }
 
+        private object GetModelLod(IObjectNode modelNode, NodeIndex index)
+        {
+            if (modelNode.Indices.Contains(index))
+            {
+                return modelNode.Retrieve(index);
+            }
+
+            var model = GetReferencedModel();
+            if (model == null)
+                return null;
+
+            // During specific operations such as changes of the referenced model, this getter can be used while we're not currently in sync with the collection
+            // of the model. In this case, return null.
+            if (model.Lods.Count <= index.Int)
+                return null;
+
+            return model?.Lods[index.Int].LodModel;
+        }
+
         private void SetMaterialEnabled(IObjectNode materialNode, NodeIndex index, bool value)
         {
             if (value)
@@ -157,9 +243,28 @@ namespace Stride.Assets.Presentation.ViewModel
             }
         }
 
+        private void SetModelLodEnabled(IObjectNode modelNode, NodeIndex index, bool value)
+        {
+            if (value)
+            {
+                var model = GetModelLod(modelNode, index);
+                modelNode.Add(model, index);
+            }
+            else
+            {
+                var model = modelNode.Retrieve(index);
+                modelNode.Remove(model, index);
+            }
+        }
+
         private static object IsMaterialEnabled(IObjectNode materialNode, NodeIndex index)
         {
             return materialNode.Indices.Contains(index);
+        }
+
+        private static object IsModelLodEnabled(IObjectNode modelNode, NodeIndex index)
+        {
+            return modelNode.Indices.Contains(index);
         }
 
         private static void ClearMaterialList(IObjectNode materials)

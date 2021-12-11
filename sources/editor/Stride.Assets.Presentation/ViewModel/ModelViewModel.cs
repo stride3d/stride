@@ -80,6 +80,32 @@ namespace Stride.Assets.Presentation.ViewModel
                 // Use Restore to allow to set manually the id.
                 materialsNode.Restore(dictionary[assetToMerge.Materials[i].Name], new NodeIndex(i), id);
             }
+
+            // Create a dictionary containing all new and old lods, favoring old ones to maintain existing references
+            var lodDictionary = assetToMerge.Lods.ToDictionary(x => x.Level.ToString(), x => x);
+            Asset.Lods.ForEach(x => lodDictionary[x.Level.ToString()] = x);
+
+            // Create a dictionary mapping existing lod to their item id, to attempt to maintain existing ids and avoid unnecessary changes.
+            var lodIds = CollectionItemIdHelper.GetCollectionItemIds(Asset.Lods).ToDictionary(x => Asset.Lods[(int)x.Key].Level.ToString(), x => x.Value);
+
+            // Remove currently existing lods, one by one because Quantum does not provide a clear method.
+            var lodsNode = AssetRootNode[nameof(ModelAsset.Lods)].Target;
+            while (Asset.Lods.Count > 0)
+            {
+                lodsNode.Remove(Asset.Lods[0], new NodeIndex(0));
+            }
+
+            // Repopulate the list of lods
+            for (var i = 0; i < assetToMerge.Lods.Count; ++i)
+            {
+                // Retrieve or create an id for the lod model
+                ItemId id;
+                if (!lodIds.TryGetValue(assetToMerge.Lods[i].Level.ToString(), out id))
+                    id = ItemId.New();
+
+                // Use Restore to allow to set manually the id.
+                lodsNode.Restore(lodDictionary[assetToMerge.Lods[i].Level.ToString()], new NodeIndex(i), id);
+            }
         }
 
         private async void CreateSkeleton()

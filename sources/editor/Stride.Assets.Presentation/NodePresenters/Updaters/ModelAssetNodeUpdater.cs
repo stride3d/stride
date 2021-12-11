@@ -32,6 +32,22 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                 node.AttachedProperties.Set(DisplayData.AutoExpandRuleKey, ExpandRule.Always);
             }
 
+            if (typeof(ModelLodModel).IsAssignableFrom(node.Type) && node.IsVisible)
+            {
+                var materialInstance = node[nameof(ModelLodModel.LodModel)];
+                node.IsVisible = false;
+                var name = ((ModelLodModel)node.Value).Level.ToString();
+                name = !string.IsNullOrWhiteSpace(name) ? name : $"ModelLodModel {node.Index}";
+                materialInstance.Order = node.Index.Int;
+                materialInstance.ChangeParent(node.Parent);
+                materialInstance.Rename($"ModelLodModel {node.Index}");
+                materialInstance.DisplayName = name;
+            }
+            if (typeof(List<ModelLodModel>).IsAssignableFrom(node.Type) && node.IsVisible)
+            {
+                node.AttachedProperties.Set(DisplayData.AutoExpandRuleKey, ExpandRule.Always);
+            }
+
             // If there is a skeleton, hide ScaleImport and PivotPosition (they are overriden by skeleton values)
             if (typeof(ModelAsset).IsAssignableFrom(node.Type))
             {
@@ -44,6 +60,9 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                 // Add dependency to reevaluate if value changes
                 node.AddDependency(node[nameof(ModelAsset.Skeleton)], false);
             }
+
+            //@todo: on update of pívot, skeleton or scale import, send parameters to the lod assets and store them there for regeneration of lods!
+            //paramter update -> get the list of the lods List<ModelLodModel> -> Get the asset of the ModelLodModel -> Update the parameter.
         }
     }
 }

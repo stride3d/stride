@@ -1,0 +1,11 @@
+!TemplateAssetFactory
+Id: 3B778954-54C3-4FF3-97EF-4CD7AEA1B97D
+AssetTypeName: ModelLodAsset
+Name: 3D LOD model
+Scope: Asset
+Description: A 3D lod model asset
+Group: Model
+Order: -100
+Icon: ..\.sdtpl\LODModel.png
+DefaultOutputName: Model
+ImportSource: true

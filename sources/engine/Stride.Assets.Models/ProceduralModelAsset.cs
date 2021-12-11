@@ -45,5 +45,9 @@ namespace Stride.Assets.Models
         /// <inheritdoc/>
         [DataMemberIgnore]
         public List<ModelMaterial> Materials => Type.MaterialInstances.Select(x => new ModelMaterial { Name = x.Key, MaterialInstance = x.Value }).ToList();
+
+        /// <inheritdoc/> 
+        [DataMemberIgnore] // materials are not exposed in prefab models
+        public List<ModelLodModel> Lods { get; } = new List<ModelLodModel>();
     }
 }

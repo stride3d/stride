@@ -15,12 +15,14 @@ using Stride.Assets.Materials;
 using Stride.Assets.Textures;
 using Stride.Rendering;
 using Stride.Importer.Common;
+using Stride.Core.BuildEngine;
 
 namespace Stride.Assets.Models
 {
     public abstract class ModelAssetImporter : AssetImporterBase
     {
         public static readonly PropertyKey<bool> DeduplicateMaterialsKey = new PropertyKey<bool>("DeduplicateMaterials", typeof(ModelAssetImporter));
+        public static readonly PropertyKey<int> LodLevelsKey = new PropertyKey<int>("LodLevels", typeof(ModelAssetImporter));
 
         public override IEnumerable<Type> RootAssetTypes
         {
@@ -29,6 +31,7 @@ namespace Stride.Assets.Models
                 yield return typeof(ModelAsset);
                 yield return typeof(AnimationAsset);
                 yield return typeof(SkeletonAsset);
+                yield return typeof(ModelLodAsset);
             }
         }
 
@@ -70,9 +73,13 @@ namespace Stride.Assets.Models
         {
             var rawAssetReferences = new List<AssetItem>(); // the asset references without subdirectory path
 
+            if (!importParameters.InputParameters.TryGet(LodLevelsKey, out var lodLevels))
+                lodLevels = 0;
+
             var entityInfo = GetEntityInfo(localPath, importParameters.Logger, importParameters);
             if (entityInfo == null)
                 return rawAssetReferences;
+
 
             //var isImportingEntity = importParameters.IsTypeSelectedForOutput<PrefabAsset>();
 
@@ -113,7 +120,7 @@ namespace Stride.Assets.Models
             // 5. Model
             if (isImportingModel)
             {
-                ImportModel(rawAssetReferences, localPath, localPath, entityInfo, false, skeletonAsset);
+                ImportModel(rawAssetReferences, localPath, localPath, entityInfo, false, skeletonAsset, lodLevels  );
             }
 
             return rawAssetReferences;
@@ -157,10 +164,9 @@ namespace Stride.Assets.Models
             }
         }
 
-        private static void ImportModel(List<AssetItem> assetReferences, UFile assetSource, UFile localPath, EntityInfo entityInfo, bool shouldPostFixName, AssetItem skeletonAsset)
+        private static void ImportModel(List<AssetItem> assetReferences, UFile assetSource, UFile localPath, EntityInfo entityInfo, bool shouldPostFixName, AssetItem skeletonAsset, int lodLevels = 0)
         {
             var asset = new ModelAsset { Source = assetSource };
-
             if (entityInfo.Models != null)
             {
                 var loadedMaterials = assetReferences.Where(x => x.Asset is MaterialAsset).ToList();
@@ -190,11 +196,52 @@ namespace Stride.Assets.Models
             if (skeletonAsset != null)
                 asset.Skeleton = AttachedReferenceManager.CreateProxyObject<Skeleton>(skeletonAsset.Id, skeletonAsset.Location);
 
-            var modelUrl = new UFile(localPath.GetFileNameWithoutExtension() + (shouldPostFixName?" Model": ""));
+            var modelUrl = new UFile(localPath.GetFileNameWithoutExtension() + (shouldPostFixName ? " Model" : ""));
+            if (lodLevels > 0)
+            {
+                ImportLods(entityInfo,  lodLevels, assetReferences, modelUrl, asset);
+            }
+
             var assetItem = new AssetItem(modelUrl, asset);
+
             assetReferences.Add(assetItem);
         }
+   
+        private static void ImportLods(EntityInfo entityInfo, int levels, List<AssetItem> assetReferences,  UFile modelUrl, ModelAsset asset)
+        {
+            float totalLevels = levels + 2; //first level skipped, last level skipped (beacuse 0 quality)
+            for (int i = 1; i < levels +1; i++)
+            {
+                float q = (totalLevels-(float)i)  / totalLevels;
 
+                //generate the new lod asset with excat the same values of the original model
+                var newLodAsset = new ModelLodAsset { 
+                    Quality = q,  
+                    Level = i, 
+                    Skeleton = asset.Skeleton, 
+                    DeduplicateMaterials = asset.DeduplicateMaterials, 
+                    Source = asset.Source, 
+                    PivotPosition = asset.PivotPosition, 
+                    ScaleImport = asset.ScaleImport, 
+                    MergeMeshes = asset.MergeMeshes 
+                };
+
+                //we dont need materials, but we need some empty instances for mesh generation
+                foreach (var material in entityInfo.Materials)
+                {
+                    newLodAsset.Materials.Add(new ModelMaterial { Name = material.Key, MaterialInstance = new MaterialInstance() });
+                }
+
+                var newUrl = new UFile(modelUrl.FullPath + "_LOD" + i);
+                var lodAssetItem = new AssetItem(newUrl, newLodAsset);
+                assetReferences.Add(lodAssetItem);
+
+                var model = AttachedReferenceManager.CreateProxyObject<Model>(lodAssetItem.Id, lodAssetItem.Location);
+                var modelMaterial = new ModelLodModel { Level = i, LodModel = model };
+                asset.Lods.Add(modelMaterial);
+            }
+        }
+   
         private static void ImportMaterials(List<AssetItem> assetReferences, Dictionary<string, MaterialAsset> materials)
         {
             if (materials != null)

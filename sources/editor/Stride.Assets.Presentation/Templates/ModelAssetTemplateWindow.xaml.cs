@@ -11,6 +11,8 @@ using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Quantum;
 using Stride.Rendering;
+using System.Windows.Input;
+using System.Text.RegularExpressions;
 
 namespace Stride.Assets.Presentation.Templates
 {
@@ -40,6 +42,7 @@ namespace Stride.Assets.Presentation.Templates
         private readonly DummyReferenceContainer referenceContainer = new DummyReferenceContainer();
 
         private bool importMaterials = true;
+        private int lodLevels = 3;
         private bool showDeduplicateMaterialsCheckBox = true;
         private bool showFbxDedupeNotSupportedWarning = false;
         private bool deduplicateMaterials = true;
@@ -53,8 +56,8 @@ namespace Stride.Assets.Presentation.Templates
         {
             ReferenceViewModel = GraphViewModel.Create(serviceProvider, new[] { referenceContainer });
         }
-
         public bool ImportMaterials { get { return importMaterials; } set { SetValue(ref importMaterials, value); } }
+        public int LodLevels { get { return lodLevels; } set { SetValue(ref lodLevels, value); } }
 
         public bool ShowDeduplicateMaterialsCheckBox { get { return showDeduplicateMaterialsCheckBox; } set { SetValue(ref showDeduplicateMaterialsCheckBox, value); } }
         public bool ShowFbxDedupeNotSupportedWarning { get { return showFbxDedupeNotSupportedWarning; } set { SetValue(ref showFbxDedupeNotSupportedWarning, value); } }
@@ -98,5 +101,12 @@ namespace Stride.Assets.Presentation.Templates
             Result = Stride.Core.Presentation.Services.DialogResult.Cancel;
             Close();
         }
+
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9]+");
+            e.Handled = regex.IsMatch(e.Text);
+        }
+
     }
 }

@@ -82,6 +82,11 @@ namespace Stride.VisualStudio.Assets
         internal static FileExtensionToContentTypeDefinition sdm3dFileExtensionDefinition = null;
 
         [Export]
+        [FileExtension(".sdmlod3d")]
+        [ContentType(Constants.ContentType)]
+        internal static FileExtensionToContentTypeDefinition sdmlod3dFileExtensionDefinition = null;
+
+        [Export]
         [FileExtension(".sdanim")]
         [ContentType(Constants.ContentType)]
         internal static FileExtensionToContentTypeDefinition sdanimFileExtensionDefinition = null;

@@ -33,7 +33,8 @@ namespace Stride.Assets.Models
         public string EffectName { get; set; }
 
         public List<IModelModifier> ModelModifiers { get; set; }
-        
+        public List<ModelLodModel> Lods { get; set; }
+
         /// <summary>
         /// Checks if the vertex buffer input slots for the model are supported by the target graphics profile level
         /// </summary>
@@ -78,6 +79,15 @@ namespace Stride.Assets.Models
                 model.Materials.Add(modelMaterial.MaterialInstance);
             }
 
+            // Apply Lods
+            if (Lods != null)
+            {
+                foreach (var modeLod in Lods)
+                {
+                    model.Lods.Add(modeLod.LodModel);
+                }
+            }
+
             model.BoundingBox = BoundingBox.Empty;
 
             Skeleton skeleton;
@@ -102,7 +112,6 @@ namespace Stride.Assets.Models
             {
                 skeleton = null;
             }
-
             var skeletonMapping = new SkeletonMapping(skeleton, modelSkeleton);
 
             // Refresh skeleton updater with model skeleton
@@ -345,6 +354,8 @@ namespace Stride.Assets.Models
 
             vbMap.Clear();
             ibMap.Clear();
+
+            //add lods
 
             // Convert to Entity
             return model;

@@ -18,6 +18,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetHighlighters
     /// <summary>
     /// The <see cref="AssetHighlighter"/> for <see cref="ModelAsset"/> and <see cref="ProceduralModelAsset"/>.
     /// </summary>
+    [AssetHighlighter(typeof(ModelLodAsset))]
     [AssetHighlighter(typeof(ModelAsset))]
     [AssetHighlighter(typeof(ProceduralModelAsset))]
     public class ModelAssetHighlighter : AssetHighlighter

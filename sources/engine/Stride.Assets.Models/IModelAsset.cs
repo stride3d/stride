@@ -17,5 +17,13 @@ namespace Stride.Assets.Models
         /// The list of materials in the model.
         /// </userdoc>
         List<ModelMaterial> Materials { get; }
+
+        /// <summary>
+        /// The materials.
+        /// </summary>
+        /// <userdoc>
+        /// The list of materials in the model.
+        /// </userdoc>
+        List<ModelLodModel> Lods { get; }
     }
 }
