@@ -1,5 +1,5 @@
 ﻿// Simple fog emulating fixed pipeline as described in http://www.ozone3d.net/tutorials/glsl_fog/p03.php
-shader FogEffect : ShadingBase, TransformationBase, Camera
+shader CustomFogEffect : ShadingBase, TransformationBase, Camera
 {
     cbuffer PerDraw
     {

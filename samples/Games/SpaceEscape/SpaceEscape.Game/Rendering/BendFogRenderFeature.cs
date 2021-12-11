@@ -24,7 +24,7 @@ namespace SpaceEscape.Rendering
         private ConstantBufferOffsetReference bend;
         private ConstantBufferOffsetReference uvChange;
 
-        // Constant buffer layout for FogEffect
+        // Constant buffer layout for CustomFogEffect
         private struct PerDrawFog
         {
             public Color4 FogColor;
@@ -43,7 +43,7 @@ namespace SpaceEscape.Rendering
 
             renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
 
-            fog = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(FogEffectKeys.FogColor.Name);
+            fog = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(CustomFogEffectKeys.FogColor.Name);
             bend = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationBendWorldKeys.DeformFactorX.Name);
             uvChange = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationTextureUVKeys.TextureRegion.Name);
         }
