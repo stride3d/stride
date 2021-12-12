@@ -27,7 +27,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private Entity gizmoPoints;
         private Entity gizmoBoundingBox;
 
-        private float updateFrequency = 0.1f;
+        private float updateFrequency = 0.05f;
         private float updateTimer = 0.0f;
         private bool boundingIter = false;
 
@@ -74,10 +74,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             if (ContentEntity == null || GizmoRootEntity == null)
                 return;
 
-            //if (updateTimer < updateFrequency)
-            //{
-            //    return;
-            //}
+            if (updateTimer < updateFrequency)
+            {
+                return;
+            }
 
             // calculate the world matrix of the gizmo so that it is positioned exactly as the corresponding scene entity
             // except the scale that is re-adjusted to the gizmo desired size (gizmo are insert at scene root so LocalMatrix = WorldMatrix)
@@ -90,71 +90,65 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             GizmoRootEntity.Transform.Position = translation;
             GizmoRootEntity.Transform.Scale = 1 * scale;
             GizmoRootEntity.Transform.UpdateWorldMatrix();
-            var enoughNodes = Component.Nodes?.Count > 1;
+            var nodes = Component.Spline.splineNodes;
 
-            if (enoughNodes && Component.Dirty)
+            if (nodes?.Count > 1 && Component.Spline.Dirty)
             {
                 ClearChildren(gizmoNodes);
                 ClearChildren(gizmoBeziers);
                 ClearChildren(gizmoPoints);
                 ClearChildren(gizmoBoundingBox);
 
-                var totalNodesCount = Component.Nodes.Count;
+                var totalNodesCount = nodes.Count;
                 for (int i = 0; i < totalNodesCount; i++)
                 {
-                    var curNode = Component.Nodes[i];
+                    var currentSplineNode = nodes[i];
 
-                    if (curNode == null)
+                    if (currentSplineNode == null)
                     {
                         break;
                     }
 
-                    // Allways draw
-                    if (Component.DebugInfo.Nodes)
-                    {
-                        DrawNodes(curNode);
-                    }
-
-                    if (i == totalNodesCount - 1 && !Component.Loop) // Dont debugdraw when it is the last node and Loop is disabled
+                    if (i == totalNodesCount - 1 && !Component.Spline.Loop) // Dont debugdraw when it is the last node and Loop is disabled
                     {
                         break;
                     }
 
-                    if (Component.DebugInfo.Segments || Component.DebugInfo.Points || Component.DebugInfo.BoundingBox)
+                    if (Component.Spline.DebugInfo.Segments || Component.Spline.DebugInfo.Points || Component.Spline.DebugInfo.BoundingBox)
                     {
-                        var curve = curNode.GetBezierCurve();
-                        if (curve == null) return;
+                        if (currentSplineNode == null) return;
 
-                        var splinePointsInfo = curve.GetBezierPoints();
+                        var curvePointsInfo = currentSplineNode.GetBezierPoints();
 
-                        if (splinePointsInfo[0] == null)
+                        if (curvePointsInfo?[0] == null)
                             break;
 
-                        var splinePoints = new Vector3[splinePointsInfo.Length];
-                        for (int j = 0; j < splinePointsInfo.Length; j++)
+                        var splinePoints = new Vector3[curvePointsInfo.Length];
+                        for (int j = 0; j < curvePointsInfo.Length; j++)
                         {
-                            if (splinePointsInfo[j] == null)
+                            if (curvePointsInfo[j] == null)
                                 break;
-                            splinePoints[j] = splinePointsInfo[j].Position;
+                            splinePoints[j] = curvePointsInfo[j].Position;
                         }
 
-                        if (Component.DebugInfo.BoundingBox)
-                        {
-                            UpdateBoundingBox(curNode);
-                        }
-
-                        if (Component.DebugInfo.Points)
-                        {
-                            DrawSplinePoints(splinePoints);
-                        }
-
-                        if (Component.DebugInfo.Segments)
+                        if (Component.Spline.DebugInfo.Segments)
                         {
                             DrawSplineSegments(splinePoints.ToList());
                         }
+
+                        if (Component.Spline.DebugInfo.BoundingBox)
+                        {
+                            UpdateBoundingBox(currentSplineNode);
+                        }
+
+                        if (Component.Spline.DebugInfo.Points)
+                        {
+                            DrawSplinePoints(splinePoints);
+                        }
                     }
                 }
-                Component.Dirty = false;
+
+                Component.Spline.Dirty = false;
                 GizmoRootEntity.Transform.LocalMatrix = ContentEntity.Transform.WorldMatrix;
                 GizmoRootEntity.Transform.UseTRS = false;
 
@@ -162,11 +156,20 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
         }
 
-        private void UpdateBoundingBox(SplineNodeComponent curNode)
+        private void DrawSplineSegments(List<Vector3> splinePoints)
+        {
+            var splineMeshData = new SplineMeshData(splinePoints, GraphicsDevice);
+            var debugLine = new Entity() { new ModelComponent { Model = new Model { splineMaterial, new Mesh { Draw = splineMeshData.Build() } }, RenderGroup = RenderGroup } };
+            gizmoBeziers.AddChild(debugLine);
+            debugLine.Transform.Position -= mainGizmoEntity.Transform.Position - debugLine.Transform.Position;
+        }
+
+        private void UpdateBoundingBox(SplineNode splineNode)
         {
             var boundingBoxMesh = new BoundingBoxMesh(GraphicsDevice);
-            boundingBoxMesh.Build(curNode.BoundingBox);
+            boundingBoxMesh.Build(splineNode.BoundingBox);
             boundingIter = !boundingIter;
+
             var boundingBox = new Entity()
             {
                 new ModelComponent
@@ -182,14 +185,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             gizmoBoundingBox.AddChild(boundingBox);
             boundingBox.Transform.Position -= mainGizmoEntity.Transform.Position - boundingBox.Transform.Position;
-        }
-
-        private void DrawSplineSegments(List<Vector3> splinePoints)
-        {
-            var splineMeshData = new SplineMeshData(splinePoints, GraphicsDevice);
-            var debugLine = new Entity() { new ModelComponent { Model = new Model { splineMaterial, new Mesh { Draw = splineMeshData.Build() } }, RenderGroup = RenderGroup } };
-            gizmoBeziers.AddChild(debugLine);
-            debugLine.Transform.Position -= mainGizmoEntity.Transform.Position - debugLine.Transform.Position;
         }
 
         private void DrawSplinePoints(Vector3[] splinePoints)
@@ -215,28 +210,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 gizmoPoints.AddChild(point);
                 point.Transform.Position = mainGizmoEntity.Transform.WorldToLocal(splinePoints[i]);
             }
-        }
-
-        private void DrawNodes(SplineNodeComponent splineNodeComponent)
-        {
-            var nodeMesh = new BulbMesh(GraphicsDevice, 0.2f);
-            nodeMesh.Build();
-
-            var node = new Entity()
-            {
-                new ModelComponent
-                {
-                    Model = new Model
-                    {
-                        GizmoUniformColorMaterial.Create(GraphicsDevice, Color.White),
-                        new Mesh { Draw = nodeMesh.MeshDraw }
-                    },
-                    RenderGroup = RenderGroup
-                }
-            };
-
-            gizmoNodes.AddChild(node);
-            node.Transform.Position += splineNodeComponent.Entity.Transform.Position;
         }
 
         private void ClearChildren(Entity entity)

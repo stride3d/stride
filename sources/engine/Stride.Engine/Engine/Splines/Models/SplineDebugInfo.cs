@@ -5,13 +5,9 @@ namespace Stride.Engine.Splines
     [DataContract]
     public struct SplineDebugInfo
     {
-        private bool _nodes;
         private bool _segments;
         private bool _points;
         private bool _boundingBox;
-
-        [DataMemberIgnore]
-        public bool IsDirty { get; set; }
 
         public bool Points
         {
@@ -19,7 +15,6 @@ namespace Stride.Engine.Splines
             set
             {
                 _points = value;
-                IsDirty = true;
             }
         }
 
@@ -29,17 +24,6 @@ namespace Stride.Engine.Splines
             set
             {
                 _segments = value;
-                IsDirty = true;
-            }
-        }
-
-        public bool Nodes
-        {
-            get { return _nodes; }
-            set
-            {
-                _nodes = value;
-                IsDirty = true;
             }
         }
 
@@ -49,7 +33,6 @@ namespace Stride.Engine.Splines
             set
             {
                 _boundingBox = value;
-                IsDirty = true;
             }
         }
     }

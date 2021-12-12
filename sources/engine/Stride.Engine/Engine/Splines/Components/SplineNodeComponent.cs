@@ -3,7 +3,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Graphics;
-using static Stride.Engine.Splines.BezierCurve;
+using static Stride.Engine.Splines.SplineNode;
 
 namespace Stride.Engine.Splines.Components
 {
@@ -22,63 +22,12 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineNodeComponent : EntityComponent
     {
-        #region Segments
-        private int _segments = 2;
-        [Display(1, "Segments")]
-        public int Segments
-        {
-            get { return _segments; }
-            set
-            {
-                if (value < 2)
-                {
-                    _segments = 2;
-                }
-                else
-                {
-                    _segments = value;
-                }
-
-                Dirty = true;
-            }
-        }
-        #endregion
-
-        #region Out
-        private Vector3 _tangentOut { get; set; }
-        [Display(2, "Tangent outgoing")]
-        public Vector3 TangentOut
-        {
-            get { return _tangentOut; }
-            set
-            {
-                _tangentOut = value;
-                Dirty = true;
-            }
-        }
-        #endregion
-
-        #region In
-        private Vector3 _tangentIn { get; set; }
-        [Display(3, "Tangent incoming")]
-        public Vector3 TangentIn
-
-        {
-            get { return _tangentIn; }
-            set
-            {
-                _tangentIn = value;
-                Dirty = true;
-            }
-        }
-        #endregion
-
-        private BezierCurve _bezierCurve;
+        public SplineNode SplineNode = new();
         private Vector3 _previousPosition;
-        public BoundingBox BoundingBox;
 
-        [DataMemberIgnore]
-        public bool Dirty { get; set; }
+        public SplineNodeComponent()
+        {
+        }
 
         internal void Update(TransformComponent transformComponent)
         {
@@ -91,49 +40,13 @@ namespace Stride.Engine.Splines.Components
         {
             if (_previousPosition.X != Entity.Transform.Position.X || _previousPosition.Y != Entity.Transform.Position.Y || _previousPosition.Z != Entity.Transform.Position.Z)
             {
-                Dirty = true;
+                SplineNode.InvokeOnDirty();
             }
-
-            if (Dirty)
-            {
-                OnDirty?.Invoke();
-            }
-        }
-
-        public delegate void BezierCurveDirtyEventHandler();
-        public event BezierCurveDirtyEventHandler OnDirty;
-
-        public void UpdateBezierCurve(SplineNodeComponent nextNode)
-        {
-            if (nextNode != null && nextNode.Entity != null)
-            {
-                Entity.Transform.WorldMatrix.Decompose(out var scale, out Quaternion rotation, out var entityWorldPos);
-                nextNode.Entity.Transform.WorldMatrix.Decompose(out scale, out rotation, out var nextWorldPos);
-                Vector3 TangentOutWorld = entityWorldPos + TangentOut;
-                Vector3 TangentInWorld = nextWorldPos + nextNode.TangentIn;
-
-                _bezierCurve = new BezierCurve(Segments, entityWorldPos, TangentOutWorld, nextWorldPos, TangentInWorld);
-
-                var curvePoints = _bezierCurve.GetBezierPoints();
-                var curvePointsPositions = new Vector3[curvePoints.Length];
-                for (int j = 0; j < curvePoints.Length; j++)
-                {
-                    if (curvePoints[j] == null)
-                        break;
-                    curvePointsPositions[j] = curvePoints[j].Position;
-                }
-                BoundingBox.FromPoints(curvePointsPositions, out BoundingBox);                
-            }
-        }
-
-        public BezierCurve GetBezierCurve()
-        {
-            return _bezierCurve;
         }
 
         public BezierPoint[] GetBezierCurvePoints()
         {
-            return _bezierCurve.GetBezierPoints();
+            return SplineNode.GetBezierPoints();
         }
     }
 }

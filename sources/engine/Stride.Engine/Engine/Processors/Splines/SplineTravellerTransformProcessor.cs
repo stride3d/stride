@@ -18,7 +18,7 @@ namespace Stride.Engine.Processors
         private Vector3 targetCurvePointWorldPosition { get; set; } = new Vector3(0);
         private int targetCurveIndex = 0;
         private int currentCurvePointIndex = 0;
-        private BezierCurve.BezierPoint[] currentSplinePoints = null;
+        private SplineNode.BezierPoint[] currentSplinePoints = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SplineTransformProcessor"/> class.
@@ -71,30 +71,30 @@ namespace Stride.Engine.Processors
 
         private void SetInitialTargets()
         {
-            var splinePositionInfo = splineTravellerComponent.SplineComponent.GetPositionOnSpline(splineTravellerComponent.Percentage);
-            if (entity != null)
-            {
-                var firstNode = splineTravellerComponent.SplineComponent.Nodes[0];
-                entity.Transform.Position = EntityTransformExtensions.WorldToLocal(splineTravellerComponent.SplineComponent.Entity.Transform, splinePositionInfo.Position);
-                entity.Transform.Position += splineTravellerComponent.SplineComponent.Entity.Transform.Position;
-                entity.Transform.UpdateLocalMatrix();
+            //var splinePositionInfo = splineTravellerComponent.SplineComponent.GetPositionOnSpline(splineTravellerComponent.Percentage);
+            //if (entity != null)
+            //{
+            //    var firstNode = splineTravellerComponent.SplineComponent.Nodes[0];
+            //    entity.Transform.Position = EntityTransformExtensions.WorldToLocal(splineTravellerComponent.SplineComponent.Entity.Transform, splinePositionInfo.Position);
+            //    entity.Transform.Position += splineTravellerComponent.SplineComponent.Entity.Transform.Position;
+            //    entity.Transform.UpdateLocalMatrix();
 
-                currentSplineNodeComponent = splinePositionInfo.CurrentSplineNode;
-                targetSplineNodeComponent = splinePositionInfo.TargetSplineNode;
+            //    currentSplineNodeComponent = splinePositionInfo.CurrentSplineNode;
+            //    targetSplineNodeComponent = splinePositionInfo.TargetSplineNode;
 
-                currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
+            //    currentSplinePoints = currentSplineNodeComponent.GetBezierCurvePoints();
 
-                if (splineTravellerComponent.SplineComponent.Nodes.Count == splinePositionInfo.CurrentSplineNodeIndex + 1)
-                {
-                    targetCurveIndex = splinePositionInfo.CurrentSplineNodeIndex + 1;
-                }
-                else
-                {
-                    targetCurveIndex = 0;
-                }
+            //    if (splineTravellerComponent.SplineComponent.Nodes.Count == splinePositionInfo.CurrentSplineNodeIndex + 1)
+            //    {
+            //        targetCurveIndex = splinePositionInfo.CurrentSplineNodeIndex + 1;
+            //    }
+            //    else
+            //    {
+            //        targetCurveIndex = 0;
+            //    }
 
-                targetCurvePointWorldPosition = currentSplinePoints[currentCurvePointIndex].Position;
-            }
+            //    targetCurvePointWorldPosition = currentSplinePoints[currentCurvePointIndex].Position;
+            //}
         }
 
         public override void Update(GameTime time)
@@ -130,7 +130,7 @@ namespace Stride.Engine.Processors
 
         private void SetNextTarget()
         {
-            var nodesCount = splineTravellerComponent.SplineComponent.Nodes.Count;
+            var nodesCount = splineTravellerComponent.SplineComponent.SplineNodesComponents.Count;
 
             // is there a next curve point?
             if (currentCurvePointIndex + 1 < currentSplinePoints.Length)
@@ -141,7 +141,7 @@ namespace Stride.Engine.Processors
             else
             {
                 //is there a next Spline node?
-                if (targetCurveIndex + 1 < nodesCount || splineTravellerComponent.SplineComponent.Loop)
+                if (targetCurveIndex + 1 < nodesCount || splineTravellerComponent.SplineComponent.Spline.Loop)
                 {
                     GoToNextSplineNode(nodesCount);
                 }
@@ -163,11 +163,11 @@ namespace Stride.Engine.Processors
             targetCurveIndex++;
             if (targetCurveIndex < nodesCount)
             {
-                targetSplineNodeComponent = splineTravellerComponent.SplineComponent.Nodes[targetCurveIndex];
+                targetSplineNodeComponent = splineTravellerComponent.SplineComponent.SplineNodesComponents[targetCurveIndex];
             }
-            else if (targetCurveIndex == nodesCount && splineTravellerComponent.SplineComponent.Loop)
+            else if (targetCurveIndex == nodesCount && splineTravellerComponent.SplineComponent.Spline.Loop)
             {
-                targetSplineNodeComponent = splineTravellerComponent.SplineComponent.Nodes[0];
+                targetSplineNodeComponent = splineTravellerComponent.SplineComponent.SplineNodesComponents[0];
                 targetCurveIndex = 0;
             }
 

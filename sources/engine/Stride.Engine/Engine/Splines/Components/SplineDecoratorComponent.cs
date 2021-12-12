@@ -27,15 +27,15 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 splineComponent = value;
-                if (splineComponent != null)
-                {
-                    splineComponent.OnSplineUpdated += UpdateDecorator;
-                    UpdateDecorator();
-                }
-                else
-                {
-                    ClearDecorationInstance();
-                }
+                //if (splineComponent != null)
+                //{
+                //    splineComponent.OnSplineUpdated += UpdateDecorator;
+                //    UpdateDecorator();
+                //}
+                //else
+                //{
+                //    ClearDecorationInstance();
+                //}
             }
         }
 
@@ -64,66 +64,66 @@ namespace Stride.Engine.Splines.Components
         {
             ClearDecorationInstance();
 
-            if (SplineComponent != null && SplineComponent.TotalSplineDistance > 0
-                && decorations.Count > 0 && Distribution is AmountDecorator AmountDecorator && AmountDecorator.Amount > 0)
-            {
-                var totalSplineDistance = SplineComponent.GetTotalSplineDistance();
-                var segmentLength = totalSplineDistance / AmountDecorator.Amount + 1;
+            //if (SplineComponent != null && SplineComponent.TotalSplineDistance > 0
+            //    && decorations.Count > 0 && Distribution is AmountDecorator AmountDecorator && AmountDecorator.Amount > 0)
+            //{
+            //    var totalSplineDistance = SplineComponent.GetTotalSplineDistance();
+            //    var segmentLength = totalSplineDistance / AmountDecorator.Amount + 1;
 
-                for (int iteration = 1; iteration <= AmountDecorator.Amount; iteration++)
-                {
-                    var percentage = ((segmentLength * iteration) / totalSplineDistance) * 100;
-                    CreateInstanceAndAddToScene(iteration, percentage);
-                }
-            }
+            //    for (int iteration = 1; iteration <= AmountDecorator.Amount; iteration++)
+            //    {
+            //        var percentage = ((segmentLength * iteration) / totalSplineDistance) * 100;
+            //        CreateInstanceAndAddToScene(iteration, percentage);
+            //    }
+            //}
         }
 
         private void DecorateWithInterval()
         {
             ClearDecorationInstance();
 
-            if (SplineComponent != null && SplineComponent.TotalSplineDistance > 0
-                && decorations.Count > 0 && Distribution is IntervalDecorator IntervalDecorator)
-            {
-                var totalSplineDistance = SplineComponent.TotalSplineDistance;
-                var random = new Random();
-                var totalIntervalDistance = 0.0f;
-                var iteration = 0;
+            //if (SplineComponent != null && SplineComponent.TotalSplineDistance > 0
+            //    && decorations.Count > 0 && Distribution is IntervalDecorator IntervalDecorator)
+            //{
+            //    var totalSplineDistance = SplineComponent.TotalSplineDistance;
+            //    var random = new Random();
+            //    var totalIntervalDistance = 0.0f;
+            //    var iteration = 0;
 
-                while (iteration < 1000) //Hardcoded 1000?
-                {
-                    var nextInterval = random.NextDouble() * (IntervalDecorator.Interval.Y - IntervalDecorator.Interval.X) + IntervalDecorator.Interval.X;
-                    totalIntervalDistance += (float)nextInterval;
+            //    while (iteration < 1000) //Hardcoded 1000?
+            //    {
+            //        var nextInterval = random.NextDouble() * (IntervalDecorator.Interval.Y - IntervalDecorator.Interval.X) + IntervalDecorator.Interval.X;
+            //        totalIntervalDistance += (float)nextInterval;
 
-                    if (totalIntervalDistance > totalSplineDistance)
-                    {
-                        break;
-                    }
+            //        if (totalIntervalDistance > totalSplineDistance)
+            //        {
+            //            break;
+            //        }
 
-                    var percentage = (totalIntervalDistance / totalSplineDistance) * 100;
-                    CreateInstanceAndAddToScene(iteration, percentage);
+            //        var percentage = (totalIntervalDistance / totalSplineDistance) * 100;
+            //        CreateInstanceAndAddToScene(iteration, percentage);
 
-                    iteration++;
-                };
-            }
+            //        iteration++;
+            //    };
+            //}
         }
 
         private void CreateInstanceAndAddToScene(int iteration, float percentage)
         {
-            var splinePositionInfo = SplineComponent.GetPositionOnSpline(percentage);
-            var instanceRoot = new Entity("Instance " + iteration);
-            var instanceEntities = decorations[0].Instantiate();
+            //var splinePositionInfo = SplineComponent.GetPositionOnSpline(percentage);
+            //var instanceRoot = new Entity("Instance " + iteration);
+            //var instanceEntities = decorations[0].Instantiate();
 
-            instanceRoot.Transform.Position = EntityTransformExtensions.WorldToLocal(Entity.Transform, splinePositionInfo.Position);
-            instanceRoot.Transform.UpdateWorldMatrix();
+            //instanceRoot.Transform.Position = EntityTransformExtensions.WorldToLocal(Entity.Transform, splinePositionInfo.Position);
+            //instanceRoot.Transform.UpdateWorldMatrix();
 
-            foreach (var instanceEntity in instanceEntities)
-            {
-                instanceRoot.AddChild(instanceEntity);
-            }
+            //foreach (var instanceEntity in instanceEntities)
+            //{
+            //    instanceRoot.AddChild(instanceEntity);
+            //}
 
-            decorationInstances.Add(instanceRoot);
-            Entity.AddChild(instanceRoot);
+            //decorationInstances.Add(instanceRoot);
+            //Entity.AddChild(instanceRoot);
         }
 
         private void UpdateDecorator()

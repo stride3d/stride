@@ -1,9 +1,11 @@
 using System;
+using Stride.Core;
 using Stride.Core.Mathematics;
 
 namespace Stride.Engine.Splines
 {
-    public class BezierCurve
+    [DataContract]
+    public class SplineNode
     {
         private int bezierPointCount = 3;
         private int baseBezierPointCount = 100;
@@ -12,11 +14,71 @@ namespace Stride.Engine.Splines
         private Vector3 p2;
         private Vector3 p3;
 
-        public Vector3 Position { get; private set; }
-        public Vector3 TangentPosition { get; private set; }
+        [DataMemberIgnore]
+        public Vector3 WorldPosition { get; set; }
+        [DataMemberIgnore]
+        public Vector3 TangentOutWorldPosition { get; set; }
+        [DataMemberIgnore]
+        public Vector3 TangentInWorldPosition { get; set; }
+        [DataMemberIgnore]
 
-        public Vector3 TargetPosition { get; private set; }
-        public Vector3 TargetTangentPosition { get; private set; }
+        public Vector3 TargetTangentInWorldPosition { get; set; }
+        [DataMemberIgnore]
+        public Vector3 TargetWorldPosition { get; set; }
+
+        #region Segments
+        private int _segments = 2;
+        [Display(1, "Segments")]
+        public int Segments
+        {
+            get { return _segments; }
+            set
+            {
+                if (value < 2)
+                {
+                    _segments = 2;
+                }
+                else
+                {
+                    _segments = value;
+                }
+
+                bezierPointCount = _segments + 1;
+                baseBezierPointCount = bezierPointCount > baseBezierPointCount ? baseBezierPointCount + 10 : baseBezierPointCount;
+
+                InvokeOnDirty();
+            }
+        }
+        #endregion
+
+        #region Out
+        private Vector3 _tangentOut { get; set; }
+        [Display(2, "Tangent out")]
+        public Vector3 TangentOutLocal
+        {
+            get { return _tangentOut; }
+            set
+            {
+                _tangentOut = value;
+                InvokeOnDirty();
+            }
+        }
+        #endregion
+
+        #region In
+        private Vector3 _tangentIn { get; set; }
+        [Display(3, "Tangent in")]
+        public Vector3 TangentInLocal
+
+        {
+            get { return _tangentIn; }
+            set
+            {
+                _tangentIn = value;
+                InvokeOnDirty();
+            }
+        }
+        #endregion
 
         private BezierPoint[] _baseBezierPoints;
         private BezierPoint[] _parameterizedBezierPoints;
@@ -25,49 +87,17 @@ namespace Stride.Engine.Splines
 
         public float Distance { get; private set; } = 0;
 
-        public BezierCurve(int segments, Vector3 position, Vector3 tangentPosition, Vector3 targetPosition, Vector3 targetTangentPosition)
+        public delegate void BezierCurveDirtyEventHandler();
+        public event BezierCurveDirtyEventHandler OnSplineNodeDirty;
+
+        public SplineNode()
         {
-            bezierPointCount = segments + 1;
-            baseBezierPointCount = bezierPointCount > baseBezierPointCount ? baseBezierPointCount + 10 : baseBezierPointCount;
 
-            Position = position;
-            TangentPosition = tangentPosition;
-            TargetPosition = targetPosition;
-            TargetTangentPosition = targetTangentPosition;
-
-            Update();
         }
 
-        public void SetPosition(Vector3 position, bool update = false)
+        public void InvokeOnDirty()
         {
-            Position = position;
-
-            if (update)
-                Update();
-        }
-
-        public void SetTangentPosition(Vector3 tangetPosition, bool update = false)
-        {
-            TangentPosition = tangetPosition;
-
-            if (update)
-                Update();
-        }
-
-        public void SetTargetPosition(Vector3 targetPosition, bool update = false)
-        {
-            TargetPosition = targetPosition;
-
-            if (update)
-                Update();
-        }
-
-        public void SetTargetTangentPosition(Vector3 targetTangentPosition, bool update = false)
-        {
-            TargetTangentPosition = targetTangentPosition;
-
-            if (update)
-                Update();
+            OnSplineNodeDirty?.Invoke();
         }
 
         public BezierPoint[] GetBezierPoints()
@@ -83,15 +113,16 @@ namespace Stride.Engine.Splines
             public float Distance;
         }
 
-        public void Update()
+        public void CalculateBezierCurve()
         {
+            Distance = 0;
             _baseBezierPoints = new BezierPoint[baseBezierPointCount];
             _parameterizedBezierPoints = new BezierPoint[bezierPointCount];
 
-            p0 = Position;
-            p1 = TangentPosition;
-            p2 = TargetTangentPosition;
-            p3 = TargetPosition;
+            p0 = WorldPosition;
+            p1 = TangentOutWorldPosition;
+            p2 = TargetTangentInWorldPosition;
+            p3 = TargetWorldPosition;
 
             // 2 methods of arc length parameterization: Use a larger amount of pre calculated points or devide segments per distance
             // We create a base spline that contains a large amount of segments.
@@ -109,7 +140,6 @@ namespace Stride.Engine.Splines
                 else
                 {
                     var distance = Vector3.Distance(_baseBezierPoints[i].Position, _baseBezierPoints[i - 1].Position);
-                    //_baseBezierPoints[i].PointDistance = distance;
                     _baseBezierPoints[i].Distance = _baseBezierPoints[i - 1].Distance + distance;
                 }
             }
@@ -117,6 +147,8 @@ namespace Stride.Engine.Splines
             Distance += _baseBezierPoints[baseBezierPointCount - 1].Distance;
 
             ArcLengthParameterization();
+
+            UpdateBoundingBox();
         }
 
         public Vector3 GetPositionOnCurve(float percentage)
@@ -126,7 +158,7 @@ namespace Stride.Engine.Splines
         }
 
         /// <summary>
-        /// polynominal curve has incorrect arc length parameterization. Use approximated estimated positions
+        /// Polynominal curve has incorrect arc length parameterization. Use approximated estimated positions
         /// </summary>
         private void ArcLengthParameterization()
         {
@@ -143,8 +175,6 @@ namespace Stride.Engine.Splines
 
             _parameterizedBezierPoints[bezierPointCount - 1] = _baseBezierPoints[baseBezierPointCount - 1];
         }
-
-
 
         private BezierPoint GetBezierPointForDistance(float distance)
         {
@@ -170,6 +200,19 @@ namespace Stride.Engine.Splines
             var y = oneMinusTPower3 * p0.Y + (3 * oneMinusTPower2 * t * p1.Y) + (3 * oneMinusT * tPower2 * p2.Y) + tPower3 * p3.Y;
             var z = oneMinusTPower3 * p0.Z + (3 * oneMinusTPower2 * t * p1.Z) + (3 * oneMinusT * tPower2 * p2.Z) + tPower3 * p3.Z;
             return new Vector3(x, y, z);
+        }
+
+        private void UpdateBoundingBox()
+        {
+            var curvePointsPositions = new Vector3[_parameterizedBezierPoints.Length];
+            for (int j = 0; j < _parameterizedBezierPoints.Length; j++)
+            {
+                if (_parameterizedBezierPoints[j] == null)
+                    break;
+                curvePointsPositions[j] = _parameterizedBezierPoints[j].Position;
+            }
+            BoundingBox.FromPoints(curvePointsPositions, out BoundingBox NewBoundingBox);
+            BoundingBox = NewBoundingBox;
         }
 
         //    public ClosestPointInfo GetClosestPointOnCurve(Vector3 otherPosition)

@@ -74,17 +74,17 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             GizmoRootEntity.Transform.Scale = 1 * scale;
             GizmoRootEntity.Transform.UpdateWorldMatrix();
 
-            gizmoTangentOut.Transform.Position = Component.TangentOut;
-            gizmoTangentIn.Transform.Position = Component.TangentIn;
+            gizmoTangentOut.Transform.Position = Component.SplineNode.TangentOutLocal;
+            gizmoTangentIn.Transform.Position = Component.SplineNode.TangentInLocal;
 
             ClearChildren(gizmoTangentOut);
             ClearChildren(gizmoTangentIn);
 
-            var tangentLineOutGoingMesh = new SplineMeshData(new List<Vector3> { new Vector3(0), -Component.TangentOut }, GraphicsDevice);
+            var tangentLineOutGoingMesh = new SplineMeshData(new List<Vector3> { new Vector3(0), -Component.SplineNode.TangentOutLocal }, GraphicsDevice);
             var tangentLineOutGoing = new Entity() { new ModelComponent { Model = new Model { outMaterial, new Mesh { Draw = tangentLineOutGoingMesh.Build() } }, RenderGroup = RenderGroup } };
             gizmoTangentOut.AddChild(tangentLineOutGoing);
 
-            var tangentLineInwardsMesh = new SplineMeshData(new List<Vector3> { new Vector3(0), -Component.TangentIn }, GraphicsDevice);
+            var tangentLineInwardsMesh = new SplineMeshData(new List<Vector3> { new Vector3(0), -Component.SplineNode.TangentInLocal }, GraphicsDevice);
             var tangentLineInwards = new Entity() { new ModelComponent { Model = new Model { inMaterial, new Mesh { Draw = tangentLineInwardsMesh.Build() } }, RenderGroup = RenderGroup } };
             gizmoTangentIn.AddChild(tangentLineInwards);
 
@@ -134,7 +134,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
                 //var viewProjection = cameraService.ViewMatrix * cameraService.ProjectionMatrix;
                 var dragMultiplier = deltaTime * 1500; // crappy dragMultiplier
-                Component.TangentOut += new Vector3(-newMouseDrag.X * dragMultiplier, -newMouseDrag.Y * dragMultiplier, 0);
+                Component.SplineNode.TangentOutLocal += new Vector3(-newMouseDrag.X * dragMultiplier, -newMouseDrag.Y * dragMultiplier, 0);
             }
             else if (dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
             {
@@ -147,7 +147,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = inMaterial;
                 if (Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
                 {
-                    Component.TangentIn += 0.01f;
+                    Component.SplineNode.TangentInLocal += 0.01f;
                 }
             }
             else

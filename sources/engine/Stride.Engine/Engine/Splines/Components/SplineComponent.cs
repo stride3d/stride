@@ -5,6 +5,7 @@ using Stride.Engine.Processors;
 using Stride.Core.Mathematics;
 using System.Diagnostics;
 using Stride.Engine;
+using static Stride.Engine.Splines.Spline;
 
 namespace Stride.Engine.Splines.Components
 {
@@ -17,203 +18,81 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineComponent : EntityComponent
     {
-        private List<SplineNodeComponent> _splineNodes;
+        private List<SplineNodeComponent> _splineNodesComponents = new List<SplineNodeComponent>();
         private Vector3 previousPosition;
 
-        /// <summary>
-        /// Event triggered when the spline has been update
-        /// This happens when the entity is translated or rotated, or when a SplineNode is updated
-        /// </summary>
-        public delegate void SplineUpdatedHandler();
-        public event SplineUpdatedHandler OnSplineUpdated;
+        public Spline Spline = new Spline();
+
 
         [Display(100, "Nodes")]
-        public List<SplineNodeComponent> Nodes
+        public List<SplineNodeComponent> SplineNodesComponents
         {
             get
             {
-                _splineNodes ??= new List<SplineNodeComponent>();
-                return _splineNodes;
+                _splineNodesComponents ??= new List<SplineNodeComponent>();
+                return _splineNodesComponents;
             }
             set
             {
-                _splineNodes = value;
+                _splineNodesComponents = value;
 
-                DeregisterSplineNodeDirtyEvents();
-                Dirty = true;
-                RegisterSplineNodeDirtyEvents();
+                Spline.Dirty = true;
             }
         }
-
-        [Display(80, "Debug settings")]
-        public SplineDebugInfo DebugInfo;
-
-        [DataMemberIgnore]
-        public bool Dirty { get; set; }
-
-        private bool loop;
-        [Display(60, "Loop")]
-        public bool Loop
-        {
-            get
-            {
-                return loop;
-            }
-            set
-            {
-                loop = value;
-                Dirty = true;
-            }
-        }
-
-        public float TotalSplineDistance { get; internal set; }
 
         public SplineComponent()
         {
-            Nodes ??= new List<SplineNodeComponent>();
+            SplineNodesComponents ??= new List<SplineNodeComponent>();
         }
 
         internal void Initialize()
         {
-            UpdateSpline();
+            Spline.Dirty = true;
         }
 
         internal void Update(TransformComponent transformComponent)
         {
             if (previousPosition.X != Entity.Transform.Position.X || previousPosition.Y != Entity.Transform.Position.Y || previousPosition.Z != Entity.Transform.Position.Z)
             {
-                Dirty = true;
+                Spline.Dirty = true;
                 previousPosition = Entity.Transform.Position;
             }
 
-            if (Dirty)
+            if (Spline.Dirty)
             {
-                UpdateSpline();
+              UpdateSpline();
             }
         }
 
-        public SplinePositionInfo GetPositionOnSpline(float percentage)
+        private void UpdateSpline()
         {
-            var splinePositionInfo = new SplinePositionInfo();
-            var totalSplineDistance = GetTotalSplineDistance();
-            if (totalSplineDistance <= 0)
-                return splinePositionInfo;
+            var updatedSplineNodes = new List<SplineNode>();
+            var totalNodesCount = SplineNodesComponents.Count;
 
-            var requiredDistance = totalSplineDistance * (percentage / 100);
-            var nextNodeDistance = 0.0f;
-            var prevNodeDistance = 0.0f;
-
-            for (int i = 0; i < _splineNodes.Count; i++)
+            if (totalNodesCount > 1)
             {
-                var node = _splineNodes[i];
-                splinePositionInfo.CurrentSplineNodeIndex = i;
-                splinePositionInfo.CurrentSplineNode = node;
-
-                var curve = node.GetBezierCurve();
-                nextNodeDistance += curve.Distance;
-
-                if (requiredDistance < nextNodeDistance)
-                {
-                    var targetIndex = (i == _splineNodes.Count - 1) ? 0 : i;
-                    splinePositionInfo.TargetSplineNode = _splineNodes[targetIndex];
-
-                    var percentageInCurve = ((requiredDistance - prevNodeDistance) / (nextNodeDistance - prevNodeDistance)) * 100;
-                    //inverse lerp(betweenValue - minHeight) / (maxHeight - minHeight);
-
-                    splinePositionInfo.Position = curve.GetPositionOnCurve(percentageInCurve);
-                    return splinePositionInfo;
-                }
-
-                prevNodeDistance = nextNodeDistance;
-            }
-
-            splinePositionInfo.Position = _splineNodes[_splineNodes.Count - 2].GetBezierCurve().TargetPosition;
-
-            return splinePositionInfo;
-        }
-
-        public struct SplinePositionInfo
-        {
-            public SplineNodeComponent CurrentSplineNode { get; set; }
-            public SplineNodeComponent TargetSplineNode { get; set; }
-            public Vector3 Position { get; set; }
-            public int CurrentSplineNodeIndex { get; internal set; }
-        }
-
-        private void DeregisterSplineNodeDirtyEvents()
-        {
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                var curNode = Nodes[i];
-                if (curNode != null)
-                { 
-                    curNode.OnDirty -= MakeSplineDirty;
-                }
-            }
-        }
-
-        private void RegisterSplineNodeDirtyEvents()
-        {
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                var curNode = Nodes[i];
-                if (curNode != null)
-                {
-                    curNode.OnDirty += MakeSplineDirty;
-                }
-            }
-        }
-
-        public void UpdateSpline()
-        {
-            if (Nodes.Count > 1)
-            {
-                var totalNodesCount = Nodes.Count;
-
                 for (int i = 0; i < totalNodesCount; i++)
                 {
-                    var curNode = Nodes[i];
+                    var currentSplineNodeComponent = SplineNodesComponents[i];
 
-                    if (curNode == null)
+                    if (currentSplineNodeComponent == null)
                         break;
 
-                    if (i < totalNodesCount - 1)
-                    {
-                        curNode?.UpdateBezierCurve(Nodes[i + 1]);
-                    }
-                    else if (i == totalNodesCount - 1 && Loop)
-                    {
-                        curNode?.UpdateBezierCurve(Nodes[0]);
-                    }
+                    currentSplineNodeComponent.Entity.Transform.WorldMatrix.Decompose(out var scale, out Quaternion rotation, out var startTangentOutWorldPosition);
+                    currentSplineNodeComponent.SplineNode.WorldPosition = startTangentOutWorldPosition;
+                    currentSplineNodeComponent.SplineNode.TangentOutWorldPosition = startTangentOutWorldPosition + currentSplineNodeComponent.SplineNode.TangentOutLocal;
+                    currentSplineNodeComponent.SplineNode.TangentInWorldPosition = startTangentOutWorldPosition + currentSplineNodeComponent.SplineNode.TangentInLocal;
+                    updatedSplineNodes.Add(currentSplineNodeComponent.SplineNode);
                 }
             }
 
-            TotalSplineDistance = GetTotalSplineDistance();
-
-            OnSplineUpdated?.Invoke();
+            Spline.splineNodes = updatedSplineNodes;
+            Spline.UpdateSpline();
         }
 
-        private void MakeSplineDirty()
-        {
-            Dirty = true;
-        }
-
-        public float GetTotalSplineDistance()
-        {
-            float distance = 0;
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                var curve = Nodes[i]?.GetBezierCurve();
-                if (curve != null)
-                {
-                    if (Loop || (!Loop && i < Nodes.Count - 1))
-                    {
-                        distance += curve.Distance;
-                    }
-                }
-            }
-
-            return distance;
-        }
+        //public SplinePositionInfo GetPositionOnSpline(float percentage)
+        //{
+        //    return Spline.GetPositionOnSpline(percentage);
+        //}
     }
 }
