@@ -83,7 +83,7 @@ If building failed:
 * Visual Studio might have issues properly building if an anterior version is present alongside 2022. If you want to keep those version make sure that they are up to date and that you are building Stride through VS 2022.
 * Your system's *PATH* should not contain older versions of MSBuild (ex: `...\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin` should be removed)
 * Some changes might require a system reboot, try that if you haven't yet.
-* Make sure that git, git lfs and visual studio can access the internet.
+* Make sure that Git, Git LFS and Visual Studio can access the internet.
 * Close VS, clear the nuget cache (in your cmd `dotnet nuget locals all --clear`), delete the hidden `.vs` folder inside `\build` and the files inside `bin\packages`, kill any msbuild and other vs processes, build the whole solution then build and run GameStudio.
 
 Do note that test solutions might fail but it should not prevent you from building `Stride.GameStudio`.
