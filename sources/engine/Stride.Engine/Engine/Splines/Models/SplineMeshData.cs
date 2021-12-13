@@ -19,18 +19,18 @@ namespace Stride.Engine.Splines
         public Buffer<VertexPositionNormalTexture> VertexBuffer { get; set; }
         public Buffer<int> IndexBuffer { get; set; }
 
-        public SplineMeshData(List<Vector3> points, GraphicsDevice graphicsDevice)
+        public SplineMeshData(Vector3[] points, GraphicsDevice graphicsDevice)
         {
             var indexCount = 0;
             var vertexCount = 0;
 
             float totalDistance = 0.0f;
             var halfWidth = 0.01f; //component.Width
-            for (var i = 0; i < points.Count; i++)
+            for (var i = 0; i < points.Length; i++)
             {
                 // Calculate forward direction
                 var forward = Vector3.Zero;
-                if (i < points.Count - 1)
+                if (i < points.Length - 1)
                 {
                     forward += points[i + 1] - points[i];
                 }
@@ -61,7 +61,7 @@ namespace Stride.Engine.Splines
                 var color = Color.White;
 
                 // Alpha fades out at edges
-                if (i == 0 || i == points.Count - 1)
+                if (i == 0 || i == points.Length - 1)
                     color.A = 0;
 
                 // Store forward direction in RGB
@@ -74,7 +74,7 @@ namespace Stride.Engine.Splines
                 Vertices.Add(new VertexPositionNormalTexture(p1, Vector3.UnitY, Vector2.Zero));
                 Vertices.Add(new VertexPositionNormalTexture(p2, Vector3.UnitY, Vector2.Zero));
 
-                if (i < points.Count - 1)
+                if (i < points.Length - 1)
                 {
                     Indices.Add(vertexCount + 0);
                     Indices.Add(vertexCount + 3);
@@ -100,8 +100,6 @@ namespace Stride.Engine.Splines
             VertexBuffer = Graphics.Buffer.Vertex.New(graphicsDevice, Vertices.ToArray(), GraphicsResourceUsage.Dynamic);
             IndexBuffer?.Dispose();
             IndexBuffer = Graphics.Buffer.Index.New(graphicsDevice, Indices.ToArray(), GraphicsResourceUsage.Dynamic);
-
-           
         }
 
         public MeshDraw Build()

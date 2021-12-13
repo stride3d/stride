@@ -6,7 +6,7 @@ namespace Stride.Engine.Splines.Components.Models
     /// State control for the Spline traveller
     /// </summary>
     [DataContract]
-    public enum StateControl
+    public enum SplineTravellerState
     {
         /// <summary>
         /// The state is active and currently playing

@@ -3,8 +3,6 @@ using Stride.Core;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Core.Mathematics;
-using System.Diagnostics;
-using Stride.Engine;
 using static Stride.Engine.Splines.Spline;
 
 namespace Stride.Engine.Splines.Components
@@ -18,7 +16,7 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineComponent : EntityComponent
     {
-        private List<SplineNodeComponent> _splineNodesComponents = new List<SplineNodeComponent>();
+        private List<SplineNodeComponent> splineNodesComponents = new List<SplineNodeComponent>();
         private Vector3 previousPosition;
 
         public Spline Spline = new Spline();
@@ -29,12 +27,12 @@ namespace Stride.Engine.Splines.Components
         {
             get
             {
-                _splineNodesComponents ??= new List<SplineNodeComponent>();
-                return _splineNodesComponents;
+                splineNodesComponents ??= new List<SplineNodeComponent>();
+                return splineNodesComponents;
             }
             set
             {
-                _splineNodesComponents = value;
+                splineNodesComponents = value;
 
                 Spline.Dirty = true;
             }
@@ -86,13 +84,13 @@ namespace Stride.Engine.Splines.Components
                 }
             }
 
-            Spline.splineNodes = updatedSplineNodes;
+            Spline.SplineNodes = updatedSplineNodes;
             Spline.UpdateSpline();
         }
 
-        //public SplinePositionInfo GetPositionOnSpline(float percentage)
-        //{
-        //    return Spline.GetPositionOnSpline(percentage);
-        //}
+        public SplinePositionInfo GetPositionOnSpline(float percentage)
+        {
+            return Spline.GetPositionOnSpline(percentage);
+        }
     }
 }

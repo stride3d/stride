@@ -4,7 +4,7 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh
+namespace Stride.Engine.Splines.Models.Mesh
 {
     public class BulbMesh
     {
@@ -20,7 +20,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh
         public BulbMesh(GraphicsDevice graphicsDevice, float range = 0.4f)
         {
             this.graphicsDevice = graphicsDevice;
-            this._range = range;
+            _range = range;
         }
 
         public void Build()
@@ -28,10 +28,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh
             var indices = new int[2 * Tesselation * 3];
             var vertices = new VertexPositionNormalTexture[(Tesselation + 1) * 3];
 
-            int indexCount = 0;
-            int vertexCount = 0;
+            var indexCount = 0;
+            var vertexCount = 0;
             // the two rings
-            for (int j = 0; j < 3; j++)
+            for (var j = 0; j < 3; j++)
             {
                 var rotation = Matrix.Identity;
                 if (j == 1)
@@ -43,7 +43,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh
                     rotation = Matrix.RotationY((float)Math.PI / 2);
                 }
 
-                for (int i = 0; i <= Tesselation; i++)
+                for (var i = 0; i <= Tesselation; i++)
                 {
                     var longitude = (float)(i * 2.0 * Math.PI / Tesselation);
                     var dx = (float)Math.Cos(longitude);

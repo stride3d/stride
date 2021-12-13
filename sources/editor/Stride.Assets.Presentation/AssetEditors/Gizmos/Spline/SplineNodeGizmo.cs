@@ -80,11 +80,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             ClearChildren(gizmoTangentOut);
             ClearChildren(gizmoTangentIn);
 
-            var tangentLineOutGoingMesh = new SplineMeshData(new List<Vector3> { new Vector3(0), -Component.SplineNode.TangentOutLocal }, GraphicsDevice);
+            var tangentLineOutGoingMesh = new SplineMeshData(new Vector3[] { new Vector3(0), -Component.SplineNode.TangentOutLocal }, GraphicsDevice);
             var tangentLineOutGoing = new Entity() { new ModelComponent { Model = new Model { outMaterial, new Mesh { Draw = tangentLineOutGoingMesh.Build() } }, RenderGroup = RenderGroup } };
             gizmoTangentOut.AddChild(tangentLineOutGoing);
 
-            var tangentLineInwardsMesh = new SplineMeshData(new List<Vector3> { new Vector3(0), -Component.SplineNode.TangentInLocal }, GraphicsDevice);
+            var tangentLineInwardsMesh = new SplineMeshData(new Vector3[] { new Vector3(0), -Component.SplineNode.TangentInLocal }, GraphicsDevice);
             var tangentLineInwards = new Entity() { new ModelComponent { Model = new Model { inMaterial, new Mesh { Draw = tangentLineInwardsMesh.Build() } }, RenderGroup = RenderGroup } };
             gizmoTangentIn.AddChild(tangentLineInwards);
 

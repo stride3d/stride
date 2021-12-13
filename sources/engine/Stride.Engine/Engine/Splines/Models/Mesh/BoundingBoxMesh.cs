@@ -3,7 +3,7 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh
+namespace Stride.Engine.Splines.Models.Mesh
 {
     public class BoundingBoxMesh
     {
@@ -31,15 +31,15 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh
             vertices[2] = new VertexPositionNormalTexture(new Vector3(max.X, min.Y, min.Z), Vector3.UnitY, Vector2.Zero);
             vertices[3] = new VertexPositionNormalTexture(new Vector3(max.X, min.Y, max.Z), Vector3.UnitY, Vector2.Zero);
 
-            int indexOffset = 0;
-            for (int i = 0; i < 4; i++)
+            var indexOffset = 0;
+            for (var i = 0; i < 4; i++)
             {
                 indices[indexOffset++] = i;
                 indices[indexOffset++] = (i + 1) % 4;
             }
 
             // Duplicate vertices and indices to bottom part
-            for (int i = 0; i < 4; i++)
+            for (var i = 0; i < 4; i++)
             {
                 vertices[i + 4] = vertices[i];
                 vertices[i + 4].Position.Y = max.Y;
@@ -48,7 +48,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos.Spline.Mesh
             }
 
             // Sides
-            for (int i = 0; i < 4; i++)
+            for (var i = 0; i < 4; i++)
             {
                 indices[indexOffset++] = i;
                 indices[indexOffset++] = i + 4;

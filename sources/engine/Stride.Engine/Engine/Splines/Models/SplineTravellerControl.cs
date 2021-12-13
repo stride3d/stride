@@ -12,7 +12,7 @@ namespace Stride.Engine.Splines.Components
     public class SplineTravellerControl
     {
         [DataMemberIgnore]
-        private StateControl oldControl = StateControl.Play;
+        private SplineTravellerState oldControl = SplineTravellerState.Play;
 
         [DataMemberIgnore]
         private float resetSeconds = 5f;
@@ -46,7 +46,7 @@ namespace Stride.Engine.Splines.Components
         /// State control used to Play, Pause or Stop the particle system
         /// </userdoc>
         [DataMember(30)]
-        public StateControl Control { get; set; } = StateControl.Play;
+        public SplineTravellerState Control { get; set; } = SplineTravellerState.Play;
 
         /// <summary>
         /// Warm-up time is the amount of time the system should spend in background pre-simulation when capturing the thumbnail

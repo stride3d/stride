@@ -27,23 +27,27 @@ namespace Stride.Engine.Splines
         public Vector3 TargetWorldPosition { get; set; }
 
         #region Segments
-        private int _segments = 2;
+        private int segments = 2;
+        /// <summary>
+        /// A minimum of 2
+        /// </summary>
+        /// <userdoc>The amount of segments the curve exists out of</userdoc>
         [Display(1, "Segments")]
         public int Segments
         {
-            get { return _segments; }
+            get { return segments; }
             set
             {
                 if (value < 2)
                 {
-                    _segments = 2;
+                    segments = 2;
                 }
                 else
                 {
-                    _segments = value;
+                    segments = value;
                 }
 
-                bezierPointCount = _segments + 1;
+                bezierPointCount = segments + 1;
                 baseBezierPointCount = bezierPointCount > baseBezierPointCount ? baseBezierPointCount + 10 : baseBezierPointCount;
 
                 InvokeOnDirty();
@@ -52,36 +56,36 @@ namespace Stride.Engine.Splines
         #endregion
 
         #region Out
-        private Vector3 _tangentOut { get; set; }
+        private Vector3 tangentOut { get; set; }
         [Display(2, "Tangent out")]
         public Vector3 TangentOutLocal
         {
-            get { return _tangentOut; }
+            get { return tangentOut; }
             set
             {
-                _tangentOut = value;
+                tangentOut = value;
                 InvokeOnDirty();
             }
         }
         #endregion
 
         #region In
-        private Vector3 _tangentIn { get; set; }
+        private Vector3 tangentIn { get; set; }
         [Display(3, "Tangent in")]
         public Vector3 TangentInLocal
 
         {
-            get { return _tangentIn; }
+            get { return tangentIn; }
             set
             {
-                _tangentIn = value;
+                tangentIn = value;
                 InvokeOnDirty();
             }
         }
         #endregion
 
-        private BezierPoint[] _baseBezierPoints;
-        private BezierPoint[] _parameterizedBezierPoints;
+        private BezierPoint[] baseBezierPoints;
+        private BezierPoint[] parameterizedBezierPoints;
 
         public BoundingBox BoundingBox { get; private set; }
 
@@ -92,7 +96,6 @@ namespace Stride.Engine.Splines
 
         public SplineNode()
         {
-
         }
 
         public void InvokeOnDirty()
@@ -102,7 +105,7 @@ namespace Stride.Engine.Splines
 
         public BezierPoint[] GetBezierPoints()
         {
-            return _parameterizedBezierPoints;
+            return parameterizedBezierPoints;
         }
 
         public class BezierPoint
@@ -116,8 +119,8 @@ namespace Stride.Engine.Splines
         public void CalculateBezierCurve()
         {
             Distance = 0;
-            _baseBezierPoints = new BezierPoint[baseBezierPointCount];
-            _parameterizedBezierPoints = new BezierPoint[bezierPointCount];
+            baseBezierPoints = new BezierPoint[baseBezierPointCount];
+            parameterizedBezierPoints = new BezierPoint[bezierPointCount];
 
             p0 = WorldPosition;
             p1 = TangentOutWorldPosition;
@@ -130,21 +133,21 @@ namespace Stride.Engine.Splines
             float t = 1.0f / (baseBezierPointCount - 1);
             for (var i = 0; i < baseBezierPointCount; i++)
             {
-                _baseBezierPoints[i] = new BezierPoint { Position = CalculateBezierPoint(t * i) };
+                baseBezierPoints[i] = new BezierPoint { Position = CalculateBezierPoint(t * i) };
 
                 if (i == 0)
                 {
-                    _baseBezierPoints[i].PointDistance = 0;
-                    _baseBezierPoints[i].Distance = 0;
+                    baseBezierPoints[i].PointDistance = 0;
+                    baseBezierPoints[i].Distance = 0;
                 }
                 else
                 {
-                    var distance = Vector3.Distance(_baseBezierPoints[i].Position, _baseBezierPoints[i - 1].Position);
-                    _baseBezierPoints[i].Distance = _baseBezierPoints[i - 1].Distance + distance;
+                    var distance = Vector3.Distance(baseBezierPoints[i].Position, baseBezierPoints[i - 1].Position);
+                    baseBezierPoints[i].Distance = baseBezierPoints[i - 1].Distance + distance;
                 }
             }
 
-            Distance += _baseBezierPoints[baseBezierPointCount - 1].Distance;
+            Distance += baseBezierPoints[baseBezierPointCount - 1].Distance;
 
             ArcLengthParameterization();
 
@@ -162,7 +165,7 @@ namespace Stride.Engine.Splines
         /// </summary>
         private void ArcLengthParameterization()
         {
-            _parameterizedBezierPoints = new BezierPoint[bezierPointCount];
+            parameterizedBezierPoints = new BezierPoint[bezierPointCount];
 
             if (Distance <= 0)
                 return;
@@ -170,23 +173,23 @@ namespace Stride.Engine.Splines
             for (var i = 0; i < bezierPointCount; i++)
             {
                 var estimatedExptedDistance = (Distance / (bezierPointCount - 1)) * i;
-                _parameterizedBezierPoints[i] = GetBezierPointForDistance(estimatedExptedDistance);
+                parameterizedBezierPoints[i] = GetBezierPointForDistance(estimatedExptedDistance);
             }
 
-            _parameterizedBezierPoints[bezierPointCount - 1] = _baseBezierPoints[baseBezierPointCount - 1];
+            parameterizedBezierPoints[bezierPointCount - 1] = baseBezierPoints[baseBezierPointCount - 1];
         }
 
         private BezierPoint GetBezierPointForDistance(float distance)
         {
             for (int j = 0; j < baseBezierPointCount; j++)
             {
-                var curPoint = _baseBezierPoints[j];
+                var curPoint = baseBezierPoints[j];
                 if (curPoint.Distance >= distance)
                 {
                     return curPoint;
                 }
             }
-            return _baseBezierPoints[_baseBezierPoints.Length - 1];
+            return baseBezierPoints[baseBezierPoints.Length - 1];
         }
 
         private Vector3 CalculateBezierPoint(float t)
@@ -204,12 +207,12 @@ namespace Stride.Engine.Splines
 
         private void UpdateBoundingBox()
         {
-            var curvePointsPositions = new Vector3[_parameterizedBezierPoints.Length];
-            for (int j = 0; j < _parameterizedBezierPoints.Length; j++)
+            var curvePointsPositions = new Vector3[parameterizedBezierPoints.Length];
+            for (int j = 0; j < parameterizedBezierPoints.Length; j++)
             {
-                if (_parameterizedBezierPoints[j] == null)
+                if (parameterizedBezierPoints[j] == null)
                     break;
-                curvePointsPositions[j] = _parameterizedBezierPoints[j].Position;
+                curvePointsPositions[j] = parameterizedBezierPoints[j].Position;
             }
             BoundingBox.FromPoints(curvePointsPositions, out BoundingBox NewBoundingBox);
             BoundingBox = NewBoundingBox;
