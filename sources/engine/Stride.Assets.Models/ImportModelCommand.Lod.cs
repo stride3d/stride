@@ -31,18 +31,13 @@ namespace Stride.Assets.Models
             dstModel.BoundingBox = lodModelSrc.BoundingBox;
             dstModel.BoundingSphere = lodModelSrc.BoundingSphere;
 
-            /* 
-             * I think we dont need it, because can take the mats from the original model
-            * 
-            * foreach (var modelMaterial in lodModelSrc.Materials)
-            {
-                dstModel.Materials.Add(modelMaterial);
-            }*/
-
+            int meshId = 1;
             foreach (var mesh in lodModelSrc.Meshes)
             {
+                DateTime start = DateTime.Now;
                 var convertedMesh = new Mesh();
 
+                //read the buffers from source mesh
                 var dt = new MeshDataToolStorage(mesh, contentManager);
 
                 var totalIndicies = dt.getTotalIndicies();
@@ -62,13 +57,12 @@ namespace Stride.Assets.Models
 
                 var n = sourceMesh.Normals.Length;
 
-                commandContext.Logger.Info(string.Format("[LOD][{0}] Start generate  => Quality {1} => Triangles {2} to {3}", this.LodLevel, newQuality, currentTriangleCount, newTriangleCount));
+                commandContext.Logger.Info(string.Format("[LOD][{0}][{4}] Start generate  => Quality {1} => Triangles {2} to {3}", this.LodLevel, newQuality, currentTriangleCount, newTriangleCount, meshId));
                 var algorithm = MeshDecimator.CreateAlgorithm(Algorithm.FastQuadricMesh);
                 var destMesh = MeshDecimator.DecimateMesh(algorithm, sourceMesh, newTriangleCount);
-                commandContext.Logger.Info(string.Format("[LOD][{0}] Total Triangle Count", this.LodLevel, (destMesh.Indices.Length / 3)));
+                commandContext.Logger.Info(string.Format("[LOD][{0}][{2}] Total Triangle Count", this.LodLevel, (destMesh.Indices.Length / 3), meshId));
 
-
-                //create mesh data surface
+                //create mesh surface
                 var surface = new MeshSurfaceTool();
                 surface.SetPositions(destMesh.Vertices.Select(p =>
                     new Vector3(
@@ -88,20 +82,24 @@ namespace Stride.Assets.Models
 
                 surface.SetIndices(destMesh.Indices);
 
+                //generate the draw mesh
                 var draw = surface.Generate();
+
                 convertedMesh.Draw = draw;
                 convertedMesh.Draw.DrawCount = destMesh.Indices.Length;
                 convertedMesh.BoundingBox = mesh.BoundingBox;
                 convertedMesh.BoundingSphere = mesh.BoundingSphere;
 
                 dstModel.Add(convertedMesh);
+                meshId++;
+
+                DateTime end = DateTime.Now;
+                TimeSpan ts = (end - start);
+
+                commandContext.Logger.Info(string.Format("[LOD][{0}][{1}] Mesh simplify ends with {0}ms execution time.", ts.TotalMilliseconds, meshId));
             }
 
             return dstModel;
         }
-
-     
-
-
     }
 }

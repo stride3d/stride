@@ -83,7 +83,5 @@ namespace Stride.Assets.Models
             buildStep.Add(importModelCommand);
             result.BuildSteps = buildStep;
         }
-
-    
     }
 }
