@@ -42,7 +42,7 @@ namespace Stride.Assets.Presentation.Templates
         private readonly DummyReferenceContainer referenceContainer = new DummyReferenceContainer();
 
         private bool importMaterials = true;
-        private int lodLevels = 3;
+        private int lodLevels = 0;
         private bool showDeduplicateMaterialsCheckBox = true;
         private bool showFbxDedupeNotSupportedWarning = false;
         private bool deduplicateMaterials = true;

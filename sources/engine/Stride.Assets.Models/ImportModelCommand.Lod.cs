@@ -91,12 +91,12 @@ namespace Stride.Assets.Models
                 convertedMesh.BoundingSphere = mesh.BoundingSphere;
 
                 dstModel.Add(convertedMesh);
-                meshId++;
 
                 DateTime end = DateTime.Now;
                 TimeSpan ts = (end - start);
 
-                commandContext.Logger.Info(string.Format("[LOD][{0}][{1}] Mesh simplify ends with {0}ms execution time.", ts.TotalMilliseconds, meshId));
+                commandContext.Logger.Info(string.Format("[LOD][{0}][{2}] Mesh simplify ends with {1}ms execution time.", this.LodLevel, ts.TotalMilliseconds, meshId));
+                meshId++;
             }
 
             return dstModel;
