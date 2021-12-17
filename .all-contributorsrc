@@ -42,6 +42,15 @@
       ]
     },
     {
+      "login": "azeno",
+      "name": "Elias Holzer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/573618?v=4",
+      "profile": "https://github.com/azeno",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
       "login": "johang88",
       "name": "Johan Gustafsson",
       "avatar_url": "https://avatars.githubusercontent.com/u/204513?v=4",
@@ -55,15 +64,6 @@
       "name": "Youness KAFIA",
       "avatar_url": "https://avatars.githubusercontent.com/u/32330908?v=4",
       "profile": "https://github.com/ykafia",
-      "contributions": [
-        "code"
-      ]
-    },
-    {
-      "login": "azeno",
-      "name": "Elias Holzer",
-      "avatar_url": "https://avatars.githubusercontent.com/u/573618?v=4",
-      "profile": "https://github.com/azeno",
       "contributions": [
         "code"
       ]
@@ -87,19 +87,19 @@
       ]
     },
     {
-      "login": "herocrab",
-      "name": "Jarmo",
-      "avatar_url": "https://avatars.githubusercontent.com/u/35175947?v=4",
-      "profile": "https://github.com/herocrab",
+      "login": "Basewq",
+      "name": "Basewq",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1356956?v=4",
+      "profile": "https://github.com/Basewq",
       "contributions": [
         "code"
       ]
     },
     {
-      "login": "Basewq",
-      "name": "Basewq",
-      "avatar_url": "https://avatars.githubusercontent.com/u/1356956?v=4",
-      "profile": "https://github.com/Basewq",
+      "login": "herocrab",
+      "name": "Jarmo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35175947?v=4",
+      "profile": "https://github.com/herocrab",
       "contributions": [
         "code"
       ]
