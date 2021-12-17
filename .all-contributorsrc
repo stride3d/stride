@@ -13,6 +13,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "Aggror",
+      "name": "Jorn Theunissen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3499539?v=4",
+      "profile": "https://www.aggror.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
