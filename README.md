@@ -1,6 +1,6 @@
 ![Stride](sources/data/images/Logo/stride-logo-readme.png)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 =======
 
@@ -127,6 +127,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/tebjan"><img src="https://avatars.githubusercontent.com/u/1094716?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tebjan Halm</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=tebjan" title="Code">💻</a></td>
     <td align="center"><a href="http://www.tinyrocket.se"><img src="https://avatars.githubusercontent.com/u/204513?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Johan Gustafsson</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=johang88" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/ykafia"><img src="https://avatars.githubusercontent.com/u/32330908?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Youness KAFIA</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ykafia" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/azeno"><img src="https://avatars.githubusercontent.com/u/573618?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Elias Holzer</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=azeno" title="Code">💻</a></td>
   </tr>
 </table>
 
