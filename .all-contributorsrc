@@ -121,6 +121,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jasonswearingen",
+      "name": "Novaleaf",
+      "avatar_url": "https://avatars.githubusercontent.com/u/814134?v=4",
+      "profile": "https://github.com/jasonswearingen",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
