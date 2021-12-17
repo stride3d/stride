@@ -40,6 +40,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "johang88",
+      "name": "Johan Gustafsson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204513?v=4",
+      "profile": "http://www.tinyrocket.se",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
