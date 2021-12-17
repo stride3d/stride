@@ -112,6 +112,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "Kryptos-FR",
+      "name": "Nicolas Musset",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3006525?v=4",
+      "profile": "https://github.com/Kryptos-FR",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
