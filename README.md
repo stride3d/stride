@@ -1,6 +1,6 @@
 ![Stride](sources/data/images/Logo/stride-logo-readme.png)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-15-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-16-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 =======
 
@@ -140,6 +140,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/salahchafai"><img src="https://avatars.githubusercontent.com/u/64394387?v=4?s=100" width="100px;" alt=""/><br /><sub><b>salahchafai</b></sub></a><br /><a href="#design-salahchafai" title="Design">🎨</a></td>
+    <td align="center"><a href="https://digitaltheory.biz/"><img src="https://avatars.githubusercontent.com/u/397608?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mehar</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=MeharDT" title="Code">💻</a></td>
   </tr>
 </table>
 
