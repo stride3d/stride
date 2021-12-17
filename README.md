@@ -1,6 +1,6 @@
 ![Stride](sources/data/images/Logo/stride-logo-readme.png)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-11-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-12-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 =======
 
@@ -125,15 +125,16 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/Eideren"><img src="https://avatars.githubusercontent.com/u/5742236?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Eideren</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Eideren" title="Code">💻</a></td>
     <td align="center"><a href="https://www.aggror.com"><img src="https://avatars.githubusercontent.com/u/3499539?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jorn Theunissen</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Aggror" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/tebjan"><img src="https://avatars.githubusercontent.com/u/1094716?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tebjan Halm</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=tebjan" title="Code">💻</a></td>
-   <td align="center"><a href="https://github.com/azeno"><img src="https://avatars.githubusercontent.com/u/573618?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Elias Holzer</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=azeno" title="Code">💻</a></td>
     <td align="center"><a href="http://www.tinyrocket.se"><img src="https://avatars.githubusercontent.com/u/204513?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Johan Gustafsson</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=johang88" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/ykafia"><img src="https://avatars.githubusercontent.com/u/32330908?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Youness KAFIA</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=ykafia" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/azeno"><img src="https://avatars.githubusercontent.com/u/573618?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Elias Holzer</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=azeno" title="Code">💻</a></td>
   </tr>
   <tr>
     <td align="center"><a href="http://md-techblog.net.pl"><img src="https://avatars.githubusercontent.com/u/10709060?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Marian Dziubiak</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=manio143" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/AmbulantRex"><img src="https://avatars.githubusercontent.com/u/21176662?v=4?s=100" width="100px;" alt=""/><br /><sub><b>AmbulantRex</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=AmbulantRex" title="Code">💻</a></td>
-   <td align="center"><a href="https://github.com/Basewq"><img src="https://avatars.githubusercontent.com/u/1356956?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Basewq</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Basewq" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/herocrab"><img src="https://avatars.githubusercontent.com/u/35175947?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jarmo</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=herocrab" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Basewq"><img src="https://avatars.githubusercontent.com/u/1356956?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Basewq</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=Basewq" title="Code">💻</a></td>
+    <td align="center"><a href="https://junakovic.com"><img src="https://avatars.githubusercontent.com/u/60072552?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Antonio Junaković</b></sub></a><br /><a href="https://github.com/stride3d/stride/commits?author=cstdbool" title="Code">💻</a></td>
   </tr>
 </table>
 
