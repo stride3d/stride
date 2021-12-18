@@ -103,6 +103,19 @@ namespace Stride.Physics
 
         static unsafe SharedMeshData BuildAndShareMeshes(Model model, IServiceRegistry services)
         {
+            var modelUrl = AttachedReferenceManager.GetUrl(model);
+            if (string.IsNullOrWhiteSpace(modelUrl) == false)
+            {
+                lock (MeshSharingCache)
+                {
+                    if (MeshSharingCache.TryGetValue(modelUrl, out var sharedData))
+                    {
+                        sharedData.RefCount++;
+                        return sharedData;
+                    }
+                }
+            }
+            
             var dbProvider = services.GetService<IDatabaseFileProviderService>();
 
             ContentManager assetManager = null;
@@ -245,8 +258,7 @@ namespace Stride.Physics
                 }
             }
 
-            var url = AttachedReferenceManager.GetUrl(model);
-            if (string.IsNullOrWhiteSpace(url))
+            if (string.IsNullOrWhiteSpace(modelUrl))
             {
                 return new SharedMeshData
                 {
@@ -256,8 +268,10 @@ namespace Stride.Physics
             
             lock (MeshSharingCache)
             {
-                if (MeshSharingCache.TryGetValue(url, out var sharedData))
+                if (MeshSharingCache.TryGetValue(modelUrl, out var sharedData))
                 {
+                    // Another thread was building this concurrently and it finished before us,
+                    // nothing to cleanup so we can just use theirs and move on.
                     sharedData.RefCount++;
                     return sharedData;
                 }
@@ -265,10 +279,10 @@ namespace Stride.Physics
                 sharedData = new SharedMeshData
                 {
                     BulletMesh = new BulletSharp.TriangleIndexVertexArray(combinedIndices, new StrideToBulletWrapper(combinedVerts)),
-                    Key = url,
+                    Key = modelUrl,
                     RefCount = 1,
                 };
-                MeshSharingCache.Add(url, sharedData);
+                MeshSharingCache.Add(modelUrl, sharedData);
                 return sharedData;
             }
         }
