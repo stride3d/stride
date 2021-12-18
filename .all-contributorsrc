@@ -184,6 +184,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "makotech222",
+      "name": "Anon",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4389156?v=4",
+      "profile": "https://github.com/makotech222",
+      "contributions": [
+        "design"
+      ]
     }
   ],
   "contributorsPerLine": 7,
