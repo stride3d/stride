@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: 5A3CD5E3-4328-36AF-A41C-8146D2D21F83
+AssetTypeName: ColliderShapeAsset
+Name: Static mesh
+Scope: Asset
+Description: A collider based on a model asset
+Group: Physics
+Icon: ..\.sdtpl\ColliderStaticMesh.png
+DefaultOutputName: ColliderStaticMesh
+FactoryTypeName: ColliderShapeStaticMeshFactory

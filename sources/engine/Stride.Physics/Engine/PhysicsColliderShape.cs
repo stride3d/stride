@@ -47,7 +47,7 @@ namespace Stride.Physics
             return new PhysicsColliderShape(descriptions);
         }
 
-        internal static ColliderShape Compose(IReadOnlyList<IAssetColliderShapeDesc> descs)
+        internal static ColliderShape Compose(IReadOnlyList<IAssetColliderShapeDesc> descs, IServiceRegistry assetManager)
         {
             if (descs == null)
             {
@@ -58,7 +58,7 @@ namespace Stride.Physics
 
             if (descs.Count == 1) //single shape case
             {
-                res = CreateShape(descs[0]);
+                res = descs[0].CreateShape(assetManager);
                 if (res == null) return null;
                 res.IsPartOfAsset = true;
             }
@@ -67,7 +67,7 @@ namespace Stride.Physics
                 var compound = new CompoundColliderShape();
                 foreach (var desc in descs)
                 {
-                    var subShape = CreateShape(desc);
+                    var subShape = desc.CreateShape(assetManager);
                     if (subShape == null) continue;
                     compound.AddChildShape(subShape);
                 }
@@ -76,21 +76,6 @@ namespace Stride.Physics
             }
 
             return res;
-        }
-
-        internal static ColliderShape CreateShape(IColliderShapeDesc desc)
-        {
-            if (desc == null)
-                return null;
-
-            ColliderShape shape = desc.CreateShape();
-            
-            if (shape == null) return null;
-
-            //shape.UpdateLocalTransformations();
-            shape.Description = desc;
-
-            return shape;
         }
 
         public void Dispose()
