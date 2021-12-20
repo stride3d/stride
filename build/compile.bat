@@ -153,7 +153,7 @@ rem Compile our solution. The following variables needs to be set:
 rem "Project" is the solution name
 rem "_platform_target" is the platform being targeted
 :compile
-set _option=/nologo /nr:false /m /verbosity:%__BuildVerbosity% /p:Configuration=%__BuildType% /p:Platform="%_platform_target%" /p:StrideSkipUnitTests=%__SkipTestBuild% %Project%
+set _option=/nologo /nr:false /m /verbosity:%__BuildVerbosity% /p:Configuration=%__BuildType% /p:Platform="%_platform_target%" /p:StrideSkipUnitTests=%__SkipTestBuild% %Project% /p:DeployExtension=false
 
 if "%__BuildDoc%" == "1" set _option=%_option% /p:StrideGenerateDoc=true
 
