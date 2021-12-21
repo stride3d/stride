@@ -1,8 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 /// <summary>
-/// Defines a depth texture.
-/// Various helper functions to extract information from a depth buffer.
+/// Defines a texture for the output of the opaque render pass
+/// and a helper function to extract the color of it.
 /// </summary>
 shader OpaqueBase : Texturing
 {
