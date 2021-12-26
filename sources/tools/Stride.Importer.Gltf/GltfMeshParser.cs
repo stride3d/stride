@@ -55,9 +55,9 @@ namespace Stride.Importer.Gltf
         {
             // We load every primitives of the first mesh
             var sk = ConvertSkeleton(root);
-            var draws = 
+            var draws =
                 root.LogicalMeshes
-                .Select(x => (x.Primitives.Select(x => LoadMesh(x,sk)).ToList(), ConvertNumerics(x.VisualParents.First().WorldMatrix))).ToList();
+                .Select(x => (x.Primitives.Select(x => LoadMesh(x, sk)).ToList(), ConvertNumerics(x.VisualParents.First().WorldMatrix))).ToList();
             for (int i = 0; i < draws.Count; i++)
             {
                 var mat = draws[i].Item2;
@@ -152,11 +152,13 @@ namespace Stride.Importer.Gltf
 
             // Loading the animation names (should be the same as the keys used in animations
             List<string> animNodes = GetAnimatedNodes(modelRoot);
+            List<string> animNames = ConvertAnimations(modelRoot, sourcePath.GetFileNameWithoutExtension()).Keys.ToList();
 
             return new EntityInfo
             {
                 Models = meshes,
                 AnimationNodes = animNodes,
+                AnimationNames = animNames,
                 Materials = LoadMaterials(modelRoot, sourcePath),
                 Nodes = nodes,
                 TextureDependencies = GenerateTextureFullPaths(modelRoot, sourcePath)
@@ -205,21 +207,24 @@ namespace Stride.Importer.Gltf
             var sk = ConvertSkeleton(root).Nodes.Select(x => x.Name);
 
             var clips =
-                animations
-                .Select(x =>
-                   {
-                       //Create animation clip with 
-                       var clip = new AnimationClip { Duration = TimeSpan.FromSeconds(x.Duration) };
-                       clip.RepeatMode = AnimationRepeatMode.LoopInfinite;
-                       // Add Curve
-                       ConvertCurves(x.Channels, root).ToList().ForEach(v => clip.AddCurve(v.Key, v.Value));
-                       string name = "Armature";//x.Channels.Count() > 0 ? x.Channels.First().TargetNode.Name : null;
-                       if(clip.Curves.Count > 1) clip.Optimize();
-                       return (name, clip);
-                   }
-                )
-                .ToList()
-                .ToDictionary(x => x.name, x => x.clip);
+            animations
+            .Select(x =>
+                {
+                    //Create animation clip with 
+                    var clip = new AnimationClip { Duration = TimeSpan.FromSeconds(x.Duration) };
+                    clip.RepeatMode = AnimationRepeatMode.LoopInfinite;
+                    // Add Curve
+                    foreach (var c in ConvertCurves(x.Channels, root))
+                    {
+                        clip.AddCurve(c.Key, c.Value);
+                    }
+
+                    if (clip.Curves.Count > 1) clip.Optimize();
+                    return (x.Name ?? "Animation_" + animations.ToList().IndexOf(x), clip);
+                }
+            )
+            .ToList()
+            .ToDictionary(x => x.Item1, x => x.clip);
             return clips;
         }
 
@@ -284,7 +289,7 @@ namespace Stride.Importer.Gltf
                     {
                         var vt = new ComputeColor(new Color(ConvertNumerics(chan.Parameter)));
                         var x = new ComputeFloat(chan.Parameter.X);
-                        
+
                         switch (chan.Key)
                         {
                             case "BaseColor":
@@ -299,7 +304,7 @@ namespace Stride.Importer.Gltf
                                 material.Attributes.Surface = new MaterialNormalMapFeature(vt) { IsXYNormal = true };
                                 break;
                             case "Occlusion":
-                                material.Attributes.Occlusion = new MaterialOcclusionMapFeature() {CavityMap = vt as IComputeScalar };
+                                material.Attributes.Occlusion = new MaterialOcclusionMapFeature() { CavityMap = vt as IComputeScalar };
                                 break;
                             case "Emissive":
                                 material.Attributes.Emissive = new MaterialEmissiveMapFeature(vt);

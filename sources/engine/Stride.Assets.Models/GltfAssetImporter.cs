@@ -42,5 +42,6 @@ namespace Stride.Assets.Models
             endTime = GltfMeshParser.GetAnimationDuration(gltfFile);
             startTime = CompressedTimeSpan.Zero;
         }
+
     }
 }

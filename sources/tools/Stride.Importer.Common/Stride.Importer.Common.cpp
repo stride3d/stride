@@ -61,6 +61,7 @@ public:
 	List<String^>^ AnimationNodes;
 	List<MeshParameters^>^ Models;
 	List<NodeInfo^>^ Nodes;
+	List<String^>^ AnimationNames;
 };
 
 public ref class MeshMaterials

@@ -53,8 +53,6 @@ namespace Stride.Assets.Models
             return sceneData;
         }
 
-
-
         public override bool ShouldSpawnNewProcess()
         {
             return true;

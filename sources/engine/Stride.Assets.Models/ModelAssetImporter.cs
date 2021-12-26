@@ -101,7 +101,7 @@ namespace Stride.Assets.Models
                 TimeSpan startTime, endTime;
                 GetAnimationDuration(localPath, importParameters.Logger, importParameters, out startTime, out endTime);
                 bool isGltfAsset = localPath.GetFileExtension().ToLower().Contains("glb") || localPath.GetFileExtension().ToLower().Contains("gltf");
-                ImportAnimation(rawAssetReferences, localPath, entityInfo.AnimationNodes, isImportingModel, isGltfAsset, skeletonAsset, startTime, endTime);
+                ImportAnimation(rawAssetReferences, localPath, isGltfAsset ? entityInfo.AnimationNames : entityInfo.AnimationNodes, isImportingModel, isGltfAsset, skeletonAsset, startTime, endTime);
             }
 
             // 4. Materials
