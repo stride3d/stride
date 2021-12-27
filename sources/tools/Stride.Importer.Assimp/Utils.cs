@@ -16,11 +16,12 @@ namespace Stride.Importer.Assimp
 
         public static Matrix ToStrideMatrix(this Matrix4x4 matrix)
         {
+            // Note the order. Matrices from Assimp has to be transposed
             return new Matrix(
-                matrix.M11, matrix.M12, matrix.M13, matrix.M14,
-                matrix.M21, matrix.M22, matrix.M23, matrix.M24,
-                matrix.M31, matrix.M32, matrix.M33, matrix.M34,
-                matrix.M41, matrix.M42, matrix.M43, matrix.M44);
+                matrix.M11, matrix.M21, matrix.M31, matrix.M41,
+                matrix.M12, matrix.M22, matrix.M32, matrix.M42,
+                matrix.M13, matrix.M23, matrix.M33, matrix.M43,
+                matrix.M14, matrix.M24, matrix.M34, matrix.M44);
         }
 
         public static Core.Mathematics.Vector3 ToStrideVector3(this System.Numerics.Vector3 v)
