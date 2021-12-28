@@ -1,0 +1,39 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Shadows
+{
+    /// <summary>
+    /// Shadow map caster with pixel shader performing a dithered alpha discard test.
+    /// </summary>
+    shader ShadowMapCasterAlphaDithered : Transformation, ShaderBase, PositionStream, MaterialPixelStream
+    {
+        static const float BayerMatrix[16] = 
+        {
+            0,
+            0.53333336,
+            0.13333334,
+            0.6666667,
+            0.8,
+            0.26666668,
+            0.9333333,
+            0.4,
+            0.2,
+            0.73333335,
+            0.06666667,
+            0.6,
+            1,
+            0.4666667,
+            0.8666667,
+            0.33333334,
+        };
+
+        override stage void PSMain()
+        {
+            base.PSMain();
+
+            int2 coord = streams.ShadingPosition % 4;
+            float bayer = BayerMatrix[coord.x+coord.y*4];
+            clip( -1.01 + bayer + streams.ColorTarget.a * 1.01 );
+        }
+    };
+}
