@@ -1,0 +1,44 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader NeighborMaxShader : ImageEffectShader
+{
+
+    cbuffer PerDraw
+    {
+        float  u_TileSize;
+    }
+
+    // Texture0: tiles max
+    stage override float4 Shading()
+    {
+        float2 txs = Texture0TexelSize;
+        float2 pos = streams.TexCoord;
+        float cw = 1.01;
+        
+    
+        float4 d = txs.xyxy * float4(1.0, 1.0, -1.0, 0.0);
+
+        float2 v1 = Texture0.Sample(PointSampler, pos - d.xy).rg;
+        float2 v2 = Texture0.Sample(PointSampler, pos - d.wy).rg;
+        float2 v3 = Texture0.Sample(PointSampler, pos - d.zy).rg;
+
+        float2 v4 = Texture0.Sample(PointSampler, pos - d.xw).rg;
+        float2 v5 = Texture0.Sample(PointSampler, pos).rg * cw;
+        float2 v6 = Texture0.Sample(PointSampler, pos + d.xw).rg;
+
+        float2 v7 = Texture0.Sample(PointSampler, pos + d.zy).rg;
+        float2 v8 = Texture0.Sample(PointSampler, pos + d.wy).rg;
+        float2 v9 = Texture0.Sample(PointSampler, pos + d.xy).rg;
+
+        float2 va = MaxV(v1, MaxV(v2, v3));
+        float2 vb = MaxV(v4, MaxV(v5, v6));
+        float2 vc = MaxV(v7, MaxV(v8, v9));
+
+        return float4(MaxV(va, MaxV(vb, vc)) * (1.0 / cw), 0.0, 0.0);
+
+    }
+    float2 MaxV(float2 v1, float2 v2)
+    {
+        return dot(v1, v1) < dot(v2, v2) ? v2 : v1;
+    }  
+};

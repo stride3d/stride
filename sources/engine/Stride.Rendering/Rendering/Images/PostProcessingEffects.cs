@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.ComponentModel;
@@ -8,6 +8,8 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Materials;
+using Stride.Rendering.Rendering.Images.MotionBlur;
+using Stride.Rendering.SubsurfaceScattering;
 
 namespace Stride.Rendering.Images
 {
@@ -32,22 +34,12 @@ namespace Stride.Rendering.Images
             : this(RenderContext.GetShared(services))
         {
         }
-
+ 
         /// <summary>
         /// Initializes a new instance of the <see cref="PostProcessingEffects"/> class.
         /// </summary>
         public PostProcessingEffects()
         {
-            Outline = new Outline
-            {
-                Enabled = false
-            };
-
-            Fog = new Fog
-            {
-                Enabled = false
-            };
-
             AmbientOcclusion = new AmbientOcclusion();
             LocalReflections = new LocalReflections();
             DepthOfField = new DepthOfField();
@@ -60,6 +52,7 @@ namespace Stride.Rendering.Images
             rangeCompress = new ImageEffectShader("RangeCompressorShader");
             rangeDecompress = new ImageEffectShader("RangeDecompressorShader");
             colorTransformsGroup = new ColorTransformGroup();
+            MotionBlur = new ChapmanMotionBlur();
         }
 
         /// <summary>
@@ -76,19 +69,6 @@ namespace Stride.Rendering.Images
         [DataMember(-100), Display(Browsable = false)]
         [NonOverridable]
         public Guid Id { get; set; } = Guid.NewGuid();
-
-        /// <summary>
-        /// Gets the outline effect.
-        /// </summary>
-        [DataMember(6)]
-        [Category]
-        public Outline Outline { get; private set; }
-
-        /// Gets the fog effect.
-        /// </summary>
-        [DataMember(7)]
-        [Category]
-        public Fog Fog { get; private set; }
 
         /// <summary>
         /// Gets the ambient occlusion effect.
@@ -174,12 +154,19 @@ namespace Stride.Rendering.Images
         public IScreenSpaceAntiAliasingEffect Antialiasing { get; set; } // TODO: Unload previous anti aliasing
 
         /// <summary>
+        /// Gets the motion blur effects.
+        /// </summary>
+        /// <value>The motion blur.</value>
+        /// <userdoc>Perform per-object motion blur</userdoc>
+        [DataMember(80)]
+        [Display("Type", "MotionBlur")]
+        public IMotionBlur MotionBlur { get; set; }
+
+        /// <summary>
         /// Disables all post processing effects.
         /// </summary>
         public void DisableAll()
         {
-            Outline.Enabled = false;
-            Fog.Enabled = false;
             AmbientOcclusion.Enabled = false;
             LocalReflections.Enabled = false;
             DepthOfField.Enabled = false;
@@ -190,6 +177,7 @@ namespace Stride.Rendering.Images
             rangeCompress.Enabled = false;
             rangeDecompress.Enabled = false;
             colorTransformsGroup.Enabled = false;
+            MotionBlur.Enabled = false;
         }
 
         public override void Reset()
@@ -205,8 +193,6 @@ namespace Stride.Rendering.Images
         {
             base.InitializeCore();
 
-            Outline = ToLoadAndUnload(Outline);
-            Fog = ToLoadAndUnload(Fog);
             AmbientOcclusion = ToLoadAndUnload(AmbientOcclusion);
             LocalReflections = ToLoadAndUnload(LocalReflections);
             DepthOfField = ToLoadAndUnload(DepthOfField);
@@ -222,6 +208,8 @@ namespace Stride.Rendering.Images
             rangeDecompress = ToLoadAndUnload(rangeDecompress);
 
             colorTransformsGroup = ToLoadAndUnload(colorTransformsGroup);
+
+            MotionBlur = ToLoadAndUnload(MotionBlur);
         }
 
         public void Collect(RenderContext context)
@@ -267,7 +255,7 @@ namespace Stride.Rendering.Images
             Draw(drawContext);
         }
 
-        public bool RequiresVelocityBuffer => Antialiasing?.RequiresVelocityBuffer ?? false;
+        public bool RequiresVelocityBuffer => MotionBlur?.RequiresVelocityBuffer ?? Antialiasing?.RequiresVelocityBuffer ?? false;
 
         public bool RequiresNormalBuffer => LocalReflections.Enabled;
 
@@ -305,17 +293,6 @@ namespace Stride.Rendering.Images
             }
             
             var currentInput = input;
-
-            // Draw outline before AA
-            if (Outline.Enabled && inputDepthTexture != null)
-            {
-                // Outline
-                var outlineOutput = NewScopedRenderTarget2D(input.Width, input.Height, input.Format);
-                Outline.SetColorDepthInput(currentInput, inputDepthTexture, context.RenderContext.RenderView.NearClipPlane, context.RenderContext.RenderView.FarClipPlane);
-                Outline.SetOutput(outlineOutput);
-                Outline.Draw(context);
-                currentInput = outlineOutput;
-            }
 
             var fxaa = Antialiasing as FXAAEffect;
             bool aaFirst = Bloom != null && Bloom.StableConvolution;
@@ -401,7 +378,22 @@ namespace Stride.Rendering.Images
                     currentInput = rlrOutput;
                 }
             }
+            if (MotionBlur.Enabled)
+            {
+                // blurred output
+                var moBlurOut = NewScopedRenderTarget2D(currentInput.Width, currentInput.Height, currentInput.Format);
+                // color input
+                MotionBlur.SetInput(0, currentInput);
+                // velocity input
+                MotionBlur.SetInput(1, GetInput(6));
+                // depth input
+                if(MotionBlur.RequiresDepthBuffer)
+                    MotionBlur.SetInput(2, inputDepthTexture);
+                MotionBlur.SetOutput(moBlurOut);
+                MotionBlur.Draw(context);
+                currentInput = moBlurOut;
 
+            }
             if (DepthOfField.Enabled && inputDepthTexture != null)
             {
                 // DoF
@@ -410,16 +402,6 @@ namespace Stride.Rendering.Images
                 DepthOfField.SetOutput(dofOutput);
                 DepthOfField.Draw(context);
                 currentInput = dofOutput;
-            }
-
-            if (Fog.Enabled && inputDepthTexture != null)
-            {
-                // Fog
-                var fogOutput = NewScopedRenderTarget2D(input.Width, input.Height, input.Format);
-                Fog.SetColorDepthInput(currentInput, inputDepthTexture, context.RenderContext.RenderView.NearClipPlane, context.RenderContext.RenderView.FarClipPlane);
-                Fog.SetOutput(fogOutput);
-                Fog.Draw(context);
-                currentInput = fogOutput;
             }
 
             // Luminance pass (only if tone mapping is enabled)
@@ -449,6 +431,7 @@ namespace Stride.Rendering.Images
                 // Set this parameter that will be used by the tone mapping
                 colorTransformsGroup.Parameters.Set(LuminanceEffect.LuminanceResult, new LuminanceResult(luminanceEffect.AverageLuminance, luminanceTexture));
             }
+
 
             if (BrightFilter.Enabled && (Bloom.Enabled || LightStreak.Enabled || LensFlare.Enabled))
             {

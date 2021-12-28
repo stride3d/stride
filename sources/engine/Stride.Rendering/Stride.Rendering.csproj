@@ -24,5 +24,19 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Rendering\Core\VelocityOutput.sdsl.cs">
+      <DependentUpon>VelocityOutput.sdsl</DependentUpon>
+    </Compile>
+    <Compile Update="Rendering\Images\MotionBlur\MotionReconstructionShader.sdsl.cs">
+      <DependentUpon>MotionReconstructionShader.sdsl</DependentUpon>
+    </Compile>
+    <Compile Update="Rendering\Images\MotionBlur\NeighborMaxShader.sdsl.cs">
+      <DependentUpon>NeighborMaxShader.sdsl</DependentUpon>
+    </Compile>
+    <Compile Update="Rendering\Images\MotionBlur\TileMaxShader.sdsl.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+  </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

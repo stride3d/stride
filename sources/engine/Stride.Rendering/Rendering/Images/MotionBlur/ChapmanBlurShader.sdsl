@@ -1,0 +1,39 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader ChapmanBlurShader : ImageEffectShader
+{
+    cbuffer PerDraw
+    {
+        float u_BlurRadius;
+        uint u_MaxSamples;
+        float u_MinDepth;
+    }
+
+
+    // Texture0: color
+    // Texture1: velocity
+    // Texture2: depth
+    stage override float4 Shading()
+    {
+        // Get the initial color at this pixel.    
+        float2 texCoord = streams.TexCoord;
+        float4 color = Texture0.Sample(LinearSampler, texCoord); 
+        float2 velocity = Texture1.Sample(LinearSampler, texCoord).xy;
+        
+        
+        float speed = length(velocity) * u_BlurRadius;
+        int nSamples = clamp(int(speed), 1, u_MaxSamples);
+
+        [unroll(100)]
+        for(int i = 1; i < nSamples; ++i) {   
+            // Sample the color buffer along the velocity vector.    
+            float4 currentColor = Texture0.Sample(LinearSampler, texCoord + i * velocity * Texture1TexelSize * u_BlurRadius);   
+            // Add the current color to our color sum.   
+            color += currentColor; 
+        } 
+        // Average all of the samples to get the final blur color.    
+        float4 finalColor = color / nSamples;
+        return finalColor;
+    }
+
+};

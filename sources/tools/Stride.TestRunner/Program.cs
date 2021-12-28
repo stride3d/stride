@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -221,7 +221,7 @@ namespace Stride.TestRunner
 
             var p = new OptionSet
             {
-                "Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved", "Stride Test Suite Tool - Version: " + Format("{0}.{1}.{2}", typeof(Program).Assembly.GetName().Version.Major, typeof(Program).Assembly.GetName().Version.Minor, typeof(Program).Assembly.GetName().Version.Build) + Empty, Format("Usage: {0} [assemblies|apk] -option1 -option2:a", exeName), Empty, "=== Options ===", Empty, { "h|help", "Show this message and exit", v => showHelp = v != null }, { "result-path:", "Result .XML output path", v => resultPath = v }, { "no-reinstall-apk", "Do not reinstall APK", v => reinstall = false },
+                "Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp) All Rights Reserved", "Stride Test Suite Tool - Version: " + Format("{0}.{1}.{2}", typeof(Program).Assembly.GetName().Version.Major, typeof(Program).Assembly.GetName().Version.Minor, typeof(Program).Assembly.GetName().Version.Build) + Empty, Format("Usage: {0} [assemblies|apk] -option1 -option2:a", exeName), Empty, "=== Options ===", Empty, { "h|help", "Show this message and exit", v => showHelp = v != null }, { "result-path:", "Result .XML output path", v => resultPath = v }, { "no-reinstall-apk", "Do not reinstall APK", v => reinstall = false },
             };
 
             try

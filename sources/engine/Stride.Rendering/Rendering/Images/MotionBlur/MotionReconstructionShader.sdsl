@@ -1,0 +1,189 @@
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader MotionReconstructionShader : ImageEffectShader
+{
+    cbuffer PerDraw
+    {
+        float   u_MinimumThreshold; // gamma
+        float   u_MaximumJitter; // eta
+        int     u_WeightBias; // K
+        int     u_SamplingRate; // N - number of samples
+        int     u_JitterLevel; // phi
+        int     u_TileSize; // r - number of pixels on one side of the tile
+        float   u_MotionBlurScale; // Scale of the blur, computed from the shutter angle
+        float   u_MinimumVelocity; // minimum velocity to blur
+    }
+
+
+    // Texture0: color
+    // Texture1: velocity
+    // Texture2: depth
+    // Texture3: neighborMax
+    stage override float4 Shading()
+    {
+        float2 pos = streams.TexCoord;
+        // Color sample at the center point
+        const float4 initColor = Texture0.Sample(PointSampler,pos);
+        float Random  = InterleavedGradientNoise(pos, 0);
+	    float Random2 = InterleavedGradientNoise(pos, 1);
+        float j = (float2(Random, Random2) - 0.5) * 0.5;
+        float2 vmax = Texture3.Sample(AnisotropicSampler, pos + Texture3TexelSize *j).xy;
+        float spMax = length(vmax);
+        if(spMax < u_MinimumVelocity) return initColor;
+
+        float2 wn = normalize(vmax);
+        float2 vc = SampleVelocity(pos);
+
+        float2 wp = float2(-wn.y, wn.x) * u_SamplingRate / u_WeightBias;
+
+        if(dot(wp,vc) < 0)
+        {
+            wp = -wp;
+        }
+
+        float2 wc = RNMix(wp, normalize(vc),(length(vc) - 0.5)/u_MinimumThreshold);
+
+        float totalWeight = 1.0;
+
+        float4 result = initColor * totalWeight;
+
+        float j2 = j * u_MaximumJitter * u_JitterLevel / u_SamplingRate;
+               
+
+        [unroll(200)]
+        for(int i = 0; i < u_SamplingRate; i++)
+        {
+            float t = lerp(-1,1,(i + j2 + 1)/(u_SamplingRate + 1));
+
+            float2 d = uint(i)%2 == 0 ? vmax : vc;
+            
+            float T = t * length(vmax);
+            float2 S = Texture0TexelSize * floor(t*d) + pos;
+
+            float2 vs = SampleVelocity(S);
+            float3 cs = SampleColor(S);
+
+            float f = ZCompare(Texture2.Sample(PointSampler,pos).r,Texture2.Sample(PointSampler,S).r);
+            float b = ZCompare(Texture2.Sample(PointSampler,S).r,Texture2.Sample(PointSampler,pos).r);
+
+            float weight = 0;
+            float wA = dot(wc,d);
+            float wB = dot(normalize(vs),d);
+
+
+            weight += f*Cone(T,1/length(vs)) * wB;
+            weight += b*Cone(T,1/length(vc)) * wA;
+
+            weight += Cylinder(T, min(length(vs),length(vc))) * max(wA,wB) * 2;
+
+            totalWeight += weight;
+
+            result.xyz += cs * weight;
+            
+        }
+
+        return float4(result.xyz / totalWeight,initColor.w);
+
+        
+    }
+
+    
+
+    float2 SampleVelocity(float2 uv)
+    {
+        float2 v = Texture1.Sample(PointSampler, uv).xy;
+        return float2((v.xy * 2.0 - 1.0) * u_MotionBlurScale);
+    }
+    float3 SampleVelocityDepth(float2 uv)
+    {
+        float2 v = Texture1.Sample(PointSampler, uv).xy;
+        return float3((v.xy * 2.0 - 1.0) * u_MotionBlurScale, Texture2.Sample(PointSampler,uv).r);
+    }
+    float3 SampleColor(float2 uv)
+    {
+        return Texture0.Sample(PointSampler, uv).xyz;
+    }
+
+    float ZCompare(float SampleDepth, float CenterDepth)
+    {
+	    return saturate(0.5 + float2(1, -1) * (SampleDepth - CenterDepth));
+    }
+
+    float Halton(int b, int i)
+    {
+        float r = 0.0;
+        float f = 1.0;
+        while (i > 0) {
+            f = f / float(b);
+            r = r + f * float(uint(i) % uint(b));
+            i = int(floor(float(i) / float(b)));
+        }
+        return r;
+    }
+    /*float2 JitterTile(float2 uv, float2 txs, float j)
+    {
+        float rx, ry;
+        sincos(InterleavedGradientNoise(uv + float2(2.0, 0.0)) * j, ry, rx);
+        return float2(rx, ry) * txs;
+    }*/
+    float2 sOffset(float2 pos, float j)
+    {
+        float2 randv = random(pos);
+        float rsign = randv.x > 0.0 ? -1 : 1;
+        float jitter = j * u_MaximumJitter * rsign;
+        if(randv.y < 0.5)
+        {
+            return float2(jitter,0);
+        }
+        return float2(0,jitter);
+    }
+    float2 random (float2 st) 
+    {
+        return frac(sin(dot(st.xy,float2(12.9898,78.233)))*43758.5453123);
+    }
+
+    float Cone(in float2 _x, in float2 _y, in float2 _v)
+    {
+	    return saturate(1.0 - length(_x - _y) / length(_v));
+    }
+
+    float Cone(in float _x, in float _y)
+    {
+	    return saturate(1.0 - _x / _y);
+    }
+
+    float Cylinder(in float2 _x, in float2 _y, in float2 _v)
+    {
+	    float lengthV = length(_v);
+	    return 1.0 - smoothstep(0.95 * lengthV, 1.05 * lengthV, length(_x - _y));
+    }
+
+    float Cylinder(in float _x, in float _y)
+    {
+	    return 1.0 - smoothstep(0.95 * _y, 1.05 * _y, _x);
+    }
+
+    float SoftStep(in float _a, in float _b, in float _radius)
+    {
+	    return saturate(1.0 - (_a - _b) / _radius);
+    }
+    float2 RNMix(in float2 _a, in float2 _b, in float _theta)
+    {
+	    return normalize(lerp(_a, _b, _theta));
+    }
+
+    float2 random2(float2 st)
+    {
+        st = float2( dot(st,float2(127.1,311.7)),
+                  dot(st,float2(269.5,183.3)) );
+        return -1.0 + 2.0*frac(sin(st)*43758.5453123);
+    }
+
+    float InterleavedGradientNoise( float2 uv, float FrameId )
+    {
+	    uv += FrameId * (float2(47, 17) * 0.695f);
+
+        const float3 magic = float3( 0.06711056f, 0.00583715f, 52.9829189f );
+        return frac(magic.z * frac(dot(uv, magic.xy)));
+    }
+};
