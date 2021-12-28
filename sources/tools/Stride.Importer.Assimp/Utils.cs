@@ -31,7 +31,9 @@ namespace Stride.Importer.Assimp
             => new Color(v.X, v.Y, v.Z, v.W);
 
         public static Core.Mathematics.Quaternion ToStrideQuaternion(this System.Numerics.Quaternion q)
-            => new Core.Mathematics.Quaternion(q.X, q.Y, q.Z, q.W);
+        // TODO: Not sure why I have to do this Assimp & System.Numerics.Quaternion seems to have the same memory layout (W, X, Y, Z)
+        // so just passing X, Y, Z, W without swizzling should work ...
+            => new Core.Mathematics.Quaternion(q.Y, q.Z, q.W, q.X); 
 
         public static unsafe uint GetNumUVChannels(Silk.NET.Assimp.Mesh* mesh)
         {
