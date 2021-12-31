@@ -3,6 +3,12 @@
 
 using Stride.Engine.Splines;
 using Stride.Engine.Splines.Components;
+using Stride.Rendering;
+
+using Stride.Core.Mathematics;
+using Stride.Games;
+using System.Collections.Generic;
+using Stride.Graphics;
 
 namespace Stride.Engine.Processors
 {
@@ -11,6 +17,10 @@ namespace Stride.Engine.Processors
     /// </summary>
     public class SplineTransformProcessor : EntityProcessor<SplineComponent, SplineTransformProcessor.SplineTransformationInfo>
     {
+
+        private SplineComponent SplineComponent;
+
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SplineTransformProcessor"/> class.
         /// </summary>
@@ -35,6 +45,8 @@ namespace Stride.Engine.Processors
         protected override void OnEntityComponentAdding(Entity entity, SplineComponent component, SplineTransformationInfo data)
         {
             // Register model view hierarchy update
+            SplineComponent = component;
+
             entity.Transform.PostOperations.Add(data.TransformOperation);
         }
 
@@ -47,6 +59,49 @@ namespace Stride.Engine.Processors
         public class SplineTransformationInfo
         {
             public SplineViewHierarchyTransformOperation TransformOperation;
+        }
+
+        public override void Update(GameTime time)
+        {
+            if (!SplineComponent.Spline.Dirty)
+            {
+                return;
+            }
+
+            var updatedSplineNodes = new List<SplineNode>();
+            var totalNodesCount = SplineComponent.SplineNodesComponents.Count;
+
+            if (totalNodesCount > 1)
+            {
+                for (int i = 0; i < totalNodesCount; i++)
+                {
+                    var currentSplineNodeComponent = SplineComponent.SplineNodesComponents[i];
+
+                    if (currentSplineNodeComponent == null)
+                        break;
+
+                    currentSplineNodeComponent.Entity.Transform.WorldMatrix.Decompose(out var scale, out Quaternion rotation, out var startTangentOutWorldPosition);
+                    currentSplineNodeComponent.SplineNode.WorldPosition = startTangentOutWorldPosition;
+                    currentSplineNodeComponent.SplineNode.TangentOutWorldPosition = startTangentOutWorldPosition + currentSplineNodeComponent.SplineNode.TangentOutLocal;
+                    currentSplineNodeComponent.SplineNode.TangentInWorldPosition = startTangentOutWorldPosition + currentSplineNodeComponent.SplineNode.TangentInLocal;
+                    updatedSplineNodes.Add(currentSplineNodeComponent.SplineNode);
+                }
+            }
+
+            SplineComponent.Spline.SplineNodes = updatedSplineNodes;
+            SplineComponent.Spline.UpdateSpline();
+            var graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
+            var splineDebugEntity = SplineComponent.SplineRenderer.Update(SplineComponent.Spline, graphicsDeviceService?.GraphicsDevice, SplineComponent.Entity.Transform.Position);
+            if (splineDebugEntity != null)
+            {
+                var existingRenderer = SplineComponent.Entity.FindChild("SplineRenderer");
+                if (existingRenderer != null)
+                {
+                    SplineComponent.Entity.RemoveChild(existingRenderer);
+                }
+
+                SplineComponent.Entity.AddChild(splineDebugEntity);
+            }
         }
     }
 }

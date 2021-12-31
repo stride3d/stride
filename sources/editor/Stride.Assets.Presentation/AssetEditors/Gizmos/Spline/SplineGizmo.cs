@@ -52,14 +52,17 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             if (Component.Spline.Dirty)
             {
-                var children = mainGizmoEntity.GetChildren();
-                foreach (var child in children)
-                {
-                    mainGizmoEntity?.RemoveChild(child);
-                }
-                var splineMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Green);
-                var splineDebugEntity = Component.Spline.DebugInfo.UpdateSplineDebugInfo(Component.Spline, GraphicsDevice, splineMaterial, mainGizmoEntity.Transform.Position);
-                mainGizmoEntity.AddChild(splineDebugEntity);
+                //var children = mainGizmoEntity.GetChildren();
+                //foreach (var child in children)
+                //{
+                //    mainGizmoEntity?.RemoveChild(child);
+                //}
+                //var splineMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.Green);
+                //var splineDebugEntity = Component.SplineRenderer.UpdateSplineDebugInfo(Component.Spline, GraphicsDevice, splineMaterial, mainGizmoEntity.Transform.Position);
+                //if (splineDebugEntity != null)
+                //{
+                //    mainGizmoEntity.AddChild(splineDebugEntity);
+                //}
             }
         }
     }

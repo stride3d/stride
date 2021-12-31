@@ -3,7 +3,7 @@ using Stride.Core;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Core.Mathematics;
-using static Stride.Engine.Splines.Spline;
+using Stride.Rendering;
 
 namespace Stride.Engine.Splines.Components
 {
@@ -20,6 +20,8 @@ namespace Stride.Engine.Splines.Components
         private Vector3 previousPosition;
 
         public Spline Spline = new Spline();
+
+        private SplineRenderer splineRenderer;
 
 
         [Display(100, "Nodes")]
@@ -38,13 +40,28 @@ namespace Stride.Engine.Splines.Components
             }
         }
 
+        [Display(80, "Spline renderer")]
+        public SplineRenderer SplineRenderer
+        {
+            get
+            {
+                if (splineRenderer == null)
+                {
+                    splineRenderer ??= new SplineRenderer();
+                    
+                }
+                return splineRenderer;
+            }
+            set
+            {
+                splineRenderer = value;
+                Spline.Dirty = true;
+            }
+        }
+
         public SplineComponent()
         {
             SplineNodesComponents ??= new List<SplineNodeComponent>();
-        }
-
-        internal void Initialize()
-        {
             Spline.Dirty = true;
         }
 
@@ -55,37 +72,6 @@ namespace Stride.Engine.Splines.Components
                 Spline.Dirty = true;
                 previousPosition = Entity.Transform.Position;
             }
-
-            if (Spline.Dirty)
-            {
-              UpdateSpline();
-            }
-        }
-
-        private void UpdateSpline()
-        {
-            var updatedSplineNodes = new List<SplineNode>();
-            var totalNodesCount = SplineNodesComponents.Count;
-
-            if (totalNodesCount > 1)
-            {
-                for (int i = 0; i < totalNodesCount; i++)
-                {
-                    var currentSplineNodeComponent = SplineNodesComponents[i];
-
-                    if (currentSplineNodeComponent == null)
-                        break;
-
-                    currentSplineNodeComponent.Entity.Transform.WorldMatrix.Decompose(out var scale, out Quaternion rotation, out var startTangentOutWorldPosition);
-                    currentSplineNodeComponent.SplineNode.WorldPosition = startTangentOutWorldPosition;
-                    currentSplineNodeComponent.SplineNode.TangentOutWorldPosition = startTangentOutWorldPosition + currentSplineNodeComponent.SplineNode.TangentOutLocal;
-                    currentSplineNodeComponent.SplineNode.TangentInWorldPosition = startTangentOutWorldPosition + currentSplineNodeComponent.SplineNode.TangentInLocal;
-                    updatedSplineNodes.Add(currentSplineNodeComponent.SplineNode);
-                }
-            }
-
-            Spline.SplineNodes = updatedSplineNodes;
-            Spline.UpdateSpline();
         }
 
         public SplinePositionInfo GetPositionOnSpline(float percentage)

@@ -14,7 +14,7 @@ namespace Stride.Engine.Splines
         public event SplineUpdatedHandler OnSplineUpdated;
 
         private List<SplineNode> splineNodes;
-        private SplineDebugInfo debugInfo = new();
+       
 
         [DataMemberIgnore]
         public List<SplineNode> SplineNodes
@@ -53,20 +53,6 @@ namespace Stride.Engine.Splines
             set
             {
                 loop = value;
-                Dirty = true;
-            }
-        }
-
-        [Display(80, "Debug settings")]
-        public SplineDebugInfo DebugInfo
-        {
-            get
-            {
-                return debugInfo;
-            }
-            set
-            {
-                debugInfo = value;
                 Dirty = true;
             }
         }

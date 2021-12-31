@@ -1,42 +1,24 @@
-using Stride.Engine.Splines;
-using Stride.Engine.Splines.Components;
 using Stride.Graphics;
 using Stride.Rendering;
-using Stride.Rendering.Materials;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Engine;
-using System.Collections.Generic;
-using Stride.Rendering.Materials.ComputeColors;
-using System.Linq;
 using Stride.Engine.Splines.Models.Mesh;
 
 namespace Stride.Engine.Splines
 {
     [DataContract]
-    public class SplineDebugInfo
+    public class SplineRenderer
     {
-
-        private Entity splineDebugEntity;
+        private Entity splineMeshEntity;
         private Entity segmentsEntity;
         private Entity boundingBoxEntity;
 
         private bool segments;
-        private Color segmentsColor = new(0, 100, 0);
         private bool boundingBox;
-
+        private GraphicsDevice graphicsDevice;
         private bool boundingIter = false;
 
-        public SplineDebugInfo()
-        {
-            //Create the entities that hold the various debug meshes           
-            segmentsEntity = new Entity("Segments");
-            boundingBoxEntity = new Entity("BoundingBox");
-
-            splineDebugEntity = new Entity("SplineDebug");
-            splineDebugEntity.AddChild(segmentsEntity);
-            splineDebugEntity.AddChild(boundingBoxEntity);
-        }
+        public Material SegementsMaterial;
 
         public bool Segments
         {
@@ -47,16 +29,7 @@ namespace Stride.Engine.Splines
             }
         }
 
-        public Color SegmentsColor
-        {
-            get { return segmentsColor; }
-            set
-            {
-                segmentsColor = value;
-
-            }
-        }
-
+        public Material BoundingBoxMaterial;
         public bool BoundingBox
         {
             get { return boundingBox; }
@@ -66,17 +39,35 @@ namespace Stride.Engine.Splines
             }
         }
 
-        public Entity UpdateSplineDebugInfo(Spline spline, GraphicsDevice graphicsDevice, Material splineMaterial, Vector3 splinePosition)
+        public Entity Update(Spline spline, GraphicsDevice graphicsdevice, Vector3 splinePosition)
         {
+            graphicsDevice = graphicsdevice;
+
+            //Create the entities that hold the various debug meshes           
+            splineMeshEntity ??= new Entity("SplineRenderer");
+
+            segmentsEntity ??= new Entity("Segments");
+            boundingBoxEntity ??= new Entity("BoundingBox");
+
+            if (segmentsEntity.GetParent() == null)
+            {
+                splineMeshEntity.AddChild(segmentsEntity);
+            }
+            if (boundingBoxEntity.GetParent() == null)
+            {
+                splineMeshEntity.AddChild(boundingBoxEntity);
+            }
+
+            ClearChildren(segmentsEntity);
+            ClearChildren(boundingBoxEntity);
+
+            if (graphicsDevice == null || SegementsMaterial == null)
+                return splineMeshEntity;
+
             var nodes = spline.SplineNodes;
 
             if (nodes?.Count > 1 && spline.Dirty)
             {
-                splineMaterial.Passes[0].Parameters.Set(MaterialKeys.DiffuseValue, new Color4(segmentsColor));
-
-                ClearChildren(segmentsEntity);
-                ClearChildren(boundingBoxEntity);
-
                 var totalNodesCount = nodes.Count;
                 for (int i = 0; i < totalNodesCount; i++)
                 {
@@ -94,7 +85,7 @@ namespace Stride.Engine.Splines
 
                     if (Segments || BoundingBox)
                     {
-                        if (currentSplineNode == null) return splineDebugEntity;
+                        if (currentSplineNode == null) return splineMeshEntity;
 
                         var curvePointsInfo = currentSplineNode.GetBezierPoints();
 
@@ -109,39 +100,39 @@ namespace Stride.Engine.Splines
                             splinePoints[j] = curvePointsInfo[j].Position;
                         }
 
-                        if (Segments)
+                        if (Segments && SegementsMaterial != null)
                         {
-                            DrawSplineSegments(splinePoints, graphicsDevice, splineMaterial, splinePosition);
+                            DrawSplineSegments(splinePoints, graphicsDevice, splinePosition);
                         }
 
-                        if (BoundingBox)
+                        if (BoundingBox && BoundingBoxMaterial != null)
                         {
-                            UpdateBoundingBox(currentSplineNode, graphicsDevice, splineMaterial, splinePosition);
+                            UpdateBoundingBox(currentSplineNode, graphicsDevice, splinePosition);
                         }
                     }
                 }
-
-                spline.Dirty = false;
             }
 
-            return splineDebugEntity;
+            spline.Dirty = false;
+
+            return splineMeshEntity;
         }
-    
-        private void DrawSplineSegments(Vector3[] splinePoints, GraphicsDevice graphicsDevice, Material splineMaterial, Vector3 position)
+
+        private void DrawSplineSegments(Vector3[] splinePoints, GraphicsDevice graphicsDevice, Vector3 position)
         {
             var splineMeshData = new SplineMeshData(splinePoints, graphicsDevice);
-            var segments = new Entity() { new ModelComponent { Model = new Model { splineMaterial, new Mesh { Draw = splineMeshData.Build() } }, RenderGroup = RenderGroup.Group4 } };
+            var segments = new Entity() { new ModelComponent { Model = new Model { SegementsMaterial, new Mesh { Draw = splineMeshData.Build() }, }, RenderGroup = RenderGroup.Group4, IsShadowCaster = false } };
             segmentsEntity.AddChild(segments);
             segments.Transform.Position -= position - segmentsEntity.Transform.Position;
         }
 
-        private void UpdateBoundingBox(SplineNode splineNode, GraphicsDevice graphicsDevice, Material splineMaterial, Vector3 position)
+        private void UpdateBoundingBox(SplineNode splineNode, GraphicsDevice graphicsDevice, Vector3 position)
         {
             var boundingBoxMesh = new BoundingBoxMesh(graphicsDevice);
             boundingBoxMesh.Build(splineNode.BoundingBox);
             boundingIter = !boundingIter;
 
-            var boundingBox = new Entity(){ new ModelComponent{ Model = new Model { splineMaterial, new Mesh { Draw = boundingBoxMesh.MeshDraw } },RenderGroup = RenderGroup.Group4 } };
+            var boundingBox = new Entity() { new ModelComponent { Model = new Model { BoundingBoxMaterial ?? SegementsMaterial, new Mesh { Draw = boundingBoxMesh.MeshDraw } }, RenderGroup = RenderGroup.Group4, IsShadowCaster = false } };
             boundingBoxEntity.AddChild(boundingBox);
             boundingBox.Transform.Position -= position - boundingBox.Transform.Position;
         }
