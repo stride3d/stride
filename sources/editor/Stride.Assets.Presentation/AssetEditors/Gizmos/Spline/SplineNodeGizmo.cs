@@ -8,12 +8,11 @@ using Stride.Engine.Splines.Components;
 using Stride.Extensions;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
-using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
     [GizmoComponent(typeof(SplineNodeComponent), false)]
-    public class SplineNodeGizmo : EntityGizmo<SplineNodeComponent>
+    public class SplineNodeGizmo : BillboardingGizmo<SplineNodeComponent>
     {
         private Entity mainGizmoEntity;
         private Entity gizmoTangentOut;
@@ -31,7 +30,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         public Vector2 startMousePosition { get; private set; }
         public Vector2 prevTotalMouseDrag { get; private set; }
 
-        public SplineNodeGizmo(EntityComponent component) : base(component)
+        public SplineNodeGizmo(EntityComponent component) : base(component, "SplineNode", GizmoResources.SplineGizmo)
         {
         }
 
