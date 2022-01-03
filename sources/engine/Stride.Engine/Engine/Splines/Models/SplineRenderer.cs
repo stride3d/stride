@@ -12,40 +12,64 @@ namespace Stride.Engine.Splines
         private Entity splineMeshEntity;
         private Entity segmentsEntity;
         private Entity boundingBoxEntity;
-
         private bool segments;
         private bool boundingBox;
-        private GraphicsDevice graphicsDevice;
-        private bool boundingIter = false;
 
-        public Material SegementsMaterial;
-
+        [Display(10, "Segments")]
         public bool Segments
         {
-            get { return segments; }
+            get
+            {
+                return segments;
+            }
             set
             {
                 segments = value;
+
+                //if (spline != null)
+                //    spline.Dirty = true;
             }
         }
 
-        public Material BoundingBoxMaterial;
+        [Display(20, "Segments material")]
+        public Material SegmentsMaterial;
+
+        [Display(30, "Show boundingbox")]
         public bool BoundingBox
         {
             get { return boundingBox; }
             set
             {
                 boundingBox = value;
+
+                //if (spline != null)
+                //    spline.Dirty = true;
             }
         }
 
-        public Entity Update(Spline spline, GraphicsDevice graphicsdevice, Vector3 splinePosition)
-        {
-            graphicsDevice = graphicsdevice;
+        [Display(40, "Boundingbox material")]
+        public Material BoundingBoxMaterial;
 
+
+        //public SplineRenderer(Spline spline)
+        //{
+        //    if (spline is null)
+        //    {
+        //        throw new System.ArgumentNullException(nameof(spline));
+        //    }
+
+        //    SetSpline(spline);
+        //}
+
+        //public void SetSpline(Spline spline)
+        //{
+        //    this.spline = spline;
+        //}
+
+        public Entity Update(Spline spline, GraphicsDevice graphicsDevice, Vector3 splinePosition)
+        {
             //Create the entities that hold the various debug meshes           
             splineMeshEntity ??= new Entity("SplineRenderer");
-
             segmentsEntity ??= new Entity("Segments");
             boundingBoxEntity ??= new Entity("BoundingBox");
 
@@ -61,12 +85,12 @@ namespace Stride.Engine.Splines
             ClearChildren(segmentsEntity);
             ClearChildren(boundingBoxEntity);
 
-            if (graphicsDevice == null || SegementsMaterial == null)
+            if (graphicsDevice == null || SegmentsMaterial == null || spline == null)
                 return splineMeshEntity;
 
             var nodes = spline.SplineNodes;
 
-            if (nodes?.Count > 1 && spline.Dirty)
+            if (nodes?.Count > 1)
             {
                 var totalNodesCount = nodes.Count;
                 for (int i = 0; i < totalNodesCount; i++)
@@ -100,41 +124,43 @@ namespace Stride.Engine.Splines
                             splinePoints[j] = curvePointsInfo[j].Position;
                         }
 
-                        if (Segments && SegementsMaterial != null)
+                        if (Segments && SegmentsMaterial != null)
                         {
-                            DrawSplineSegments(splinePoints, graphicsDevice, splinePosition);
+                            DrawSegmentLine(i.ToString(), splinePoints, graphicsDevice, splinePosition);
                         }
 
                         if (BoundingBox && BoundingBoxMaterial != null)
                         {
-                            UpdateBoundingBox(currentSplineNode, graphicsDevice, splinePosition);
+                            UpdateSegmentBoundingBox(i.ToString(), currentSplineNode.BoundingBox, graphicsDevice, splinePosition);
                         }
                     }
                 }
             }
 
-            spline.Dirty = false;
+            if (BoundingBox && BoundingBoxMaterial != null)
+            {
+                UpdateSegmentBoundingBox("Spline", spline.BoundingBox, graphicsDevice, splinePosition);
+            }
 
             return splineMeshEntity;
         }
 
-        private void DrawSplineSegments(Vector3[] splinePoints, GraphicsDevice graphicsDevice, Vector3 position)
+        private void DrawSegmentLine(string description, Vector3[] splinePoints, GraphicsDevice graphicsDevice, Vector3 position)
         {
             var splineMeshData = new SplineMeshData(splinePoints, graphicsDevice);
-            var segments = new Entity() { new ModelComponent { Model = new Model { SegementsMaterial, new Mesh { Draw = splineMeshData.Build() }, }, RenderGroup = RenderGroup.Group4, IsShadowCaster = false } };
+            var segments = new Entity($"Segment_{description}") { new ModelComponent { Model = new Model { SegmentsMaterial, new Mesh { Draw = splineMeshData.Build() }, }, RenderGroup = RenderGroup.Group4, IsShadowCaster = false } };
             segmentsEntity.AddChild(segments);
             segments.Transform.Position -= position - segmentsEntity.Transform.Position;
         }
 
-        private void UpdateBoundingBox(SplineNode splineNode, GraphicsDevice graphicsDevice, Vector3 position)
+        private void UpdateSegmentBoundingBox(string description, BoundingBox boundingBox, GraphicsDevice graphicsDevice, Vector3 position)
         {
             var boundingBoxMesh = new BoundingBoxMesh(graphicsDevice);
-            boundingBoxMesh.Build(splineNode.BoundingBox);
-            boundingIter = !boundingIter;
+            boundingBoxMesh.Build(boundingBox);
 
-            var boundingBox = new Entity() { new ModelComponent { Model = new Model { BoundingBoxMaterial ?? SegementsMaterial, new Mesh { Draw = boundingBoxMesh.MeshDraw } }, RenderGroup = RenderGroup.Group4, IsShadowCaster = false } };
-            boundingBoxEntity.AddChild(boundingBox);
-            boundingBox.Transform.Position -= position - boundingBox.Transform.Position;
+            var boundingBoxChild = new Entity($"BoundingBox_{description}") { new ModelComponent { Model = new Model { BoundingBoxMaterial ?? SegmentsMaterial, new Mesh { Draw = boundingBoxMesh.MeshDraw } }, RenderGroup = RenderGroup.Group4, IsShadowCaster = false } };
+            boundingBoxEntity.AddChild(boundingBoxChild);
+            boundingBoxChild.Transform.Position -= position - boundingBoxChild.Transform.Position;
         }
 
         private void ClearChildren(Entity entity)

@@ -4,6 +4,7 @@ using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
+using Stride.Engine.Splines.Models;
 
 namespace Stride.Engine.Splines.Components
 {
@@ -16,15 +17,43 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineComponent : EntityComponent
     {
-        private List<SplineNodeComponent> splineNodesComponents = new List<SplineNodeComponent>();
+        private List<SplineNodeComponent> splineNodesComponents;
         private Vector3 previousPosition;
-
-        public Spline Spline = new Spline();
-
         private SplineRenderer splineRenderer;
+        private Spline spline ;
 
+        [DataMemberIgnore]
+        public Spline Spline
+        {
+            get
+            {
+                spline ??= new Spline();
+                return spline;
+            }
+            set
+            {
+                spline = value;
+                Spline.Dirty = true;
+            }
+        }
 
-        [Display(100, "Nodes")]
+        /// <summary>
+        /// The last spline node reconnects to the first spline node. This still requires a minimum of 2 spline nodes.
+        /// </summary>
+        [Display(10, "Loop")]
+        public bool Loop
+        {
+            get
+            {
+                return Spline.Loop;
+            }
+            set
+            {
+                Spline.Loop = value;
+            }
+        }
+
+        [Display(20, "Nodes")]
         public List<SplineNodeComponent> SplineNodesComponents
         {
             get
@@ -35,33 +64,26 @@ namespace Stride.Engine.Splines.Components
             set
             {
                 splineNodesComponents = value;
-
                 Spline.Dirty = true;
             }
         }
 
-        [Display(80, "Spline renderer")]
+        [Display(50, "Spline renderer")]
         public SplineRenderer SplineRenderer
         {
             get
             {
-                if (splineRenderer == null)
-                {
-                    splineRenderer ??= new SplineRenderer();
-                    
-                }
+                splineRenderer ??= new SplineRenderer();
                 return splineRenderer;
             }
             set
             {
                 splineRenderer = value;
-                Spline.Dirty = true;
             }
         }
 
         public SplineComponent()
         {
-            SplineNodesComponents ??= new List<SplineNodeComponent>();
             Spline.Dirty = true;
         }
 
@@ -77,6 +99,11 @@ namespace Stride.Engine.Splines.Components
         public SplinePositionInfo GetPositionOnSpline(float percentage)
         {
             return Spline.GetPositionOnSpline(percentage);
+        }
+
+        public ClosestPointInfo GetClosestPointOnSpline(Vector3 originalPosition)
+        {
+            return Spline.GetClosestPointOnSpline(originalPosition);
         }
     }
 }

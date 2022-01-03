@@ -1,10 +1,5 @@
-//// Copyright (c) Stride contributors (https://Stride.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
-//// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
 using Stride.Engine.Splines;
 using Stride.Engine.Splines.Components;
-using Stride.Rendering;
-
 using Stride.Core.Mathematics;
 using Stride.Games;
 using System.Collections.Generic;
@@ -90,8 +85,10 @@ namespace Stride.Engine.Processors
 
             SplineComponent.Spline.SplineNodes = updatedSplineNodes;
             SplineComponent.Spline.UpdateSpline();
+
             var graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
             var splineDebugEntity = SplineComponent.SplineRenderer.Update(SplineComponent.Spline, graphicsDeviceService?.GraphicsDevice, SplineComponent.Entity.Transform.Position);
+            
             if (splineDebugEntity != null)
             {
                 var existingRenderer = SplineComponent.Entity.FindChild("SplineRenderer");

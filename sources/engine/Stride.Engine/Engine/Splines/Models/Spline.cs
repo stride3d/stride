@@ -1,11 +1,16 @@
 using System.Collections.Generic;
 using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Engine.Splines.Models;
 
 namespace Stride.Engine.Splines
 {
     [DataContract]
-    public partial class Spline
+    public class Spline
     {
+        private bool loop;
+        private List<SplineNode> splineNodes;
+
         /// <summary>
         /// Event triggered when the spline has been update
         /// This happens when the entity is translated or rotated, or when a SplineNode is updated
@@ -13,8 +18,8 @@ namespace Stride.Engine.Splines
         public delegate void SplineUpdatedHandler();
         public event SplineUpdatedHandler OnSplineUpdated;
 
-        private List<SplineNode> splineNodes;
-       
+        [DataMemberIgnore]
+        public BoundingBox BoundingBox { get; private set; }
 
         [DataMemberIgnore]
         public List<SplineNode> SplineNodes
@@ -37,13 +42,13 @@ namespace Stride.Engine.Splines
         [DataMemberIgnore]
         public bool Dirty { get; set; }
 
+        [DataMemberIgnore]
         public float TotalSplineDistance { get; internal set; }
 
-        private bool loop;
         /// <summary>
         /// The last spline node reconnects to the first spline node. This still requires a minimum of 2 spline nodes.
         /// </summary>
-        [Display(60, "Loop")]
+        [DataMemberIgnore]
         public bool Loop
         {
             get
@@ -55,6 +60,11 @@ namespace Stride.Engine.Splines
                 loop = value;
                 Dirty = true;
             }
+        }
+
+        public Spline()
+        {
+
         }
 
         /// <summary>
@@ -97,7 +107,12 @@ namespace Stride.Engine.Splines
                 }
 
                 TotalSplineDistance = GetTotalSplineDistance();
+                UpdateBoundingBox();
 
+                //todo: remove after test
+                //GetClosestPointOnSpline(new Vector3(3, 0, 3));
+
+                Dirty = false;
                 OnSplineUpdated?.Invoke();
             }
         }
@@ -168,6 +183,24 @@ namespace Stride.Engine.Splines
             return splinePositionInfo;
         }
 
+
+        public ClosestPointInfo GetClosestPointOnSpline(Vector3 originalPosition)
+        {
+            ClosestPointInfo currentClosestPoint = null;
+            for (int i = 0; i < splineNodes.Count; i++)
+            {
+                var curNode = splineNodes[i];
+                var closestPoint = curNode.GetClosestPointOnCurve(originalPosition);
+
+                if (currentClosestPoint == null || closestPoint.Distance < currentClosestPoint.Distance)
+                {
+                    currentClosestPoint = closestPoint;
+                }
+            }
+
+            return currentClosestPoint;
+        }
+
         public void DeregisterSplineNodeDirtyEvents()
         {
             for (int i = 0; i < SplineNodes?.Count; i++)
@@ -195,6 +228,24 @@ namespace Stride.Engine.Splines
         private void MakeSplineDirty()
         {
             Dirty = true;
+        }
+
+        private void UpdateBoundingBox()
+        {
+            var allCurvePointsPositions = new List<Vector3>();
+            for (int i = 0; i < splineNodes.Count; i++)
+            {
+                var positions = splineNodes[i].GetBezierPoints();
+                if (positions != null)
+                {
+                    for (int j = 0; j < positions.Length; j++)
+                    {
+                        allCurvePointsPositions.Add(positions[j].Position);
+                    }
+                }
+            }
+            BoundingBox.FromPoints(allCurvePointsPositions.ToArray(), out BoundingBox NewBoundingBox);
+            BoundingBox = NewBoundingBox;
         }
     }
 }
