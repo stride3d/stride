@@ -197,12 +197,21 @@ namespace Stride.Rendering
         public struct ViewportRestore : IDisposable
         {
             private readonly RenderContext context;
+
             private readonly ViewportState previousValue;
 
-            public ViewportRestore(RenderContext context)
+            public ViewportRestore(RenderContext context, bool copy = true)
             {
                 this.context = context;
-                this.previousValue = context.ViewportState;
+                if (copy)
+                {
+                    previousValue = context.ViewportState.Clone() as ViewportState;
+                }
+                else
+                {
+                    previousValue = context.ViewportState;
+                    context.ViewportState = new ViewportState();
+                }
             }
 
             public void Dispose()

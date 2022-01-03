@@ -1,11 +1,12 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using Stride.Graphics;
 
 namespace Stride.Rendering
 {
-    public class ViewportState
+    public class ViewportState: ICloneable
     {
         public Viewport Viewport0;
         //public Viewport Viewport1;
@@ -31,6 +32,14 @@ namespace Stride.Rendering
                     viewport0[i] = viewports[i];
                 }
             }
+        }
+
+        public object Clone()
+        {
+            return new ViewportState()
+            {
+                Viewport0 = Viewport0
+            };
         }
     }
 }
