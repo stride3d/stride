@@ -95,7 +95,8 @@ namespace Stride.Graphics
             var newTextureDescription = ConvertFromNativeDescription(texture.Description);
 
             // We might have created the swapchain as a non-srgb format (esp on Win10&RT) but we want it to behave like it is (esp. for the view and render target)
-            newTextureDescription.Format = newTextureDescription.Format.ToSRgb();
+            if(isSrgb)
+                newTextureDescription.Format = newTextureDescription.Format.ToSRgb();
 
             return InitializeFrom(newTextureDescription);
         }
