@@ -200,18 +200,10 @@ namespace Stride.Rendering
 
             private readonly ViewportState previousValue;
 
-            public ViewportRestore(RenderContext context, bool copy = true)
+            public ViewportRestore(RenderContext context)
             {
                 this.context = context;
-                if (copy)
-                {
-                    previousValue = context.ViewportState.Clone() as ViewportState;
-                }
-                else
-                {
-                    previousValue = context.ViewportState;
-                    context.ViewportState = new ViewportState();
-                }
+                this.previousValue = context.ViewportState;
             }
 
             public void Dispose()

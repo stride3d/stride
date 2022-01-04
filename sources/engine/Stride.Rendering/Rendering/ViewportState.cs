@@ -6,7 +6,7 @@ using Stride.Graphics;
 
 namespace Stride.Rendering
 {
-    public class ViewportState: ICloneable
+    public struct ViewportState
     {
         public Viewport Viewport0;
         //public Viewport Viewport1;
@@ -32,14 +32,6 @@ namespace Stride.Rendering
                     viewport0[i] = viewports[i];
                 }
             }
-        }
-
-        public object Clone()
-        {
-            return new ViewportState()
-            {
-                Viewport0 = Viewport0
-            };
         }
     }
 }
