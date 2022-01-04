@@ -128,7 +128,7 @@
     <value>https://www.facebook.com/stride3d</value>
   </data>
   <data name="Forums" xml:space="preserve">
-    <value>https://forums.stride3d.net/</value>
+    <value>https://github.com/stride3d/stride/discussions</value>
   </data>
   <data name="GettingStarted" xml:space="preserve">
     <value>https://doc.stride3d.net/{0}/studio_getting_started_links.txt</value>
@@ -140,11 +140,14 @@
   <data name="Issues" xml:space="preserve">
     <value>https://github.com/stride3d/stride/issues/</value>
   </data>
+  <data name="OpenCollective" xml:space="preserve">
+    <value>https://opencollective.com/stride3d</value>
+  </data>
   <data name="Reddit" xml:space="preserve">
     <value>https://www.reddit.com/r/stride3d</value>
   </data>
   <data name="Roadmap" xml:space="preserve">
-    <value>https://github.com/stride3d/stride/projects/3</value>
+    <value>https://opencollective.com/stride3d/projects</value>
   </data>
   <data name="RssFeed" xml:space="preserve">
     <value>https://stride3d.net/feed.xml</value>

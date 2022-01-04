@@ -23,6 +23,6 @@ namespace SpaceEscape.Effects
             mixin TransformationBendWorld;
 
         if(GameParameters.EnableFog)
-            mixin FogEffect;
+            mixin CustomFogEffect;
     };
 }

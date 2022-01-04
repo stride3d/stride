@@ -226,7 +226,7 @@ namespace Stride.Shaders.Parser
 
                 LinkVariable(effectReflection, variable.Name, parameterKey, slotCount);
             }
-            else if (variable.Type is TextureType || variable.Type is GenericBaseType)
+            else if (variable.Type is TextureType || variable.Type is GenericBaseType || variable.Type.IsByteAddressBufferType())
             {
                 LinkVariable(effectReflection, variable.Name, parameterKey, slotCount);
             }

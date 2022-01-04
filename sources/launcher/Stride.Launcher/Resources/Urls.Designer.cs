@@ -88,7 +88,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://forums.stride3d.net/.
+        ///   Looks up a localized string similar to https://github.com/stride3d/stride/discussions.
         /// </summary>
         public static string Forums {
             get {
@@ -124,6 +124,15 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to https://opencollective.com/stride3d.
+        /// </summary>
+        public static string OpenCollective {
+            get {
+                return ResourceManager.GetString("OpenCollective", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to https://www.reddit.com/r/stride3d.
         /// </summary>
         public static string Reddit {
@@ -133,7 +142,7 @@ namespace Stride.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/stride3d/stride/projects/3.
+        ///   Looks up a localized string similar to https://opencollective.com/stride3d/projects.
         /// </summary>
         public static string Roadmap {
             get {

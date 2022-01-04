@@ -328,7 +328,7 @@ namespace Stride.Shaders.Parser.Mixins
         protected static bool IsBufferType(TypeBase type)
         {
             // TODO we should improve AST type system
-            return type is GenericBaseType && type.Name.Text.Contains("Buffer");
+            return (type is GenericBaseType && type.Name.Text.Contains("Buffer")) || type.IsByteAddressBufferType();
         }
     }
 }
