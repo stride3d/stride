@@ -12,16 +12,13 @@
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
     <StrideBuildTags>*</StrideBuildTags>
     <StrideBulletPlatform></StrideBulletPlatform> <!--Empty by default, only iOS needs special care-->
-    <StrideBulletPlatform Condition="'$(StridePlatform)' == 'iOS'">iOS</StrideBulletPlatform>
+    <StrideBulletPlatform Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">iOS</StrideBulletPlatform>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
   <ItemGroup>
     <StrideNativeLib Include="..\..\..\deps\BulletPhysics\$(StridePlatformDeps)\**\libbulletc.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </StrideNativeLib>
-    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="..\..\..\deps\BulletPhysics\BulletSharp.NetStandard.dll.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </StrideContent>
     <Reference Include="BulletSharp">
       <HintPath>..\..\..\deps\BulletPhysics\$(StrideBulletPlatform)\BulletSharp.NetStandard.dll</HintPath>
     </Reference>

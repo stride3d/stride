@@ -19,33 +19,6 @@
     <ExtrasUwpMetaPackageVersion>6.2.12</ExtrasUwpMetaPackageVersion>
   </PropertyGroup>
   
-  <Choose>
-    <When Condition=" '$(StridePlatform)' == 'Android' ">
-      <ItemGroup>
-        <Reference Include="Mono.Android" />
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition=" '$(StridePlatform)' == 'iOS' ">
-      <ItemGroup>
-        <Reference Include="Xamarin.iOS" />
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition=" '$(StrideNETRuntime)' == 'CoreCLR' ">
-      <ItemGroup>
-        <None Include="..\..\data\Linux\runtimeconfig.json">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Include="..\..\data\Linux\CoreCLRSetup.sh">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-      </ItemGroup>
-    </When>
-  </Choose>
-  
   <ItemGroup>
     <PackageReference Include="ServiceWire" Version="5.3.4" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
@@ -110,10 +83,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>TupleSerializer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.Core.dll.config" />
   </ItemGroup>
   
   <ItemGroup>

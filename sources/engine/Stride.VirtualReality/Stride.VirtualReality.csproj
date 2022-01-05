@@ -15,17 +15,11 @@
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
   <Choose>
-    <When Condition=" '$(StridePlatform)' == 'Android'">
+    <When Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
       <ItemGroup>
-        <Reference Include="Mono.Android" />
         <Reference Include="GoogleVRJava">
           <HintPath>..\..\..\deps\GoogleVR\lib\Android\GoogleVRJava.dll</HintPath>
         </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition=" '$(StridePlatform)' == 'iOS'">
-      <ItemGroup>
-        <Reference Include="Xamarin.iOS" />
       </ItemGroup>
     </When>
   </Choose>
@@ -54,7 +48,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.VirtualReality.dll.config" />
     <None Include="Stride.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>
@@ -72,7 +65,7 @@
   </PropertyGroup>
   <Target Name="_StrideIncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)GoogleVRJava.dll" Condition=" '$(StridePlatform)' == 'Android' " />
+      <BuildOutputInPackage Include="$(OutputPath)GoogleVRJava.dll" Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' " />
     </ItemGroup>
   </Target>
 </Project>
