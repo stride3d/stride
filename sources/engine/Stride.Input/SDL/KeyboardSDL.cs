@@ -232,7 +232,7 @@ namespace Stride.Input
                 map[KeyCode.KMinus] = Keys.OemMinus;
                 map[KeyCode.KKPMinus] = Keys.Subtract;
                 map[KeyCode.KDecimalseparator] = Keys.Decimal;
-                map[KeyCode.KKPDecimal] = Keys.Decimal;
+                map[KeyCode.KKPDecimal] = Keys.NumPadDecimal;
                 map[KeyCode.KKPDivide] = Keys.Divide;
                 map[KeyCode.KF1] = Keys.F1;
                 map[KeyCode.KF2] = Keys.F2;
