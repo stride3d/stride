@@ -29,7 +29,7 @@ namespace Stride.Input
 
             Id = InputDeviceUtils.DeviceNameToGuid(window.SdlHandle.ToString() + Name);
         }
-        
+
         public void Dispose()
         {
             window.KeyDownActions -= OnKeyEvent;
@@ -90,7 +90,7 @@ namespace Stride.Input
             textInputEvent.Type = TextInputEventType.Input;
             textEvents.Add(textInputEvent);
         }
-        
+
         private unsafe string SDLBufferToString(byte* text, int size = 32)
         {
             byte[] sourceBytes = new byte[size];
@@ -285,24 +285,25 @@ namespace Stride.Input
                 //            map [KeyCode.KUnknown] = Keys.LaunchApplication1;
                 //            map [KeyCode.KUnknown] = Keys.LaunchApplication2;
                 //            map [KeyCode.KUnknown] = Keys.Oem1;
-                //            map [KeyCode.KUnknown] = Keys.OemSemicolon;
-                //            map [KeyCode.KUnknown] = Keys.OemComma;
-                //            map [KeyCode.KUnknown] = Keys.OemPeriod;
+                map[KeyCode.KSemicolon] = Keys.OemSemicolon;
+                map[KeyCode.KComma] = Keys.OemComma;
+                map[KeyCode.KPeriod] = Keys.OemPeriod;
+                map[KeyCode.KKPPeriod] = Keys.OemPeriod;
                 //            map [KeyCode.KUnknown] = Keys.Oem2;
-                //            map [KeyCode.KUnknown] = Keys.OemQuestion;
+                map[KeyCode.KSlash] = Keys.OemQuestion;
                 //            map [KeyCode.KUnknown] = Keys.Oem3;
-                //            map [KeyCode.KUnknown] = Keys.OemTilde;
+                map[KeyCode.KBackquote] = Keys.OemTilde;
                 //            map [KeyCode.KUnknown] = Keys.Oem4;
-                //            map [KeyCode.KUnknown] = Keys.OemOpenBrackets;
+                map[KeyCode.KLeftbracket] = Keys.OemOpenBrackets;
                 //            map [KeyCode.KUnknown] = Keys.Oem5;
                 //            map [KeyCode.KUnknown] = Keys.OemPipe;
                 //            map [KeyCode.KUnknown] = Keys.Oem6;
-                //            map [KeyCode.KUnknown] = Keys.OemCloseBrackets;
+                map[KeyCode.KRightbracket] = Keys.OemCloseBrackets;
                 //            map [KeyCode.KUnknown] = Keys.Oem7;
-                //            map [KeyCode.KUnknown] = Keys.OemQuotes;
+                map[KeyCode.KQuote] = Keys.OemQuotes;
                 //            map [KeyCode.KUnknown] = Keys.Oem8;
                 //            map [KeyCode.KUnknown] = Keys.Oem102;
-                //            map [KeyCode.KUnknown] = Keys.OemBackslash;
+                map[KeyCode.KBackslash] = Keys.OemBackslash;
                 //            map [KeyCode.KUnknown] = Keys.Attn;
                 map[KeyCode.KCrsel] = Keys.CrSel;
                 map[KeyCode.KExsel] = Keys.ExSel;
@@ -311,7 +312,7 @@ namespace Stride.Input
                 //            map [KeyCode.KUnknown] = Keys.Zoom;
                 //            map [KeyCode.KUnknown] = Keys.NoName;
                 //            map [KeyCode.KUnknown] = Keys.Pa1;
-                //            map [KeyCode.KUnknown] = Keys.OemClear;
+                map[KeyCode.KClear] = Keys.OemClear;
                 return map;
             }
         }
