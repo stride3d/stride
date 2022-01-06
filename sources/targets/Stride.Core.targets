@@ -49,7 +49,7 @@
   <!-- Setup compiler targets per platform / language -->
   <PropertyGroup>
     <!-- On Android, everything is library (even Exe) -->
-    <OutputType Condition=" '$(StridePlatform)' == 'Android' ">Library</OutputType>
+    <OutputType Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">Library</OutputType>
   </PropertyGroup>
 
   <!-- User Documentation (.usrdoc) -->
@@ -70,7 +70,7 @@
   </Target>
 
   <PropertyGroup>
-    <StrideCompilerTargetsEnable Condition=" '$(StridePlatform)' != 'Windows' and $(StrideWindowsOnly) == 'true'">false</StrideCompilerTargetsEnable>
+    <StrideCompilerTargetsEnable Condition=" '$(TargetFramework)' != '$(StrideFramework)' and '$(TargetFramework)' == '$(StrideFrameworkWindows)' and $(StrideWindowsOnly) == 'true'">false</StrideCompilerTargetsEnable>
 
     <!-- Skip unit tests if requested -->
     <StrideCompilerTargetsEnable Condition="'$(StrideSkipUnitTests)' == 'true' And $(StrideOutputFolder.StartsWith('Tests'))">false</StrideCompilerTargetsEnable>
@@ -208,7 +208,7 @@
   <Import Condition="'$(TargetFramework)' != ''" Project="$(MSBuildThisFileDirectory)MSBuild.Sdk.Extras\DefaultItems\ImplicitPackages.targets"/>
 
     <!-- A workaround for https://github.com/microsoft/msbuild/issues/4584 and resolves https://github.com/onovotny/MSBuildSdkExtras/issues/176 -->
-  <Target Name="_RemoveNativeReferencesManifest" Condition="'$(StridePlatform)' == 'iOS'" AfterTargets="BuiltProjectOutputGroup">
+  <Target Name="_RemoveNativeReferencesManifest" Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'" AfterTargets="BuiltProjectOutputGroup">
     <ItemGroup>
       <_BuiltProjectOutputGroupOutputIntermediate Remove="$(OutDir)$(_DeploymentTargetApplicationManifestFileName)" />
       <BuiltProjectOutputGroupOutput Remove="$(ProjectDir)$(OutDir)$(_DeploymentTargetApplicationManifestFileName)" />
