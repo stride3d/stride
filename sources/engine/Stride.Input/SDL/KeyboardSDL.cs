@@ -288,7 +288,8 @@ namespace Stride.Input
                 map[KeyCode.KSemicolon] = Keys.OemSemicolon;
                 map[KeyCode.KComma] = Keys.OemComma;
                 map[KeyCode.KPeriod] = Keys.OemPeriod;
-                map[KeyCode.KKPPeriod] = Keys.OemPeriod;
+                // Verified with http://kbdlayout.info/
+                map[KeyCode.KKPPeriod] = Keys.NumPadDecimal;
                 //            map [KeyCode.KUnknown] = Keys.Oem2;
                 map[KeyCode.KSlash] = Keys.OemQuestion;
                 //            map [KeyCode.KUnknown] = Keys.Oem3;
