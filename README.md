@@ -1,4 +1,6 @@
 ![Stride](sources/data/images/Logo/stride-logo-readme.png)
+
+[![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-26-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
@@ -44,7 +46,7 @@ Find explanations and information about Stride:
 ## Community
 
 Ask for help or report issues:
-* [Chat with the community on Discord](https://discord.gg/f6aerfE) [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
+* [Chat with the community on Discord](https://discord.gg/f6aerfE)
 * [Discuss topics on Github discussions](https://github.com/stride3d/stride/discussions)
 * [Report engine issues](https://github.com/stride3d/stride/issues)
 * [Donate to support the project](https://opencollective.com/stride3d/)
