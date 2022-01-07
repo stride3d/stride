@@ -66,6 +66,9 @@ namespace Stride.Input
             Keys key;
             if (SDLKeys.MapKeys.TryGetValue((KeyCode)e.Keysym.Sym, out key) && key != Keys.None)
             {
+                // SDL maps OEM102 and OEM5 (OemBackslash and OemPipe) to the same keycode, swap to OEM5 based on the scancode
+                if (key == Keys.OemBackslash && e.Keysym.Scancode != Scancode.ScancodeNonusbackslash)
+                    key = Keys.OemPipe;
                 if ((EventType)e.Type == EventType.Keydown)
                     HandleKeyDown(key);
                 else
@@ -126,23 +129,20 @@ namespace Stride.Input
             /// <returns>A new map.</returns>
             private static Dictionary<KeyCode, Keys> NewMapKeys()
             {
+                // Resources: http://kbdlayout.info/kbdusx/overview+virtualkeys
+                //            https://wiki.libsdl.org/SDL_Keycode
+                //            http://kbdedit.com/manual/low_level_vk_list.html
                 var map = new Dictionary<KeyCode, Keys>(200);
                 map[KeyCode.KUnknown] = Keys.None;
                 map[KeyCode.KCancel] = Keys.Cancel;
                 map[KeyCode.KBackspace] = Keys.Back;
-                map[KeyCode.KTab] = Keys.Tab;
-                map[KeyCode.KKPTab] = Keys.Tab;
+                map[KeyCode.KKPTab] = map[KeyCode.KTab] = Keys.Tab;
                 //            map [KeyCode.KUnknown] = Keys.LineFeed;
-                map[KeyCode.KClear] = Keys.Clear;
-                map[KeyCode.KClearagain] = Keys.Clear;
-                map[KeyCode.KKPClear] = Keys.Clear;
-                map[KeyCode.KKPClearentry] = Keys.Clear;
-                map[KeyCode.KKPEnter] = Keys.Enter;
-                map[KeyCode.KReturn] = Keys.Return;
-                map[KeyCode.KReturn2] = Keys.Return;
+                map[KeyCode.KClear] = map[KeyCode.KClearagain] = map[KeyCode.KKPClear] = map[KeyCode.KKPClearentry] = Keys.Clear;
+                map[KeyCode.KReturn] = map[KeyCode.KReturn2] = Keys.Return;
                 map[KeyCode.KPause] = Keys.Pause;
-                map[KeyCode.KCapslock] = Keys.Capital;
-                //            map [KeyCode.KCapslock] = Keys.CapsLock;
+                //            map [KeyCode.KCapslock] = Keys.Capital; // Capital is the same as CapsLock
+                map[KeyCode.KCapslock] = Keys.CapsLock;
                 //            map [KeyCode.KUnknown] = Keys.HangulMode;
                 //            map [KeyCode.KUnknown] = Keys.KanaMode;
                 //            map [KeyCode.KUnknown] = Keys.JunjaMode;
@@ -154,15 +154,13 @@ namespace Stride.Input
                 //            map [KeyCode.KUnknown] = Keys.ImeNonConvert;
                 //            map [KeyCode.KUnknown] = Keys.ImeAccept;
                 //            map [KeyCode.KUnknown] = Keys.ImeModeChange;
-                map[KeyCode.KSpace] = Keys.Space;
-                map[KeyCode.KKPSpace] = Keys.Space;
+                map[KeyCode.KSpace] = map[KeyCode.KKPSpace] = Keys.Space;
                 map[KeyCode.KPageup] = Keys.PageUp;
                 map[KeyCode.KPrior] = Keys.Prior;
-                //            map [KeyCode.KPagedown] = Keys.Next); // Next is the same as PageDo;
+                //            map [KeyCode.KPagedown] = Keys.Next; // Next is the same as PageDown
                 map[KeyCode.KPagedown] = Keys.PageDown;
                 map[KeyCode.KEnd] = Keys.End;
                 map[KeyCode.KHome] = Keys.Home;
-                map[KeyCode.KACHome] = Keys.Home;
                 map[KeyCode.KLeft] = Keys.Left;
                 map[KeyCode.KUp] = Keys.Up;
                 map[KeyCode.KRight] = Keys.Right;
@@ -171,7 +169,7 @@ namespace Stride.Input
                 //            map [KeyCode.KUnknown] = Keys.Print;
                 map[KeyCode.KExecute] = Keys.Execute;
                 map[KeyCode.KPrintscreen] = Keys.PrintScreen;
-                //            map [KeyCode.KPrintscreen] = Keys.Snapshot); // Snapshot is the same as PageDo;
+                //            map [KeyCode.KPrintscreen] = Keys.Snapshot; // Snapshot is the same as PrintScreen
                 map[KeyCode.KInsert] = Keys.Insert;
                 map[KeyCode.KDelete] = Keys.Delete;
                 map[KeyCode.KHelp] = Keys.Help;
@@ -226,13 +224,11 @@ namespace Stride.Input
                 map[KeyCode.KKP8] = Keys.NumPad8;
                 map[KeyCode.KKP9] = Keys.NumPad9;
                 map[KeyCode.KKPMultiply] = Keys.Multiply;
-                map[KeyCode.KPlus] = Keys.OemPlus;
-                map[KeyCode.KKPPlus] = Keys.Add;
+                map[KeyCode.KPlus]/*KPlus is not a physical key*/ = map[KeyCode.KKPPlus] = Keys.Add;
                 map[KeyCode.KSeparator] = Keys.Separator;
-                map[KeyCode.KMinus] = Keys.OemMinus;
                 map[KeyCode.KKPMinus] = Keys.Subtract;
-                map[KeyCode.KDecimalseparator] = Keys.Decimal;
-                map[KeyCode.KKPDecimal] = Keys.NumPadDecimal;
+                map[KeyCode.KKPPeriod] = map[KeyCode.KKPDecimal] = Keys.Decimal;
+                map[KeyCode.KThousandsseparator] = map[KeyCode.KDecimalseparator] = Keys.Decimal; // See ISO/IEC 9995-4
                 map[KeyCode.KKPDivide] = Keys.Divide;
                 map[KeyCode.KF1] = Keys.F1;
                 map[KeyCode.KF2] = Keys.F2;
@@ -282,28 +278,31 @@ namespace Stride.Input
                 map[KeyCode.KAudioplay] = Keys.MediaPlayPause;
                 map[KeyCode.KMail] = Keys.LaunchMail;
                 map[KeyCode.KMediaselect] = Keys.SelectMedia;
-                //            map [KeyCode.KUnknown] = Keys.LaunchApplication1;
-                //            map [KeyCode.KUnknown] = Keys.LaunchApplication2;
-                //            map [KeyCode.KUnknown] = Keys.Oem1;
+                map[KeyCode.KApp1] = Keys.LaunchApplication1;
+                map[KeyCode.KApp2] = Keys.LaunchApplication2;
+                //            map [KeyCode.KSemicolon] = Keys.Oem1; // Same as OemSemicolon
                 map[KeyCode.KSemicolon] = Keys.OemSemicolon;
+                map[KeyCode.KEquals] = Keys.OemPlus;
                 map[KeyCode.KComma] = Keys.OemComma;
+                map[KeyCode.KMinus] = Keys.OemMinus;
                 map[KeyCode.KPeriod] = Keys.OemPeriod;
-                // Verified with http://kbdlayout.info/
-                map[KeyCode.KKPPeriod] = Keys.NumPadDecimal;
-                //            map [KeyCode.KUnknown] = Keys.Oem2;
+                //            map [KeyCode.KUnknown] = Keys.Oem2; // Same as OemQuestion
                 map[KeyCode.KSlash] = Keys.OemQuestion;
-                //            map [KeyCode.KUnknown] = Keys.Oem3;
+                //            map [KeyCode.KUnknown] = Keys.Oem3; // Same as OemTilde
                 map[KeyCode.KBackquote] = Keys.OemTilde;
-                //            map [KeyCode.KUnknown] = Keys.Oem4;
+                //            map [KeyCode.KUnknown] = Keys.Oem4; // Same as OemOpenBrackets
                 map[KeyCode.KLeftbracket] = Keys.OemOpenBrackets;
-                //            map [KeyCode.KUnknown] = Keys.Oem5;
-                //            map [KeyCode.KUnknown] = Keys.OemPipe;
-                //            map [KeyCode.KUnknown] = Keys.Oem6;
+                //            map [KeyCode.KUnknown] = Keys.Oem5; // Same as OemPipe
+                map[KeyCode.KBackslash] = Keys.OemPipe; // Will be overwritten lower, SDL maps both to same KeyCode, we have to select based on scancode
+                //            map [KeyCode.KUnknown] = Keys.Oem6; // Same as OemCloseBrackets
                 map[KeyCode.KRightbracket] = Keys.OemCloseBrackets;
-                //            map [KeyCode.KUnknown] = Keys.Oem7;
+                //            map [KeyCode.KUnknown] = Keys.Oem7; // same as OemQuotes
                 map[KeyCode.KQuote] = Keys.OemQuotes;
-                //            map [KeyCode.KUnknown] = Keys.Oem8;
-                //            map [KeyCode.KUnknown] = Keys.Oem102;
+                // SDL maps OEM8 to Backquote which is already OEMTilde, this key is often used to open in game consoles and such, I think we should keep it as is
+                // to avoid UK players being unable to access that feature
+                // http://kbdlayout.info/kbdsmsfi
+                // map[KeyCode.KBackquote] = Keys.Oem8;
+                //            map [KeyCode.KUnknown] = Keys.Oem102; // same as OemBackslash
                 map[KeyCode.KBackslash] = Keys.OemBackslash;
                 //            map [KeyCode.KUnknown] = Keys.Attn;
                 map[KeyCode.KCrsel] = Keys.CrSel;
@@ -314,6 +313,7 @@ namespace Stride.Input
                 //            map [KeyCode.KUnknown] = Keys.NoName;
                 //            map [KeyCode.KUnknown] = Keys.Pa1;
                 map[KeyCode.KClear] = Keys.OemClear;
+                map[KeyCode.KKPEnter] = Keys.NumPadEnter;
                 return map;
             }
         }

@@ -906,6 +906,6 @@ namespace Stride.Input
         /// <summary>
         /// The numeric keypad 'decimal' key.
         /// </summary>
-        NumPadDecimal = 181,
+        [System.Obsolete($"Use {nameof(Decimal)} instead")] NumPadDecimal = 181,
     }
 }
