@@ -24,6 +24,7 @@
   <PropertyGroup Condition="'$(StrideGraphicsApiDependent)' == 'true' And !('$(TargetFrameworks)' != '' and '$(TargetFramework)' == '')">
     <StrideGraphicsApiDependent Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">false</StrideGraphicsApiDependent>
     <StrideGraphicsApiDependent Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">false</StrideGraphicsApiDependent>
+    <StrideGraphicsApiDependent Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">false</StrideGraphicsApiDependent>
     <StrideGraphicsApi Condition="'$(StrideGraphicsApiDependent)' == 'false'">$(StrideDefaultGraphicsApi)</StrideGraphicsApi>
   </PropertyGroup>
   <!-- Setup default GraphicsApi for design-time build (that's the one used for Visual Studio intellisense, so it can be useful to override when working on a specific API) -->
