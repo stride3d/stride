@@ -30,6 +30,7 @@ namespace Stride.Rendering
     {
         private List<Mesh> meshes = new List<Mesh>();
         private readonly List<MaterialInstance> materials = new List<MaterialInstance>();
+        private readonly List<Model> lods = new List<Model>();
         private IList<Model> children;
         private Model parent;
 
@@ -56,6 +57,18 @@ namespace Stride.Rendering
         public List<MaterialInstance> Materials
         {
             get { return materials; }
+        }
+
+        /// <summary>
+        /// Gets the materials.
+        /// </summary>
+        /// <value>
+        /// The materials.
+        /// </value>
+        [MemberCollection(NotNullItems = true)]
+        public List<Model> Lods
+        {
+            get { return lods; }
         }
 
         /// <summary>
@@ -127,6 +140,15 @@ namespace Stride.Rendering
             Materials.Add(material);
         }
 
+        /// <summary>
+        /// Adds the specified material (for collection Initializers).
+        /// </summary>
+        /// <param name="lod">The mesh.</param>
+        public void AddLod(Model lod)
+        {
+            Lods.Add(lod);
+        }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return meshes.Cast<object>().Concat(materials).GetEnumerator();
@@ -152,6 +174,15 @@ namespace Stride.Rendering
             {
                 var meshCopy = new Mesh(mesh);
                 result.Meshes.Add(meshCopy);
+            }
+
+            if(Lods != null)
+            {
+                foreach (var lod in Lods)
+                {
+                    var lodCopy = lod.Instantiate();
+                    result.Lods.Add(lodCopy);
+                }
             }
 
             result.Skeleton = Skeleton;

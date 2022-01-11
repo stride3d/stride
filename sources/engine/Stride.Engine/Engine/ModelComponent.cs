@@ -163,6 +163,29 @@ namespace Stride.Engine
         [DataMemberIgnore]
         public BoundingSphere BoundingSphere;
 
+
+
+        /// <summary>
+        /// Gets the materials; non-null ones will override materials from <see cref="Stride.Rendering.Model.Materials"/> (same slots should be used).
+        /// </summary>
+        /// <value>
+        /// The materials overriding <see cref="Stride.Rendering.Model.Materials"/> ones.
+        /// </value>
+        /// <userdoc>The list of materials to use with the model. This list overrides the default materials of the model.</userdoc>
+        [DataMember(50)]
+        [Category]
+        [MemberCollection(ReadOnly = true)]
+        public IndexingDictionary<Model> Lods { get; } = new IndexingDictionary<Model>();
+
+        /// <summary>
+        /// Gets the bounding sphere in world space.
+        /// </summary>
+        /// <value>The bounding sphere.</value>
+        [DataMember(60)]
+        [DefaultValue(1.0f)]
+        public float LodBias { get; set; } = 1.0f;
+
+
         /// <summary>
         /// Gets the material at the specified index. If the material is not overriden by this component, it will try to get it from <see cref="Stride.Rendering.Model.Materials"/>
         /// </summary>
@@ -185,6 +208,30 @@ namespace Stride.Engine
             return material;
         }
 
+        
+
+        /// <summary>
+        /// Gets the material at the specified index. If the material is not overriden by this component, it will try to get it from <see cref="Stride.Rendering.Model.Materials"/>
+        /// </summary>
+        /// <param name="index">The index of the material</param>
+        /// <returns>The material at the specified index or null if not found</returns>
+        public Model GetLodModel(int index)
+        {
+            if (index < 0) throw new ArgumentOutOfRangeException(nameof(index), @"index cannot be < 0");
+
+            Model lodModel;
+            if (Lods.TryGetValue(index, out lodModel))
+            {
+                return lodModel;
+            }
+            // TODO: if Model is null, shouldn't we always return null?
+            if (Model != null && index < Model.Lods.Count)
+            {
+                lodModel = Model.Lods[index];
+            }
+            return lodModel;
+        }
+
         /// <summary>
         /// Gets the number of materials (computed from <see cref="Stride.Rendering.Model.Materials"/>)
         /// </summary>
@@ -194,6 +241,19 @@ namespace Stride.Engine
             if (Model != null)
             {
                 return Model.Materials.Count;
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Gets the number of materials (computed from <see cref="Stride.Rendering.Model.Materials"/>)
+        /// </summary>
+        /// <returns></returns>
+        public int GetLodLevels()
+        {
+            if (Model != null)
+            {
+                return Model.Lods.Count;
             }
             return 0;
         }

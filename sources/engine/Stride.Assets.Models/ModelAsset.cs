@@ -82,6 +82,22 @@ namespace Stride.Assets.Models
         [Category]
         public List<ModelMaterial> Materials { get; } = new List<ModelMaterial>();
 
+        /// <inheritdoc/>
+        [DataMember(43)]
+        [MemberCollection(ReadOnly = true)]
+        [Category]
+        public List<ModelLodModel> Lods { get; } = new List<ModelLodModel>();
+
+        /// <summary>
+        /// Gets or sets the scale import.
+        /// </summary>
+        /// <value>The scale import.</value>
+        /// <userdoc>The scale applied when importing a model.</userdoc>
+        [DataMember(44)]
+        [DefaultValue(1.0f)]
+        public float LodBias { get; set; } = 1.0f;
+
+
         [DataMember(45)]
         [DefaultValue(true)]
         [Display(Browsable = false)]

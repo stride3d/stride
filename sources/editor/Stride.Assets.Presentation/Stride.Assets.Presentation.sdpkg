@@ -36,6 +36,7 @@ TemplateFolders:
         - !file Templates/Assets/Misc/DefaultRawAsset.sdtpl
         - !file Templates/Assets/Misc/DefaultSkybox.sdtpl
         - !file Templates/Assets/Models/DefaultModel.sdtpl
+        - !file Templates/Assets/Models/LodModel.sdtpl
         - !file Templates/Assets/Models/PrefabModel.sdtpl
         - !file Templates/Assets/Models/ProceduralCapsule.sdtpl
         - !file Templates/Assets/Models/ProceduralCone.sdtpl

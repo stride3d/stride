@@ -80,6 +80,9 @@ namespace Stride.Assets.Models
                     case ExportMode.Model:
                         exportedObject = ExportModel(commandContext, assetManager);
                         break;
+                    case ExportMode.ModelLod:
+                        exportedObject = ExportLOD(commandContext, assetManager);
+                        break;
                     default:
                         commandContext.Logger.Error($"Unknown export type [{Mode}] {ContextAsString}");
                         return ResultStatus.Failed;
@@ -242,6 +245,7 @@ namespace Stride.Assets.Models
             Skeleton,
             Model,
             Animation,
+            ModelLod
         }
     }
 }

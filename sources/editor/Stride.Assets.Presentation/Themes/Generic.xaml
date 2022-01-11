@@ -107,6 +107,25 @@
     </Setter>
   </Style>
 
+ <Style TargetType="{x:Type views:ModelLodPreviewView}">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type views:ModelLodPreviewView}">
+          <DockPanel d:DataContext="{d:DesignInstance viewModel:ModelLodPreviewViewModel}">
+            <Border DockPanel.Dock="Top" Background="{StaticResource NormalBrush}">
+              <StackPanel Orientation="Horizontal"  Margin="6">
+                <Button Command="{Binding ResetModelCommand}" Background="Transparent" ToolTip="{sd:Localize Reset the camera, Context=ToolTip}">
+                  <Image Source="{StaticResource ImageResetCamera}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
+                </Button>
+              </StackPanel>
+            </Border>
+            <ContentPresenter x:Name="PART_StrideView"/>
+          </DockPanel>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
   <Style TargetType="{x:Type views:ModelPreviewView}">
     <Setter Property="Template">
       <Setter.Value>

@@ -23,5 +23,14 @@ namespace Stride.Rendering
         /// The materials.
         /// </value>
         IndexingDictionary<Material> Materials { get; }
+
+
+        /// <summary>
+        /// Gets the Lods.
+        /// </summary>
+        /// <value>
+        /// The lod collection.
+        /// </value>        
+        IndexingDictionary<Model> Lods { get; }
     }
 }

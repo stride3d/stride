@@ -49,6 +49,16 @@
         </StackPanel>
       </StackPanel>
     </Border>
+    
+    <Border Background="{StaticResource EmphasisColorBrush}" Margin="20,0">
+      <TextBlock Text="{sd:Localize Loding}" Margin="20,10" FontSize="16"/>
+    </Border>
+    <Border Margin="20,10,20,20">
+      <StackPanel>
+        <TextBox  Margin="5" PreviewTextInput="NumberValidationTextBox" Text="{Binding LodLevels}" MaxLength="1" />
+      </StackPanel>
+    </Border>
+
     <UniformGrid Rows="1" Margin="20">
       <Button Content="{sd:Localize OK, Context=Button}" Margin="0,0,20,0" Padding="8" Click="ButtonOk" IsDefault="True"/>
       <Button Content="{sd:Localize Cancel, Context=Button}" Padding="8" Click="ButtonCancel" IsCancel="True"/>

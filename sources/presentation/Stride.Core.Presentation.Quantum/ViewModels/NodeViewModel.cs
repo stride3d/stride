@@ -417,13 +417,16 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
             if (HasDictionary)
             {
                 Type[] genericTypes = Type.GetGenericArguments();
-                if (genericTypes[0] == typeof(string))
+                if(genericTypes.Length > 0)
                 {
-                    freeName = true;
-                }
-                else if (genericTypes[0] == typeof(char))
-                {
-                    allowSpCharOnly = true;
+                    if (genericTypes[0] == typeof(string))
+                    {
+                        freeName = true;
+                    }
+                    else if (genericTypes[0] == typeof(char))
+                    {
+                        allowSpCharOnly = true;
+                    }
                 }
             }
 

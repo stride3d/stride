@@ -21,7 +21,7 @@ namespace Stride.Assets.Models
         private const string CurrentVersion = "2.0.0.0";
 
         /// <summary>
-        /// The default file extension used by the <see cref="ProceduralModelAsset"/>.
+        /// The default file extension used by the <see cref="PrefabModelAsset"/>.
         /// </summary>
         public const string FileExtension = ".sdprefabmodel";
 
@@ -31,5 +31,9 @@ namespace Stride.Assets.Models
 
         [DataMember]
         public Prefab Prefab { get; set; }
+
+        /// <inheritdoc/>
+        [DataMemberIgnore] // materials are not exposed in prefab models
+        public List<ModelLodModel> Lods { get; } = new List<ModelLodModel>();
     }
 }
