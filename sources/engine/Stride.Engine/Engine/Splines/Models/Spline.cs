@@ -240,7 +240,8 @@ namespace Stride.Engine.Splines
                 {
                     for (int j = 0; j < positions.Length; j++)
                     {
-                        allCurvePointsPositions.Add(positions[j].Position);
+                        if (positions[j] != null)
+                            allCurvePointsPositions.Add(positions[j].Position);
                     }
                 }
             }

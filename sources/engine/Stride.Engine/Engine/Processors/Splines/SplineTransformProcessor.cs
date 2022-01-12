@@ -64,13 +64,13 @@ namespace Stride.Engine.Processors
             }
 
             var updatedSplineNodes = new List<SplineNode>();
-            var totalNodesCount = SplineComponent.SplineNodesComponents.Count;
+            var totalNodesCount = SplineComponent.Nodes.Count;
 
             if (totalNodesCount > 1)
             {
                 for (int i = 0; i < totalNodesCount; i++)
                 {
-                    var currentSplineNodeComponent = SplineComponent.SplineNodesComponents[i];
+                    var currentSplineNodeComponent = SplineComponent.Nodes[i];
 
                     if (currentSplineNodeComponent == null)
                         break;
@@ -86,18 +86,25 @@ namespace Stride.Engine.Processors
             SplineComponent.Spline.SplineNodes = updatedSplineNodes;
             SplineComponent.Spline.UpdateSpline();
 
-            var graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
-            var splineDebugEntity = SplineComponent.SplineRenderer.Update(SplineComponent.Spline, graphicsDeviceService?.GraphicsDevice, SplineComponent.Entity.Transform.Position);
-            
-            if (splineDebugEntity != null)
-            {
-                var existingRenderer = SplineComponent.Entity.FindChild("SplineRenderer");
-                if (existingRenderer != null)
-                {
-                    SplineComponent.Entity.RemoveChild(existingRenderer);
-                }
 
-                SplineComponent.Entity.AddChild(splineDebugEntity);
+            //Deal with the Spline renderer
+            //Allways perform cleanup
+            var existingRenderer = SplineComponent.Entity.FindChild("SplineRenderer");
+            if (existingRenderer != null)
+            {
+                SplineComponent.Entity.RemoveChild(existingRenderer);
+                existingRenderer = null;
+            }
+
+            if (SplineComponent.SplineRenderer.Segments || SplineComponent.SplineRenderer.BoundingBox)
+            {
+                var graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
+                var splineDebugEntity = SplineComponent.SplineRenderer.Create(SplineComponent.Spline, graphicsDeviceService?.GraphicsDevice, SplineComponent.Entity.Transform.Position);
+
+                if (splineDebugEntity != null)
+                {
+                    SplineComponent.Entity.AddChild(splineDebugEntity);
+                }
             }
         }
     }

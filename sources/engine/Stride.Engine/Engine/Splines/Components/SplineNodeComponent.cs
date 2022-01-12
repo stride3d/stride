@@ -29,6 +29,18 @@ namespace Stride.Engine.Splines.Components
         {
         }
 
+        public SplineNodeComponent(int segments)
+        {
+            SplineNode.Segments = segments;
+        }
+
+        public SplineNodeComponent(int segments, Vector3 localTangentOut, Vector3 localTangentIn)
+        {
+            SplineNode.Segments = segments;
+            SplineNode.TangentInLocal = localTangentIn;
+            SplineNode.TangentOutLocal = localTangentOut;
+        }
+
         internal void Update(TransformComponent transformComponent)
         {
             CheckDirtyness();

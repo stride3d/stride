@@ -15,6 +15,9 @@ namespace Stride.Engine.Splines
         private bool segments;
         private bool boundingBox;
 
+        public delegate void SplineRendererSettingsUpdatedHandler();
+        public event SplineRendererSettingsUpdatedHandler OnSplineRendererSettingsUpdated;
+
         [Display(10, "Segments")]
         public bool Segments
         {
@@ -26,8 +29,7 @@ namespace Stride.Engine.Splines
             {
                 segments = value;
 
-                //if (spline != null)
-                //    spline.Dirty = true;
+                OnSplineRendererSettingsUpdated?.Invoke();
             }
         }
 
@@ -42,31 +44,21 @@ namespace Stride.Engine.Splines
             {
                 boundingBox = value;
 
-                //if (spline != null)
-                //    spline.Dirty = true;
+                OnSplineRendererSettingsUpdated?.Invoke();
             }
         }
 
         [Display(40, "Boundingbox material")]
         public Material BoundingBoxMaterial;
 
-
-        //public SplineRenderer(Spline spline)
-        //{
-        //    if (spline is null)
-        //    {
-        //        throw new System.ArgumentNullException(nameof(spline));
-        //    }
-
-        //    SetSpline(spline);
-        //}
-
-        //public void SetSpline(Spline spline)
-        //{
-        //    this.spline = spline;
-        //}
-
-        public Entity Update(Spline spline, GraphicsDevice graphicsDevice, Vector3 splinePosition)
+        /// <summary>
+        /// Creates an entity that can render various spline parts like segments and bounding box
+        /// </summary>
+        /// <param name="spline"></param>
+        /// <param name="graphicsDevice"></param>
+        /// <param name="splinePosition"></param>
+        /// <returns></returns>
+        public Entity Create(Spline spline, GraphicsDevice graphicsDevice, Vector3 splinePosition)
         {
             //Create the entities that hold the various debug meshes           
             splineMeshEntity ??= new Entity("SplineRenderer");

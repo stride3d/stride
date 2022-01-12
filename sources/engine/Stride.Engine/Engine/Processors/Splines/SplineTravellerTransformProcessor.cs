@@ -130,7 +130,7 @@ namespace Stride.Engine.Processors
 
         private void SetNextTarget()
         {
-            var nodesCount = splineTravellerComponent.SplineComponent.SplineNodesComponents.Count;
+            var nodesCount = splineTravellerComponent.SplineComponent.Nodes.Count;
 
             // is there a next curve point?
             if (currentCurvePointIndex + 1 < currentSplinePoints.Length)
@@ -163,11 +163,11 @@ namespace Stride.Engine.Processors
             targetCurveIndex++;
             if (targetCurveIndex < nodesCount)
             {
-                targetSplineNodeComponent = splineTravellerComponent.SplineComponent.SplineNodesComponents[targetCurveIndex];
+                targetSplineNodeComponent = splineTravellerComponent.SplineComponent.Nodes[targetCurveIndex];
             }
             else if (targetCurveIndex == nodesCount && splineTravellerComponent.SplineComponent.Spline.Loop)
             {
-                targetSplineNodeComponent = splineTravellerComponent.SplineComponent.SplineNodesComponents[0];
+                targetSplineNodeComponent = splineTravellerComponent.SplineComponent.Nodes[0];
                 targetCurveIndex = 0;
             }
 

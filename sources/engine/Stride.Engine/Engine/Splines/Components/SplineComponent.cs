@@ -20,7 +20,7 @@ namespace Stride.Engine.Splines.Components
         private List<SplineNodeComponent> splineNodesComponents;
         private Vector3 previousPosition;
         private SplineRenderer splineRenderer;
-        private Spline spline ;
+        private Spline spline;
 
         [DataMemberIgnore]
         public Spline Spline
@@ -54,7 +54,7 @@ namespace Stride.Engine.Splines.Components
         }
 
         [Display(20, "Nodes")]
-        public List<SplineNodeComponent> SplineNodesComponents
+        public List<SplineNodeComponent> Nodes
         {
             get
             {
@@ -73,7 +73,11 @@ namespace Stride.Engine.Splines.Components
         {
             get
             {
-                splineRenderer ??= new SplineRenderer();
+                if (splineRenderer == null)
+                {
+                    splineRenderer ??= new SplineRenderer();
+                    splineRenderer.OnSplineRendererSettingsUpdated += SplineRenderer_OnSplineRendererSettingsUpdated;
+                }
                 return splineRenderer;
             }
             set
@@ -87,6 +91,11 @@ namespace Stride.Engine.Splines.Components
             Spline.Dirty = true;
         }
 
+        public void UpdateSpline()
+        {
+            Spline.Dirty = true;
+        }
+
         internal void Update(TransformComponent transformComponent)
         {
             if (previousPosition.X != Entity.Transform.Position.X || previousPosition.Y != Entity.Transform.Position.Y || previousPosition.Z != Entity.Transform.Position.Z)
@@ -94,6 +103,11 @@ namespace Stride.Engine.Splines.Components
                 Spline.Dirty = true;
                 previousPosition = Entity.Transform.Position;
             }
+        }
+
+        private void SplineRenderer_OnSplineRendererSettingsUpdated()
+        {
+            Spline.Dirty = true;
         }
 
         public SplinePositionInfo GetPositionOnSpline(float percentage)
