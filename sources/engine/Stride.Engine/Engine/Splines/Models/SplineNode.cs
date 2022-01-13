@@ -221,11 +221,7 @@ namespace Stride.Engine.Splines
 
         public ClosestPointInfo GetClosestPointOnCurve(Vector3 originalPosition)
         {
-            //determine closest splinepoint
             ClosestPointInfo info = null;
-
-            var shortestSplinePointIndex = 1;
-
             for (var i = 0; i < bezierPointCount; i++)
             {
                 var currentCurvePoint = GetBezierPoints()[i];
@@ -236,104 +232,9 @@ namespace Stride.Engine.Splines
                     info ??= new ClosestPointInfo();
                     info.Distance = curSplinePointDistance;
                     info.ClosestPosition = currentCurvePoint.Position;
-                    shortestSplinePointIndex = i;
                 }
             }
             return info;
-
-            ////determine previous or current splinepoint
-            //float shortestPreviousDistance = 0f;
-            //float shortestNextDistance = 0f;
-            //if (shortestSplinePointIndex - 1 > 0)
-            //{
-            //    shortestPreviousDistance = Vector3.Distance(baseBezierPoints[shortestSplinePointIndex - 1].Position, originalPosition);
-            //}
-
-            //if (shortestSplinePointIndex + 1 <= baseBezierPoints.Length)
-            //{
-            //    shortestNextDistance = Vector3.Distance(baseBezierPoints[shortestSplinePointIndex + 1].Position, originalPosition);
-            //}
-
-            //if (shortestPreviousDistance < shortestNextDistance)
-            //{
-            //    shortestSplinePointIndex -= 1;
-            //}
-
-            ////Gather info
-            //var info = new ClosestPointInfo()
-            //{
-            //    info.BPosition = baseBezierPoints[shortestSplinePointIndex + 1].Position,
-            //    //APosition = baseBezierPoints[shortestSplinePointIndex].Position,
-            //    //AIndex = shortestSplinePointIndex
-            //};
-
-            //if (shortestSplinePointIndex + 1 <= baseBezierPoints.Length)
-            //{
-            //    info.BPosition = baseBezierPoints[shortestSplinePointIndex + 1].Position;
-            //    info.BIndex = shortestSplinePointIndex + 1;
-            //}
-
-            //if (info.BPosition != null)
-            //{
-            //    info.ClosestPosition = ProjectPointOnLineSegment(info.APosition, info.BPosition, originalPosition);
-            //}
-            //else
-            //{
-            //    info.ClosestPosition = info.APosition;
-            //}
-
         }
-
-        //public Vector3 ProjectPointOnLineSegment(Vector3 linePoint1, Vector3 linePoint2, Vector3 point)
-        //{
-        //    var vector = linePoint2 - linePoint1;
-        //    vector.Normalize();
-        //    var projectedPoint = ProjectPointOnLine(linePoint1, vector, point);
-        //    var side = PointOnWhichSideOfLineSegment(linePoint1, linePoint2, projectedPoint);
-
-        //    if (side == 0)
-        //    {
-        //        return projectedPoint;
-        //    }
-
-        //    if (side == 1)
-        //    {
-
-        //        return linePoint1;
-        //    }
-
-        //    return linePoint2;
-
-        //}
-
-        //public Vector3 ProjectPointOnLine(Vector3 linePoint, Vector3 lineVec, Vector3 point)
-        //{
-        //    var t = Vector3.Dot(point, linePoint);
-        //    return linePoint + lineVec * t;
-        //}
-
-        //public int PointOnWhichSideOfLineSegment(Vector3 linePoint1, Vector3 linePoint2, Vector3 point)
-        //{
-        //    var lineVec = linePoint2 - linePoint1;
-        //    var pointVec = point - linePoint1;
-        //    var dot = Vector3.Dot(linePoint1, linePoint2);
-
-        //    if (dot > 0)
-        //    {
-
-        //        if (pointVec.Length() * 2 <= lineVec.Length() * 2)
-        //        {
-        //            return 0;
-        //        }
-        //        else
-        //        {
-        //            return 2;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return 1;
-        //    }
-        //}
     }
 }

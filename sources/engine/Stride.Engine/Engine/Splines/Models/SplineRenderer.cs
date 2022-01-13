@@ -18,6 +18,9 @@ namespace Stride.Engine.Splines
         public delegate void SplineRendererSettingsUpdatedHandler();
         public event SplineRendererSettingsUpdatedHandler OnSplineRendererSettingsUpdated;
 
+        /// <summary>
+        /// Display spline curve mesh
+        /// </summary>
         [Display(10, "Segments")]
         public bool Segments
         {
@@ -33,9 +36,15 @@ namespace Stride.Engine.Splines
             }
         }
 
+        /// <summary>
+        /// The material used by the spline mesh
+        /// </summary>
         [Display(20, "Segments material")]
         public Material SegmentsMaterial;
 
+        /// <summary>
+        /// Display the bounding boxes of each node and the entire spline
+        /// </summary>
         [Display(30, "Show boundingbox")]
         public bool BoundingBox
         {
@@ -48,16 +57,19 @@ namespace Stride.Engine.Splines
             }
         }
 
+        /// <summary>
+        /// The material used by the spline boundingboxes
+        /// </summary>
         [Display(40, "Boundingbox material")]
         public Material BoundingBoxMaterial;
 
         /// <summary>
-        /// Creates an entity that can render various spline parts like segments and bounding box
+        /// Creates an entity with a mesh that visualises various spline parts like segments and bounding boxes
         /// </summary>
         /// <param name="spline"></param>
         /// <param name="graphicsDevice"></param>
         /// <param name="splinePosition"></param>
-        /// <returns></returns>
+        /// <returns>An entity with sub entities containing various meshes to visualise the spline</returns>
         public Entity Create(Spline spline, GraphicsDevice graphicsDevice, Vector3 splinePosition)
         {
             //Create the entities that hold the various debug meshes           
@@ -94,7 +106,8 @@ namespace Stride.Engine.Splines
                         break;
                     }
 
-                    if (i == totalNodesCount - 1 && !spline.Loop) // Dont debugdraw when it is the last node and Loop is disabled
+                    // Dont create a mesh when it is the last node and Loop is disabled
+                    if (i == totalNodesCount - 1 && !spline.Loop) 
                     {
                         break;
                     }

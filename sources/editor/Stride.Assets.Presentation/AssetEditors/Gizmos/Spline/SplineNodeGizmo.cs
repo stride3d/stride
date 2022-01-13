@@ -44,7 +44,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             mainGizmoEntity = new Entity();
   
-            // Add middle sphere
             var sphereMeshDraw = GeometricPrimitive.Sphere.New(GraphicsDevice, tangentSphereRadius, 48).ToMeshDraw();
             gizmoTangentOut = new Entity("TangentSphereOut") { new ModelComponent { Model = new Model { outMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
             gizmoTangentIn = new Entity("TangentSphereIn") { new ModelComponent { Model = new Model { inMaterial, new Mesh { Draw = sphereMeshDraw } }, RenderGroup = RenderGroup } };
@@ -70,7 +69,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             ContentEntity.Transform.WorldMatrix.Decompose(out var scale, out Quaternion rotation, out var translation);
 
             GizmoRootEntity.Transform.Position = translation;
-            GizmoRootEntity.Transform.Scale = 1 * scale;
+            GizmoRootEntity.Transform.Scale = new Vector3(1);
             GizmoRootEntity.Transform.UpdateWorldMatrix();
 
             gizmoTangentOut.Transform.Position = Component.SplineNode.TangentOutLocal;
@@ -86,73 +85,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             var tangentLineInwardsMesh = new SplineMeshData(new Vector3[] { new Vector3(0), -Component.SplineNode.TangentInLocal }, GraphicsDevice);
             var tangentLineInwards = new Entity() { new ModelComponent { Model = new Model { inMaterial, new Mesh { Draw = tangentLineInwardsMesh.Build() } }, RenderGroup = RenderGroup } };
             gizmoTangentIn.AddChild(tangentLineInwards);
-
-            //var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
-            //ExperimentalStuffWithTangentTranslation(deltaTime);
-        }
-
-        private void ExperimentalStuffWithTangentTranslation(float deltaTime)
-        {
-            // Magic stuff copied from translation gizmo
-            var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
-            var gizmoMatrix = GizmoRootEntity.Transform.WorldMatrix;
-            var gizmoViewInverse = Matrix.Invert(gizmoMatrix * cameraService.ViewMatrix);
-
-            var clickRay = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, Input.MousePosition, gizmoViewInverse);
-
-            var radius = 0.35f;
-
-            Input.UnlockMousePosition();
-            Game.IsMouseVisible = true;
-
-            if (!dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-            {
-                gizmoTangentOut.Get<ModelComponent>().Model.Materials[0] = whiteMaterial;
-            }
-
-
-            if (new BoundingSphere(gizmoTangentOut.Transform.Position, radius).Intersects(ref clickRay))
-            {
-                gizmoTangentOut.Get<ModelComponent>().Model.Materials[0] = outMaterial;
-                if (Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-                {
-                    if (!dragStarted)
-                    {
-                        dragStarted = true;
-                        startMousePosition = Input.MousePosition;
-                    }
-                }
-            }
-
-            if (dragStarted && Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-            {
-                var mousePosition = Input.MousePosition;
-                var totalMouseDrag = mousePosition - startMousePosition;
-                var newMouseDrag = totalMouseDrag - prevTotalMouseDrag;
-                prevTotalMouseDrag = totalMouseDrag;
-
-                //var viewProjection = cameraService.ViewMatrix * cameraService.ProjectionMatrix;
-                var dragMultiplier = deltaTime * 1500; // crappy dragMultiplier
-                Component.SplineNode.TangentOutLocal += new Vector3(-newMouseDrag.X * dragMultiplier, -newMouseDrag.Y * dragMultiplier, 0);
-            }
-            else if (dragStarted && !Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-            {
-                prevTotalMouseDrag = new Vector2(0);
-                dragStarted = false;
-            }
-
-            if (new BoundingSphere(gizmoTangentIn.Transform.Position, radius).Intersects(ref clickRay))
-            {
-                gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = inMaterial;
-                if (Input.IsMouseButtonDown(Stride.Input.MouseButton.Left))
-                {
-                    Component.SplineNode.TangentInLocal += 0.01f;
-                }
-            }
-            else
-            {
-                gizmoTangentIn.Get<ModelComponent>().Model.Materials[0] = whiteMaterial;
-            }
         }
 
         private void ClearChildren(Entity entity)

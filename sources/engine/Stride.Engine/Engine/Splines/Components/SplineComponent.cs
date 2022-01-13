@@ -3,7 +3,6 @@ using Stride.Core;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
 using Stride.Core.Mathematics;
-using Stride.Rendering;
 using Stride.Engine.Splines.Models;
 
 namespace Stride.Engine.Splines.Components
@@ -53,6 +52,9 @@ namespace Stride.Engine.Splines.Components
             }
         }
 
+        /// <summary>
+        /// Contains a list of spline node components
+        /// </summary>
         [Display(20, "Nodes")]
         public List<SplineNodeComponent> Nodes
         {
@@ -68,16 +70,17 @@ namespace Stride.Engine.Splines.Components
             }
         }
 
+        /// <summary>
+        /// A spline renderer is used to visualise the spline
+        /// </summary>
         [Display(50, "Spline renderer")]
         public SplineRenderer SplineRenderer
         {
             get
             {
-                if (splineRenderer == null)
-                {
-                    splineRenderer ??= new SplineRenderer();
-                    splineRenderer.OnSplineRendererSettingsUpdated += SplineRenderer_OnSplineRendererSettingsUpdated;
-                }
+                splineRenderer ??= new SplineRenderer();
+                splineRenderer.OnSplineRendererSettingsUpdated += SplineRenderer_OnSplineRendererSettingsUpdated;
+
                 return splineRenderer;
             }
             set

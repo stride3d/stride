@@ -189,8 +189,24 @@ namespace Stride.Engine.Splines
             ClosestPointInfo currentClosestPoint = null;
             for (int i = 0; i < splineNodes.Count; i++)
             {
+                if (Loop && i == splineNodes.Count - 1)
+                {
+                    break;
+                }
+
                 var curNode = splineNodes[i];
                 var closestPoint = curNode.GetClosestPointOnCurve(originalPosition);
+                closestPoint.SplineNodeA = curNode;
+
+                if(i + 1 <= splineNodes.Count-1)
+                {
+                    closestPoint.SplineNodeB = splineNodes[i+1];
+                }
+                else
+                {
+                    closestPoint.SplineNodeB = splineNodes[0];
+                }
+
 
                 if (currentClosestPoint == null || closestPoint.Distance < currentClosestPoint.Distance)
                 {
