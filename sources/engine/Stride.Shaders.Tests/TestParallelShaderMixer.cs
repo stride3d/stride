@@ -88,7 +88,6 @@ namespace Stride.Shaders.Tests
             var result = effectCompiler.Compile(mixinTree, parameters.EffectParameters, parameters).WaitForResult();
 
             Assert.False(result.CompilationLog.HasErrors);
-            Assert.NotNull(result);
 
             Console.WriteLine(@"Thread end");
         }
