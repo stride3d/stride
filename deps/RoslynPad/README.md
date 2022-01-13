@@ -1,1 +1,0 @@
-Version: https://github.com/aelij/RoslynPad/commit/c2f1c488ad3a418b0fc5d7f46ecaf3ab6fe8e7c3
