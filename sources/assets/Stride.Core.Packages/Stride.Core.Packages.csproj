@@ -7,10 +7,10 @@
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Protocol" Version="6.0.0-preview.3" />
-    <PackageReference Include="NuGet.PackageManagement" Version="6.0.0-preview.3" />
-    <PackageReference Include="NuGet.Resolver" Version="6.0.0-preview.3" />
-    <PackageReference Include="NuGet.Commands" Version="6.0.0-preview.3" />
+    <PackageReference Include="NuGet.Protocol" Version="6.0.0" />
+    <PackageReference Include="NuGet.PackageManagement" Version="6.0.0" />
+    <PackageReference Include="NuGet.Resolver" Version="6.0.0" />
+    <PackageReference Include="NuGet.Commands" Version="6.0.0" />
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
