@@ -32,12 +32,12 @@ namespace Stride.Rendering.Lights
         /// <summary>
         /// The bounding box of this light in WS after the <see cref="LightProcessor"/> has been applied (readonly field).
         /// </summary>
-        public BoundingBox BoundingBox { get; internal set; }
+        internal BoundingBox BoundingBox;
 
         /// <summary>
         /// The bounding box extents of this light in WS after the <see cref="LightProcessor"/> has been applied (readonly field).
         /// </summary>
-        public BoundingBoxExt BoundingBoxExt { get; internal set; }
+        internal BoundingBoxExt BoundingBoxExt;
 
         /// <summary>
         /// The determines whether this instance has a valid bounding box (readonly field).
