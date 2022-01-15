@@ -210,13 +210,14 @@ namespace Stride.Assets.Tests
 
         private static dynamic CreateInstance(SyntaxTree[] syntaxTrees)
         {
+            var dependentAssemblies = new[] {
+                MetadataReference.CreateFromFile(Assembly.Load("System.Runtime").Location),
+                MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
+            };
             var compilation = CSharpCompilation.Create("Test.dll",
                 syntaxTrees,
-                new[] {
-                    MetadataReference.CreateFromFile(Assembly.Load("System.Runtime").Location),
-                    MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
-                },
+                dependentAssemblies,
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             using (var peStream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
