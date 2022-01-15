@@ -158,7 +158,7 @@ namespace Stride.Core.Yaml.Serialization
             if (type == null) throw new ArgumentNullException(nameof(type));
 
             // Prefix all tags by !
-            tag = Uri.EscapeDataString(tag);
+            tag = Uri.EscapeUriString(tag);
             if (tag.StartsWith("tag:"))
             {
                 // shorten tag
@@ -262,7 +262,7 @@ namespace Stride.Core.Yaml.Serialization
                 }
             }
 
-            return Uri.EscapeDataString(tagName);
+            return Uri.EscapeUriString(tagName);
         }
 
         public virtual Type ResolveType(string typeName)
