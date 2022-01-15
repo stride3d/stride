@@ -65,19 +65,19 @@
   -->
   <Target Name="_StrideSetupNativeLibraries" DependsOnTargets="_StrideBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(StrideDependenciesCopy)' != 'false'">
     <!-- Windows, UWP, Linux & macOS -->
-    <ItemGroup Condition=" '$(StridePlatform)' == '' Or '$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'macOS' Or '$(StridePlatform)' == 'UWP' ">
+    <ItemGroup Condition=" '$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkWindows)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)' ">
       <None Include="@(_StrideDependencyNativeLib)">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 
     <!-- Android -->
-    <ItemGroup Condition=" '$(StridePlatform)' == 'Android' ">
+    <ItemGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)' ">
       <AndroidNativeLibrary Include="@(_StrideDependencyNativeLib)"/>
     </ItemGroup>
 
     <!--iOS -->
-    <ItemGroup Condition=" '$(StridePlatform)' == 'iOS' ">
+    <ItemGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' ">
       <!-- strip any "lib" prefix and populate the LibraryName value -->
       <_StrideDependencyNativeLib>
         <LibraryName>$([System.Text.RegularExpressions.Regex]::Match('%(Filename)', `(lib)*(.+)`).get_Groups().get_Item(2).ToString())</LibraryName>
@@ -88,7 +88,7 @@
       </None>
     </ItemGroup>
   
-    <PropertyGroup Condition=" '$(StridePlatform)' == 'iOS' ">
+    <PropertyGroup Condition=" '$(TargetFramework)' == '$(StrideFrameworkiOS)' ">
       <MtouchExtraArgsLibs>$(StrideMTouchExtras) -L"%24{ProjectDir}" @(_StrideDependencyNativeLib->'-l%(LibraryName) "%24{ProjectDir}/%(Filename)%(Extension)"',' ')</MtouchExtraArgsLibs>
       <MtouchExtraArgs>$(MtouchExtraArgs) --compiler=clang -cxx -gcc_flags '-lstdc++ $(MtouchExtraArgsLibs)'</MtouchExtraArgs>
     </PropertyGroup>

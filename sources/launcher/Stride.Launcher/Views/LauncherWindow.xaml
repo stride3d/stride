@@ -313,7 +313,7 @@
                         CommandParameter="{x:Static r:Urls.Facebook}" SnapsToDevicePixels="True" Margin="2"
                         ToolTipService.IsEnabled="False"
                         ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
-                        Content="{sskk:Image {StaticResource ImageFacebook}, 24, 24, NearestNeighbor}">
+                        Content="{sskk:Image {StaticResource ImageFacebook}, 24, 24, HighQuality}">
                     <i:Interaction.Behaviors>
                       <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
@@ -324,7 +324,7 @@
                         CommandParameter="{x:Static r:Urls.Reddit}" SnapsToDevicePixels="True" Margin="2"
                         ToolTipService.IsEnabled="False"
                         ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
-                        Content="{sskk:Image {StaticResource ImageReddit}, 24, 24, NearestNeighbor}">
+                        Content="{sskk:Image {StaticResource ImageReddit}, 24, 24, HighQuality}">
                     <i:Interaction.Behaviors>
                       <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
@@ -368,7 +368,7 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
-                      <Image Margin="5" Source="{StaticResource ImageIssues}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
+                      <Image Margin="5" Source="{StaticResource ImageIssues}" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonIssues}" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
@@ -382,7 +382,7 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
-                      <Image Margin="5" Source="{StaticResource ImageForums}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
+                      <Image Margin="5" Source="{StaticResource ImageForums}" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonForums}" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
@@ -396,7 +396,7 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
-                      <Image Margin="5" Source="{StaticResource ImageChat}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
+                      <Image Margin="5" Source="{StaticResource ImageChat}" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonDiscord}" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
@@ -410,7 +410,7 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
-                      <Image Margin="5" Source="{StaticResource ImageGithub}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
+                      <Image Margin="5" Source="{StaticResource ImageGithub}" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonGithub}" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
@@ -424,7 +424,7 @@
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
                     </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
-                      <Image Margin="5" Source="{StaticResource ImageRoadmap}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
+                      <Image Margin="5" Source="{StaticResource ImageRoadmap}" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonRoadmap}" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
@@ -500,7 +500,7 @@
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Top">
                 <DockPanel Height="32" Margin="10,0">
-                  <Image Source="{StaticResource ImageSwitchVersion}" Width="26" Height="26" RenderOptions.BitmapScalingMode="NearestNeighbor" VerticalAlignment="Center"/>
+                  <Image Source="{StaticResource ImageSwitchVersion}" Width="26" Height="26" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
                   <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.SwitchOrUpdateVersion}" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
                 </DockPanel>
               </Border>
@@ -512,7 +512,7 @@
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Bottom">
                 <DockPanel Height="32" Margin="10,0">
-                  <Image Source="{StaticResource ImageVisualStudio}" Width="26" Height="26" RenderOptions.BitmapScalingMode="NearestNeighbor" VerticalAlignment="Center"/>
+                  <Image Source="{StaticResource ImageVisualStudio}" Width="26" Height="26" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
                   <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.VisualStudioPlugin}" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
                 </DockPanel>
               </Border>
@@ -579,7 +579,7 @@
               <DockPanel>
                 <Border DockPanel.Dock="Top" BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}">
                   <DockPanel Height="48" Margin="10,0">
-                    <Image Source="{StaticResource ImageProjects}" Width="26" Height="26" RenderOptions.BitmapScalingMode="NearestNeighbor" VerticalAlignment="Center"/>
+                    <Image Source="{StaticResource ImageProjects}" Width="26" Height="26" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
                     <TextBlock Margin="10,0,0,0" Text="{x:Static r:Strings.Projects}" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
                   </DockPanel>
                 </Border>

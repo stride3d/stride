@@ -23,7 +23,7 @@ namespace Stride.Physics
         static Bullet2PhysicsSystem()
         {
             // Preload proper libbulletc native library (depending on CPU type)
-            NativeLibraryHelper.PreloadLibrary("libbulletc.dll", typeof(Bullet2PhysicsSystem));
+            NativeLibraryHelper.PreloadLibrary("libbulletc", typeof(Bullet2PhysicsSystem));
         }
 
         public Bullet2PhysicsSystem(IServiceRegistry registry)

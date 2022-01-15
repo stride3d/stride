@@ -1,14 +1,13 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!--
-    We need both StrideNativePathLibs and StrideNativePathLibs2 as in Windows platforms it's a simple string while on other platforms they need to be iterated and processed
-  -->
   <PropertyGroup>
-    <StrideNativePathLibs Condition="'$(StridePlatform)' == 'Windows'">libCompilerRt.lib libCelt.lib</StrideNativePathLibs>
-    <StrideNativePathLibs Condition="'$(StridePlatform)' == 'UWP'">libCompilerRt.lib libCelt.lib Xaudio2.lib</StrideNativePathLibs>
+    <StrideNativePathLibsWindows>libCompilerRt.lib libCelt.lib</StrideNativePathLibsWindows>
+    <StrideNativePathLibsUWP>libCompilerRt.lib libCelt.lib Xaudio2.lib</StrideNativePathLibsUWP>
   </PropertyGroup>
 
   <ItemGroup>
-    <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'iOS' or '$(StridePlatform)' == 'macOS'" Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libCelt.a" />
-    <StrideNativePathLibs2 Condition="'$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Android'" Include="libCelt.a;libCompilerRt.a" />
+    <StrideNativePathLibsiOS Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libCelt.a" />
+    <StrideNativePathLibsmacOS Include="$(MSBuildThisFileDirectory)..\..\..\deps\NativePath\iOS\libCelt.a" />
+    <StrideNativePathLibsLinux Include="libCelt.a;libCompilerRt.a" />
+    <StrideNativePathLibsAndroid Include="libCelt.a;libCompilerRt.a" />
   </ItemGroup>
 </Project>

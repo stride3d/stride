@@ -21,14 +21,14 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Remove="System.IO.Compression.Zip\*.cs" Condition=" '$(StridePlatform)' != 'Android' " />
+    <Compile Remove="System.IO.Compression.Zip\*.cs" Condition=" '$(TargetPlatformIdentifier)' != 'Android' " />
   </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\Stride.Core\Stride.Core.csproj">
 	  <PrivateAssets>contentfiles;analyzers</PrivateAssets>
 	</ProjectReference>
-    <PackageReference Include="SharpDX" Version="4.2.0" Condition="'$(StridePlatform)' == 'UWP'" />
+    <PackageReference Include="SharpDX" Version="4.2.0" Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
   </ItemGroup>
   
   <Import Project="$(StrideSdkTargets)" />

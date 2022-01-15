@@ -196,7 +196,7 @@ namespace Stride.VirtualReality
 
         static OpenVR()
         {
-            NativeLibraryHelper.PreloadLibrary("openvr_api.dll", typeof(OpenVR));
+            NativeLibraryHelper.PreloadLibrary("openvr_api", typeof(OpenVR));
         }
 
         public static bool InitDone = false;

@@ -21,7 +21,7 @@ namespace Stride.VirtualReality
             this.ovrSession = ovrSession;
 
             OverlayPtr = OculusOvr.CreateQuadLayerTexturesDx(ovrSession, device.NativeDevice.NativePointer, out textureCount, width, height, mipLevels, sampleCount);
-            if (OverlayPtr == null)
+            if (OverlayPtr == IntPtr.Zero)
             {
                 throw new Exception(OculusOvr.GetError());
             }

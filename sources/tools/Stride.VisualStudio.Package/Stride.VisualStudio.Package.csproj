@@ -1,6 +1,6 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
-    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">16.0</VisualStudioVersion>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">17.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -18,23 +18,22 @@
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <VSSDKTargetPlatformRegRootSuffix>Stride</VSSDKTargetPlatformRegRootSuffix>
     <DefineConstants>$(DefineConstants);STRIDE_VSPACKAGE</DefineConstants>
-  </PropertyGroup>
+  </PropertyGroup>  
   <ItemGroup>
     <None Remove="NShader\Common\GLSLKeywords.map" />
     <None Remove="NShader\Common\HLSLKeywords.map" />
     <None Remove="NShader\Common\StrideShaderKeywords.map" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="EnvDTE80" Version="8.0.3" />
-    <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces" Version="1.1.4323" />
-    <PackageReference Include="Microsoft.VisualStudio.Editor" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Package.LanguageService.14.0" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="14.0.25023" />
-    <PackageReference Include="VSLangProj" Version="7.0.3301" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.0.26201" />
-    <PackageReference Include="Microsoft.Build" Version="16.11.0" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.11.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.31902.203" ExcludeAssets="runtime">
+        <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build" Version="17.0.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.0.0" ExcludeAssets="runtime" />
     <PackageReference Include="NuGet.Commands" Version="6.0.0-preview.3" />
 
     <Reference Include="System.ComponentModel.Composition" />
