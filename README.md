@@ -81,7 +81,7 @@ Ask for help or report issues:
 1. Install [Visual Studio Build Tools](https://aka.ms/vs/17/release/vs_BuildTools.exe) with the same prerequisites listed above
 2. Add MSBuild's directory to your system's *PATH* (ex: `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin`)
 3. Open a command prompt, point it to a directory and clone Stride to it: `git clone https://github.com/stride3d/stride.git`
-4. Navigate to `/Build` with the command prompt, input `msbuild /t:Restore Stride.sln` then `msbuild /t:Build Stride.sln` (Add `-m` for improved performance)
+4. Navigate to `/Build` with the command prompt, input `dotnet restore Stride.sln` then `compile.bat`
 
 If building failed:
 * If you skipped one of the `Prerequisites` thinking that you already have the latest version, update to the latest anyway just to be sure.
