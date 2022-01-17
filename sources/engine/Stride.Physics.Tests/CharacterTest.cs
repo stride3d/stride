@@ -90,9 +90,9 @@ namespace Stride.Physics.Tests
 
                 Assert.NotEqual(currentPos, character.Transform.Position);
                 var target = currentPos + Vector3.UnitX*3*simulation.FixedTimeStep;
-                Assert.Equal(character.Transform.Position.X, target.X, 15);
-                Assert.Equal(character.Transform.Position.Y, target.Y, 15);
-                Assert.Equal(character.Transform.Position.Z, target.Z, 15);
+                Assert.Equal(character.Transform.Position.X, target.X, 15f);
+                Assert.Equal(character.Transform.Position.Y, target.Y, 15f);
+                Assert.Equal(character.Transform.Position.Z, target.Z, 15f);
 
                 currentPos = character.Transform.Position;
 
@@ -100,9 +100,9 @@ namespace Stride.Physics.Tests
 
                 Assert.NotEqual(currentPos, character.Transform.Position);
                 target = currentPos + Vector3.UnitX * 3 * simulation.FixedTimeStep;
-                Assert.Equal(character.Transform.Position.X, target.X, 15);
-                Assert.Equal(character.Transform.Position.Y, target.Y, 15);
-                Assert.Equal(character.Transform.Position.Z, target.Z, 15);
+                Assert.Equal(character.Transform.Position.X, target.X, 15f);
+                Assert.Equal(character.Transform.Position.Y, target.Y, 15f);
+                Assert.Equal(character.Transform.Position.Z, target.Z, 15f);
 
                 controller.SetVelocity(Vector3.Zero);
 
