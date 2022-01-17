@@ -252,6 +252,7 @@ Example of use:
     </CreateItem>
     <!-- Restore NuGet packages -->
     <Message Importance="High" Text="Restoring NuGet packages"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileDirectory)Stride.sln" />
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileDirectory)Stride.Tests.%(StrideTestCategoriesItem.Identity).slnf" />
     <!-- Build -->
     <Message Importance="High" Text="Building unit tests"/>
