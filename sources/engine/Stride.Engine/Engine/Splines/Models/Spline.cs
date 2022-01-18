@@ -131,7 +131,7 @@ namespace Stride.Engine.Splines
                 {
                     if (Loop || (!Loop && i < SplineNodes.Count - 1))
                     {
-                        distance += curve.Distance;
+                        distance += curve.Length;
                     }
                 }
             }
@@ -158,15 +158,14 @@ namespace Stride.Engine.Splines
             for (int i = 0; i < SplineNodes.Count; i++)
             {
                 var currentSplineNode = SplineNodes[i];
-                splinePositionInfo.CurrentSplineNodeIndex = i;
-                splinePositionInfo.CurrentSplineNode = currentSplineNode;
+                splinePositionInfo.SplineNodeA = currentSplineNode;
 
-                nextNodeDistance += currentSplineNode.Distance;
+                nextNodeDistance += currentSplineNode.Length;
 
                 if (requiredDistance < nextNodeDistance)
                 {
                     var targetIndex = (i == splineNodes.Count - 1) ? 0 : i;
-                    splinePositionInfo.TargetSplineNode = splineNodes[targetIndex];
+                    splinePositionInfo.SplineNodeB = splineNodes[targetIndex];
 
                     // Inverse lerp(betweenValue - minHeight) / (maxHeight - minHeight);
                     var percentageInCurve = ((requiredDistance - prevNodeDistance) / (nextNodeDistance - prevNodeDistance)) * 100;
@@ -189,7 +188,7 @@ namespace Stride.Engine.Splines
             ClosestPointInfo currentClosestPoint = null;
             for (int i = 0; i < splineNodes.Count; i++)
             {
-                if (Loop && i == splineNodes.Count - 1)
+                if (!Loop && i == splineNodes.Count - 1)
                 {
                     break;
                 }
@@ -207,8 +206,7 @@ namespace Stride.Engine.Splines
                     closestPoint.SplineNodeB = splineNodes[0];
                 }
 
-
-                if (currentClosestPoint == null || closestPoint.Distance < currentClosestPoint.Distance)
+                if (currentClosestPoint == null || closestPoint.DistanceToOrigin < currentClosestPoint.DistanceToOrigin)
                 {
                     currentClosestPoint = closestPoint;
                 }

@@ -90,7 +90,7 @@ namespace Stride.Engine.Splines
 
         public BoundingBox BoundingBox { get; private set; }
 
-        public float Distance { get; private set; } = 0;
+        public float Length { get; private set; } = 0;
 
         public delegate void BezierCurveDirtyEventHandler();
         public event BezierCurveDirtyEventHandler OnSplineNodeDirty;
@@ -109,17 +109,12 @@ namespace Stride.Engine.Splines
             return parameterizedBezierPoints;
         }
 
-        public class BezierPoint
-        {
-            public Vector3 Position;
-            public Vector3 Rotation;
-            public float PointDistance;
-            public float Distance;
-        }
-
+        /// <summary>
+        /// Calculates the bezier curve, parameterizes the curve, updates the bounding boxes 
+        /// </summary>
         public void CalculateBezierCurve()
         {
-            Distance = 0;
+            Length = 0;
             baseBezierPoints = new BezierPoint[baseBezierPointCount];
             parameterizedBezierPoints = new BezierPoint[bezierPointCount];
 
@@ -138,27 +133,57 @@ namespace Stride.Engine.Splines
 
                 if (i == 0)
                 {
-                    baseBezierPoints[i].PointDistance = 0;
-                    baseBezierPoints[i].Distance = 0;
+                    baseBezierPoints[i].DistanceToPreviousPoint = 0;
+                    baseBezierPoints[i].TotalLengthOnCurve = 0;
                 }
                 else
                 {
                     var distance = Vector3.Distance(baseBezierPoints[i].Position, baseBezierPoints[i - 1].Position);
-                    baseBezierPoints[i].Distance = baseBezierPoints[i - 1].Distance + distance;
+                    baseBezierPoints[i].DistanceToPreviousPoint = distance;
+                    baseBezierPoints[i].TotalLengthOnCurve = baseBezierPoints[i - 1].TotalLengthOnCurve + distance;
                 }
             }
 
-            Distance += baseBezierPoints[baseBezierPointCount - 1].Distance;
+            Length += baseBezierPoints[baseBezierPointCount - 1].TotalLengthOnCurve;
 
             ArcLengthParameterization();
 
             UpdateBoundingBox();
         }
 
+        /// <summary>
+        /// Returns the World position by a given percentage
+        /// </summary>
+        /// <param name="percentage"></param>
+        /// <returns></returns>
         public Vector3 GetPositionOnCurve(float percentage)
         {
-            var distance = (Distance / 100) * Math.Clamp(percentage, 0, 100);
+            var distance = (Length / 100) * Math.Clamp(percentage, 0, 100);
             return GetBezierPointForDistance(distance).Position;
+        }
+
+        /// <summary>
+        /// Retrieves information about the closest point on the spline in relation to the given world position
+        /// </summary>
+        /// <param name="originalPosition"></param>
+        /// <returns></returns>
+        public ClosestPointInfo GetClosestPointOnCurve(Vector3 originalPosition)
+        {
+            ClosestPointInfo info = null;
+            for (var i = 0; i < bezierPointCount; i++)
+            {
+                var currentCurvePoint = GetBezierPoints()[i];
+                var curSplinePointDistance = Vector3.Distance(currentCurvePoint.Position, originalPosition);
+
+                if (info == null || curSplinePointDistance < info.DistanceToOrigin)
+                {
+                    info ??= new ClosestPointInfo();
+                    info.Position = currentCurvePoint.Position;
+                    info.DistanceToOrigin = curSplinePointDistance;
+                    info.LengthOnCurve = currentCurvePoint.TotalLengthOnCurve;
+                }
+            }
+            return info;
         }
 
         /// <summary>
@@ -168,12 +193,12 @@ namespace Stride.Engine.Splines
         {
             parameterizedBezierPoints = new BezierPoint[bezierPointCount];
 
-            if (Distance <= 0)
+            if (Length <= 0)
                 return;
 
             for (var i = 0; i < bezierPointCount; i++)
             {
-                var estimatedExptedDistance = (Distance / (bezierPointCount - 1)) * i;
+                var estimatedExptedDistance = (Length / (bezierPointCount - 1)) * i;
                 parameterizedBezierPoints[i] = GetBezierPointForDistance(estimatedExptedDistance);
             }
 
@@ -185,7 +210,7 @@ namespace Stride.Engine.Splines
             for (int j = 0; j < baseBezierPointCount; j++)
             {
                 var curPoint = baseBezierPoints[j];
-                if (curPoint.Distance >= distance)
+                if (curPoint.TotalLengthOnCurve >= distance)
                 {
                     return curPoint;
                 }
@@ -217,24 +242,6 @@ namespace Stride.Engine.Splines
             }
             BoundingBox.FromPoints(curvePointsPositions, out BoundingBox NewBoundingBox);
             BoundingBox = NewBoundingBox;
-        }
-
-        public ClosestPointInfo GetClosestPointOnCurve(Vector3 originalPosition)
-        {
-            ClosestPointInfo info = null;
-            for (var i = 0; i < bezierPointCount; i++)
-            {
-                var currentCurvePoint = GetBezierPoints()[i];
-                var curSplinePointDistance = Vector3.Distance(currentCurvePoint.Position, originalPosition);
-
-                if (info == null || curSplinePointDistance < info.Distance)
-                {
-                    info ??= new ClosestPointInfo();
-                    info.Distance = curSplinePointDistance;
-                    info.ClosestPosition = currentCurvePoint.Position;
-                }
-            }
-            return info;
         }
     }
 }

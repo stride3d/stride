@@ -2,6 +2,7 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
+using Stride.Engine.Splines.Models;
 using static Stride.Engine.Splines.SplineNode;
 
 namespace Stride.Engine.Splines.Components

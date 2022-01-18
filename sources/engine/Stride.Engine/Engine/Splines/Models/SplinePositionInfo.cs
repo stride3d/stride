@@ -2,12 +2,11 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Engine.Splines
 {
-    public struct SplinePositionInfo
+    public class SplinePositionInfo
     {
-        public SplineNode CurrentSplineNode { get; set; }
-        public SplineNode TargetSplineNode { get; set; }
+        public SplineNode SplineNodeA { get; set; }
+        public SplineNode SplineNodeB { get; set; }
         public Vector3 Position { get; set; }
-        public int CurrentSplineNodeIndex { get; internal set; }
     }
 
 }

@@ -2,12 +2,10 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Engine.Splines.Models
 {
-    public class ClosestPointInfo
+    public class ClosestPointInfo : SplinePositionInfo
     {
-        public Vector3 ClosestPosition;
-        public SplineNode SplineNodeA;
-        public SplineNode SplineNodeB;
-        public float Distance;
-        public float Percentage;
+        public float DistanceToOrigin;
+
+        public float LengthOnCurve;
     }
 }
