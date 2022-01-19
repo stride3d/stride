@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -18,14 +16,12 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private Entity gizmoTangentOut;
         private Entity gizmoTangentIn;
 
-        private Material whiteMaterial;
         private Material outMaterial;
         private Material inMaterial;
 
         protected Vector3 StartClickPoint;
         protected Matrix StartWorldMatrix = Matrix.Identity;
-        private bool dragStarted;
-        private float tangentSphereRadius = 0.09f;
+        private readonly float tangentSphereRadius = 0.09f;
 
         public Vector2 startMousePosition { get; private set; }
         public Vector2 prevTotalMouseDrag { get; private set; }
@@ -36,7 +32,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         protected override Entity Create()
         {
-            whiteMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.White);
             inMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.LightYellow);
             outMaterial = GizmoUniformColorMaterial.Create(GraphicsDevice, Color.LightSalmon);
 

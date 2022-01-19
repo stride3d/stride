@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Stride.Core.Collections;
+using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
-using Stride.Core.Mathematics;
 
 namespace Stride.Engine.Splines
 {
@@ -25,7 +21,7 @@ namespace Stride.Engine.Splines
             var vertexCount = 0;
 
             float totalDistance = 0.0f;
-            var halfWidth = 0.01f; //component.Width
+            var halfWidth = 0.01f;
             for (var i = 0; i < points.Length; i++)
             {
                 // Calculate forward direction
@@ -54,7 +50,7 @@ namespace Stride.Engine.Splines
                     var distance = (points[i] - points[i - 1]).Length();
                     totalDistance += distance;
 
-                    uvY = totalDistance / 1;// component.SegmentUVLength;
+                    uvY = totalDistance / 1;
                 }
 
                 // Calculate color

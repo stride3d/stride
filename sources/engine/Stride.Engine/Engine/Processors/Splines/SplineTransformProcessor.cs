@@ -64,13 +64,12 @@ namespace Stride.Engine.Processors
                 return;
             }
 
-            //Allways perform cleanup
+            // Allways perform cleanup
             var existingRenderer = SplineComponent.Entity.FindChild("SplineRenderer");
             if (existingRenderer != null)
             {
                 SplineComponent.Entity.RemoveChild(existingRenderer);
                 SceneInstance.GetCurrent(context)?.Remove(existingRenderer);
-                existingRenderer = null;
             }
 
             var totalNodesCount = SplineComponent.Nodes.Count;
@@ -85,7 +84,7 @@ namespace Stride.Engine.Processors
                     if (currentSplineNodeComponent == null)
                         break;
 
-                    //Get all worldpositions
+                    // Get all worldpositions
                     currentSplineNodeComponent.Entity.Transform.WorldMatrix.Decompose(out var scale, out Quaternion rotation, out var startTangentOutWorldPosition);
                     currentSplineNodeComponent.SplineNode.WorldPosition = startTangentOutWorldPosition;
                     currentSplineNodeComponent.SplineNode.TangentOutWorldPosition = startTangentOutWorldPosition + currentSplineNodeComponent.SplineNode.TangentOutLocal;
@@ -94,12 +93,13 @@ namespace Stride.Engine.Processors
                 }
             }
 
-            //SplineComponent.Spline.SplineNodes = updatedSplineNodes;
             if (SplineComponent.Spline.SplineNodes.Count > 1)
             {
+                SplineComponent.Spline.RegisterSplineNodeDirtyEvents();
+
                 SplineComponent.Spline.UpdateSpline();
 
-                //Update spline renderer
+                // Update spline renderer
                 if (SplineComponent.SplineRenderer.Segments || SplineComponent.SplineRenderer.BoundingBox)
                 {
                     var graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();

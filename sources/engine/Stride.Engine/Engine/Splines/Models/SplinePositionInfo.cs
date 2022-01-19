@@ -8,5 +8,4 @@ namespace Stride.Engine.Splines
         public SplineNode SplineNodeB { get; set; }
         public Vector3 Position { get; set; }
     }
-
 }

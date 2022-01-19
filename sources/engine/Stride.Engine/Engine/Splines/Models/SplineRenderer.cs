@@ -88,7 +88,7 @@ namespace Stride.Engine.Splines
                         break;
                     }
 
-                    // Dont create a mesh when it is the last node and Loop is disabled
+                    // Don't create a mesh when it is the last node and Loop is disabled
                     if (i == totalNodesCount - 1 && !spline.Loop)
                     {
                         break;

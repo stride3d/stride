@@ -32,9 +32,6 @@ namespace Stride.Engine.Splines
             set
             {
                 splineNodes = value;
-                DeregisterSplineNodeDirtyEvents();
-                RegisterSplineNodeDirtyEvents();
-
                 Dirty = true;
             }
         }
@@ -224,8 +221,13 @@ namespace Stride.Engine.Splines
             }
         }
 
+        /// <summary>
+        /// First unsubscribes all splineNodeEvents and then registers all spline node events to invoke that the spline is dirty.
+        /// </summary>
         public void RegisterSplineNodeDirtyEvents()
         {
+            DeregisterSplineNodeDirtyEvents();
+          
             for (int i = 0; i < SplineNodes?.Count; i++)
             {
                 var splineNode = SplineNodes[i];
