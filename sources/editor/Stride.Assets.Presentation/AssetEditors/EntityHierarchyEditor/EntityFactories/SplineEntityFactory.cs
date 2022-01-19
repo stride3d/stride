@@ -17,15 +17,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
 
         public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
         {
-            //var splineNode1 = CreateEntityWithComponent("SplineNode1", new SplineComponent());
-            //var splineNode2 = CreateEntityWithComponent("SplineNode2", new SplineComponent());
-            //splineNode2.Result.Transform.Position = new Core.Mathematics.Vector3(0, 0, 1);
-
-            var spline = CreateEntityWithComponent("Spline", new SplineComponent());
-            //spline.Result.AddChild(splineNode1.Result);
-            //spline.Result.AddChild(splineNode2.Result);
-
-            return spline;
+            return CreateEntityWithComponent("Spline", new SplineComponent());
         }
     }
 
@@ -35,7 +27,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
         public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "SplineNode");
-            var component = new SplineNodeComponent();
+            var component = new SplineNodeComponent(50);
             return CreateEntityWithComponent(name, component);
         }
     }

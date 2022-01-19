@@ -45,7 +45,7 @@ namespace Stride.Graphics
         /// </summary>
         LineListWithAdjacency = unchecked((int)10),
 
-        /// <summwary>
+        /// <summary>
         /// No documentation.
         /// </summary>
         LineStripWithAdjacency = unchecked((int)11),

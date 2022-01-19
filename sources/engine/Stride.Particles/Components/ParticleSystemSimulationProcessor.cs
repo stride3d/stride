@@ -5,15 +5,12 @@ using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Engine;
-using Stride.Games;
 using Stride.Rendering;
 
 namespace Stride.Particles.Components
 {
     class ParticleSystemSimulationProcessor : EntityProcessor<ParticleSystemComponent, ParticleSystemSimulationProcessor.ParticleSystemComponentState>
     {
-
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ParticleSystemSimulationProcessor"/> class.
         /// </summary>
