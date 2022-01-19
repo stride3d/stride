@@ -22,8 +22,21 @@ namespace Stride.Engine.Splines.Components
     [ComponentCategory("Splines")]
     public sealed class SplineNodeComponent : EntityComponent
     {
-        public SplineNode SplineNode = new();
+        private SplineNode splineNode;
         private Vector3 _previousPosition;
+
+        public SplineNode SplineNode
+        {
+            get
+            {
+                splineNode ??= new SplineNode();
+                return splineNode;
+            }
+            set
+            {
+                splineNode = value;
+            }
+        }
 
         public SplineNodeComponent()
         {

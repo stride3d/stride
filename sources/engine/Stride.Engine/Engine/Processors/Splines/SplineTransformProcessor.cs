@@ -4,6 +4,7 @@ using Stride.Core.Mathematics;
 using Stride.Games;
 using System.Collections.Generic;
 using Stride.Graphics;
+using Stride.Rendering;
 
 namespace Stride.Engine.Processors
 {
@@ -56,18 +57,27 @@ namespace Stride.Engine.Processors
             public SplineViewHierarchyTransformOperation TransformOperation;
         }
 
-        public override void Update(GameTime time)
+        public override void Draw(RenderContext context)
         {
             if (!SplineComponent.Spline.Dirty)
             {
                 return;
             }
 
-            var updatedSplineNodes = new List<SplineNode>();
+            //Allways perform cleanup
+            var existingRenderer = SplineComponent.Entity.FindChild("SplineRenderer");
+            if (existingRenderer != null)
+            {
+                SplineComponent.Entity.RemoveChild(existingRenderer);
+                SceneInstance.GetCurrent(context)?.Remove(existingRenderer);
+                existingRenderer = null;
+            }
+
             var totalNodesCount = SplineComponent.Nodes.Count;
 
             if (totalNodesCount > 1)
             {
+                SplineComponent.Spline.SplineNodes.Clear();
                 for (int i = 0; i < totalNodesCount; i++)
                 {
                     var currentSplineNodeComponent = SplineComponent.Nodes[i];
@@ -75,35 +85,30 @@ namespace Stride.Engine.Processors
                     if (currentSplineNodeComponent == null)
                         break;
 
+                    //Get all worldpositions
                     currentSplineNodeComponent.Entity.Transform.WorldMatrix.Decompose(out var scale, out Quaternion rotation, out var startTangentOutWorldPosition);
                     currentSplineNodeComponent.SplineNode.WorldPosition = startTangentOutWorldPosition;
                     currentSplineNodeComponent.SplineNode.TangentOutWorldPosition = startTangentOutWorldPosition + currentSplineNodeComponent.SplineNode.TangentOutLocal;
                     currentSplineNodeComponent.SplineNode.TangentInWorldPosition = startTangentOutWorldPosition + currentSplineNodeComponent.SplineNode.TangentInLocal;
-                    updatedSplineNodes.Add(currentSplineNodeComponent.SplineNode);
+                    SplineComponent.Spline.SplineNodes.Add(currentSplineNodeComponent.SplineNode);
                 }
             }
 
-            SplineComponent.Spline.SplineNodes = updatedSplineNodes;
-            SplineComponent.Spline.UpdateSpline();
-
-
-            //Deal with the Spline renderer
-            //Allways perform cleanup
-            var existingRenderer = SplineComponent.Entity.FindChild("SplineRenderer");
-            if (existingRenderer != null)
+            //SplineComponent.Spline.SplineNodes = updatedSplineNodes;
+            if (SplineComponent.Spline.SplineNodes.Count > 1)
             {
-                SplineComponent.Entity.RemoveChild(existingRenderer);
-                existingRenderer = null;
-            }
+                SplineComponent.Spline.UpdateSpline();
 
-            if (SplineComponent.SplineRenderer.Segments || SplineComponent.SplineRenderer.BoundingBox)
-            {
-                var graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
-                var splineDebugEntity = SplineComponent.SplineRenderer.Create(SplineComponent.Spline, graphicsDeviceService?.GraphicsDevice, SplineComponent.Entity.Transform.Position);
-
-                if (splineDebugEntity != null)
+                //Update spline renderer
+                if (SplineComponent.SplineRenderer.Segments || SplineComponent.SplineRenderer.BoundingBox)
                 {
-                    SplineComponent.Entity.AddChild(splineDebugEntity);
+                    var graphicsDeviceService = Services.GetService<IGraphicsDeviceService>();
+                    var splineDebugEntity = SplineComponent.SplineRenderer.Create(SplineComponent.Spline, graphicsDeviceService?.GraphicsDevice, SplineComponent.Entity.Transform.Position);
+
+                    if (splineDebugEntity != null)
+                    {
+                        SplineComponent.Entity.AddChild(splineDebugEntity);
+                    }
                 }
             }
         }

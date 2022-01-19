@@ -109,9 +109,6 @@ namespace Stride.Engine.Splines
                 TotalSplineDistance = GetTotalSplineDistance();
                 UpdateBoundingBox();
 
-                //todo: remove after test
-                //GetClosestPointOnSpline(new Vector3(3, 0, 3));
-
                 Dirty = false;
                 OnSplineUpdated?.Invoke();
             }
@@ -249,6 +246,11 @@ namespace Stride.Engine.Splines
             var allCurvePointsPositions = new List<Vector3>();
             for (int i = 0; i < splineNodes.Count; i++)
             {
+                if (!Loop && i == splineNodes.Count - 1)
+                {
+                    break;
+                }
+
                 var positions = splineNodes[i].GetBezierPoints();
                 if (positions != null)
                 {
