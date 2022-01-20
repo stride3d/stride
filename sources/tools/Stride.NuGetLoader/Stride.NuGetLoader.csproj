@@ -1,10 +1,9 @@
 ﻿<Project>
-  <Import Project="Sdk.props" Condition="'$(StrideNuGetLoaderWindowsDesktop)' != 'true'" Sdk="Microsoft.NET.Sdk" />
-  <Import Project="Sdk.props" Condition="'$(StrideNuGetLoaderWindowsDesktop)' == 'true'" Sdk="Microsoft.NET.Sdk.WindowsDesktop" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
     <OutputType Condition="'$(OutputType)' == ''">Exe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net6.0-windows7.0</TargetFramework>
     <UseWpf>true</UseWpf>
     <UseWindowsForms>true</UseWindowsForms>
     <IntermediateOutputPath>obj\$(Configuration)\$(StrideApplicationName)</IntermediateOutputPath>
@@ -18,7 +17,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Stride.NuGet.PackageManagement" Version="5.8.0" />
+    <PackageReference Include="NuGet.PackageManagement" Version="6.0.0" />
+    <PackageReference Include="NuGet.Resolver" Version="6.0.0" />
+		<PackageReference Include="NuGet.Commands" Version="6.0.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +36,5 @@
     </Page>
   </ItemGroup>
 
-  <Import Project="Sdk.targets" Condition="'$(StrideNuGetLoaderWindowsDesktop)' != 'true'" Sdk="Microsoft.NET.Sdk" />
-  <Import Project="Sdk.targets" Condition="'$(StrideNuGetLoaderWindowsDesktop)' == 'true'" Sdk="Microsoft.NET.Sdk.WindowsDesktop" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

@@ -9,22 +9,22 @@
     ".NETStandard,Version=v2.0/": {
       "Stride.MSBuild.Tasks/1.0.0": {
         "dependencies": {
-          "Microsoft.Build.Utilities.Core": "16.0.461",
+          "Microsoft.Build.Utilities.Core": "16.11.0",
           "NETStandard.Library": "2.0.3"
         },
         "runtime": {
           "Stride.MSBuild.Tasks.dll": {}
         }
       },
-      "Microsoft.Build.Framework/16.0.461": {
+      "Microsoft.Build.Framework/16.11.0": {
         "dependencies": {
           "System.Runtime.Serialization.Primitives": "4.1.1",
           "System.Threading.Thread": "4.0.0"
         }
       },
-      "Microsoft.Build.Utilities.Core/16.0.461": {
+      "Microsoft.Build.Utilities.Core/16.11.0": {
         "dependencies": {
-          "Microsoft.Build.Framework": "16.0.461",
+          "Microsoft.Build.Framework": "16.11.0",
           "Microsoft.Win32.Registry": "4.3.0",
           "System.Collections.Immutable": "1.5.0",
           "System.Text.Encoding.CodePages": "4.0.1"
@@ -183,19 +183,19 @@
       "serviceable": false,
       "sha512": ""
     },
-    "Microsoft.Build.Framework/16.0.461": {
+    "Microsoft.Build.Framework/16.11.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-A7krf1sxJn7BsQDz5qHU8QLMu55JaZkF7bfNYP3EVlzi4IbEArnMBCuNP9gR93LpT2XdCBzSBtXc50m6u2N9Kw==",
-      "path": "microsoft.build.framework/16.0.461",
-      "hashPath": "microsoft.build.framework.16.0.461.nupkg.sha512"
+      "path": "microsoft.build.framework/16.11.0",
+      "hashPath": "microsoft.build.framework.16.11.0.nupkg.sha512"
     },
-    "Microsoft.Build.Utilities.Core/16.0.461": {
+    "Microsoft.Build.Utilities.Core/16.11.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-1CBsIGirCn4iu/2P2bh1sbbuREJ+RziwQyexQx4n2qIVgrxGb6CNLJun4jW8SG4PRoIeoQvY+VdhhHzxRscQQA==",
-      "path": "microsoft.build.utilities.core/16.0.461",
-      "hashPath": "microsoft.build.utilities.core.16.0.461.nupkg.sha512"
+      "path": "microsoft.build.utilities.core/16.11.0",
+      "hashPath": "microsoft.build.utilities.core.16.11.0.nupkg.sha512"
     },
     "Microsoft.NETCore.Platforms/1.1.0": {
       "type": "package",

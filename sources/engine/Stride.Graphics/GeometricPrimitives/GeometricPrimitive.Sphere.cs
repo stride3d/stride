@@ -138,8 +138,8 @@ namespace Stride.Graphics.GeometricPrimitives
                     float v = vScale * (1.0f - (float)i / verticalSegments);
 
                     var latitude = (float)((i * Math.PI / verticalSegments) - Math.PI / 2.0);
-                    var dy = (float)Math.Sin(latitude);
-                    var dxz = (float)Math.Cos(latitude);
+                    var dy = MathF.Sin(latitude);
+                    var dxz = MathF.Cos(latitude);
 
                     // the first point
                     var firstNormal = new Vector3(0, dy, dxz);
@@ -152,8 +152,8 @@ namespace Stride.Graphics.GeometricPrimitives
                         float u = (uScale * j) / horizontalSegments;
 
                         var longitude = (float)(j * 2.0 * Math.PI / horizontalSegments);
-                        var dx = (float)Math.Sin(longitude);
-                        var dz = (float)Math.Cos(longitude);
+                        var dx = MathF.Sin(longitude);
+                        var dz = MathF.Cos(longitude);
 
                         dx *= dxz;
                         dz *= dxz;

@@ -4,24 +4,11 @@
 
 using System;
 using System.Threading;
-using OpenTK.Graphics;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride;
 using Stride.Shaders;
 using Color4 = Stride.Core.Mathematics.Color4;
-#if STRIDE_GRAPHICS_API_OPENGLES
-using OpenTK.Graphics.ES30;
-using PixelFormatGl = OpenTK.Graphics.ES30.PixelFormat;
-using PrimitiveTypeGl = OpenTK.Graphics.ES30.PrimitiveType;
-using DebugSourceExternal = OpenTK.Graphics.ES30.All;
-using QueryCounterTarget = OpenTK.Graphics.ES30.All;
-#else
-using OpenTK.Graphics.OpenGL;
-using PrimitiveTypeGl = OpenTK.Graphics.OpenGL.PrimitiveType;
-using TextureTarget2d = OpenTK.Graphics.OpenGL.TextureTarget;
-using TextureTarget3d = OpenTK.Graphics.OpenGL.TextureTarget;
-#endif
 
 namespace Stride.Graphics
 {
@@ -32,7 +19,7 @@ namespace Stride.Graphics
         private const int MaxBoundRenderTargets = 16;
 
         internal uint enabledVertexAttribArrays;
-        private int boundProgram = 0;
+        private uint boundProgram = 0;
 
         internal int BoundStencilReference;
         internal int NewStencilReference;
@@ -53,7 +40,7 @@ namespace Stride.Graphics
 
         private Buffer[] constantBuffers = new Buffer[64];
 
-        private int boundFBO;
+        private uint boundFBO;
         private bool needUpdateFBO = true;
 
         private PipelineState newPipelineState;
@@ -116,12 +103,6 @@ namespace Stride.Graphics
             GraphicsDevice.EnsureContextActive();
 #endif
 
-#if STRIDE_PLATFORM_ANDROID
-            // Device with no background loading context: check if some loading is pending
-            if (GraphicsDevice.AsyncPendingTaskWaiting)
-                GraphicsDevice.ExecutePendingTasks();
-#endif
-
             var clearFBO = GraphicsDevice.FindOrCreateFBO(depthStencilBuffer);
             if (clearFBO != boundFBO)
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, clearFBO);
@@ -167,7 +148,7 @@ namespace Stride.Graphics
 
             // revert the color mask value as it was before
             if (needColorMaskOverride)
-                blendState.RestoreColorMask();
+                blendState.RestoreColorMask(GL);
 
             if (clearFBO != boundFBO)
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, boundFBO);
@@ -186,7 +167,7 @@ namespace Stride.Graphics
                 throw new ArgumentException("Buffer does not support unordered access");
 
             GL.BindBuffer(buffer.BufferTarget, buffer.BufferId);
-            GL.ClearBufferData(buffer.BufferTarget, buffer.TextureInternalFormat, buffer.TextureFormat, All.UnsignedInt8888, ref value);
+            GL.ClearBufferData((BufferStorageTarget)buffer.BufferTarget, (SizedInternalFormat)buffer.TextureInternalFormat, buffer.TextureFormat, PixelType.UnsignedInt8888, value);
             GL.BindBuffer(buffer.BufferTarget, 0);
 #endif
         }
@@ -204,7 +185,7 @@ namespace Stride.Graphics
                 throw new ArgumentException("Buffer does not support unordered access");
 
             GL.BindBuffer(buffer.BufferTarget, buffer.BufferId);
-            GL.ClearBufferData(buffer.BufferTarget, buffer.TextureInternalFormat, buffer.TextureFormat, All.UnsignedInt8888, ref value);
+            GL.ClearBufferData((BufferStorageTarget)buffer.BufferTarget, (SizedInternalFormat)buffer.TextureInternalFormat, buffer.TextureFormat, PixelType.UnsignedInt8888, value);
             GL.BindBuffer(buffer.BufferTarget, 0);
 #endif
         }
@@ -222,7 +203,7 @@ namespace Stride.Graphics
                 throw new ArgumentException("Buffer does not support unordered access");
 
             GL.BindBuffer(buffer.BufferTarget, buffer.BufferId);
-            GL.ClearBufferData(buffer.BufferTarget, buffer.TextureInternalFormat, buffer.TextureFormat, All.UnsignedInt8888, ref value);
+            GL.ClearBufferData((BufferStorageTarget)buffer.BufferTarget, (SizedInternalFormat)buffer.TextureInternalFormat, buffer.TextureFormat, PixelType.UnsignedInt8888, value);
             GL.BindBuffer(buffer.BufferTarget, 0);
 #endif
         }
@@ -244,7 +225,7 @@ namespace Stride.Graphics
 
             GL.BindTexture(texture.TextureTarget, texture.TextureId);
 
-            GL.ClearTexImage(texture.TextureId, 0, texture.TextureFormat, texture.TextureType, ref value);
+            GL.ClearTexImage(texture.TextureId, 0, texture.TextureFormat, texture.TextureType, value);
 
             GL.BindTexture(texture.TextureTarget, 0);
             boundShaderResourceViews[0] = null;
@@ -268,7 +249,7 @@ namespace Stride.Graphics
 
             GL.BindTexture(texture.TextureTarget, texture.TextureId);
 
-            GL.ClearTexImage(texture.TextureId, 0, texture.TextureFormat, texture.TextureType, ref value);
+            GL.ClearTexImage(texture.TextureId, 0, texture.TextureFormat, texture.TextureType, value);
 
             GL.BindTexture(texture.TextureTarget, 0);
             boundShaderResourceViews[0] = null;
@@ -292,7 +273,7 @@ namespace Stride.Graphics
 
             GL.BindTexture(texture.TextureTarget, texture.TextureId);
 
-            GL.ClearTexImage(texture.TextureId, 0, texture.TextureFormat, texture.TextureType, ref value);
+            GL.ClearTexImage(texture.TextureId, 0, texture.TextureFormat, texture.TextureType, value);
 
             GL.BindTexture(texture.TextureTarget, 0);
             boundShaderResourceViews[0] = null;
@@ -341,7 +322,7 @@ namespace Stride.Graphics
         /// <param name="regionSource">The region of the source <see cref="GraphicsResource"/> to copy.</param>
         /// <param name="destination">The destination into which to copy the data</param>
         /// <remarks>This might alter some states such as currently bound texture.</remarks>
-        public void CopyRegion(GraphicsResource source, int sourceSubresource, ResourceRegion? regionSource, GraphicsResource destination, int destinationSubResource, int dstX = 0, int dstY = 0, int dstZ = 0)
+        public unsafe void CopyRegion(GraphicsResource source, int sourceSubresource, ResourceRegion? regionSource, GraphicsResource destination, int destinationSubResource, int dstX = 0, int dstY = 0, int dstZ = 0)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -382,12 +363,12 @@ namespace Stride.Graphics
                         throw new NotSupportedException("ReadPixels from staging texture to staging texture only support full copy of subresource");
                     }
 
-                    GL.BindBuffer(BufferTarget.CopyReadBuffer, sourceTexture.PixelBufferObjectId);
-                    GL.BindBuffer(BufferTarget.CopyWriteBuffer, destTexture.PixelBufferObjectId);
-                    GL.CopyBufferSubData(BufferTarget.CopyReadBuffer, BufferTarget.CopyWriteBuffer,
+                    GL.BindBuffer(BufferTargetARB.CopyReadBuffer, sourceTexture.PixelBufferObjectId);
+                    GL.BindBuffer(BufferTargetARB.CopyWriteBuffer, destTexture.PixelBufferObjectId);
+                    GL.CopyBufferSubData(CopyBufferSubDataTarget.CopyReadBuffer, CopyBufferSubDataTarget.CopyWriteBuffer,
                         (IntPtr)sourceTexture.ComputeBufferOffset(sourceSubresource, 0),
                         (IntPtr)destTexture.ComputeBufferOffset(destinationSubResource, 0),
-                        (IntPtr)destTexture.ComputeSubresourceSize(destinationSubResource));
+                        (UIntPtr)destTexture.ComputeSubresourceSize(destinationSubResource));
                 }
                 else
                 {
@@ -395,7 +376,7 @@ namespace Stride.Graphics
                     if (dstX != 0 || dstY != 0 || dstZ != 0)
                         throw new NotSupportedException("ReadPixels from staging texture using non-zero destination is not supported");
 
-                    GL.Viewport(0, 0, sourceWidth, sourceHeight);
+                    GL.Viewport(0, 0, (uint)sourceWidth, (uint)sourceHeight);
 
                     var isDepthBuffer = Texture.InternalIsDepthStencilFormat(sourceTexture.Format);
 
@@ -406,19 +387,19 @@ namespace Stride.Graphics
                     {
                         attachmentType = GraphicsDevice.UpdateFBO(FramebufferTarget.Framebuffer, new GraphicsDevice.FBOTexture(sourceTexture, sourceSubresource / sourceTexture.MipLevels + depthSlice, sourceSubresource % sourceTexture.MipLevels));
 
-                        GL.BindBuffer(BufferTarget.PixelPackBuffer, destTexture.PixelBufferObjectId);
-                        GL.ReadPixels(sourceRectangle.Left, sourceRectangle.Top, sourceRectangle.Width, sourceRectangle.Height, destTexture.TextureFormat, destTexture.TextureType, (IntPtr)destTexture.ComputeBufferOffset(destinationSubResource, depthSlice));
-                        GL.BindBuffer(BufferTarget.PixelPackBuffer, 0);
+                        GL.BindBuffer(BufferTargetARB.PixelPackBuffer, destTexture.PixelBufferObjectId);
+                        GL.ReadPixels(sourceRectangle.Left, sourceRectangle.Top, (uint)sourceRectangle.Width, (uint)sourceRectangle.Height, destTexture.TextureFormat, destTexture.TextureType, (void*)destTexture.ComputeBufferOffset(destinationSubResource, depthSlice));
+                        GL.BindBuffer(BufferTargetARB.PixelPackBuffer, 0);
 
                         destTexture.PixelBufferFrame = GraphicsDevice.FrameCounter;
                     }
 
                     // Unbind attachment
-                    GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachmentType, TextureTarget2d.Texture2D, 0, 0);
+                    GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachmentType, TextureTarget.Texture2D, 0, 0);
 
                     // Restore FBO and viewport
                     GL.BindFramebuffer(FramebufferTarget.Framebuffer, boundFBO);
-                    GL.Viewport((int)viewports[0].X, (int)viewports[0].Y, (int)viewports[0].Width, (int)viewports[0].Height);
+                    GL.Viewport((int)viewports[0].X, (int)viewports[0].Y, (uint)viewports[0].Width, (uint)viewports[0].Height);
                 }
                 return;
             }
@@ -438,7 +419,7 @@ namespace Stride.Graphics
                     GL.ActiveTexture(TextureUnit.Texture0);
                 }
 
-                GL.Viewport(0, 0, sourceWidth, sourceHeight);
+                GL.Viewport(0, 0, (uint)sourceWidth, (uint)sourceHeight);
 
                 GL.BindTexture(destTexture.TextureTarget, destTexture.TextureId);
 
@@ -454,20 +435,20 @@ namespace Stride.Graphics
                     {
 #if !STRIDE_GRAPHICS_API_OPENGLES
                         case TextureTarget.Texture1D:
-                            GL.CopyTexSubImage1D(TextureTarget2d.Texture1D, mipLevel, dstX, sourceRectangle.Left, sourceRectangle.Top, sourceRectangle.Width);
+                            GL.CopyTexSubImage1D(TextureTarget.Texture1D, mipLevel, dstX, sourceRectangle.Left, sourceRectangle.Top, (uint)sourceRectangle.Width);
                             break;
 #endif
                         case TextureTarget.Texture2D:
-                            GL.CopyTexSubImage2D(TextureTarget2d.Texture2D, mipLevel, dstX, dstY, sourceRectangle.Left, sourceRectangle.Top, sourceRectangle.Width, sourceRectangle.Height);
+                            GL.CopyTexSubImage2D(TextureTarget.Texture2D, mipLevel, dstX, dstY, sourceRectangle.Left, sourceRectangle.Top, (uint)sourceRectangle.Width, (uint)sourceRectangle.Height);
                             break;
                         case TextureTarget.Texture2DArray:
-                            GL.CopyTexSubImage3D(TextureTarget3d.Texture2DArray, mipLevel, dstX, dstY, arraySlice, sourceRectangle.Left, sourceRectangle.Top, sourceRectangle.Width, sourceRectangle.Height);
+                            GL.CopyTexSubImage3D(TextureTarget.Texture2DArray, mipLevel, dstX, dstY, arraySlice, sourceRectangle.Left, sourceRectangle.Top, (uint)sourceRectangle.Width, (uint)sourceRectangle.Height);
                             break;
                         case TextureTarget.Texture3D:
-                            GL.CopyTexSubImage3D(TextureTarget3d.Texture3D, mipLevel, dstX, dstY, depthSlice, sourceRectangle.Left, sourceRectangle.Top, sourceRectangle.Width, sourceRectangle.Height);
+                            GL.CopyTexSubImage3D(TextureTarget.Texture3D, mipLevel, dstX, dstY, depthSlice, sourceRectangle.Left, sourceRectangle.Top, (uint)sourceRectangle.Width, (uint)sourceRectangle.Height);
                             break;
                         case TextureTarget.TextureCubeMap:
-                            GL.CopyTexSubImage2D(Texture.GetTextureTargetForDataSet2D(destTexture.TextureTarget, arraySlice), mipLevel, dstX, dstY, sourceRectangle.Left, sourceRectangle.Top, sourceRectangle.Width, sourceRectangle.Height);
+                            GL.CopyTexSubImage2D(Texture.GetTextureTargetForDataSet2D(destTexture.TextureTarget, arraySlice), mipLevel, dstX, dstY, sourceRectangle.Left, sourceRectangle.Top, (uint)sourceRectangle.Width, (uint)sourceRectangle.Height);
                             break;
                         default:
                             throw new NotSupportedException("Invalid texture target: " + destTexture.TextureTarget);
@@ -479,18 +460,18 @@ namespace Stride.Graphics
                 boundShaderResourceViews[0] = null;
 
                 // Unbind attachment
-                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachmentType, TextureTarget2d.Texture2D, 0, 0);
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachmentType, TextureTarget.Texture2D, 0, 0);
 
                 // Restore FBO and viewport
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, boundFBO);
-                GL.Viewport((int)viewports[0].X, (int)viewports[0].Y, (int)viewports[0].Width, (int)viewports[0].Height);
+                GL.Viewport((int)viewports[0].X, (int)viewports[0].Y, (uint)viewports[0].Width, (uint)viewports[0].Height);
             }
         }
 
-        internal void CopyScaler2D(Texture sourceTexture, Texture destTexture, Rectangle sourceRectangle, Rectangle destRectangle, bool flipY = false)
+        internal unsafe void CopyScaler2D(Texture sourceTexture, Texture destTexture, Rectangle sourceRectangle, Rectangle destRectangle, bool flipY = false)
         {
             // Use rendering
-            GL.Viewport(0, 0, destTexture.Description.Width, destTexture.Description.Height);
+            GL.Viewport(0, 0, (uint)destTexture.Description.Width, (uint)destTexture.Description.Height);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, GraphicsDevice.FindOrCreateFBO(destTexture));
 
             var sourceRegionSize = new Vector2(sourceRectangle.Width, sourceRectangle.Height);
@@ -548,11 +529,11 @@ namespace Stride.Graphics
             vboDirty = true;
             enabledVertexAttribArrays |= 1 << 0;
             GL.EnableVertexAttribArray(0);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, GraphicsDevice.GetSquareBuffer().BufferId);
-            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
+            GL.BindBuffer(BufferTargetARB.ArrayBuffer, GraphicsDevice.GetSquareBuffer().BufferId);
+            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, null);
             GL.Uniform4(offsetLocation, sourceOffset.X, sourceOffset.Y, destOffset.X, destOffset.Y);
             GL.Uniform4(scaleLocation, sourceScale.X, sourceScale.Y, destScale.X, destScale.Y);
-            GL.Viewport(0, 0, destTexture.Width, destTexture.Height);
+            GL.Viewport(0, 0, (uint)destTexture.Width, (uint)destTexture.Height);
             GL.DrawArrays(PrimitiveTypeGl.TriangleStrip, 0, 4);
             GL.UseProgram(boundProgram);
 
@@ -569,13 +550,13 @@ namespace Stride.Graphics
 
             // Restore FBO and viewport
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, boundFBO);
-            GL.Viewport((int)viewports[0].X, (int)viewports[0].Y, (int)viewports[0].Width, (int)viewports[0].Height);
+            GL.Viewport((int)viewports[0].X, (int)viewports[0].Y, (uint)viewports[0].Width, (uint)viewports[0].Height);
         }
 
-        internal void CopyScaler2D(Texture sourceTexture, Rectangle sourceRectangle, Rectangle destRectangle, bool needSRgbConversion = false, bool flipY = false)
+        internal unsafe void CopyScaler2D(Texture sourceTexture, Rectangle sourceRectangle, Rectangle destRectangle, bool needSRgbConversion = false, bool flipY = false)
         {
             // Use rendering
-            GL.Viewport(0, 0, sourceTexture.Description.Width, sourceTexture.Description.Height);
+            GL.Viewport(0, 0, (uint)sourceTexture.Description.Width, (uint)sourceTexture.Description.Height);
 
             var sourceRegionSize = new Vector2(sourceRectangle.Width, sourceRectangle.Height);
             var destRegionSize = new Vector2(destRectangle.Width, destRectangle.Height);
@@ -625,11 +606,11 @@ namespace Stride.Graphics
             vboDirty = true;
             enabledVertexAttribArrays |= 1 << 0;
             GL.EnableVertexAttribArray(0);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, GraphicsDevice.GetSquareBuffer().BufferId);
-            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
+            GL.BindBuffer(BufferTargetARB.ArrayBuffer, GraphicsDevice.GetSquareBuffer().BufferId);
+            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, null);
             GL.Uniform4(offsetLocation, sourceOffset.X, sourceOffset.Y, destOffset.X, destOffset.Y);
             GL.Uniform4(scaleLocation, sourceScale.X, sourceScale.Y, destScale.X, destScale.Y);
-            GL.Viewport(0, 0, sourceTexture.Width, sourceTexture.Height);
+            GL.Viewport(0, 0, (uint)sourceTexture.Width, (uint)sourceTexture.Height);
             GL.DrawArrays(PrimitiveTypeGl.TriangleStrip, 0, 4);
             GL.UseProgram(boundProgram);
 
@@ -645,7 +626,7 @@ namespace Stride.Graphics
             GL.ColorMask(enabledColors[0], enabledColors[1], enabledColors[2], enabledColors[3]);
 
             // Restore viewport
-            GL.Viewport((int)viewports[0].X, (int)viewports[0].Y, (int)viewports[0].Width, (int)viewports[0].Height);
+            GL.Viewport((int)viewports[0].X, (int)viewports[0].Y, (uint)viewports[0].Width, (uint)viewports[0].Height);
         }
 
         /// <summary>
@@ -682,11 +663,11 @@ namespace Stride.Graphics
             }
 
             // Set up the read (source) buffer to use for the blitting operation:
-            int readFBOID = GraphicsDevice.FindOrCreateFBO(sourceMultisampleTexture);   // Find the FBO that the sourceMultisampleTexture is bound to.
+            var readFBOID = GraphicsDevice.FindOrCreateFBO(sourceMultisampleTexture);   // Find the FBO that the sourceMultisampleTexture is bound to.
             GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, readFBOID);
 
             // Set up the draw (destination) buffer to use for the blitting operation:
-            int drawFBOID = GraphicsDevice.FindOrCreateFBO(destTexture);   // Find the FBO that the destTexture is bound to.
+            var drawFBOID = GraphicsDevice.FindOrCreateFBO(destTexture);   // Find the FBO that the destTexture is bound to.
             GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, drawFBOID);
 
             ClearBufferMask clearBufferMask;
@@ -727,7 +708,7 @@ namespace Stride.Graphics
 #endif
 
 #if !STRIDE_GRAPHICS_API_OPENGLES
-            GL.DispatchCompute(threadCountX, threadCountY, threadCountZ);
+            GL.DispatchCompute((uint)threadCountX, (uint)threadCountY, (uint)threadCountZ);
 #else
             Internal.Refactor.ThrowNotImplementedException();
 #endif
@@ -740,11 +721,11 @@ namespace Stride.Graphics
 #endif
 
 #if !STRIDE_GRAPHICS_API_OPENGLES
-            GL.BindBuffer(BufferTarget.DispatchIndirectBuffer, indirectBuffer.BufferId);
+            GL.BindBuffer(BufferTargetARB.DispatchIndirectBuffer, indirectBuffer.BufferId);
 
             GL.DispatchComputeIndirect((IntPtr)offsetInBytes);
 
-            GL.BindBuffer(BufferTarget.DispatchIndirectBuffer, 0);
+            GL.BindBuffer(BufferTargetARB.DispatchIndirectBuffer, 0);
 #else
             Internal.Refactor.ThrowNotImplementedException();
 #endif
@@ -757,7 +738,7 @@ namespace Stride.Graphics
 #endif
             PreDraw();
 
-            GL.DrawArrays(newPipelineState.PrimitiveType, startVertex, vertexCount);
+            GL.DrawArrays(newPipelineState.PrimitiveType, startVertex, (uint)vertexCount);
 
             GraphicsDevice.FrameTriangleCount += (uint)vertexCount;
             GraphicsDevice.FrameDrawCalls++;
@@ -781,7 +762,7 @@ namespace Stride.Graphics
         /// <param name="indexCount">Number of indices to draw.</param>
         /// <param name="startIndexLocation">The location of the first index read by the GPU from the index buffer.</param>
         /// <param name="baseVertexLocation">A value added to each index before reading a vertex from the vertex buffer.</param>
-        public void DrawIndexed(int indexCount, int startIndexLocation = 0, int baseVertexLocation = 0)
+        public unsafe void DrawIndexed(int indexCount, int startIndexLocation = 0, int baseVertexLocation = 0)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -791,9 +772,9 @@ namespace Stride.Graphics
 #if STRIDE_GRAPHICS_API_OPENGLES
             if (baseVertexLocation != 0)
                 throw new NotSupportedException("DrawIndexed with no null baseVertexLocation is not supported on OpenGL ES.");
-            GL.DrawElements(newPipelineState.PrimitiveType, indexCount, indexBuffer.Type, IntPtr.Zero + indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)); // conversion to IntPtr required on Android
+            GL.DrawElements(newPipelineState.PrimitiveType, (uint)indexCount, indexBuffer.Type, (void*)(indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)));
 #else
-            GL.DrawElementsBaseVertex(newPipelineState.PrimitiveType, indexCount, indexBuffer.Type, IntPtr.Zero + indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize), baseVertexLocation);
+            GL.DrawElementsBaseVertex(newPipelineState.PrimitiveType, (uint)indexCount, indexBuffer.Type, (void*)(indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)), baseVertexLocation);
 #endif
 
             GraphicsDevice.FrameDrawCalls++;
@@ -808,7 +789,7 @@ namespace Stride.Graphics
         /// <param name="startIndexLocation">The location of the first index read by the GPU from the index buffer.</param>
         /// <param name="baseVertexLocation">A value added to each index before reading a vertex from the vertex buffer.</param>
         /// <param name="startInstanceLocation">A value added to each index before reading per-instance data from a vertex buffer.</param>
-        public void DrawIndexedInstanced(int indexCountPerInstance, int instanceCount, int startIndexLocation = 0, int baseVertexLocation = 0, int startInstanceLocation = 0)
+        public unsafe void DrawIndexedInstanced(int indexCountPerInstance, int instanceCount, int startIndexLocation = 0, int baseVertexLocation = 0, int startInstanceLocation = 0)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -817,7 +798,7 @@ namespace Stride.Graphics
 #if STRIDE_GRAPHICS_API_OPENGLES
             Internal.Refactor.ThrowNotImplementedException();
 #else
-            GL.DrawElementsInstancedBaseVertex(newPipelineState.PrimitiveType, indexCountPerInstance, indexBuffer.Type, (IntPtr)(indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)), instanceCount, baseVertexLocation);
+            GL.DrawElementsInstancedBaseVertex(newPipelineState.PrimitiveType, (uint)indexCountPerInstance, indexBuffer.Type, (void*)(indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)), (uint)instanceCount, baseVertexLocation);
 #endif
 
             GraphicsDevice.FrameDrawCalls++;
@@ -858,7 +839,7 @@ namespace Stride.Graphics
 #endif
             PreDraw();
 
-            GL.DrawArraysInstanced(newPipelineState.PrimitiveType, startVertexLocation, vertexCountPerInstance, instanceCount);
+            GL.DrawArraysInstanced(newPipelineState.PrimitiveType, startVertexLocation, (uint)vertexCountPerInstance, (uint)instanceCount);
 
             GraphicsDevice.FrameDrawCalls++;
             GraphicsDevice.FrameTriangleCount += (uint)(vertexCountPerInstance * instanceCount);
@@ -884,11 +865,11 @@ namespace Stride.Graphics
             GraphicsDevice.FrameDrawCalls++;
             Internal.Refactor.ThrowNotImplementedException();
 #else
-            GL.BindBuffer(BufferTarget.DrawIndirectBuffer, argumentsBuffer.BufferId);
+            GL.BindBuffer(BufferTargetARB.DrawIndirectBuffer, argumentsBuffer.BufferId);
 
             GL.DrawArraysIndirect(newPipelineState.PrimitiveType, (IntPtr)alignedByteOffsetForArgs);
 
-            GL.BindBuffer(BufferTarget.DrawIndirectBuffer, 0);
+            GL.BindBuffer(BufferTargetARB.DrawIndirectBuffer, 0);
 
             GraphicsDevice.FrameDrawCalls++;
 #endif
@@ -896,32 +877,18 @@ namespace Stride.Graphics
 
         public void BeginProfile(Color4 profileColor, string name)
         {
-#if !STRIDE_PLATFORM_IOS
             if (GraphicsDevice.ProfileEnabled)
             {
-#if STRIDE_GRAPHICS_API_OPENGLES
-                if (GraphicsDevice.HasKhronosDebugKHR)
-                    GL.Khr.PushDebugGroup(DebugSourceExternal.DebugSourceApplication, 1, -1, name);
-                else
-#endif
-                    GL.PushDebugGroup(DebugSourceExternal.DebugSourceApplication, 1, -1, name);
+                GL.PushDebugGroup(DebugSource.DebugSourceApplication, 1, uint.MaxValue, name);
             }
-#endif
         }
 
         public void EndProfile()
         {
-#if !STRIDE_PLATFORM_IOS
             if (GraphicsDevice.ProfileEnabled)
             {
-#if STRIDE_GRAPHICS_API_OPENGLES
-                if (GraphicsDevice.HasKhronosDebugKHR)
-                    GL.Khr.PopDebugGroup();
-                else
-#endif
-                    GL.PopDebugGroup();
+                GL.PopDebugGroup();
             }
-#endif
         }
 
         /// <summary>
@@ -931,9 +898,9 @@ namespace Stride.Graphics
         /// <param name="index">The query index.</param>
         public void WriteTimestamp(QueryPool queryPool, int index)
         {
-#if STRIDE_GRAPHICS_API_OPENGLES && !STRIDE_PLATFORM_IOS
-            GL.Ext.QueryCounter(queryPool.NativeQueries[index], QueryCounterTarget.TimestampExt);
-#elif !STRIDE_PLATFORM_IOS
+#if STRIDE_GRAPHICS_API_OPENGLES
+            GraphicsDevice.GLExtDisjointTimerQuery.QueryCounter(queryPool.NativeQueries[index], QueryCounterTarget.Timestamp);
+#else
             GL.QueryCounter(queryPool.NativeQueries[index], QueryCounterTarget.Timestamp);
 #endif
         }
@@ -942,7 +909,7 @@ namespace Stride.Graphics
         {
         }
 
-        public MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        public unsafe MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -973,12 +940,12 @@ namespace Stride.Graphics
                     if (mapMode == MapMode.WriteDiscard)
                     {
                         doNotWait = true;
-                        GL.BufferData(buffer.BufferTarget, (IntPtr)buffer.Description.SizeInBytes, IntPtr.Zero, buffer.BufferUsageHint);
+                        GL.BufferData(buffer.BufferTarget, (UIntPtr)buffer.Description.SizeInBytes, IntPtr.Zero, buffer.BufferUsageHint);
                     }
 
                     var unsynchronized = doNotWait && mapMode != MapMode.Read && mapMode != MapMode.ReadWrite;
 
-                    mapResult = GL.MapBufferRange(buffer.BufferTarget, (IntPtr)offsetInBytes, (IntPtr)lengthInBytes, mapMode.ToOpenGLMask() | (unsynchronized ? BufferAccessMask.MapUnsynchronizedBit : 0));
+                    mapResult = (IntPtr)GL.MapBufferRange(buffer.BufferTarget, (IntPtr)offsetInBytes, (UIntPtr)lengthInBytes, mapMode.ToOpenGLMask() | (unsynchronized ? MapBufferAccessMask.MapUnsynchronizedBit : 0));
                 }
 
                 return new MappedResource(resource, subResourceIndex, new DataBox { DataPointer = mapResult, SlicePitch = 0, RowPitch = 0 });
@@ -1006,7 +973,7 @@ namespace Stride.Graphics
                         }
                     }
 
-                    return MapTexture(texture, true, BufferTarget.PixelPackBuffer, texture.PixelBufferObjectId, subResourceIndex, mapMode, offsetInBytes, lengthInBytes);
+                    return MapTexture(texture, true, BufferTargetARB.PixelPackBuffer, texture.PixelBufferObjectId, subResourceIndex, mapMode, offsetInBytes, lengthInBytes);
                 }
                 else if (mapMode == MapMode.WriteDiscard)
                 {
@@ -1015,9 +982,9 @@ namespace Stride.Graphics
 
                     // Create a temporary unpack pixel buffer
                     // TODO: Pool/allocator? (it's an upload buffer basically)
-                    var pixelBufferObjectId = texture.GeneratePixelBufferObject(BufferTarget.PixelUnpackBuffer, PixelStoreParameter.UnpackAlignment, BufferUsageHint.DynamicCopy, texture.ComputeSubresourceSize(subResourceIndex));
+                    var pixelBufferObjectId = texture.GeneratePixelBufferObject(BufferTargetARB.PixelUnpackBuffer, PixelStoreParameter.UnpackAlignment, BufferUsageARB.DynamicCopy, texture.ComputeSubresourceSize(subResourceIndex));
 
-                    return MapTexture(texture, false, BufferTarget.PixelUnpackBuffer, pixelBufferObjectId, subResourceIndex, mapMode, offsetInBytes, lengthInBytes);
+                    return MapTexture(texture, false, BufferTargetARB.PixelUnpackBuffer, pixelBufferObjectId, subResourceIndex, mapMode, offsetInBytes, lengthInBytes);
                 }
             }
 
@@ -1035,14 +1002,14 @@ namespace Stride.Graphics
             {
                 if (texture.Description.Usage == GraphicsResourceUsage.Staging)
                 {
-                    GL.BindBuffer(BufferTarget.PixelPackBuffer, texture.PixelBufferObjectId);
-                    GL.UnmapBuffer(BufferTarget.PixelPackBuffer);
-                    GL.BindBuffer(BufferTarget.PixelPackBuffer, 0);
+                    GL.BindBuffer(BufferTargetARB.PixelPackBuffer, texture.PixelBufferObjectId);
+                    GL.UnmapBuffer(BufferTargetARB.PixelPackBuffer);
+                    GL.BindBuffer(BufferTargetARB.PixelPackBuffer, 0);
                 }
                 else if (texture.Description.Usage == GraphicsResourceUsage.Dynamic)
                 {
-                    GL.BindBuffer(BufferTarget.PixelUnpackBuffer, unmapped.PixelBufferObjectId);
-                    GL.UnmapBuffer(BufferTarget.PixelUnpackBuffer);
+                    GL.BindBuffer(BufferTargetARB.PixelUnpackBuffer, unmapped.PixelBufferObjectId);
+                    GL.UnmapBuffer(BufferTargetARB.PixelUnpackBuffer);
 
                     if (activeTexture != 0)
                     {
@@ -1060,27 +1027,27 @@ namespace Stride.Graphics
                     {
 #if !STRIDE_GRAPHICS_API_OPENGLES
                         case TextureTarget.Texture1D:
-                            GL.TexSubImage1D(TextureTarget.Texture1D, mipLevel, 0, texture.Width, texture.TextureFormat, texture.TextureType, IntPtr.Zero);
+                            GL.TexSubImage1D(TextureTarget.Texture1D, mipLevel, 0, (uint)texture.Width, texture.TextureFormat, texture.TextureType, IntPtr.Zero);
                             break;
 #endif
                         case TextureTarget.Texture2D:
-                            GL.TexSubImage2D(TextureTarget2d.Texture2D, mipLevel, 0, 0, texture.Width, texture.Height, texture.TextureFormat, texture.TextureType, IntPtr.Zero);
+                            GL.TexSubImage2D(TextureTarget.Texture2D, mipLevel, 0, 0, (uint)texture.Width, (uint)texture.Height, texture.TextureFormat, texture.TextureType, IntPtr.Zero);
                             break;
                         case TextureTarget.Texture2DArray:
-                            GL.TexSubImage3D(TextureTarget3d.Texture2DArray, mipLevel, 0, 0, arraySlice, texture.Width, texture.Height, 1, texture.TextureFormat, texture.TextureType, IntPtr.Zero);
+                            GL.TexSubImage3D(TextureTarget.Texture2DArray, mipLevel, 0, 0, arraySlice, (uint)texture.Width, (uint)texture.Height, 1, texture.TextureFormat, texture.TextureType, IntPtr.Zero);
                             break;
                         case TextureTarget.Texture3D:
-                            GL.TexSubImage3D(TextureTarget3d.Texture3D, mipLevel, 0, 0, 0, texture.Width, texture.Height, texture.Depth, texture.TextureFormat, texture.TextureType, IntPtr.Zero);
+                            GL.TexSubImage3D(TextureTarget.Texture3D, mipLevel, 0, 0, 0, (uint)texture.Width, (uint)texture.Height, (uint)texture.Depth, texture.TextureFormat, texture.TextureType, IntPtr.Zero);
                             break;
                         case TextureTarget.TextureCubeMap:
-                            GL.TexSubImage2D(Texture.GetTextureTargetForDataSet2D(texture.TextureTarget, arraySlice), mipLevel, 0, 0, texture.Width, texture.Height, texture.TextureFormat, texture.TextureType, IntPtr.Zero);
+                            GL.TexSubImage2D(Texture.GetTextureTargetForDataSet2D(texture.TextureTarget, arraySlice), mipLevel, 0, 0, (uint)texture.Width, (uint)texture.Height, texture.TextureFormat, texture.TextureType, IntPtr.Zero);
                             break;
                         default:
                             throw new NotSupportedException("Invalid texture target: " + texture.TextureTarget);
                     }
                     GL.BindTexture(texture.TextureTarget, 0);
                     boundShaderResourceViews[0] = null;
-                    GL.BindBuffer(BufferTarget.PixelUnpackBuffer, 0);
+                    GL.BindBuffer(BufferTargetARB.PixelUnpackBuffer, 0);
                     GL.DeleteBuffer(unmapped.PixelBufferObjectId);
                 }
                 else
@@ -1103,12 +1070,12 @@ namespace Stride.Graphics
             }
         }
 
-        private MappedResource MapTexture(Texture texture, bool adjustOffsetForSubresource, BufferTarget bufferTarget, int pixelBufferObjectId, int subResourceIndex, MapMode mapMode, int offsetInBytes, int lengthInBytes)
+        private unsafe MappedResource MapTexture(Texture texture, bool adjustOffsetForSubresource, BufferTargetARB bufferTarget, uint pixelBufferObjectId, int subResourceIndex, MapMode mapMode, int offsetInBytes, int lengthInBytes)
         {
             int mipLevel = subResourceIndex % texture.MipLevels;
 
             GL.BindBuffer(bufferTarget, pixelBufferObjectId);
-            var mapResult = GL.MapBufferRange(bufferTarget, (IntPtr)offsetInBytes + (adjustOffsetForSubresource ? texture.ComputeBufferOffset(subResourceIndex, 0) : 0), (IntPtr)lengthInBytes, mapMode.ToOpenGLMask());
+            var mapResult = (IntPtr)GL.MapBufferRange(bufferTarget, (IntPtr)offsetInBytes + (adjustOffsetForSubresource ? texture.ComputeBufferOffset(subResourceIndex, 0) : 0), (UIntPtr)lengthInBytes, mapMode.ToOpenGLMask());
             GL.BindBuffer(bufferTarget, 0);
 
             return new MappedResource(texture, subResourceIndex, new DataBox { DataPointer = mapResult, SlicePitch = texture.ComputeSlicePitch(mipLevel), RowPitch = texture.ComputeRowPitch(mipLevel) }, offsetInBytes, lengthInBytes)
@@ -1119,11 +1086,6 @@ namespace Stride.Graphics
 
         internal unsafe void PreDraw()
         {
-#if STRIDE_PLATFORM_ANDROID
-            // Device with no background loading context: check if some loading is pending
-            if (GraphicsDevice.AsyncPendingTaskWaiting)
-                GraphicsDevice.ExecutePendingTasks();
-#endif
             // Bind program
             var program = newPipelineState.EffectProgram.ProgramId;
             if (program != boundProgram)
@@ -1155,7 +1117,7 @@ namespace Stride.Graphics
                         if (vertexBuffer != null)
                         {
                             var vertexBufferResource = vertexBufferView.Buffer.BufferId;
-                            GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferResource);
+                            GL.BindBuffer(BufferTargetARB.ArrayBuffer, vertexBufferResource);
                         }
                     }
 
@@ -1168,7 +1130,7 @@ namespace Stride.Graphics
                         if ((enabledVertexAttribArrays & vertexAttribMask) != 0)
                         {
                             enabledVertexAttribArrays &= ~vertexAttribMask;
-                            GL.DisableVertexAttribArray(vertexAttrib.AttributeIndex);
+                            GL.DisableVertexAttribArray((uint)vertexAttrib.AttributeIndex);
                         }
                         continue;
                     }
@@ -1177,15 +1139,13 @@ namespace Stride.Graphics
                     if ((enabledVertexAttribArrays & vertexAttribMask) == 0)
                     {
                         enabledVertexAttribArrays |= vertexAttribMask;
-                        GL.EnableVertexAttribArray(vertexAttrib.AttributeIndex);
+                        GL.EnableVertexAttribArray((uint)vertexAttrib.AttributeIndex);
                     }
 
-#if !STRIDE_GRAPHICS_API_OPENGLES
                     if (vertexAttrib.IsInteger && !vertexAttrib.Normalized)
-                        GL.VertexAttribIPointer(vertexAttrib.AttributeIndex, vertexAttrib.Size, (VertexAttribIntegerType)vertexAttrib.Type, vertexBufferView.Stride, (IntPtr)(vertexBufferView.Offset + vertexAttrib.Offset));
+                        GL.VertexAttribIPointer((uint)vertexAttrib.AttributeIndex, vertexAttrib.Size, (VertexAttribIType)vertexAttrib.Type, (uint)vertexBufferView.Stride, (void*)(vertexBufferView.Offset + vertexAttrib.Offset));
                     else
-#endif
-                        GL.VertexAttribPointer(vertexAttrib.AttributeIndex, vertexAttrib.Size, vertexAttrib.Type, vertexAttrib.Normalized, vertexBufferView.Stride, vertexBufferView.Offset + vertexAttrib.Offset);
+                        GL.VertexAttribPointer((uint)vertexAttrib.AttributeIndex, vertexAttrib.Size, vertexAttrib.Type, vertexAttrib.Normalized, (uint)vertexBufferView.Stride, (void*)(vertexBufferView.Offset + vertexAttrib.Offset));
                 }
 
                 vboDirty = false;
@@ -1260,7 +1220,7 @@ namespace Stride.Graphics
             {
                 // TODO OPENGL if OpenGL ES 2, might be good to have some dirty flags to explain if cbuffer changed
                 constantBuffers[slot] = buffer;
-                GL.BindBufferBase(BufferRangeTarget.UniformBuffer, slot, buffer != null ? buffer.BufferId : 0);
+                GL.BindBufferBase(BufferTargetARB.UniformBuffer, (uint)slot, buffer != null ? buffer.BufferId : 0);
             }
         }
 
@@ -1322,7 +1282,7 @@ namespace Stride.Graphics
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
 #endif
-            GL.Scissor(scissorRectangle.Left, scissorRectangle.Top, scissorRectangle.Width, scissorRectangle.Height);
+            GL.Scissor(scissorRectangle.Left, scissorRectangle.Top, (uint)scissorRectangle.Width, (uint)scissorRectangle.Height);
         }
 
         unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles)
@@ -1342,7 +1302,7 @@ namespace Stride.Graphics
                 nativeScissorRectangles[4 * i + 3] = scissorRectangles[i].Height;
             }
 
-            GL.ScissorArray(0, scissorCount, nativeScissorRectangles);
+            GL.ScissorArray(0, (uint)scissorCount, nativeScissorRectangles);
 #endif
         }
 
@@ -1439,7 +1399,7 @@ namespace Stride.Graphics
                 indexBuffer = newIndexBuffer;
 
                 // Setup index buffer
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBuffer.Buffer != null ? indexBuffer.Buffer.BufferId : 0);
+                GL.BindBuffer(BufferTargetARB.ElementArrayBuffer, indexBuffer.Buffer != null ? indexBuffer.Buffer.BufferId : 0);
             }
         }
 
@@ -1488,7 +1448,7 @@ namespace Stride.Graphics
         private void UpdateViewport(Viewport viewport)
         {
             GL.DepthRange(viewport.MinDepth, viewport.MaxDepth);
-            GL.Viewport((int)viewport.X, (int)viewport.Y, (int)viewport.Width, (int)viewport.Height);
+            GL.Viewport((int)viewport.X, (int)viewport.Y, (uint)viewport.Width, (uint)viewport.Height);
         }
 
 #if !STRIDE_GRAPHICS_API_OPENGLES
@@ -1504,7 +1464,7 @@ namespace Stride.Graphics
                 nativeViewports[4 * i + 3] = currViewport.Height;
             }
             GL.DepthRange(viewports[0].MinDepth, viewports[0].MaxDepth);
-            GL.ViewportArray(0, boundViewportCount, nativeViewports);
+            GL.ViewportArray(0, (uint)boundViewportCount, nativeViewports);
         }
 #endif
 
@@ -1524,7 +1484,7 @@ namespace Stride.Graphics
             SetRenderTargets(null, null);
         }
 
-        internal void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox)
+        internal unsafe void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -1549,7 +1509,7 @@ namespace Stride.Graphics
                 else
                 {
                     GL.BindBuffer(buffer.BufferTarget, buffer.BufferId);
-                    GL.BufferData(buffer.BufferTarget, buffer.Description.SizeInBytes, databox.DataPointer, buffer.BufferUsageHint);
+                    GL.BufferData(buffer.BufferTarget, (uint)buffer.Description.SizeInBytes, (void*)databox.DataPointer, buffer.BufferUsageHint);
                 }
             }
             else
@@ -1575,20 +1535,20 @@ namespace Stride.Graphics
                     {
 #if !STRIDE_GRAPHICS_API_OPENGLES
                         case TextureTarget.Texture1D:
-                            GL.TexSubImage1D(TextureTarget.Texture1D, mipLevel, 0, desc.Width, texture.TextureFormat, texture.TextureType, databox.DataPointer);
+                            GL.TexSubImage1D(TextureTarget.Texture1D, mipLevel, 0, (uint)desc.Width, texture.TextureFormat, texture.TextureType, (void*)databox.DataPointer);
                             break;
 #endif
                         case TextureTarget.Texture2D:
-                            GL.TexSubImage2D(TextureTarget2d.Texture2D, mipLevel, 0, 0, desc.Width, desc.Height, texture.TextureFormat, texture.TextureType, databox.DataPointer);
+                            GL.TexSubImage2D(TextureTarget.Texture2D, mipLevel, 0, 0, (uint)desc.Width, (uint)desc.Height, texture.TextureFormat, texture.TextureType, (void*)databox.DataPointer);
                             break;
                         case TextureTarget.Texture2DArray:
-                            GL.TexSubImage3D(TextureTarget3d.Texture2DArray, mipLevel, 0, 0, arraySlice, desc.Width, desc.Height, 1, texture.TextureFormat, texture.TextureType, databox.DataPointer);
+                            GL.TexSubImage3D(TextureTarget.Texture2DArray, mipLevel, 0, 0, arraySlice, (uint)desc.Width, (uint)desc.Height, 1, texture.TextureFormat, texture.TextureType, (void*)databox.DataPointer);
                             break;
                         case TextureTarget.Texture3D:
-                            GL.TexSubImage3D(TextureTarget3d.Texture3D, mipLevel, 0, 0, 0, desc.Width, desc.Height, desc.Depth, texture.TextureFormat, texture.TextureType, databox.DataPointer);
+                            GL.TexSubImage3D(TextureTarget.Texture3D, mipLevel, 0, 0, 0, (uint)desc.Width, (uint)desc.Height, (uint)desc.Depth, texture.TextureFormat, texture.TextureType, (void*)databox.DataPointer);
                             break;
                         case TextureTarget.TextureCubeMap:
-                            GL.TexSubImage2D(Texture.GetTextureTargetForDataSet2D(texture.TextureTarget, arraySlice), mipLevel, 0, 0, desc.Width, desc.Height, texture.TextureFormat, texture.TextureType, databox.DataPointer);
+                            GL.TexSubImage2D(Texture.GetTextureTargetForDataSet2D(texture.TextureTarget, arraySlice), mipLevel, 0, 0, (uint)desc.Width, (uint)desc.Height, texture.TextureFormat, texture.TextureType, (void*)databox.DataPointer);
                             break;
                         default:
                             Internal.Refactor.ThrowNotImplementedException("UpdateSubresource not implemented for texture target " + texture.TextureTarget);
@@ -1602,7 +1562,7 @@ namespace Stride.Graphics
             }
         }
 
-        internal void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox, ResourceRegion region)
+        internal unsafe void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox, ResourceRegion region)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -1663,9 +1623,9 @@ namespace Stride.Graphics
                 // Update the texture region
                 GL.BindTexture(texture.TextureTarget, texture.TextureId);
                 if (texture.Dimension == TextureDimension.Texture3D)
-                    GL.TexSubImage3D((TextureTarget3d)texture.TextureTarget, subResourceIndex, region.Left, region.Top, region.Front, width, height, depth, texture.TextureFormat, texture.TextureType, databox.DataPointer);
+                    GL.TexSubImage3D(texture.TextureTarget, subResourceIndex, region.Left, region.Top, region.Front, (uint)width, (uint)height, (uint)depth, texture.TextureFormat, texture.TextureType, (void*)databox.DataPointer);
                 else
-                    GL.TexSubImage2D((TextureTarget2d)texture.TextureTarget, subResourceIndex, region.Left, region.Top, width, height, texture.TextureFormat, texture.TextureType, databox.DataPointer);
+                    GL.TexSubImage2D(texture.TextureTarget, subResourceIndex, region.Left, region.Top, (uint)width, (uint)height, texture.TextureFormat, texture.TextureType, (void*)databox.DataPointer);
                 boundShaderResourceViews[0] = null; // bound active texture 0 has changed
 
                 // reset the Unpack Alignment
@@ -1694,9 +1654,9 @@ namespace Stride.Graphics
                     {
                         GL.BindBuffer(buffer.BufferTarget, buffer.BufferId);
                         if (region.Left == 0 && region.Right == buffer.SizeInBytes)
-                            GL.BufferData(buffer.BufferTarget, (IntPtr)region.Right, databox.DataPointer, buffer.BufferUsageHint);
+                            GL.BufferData(buffer.BufferTarget, (UIntPtr)region.Right, (void*)databox.DataPointer, buffer.BufferUsageHint);
                         else
-                            GL.BufferSubData(buffer.BufferTarget, (IntPtr)region.Left, (IntPtr)(region.Right - region.Left), databox.DataPointer);
+                            GL.BufferSubData(buffer.BufferTarget, (IntPtr)region.Left, (UIntPtr)(region.Right - region.Left), (void*)databox.DataPointer);
                         GL.BindBuffer(buffer.BufferTarget, 0);
                     }
                 }

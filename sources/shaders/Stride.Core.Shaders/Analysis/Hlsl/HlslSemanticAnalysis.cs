@@ -313,6 +313,17 @@ namespace Stride.Core.Shaders.Analysis.Hlsl
             if (value != null)
                 return value;
 
+            value = ByteAddressBufferType.Parse(name);
+            if (value != null)
+            {
+                if (value.TypeInference.TargetType == null && BuiltinObjects.TryGetValue(value.Name, out var predefinedType))
+                {
+                    value.TypeInference.TargetType = predefinedType;
+                }
+
+                return value;
+            }
+
             // Replace shader objects
             if (name == "VertexShader" || name == "GeometryShader" || name == "PixelShader")
                 return new ObjectType(name);

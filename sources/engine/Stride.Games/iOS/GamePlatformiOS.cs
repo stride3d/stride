@@ -10,7 +10,7 @@ using Stride.Graphics;
 
 namespace Stride.Games
 {
-    internal class GamePlatformiOS : GamePlatform<iOSWindow>, IGraphicsDeviceFactory
+    internal class GamePlatformiOS : GamePlatform, IGraphicsDeviceFactory
     {
         [DllImport("/usr/lib/libSystem.dylib")]
         private static unsafe extern int sysctlbyname([MarshalAs(UnmanagedType.LPStr)] string name, IntPtr oldp, int* oldlenp, IntPtr newp, uint newlen);
@@ -36,7 +36,7 @@ namespace Stride.Games
         {
             get
             {
-                var assemblyUri = new Uri(Assembly.GetEntryAssembly().CodeBase);
+                var assemblyUri = new Uri(Assembly.GetEntryAssembly().Location);
                 return Path.GetDirectoryName(assemblyUri.LocalPath);
             }
         }
@@ -45,7 +45,7 @@ namespace Stride.Games
         {
             if (type == AppContextType.iOS)
             {
-                return new GameWindowiOS();
+                return new GameWindowSDL();
             }
             else
             {
@@ -55,7 +55,7 @@ namespace Stride.Games
 
         public override List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters preferredParameters)
         {
-            var gameWindowiOS = gameWindow as GameWindowiOS;
+            var gameWindowiOS = gameWindow as GameWindowSDL;
             if (gameWindowiOS != null)
             {
                 var graphicsAdapter = GraphicsAdapterFactory.Default;

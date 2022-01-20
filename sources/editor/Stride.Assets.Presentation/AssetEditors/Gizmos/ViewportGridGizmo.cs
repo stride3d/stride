@@ -20,13 +20,16 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
     public class ViewportGridGizmo : GridGizmoBase
     {
         private const float MaximumViewAngle = 25f * MathUtil.Pi / 180f;
-        private static readonly Vector3 DefaultUpVector = Vector3.UnitY;
         private const float GridVerticalOffset = 0.0175f;
         private const int GridTextureTopSize = 256;
 
         private List<Entity> originAxes = new List<Entity>();
         private Entity grid;
         private Entity originAxis;
+
+        private readonly Color RedUniformColor = new Color(0xFC, 0x37, 0x37);
+        private readonly Color GreenUniformColor = new Color(0x32, 0xE3, 0x35);
+        private readonly Color BlueUniformColor = new Color(0x2F, 0x6A, 0xE1);
 
         private delegate Image ImageBuilder();
 
@@ -59,9 +62,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             // Create the grid origin
             originAxis = new Entity("The grid origin axes");
-            originAxes.Add(CreateOriginAxis(Color.Red, 0));
-            originAxes.Add(CreateOriginAxis(Color.Green, 1));
-            originAxes.Add(CreateOriginAxis(Color.Blue, 2));
+            originAxes.Add(CreateOriginAxis(RedUniformColor, 0));
+            originAxes.Add(CreateOriginAxis(GreenUniformColor, 1));
+            originAxes.Add(CreateOriginAxis(BlueUniformColor, 2));
             for (int i = 0; i < 3; i++)
                 originAxis.AddChild(originAxes[i]);
 
@@ -100,11 +103,30 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             axisEntity.TransformValue.Scale = new Vector3(GridSize, 1f / GridBase, 1f / GridBase);
             if (axis != 0)
                 axisEntity.TransformValue.Rotation = Quaternion.RotationX(MathUtil.PiOverTwo) * Quaternion.RotationAxis(new Vector3 { [1 + (axis%2)] = 1f}, MathUtil.PiOverTwo);
-
             var axisEntityRoot = new Entity("Scene grid origin axis root");
             axisEntityRoot.AddChild(axisEntity);
 
             return axisEntityRoot;
+        }
+
+        /// <summary>
+        /// Gets the default color associated to the provided axis index.
+        /// </summary>
+        /// <param name="axisIndex">The index of the axis</param>
+        /// <returns>The default color associated</returns>
+        protected Color3 GetAxisDefaultColor(int axisIndex)
+        {
+            switch (axisIndex)
+            {
+                case 0:
+                    return RedUniformColor.ToColor3();
+                case 1:
+                    return GreenUniformColor.ToColor3();
+                case 2:
+                    return BlueUniformColor.ToColor3();
+                default:
+                    throw new ArgumentOutOfRangeException("axisIndex");
+            }
         }
 
         private Texture CreateTexture(ImageBuilder imageBuilder)
@@ -145,20 +167,20 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             });
         }
 
-        protected override void UpdateBase(Color3 gridColor, float sceneUnit)
+        protected override void UpdateBase(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
         {
             var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
             if (cameraService == null)
                 return;
 
             // update the grid color
-            GridMaterial.Passes[0].Parameters.Set(GridColorKey, Color4.PremultiplyAlpha(new Color4(gridColor, 0.35f)));
-            
+            GridMaterial.Passes[0].Parameters.Set(GridColorKey, Color4.PremultiplyAlpha(new Color4(gridColor, alpha)));
+
             // Determine the up vector depending on view matrix and projection mode
             // -> When orthographic, if we are looking along a coordinate axis, place the grid perpendicular to that axis.
-            // -> Fall back to the default plane otherwise.
-            var viewAxisIndex = 1;
-            var upVector = DefaultUpVector;
+            // -> Place the grid perpendicular to its default axis otherwise.
+            var viewAxisIndex = gridAxisIndex;
+            var upVector = new Vector3(0) { [gridAxisIndex] = 1 };
             var viewInvert = Matrix.Invert(cameraService.ViewMatrix);
             if (cameraService.IsOrthographic)
             {
@@ -167,7 +189,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     var coordinateAxis = new Vector3 { [i] = 1.0f };
                     var dotProduct = Vector3.Dot(viewInvert.Forward, coordinateAxis);
 
-                    if (Math.Abs(dotProduct) > 0.99f)
+                    if (MathF.Abs(dotProduct) > 0.99f)
                     {
                         upVector = coordinateAxis;
                         viewAxisIndex = i;
@@ -188,19 +210,10 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             var originPosition = Vector3.Zero;
 
             // Add a small offset along the Up axis to avoid depth-fight with objects positioned at height=0
-            snappedPosition[viewAxisIndex] = Math.Sign(viewInvert[3, viewAxisIndex]) * GridVerticalOffset * sceneUnit;
+            snappedPosition[viewAxisIndex] = MathF.Sign(viewInvert[3, viewAxisIndex]) * GridVerticalOffset * sceneUnit;
 
             // Move the grid origin in slightly in front the grid to have it in the foreground
-            originPosition[viewAxisIndex] = snappedPosition[viewAxisIndex] + Math.Sign(viewInvert[3, viewAxisIndex]) * 0.001f * sceneUnit;
-
-            // In orthographic mode, put the grid and origin in the very background of scene
-            if (cameraService.IsOrthographic) 
-            {
-                var dotProduct = Vector3.Dot(viewInvert.Forward, upVector);
-                var cameraOffset = viewInvert.TranslationVector[viewAxisIndex];
-                originPosition[viewAxisIndex] = cameraOffset + Math.Sign(dotProduct) * cameraService.FarPlane * 0.90f;
-                snappedPosition[viewAxisIndex] = cameraOffset + Math.Sign(dotProduct) * cameraService.FarPlane * 0.95f;
-            }
+            originPosition[viewAxisIndex] = snappedPosition[viewAxisIndex] + MathF.Sign(viewInvert[3, viewAxisIndex]) * 0.001f * sceneUnit;
             
             // Determine the intersection point of the center of the vieport with the grid plane
             var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, new Vector2(0.5f), viewInvert);
@@ -223,7 +236,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             for (var i = 0; i < 3; i++)
             {
                 if (viewAxisIndex != i)
-                    snappedPosition[i] += (float)Math.Round(intersection[i] / gridStringLineUnit) * gridStringLineUnit;
+                    snappedPosition[i] += MathF.Round(intersection[i] / gridStringLineUnit) * gridStringLineUnit;
             }
 
             // Apply positions
@@ -242,16 +255,23 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             for (var axis = 0; axis < 3; axis++)
                 SetPlaneEntityRotation((axis + 2) % 3, upVector, originAxes[axis]);
 
-            // Hide the vertical axis of the origin 
+            // Update the color of the origin axes and hide the grid axis
             for (int axis = 0; axis < 3; axis++)
+            {
+                // Make the axes alpha higher than the grid alpha so they are visible
+                float axesAlpha = alpha * 4;
+                var color = Color4.PremultiplyAlpha(new Color4(GetAxisDefaultColor(axis), axesAlpha));
+                originAxes[axis].GetChild(0).Get<ModelComponent>().GetMaterial(0).Passes[0].Parameters.Set(GridColorKey, color);
+              
                 originAxes[axis].GetChild(0).Get<ModelComponent>().Enabled = axis != viewAxisIndex;
+            }
         }
 
         private static void SetPlaneEntityRotation(int modelUpAxis, Vector3 upVector, Entity entity)
         {
             var axisModelUp = new Vector3 { [modelUpAxis] = 1f };
             var axisRotationVector = Vector3.Cross(axisModelUp, upVector);
-            var axisRotationAngle = (float)Math.Acos(Vector3.Dot(axisModelUp, upVector));
+            var axisRotationAngle = MathF.Acos(Vector3.Dot(axisModelUp, upVector));
             entity.Transform.Rotation = Quaternion.RotationAxis(axisRotationVector, axisRotationAngle);
         }
 

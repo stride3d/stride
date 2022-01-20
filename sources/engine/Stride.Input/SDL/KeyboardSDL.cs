@@ -5,13 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using SDL2;
+using Silk.NET.SDL;
 using Stride.Graphics.SDL;
+using Window = Stride.Graphics.SDL.Window;
 
 namespace Stride.Input
 {
     internal class KeyboardSDL : KeyboardDeviceBase, ITextInputDevice, IDisposable
     {
+        private static Sdl SDL = Window.SDL;
+
         private readonly Window window;
         private readonly List<TextInputEvent> textEvents = new List<TextInputEvent>();
 
@@ -26,7 +29,7 @@ namespace Stride.Input
 
             Id = InputDeviceUtils.DeviceNameToGuid(window.SdlHandle.ToString() + Name);
         }
-        
+
         public void Dispose()
         {
             window.KeyDownActions -= OnKeyEvent;
@@ -49,45 +52,45 @@ namespace Stride.Input
 
         public void EnabledTextInput()
         {
-            SDL.SDL_StartTextInput();
+            SDL.StartTextInput();
         }
 
         public void DisableTextInput()
         {
-            SDL.SDL_StopTextInput();
+            SDL.StopTextInput();
         }
 
-        private void OnKeyEvent(SDL.SDL_KeyboardEvent e)
+        private void OnKeyEvent(KeyboardEvent e)
         {
             // Try to map to a stride key
             Keys key;
-            if (SDLKeys.MapKeys.TryGetValue(e.keysym.sym, out key) && key != Keys.None)
+            if (SDLKeys.MapKeys.TryGetValue((KeyCode)e.Keysym.Sym, out key) && key != Keys.None)
             {
-                if (e.type == SDL.SDL_EventType.SDL_KEYDOWN)
+                if ((EventType)e.Type == EventType.Keydown)
                     HandleKeyDown(key);
                 else
                     HandleKeyUp(key);
             }
         }
 
-        private unsafe void OnTextEditingActions(SDL.SDL_TextEditingEvent e)
+        private unsafe void OnTextEditingActions(TextEditingEvent e)
         {
             var textInputEvent = InputEventPool<TextInputEvent>.GetOrCreate(this);
-            textInputEvent.Text = SDLBufferToString(e.text);
+            textInputEvent.Text = SDLBufferToString(e.Text);
             textInputEvent.Type = TextInputEventType.Composition;
-            textInputEvent.CompositionStart = e.start;
-            textInputEvent.CompositionLength = e.length;
+            textInputEvent.CompositionStart = e.Start;
+            textInputEvent.CompositionLength = e.Length;
             textEvents.Add(textInputEvent);
         }
 
-        private unsafe void OnTextInputActions(SDL.SDL_TextInputEvent e)
+        private unsafe void OnTextInputActions(Silk.NET.SDL.TextInputEvent e)
         {
             var textInputEvent = InputEventPool<TextInputEvent>.GetOrCreate(this);
-            textInputEvent.Text = SDLBufferToString(e.text);
+            textInputEvent.Text = SDLBufferToString(e.Text);
             textInputEvent.Type = TextInputEventType.Input;
             textEvents.Add(textInputEvent);
         }
-        
+
         private unsafe string SDLBufferToString(byte* text, int size = 32)
         {
             byte[] sourceBytes = new byte[size];
@@ -106,7 +109,7 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Mapping between <see cref="SDL.SDL_Keycode"/> and <see cref="Stride.Input.Keys"/> needed for
+        /// Mapping between <see cref="KeyCode"/> and <see cref="Stride.Input.Keys"/> needed for
         /// translating SDL key events into Stride ones.
         /// </summary>
         private static class SDLKeys
@@ -114,201 +117,203 @@ namespace Stride.Input
             /// <summary>
             /// Map between SDL keys and Stride keys.
             /// </summary>
-            internal static readonly Dictionary<SDL.SDL_Keycode, Keys> MapKeys = NewMapKeys();
+            internal static readonly Dictionary<KeyCode, Keys> MapKeys = NewMapKeys();
 
             /// <summary>
-            /// Create a mapping between <see cref="SDL.SDL_Keycode"/> and <see cref="Stride.Input.Keys"/>
+            /// Create a mapping between <see cref="KeyCode"/> and <see cref="Stride.Input.Keys"/>
             /// </summary>
             /// <remarks>Not all <see cref="Stride.Input.Keys"/> have a corresponding SDL entries. For the moment they are commented out in the code below.</remarks>
             /// <returns>A new map.</returns>
-            private static Dictionary<SDL.SDL_Keycode, Keys> NewMapKeys()
+            private static Dictionary<KeyCode, Keys> NewMapKeys()
             {
-                var map = new Dictionary<SDL.SDL_Keycode, Keys>(200);
-                map[SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.None;
-                map[SDL.SDL_Keycode.SDLK_CANCEL] = Keys.Cancel;
-                map[SDL.SDL_Keycode.SDLK_BACKSPACE] = Keys.Back;
-                map[SDL.SDL_Keycode.SDLK_TAB] = Keys.Tab;
-                map[SDL.SDL_Keycode.SDLK_KP_TAB] = Keys.Tab;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.LineFeed;
-                map[SDL.SDL_Keycode.SDLK_CLEAR] = Keys.Clear;
-                map[SDL.SDL_Keycode.SDLK_CLEARAGAIN] = Keys.Clear;
-                map[SDL.SDL_Keycode.SDLK_KP_CLEAR] = Keys.Clear;
-                map[SDL.SDL_Keycode.SDLK_KP_CLEARENTRY] = Keys.Clear;
-                map[SDL.SDL_Keycode.SDLK_KP_ENTER] = Keys.Enter;
-                map[SDL.SDL_Keycode.SDLK_RETURN] = Keys.Return;
-                map[SDL.SDL_Keycode.SDLK_RETURN2] = Keys.Return;
-                map[SDL.SDL_Keycode.SDLK_PAUSE] = Keys.Pause;
-                map[SDL.SDL_Keycode.SDLK_CAPSLOCK] = Keys.Capital;
-                //            map [SDL.SDL_Keycode.SDLK_CAPSLOCK] = Keys.CapsLock;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.HangulMode;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.KanaMode;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.JunjaMode;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.FinalMode;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.HanjaMode;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.KanjiMode;
-                map[SDL.SDL_Keycode.SDLK_ESCAPE] = Keys.Escape;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.ImeConvert;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.ImeNonConvert;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.ImeAccept;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.ImeModeChange;
-                map[SDL.SDL_Keycode.SDLK_SPACE] = Keys.Space;
-                map[SDL.SDL_Keycode.SDLK_KP_SPACE] = Keys.Space;
-                map[SDL.SDL_Keycode.SDLK_PAGEUP] = Keys.PageUp;
-                map[SDL.SDL_Keycode.SDLK_PRIOR] = Keys.Prior;
-                //            map [SDL.SDL_Keycode.SDLK_PAGEDOWN] = Keys.Next); // Next is the same as PageDo;
-                map[SDL.SDL_Keycode.SDLK_PAGEDOWN] = Keys.PageDown;
-                map[SDL.SDL_Keycode.SDLK_END] = Keys.End;
-                map[SDL.SDL_Keycode.SDLK_HOME] = Keys.Home;
-                map[SDL.SDL_Keycode.SDLK_AC_HOME] = Keys.Home;
-                map[SDL.SDL_Keycode.SDLK_LEFT] = Keys.Left;
-                map[SDL.SDL_Keycode.SDLK_UP] = Keys.Up;
-                map[SDL.SDL_Keycode.SDLK_RIGHT] = Keys.Right;
-                map[SDL.SDL_Keycode.SDLK_DOWN] = Keys.Down;
-                map[SDL.SDL_Keycode.SDLK_SELECT] = Keys.Select;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Print;
-                map[SDL.SDL_Keycode.SDLK_EXECUTE] = Keys.Execute;
-                map[SDL.SDL_Keycode.SDLK_PRINTSCREEN] = Keys.PrintScreen;
-                //            map [SDL.SDL_Keycode.SDLK_PRINTSCREEN] = Keys.Snapshot); // Snapshot is the same as PageDo;
-                map[SDL.SDL_Keycode.SDLK_INSERT] = Keys.Insert;
-                map[SDL.SDL_Keycode.SDLK_DELETE] = Keys.Delete;
-                map[SDL.SDL_Keycode.SDLK_HELP] = Keys.Help;
-                map[SDL.SDL_Keycode.SDLK_0] = Keys.D0;
-                map[SDL.SDL_Keycode.SDLK_1] = Keys.D1;
-                map[SDL.SDL_Keycode.SDLK_2] = Keys.D2;
-                map[SDL.SDL_Keycode.SDLK_3] = Keys.D3;
-                map[SDL.SDL_Keycode.SDLK_4] = Keys.D4;
-                map[SDL.SDL_Keycode.SDLK_5] = Keys.D5;
-                map[SDL.SDL_Keycode.SDLK_6] = Keys.D6;
-                map[SDL.SDL_Keycode.SDLK_7] = Keys.D7;
-                map[SDL.SDL_Keycode.SDLK_8] = Keys.D8;
-                map[SDL.SDL_Keycode.SDLK_9] = Keys.D9;
-                map[SDL.SDL_Keycode.SDLK_a] = Keys.A;
-                map[SDL.SDL_Keycode.SDLK_b] = Keys.B;
-                map[SDL.SDL_Keycode.SDLK_c] = Keys.C;
-                map[SDL.SDL_Keycode.SDLK_d] = Keys.D;
-                map[SDL.SDL_Keycode.SDLK_e] = Keys.E;
-                map[SDL.SDL_Keycode.SDLK_f] = Keys.F;
-                map[SDL.SDL_Keycode.SDLK_g] = Keys.G;
-                map[SDL.SDL_Keycode.SDLK_h] = Keys.H;
-                map[SDL.SDL_Keycode.SDLK_i] = Keys.I;
-                map[SDL.SDL_Keycode.SDLK_j] = Keys.J;
-                map[SDL.SDL_Keycode.SDLK_k] = Keys.K;
-                map[SDL.SDL_Keycode.SDLK_l] = Keys.L;
-                map[SDL.SDL_Keycode.SDLK_m] = Keys.M;
-                map[SDL.SDL_Keycode.SDLK_n] = Keys.N;
-                map[SDL.SDL_Keycode.SDLK_o] = Keys.O;
-                map[SDL.SDL_Keycode.SDLK_p] = Keys.P;
-                map[SDL.SDL_Keycode.SDLK_q] = Keys.Q;
-                map[SDL.SDL_Keycode.SDLK_r] = Keys.R;
-                map[SDL.SDL_Keycode.SDLK_s] = Keys.S;
-                map[SDL.SDL_Keycode.SDLK_t] = Keys.T;
-                map[SDL.SDL_Keycode.SDLK_u] = Keys.U;
-                map[SDL.SDL_Keycode.SDLK_v] = Keys.V;
-                map[SDL.SDL_Keycode.SDLK_w] = Keys.W;
-                map[SDL.SDL_Keycode.SDLK_x] = Keys.X;
-                map[SDL.SDL_Keycode.SDLK_y] = Keys.Y;
-                map[SDL.SDL_Keycode.SDLK_z] = Keys.Z;
-                map[SDL.SDL_Keycode.SDLK_LGUI] = Keys.LeftWin;
-                map[SDL.SDL_Keycode.SDLK_RGUI] = Keys.RightWin;
-                map[SDL.SDL_Keycode.SDLK_APPLICATION] = Keys.Apps; // TODO: Verify value
-                map[SDL.SDL_Keycode.SDLK_SLEEP] = Keys.Sleep;
-                map[SDL.SDL_Keycode.SDLK_KP_0] = Keys.NumPad0;
-                map[SDL.SDL_Keycode.SDLK_KP_1] = Keys.NumPad1;
-                map[SDL.SDL_Keycode.SDLK_KP_2] = Keys.NumPad2;
-                map[SDL.SDL_Keycode.SDLK_KP_3] = Keys.NumPad3;
-                map[SDL.SDL_Keycode.SDLK_KP_4] = Keys.NumPad4;
-                map[SDL.SDL_Keycode.SDLK_KP_5] = Keys.NumPad5;
-                map[SDL.SDL_Keycode.SDLK_KP_6] = Keys.NumPad6;
-                map[SDL.SDL_Keycode.SDLK_KP_7] = Keys.NumPad7;
-                map[SDL.SDL_Keycode.SDLK_KP_8] = Keys.NumPad8;
-                map[SDL.SDL_Keycode.SDLK_KP_9] = Keys.NumPad9;
-                map[SDL.SDL_Keycode.SDLK_KP_MULTIPLY] = Keys.Multiply;
-                map[SDL.SDL_Keycode.SDLK_PLUS] = Keys.OemPlus;
-                map[SDL.SDL_Keycode.SDLK_KP_PLUS] = Keys.Add;
-                map[SDL.SDL_Keycode.SDLK_SEPARATOR] = Keys.Separator;
-                map[SDL.SDL_Keycode.SDLK_MINUS] = Keys.OemMinus;
-                map[SDL.SDL_Keycode.SDLK_KP_MINUS] = Keys.Subtract;
-                map[SDL.SDL_Keycode.SDLK_DECIMALSEPARATOR] = Keys.Decimal;
-                map[SDL.SDL_Keycode.SDLK_KP_DECIMAL] = Keys.Decimal;
-                map[SDL.SDL_Keycode.SDLK_KP_DIVIDE] = Keys.Divide;
-                map[SDL.SDL_Keycode.SDLK_F1] = Keys.F1;
-                map[SDL.SDL_Keycode.SDLK_F2] = Keys.F2;
-                map[SDL.SDL_Keycode.SDLK_F3] = Keys.F3;
-                map[SDL.SDL_Keycode.SDLK_F4] = Keys.F4;
-                map[SDL.SDL_Keycode.SDLK_F5] = Keys.F5;
-                map[SDL.SDL_Keycode.SDLK_F6] = Keys.F6;
-                map[SDL.SDL_Keycode.SDLK_F7] = Keys.F7;
-                map[SDL.SDL_Keycode.SDLK_F8] = Keys.F8;
-                map[SDL.SDL_Keycode.SDLK_F9] = Keys.F9;
-                map[SDL.SDL_Keycode.SDLK_F10] = Keys.F10;
-                map[SDL.SDL_Keycode.SDLK_F11] = Keys.F11;
-                map[SDL.SDL_Keycode.SDLK_F12] = Keys.F12;
-                map[SDL.SDL_Keycode.SDLK_F13] = Keys.F13;
-                map[SDL.SDL_Keycode.SDLK_F14] = Keys.F14;
-                map[SDL.SDL_Keycode.SDLK_F15] = Keys.F15;
-                map[SDL.SDL_Keycode.SDLK_F16] = Keys.F16;
-                map[SDL.SDL_Keycode.SDLK_F17] = Keys.F17;
-                map[SDL.SDL_Keycode.SDLK_F18] = Keys.F18;
-                map[SDL.SDL_Keycode.SDLK_F19] = Keys.F19;
-                map[SDL.SDL_Keycode.SDLK_F20] = Keys.F20;
-                map[SDL.SDL_Keycode.SDLK_F21] = Keys.F21;
-                map[SDL.SDL_Keycode.SDLK_F22] = Keys.F22;
-                map[SDL.SDL_Keycode.SDLK_F23] = Keys.F23;
-                map[SDL.SDL_Keycode.SDLK_F24] = Keys.F24;
-                map[SDL.SDL_Keycode.SDLK_NUMLOCKCLEAR] = Keys.NumLock;
-                map[SDL.SDL_Keycode.SDLK_SCROLLLOCK] = Keys.Scroll;
-                map[SDL.SDL_Keycode.SDLK_LSHIFT] = Keys.LeftShift;
-                map[SDL.SDL_Keycode.SDLK_RSHIFT] = Keys.RightShift;
-                map[SDL.SDL_Keycode.SDLK_LCTRL] = Keys.LeftCtrl;
-                map[SDL.SDL_Keycode.SDLK_RCTRL] = Keys.RightCtrl;
-                map[SDL.SDL_Keycode.SDLK_LALT] = Keys.LeftAlt;
-                map[SDL.SDL_Keycode.SDLK_RALT] = Keys.RightAlt;
-                map[SDL.SDL_Keycode.SDLK_AC_BACK] = Keys.BrowserBack;
-                map[SDL.SDL_Keycode.SDLK_AC_FORWARD] = Keys.BrowserForward;
-                map[SDL.SDL_Keycode.SDLK_AC_REFRESH] = Keys.BrowserRefresh;
-                map[SDL.SDL_Keycode.SDLK_AC_STOP] = Keys.BrowserStop;
-                map[SDL.SDL_Keycode.SDLK_AC_SEARCH] = Keys.BrowserSearch;
-                map[SDL.SDL_Keycode.SDLK_AC_BOOKMARKS] = Keys.BrowserFavorites;
-                map[SDL.SDL_Keycode.SDLK_AC_HOME] = Keys.BrowserHome;
-                map[SDL.SDL_Keycode.SDLK_AUDIOMUTE] = Keys.VolumeMute;
-                map[SDL.SDL_Keycode.SDLK_VOLUMEDOWN] = Keys.VolumeDown;
-                map[SDL.SDL_Keycode.SDLK_VOLUMEUP] = Keys.VolumeUp;
-                map[SDL.SDL_Keycode.SDLK_AUDIONEXT] = Keys.MediaNextTrack;
-                map[SDL.SDL_Keycode.SDLK_AUDIOPREV] = Keys.MediaPreviousTrack;
-                map[SDL.SDL_Keycode.SDLK_AUDIOSTOP] = Keys.MediaStop;
-                map[SDL.SDL_Keycode.SDLK_AUDIOPLAY] = Keys.MediaPlayPause;
-                map[SDL.SDL_Keycode.SDLK_MAIL] = Keys.LaunchMail;
-                map[SDL.SDL_Keycode.SDLK_MEDIASELECT] = Keys.SelectMedia;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.LaunchApplication1;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.LaunchApplication2;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Oem1;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemSemicolon;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemComma;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemPeriod;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Oem2;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemQuestion;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Oem3;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemTilde;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Oem4;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemOpenBrackets;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Oem5;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemPipe;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Oem6;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemCloseBrackets;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Oem7;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemQuotes;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Oem8;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Oem102;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemBackslash;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Attn;
-                map[SDL.SDL_Keycode.SDLK_CRSEL] = Keys.CrSel;
-                map[SDL.SDL_Keycode.SDLK_EXSEL] = Keys.ExSel;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.EraseEof;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Play;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Zoom;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.NoName;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.Pa1;
-                //            map [SDL.SDL_Keycode.SDLK_UNKNOWN] = Keys.OemClear;
+                var map = new Dictionary<KeyCode, Keys>(200);
+                map[KeyCode.KUnknown] = Keys.None;
+                map[KeyCode.KCancel] = Keys.Cancel;
+                map[KeyCode.KBackspace] = Keys.Back;
+                map[KeyCode.KTab] = Keys.Tab;
+                map[KeyCode.KKPTab] = Keys.Tab;
+                //            map [KeyCode.KUnknown] = Keys.LineFeed;
+                map[KeyCode.KClear] = Keys.Clear;
+                map[KeyCode.KClearagain] = Keys.Clear;
+                map[KeyCode.KKPClear] = Keys.Clear;
+                map[KeyCode.KKPClearentry] = Keys.Clear;
+                map[KeyCode.KKPEnter] = Keys.Enter;
+                map[KeyCode.KReturn] = Keys.Return;
+                map[KeyCode.KReturn2] = Keys.Return;
+                map[KeyCode.KPause] = Keys.Pause;
+                map[KeyCode.KCapslock] = Keys.Capital;
+                //            map [KeyCode.KCapslock] = Keys.CapsLock;
+                //            map [KeyCode.KUnknown] = Keys.HangulMode;
+                //            map [KeyCode.KUnknown] = Keys.KanaMode;
+                //            map [KeyCode.KUnknown] = Keys.JunjaMode;
+                //            map [KeyCode.KUnknown] = Keys.FinalMode;
+                //            map [KeyCode.KUnknown] = Keys.HanjaMode;
+                //            map [KeyCode.KUnknown] = Keys.KanjiMode;
+                map[KeyCode.KEscape] = Keys.Escape;
+                //            map [KeyCode.KUnknown] = Keys.ImeConvert;
+                //            map [KeyCode.KUnknown] = Keys.ImeNonConvert;
+                //            map [KeyCode.KUnknown] = Keys.ImeAccept;
+                //            map [KeyCode.KUnknown] = Keys.ImeModeChange;
+                map[KeyCode.KSpace] = Keys.Space;
+                map[KeyCode.KKPSpace] = Keys.Space;
+                map[KeyCode.KPageup] = Keys.PageUp;
+                map[KeyCode.KPrior] = Keys.Prior;
+                //            map [KeyCode.KPagedown] = Keys.Next); // Next is the same as PageDo;
+                map[KeyCode.KPagedown] = Keys.PageDown;
+                map[KeyCode.KEnd] = Keys.End;
+                map[KeyCode.KHome] = Keys.Home;
+                map[KeyCode.KACHome] = Keys.Home;
+                map[KeyCode.KLeft] = Keys.Left;
+                map[KeyCode.KUp] = Keys.Up;
+                map[KeyCode.KRight] = Keys.Right;
+                map[KeyCode.KDown] = Keys.Down;
+                map[KeyCode.KSelect] = Keys.Select;
+                //            map [KeyCode.KUnknown] = Keys.Print;
+                map[KeyCode.KExecute] = Keys.Execute;
+                map[KeyCode.KPrintscreen] = Keys.PrintScreen;
+                //            map [KeyCode.KPrintscreen] = Keys.Snapshot); // Snapshot is the same as PageDo;
+                map[KeyCode.KInsert] = Keys.Insert;
+                map[KeyCode.KDelete] = Keys.Delete;
+                map[KeyCode.KHelp] = Keys.Help;
+                map[KeyCode.K0] = Keys.D0;
+                map[KeyCode.K1] = Keys.D1;
+                map[KeyCode.K2] = Keys.D2;
+                map[KeyCode.K3] = Keys.D3;
+                map[KeyCode.K4] = Keys.D4;
+                map[KeyCode.K5] = Keys.D5;
+                map[KeyCode.K6] = Keys.D6;
+                map[KeyCode.K7] = Keys.D7;
+                map[KeyCode.K8] = Keys.D8;
+                map[KeyCode.K9] = Keys.D9;
+                map[KeyCode.KA] = Keys.A;
+                map[KeyCode.KB] = Keys.B;
+                map[KeyCode.KC] = Keys.C;
+                map[KeyCode.KD] = Keys.D;
+                map[KeyCode.KE] = Keys.E;
+                map[KeyCode.KF] = Keys.F;
+                map[KeyCode.KG] = Keys.G;
+                map[KeyCode.KH] = Keys.H;
+                map[KeyCode.KI] = Keys.I;
+                map[KeyCode.KJ] = Keys.J;
+                map[KeyCode.KK] = Keys.K;
+                map[KeyCode.KL] = Keys.L;
+                map[KeyCode.KM] = Keys.M;
+                map[KeyCode.KN] = Keys.N;
+                map[KeyCode.KO] = Keys.O;
+                map[KeyCode.KP] = Keys.P;
+                map[KeyCode.KQ] = Keys.Q;
+                map[KeyCode.KR] = Keys.R;
+                map[KeyCode.KS] = Keys.S;
+                map[KeyCode.KT] = Keys.T;
+                map[KeyCode.KU] = Keys.U;
+                map[KeyCode.KV] = Keys.V;
+                map[KeyCode.KW] = Keys.W;
+                map[KeyCode.KX] = Keys.X;
+                map[KeyCode.KY] = Keys.Y;
+                map[KeyCode.KZ] = Keys.Z;
+                map[KeyCode.KLgui] = Keys.LeftWin;
+                map[KeyCode.KRgui] = Keys.RightWin;
+                map[KeyCode.KApplication] = Keys.Apps; // TODO: Verify value
+                map[KeyCode.KSleep] = Keys.Sleep;
+                map[KeyCode.KKP0] = Keys.NumPad0;
+                map[KeyCode.KKP1] = Keys.NumPad1;
+                map[KeyCode.KKP2] = Keys.NumPad2;
+                map[KeyCode.KKP3] = Keys.NumPad3;
+                map[KeyCode.KKP4] = Keys.NumPad4;
+                map[KeyCode.KKP5] = Keys.NumPad5;
+                map[KeyCode.KKP6] = Keys.NumPad6;
+                map[KeyCode.KKP7] = Keys.NumPad7;
+                map[KeyCode.KKP8] = Keys.NumPad8;
+                map[KeyCode.KKP9] = Keys.NumPad9;
+                map[KeyCode.KKPMultiply] = Keys.Multiply;
+                map[KeyCode.KPlus] = Keys.OemPlus;
+                map[KeyCode.KKPPlus] = Keys.Add;
+                map[KeyCode.KSeparator] = Keys.Separator;
+                map[KeyCode.KMinus] = Keys.OemMinus;
+                map[KeyCode.KKPMinus] = Keys.Subtract;
+                map[KeyCode.KDecimalseparator] = Keys.Decimal;
+                map[KeyCode.KKPDecimal] = Keys.NumPadDecimal;
+                map[KeyCode.KKPDivide] = Keys.Divide;
+                map[KeyCode.KF1] = Keys.F1;
+                map[KeyCode.KF2] = Keys.F2;
+                map[KeyCode.KF3] = Keys.F3;
+                map[KeyCode.KF4] = Keys.F4;
+                map[KeyCode.KF5] = Keys.F5;
+                map[KeyCode.KF6] = Keys.F6;
+                map[KeyCode.KF7] = Keys.F7;
+                map[KeyCode.KF8] = Keys.F8;
+                map[KeyCode.KF9] = Keys.F9;
+                map[KeyCode.KF10] = Keys.F10;
+                map[KeyCode.KF11] = Keys.F11;
+                map[KeyCode.KF12] = Keys.F12;
+                map[KeyCode.KF13] = Keys.F13;
+                map[KeyCode.KF14] = Keys.F14;
+                map[KeyCode.KF15] = Keys.F15;
+                map[KeyCode.KF16] = Keys.F16;
+                map[KeyCode.KF17] = Keys.F17;
+                map[KeyCode.KF18] = Keys.F18;
+                map[KeyCode.KF19] = Keys.F19;
+                map[KeyCode.KF20] = Keys.F20;
+                map[KeyCode.KF21] = Keys.F21;
+                map[KeyCode.KF22] = Keys.F22;
+                map[KeyCode.KF23] = Keys.F23;
+                map[KeyCode.KF24] = Keys.F24;
+                map[KeyCode.KNumlockclear] = Keys.NumLock;
+                map[KeyCode.KScrolllock] = Keys.Scroll;
+                map[KeyCode.KLshift] = Keys.LeftShift;
+                map[KeyCode.KRshift] = Keys.RightShift;
+                map[KeyCode.KLctrl] = Keys.LeftCtrl;
+                map[KeyCode.KRctrl] = Keys.RightCtrl;
+                map[KeyCode.KLalt] = Keys.LeftAlt;
+                map[KeyCode.KRalt] = Keys.RightAlt;
+                map[KeyCode.KACBack] = Keys.BrowserBack;
+                map[KeyCode.KACForward] = Keys.BrowserForward;
+                map[KeyCode.KACRefresh] = Keys.BrowserRefresh;
+                map[KeyCode.KACStop] = Keys.BrowserStop;
+                map[KeyCode.KACSearch] = Keys.BrowserSearch;
+                map[KeyCode.KACBookmarks] = Keys.BrowserFavorites;
+                map[KeyCode.KACHome] = Keys.BrowserHome;
+                map[KeyCode.KAudiomute] = Keys.VolumeMute;
+                map[KeyCode.KVolumedown] = Keys.VolumeDown;
+                map[KeyCode.KVolumeup] = Keys.VolumeUp;
+                map[KeyCode.KAudionext] = Keys.MediaNextTrack;
+                map[KeyCode.KAudioprev] = Keys.MediaPreviousTrack;
+                map[KeyCode.KAudiostop] = Keys.MediaStop;
+                map[KeyCode.KAudioplay] = Keys.MediaPlayPause;
+                map[KeyCode.KMail] = Keys.LaunchMail;
+                map[KeyCode.KMediaselect] = Keys.SelectMedia;
+                //            map [KeyCode.KUnknown] = Keys.LaunchApplication1;
+                //            map [KeyCode.KUnknown] = Keys.LaunchApplication2;
+                //            map [KeyCode.KUnknown] = Keys.Oem1;
+                map[KeyCode.KSemicolon] = Keys.OemSemicolon;
+                map[KeyCode.KComma] = Keys.OemComma;
+                map[KeyCode.KPeriod] = Keys.OemPeriod;
+                // Verified with http://kbdlayout.info/
+                map[KeyCode.KKPPeriod] = Keys.NumPadDecimal;
+                //            map [KeyCode.KUnknown] = Keys.Oem2;
+                map[KeyCode.KSlash] = Keys.OemQuestion;
+                //            map [KeyCode.KUnknown] = Keys.Oem3;
+                map[KeyCode.KBackquote] = Keys.OemTilde;
+                //            map [KeyCode.KUnknown] = Keys.Oem4;
+                map[KeyCode.KLeftbracket] = Keys.OemOpenBrackets;
+                //            map [KeyCode.KUnknown] = Keys.Oem5;
+                //            map [KeyCode.KUnknown] = Keys.OemPipe;
+                //            map [KeyCode.KUnknown] = Keys.Oem6;
+                map[KeyCode.KRightbracket] = Keys.OemCloseBrackets;
+                //            map [KeyCode.KUnknown] = Keys.Oem7;
+                map[KeyCode.KQuote] = Keys.OemQuotes;
+                //            map [KeyCode.KUnknown] = Keys.Oem8;
+                //            map [KeyCode.KUnknown] = Keys.Oem102;
+                map[KeyCode.KBackslash] = Keys.OemBackslash;
+                //            map [KeyCode.KUnknown] = Keys.Attn;
+                map[KeyCode.KCrsel] = Keys.CrSel;
+                map[KeyCode.KExsel] = Keys.ExSel;
+                //            map [KeyCode.KUnknown] = Keys.EraseEof;
+                //            map [KeyCode.KUnknown] = Keys.Play;
+                //            map [KeyCode.KUnknown] = Keys.Zoom;
+                //            map [KeyCode.KUnknown] = Keys.NoName;
+                //            map [KeyCode.KUnknown] = Keys.Pa1;
+                map[KeyCode.KClear] = Keys.OemClear;
                 return map;
             }
         }

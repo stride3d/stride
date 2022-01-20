@@ -6,7 +6,7 @@ namespace Stride.Graphics
 {
     public partial struct MappedResource
     {
-        internal int PixelBufferObjectId;
+        internal uint PixelBufferObjectId;
     }
 }
 #endif

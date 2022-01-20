@@ -12,7 +12,7 @@ namespace Stride.Core.Assets.Editor.View.TemplateProviders
 
         public override bool MatchNode(NodeViewModel node)
         {
-            return base.MatchNode(node) && node.Parent != null && (node.Parent.HasCollection || node.Parent.HasDictionary);
+            return base.MatchNode(node) && node.Parent != null && (node.Parent.HasList || node.Parent.HasDictionary || node.Parent.HasSet || node.Parent.HasCollection);
         }
     }
 }

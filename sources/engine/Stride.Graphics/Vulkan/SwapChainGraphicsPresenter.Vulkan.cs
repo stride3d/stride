@@ -351,8 +351,9 @@ namespace Stride.Graphics
             // Create surface
 #if STRIDE_UI_SDL
             var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
-            SDL2.SDL.SDL_Vulkan_CreateSurface(control.SdlHandle, GraphicsDevice.NativeInstance.Handle, out var surfacePtr);
-            surface = new VkSurfaceKHR(surfacePtr);
+            Silk.NET.Core.Native.VkNonDispatchableHandle surfaceHandle = default;
+            SDL.Window.SDL.VulkanCreateSurface((Silk.NET.SDL.Window*)control.SdlHandle, new Silk.NET.Core.Native.VkHandle(GraphicsDevice.NativeInstance.Handle), ref surfaceHandle);
+            surface = new VkSurfaceKHR(surfaceHandle.Handle);
 #else
             if (Platform.Type == PlatformType.Windows)
             {

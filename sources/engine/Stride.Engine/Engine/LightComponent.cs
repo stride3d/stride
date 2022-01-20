@@ -19,6 +19,7 @@ namespace Stride.Engine
     // TODO GRAPHICS REFACTOR
     //[DefaultEntityComponentRenderer(typeof(LightComponentRenderer), -10)]
     [DefaultEntityComponentRenderer(typeof(LightProcessor))]
+    [AllowMultipleComponents]
     [ComponentOrder(12000)]
     [ComponentCategory("Lights")]
     public sealed class LightComponent : ActivableEntityComponent

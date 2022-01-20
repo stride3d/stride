@@ -24,7 +24,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             public int Compare(EntitySortInfo x, EntitySortInfo y)
             {
-                return Math.Sign(x.Depth - y.Depth);
+                return MathF.Sign(x.Depth - y.Depth);
             }
         };
 
@@ -212,7 +212,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                 var maximum = new Vector3(GizmoPlaneLength);
 
                 for (int axis = 0; axis < 3; axis++)
-                    maximum[axis] *= Math.Sign(gizmoViewInverse[3, axis]); // translation planes move to always face the camera.
+                    maximum[axis] *= MathF.Sign(gizmoViewInverse[3, axis]); // translation planes move to always face the camera.
 
                 maximum[pair.Value] = AxisBodyRadius;
 
@@ -279,7 +279,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             if (UseSnap)
                 translation = MathUtil.Snap(translation, SnapValue);
 
-            var scaleValue = translation > 0 ? (float)Math.Exp(translation) : 1 / ((float)Math.Exp(-translation));
+            var scaleValue = translation > 0 ? MathF.Exp(translation) : 1 / (MathF.Exp(-translation));
 
             return Math.Max(MathUtil.ZeroTolerance, Math.Min(MaxScaleValue, scaleValue));
         }

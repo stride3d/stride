@@ -17,7 +17,6 @@ namespace Stride.Physics
         {
             Orientation = Quaternion.Identity;
             StepHeight = 0.1f;
-            ProcessCollisions = true;
         }
 
         /// <summary>
@@ -114,6 +113,24 @@ namespace Stride.Physics
                 {
                     KinematicCharacter.MaxSlope = value.Radians;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets the linear velocity from the kinematic character
+        /// </summary>
+        /// <value>
+        /// Vector3
+        /// </value>
+        /// <userdoc>
+        /// The linear speed of the character component
+        /// </userdoc>
+        [DataMemberIgnore]
+        public Vector3 LinearVelocity
+        {
+            get
+            {
+                return KinematicCharacter != null ? KinematicCharacter.LinearVelocity : Vector3.Zero;
             }
         }
 
@@ -229,7 +246,7 @@ namespace Stride.Physics
         {
             if (KinematicCharacter == null)
             {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+                throw new InvalidOperationException("Attempted to call a Physics function that is available only when the Entity has been already added to the Scene.");
             }
 
             KinematicCharacter.SetWalkDirection(velocity * Simulation.FixedTimeStep);

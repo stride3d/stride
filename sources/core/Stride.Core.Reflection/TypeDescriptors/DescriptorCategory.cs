@@ -23,9 +23,19 @@ namespace Stride.Core.Reflection
         Array,
 
         /// <summary>
+        /// A list
+        /// </summary>
+        List,
+
+        /// <summary>
         /// A dictionary
         /// </summary>
         Dictionary,
+
+        /// <summary>
+        /// A set
+        /// </summary>
+        Set,
 
         /// <summary>
         /// An object

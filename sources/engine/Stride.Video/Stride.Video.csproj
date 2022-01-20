@@ -11,10 +11,10 @@
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
     <StridePackAssets>true</StridePackAssets>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(StridePlatform)' == 'Android'">
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
     <DefineConstants>STRIDE_VIDEO_MEDIACODEC;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="('$(StridePlatform)' == 'Windows') and ('$(StrideNETRuntime)' != 'CoreCLR')">
+  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
     <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
@@ -24,9 +24,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
-    <PackageReference Include="SharpDX.MediaFoundation" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'UWP'" />
-    <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'UWP'" />
-    <PackageReference Include="SharpDX.Direct3D12" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.MediaFoundation" Version="4.2.0" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="SharpDX.Direct3D12" Version="4.2.0" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
   </ItemGroup>
   <Choose>
     <When Condition="$(DefineConstants.Contains(STRIDE_VIDEO_FFMPEG))">
@@ -40,7 +40,7 @@
     </When>
   </Choose>
   <ItemGroup>
-    <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.6" Condition="'$(StridePlatform)' == 'Windows'" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
   </ItemGroup>
   <Import Project="$(StrideSdkTargets)" />
 </Project>

@@ -34,7 +34,7 @@ namespace Stride.Core.Collections
         {
             if (comparer == null) throw new ArgumentNullException(nameof(comparer));
             this.comparer = comparer;
-            items = ArrayHelper<T>.Empty;
+            items = Array.Empty<T>();
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Stride.Core.Collections
                     }
                     else
                     {
-                        items = ArrayHelper<T>.Empty;
+                        items = Array.Empty<T>();
                     }
                 }
             }

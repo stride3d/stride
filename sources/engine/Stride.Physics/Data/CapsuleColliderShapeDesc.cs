@@ -58,8 +58,8 @@ namespace Stride.Physics
         {
             var other = obj as CapsuleColliderShapeDesc;
             return other?.Is2D == Is2D &&
-                   Math.Abs(other.Length - Length) < float.Epsilon &&
-                   Math.Abs(other.Radius - Radius) < float.Epsilon &&
+                   MathF.Abs(other.Length - Length) < float.Epsilon &&
+                   MathF.Abs(other.Radius - Radius) < float.Epsilon &&
                    other.Orientation == Orientation &&
                    other.LocalOffset == LocalOffset &&
                    other.LocalRotation == LocalRotation;

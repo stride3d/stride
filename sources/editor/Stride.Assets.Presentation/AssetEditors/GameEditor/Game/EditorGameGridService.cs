@@ -27,6 +27,8 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
 
         public float Alpha { get; set; } = 0.35f;
 
+        public int AxisIndex { get; set; } = 1;
+
         public override IEnumerable<Type> Dependencies { get { yield return typeof(IEditorGameCameraService); } }
 
         protected override Task<bool> Initialize(EditorServiceGame editorGame)
@@ -61,7 +63,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
             while (!IsDisposed)
             {
                 grid.IsEnabled = IsActive;
-                grid.Update(Color, game.EditorServices.Get<IEditorGameCameraService>().SceneUnit);
+                grid.Update(Color, Alpha, AxisIndex, game.EditorServices.Get<IEditorGameCameraService>().SceneUnit);
                 await game.Script.NextFrame();
             }
         }

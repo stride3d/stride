@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <StrideRuntime>true</StrideRuntime>
-    <StrideRuntimeWindowsNet5>true</StrideRuntimeWindowsNet5>
+    <StrideRuntimeWindowsNet6>true</StrideRuntimeWindowsNet6>
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
     <UseWindowsForms Condition="$(StrideUI.Contains('WINFORMS')) OR $(StrideUI.Contains('WPF'))">true</UseWindowsForms>
   </PropertyGroup>
@@ -9,8 +9,8 @@
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <UseWPF Condition="$(TargetFramework.EndsWith('-windows'))">true</UseWPF>
-    <UseWindowsForms Condition="$(TargetFramework.EndsWith('-windows'))">true</UseWindowsForms>
+    <UseWPF Condition="$(TargetFramework.Contains('-windows'))">true</UseWPF>
+    <UseWindowsForms Condition="$(TargetFramework.Contains('-windows'))">true</UseWindowsForms>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
     <StridePlatformDependent>true</StridePlatformDependent>
@@ -21,7 +21,7 @@
     <Compile Remove="Resources\Resource.Designer.cs" />
   </ItemGroup>
   <Choose>
-    <When Condition=" '$(StridePlatform)' == 'Android'">
+    <When Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
       <PropertyGroup>
         <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
       </PropertyGroup>
@@ -34,7 +34,6 @@
       </ItemGroup>
     </When>
   </Choose>
-  <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>

@@ -1,7 +1,7 @@
 <Project Sdk="MSBuild.Sdk.Extras/3.0.22" ToolsVersion="Current">
   <Import Project="..\..\targets\Stride.Core.TargetFrameworks.Editor.props" />
   <PropertyGroup>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
     <StrideSkipAutoPack>false</StrideSkipAutoPack>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
@@ -15,11 +15,11 @@
     <AvaloniaResource Include="Assets\*" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.9.0-preview7" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.9.0-preview7" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.0-preview7" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.utility" Version="2.4.1" />
+    <PackageReference Include="Avalonia" Version="0.10.11" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.11" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.11" />
+    <PackageReference Include="xunit" Version="2.4.2-pre.12" />
+    <PackageReference Include="xunit.runner.utility" Version="2.4.2-pre.12" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

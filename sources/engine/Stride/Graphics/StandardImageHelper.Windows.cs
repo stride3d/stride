@@ -92,19 +92,26 @@ namespace Stride.Graphics
                 try
                 {
                     // Copy memory
-                    if (description.Format == PixelFormat.R8G8B8A8_UNorm || description.Format == PixelFormat.R8G8B8A8_UNorm_SRgb)
+                    var format = description.Format;
+                    if (format == PixelFormat.R8G8B8A8_UNorm || format == PixelFormat.R8G8B8A8_UNorm_SRgb)
                     {
                         CopyMemoryBGRA(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
                     }
-                    else if (description.Format == PixelFormat.B8G8R8A8_UNorm || description.Format == PixelFormat.B8G8R8A8_UNorm_SRgb)
+                    else if (format == PixelFormat.B8G8R8A8_UNorm || format == PixelFormat.B8G8R8A8_UNorm_SRgb)
                     {
                         Utilities.CopyMemory(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
                     }
-                    else
+                    else if (format == PixelFormat.R8_UNorm || format == PixelFormat.A8_UNorm)
                     {
                         // TODO Ideally we will want to support grayscale images, but the SpriteBatch can only render RGBA for now
                         //  so convert the grayscale image as an RGBA and save it
                         CopyMemoryRRR1(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
+                    }
+                    else
+                    {
+                        throw new ArgumentException(
+                            message: $"The pixel format {format} is not supported. Supported formats are {PixelFormat.B8G8R8A8_UNorm}, {PixelFormat.B8G8R8A8_UNorm_SRgb}, {PixelFormat.R8G8B8A8_UNorm}, {PixelFormat.R8G8B8A8_UNorm_SRgb}, {PixelFormat.R8_UNorm}, {PixelFormat.A8_UNorm}", 
+                            paramName: nameof(description));
                     }
                 }
                 finally

@@ -172,11 +172,18 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         public MemberInfo MemberInfo => null;
 
         /// <summary>
+        /// Gets whether this node contains a list.
+        /// </summary>
+        /// <remarks>Used mostly for sorting purpose.</remarks>
+        /// <seealso cref="HasList"/>
+        public bool HasList => ListDescriptor.IsList(Type);
+
+        /// <summary>
         /// Gets whether this node contains a collection.
         /// </summary>
         /// <remarks>Used mostly for sorting purpose.</remarks>
         /// <seealso cref="HasDictionary"/>
-        public bool HasCollection => CollectionDescriptor.IsCollection(Type);
+        public bool HasCollection => OldCollectionDescriptor.IsCollection(Type);
 
         /// <summary>
         /// Gets whether this node contains a dictionary.
@@ -184,6 +191,13 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         /// <remarks>Usually a dictionary is also a collection.</remarks>
         /// <seealso cref="HasCollection"/>
         public bool HasDictionary => DictionaryDescriptor.IsDictionary(Type);
+
+        /// <summary>
+        /// Gets whether this node contains a set.
+        /// </summary>
+        /// <remarks>Usually a set is also a collection.</remarks>
+        /// <seealso cref="HasCollection"/>
+        public bool HasSet => SetDescriptor.IsSet(Type);
 
         /// <summary>
         /// Gets the number of visible children.
@@ -396,13 +410,53 @@ namespace Stride.Core.Presentation.Quantum.ViewModels
         protected void CheckDynamicMemberConsistency()
         {
             var memberNames = new HashSet<string>();
+            // We should allow space or empty or null or '.' appear when it's a string key dictionary
+            // And we should allow space or '.' appear when it's a char key dictionary
+            bool freeName = false;
+            bool allowSpCharOnly = false;
+            if (HasDictionary)
+            {
+                foreach (var iType in Type.GetTypeInfo().ImplementedInterfaces)
+                {
+                    var iTypeInfo = iType.GetTypeInfo();
+                    if (iTypeInfo.IsGenericType == false) 
+                        continue;
+                    if (iTypeInfo.GetGenericTypeDefinition() != typeof(IDictionary<,>))
+                        continue;
+                    Type[] genericTypes = iTypeInfo.GetGenericArguments();
+                    if (genericTypes[0] == typeof(string))
+                    {
+                        freeName = true;
+                    }
+                    else if (genericTypes[0] == typeof(char))
+                    {
+                        allowSpCharOnly = true;
+                    }
+                    break;
+                }
+            }
+
             foreach (var child in Children)
             {
-                if (string.IsNullOrWhiteSpace(child.Name))
-                    throw new InvalidOperationException("This node has a child with a null or blank name");
+                if (!freeName)
+                {
+                    if (allowSpCharOnly)
+                    {
+                        if (child.Name == null)
+                            throw new InvalidOperationException("This node has a child with a null name");
+                    }
+                    else
+                    {
+                        if (string.IsNullOrWhiteSpace(child.Name))
+                            throw new InvalidOperationException("This node has a child with a null or blank name");
+                    }
 
-                if (child.Name.Contains('.'))
-                    throw new InvalidOperationException($"This node has a child which contains a period (.) in its name: {child.Name}");
+                    if (!allowSpCharOnly)
+                    {
+                        if (child.Name.Contains('.'))
+                            throw new InvalidOperationException($"This node has a child which contains a period (.) in its name: {child.Name}");
+                    }
+                }
 
                 if (memberNames.Contains(child.Name))
                     throw new InvalidOperationException($"This node contains several members named {child.Name}");

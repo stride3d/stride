@@ -144,8 +144,8 @@ namespace Stride.Graphics.GeometricPrimitives
                         latitude = (float)(((i - 1) * Math.PI / (verticalSegments - 2)) - Math.PI / 2.0);
                     }
 
-                    var dy = (float)Math.Sin(latitude);
-                    var dxz = (float)Math.Cos(latitude);
+                    var dy = MathF.Sin(latitude);
+                    var dxz = MathF.Cos(latitude);
 
                     // Create a single ring of vertices at this latitude.
                     for (int j = 0; j <= horizontalSegments; j++)
@@ -153,8 +153,8 @@ namespace Stride.Graphics.GeometricPrimitives
                         float u = (float)j / horizontalSegments;
 
                         var longitude = (float)(j * 2.0 * Math.PI / horizontalSegments);
-                        var dx = (float)Math.Sin(longitude);
-                        var dz = (float)Math.Cos(longitude);
+                        var dx = MathF.Sin(longitude);
+                        var dz = MathF.Cos(longitude);
 
                         dx *= dxz;
                         dz *= dxz;

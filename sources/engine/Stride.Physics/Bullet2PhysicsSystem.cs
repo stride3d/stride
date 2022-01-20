@@ -23,7 +23,7 @@ namespace Stride.Physics
         static Bullet2PhysicsSystem()
         {
             // Preload proper libbulletc native library (depending on CPU type)
-            NativeLibraryHelper.PreloadLibrary("libbulletc.dll", typeof(Bullet2PhysicsSystem));
+            NativeLibraryHelper.PreloadLibrary("libbulletc", typeof(Bullet2PhysicsSystem));
         }
 
         public Bullet2PhysicsSystem(IServiceRegistry registry)
@@ -97,14 +97,8 @@ namespace Stride.Physics
                     //update character bound entity's transforms from physics engine simulation
                     physicsScene.Processor.UpdateCharacters();
 
-                    //Perform clean ups before test contacts in this frame
-                    physicsScene.Simulation.BeginContactTesting();
-
                     //handle frame contacts
-                    physicsScene.Processor.UpdateContacts();
-
-                    //This is the heavy contact logic
-                    physicsScene.Simulation.EndContactTesting();
+                    physicsScene.Simulation.UpdateContacts();
 
                     //send contact events
                     physicsScene.Simulation.SendEvents();

@@ -74,8 +74,8 @@ namespace Stride.Physics
                 other.AngleSampling == AngleSampling &&
                 other.PosRefine == PosRefine &&
                 other.AngleRefine == AngleRefine &&
-                Math.Abs(other.Alpha - Alpha) < float.Epsilon &&
-                Math.Abs(other.Threshold - Threshold) < float.Epsilon;
+                MathF.Abs(other.Alpha - Alpha) < float.Epsilon &&
+                MathF.Abs(other.Threshold - Threshold) < float.Epsilon;
         }
     }
 }

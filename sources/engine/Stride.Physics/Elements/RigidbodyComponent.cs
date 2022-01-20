@@ -40,7 +40,6 @@ namespace Stride.Physics
         public RigidbodyComponent()
         {
             LinkedConstraints = new List<Constraint>();
-            ProcessCollisions = true;
         }
 
         /// <summary>

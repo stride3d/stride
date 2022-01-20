@@ -46,10 +46,10 @@ namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
                 ClampBorders(ref value);
                 var vector4 = new Vector4
                 {
-                    X = (float)Math.Round(value.X, MidpointRounding.AwayFromZero),
-                    Y = (float)Math.Round(value.Y, MidpointRounding.AwayFromZero),
-                    Z = (float)Math.Round(value.Z, MidpointRounding.AwayFromZero),
-                    W = (float)Math.Round(value.W, MidpointRounding.AwayFromZero),
+                    X = MathF.Round(value.X, MidpointRounding.AwayFromZero),
+                    Y = MathF.Round(value.Y, MidpointRounding.AwayFromZero),
+                    Z = MathF.Round(value.Z, MidpointRounding.AwayFromZero),
+                    W = MathF.Round(value.W, MidpointRounding.AwayFromZero),
                 };
                 borderBinding.Value = vector4;
             }

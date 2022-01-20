@@ -38,6 +38,7 @@ namespace Stride.Rendering.Materials
         public MaterialNormalMapFeature(IComputeColor normalMap)
         {
             ScaleAndBias = true;
+            IsXYNormal = true;
             NormalMap = normalMap;
         }
 
