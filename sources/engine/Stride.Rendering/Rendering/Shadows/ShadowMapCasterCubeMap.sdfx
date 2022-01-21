@@ -9,8 +9,12 @@ namespace Stride.Rendering.Shadows
     {
         using params MaterialKeys;
 
-        // For cut off materials we want to run pixel shader during rendering shadow maps
-        if(MaterialKeys.UsePixelShaderWithDepthPass)
+        // For cut off and blend materials we want to run pixel shader during rendering shadow maps
+        if(MaterialKeys.UseDitheredShadows)
+        {
+            mixin ShadowMapCasterAlphaDithered;
+        }
+        else if(MaterialKeys.UsePixelShaderWithDepthPass)
         {
             mixin ShadowMapCasterAlphaDiscard;
         }
