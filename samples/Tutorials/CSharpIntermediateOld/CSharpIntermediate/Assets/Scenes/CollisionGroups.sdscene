@@ -1,0 +1,183 @@
+!SceneAsset
+Id: 4ffb2c2a-974f-4322-9486-6ad8e28c5526
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 2d62168c-ce10-4012-a840-575fac65f922
+        - ref!! fc412cd4-037b-4aaa-9e5c-5dc9f5808336
+        - ref!! 616d8eeb-13b5-4d04-9557-297dde9b7584
+        - ref!! 18ffe590-d875-4e76-b467-225c08120003
+        - ref!! a5bdab9b-1e59-41fa-b848-daa49b8b8de6
+        - ref!! 494f3d32-c741-4813-ae6b-e3109e275e34
+        - ref!! 503beeb1-d07c-40b1-ad84-a69460612da8
+        - ref!! e8b33d9a-940c-4d9f-bcf1-20ee2394e88f
+    Parts:
+        -   Folder: null
+            Entity:
+                Id: 18ffe590-d875-4e76-b467-225c08120003
+                Name: Box - CustomFilter3
+                Components:
+                    159efef787b42c3c4ec38f93d1b5deaa: !TransformComponent
+                        Id: 99acbfaa-9dd7-4c93-9103-7b0a60c3e70e
+                        Position: {X: -0.68206507, Y: 1.0729775, Z: -2.7781115}
+                        Rotation: {X: 0.14218612, Y: 0.0, Z: 0.0, W: 0.9898399}
+                        Scale: {X: 6.0, Y: 0.2, Z: 3.0}
+                        Children: {}
+                    e9393407b6b3c468b0dec3d16140a301: !ModelComponent
+                        Id: 6e3a05bb-b8cd-4f43-9a94-4d2f3cca7c2b
+                        Model: 978173aa-c21e-422f-80fd-b8925a83e274:Models/Cube
+                        Materials:
+                            96efbd55fe7ea16cc093dab020ab0471~0: 619de649-4998-4996-bd74-085eaffdbbeb:Materials/Yellow
+                    37cf6c175184f9607b0448e652577a66: !StaticColliderComponent
+                        Id: 27a35789-8632-4c4f-9f98-65f18985ecd7
+                        CollisionGroup: CustomFilter3
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.1
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a7ae2046edcd7f2541781927fbdaf519: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+        -   Entity:
+                Id: 2d62168c-ce10-4012-a840-575fac65f922
+                Name: Camera
+                Components:
+                    d5dd94550dc377d8b1703c74aae2cee5: !TransformComponent
+                        Id: 17e3de0e-4474-481d-b68a-fd0f537bb52b
+                        Position: {X: 3.4281123, Y: 2.793303, Z: -0.8966685}
+                        Rotation: {X: -0.12538184, Y: 0.6813352, Z: 0.120137796, W: 0.71107554}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f1cc2f84c67fbd3cc50a22dd0ef605a5: !CameraComponent
+                        Id: 17402452-5548-40e5-8182-a957fe0ca6e1
+                        Enabled: false
+                        Name: null
+                        Projection: Perspective
+                        VerticalFieldOfView: 75.0
+                        Slot: c9cb3666-f711-498c-9878-292e79ed7993
+        -   Entity:
+                Id: 494f3d32-c741-4813-ae6b-e3109e275e34
+                Name: Spawner2
+                Components:
+                    159efef787b42c3c4ec38f93d1b5deaa: !TransformComponent
+                        Id: 9c8d13d6-4533-4b29-84d9-29533f82cea2
+                        Position: {X: -0.81907696, Y: 3.4588232, Z: 0.9865174}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5df37d948e77d4fddd811c28cb558710: !CSharpIntermediate.Code.ObjectSpawner,CSharpIntermediate.Game
+                        Id: 038a05f8-380c-41db-b14e-380f3f5be2a7
+                        ObjectToSpawn: e42da79a-28de-4284-af43-7c7b0e5f4e82:Prefabs/RollingBall-CustomFilter2
+        -   Entity:
+                Id: 503beeb1-d07c-40b1-ad84-a69460612da8
+                Name: Spawner3
+                Components:
+                    159efef787b42c3c4ec38f93d1b5deaa: !TransformComponent
+                        Id: 6f6fe306-dae4-40fc-9420-43869e7f21f0
+                        Position: {X: 0.3809231, Y: 3.4588232, Z: 0.9865174}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5df37d948e77d4fddd811c28cb558710: !CSharpIntermediate.Code.ObjectSpawner,CSharpIntermediate.Game
+                        Id: d8d6b48f-0b9d-4f81-8053-33d96a066b92
+                        ObjectToSpawn: 23153296-8a68-4af3-becf-bd0f42115ebf:Prefabs/RollingBall-CustomFilter3
+        -   Entity:
+                Id: 616d8eeb-13b5-4d04-9557-297dde9b7584
+                Name: Box - CustomFilter2
+                Components:
+                    159efef787b42c3c4ec38f93d1b5deaa: !TransformComponent
+                        Id: 698cea28-42c6-4d97-be61-ebfb15e11e04
+                        Position: {X: -0.72311336, Y: 1.4789921, Z: -0.29502273}
+                        Rotation: {X: -0.17364818, Y: 0.0, Z: 0.0, W: 0.9848077}
+                        Scale: {X: 6.0, Y: 0.2, Z: 2.0}
+                        Children: {}
+                    e9393407b6b3c468b0dec3d16140a301: !ModelComponent
+                        Id: 2ce40766-6b49-4d15-ae4e-c4a22de3b635
+                        Model: 978173aa-c21e-422f-80fd-b8925a83e274:Models/Cube
+                        Materials:
+                            96efbd55fe7ea16cc093dab020ab0471~0: 031b2b43-313b-4d95-abdf-c1936970563c:Materials/Blue
+                    37cf6c175184f9607b0448e652577a66: !StaticColliderComponent
+                        Id: e8adc614-93ab-4fc6-9d07-7b0cbc90cb13
+                        CollisionGroup: CustomFilter2
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a7ae2046edcd7f2541781927fbdaf519: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+        -   Entity:
+                Id: a5bdab9b-1e59-41fa-b848-daa49b8b8de6
+                Name: Spawner1
+                Components:
+                    159efef787b42c3c4ec38f93d1b5deaa: !TransformComponent
+                        Id: 738ceea5-9b6e-4086-aaf2-b19f30345bf1
+                        Position: {X: -1.819077, Y: 3.4588232, Z: 0.9865174}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    5df37d948e77d4fddd811c28cb558710: !CSharpIntermediate.Code.ObjectSpawner,CSharpIntermediate.Game
+                        Id: ff60faba-9fcd-4edf-b468-e5acc266da5a
+                        ObjectToSpawn: af484a45-62bd-4e96-b99f-f325c1c91cf9:Prefabs/RollingBall-CustomFilter1
+        -   Entity:
+                Id: e8b33d9a-940c-4d9f-bcf1-20ee2394e88f
+                Name: Spawner4
+                Components:
+                    159efef787b42c3c4ec38f93d1b5deaa: !TransformComponent
+                        Id: 58b3bbfe-ce22-4451-92c3-3b52205f52aa
+                        Position: {X: 1.5809231, Y: 3.4588232, Z: 0.9865174}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a13207ae1c10c8ba2ffb314eac622b3a: !CSharpIntermediate.Code.SpawnerCollisionGroup,CSharpIntermediate.Game
+                        Id: ae9e8829-9e81-4d35-b7c7-a0f44277241e
+                        ObjectToSpawn: 43736e57-aa90-42ae-a3a5-1a97df9e954a:Prefabs/RollingBall-CustomCollisiongroups
+        -   Entity:
+                Id: fc412cd4-037b-4aaa-9e5c-5dc9f5808336
+                Name: Box - CustomFilter1
+                Components:
+                    159efef787b42c3c4ec38f93d1b5deaa: !TransformComponent
+                        Id: 9e1f939c-5f53-4249-a2e1-6dabd061b3a2
+                        Position: {X: -0.68206507, Y: 2.1484137, Z: 1.1280688}
+                        Rotation: {X: -0.17364818, Y: 0.0, Z: 0.0, W: 0.9848077}
+                        Scale: {X: 6.0, Y: 0.2, Z: 1.0}
+                        Children: {}
+                    e9393407b6b3c468b0dec3d16140a301: !ModelComponent
+                        Id: ac3fdb29-a8c3-42fb-a19a-836d34026507
+                        Model: 978173aa-c21e-422f-80fd-b8925a83e274:Models/Cube
+                        Materials:
+                            96efbd55fe7ea16cc093dab020ab0471~0: ca5e832c-0dc0-42e8-bd85-fcb24bfd34f1:Materials/Green
+                    37cf6c175184f9607b0448e652577a66: !StaticColliderComponent
+                        Id: 9cdfff6c-c0f3-448b-a549-df351d6da3e9
+                        CollisionGroup: CustomFilter1
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a7ae2046edcd7f2541781927fbdaf519: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}

@@ -1,0 +1,7 @@
+!Texture
+Id: 345c877f-f6fe-473b-807b-19f4fbdd8e27
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../Resources/Textures/rock/rock_gls.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

@@ -1,0 +1,125 @@
+!UIPageAsset
+Id: 2fa9f139-59c7-49b4-8ec2-d7cb1733c44e
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+Design:
+    Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+Hierarchy:
+    RootParts:
+        - !Grid ref!! 0271b2c9-936c-4ece-b80b-57233f8ab3ed
+    Parts:
+        -   UIElement: !Grid
+                Id: 0271b2c9-936c-4ece-b80b-57233f8ab3ed
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Children:
+                    3547e0fa4b557537ee95c442afe99768: !TextBlock ref!! 2a6df721-04eb-4a4e-8ede-582882b7bd38
+                    58a91054fd8df2d72f8dc2f2ec392b1b: !Button ref!! 32563d11-9252-49f9-8c9d-49bffc42206c
+                    6917b4fddceb96e074e1309bd70e6bb8: !EditText ref!! fb9aef7c-2e6e-44f9-b60e-190a01724540
+                    f4b29e529da46ae0372cd44ec61028db: !TextBlock ref!! 7d6ac981-ff1e-4ce9-b959-f51383f2426a
+                RowDefinitions: {}
+                ColumnDefinitions: {}
+                LayerDefinitions: {}
+        -   UIElement: !TextBlock
+                Id: 2a6df721-04eb-4a4e-8ede-582882b7bd38
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Width: 318.0
+                Height: 46.0
+                VerticalAlignment: Top
+                Margin: {Left: 461.0, Top: 244.0, Right: 501.0}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Name: StaticText
+                Text: Enter your name
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
+                TextSize: 20.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+                TextAlignment: Center
+        -   UIElement: !Button
+                Id: 32563d11-9252-49f9-8c9d-49bffc42206c
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                Width: 318.0
+                Height: 64.0
+                VerticalAlignment: Bottom
+                Margin: {Left: 461.0, Right: 501.0, Bottom: 165.0}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Name: MyButton
+                Content: !TextBlock ref!! c9fc2514-dfcd-4162-b4f3-28587bb7de80
+                PressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 2
+                NotPressedImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 1
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+        -   UIElement: !TextBlock
+                Id: 7d6ac981-ff1e-4ce9-b959-f51383f2426a
+                DependencyProperties: {}
+                BackgroundColor: {R: 255, G: 255, B: 255, A: 255}
+                Width: 784.0
+                Height: 44.0
+                VerticalAlignment: Bottom
+                Margin: {Left: 240.0, Right: 256.0, Bottom: 284.5}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Name: MyTextBlock
+                Text: '...'
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
+                TextSize: 20.0
+                TextColor: {R: 0, G: 0, B: 0, A: 255}
+                TextAlignment: Center
+        -   UIElement: !TextBlock
+                Id: c9fc2514-dfcd-4162-b4f3-28587bb7de80
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                Text: Clear
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
+                TextSize: 20.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+        -   UIElement: !EditText
+                Id: fb9aef7c-2e6e-44f9-b60e-190a01724540
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 5
+                CanBeHitByUser: true
+                Width: 318.0
+                Height: 43.0
+                VerticalAlignment: Top
+                Margin: {Left: 461.0, Top: 290.0, Right: 501.0}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Name: MyEditText
+                Padding: {Left: 8.0, Top: 4.0, Right: 8.0, Bottom: 8.0}
+                Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
+                TextSize: 20.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+                ActiveImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 3
+                InactiveImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 4
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:StrideUIDesigns
+                    CurrentFrame: 5
+                CaretColor: {R: 240, G: 240, B: 240, A: 255}
+                CaretWidth: 1.0
+                SelectionColor: {R: 240, G: 240, B: 240, A: 255}
+                IMESelectionColor: {R: 240, G: 255, B: 240, A: 255}
+                CaretFrequency: 1.0

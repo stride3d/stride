@@ -1,0 +1,22 @@
+!PrefabAsset
+Id: c92dde43-17f8-4779-b932-0ba5ae4b94a2
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 0cb9ec61-6003-48a0-a6f4-47e8098431e9
+    Parts:
+        -   Entity:
+                Id: 0cb9ec61-6003-48a0-a6f4-47e8098431e9
+                Name: plateC
+                Components:
+                    621c3c71002abe4885d2e85b90465d21: !TransformComponent
+                        Id: 713c1c62-2a00-48be-85d2-e85b90465d21
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 2.0, Y: 2.0, Z: 2.0}
+                        Children: {}
+                    fbfa7c280162a24a95d558b49701fccc: !ModelComponent
+                        Id: 287cfafb-6201-4aa2-95d5-58b49701fccc
+                        Model: 89a24148-b30e-4429-a72a-ab0f6492a5b7:Models/plateC
+                        Materials: {}

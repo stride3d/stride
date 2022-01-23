@@ -1,0 +1,11 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 16
+VisualStudioVersion = 16.0.0.0
+MinimumVisualStudioVersion = 16.0.0.0
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpIntermediate.Windows", "CSharpIntermediate.Windows\CSharpIntermediate.Windows.csproj", "{9CC8F196-AAEB-4ED8-B675-D9A4C56062D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpIntermediate", "CSharpIntermediate\CSharpIntermediate.csproj", "{6E21C554-996E-45EA-8EEB-445DB884CB3A}"
+EndProject
+Global
+EndGlobal

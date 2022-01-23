@@ -1,0 +1,28 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: CSharpIntermediate.Windows
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir Assets
+ResourceFolders:
+    - !dir Resources
+OutputGroupDirectories: {}
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 01da6640-4c60-4428-b29a-e2f29768f6c1:Scenes/Animation/Animation
+    - 11e9eb28-ef7c-4b6c-815a-c78f4e295f75:Scenes/ChildScenes/ChildSceneC
+    - 34ae49a6-e078-4247-9eb3-23e207e0c55b:Scenes/CollisionTriggerAsync
+    - 4ffb2c2a-974f-4322-9486-6ad8e28c5526:Scenes/CollisionGroups
+    - 64edef8b-7d70-4286-bc84-110752b2b08a:Scenes/ChildScenes/ChildSceneA
+    - 66f7f1aa-71da-4b51-ad6b-a7d98cc014d4:Scenes/ChildScenes/ChildScenes
+    - 7bdfe973-380e-4515-825a-071555408658:Scenes/Raycasting/Raycasting
+    - 84f6a9a5-2af5-428b-b63b-b1aab6be6c64:Scenes/ChildScenes/ChildSceneB
+    - 9064f76b-35cf-4c85-a35a-deb5e0bb9d91:Scenes/1- UI Basics/UI basics - Finished
+    - a042c44b-49dd-400e-b1e3-a36014f3ccab:Scenes/2 - CollisionTriggers/CollisionTriggers - Finished
+    - c9be8255-1764-428b-99ee-27d9a8de0a77:Scenes/Switching scenes/SwitchingScenes

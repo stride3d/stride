@@ -1,0 +1,46 @@
+!PrefabAsset
+Id: 23153296-8a68-4af3-becf-bd0f42115ebf
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 3a640a3e-f162-4a50-9ccb-cd18c84f1a4a
+    Parts:
+        -   Entity:
+                Id: 3a640a3e-f162-4a50-9ccb-cd18c84f1a4a
+                Name: Ball
+                Components:
+                    2d7c22e5f1f1b7856411adc20d844d74: !TransformComponent
+                        Id: 79e91b61-e460-4dfe-81eb-3fc5ea1e6b13
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    71e6e131527e931bed70c1626ca7e894: !ModelComponent
+                        Id: ecbbf7b0-f54e-4506-9582-9ba4a41b61a3
+                        Model: 5178da4c-69ec-4123-a502-ef9925474f3d:Models/Sphere
+                        Materials:
+                            b37ac4b4281d45df9c6219828cf25f52~0: 619de649-4998-4996-bd74-085eaffdbbeb:Materials/Yellow
+                    b46e72904703577e25d79e3c9ae00cdd: !RigidbodyComponent
+                        Id: b3bb8919-c895-4c94-a2bc-7a74423ec50b
+                        CollisionGroup: CustomFilter3
+                        CanCollideWith: CustomFilter1, CustomFilter2, CustomFilter3
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            cdfb9d07a3cb0b6ced6281ae28e3c833: !SphereColliderShapeDesc
+                                Is2D: false
+                                Radius: 0.52
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}

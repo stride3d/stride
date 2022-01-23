@@ -1,0 +1,403 @@
+!SceneAsset
+Id: 11e9eb28-ef7c-4b6c-815a-c78f4e295f75
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 5cccec72-bae9-4344-9006-a8f108582d2d
+        - ref!! a81d02f7-77a8-45c5-9d50-71f46f12d962
+        - ref!! 4d4a5785-d315-408a-a135-1a9ab6a599a2
+        - ref!! cae7cf3b-a952-4063-88e3-bdf1275766d7
+        - ref!! e6118c88-286d-4027-ad5e-af2bf8b814d4
+        - ref!! 10d3eba6-90bc-46c8-89b4-2fd10ae8f11c
+        - ref!! 607a5341-0069-4778-a6f4-fed250a849eb
+        - ref!! b0a1bd29-7b6a-4217-9963-a88260f994f1
+    Parts:
+        -   Folder: null
+            Entity:
+                Id: 10d3eba6-90bc-46c8-89b4-2fd10ae8f11c
+                Name: Pendilum0x2x0Ball
+                Components:
+                    002977c16af772599dfa70cfc2be6c83: !TransformComponent
+                        Id: d09c06ff-24b4-4a4e-8ed5-1d19067f0772
+                        Position: {X: 0.3139903, Y: 2.39118314, Z: 0.0468885265}
+                        Rotation: {X: 0.0, Y: -0.771383166, Z: 0.0, W: 0.636371}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            0a27cadc97a8ab6ff8d16d792f9ef7da: ref!! 5c91a480-ea1b-40a6-8d8c-e56613379556
+        -   Entity:
+                Id: 3423a062-4716-4e86-944c-d41463dfa6de
+                Name: Pendilum0x2x0Ball
+                Components:
+                    9d67f01a066af148a472bf6f7c513743: !TransformComponent
+                        Id: d60ff303-2b73-4547-8d9e-6fb142379fe3
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c20f11f5b2edac4c985e72d07f0772b5: !ModelComponent
+                        Id: 4ae7e653-fb96-4948-80f7-657c1ec81570
+                        Model: a4db3eeb-2715-4e8f-bba0-452eb7ca2d47:Models/Pendilum0x2x0Ball
+                        Materials:
+                            375be21b17b931489b7075f15158cba7~0: ad74e5da-cb10-46b7-9c34-3d65a478df12:Materials/GridMTHazard
+                    15332955af647b4bbc35c45c75d70935: !StaticColliderComponent
+                        Id: ecbec333-f856-4c35-b3db-8899d7450028
+                        CollisionGroup: StaticFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f25e17f1e10a734e961b31e0b3404c31: !CylinderColliderShapeDesc
+                                Height: 2.0
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: -1.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            51ea13cc1d15d04db5e9e97bf6d32625: !SphereColliderShapeDesc
+                                Is2D: false
+                                Radius: 0.25
+                                LocalOffset: {X: 0.0, Y: -2.25, Z: 0.0}
+            Base:
+                BasePartAsset: 30b03965-6c58-4211-8cbf-ba37de0fc135:BlocksPrefabs/Pendilum0x2x0Ball
+                BasePartId: 0a563466-a834-4d6f-8404-3db5c06ea89d
+                InstanceId: 59e42f0a-f5ab-4af3-b3b1-cd8419944445
+        -   Folder: null
+            Entity:
+                Id: 4d4a5785-d315-408a-a135-1a9ab6a599a2
+                Name: Pendilum0x2x0Ball
+                Components:
+                    002977c16af772599dfa70cfc2be6c83: !TransformComponent
+                        Id: 3fbe6d55-3f9d-4109-be36-89f351f278e6
+                        Position: {X: -1.31178415, Y: 2.358182, Z: 0.5894568}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            0a27cadc97a8ab6ff8d16d792f9ef7da: ref!! 6df36edf-1cf0-48b9-8c62-4569b2fce17e
+        -   Entity:
+                Id: 5b349c98-d32e-48b2-b497-019eed6f1a1a
+                Name: Gate2x3x1
+                Components:
+                    4894693aaac93243b362fb156a3825b2: !TransformComponent
+                        Id: 1149abc9-3e3c-419d-b1c3-4ca587070f3b
+                        Position*: {X: 1.24491119, Y: 1.5, Z: 1.63389921}
+                        Rotation*: {X: 0.0, Y: 0.497745246, Z: 0.0, W: 0.8673233}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    fcdea559335181439cb352a95df34140: !ModelComponent
+                        Id: 62a5d16b-4f6b-4315-a8fb-6d92a02023af
+                        Model: 924c9ca7-d8b3-4966-bc05-086bb500ff85:Models/Gate2x3x1
+                        Materials:
+                            ecd1b81c86e9114d86fcdf436455648f~0: c1d40f25-8760-420b-8e26-ef8a2b999678:Materials/GridMTArc
+                    87e4f56b172adb4f897ce1addcb0ec93: !StaticColliderComponent
+                        Id: 55426ed4-8bf0-4982-8cf5-e7bd240713df
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a1c1b887166010479e2107a88b2b487b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 3.0, Z: 1.0}
+                                LocalOffset: {X: 0.95, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            074ade2fd377c241b6ae9a90479aa04b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 3.0, Z: 1.0}
+                                LocalOffset: {X: -0.95, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            a3e0a6655569be4c90956f046d42feb2: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 2.0, Y: 0.6, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 1.2, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 59ad96a2-d7b6-4353-9564-4223fe886b46:BlocksPrefabs/Gate2x3x1
+                BasePartId: 200881f5-5aa8-444c-976c-bbcbd86bce28
+                InstanceId: ca2e0a5a-c182-452d-9606-35affee65c90
+        -   Entity:
+                Id: 5cccec72-bae9-4344-9006-a8f108582d2d
+                Name: Pendilum0x2x0Ball
+                Components:
+                    002977c16af772599dfa70cfc2be6c83: !TransformComponent
+                        Id: 659c08c9-ebb9-45e6-8c49-2dc890d36c8d
+                        Position: {X: -1.31178415, Y: 2.39974952, Z: -0.03205395}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            0a27cadc97a8ab6ff8d16d792f9ef7da: ref!! e66bce97-36ef-4257-8c40-ff6d8ab55be1
+        -   Entity:
+                Id: 607a5341-0069-4778-a6f4-fed250a849eb
+                Name: Gate2x3x1
+                Components:
+                    7761ee7693c3cff300452f1fbb69c043: !TransformComponent
+                        Id: 33f5f929-4bea-45de-a088-741fadff901d
+                        Position: {X: -2.780435, Y: 0.0, Z: -0.0420064926}
+                        Rotation: {X: 0.0, Y: 0.4144466, Z: 0.0, W: 0.910073638}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            3abed8c511dca8503752c40aa7a4a161: ref!! 1149abc9-3e3c-419d-b1c3-4ca587070f3b
+        -   Entity:
+                Id: 87a56b4a-15d6-42b0-9a37-bfbaceeec284
+                Name: Pendilum0x2x0Ball
+                Components:
+                    9d67f01a066af148a472bf6f7c513743: !TransformComponent
+                        Id: e66bce97-36ef-4257-8c40-ff6d8ab55be1
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c20f11f5b2edac4c985e72d07f0772b5: !ModelComponent
+                        Id: 0e13d688-5f46-45e1-9567-7c07ee3689b1
+                        Model: a4db3eeb-2715-4e8f-bba0-452eb7ca2d47:Models/Pendilum0x2x0Ball
+                        Materials:
+                            375be21b17b931489b7075f15158cba7~0: ad74e5da-cb10-46b7-9c34-3d65a478df12:Materials/GridMTHazard
+                    15332955af647b4bbc35c45c75d70935: !StaticColliderComponent
+                        Id: 697f0f7d-ab88-4c3a-b68d-d06f6ce91e29
+                        CollisionGroup: StaticFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f25e17f1e10a734e961b31e0b3404c31: !CylinderColliderShapeDesc
+                                Height: 2.0
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: -1.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            51ea13cc1d15d04db5e9e97bf6d32625: !SphereColliderShapeDesc
+                                Is2D: false
+                                Radius: 0.25
+                                LocalOffset: {X: 0.0, Y: -2.25, Z: 0.0}
+            Base:
+                BasePartAsset: 30b03965-6c58-4211-8cbf-ba37de0fc135:BlocksPrefabs/Pendilum0x2x0Ball
+                BasePartId: 0a563466-a834-4d6f-8404-3db5c06ea89d
+                InstanceId: d8c055f7-8505-4f9b-a4a9-3351dbe847da
+        -   Entity:
+                Id: 8e6b5fe9-7f55-4705-bc7a-140864236706
+                Name: Pendilum0x2x0Ball
+                Components:
+                    9d67f01a066af148a472bf6f7c513743: !TransformComponent
+                        Id: 42a8c300-2519-4ac4-9054-b9163fa3d684
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c20f11f5b2edac4c985e72d07f0772b5: !ModelComponent
+                        Id: aedbc41c-a274-49ce-9c74-f718db68b681
+                        Model: a4db3eeb-2715-4e8f-bba0-452eb7ca2d47:Models/Pendilum0x2x0Ball
+                        Materials:
+                            375be21b17b931489b7075f15158cba7~0: ad74e5da-cb10-46b7-9c34-3d65a478df12:Materials/GridMTHazard
+                    15332955af647b4bbc35c45c75d70935: !StaticColliderComponent
+                        Id: 02e9bcd5-3be1-4a82-bbb8-b3c91dc44536
+                        CollisionGroup: StaticFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f25e17f1e10a734e961b31e0b3404c31: !CylinderColliderShapeDesc
+                                Height: 2.0
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: -1.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            51ea13cc1d15d04db5e9e97bf6d32625: !SphereColliderShapeDesc
+                                Is2D: false
+                                Radius: 0.25
+                                LocalOffset: {X: 0.0, Y: -2.25, Z: 0.0}
+            Base:
+                BasePartAsset: 30b03965-6c58-4211-8cbf-ba37de0fc135:BlocksPrefabs/Pendilum0x2x0Ball
+                BasePartId: 0a563466-a834-4d6f-8404-3db5c06ea89d
+                InstanceId: 63377c68-dded-4a03-ba0d-e5e5961535de
+        -   Entity:
+                Id: 9b6d6005-9533-4200-832f-a5468e0f9bc7
+                Name: Pendilum0x2x0Ball
+                Components:
+                    9d67f01a066af148a472bf6f7c513743: !TransformComponent
+                        Id: 6df36edf-1cf0-48b9-8c62-4569b2fce17e
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c20f11f5b2edac4c985e72d07f0772b5: !ModelComponent
+                        Id: b78185c0-6aed-4558-af67-a5ae9e60c5a1
+                        Model: a4db3eeb-2715-4e8f-bba0-452eb7ca2d47:Models/Pendilum0x2x0Ball
+                        Materials:
+                            375be21b17b931489b7075f15158cba7~0: ad74e5da-cb10-46b7-9c34-3d65a478df12:Materials/GridMTHazard
+                    15332955af647b4bbc35c45c75d70935: !StaticColliderComponent
+                        Id: 5b08ddcc-dc17-4097-a1e8-3d5116df26e5
+                        CollisionGroup: StaticFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f25e17f1e10a734e961b31e0b3404c31: !CylinderColliderShapeDesc
+                                Height: 2.0
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: -1.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            51ea13cc1d15d04db5e9e97bf6d32625: !SphereColliderShapeDesc
+                                Is2D: false
+                                Radius: 0.25
+                                LocalOffset: {X: 0.0, Y: -2.25, Z: 0.0}
+            Base:
+                BasePartAsset: 30b03965-6c58-4211-8cbf-ba37de0fc135:BlocksPrefabs/Pendilum0x2x0Ball
+                BasePartId: 0a563466-a834-4d6f-8404-3db5c06ea89d
+                InstanceId: 0f9df567-b813-44f7-bae7-8babfb45735f
+        -   Folder: null
+            Entity:
+                Id: a81d02f7-77a8-45c5-9d50-71f46f12d962
+                Name: Pendilum0x2x0Ball
+                Components:
+                    002977c16af772599dfa70cfc2be6c83: !TransformComponent
+                        Id: 0b87c76f-a6fd-46ab-bf43-d4e580f60174
+                        Position: {X: 0.492239475, Y: 2.39974952, Z: -0.458507419}
+                        Rotation: {X: 0.0, Y: -0.771383166, Z: 0.0, W: 0.636371}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            0a27cadc97a8ab6ff8d16d792f9ef7da: ref!! 05428ec9-f3f8-4aef-a8d2-a48cead26419
+        -   Entity:
+                Id: b0a1bd29-7b6a-4217-9963-a88260f994f1
+                Name: Point light
+                Components:
+                    aece461734083bfc70288a4f89ad3925: !TransformComponent
+                        Id: 8ddf79b6-a8d3-4426-b9b0-6ea83769c2ca
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f19f5a3047d915ff4fc5ed59e524f8a9: !LightComponent
+                        Id: 43e0d6be-744a-4033-aa36-95365d4ad809
+                        Type: !LightPoint
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Radius: 3.0
+                            Shadow:
+                                Size: Small
+                                BiasParameters: {}
+        -   Folder: null
+            Entity:
+                Id: cae7cf3b-a952-4063-88e3-bdf1275766d7
+                Name: Pendilum0x2x0Ball
+                Components:
+                    002977c16af772599dfa70cfc2be6c83: !TransformComponent
+                        Id: 76f5c8b7-c394-4083-a33c-359f329f22d4
+                        Position: {X: -0.117942207, Y: 2.358182, Z: -0.5766343}
+                        Rotation: {X: 0.0, Y: -0.771383166, Z: 0.0, W: 0.636371}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            0a27cadc97a8ab6ff8d16d792f9ef7da: ref!! d60ff303-2b73-4547-8d9e-6fb142379fe3
+        -   Folder: null
+            Entity:
+                Id: e6118c88-286d-4027-ad5e-af2bf8b814d4
+                Name: Pendilum0x2x0Ball
+                Components:
+                    002977c16af772599dfa70cfc2be6c83: !TransformComponent
+                        Id: 7c24adae-9e07-48a6-9072-8e66240bb0e8
+                        Position: {X: -0.781722, Y: 2.39118314, Z: 0.0468885265}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            0a27cadc97a8ab6ff8d16d792f9ef7da: ref!! 42a8c300-2519-4ac4-9054-b9163fa3d684
+        -   Entity:
+                Id: e9656a6b-1bbb-452b-86bd-15118abce6b3
+                Name: Pendilum0x2x0Ball
+                Components:
+                    9d67f01a066af148a472bf6f7c513743: !TransformComponent
+                        Id: 05428ec9-f3f8-4aef-a8d2-a48cead26419
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c20f11f5b2edac4c985e72d07f0772b5: !ModelComponent
+                        Id: def754c3-cb57-4120-8573-61512fabf162
+                        Model: a4db3eeb-2715-4e8f-bba0-452eb7ca2d47:Models/Pendilum0x2x0Ball
+                        Materials:
+                            375be21b17b931489b7075f15158cba7~0: ad74e5da-cb10-46b7-9c34-3d65a478df12:Materials/GridMTHazard
+                    15332955af647b4bbc35c45c75d70935: !StaticColliderComponent
+                        Id: 04f64e8a-322b-4652-87c2-128b1fc14fd9
+                        CollisionGroup: StaticFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f25e17f1e10a734e961b31e0b3404c31: !CylinderColliderShapeDesc
+                                Height: 2.0
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: -1.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            51ea13cc1d15d04db5e9e97bf6d32625: !SphereColliderShapeDesc
+                                Is2D: false
+                                Radius: 0.25
+                                LocalOffset: {X: 0.0, Y: -2.25, Z: 0.0}
+            Base:
+                BasePartAsset: 30b03965-6c58-4211-8cbf-ba37de0fc135:BlocksPrefabs/Pendilum0x2x0Ball
+                BasePartId: 0a563466-a834-4d6f-8404-3db5c06ea89d
+                InstanceId: 563425b8-7c11-4a52-bc9a-e8ba7b9c1aae
+        -   Entity:
+                Id: ea64424b-cca3-4f1a-b334-8748ce34d714
+                Name: Pendilum0x2x0Ball
+                Components:
+                    9d67f01a066af148a472bf6f7c513743: !TransformComponent
+                        Id: 5c91a480-ea1b-40a6-8d8c-e56613379556
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c20f11f5b2edac4c985e72d07f0772b5: !ModelComponent
+                        Id: 100649fd-3c45-4177-9cde-1bc3a8faecf3
+                        Model: a4db3eeb-2715-4e8f-bba0-452eb7ca2d47:Models/Pendilum0x2x0Ball
+                        Materials:
+                            375be21b17b931489b7075f15158cba7~0: ad74e5da-cb10-46b7-9c34-3d65a478df12:Materials/GridMTHazard
+                    15332955af647b4bbc35c45c75d70935: !StaticColliderComponent
+                        Id: da73d417-8b77-48de-bcaa-bf72aa6f5bab
+                        CollisionGroup: StaticFilter
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            f25e17f1e10a734e961b31e0b3404c31: !CylinderColliderShapeDesc
+                                Height: 2.0
+                                Radius: 0.025
+                                LocalOffset: {X: 0.0, Y: -1.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            51ea13cc1d15d04db5e9e97bf6d32625: !SphereColliderShapeDesc
+                                Is2D: false
+                                Radius: 0.25
+                                LocalOffset: {X: 0.0, Y: -2.25, Z: 0.0}
+            Base:
+                BasePartAsset: 30b03965-6c58-4211-8cbf-ba37de0fc135:BlocksPrefabs/Pendilum0x2x0Ball
+                BasePartId: 0a563466-a834-4d6f-8404-3db5c06ea89d
+                InstanceId: 75938c28-5d2a-4d44-8359-4038424f03e3

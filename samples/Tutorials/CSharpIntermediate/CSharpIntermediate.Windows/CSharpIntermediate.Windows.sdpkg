@@ -1,0 +1,20 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: CSharpIntermediate.Windows
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir Assets
+ResourceFolders:
+    - !dir Resources
+OutputGroupDirectories: {}
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+    - a1bea2b1-5384-4c2a-b7cc-cda9ddcf4bd1:Scenes/1-UI basics/UI basics - Completed
+    - f01b7404-0b11-40c9-8729-8dcc544ef23c:Scenes/2-CollisionTriggers/CollisionTriggers

@@ -1,0 +1,82 @@
+!PrefabAsset
+Id: 48c608e4-7e9c-4ced-824a-64698151274e
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 8c97da7a-4bbe-46cd-82dc-a284092aa87d
+        - ref!! 34bedf8d-2a34-4da0-b990-51f1e8f71c3d
+        - ref!! 1616b3e2-836f-443c-b07e-7b065c1bb4d2
+    Parts:
+        -   Entity:
+                Id: 1616b3e2-836f-443c-b07e-7b065c1bb4d2
+                Name: Box3
+                Components:
+                    871611dfbf1309a5a1aacea7dbc0d8d0: !TransformComponent
+                        Id: 4ed5a729-aa96-455c-bd84-8b46c4ecb0b0
+                        Position: {X: 0.03315501, Y: 0.231646821, Z: -0.3597781}
+                        Rotation: {X: 0.0, Y: 0.08563991, Z: 0.0, W: -0.9963261}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
+                        Id: 2ab42701-d189-4605-b96c-2056d963b77c
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+        -   Entity:
+                Id: 34bedf8d-2a34-4da0-b990-51f1e8f71c3d
+                Name: Box2
+                Components:
+                    871611dfbf1309a5a1aacea7dbc0d8d0: !TransformComponent
+                        Id: bc5bcaf3-43de-46d4-bfd9-47c7adade891
+                        Position: {X: -0.245857731, Y: 0.2435637, Z: 0.3265859}
+                        Rotation: {X: 0.0, Y: -0.06815393, Z: 0.0, W: -0.9976749}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
+                        Id: 0e8df306-5e7b-4090-9f97-a2931b8f35cc
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+        -   Entity:
+                Id: 71702f06-c005-40f5-b711-312985cbbfda
+                Name: Child box 2
+                Components:
+                    871611dfbf1309a5a1aacea7dbc0d8d0: !TransformComponent
+                        Id: a7eb4355-b715-4741-b43e-a32df67c3b13
+                        Position: {X: 0.0647526756, Y: 1.2431916, Z: 0.07122181}
+                        Rotation: {X: 0.0, Y: 0.333040535, Z: 0.0, W: 0.9429125}
+                        Scale: {X: 0.3, Y: 0.3, Z: 0.3}
+                        Children: {}
+                    dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
+                        Id: 6539c7d1-331a-40a8-bfe9-792b80618f1a
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+        -   Entity:
+                Id: 8c97da7a-4bbe-46cd-82dc-a284092aa87d
+                Name: Box1
+                Components:
+                    871611dfbf1309a5a1aacea7dbc0d8d0: !TransformComponent
+                        Id: 783f99dd-bed5-4845-91f4-aa63d80dfbbe
+                        Position: {X: 0.247229859, Y: 0.2435637, Z: 0.204489514}
+                        Rotation: {X: 0.0, Y: -0.0107316971, Z: 0.0, W: -0.9999424}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children:
+                            f384e75dfe17bd1c2057cef77b9623cb: ref!! e8f982fb-45bd-4eee-8cd5-da787e25026e
+                            8bf989676d4925ed6ff4a211147844bd: ref!! a7eb4355-b715-4741-b43e-a32df67c3b13
+                    dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
+                        Id: d83d2309-5193-4770-9868-987c425d2262
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+        -   Entity:
+                Id: 9f4984c2-8f4c-4f55-a4bd-902e8d387b20
+                Name: Child box 1
+                Components:
+                    871611dfbf1309a5a1aacea7dbc0d8d0: !TransformComponent
+                        Id: e8f982fb-45bd-4eee-8cd5-da787e25026e
+                        Position: {X: 0.0, Y: 0.7665516, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.7, Y: 0.7, Z: 0.7}
+                        Children: {}
+                    dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
+                        Id: 5d438e2d-2681-4b95-ae7c-42d5a36f98c8
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}

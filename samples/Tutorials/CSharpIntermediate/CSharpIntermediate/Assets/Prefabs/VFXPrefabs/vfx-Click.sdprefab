@@ -1,0 +1,89 @@
+!PrefabAsset
+Id: 314c6501-d455-4e6c-91b6-02339fcaf947
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! fe9617cd-28bb-44f5-9e38-9c644cb7d6b3
+    Parts:
+        -   Entity:
+                Id: fe9617cd-28bb-44f5-9e38-9c644cb7d6b3
+                Name: Click
+                Components:
+                    99a7766727d8bf46ab1d2374a16e046d: !TransformComponent
+                        Id: 6776a799-d827-46bf-ab1d-2374a16e046d
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    2f9de85a585e6841beb2ebc440d7b6aa: !ParticleSystemComponent
+                        Id: 5ae89d2f-5e58-4168-beb2-ebc440d7b6aa
+                        Control:
+                            ResetSeconds: 5.0
+                            Control: Play
+                        Color: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                        Speed: 1.0
+                        ParticleSystem:
+                            Settings: {}
+                            BoundingShape: null
+                            Emitters:
+                                436b96bda1ce6e4ca5e93bb17e3809c8:
+                                    MaxParticlesOverride: 1
+                                    ParticleLifetime: {X: 1.0, Y: 1.0}
+                                    ShapeBuilder: !ShapeBuilderQuad
+                                        SamplerPosition: null
+                                        SamplerSize: !ComputeCurveSamplerFloat
+                                            Curve: !ComputeAnimationCurveFloat
+                                                KeyFrames:
+                                                    43834d9ffcc3034bb7c6dd33c11dc671:
+                                                        Key: 0.0
+                                                        Value: 0.0
+                                                        TangentType: Linear
+                                                    3dec006bb4e02c4da9b7144460942811:
+                                                        Key: 0.4
+                                                        Value: 1.0
+                                                        TangentType: Linear
+                                                    d917b469fea7234a99b43b42ef1ca400:
+                                                        Key: 1.0
+                                                        Value: 1.0
+                                                        TangentType: Linear
+                                        SamplerRotation: null
+                                    Material: !ParticleMaterialComputeColor
+                                        AlphaAdditive: 1.0
+                                        ComputeColor: !ComputeBinaryColor
+                                            Operator: Multiply
+                                            LeftChild: !ComputeFloat4
+                                                Value: {X: 10.0, Y: 10.0, Z: 10.0, W: 1.0}
+                                            RightChild: !ComputeTextureColor
+                                                Texture: 8223c28b-5cb8-402a-b51f-aa6c239dbb9f:Textures/circle02
+                                                FallbackValue:
+                                                    Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                                                Scale: {X: 1.0, Y: 1.0}
+                                                Offset: {X: 0.0, Y: 0.0}
+                                                Swizzle: null
+                                        UVBuilder: null
+                                        ForceTexCoords: false
+                                    Spawners:
+                                        29cbf1a25777d8469eeaae122f8d1543: !SpawnerBurst
+                                            LoopCondition: OneShot
+                                            Delay: {X: 0.0, Y: 0.0}
+                                            Duration: {X: 1.0, Y: 1.0}
+                                            SpawnCount: 1
+                                    Initializers:
+                                        de77c4a2df240c49a048cdd2983d53fc: !InitialPositionSeed
+                                            InheritPosition: true
+                                            Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                                            InheritRotation: true
+                                            Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                            InheritScale: true
+                                            Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
+                                            SeedOffset: 0
+                                            DisplayParticlePosition: false
+                                            DisplayParticleRotation: true
+                                            DisplayParticleScale: false
+                                            DisplayParticleScaleUniform: true
+                                            PositionMin: {X: 0.0, Y: 0.1, Z: 0.0}
+                                            PositionMax: {X: 0.0, Y: 0.1, Z: 0.0}
+                                            Interpolate: false
+                                    Updaters: {}

@@ -1,0 +1,7 @@
+!Texture
+Id: 3bb05eda-a9af-492f-bd1d-33eef3217d77
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../../Resources/Textures/iron_blend/paint/iron_paint_dif.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

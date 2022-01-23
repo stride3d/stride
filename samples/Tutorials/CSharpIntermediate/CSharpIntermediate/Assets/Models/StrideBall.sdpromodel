@@ -1,0 +1,11 @@
+!ProceduralModelAsset
+Id: 8079536f-f105-498f-bf18-f1927d033d7e
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: !SphereProceduralModel
+    Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+    UvScale: {X: 1.0, Y: 1.0}
+    LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+    NumberOfTextureCoordinates: 10
+    MaterialInstance:
+        Material: 07145632-04dd-4491-b2d4-a835df396255:Materials/LogoA

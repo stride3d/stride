@@ -1,0 +1,136 @@
+!SceneAsset
+Id: 7bdfe973-380e-4515-825a-071555408658
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 874cf44b-ed7d-4b1a-8d41-0e058d4fb505
+        - ref!! 9d92896c-20c5-417a-a7a5-730151c42616
+        - ref!! 8e5c0a78-f92d-4286-af4b-10b3e9ec4248
+    Parts:
+        -   Entity:
+                Id: 624f057f-23dc-4638-84c2-bb1bcf877bc4
+                Name: Laser
+                Components:
+                    eadec332bc5011f4d266f1710cd56e37: !TransformComponent
+                        Id: 7daa8988-153e-4b21-a51e-35a77a947cb5
+                        Position: {X: -0.0054894825, Y: 0.0, Z: 0.0}
+                        Rotation: {X: -0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 0.01, Y: 0.01, Z: 1.0}
+                        Children: {}
+                    fd0f38fafb059e1653ac201d108ba88f: !SpriteComponent
+                        Id: 9227b4d0-634e-4949-81ff-ae2795e5925f
+                        SpriteProvider: !SpriteFromTexture
+                            Texture: 81c926b6-471a-40cd-9147-6e5921263469:Materials/beam
+                            PixelsPerUnit: 24.0
+                            Center: {X: 0.0, Y: 0.0}
+                            CenterFromMiddle: false
+                            IsTransparent: false
+                        Color: {R: 0.9125, G: 0.028515626, B: 0.028515626, A: 1.0}
+                        Intensity: 8.0
+        -   Entity:
+                Id: 874cf44b-ed7d-4b1a-8d41-0e058d4fb505
+                Name: Camera
+                Components:
+                    d5dd94550dc377d8b1703c74aae2cee5: !TransformComponent
+                        Id: 4696a866-161c-497b-8603-c0bea089c53b
+                        Position: {X: -0.13288316, Y: 2.9026284, Z: 0.72719866}
+                        Rotation: {X: 0.16438265, Y: 0.8523078, Z: 0.34405944, W: -0.35801268}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f1cc2f84c67fbd3cc50a22dd0ef605a5: !CameraComponent
+                        Id: b3059e83-5d60-48e7-8a74-606b8926b22f
+                        Enabled: false
+                        Name: null
+                        Projection: Perspective
+                        VerticalFieldOfView: 75.0
+                        Slot: c9cb3666-f711-498c-9878-292e79ed7993
+        -   Entity:
+                Id: 8e5c0a78-f92d-4286-af4b-10b3e9ec4248
+                Name: RaycastingDemo
+                Components:
+                    159efef787b42c3c4ec38f93d1b5deaa: !TransformComponent
+                        Id: 0e02d03d-8afe-40ef-9b1f-f1636bdee81d
+                        Position: {X: 1.2089652, Y: 1.2, Z: 0.27554992}
+                        Rotation: {X: 0.0, Y: -0.19772124, Z: 0.0, W: 0.9802583}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            ab3d2da0e164ecc97d46f114068e476a: ref!! 7b75a9dd-bdff-4596-aa21-a206e1eacb1d
+                            83f2730be5d7b8d79972a4600496d5d6: ref!! ee85dd60-a869-4403-b151-5ea5693d8edf
+                    62772d169a9fcf68a052414e55172215: !CSharpIntermediate.Code.RaycastDemo,CSharpIntermediate.Game
+                        Id: 55dff1c1-ebfd-4e63-8248-b890b58e5bb3
+                        RotationSpeed: 0.4
+                        MaxDistance: 3.0
+        -   Entity:
+                Id: 9d92896c-20c5-417a-a7a5-730151c42616
+                Name: WallAndWindow
+                Components:
+                    9bd6c2826922c24ba23d41e3a7a958f6: !TransformComponent
+                        Id: 732114f9-6ba3-4750-9b64-4075983fc70b
+                        Position*: {X: 0.29990873, Y: 0.89482, Z: 3.45087}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    4d58a9788f77724c823418b8b7f17537: !ModelComponent
+                        Id: b236cd8e-35e0-45ec-aa37-9db62d67e86f
+                        Model: 6582abd6-3c78-4242-96be-4fe6e77c056e:Models/Wall0x2x2Window
+                        Materials:
+                            ec9522ed2e91694abd8663b5b8ada228~0: 08b6f010-a274-4180-83c4-0f2c0920774b:Materials/GridMTStairs
+                    7788b92a4ec3be43bb9617ff231cfb59: !StaticColliderComponent
+                        Id: 930e476a-71d4-41de-b39f-96fc5f900af1
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            02c03fd947c2e1468d3e1fe2ca768387: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 2.0, Z: 0.6}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.7}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            f982fb30997ac941a73e5c7767ed01f9: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 1.0, Z: 2.0}
+                                LocalOffset: {X: 0.0, Y: -0.5, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            afa4ce0d96d4094f8b413d52efe7b5f9: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 2.0, Z: 0.6}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: -0.7}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                            d306ade91c92ed44945fb556fc585898: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 0.1, Y: 0.4, Z: 2.0}
+                                LocalOffset: {X: 0.0, Y: 0.8, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+        -   Entity:
+                Id: dd987abd-6fcb-4706-8bfb-25c9fa6d840d
+                Name: Weapon
+                Components:
+                    0915fbc42ec18742378bc502c9005237: !TransformComponent
+                        Id: 7b75a9dd-bdff-4596-aa21-a206e1eacb1d
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 1.0, Z: 0.0, W: -4.371139E-08}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    bc5b4a34b3419c53e8b521be5b9522c8: !ModelComponent
+                        Id: 69c3e0d4-f6b0-4b35-b67b-b09580c3c917
+                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
+                        Materials: {}
+        -   Entity:
+                Id: f636e9c7-5547-460b-86ef-7a580ae9b995
+                Name: Barrel
+                Components:
+                    efc96b005669c8d9efca54e2105dd76c: !TransformComponent
+                        Id: ee85dd60-a869-4403-b151-5ea5693d8edf
+                        Position: {X: -0.00011363812, Y: 0.154, Z: 0.76049}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            08db0d1499e6fe6f218bce3f603c9797: ref!! 7daa8988-153e-4b21-a51e-35a77a947cb5

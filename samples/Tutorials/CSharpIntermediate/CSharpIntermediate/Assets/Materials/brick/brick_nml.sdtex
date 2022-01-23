@@ -1,0 +1,6 @@
+!Texture
+Id: be1dc296-66ae-418c-8325-c3fca80cc43f
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../Resources/Textures/brick/brick_nml.png
+Type: !NormalMapTextureType {}
