@@ -228,7 +228,7 @@ Hierarchy:
                         Id: 488f040f-d41b-4b1f-9d7a-faee1c27632c
                         Model: a0e0c032-4635-45cc-9d48-35525b89f1bb:Models/Box3x1x1
                         Materials:
-                            1f66d7610cd6dc4c9b32d800d312e162~0: f34d47ea-f392-4085-b92e-73b87e82f7f9:Materials/MaterialTestA
+                            1f66d7610cd6dc4c9b32d800d312e162~0: f34d47ea-f392-4085-b92e-73b87e82f7f9:Materials/TriggerMaterial
                     33d35d98ecea8f0f27d90d51258f35f0: !StaticColliderComponent
                         Id: 7205d59e-05e0-4002-a226-074e1c98f717
                         CanSleep: false

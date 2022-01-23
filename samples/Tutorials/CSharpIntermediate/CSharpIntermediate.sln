@@ -1,11 +1,31 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 16
-VisualStudioVersion = 16.0.0.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 16.0.0.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpIntermediate.Windows", "CSharpIntermediate.Windows\CSharpIntermediate.Windows.csproj", "{9CC8F196-AAEB-4ED8-B675-D9A4C56062D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpIntermediate.Windows", "CSharpIntermediate.Windows\CSharpIntermediate.Windows.csproj", "{9CC8F196-AAEB-4ED8-B675-D9A4C56062D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpIntermediate", "CSharpIntermediate\CSharpIntermediate.csproj", "{6E21C554-996E-45EA-8EEB-445DB884CB3A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpIntermediate", "CSharpIntermediate\CSharpIntermediate.csproj", "{6E21C554-996E-45EA-8EEB-445DB884CB3A}"
 EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9CC8F196-AAEB-4ED8-B675-D9A4C56062D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CC8F196-AAEB-4ED8-B675-D9A4C56062D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CC8F196-AAEB-4ED8-B675-D9A4C56062D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CC8F196-AAEB-4ED8-B675-D9A4C56062D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E21C554-996E-45EA-8EEB-445DB884CB3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E21C554-996E-45EA-8EEB-445DB884CB3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E21C554-996E-45EA-8EEB-445DB884CB3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E21C554-996E-45EA-8EEB-445DB884CB3A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C5D423DE-0A24-4525-804A-86D20F8E48B3}
+	EndGlobalSection
 EndGlobal

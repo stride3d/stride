@@ -7,65 +7,59 @@ namespace CSharpIntermediate.Code
 {
     public class RaycastDemo : SyncScript
     {
-        public float RotationSpeed = 0.4f;
-        public float MaxDistance = 4.0f;
-        private Entity barrel;
-        private Entity laser;
-        private Entity hitPointVisualiser;
+        public Entity hitPointVisualiser;
+        public Entity laser;
+
+        private float MaxDistance = 6.0f;
         private Simulation simulation;
+
+        private bool collideWithTriggers = false;
+        private bool collideWithCustomFilter = false;
 
         public override void Start()
         {
-            barrel = Entity.FindChild("Barrel");
-            laser = Entity.FindChild("Laser");
-            hitPointVisualiser = Entity.FindChild("HitpointVisualiser");
-
             simulation = this.GetSimulation();
         }
 
         public override void Update()
         {
-            RotateWeapon();
+            DebugText.Print($"C to toggle colliding with CustomFilter1 : {collideWithCustomFilter}", new Int2(20, 20));
+            if (Input.IsKeyPressed(Keys.C))
+            {
+                collideWithCustomFilter = !collideWithCustomFilter;
+            }
 
-            hitPointVisualiser.Transform.Position = barrel.Transform.Position + new Vector3(0, 0, MaxDistance);
-            var raycastEndWorldPosition = hitPointVisualiser.Transform.WorldMatrix.TranslationVector;
-            var barrelWorldPosition = barrel.Transform.WorldMatrix.TranslationVector;
-            simulation.Raycast(barrelWorldPosition, raycastEndWorldPosition, out HitResult hitResult);
+            DebugText.Print($"T to toggle colliding with Triggers: {collideWithTriggers}", new Int2(20, 40));
+            if (Input.IsKeyPressed(Keys.T))
+            {
+                collideWithTriggers = !collideWithTriggers;
+            }
+
+            var raycastStartPosition = Entity.Transform.Position;
+            var raycastEndPosition = raycastStartPosition + new Vector3(0, 0, MaxDistance);
+
+            var colliderGroup = collideWithCustomFilter ? CollisionFilterGroups.CustomFilter1 : CollisionFilterGroups.AllFilter;
+            var colliderFlag = collideWithCustomFilter ? CollisionFilterGroupFlags.CustomFilter1 : CollisionFilterGroupFlags.AllFilter;
+            var hitResult = simulation.Raycast(raycastStartPosition, raycastEndPosition, colliderGroup, colliderFlag, collideWithTriggers);
+
+            hitPointVisualiser.Transform.Position = new Vector3(0);
+            laser.Transform.Scale.Z = 0;
 
             if (hitResult.Succeeded)
             {
-                var length = Vector3.Distance(barrelWorldPosition, hitResult.Point);
-                laser.Transform.Scale = new Vector3(0.01f, length, 1);
 
-                // Update the position of the hit point visualiser
-                hitPointVisualiser.Transform.WorldMatrix.TranslationVector = hitResult.Point;
-                hitPointVisualiser.Transform.UpdateWorldMatrix();
+                hitPointVisualiser.Transform.Position = hitResult.Point;
+                var distance = Vector3.Distance(hitResult.Point, raycastStartPosition);
+                laser.Transform.Scale.Z = distance;
 
-                DebugText.Print("Hit a collider", new Int2(500, 200));
-                DebugText.Print("Raycast hit point: " + hitResult.Point.ToString(), new Int2(500, 220));
-                DebugText.Print("Raycast hit entity : " + hitResult.Collider.Entity.Name, new Int2(500, 240));
+                DebugText.Print("Hit a collider", new Int2(500, 20));
+                DebugText.Print($"Raycast hit distance: {distance}", new Int2(500, 40));
+                DebugText.Print($"Raycast hit point: {hitResult.Point}", new Int2(500, 60));
+                DebugText.Print($"Raycast hit entity: {hitResult.Collider.Entity.Name}", new Int2(500, 80));
             }
             else
             {
-                // The length of the raycast is similar to MaxDistance
-                var length = Vector3.Distance(barrelWorldPosition, raycastEndWorldPosition);
-                laser.Transform.Scale = new Vector3(0.01f, length, 1);
                 DebugText.Print("No collider hit", new Int2(500, 220));
-            }
-        }
-
-        private void RotateWeapon()
-        {
-            DebugText.Print("Press Q and E to rotate the weapon", new Int2(500, 180));
-            var delta = (float)Game.UpdateTime.Elapsed.TotalSeconds;
-            if (Input.IsKeyDown(Keys.Q))
-            {
-                Entity.Transform.Rotation *= Quaternion.RotationY(RotationSpeed * delta);
-            }
-
-            if (Input.IsKeyDown(Keys.E))
-            {
-                Entity.Transform.Rotation *= Quaternion.RotationY(-RotationSpeed * delta);
             }
         }
     }

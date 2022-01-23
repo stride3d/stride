@@ -1,0 +1,20 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: PhysicsSample.Game
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir ../Assets/Shared
+    -   Path: !dir Effects
+ResourceFolders: []
+OutputGroupDirectories: {}
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 96c72f0a-efa4-4485-9f19-4d06cc72c918:Raycasting
+    - a455f656-7220-4d2c-a6ca-ed95c20bab47:VolumeTrigger
+    - e4a3ddfa-9a7f-482d-be06-ef72560180fe:Constraints

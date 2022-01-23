@@ -1,0 +1,19 @@
+!Model
+Id: 9706a306-e52d-46d1-a568-0c5035d0bbc6
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../Resources/Models/stride_box.fbx
+Skeleton: null
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    e60b5b1aec04dfad5b137e381df5f2e1:
+        Name: XenkoLogo
+        MaterialInstance:
+            Material: 34211474-674e-454a-854c-27a63fb46418:Materials/LogoD
+    2c46d11775ad23c975ad23c975ad23c9:
+        Name: Fame
+        MaterialInstance:
+            Material: 5befd71f-3a21-4e35-b595-8d65d48c467b:Materials/MaskD
+Modifiers: {}
+~SourceHashes:
+    16e8a1067912bc25bb0eab23214c4fcd~../../../Resources/Models/stride_box.fbx: 6e3a5526c1cdb7001c9b7ea51ac583a0
