@@ -143,7 +143,7 @@ Hierarchy:
                     16e72a50b470bfe748983da5458eb723: !TransformComponent
                         Id: d348c114-c5b5-48e1-a904-f7a507eb2ea5
                         Position: {X: 0.0, Y: 2.0, Z: 0.0}
-                        Rotation: {X: 0.06698732, Y: -0.93301266, Z: -0.25, W: -0.2500001}
+                        Rotation: {X: 0.007513374, Y: -0.85018384, Z: -0.45847577, W: -0.25871006}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     97d8ad5803ac5cb648f845db4591e5cf: !LightComponent

@@ -38,6 +38,12 @@ Attributes:
             Value: 1.0
         SpecularCavity: !ComputeFloat
             Value: 1.0
+    Transparency: !MaterialTransparencyAdditiveFeature
+        Alpha: !ComputeFloat
+            Value: 0.72
+        Tint: !ComputeColor
+            Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+        DitheredShadows: true
     Overrides:
         UVScale: {X: 1.0, Y: 1.0}
 Layers: {}

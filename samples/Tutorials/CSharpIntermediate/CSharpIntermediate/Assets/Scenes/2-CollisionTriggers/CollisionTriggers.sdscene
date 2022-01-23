@@ -7,7 +7,8 @@ Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
         - ref!! 4b0a7892-e2dd-43ed-ae96-73a86d297bfa
-        - ref!! ff01adba-5cbf-40f4-9485-a15010bc15a4
+        - ref!! 2c685f37-8ceb-4e8d-a2a6-1d950b9cd1e5
+        - ref!! 4ef5d805-4aa4-498d-8e9f-f0725f71fe37
         - ref!! 90250255-6561-4f83-a1fc-298e8270876f
         - ref!! 22f22a4b-1b2e-418d-9538-4e5d0a4ada0e
         - ref!! ed814855-0d1a-494a-8479-606dc81893cd
@@ -215,24 +216,38 @@ Hierarchy:
                             a19fac781d9526c32b533b77c2bf77de: ref!! 117a8761-3545-4050-9e97-584eb71f0283
         -   Entity:
                 Id: 2c685f37-8ceb-4e8d-a2a6-1d950b9cd1e5
-                Name: Box3x1x1
+                Name*: CollisionTrigger
                 Components:
                     a2d6ca1adcf6ec41a4c7d29eb46ea480: !TransformComponent
                         Id: 5efa6f48-8b9f-4b9a-9dcf-a93d866ed792
-                        Position*: {X: 2.5, Y: 0.5, Z: -5.960465E-08}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale*: {X: 2.0, Y: 1.0, Z: 1.0}
+                        Position*: {X: -0.31192064, Y: 0.01028648, Z: -0.8240147}
+                        Rotation*: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale*: {X: 2.0055861, Y: 1.0, Z: 1.0}
                         Children: {}
                     8fff9564224e164bbfeeb200886985b1: !ModelComponent
                         Id: 488f040f-d41b-4b1f-9d7a-faee1c27632c
                         Model: a0e0c032-4635-45cc-9d48-35525b89f1bb:Models/Box3x1x1
                         Materials:
-                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                            1f66d7610cd6dc4c9b32d800d312e162~0: f34d47ea-f392-4085-b92e-73b87e82f7f9:Materials/MaterialTestA
+                    33d35d98ecea8f0f27d90d51258f35f0: !StaticColliderComponent
+                        Id: 7205d59e-05e0-4002-a226-074e1c98f717
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            a3bab73b9bb819697a884f791913a3d2: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 3.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    46cf90a55839d41efd80415a88524b74: !CSharpIntermediate.Code.CollisionTriggerDemo,CSharpIntermediate
+                        Id: fc4f711d-f88d-4ed1-8711-309f7a71316a
                     d85b2b6e072fba4f9eac30a89cde96ea: ~(Deleted)
-            Base:
-                BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:Prefabs/Blocks/Box3x1x1
-                BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
-                InstanceId: a004a9af-e54c-46e6-b020-aaada63cff13
         -   Folder: Ground
             Entity:
                 Id: 32eff668-d7a7-4ca5-aa86-874749578949
@@ -430,6 +445,19 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 546568bc-d23f-43d3-83bc-0ac52080156e
                 InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 4ef5d805-4aa4-498d-8e9f-f0725f71fe37
+                Name: TeleportLocation
+                Components:
+                    c7c4cf05283ea9187949c4bf052f957a: !TransformComponent
+                        Id: f98e0aea-ddb1-4c4c-8006-6aefd7b5adfa
+                        Position: {X: -0.5, Y: 1.9736722, Z: 4.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    20714c3f6c1df4661c4675a8f0d562ab: !CSharpIntermediate.Code.Teleport,CSharpIntermediate
+                        Id: 4e749ac4-8d04-4d15-8641-b6dfe6f2b33b
+                        Ball: ref!! 90250255-6561-4f83-a1fc-298e8270876f
         -   Folder: Ground
             Entity:
                 Id: 5af4ea80-4346-42b6-8df6-dab91c4dc88e
@@ -622,7 +650,7 @@ Hierarchy:
                     16e72a50b470bfe748983da5458eb723: !TransformComponent
                         Id: 0ec9ba78-1910-43be-8f46-09ef2e06a45e
                         Position: {X: 0.0, Y: 2.0, Z: 0.0}
-                        Rotation: {X: 0.06698732, Y: -0.93301266, Z: -0.25, W: -0.2500001}
+                        Rotation: {X: 0.007513374, Y: -0.85018384, Z: -0.45847577, W: -0.25871006}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     97d8ad5803ac5cb648f845db4591e5cf: !LightComponent
@@ -646,11 +674,11 @@ Hierarchy:
                 InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
         -   Entity:
                 Id: 90250255-6561-4f83-a1fc-298e8270876f
-                Name: Sphere
+                Name: Ball
                 Components:
                     2e40cf343a3cf2a2b0044d0011fae553: !TransformComponent
                         Id: 1b9958fd-eaf3-48c2-83c9-d886762179f3
-                        Position: {X: -0.5, Y: 3.0000002, Z: 4.5}
+                        Position: {X: -0.5, Y: 1.9736722, Z: 4.5}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -1223,32 +1251,3 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 126c8441-74f2-4b92-8316-0f02f098baaf
                 InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
-        -   Entity:
-                Id: ff01adba-5cbf-40f4-9485-a15010bc15a4
-                Name: CollisionTriggerBox
-                Components:
-                    a97d7fdff2390a8b6f1fec8fc3c1aad7: !TransformComponent
-                        Id: fa63e587-ba9a-4d2f-9b2f-7007c6706b37
-                        Position: {X: -0.496253, Y: -0.7217571, Z: 1.5348719}
-                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children:
-                            9332ec7aba052569883b676e1c2df023: ref!! 5efa6f48-8b9f-4b9a-9dcf-a93d866ed792
-                    e16a8b5540f4ddbc59844b0d68af6535: !CSharpIntermediate.Code.CollisionTriggerDemo,CSharpIntermediate
-                        Id: f553ba86-4edd-49cc-a699-f57623e12451
-                    e77363bab91c021564232286af9ecfab: !StaticColliderComponent
-                        Id: 61df32a7-c675-4f71-8b43-8b74d2bd5d53
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: true
-                        AlwaysUpdateNaviMeshCache: false
-                        ColliderShapes:
-                            cc47999a32a8c5be287e6a2aa669bc9c: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
