@@ -10,6 +10,8 @@ namespace Stride.Graphics
         internal GraphicsResourceLifetimeState LifetimeState;
         public Action<GraphicsResourceBase> Reload;
 
+        private WeakReference<GraphicsResourceBase> key;
+
         /// <summary>
         /// Gets the graphics device attached to this instance.
         /// </summary>
@@ -52,6 +54,11 @@ namespace Stride.Graphics
             AttachToGraphicsDevice(device);
         }
 
+        ~GraphicsResourceBase()
+        {
+            Destroy();
+        }
+
         internal void AttachToGraphicsDevice(GraphicsDevice device)
         {
             GraphicsDevice = device;
@@ -60,9 +67,10 @@ namespace Stride.Graphics
             {
                 // Add GraphicsResourceBase to device resources
                 var resources = device.Resources;
+                key = new WeakReference<GraphicsResourceBase>(this);
                 lock (resources)
                 {
-                    resources.Add(this);
+                    resources.Add(key);
                 }
             }
 
@@ -90,6 +98,7 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected override void Destroy()
         {
+            GC.SuppressFinalize(this);
             var device = GraphicsDevice;
 
             if (device != null)
@@ -98,7 +107,7 @@ namespace Stride.Graphics
                 var resources = device.Resources;
                 lock (resources)
                 {
-                    resources.Remove(this);
+                    resources.Remove(key);
                 }
                 if (LifetimeState != GraphicsResourceLifetimeState.Destroyed)
                 {

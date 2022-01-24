@@ -39,18 +39,18 @@ namespace Stride.Graphics
 
         public void Pause()
         {
-            foreach (var resource in graphicsDevice.Resources)
+            foreach (var wRef in graphicsDevice.Resources)
             {
-                if (resource.OnPause())
+                if (wRef.TryGetTarget(out var resource) && resource.OnPause())
                     resource.LifetimeState = GraphicsResourceLifetimeState.Paused;
             }
         }
 
         public void OnResume()
         {
-            foreach (var resource in graphicsDevice.Resources)
+            foreach (var wRef in graphicsDevice.Resources)
             {
-                if (resource.LifetimeState == GraphicsResourceLifetimeState.Paused)
+                if (wRef.TryGetTarget(out var resource) && resource.LifetimeState == GraphicsResourceLifetimeState.Paused)
                 {
                     resource.OnResume();
                     resource.LifetimeState = GraphicsResourceLifetimeState.Active;
@@ -75,9 +75,9 @@ namespace Stride.Graphics
                 wasSomethingRecreated = false;
                 hasDestroyedObjects = false;
 
-                foreach (var resource in graphicsDevice.Resources)
+                foreach (var wRef in graphicsDevice.Resources)
                 {
-                    if (resource.LifetimeState == GraphicsResourceLifetimeState.Destroyed)
+                    if (wRef.TryGetTarget(out var resource) && resource.LifetimeState == GraphicsResourceLifetimeState.Destroyed)
                     {
                         if (resource.OnRecreate())
                         {
@@ -96,7 +96,7 @@ namespace Stride.Graphics
             if (hasDestroyedObjects)
             {
                 // Attach the list of objects that could not be recreated to the exception.
-                var destroyedObjects = graphicsDevice.Resources.Where(x => x.LifetimeState == GraphicsResourceLifetimeState.Destroyed).ToList();
+                var destroyedObjects = graphicsDevice.Resources.Where(x => x.TryGetTarget( out var resource ) && resource.LifetimeState == GraphicsResourceLifetimeState.Destroyed).ToList();
                 throw new InvalidOperationException("Could not recreate all objects.") { Data = { { "DestroyedObjects", destroyedObjects } } };
             }
         }
@@ -106,8 +106,10 @@ namespace Stride.Graphics
             // Destroy presenter first (so that its backbuffer and render target are destroyed properly before other resources)
             graphicsDevice.Presenter?.OnDestroyed();
 
-            foreach (var resource in graphicsDevice.Resources)
+            foreach (var wRef in graphicsDevice.Resources.ToArray())
             {
+                if(wRef.TryGetTarget(out var resource) == false)
+                    continue;
                 resource.OnDestroyed();
                 resource.LifetimeState = GraphicsResourceLifetimeState.Destroyed;
             }
@@ -118,8 +120,10 @@ namespace Stride.Graphics
 
         public void OnReload()
         {
-            foreach (var resource in graphicsDevice.Resources)
+            foreach (var wRef in graphicsDevice.Resources)
             {
+                if (wRef.TryGetTarget(out var resource) == false)
+                    continue;
                 if (resource.LifetimeState == GraphicsResourceLifetimeState.Destroyed)
                 {
                     if (resource.Reload != null)

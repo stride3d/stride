@@ -208,8 +208,8 @@ namespace Stride.Graphics
                 GraphicsDevice.RegisterTextureMemoryUsage(-SizeInBytes);
             }
 
-            ReleaseComObject(ref renderTargetView);
-            ReleaseComObject(ref depthStencilView);
+            TryReleaseComObject(ref renderTargetView);
+            TryReleaseComObject(ref depthStencilView);
 
             base.OnDestroyed();
         }
