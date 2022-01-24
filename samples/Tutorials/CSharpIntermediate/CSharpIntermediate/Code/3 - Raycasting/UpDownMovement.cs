@@ -6,8 +6,7 @@ namespace CSharpIntermediate.Code
 {
     public class UpDownMovement : SyncScript
     {
-        
-        private float MoveSpeed = 4.0f;
+        private float MoveSpeed = 3.0f;
 
         public override void Start()
         {
