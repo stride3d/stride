@@ -1,9 +1,0 @@
-!ColliderShapeAsset
-Id: 9d536b9b-68f7-4da8-b621-5b13e35b3363
-SerializedVersion: {Stride: 3.0.0.0}
-Tags: []
-ColliderShapes:
-    7da230e6be91aa4badbe0ab85ca705f6: !SphereColliderShapeDesc
-        Is2D: false
-        Radius: 1.0
-        LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
