@@ -12,7 +12,9 @@ Hierarchy:
                 Id: 0271b2c9-936c-4ece-b80b-57233f8ab3ed
                 DependencyProperties: {}
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
-                Margin: {}
+                Width: 685.0
+                Height: 720.0
+                Margin: {Right: 595.0}
                 MaximumWidth: 3.4028235E+38
                 MaximumHeight: 3.4028235E+38
                 MaximumDepth: 3.4028235E+38
@@ -67,10 +69,10 @@ Hierarchy:
                 Id: 7d6ac981-ff1e-4ce9-b959-f51383f2426a
                 DependencyProperties: {}
                 BackgroundColor: {R: 255, G: 255, B: 255, A: 255}
-                Width: 784.0
+                Width: 318.0
                 Height: 44.0
                 VerticalAlignment: Bottom
-                Margin: {Left: 240.0, Right: 256.0, Bottom: 284.5}
+                Margin: {Left: 209.5, Right: 249.5, Bottom: 285.5}
                 MaximumWidth: 3.4028235E+38
                 MaximumHeight: 3.4028235E+38
                 MaximumDepth: 3.4028235E+38

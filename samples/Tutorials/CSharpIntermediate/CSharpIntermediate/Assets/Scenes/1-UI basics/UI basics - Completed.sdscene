@@ -7,6 +7,7 @@ Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
         - ref!! 29cd9768-f880-4282-a34e-d6d7b0a1b86f
+        - ref!! 78486b16-2385-4d80-a441-905364e25b3b
         - ref!! 0c825b2a-e119-4492-8138-7b7f15912125
         - ref!! 412f6e91-d8aa-4ae8-8266-d807857e687b
     Parts:
@@ -191,7 +192,7 @@ Hierarchy:
                 Components:
                     cf7ad9a098a1f3272e2e412934231c28: !TransformComponent
                         Id: 1f041a82-4d80-4790-b729-ef86a7fbe440
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Position: {X: 0.12775402, Y: 1.906074, Z: 3.6059797}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -309,7 +310,7 @@ Hierarchy:
                 InstanceId: bd3950e6-ee7b-4aea-9a87-b4cc8b436798
         -   Entity:
                 Id: 29cd9768-f880-4282-a34e-d6d7b0a1b86f
-                Name: UI basics
+                Name: UI made by editor
                 Components:
                     87c3385e4c4035a39cce8503aa6b2367: !TransformComponent
                         Id: c3737f08-46cc-4733-9a44-24d02dc530d9
@@ -317,13 +318,14 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    35f8973b735f4a19a549c17a56dab709: !CSharpIntermediate.Code.UIBasics,CSharpIntermediate
-                        Id: f4208933-c328-4563-80fe-461c13d0b3f9
                     87b8cdebe44ac39172bf30b42e504fa1: !UIComponent
                         Id: 883678ae-1cc0-42b5-be4b-73ba3274323f
-                        Page: 2fa9f139-59c7-49b4-8ec2-d7cb1733c44e:UI/UI basics page
+                        Page: 2fa9f139-59c7-49b4-8ec2-d7cb1733c44e:Scenes/1-UI basics/UI basics page
                         Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
                         Size: {X: 1.28, Y: 0.72, Z: 1.0}
+                    8d87a04e973ffff83f93dd6a96b11f0f: !CSharpIntermediate.Code.UIByEditor,CSharpIntermediate
+                        Id: d337ab36-21ce-4e44-b3ca-d6d57601dbdd
+                        Font: null
         -   Entity:
                 Id: 3463f6aa-b231-4023-aae8-f3dcd80ead66
                 Name: Box4x2x1
@@ -625,6 +627,19 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 68a5ba41-d842-4b51-a25f-b157457b1b55
                 InstanceId: bd3950e6-ee7b-4aea-9a87-b4cc8b436798
+        -   Entity:
+                Id: 78486b16-2385-4d80-a441-905364e25b3b
+                Name: UI made by code
+                Components:
+                    87c3385e4c4035a39cce8503aa6b2367: !TransformComponent
+                        Id: 63f0710d-4f04-4cb2-9440-a8d53ebf4101
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d74d20d08dcca2951b1191066068ab62: !CSharpIntermediate.Code.UIByCode,CSharpIntermediate
+                        Id: 3560191a-8faf-4fa3-b82d-bd0ed67091eb
+                        Font: c2da4379-f33e-40b3-aae2-1404bf5e6cb6:UI/Ebrima
         -   Folder: Walls
             Entity:
                 Id: 8619db46-e35a-4c5c-8309-328cd9fe674c

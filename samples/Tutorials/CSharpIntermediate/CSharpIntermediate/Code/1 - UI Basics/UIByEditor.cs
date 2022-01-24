@@ -1,12 +1,17 @@
+using System;
+using Stride.Core.Mathematics;
 using Stride.Engine;
+using Stride.Graphics;
 using Stride.UI;
 using Stride.UI.Controls;
 using Stride.UI.Events;
 
 namespace CSharpIntermediate.Code
 {
-    public class UIBasics : StartupScript
+    public class UIByEditor : StartupScript
     {
+        public SpriteFont Font;
+
         private TextBlock textBlock;
         private EditText editText;
 
@@ -34,7 +39,7 @@ namespace CSharpIntermediate.Code
         {
             // Changing the text triggers the TextChanged event again
             editText.Text = "";
-            
+
             // We also want to reset the text in the textblock
             textBlock.Text = "...";
         }

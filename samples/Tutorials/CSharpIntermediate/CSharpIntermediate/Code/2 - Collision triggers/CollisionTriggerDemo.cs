@@ -36,14 +36,14 @@ namespace CSharpIntermediate.Code
             }
             else if (args.Action == NotifyCollectionChangedAction.Remove)
             {
-                // When a collision has been removed fromthe collision collection, we know an object 'left' our trigger
+                // When a collision has been removed from the collision collection, we know an object 'left' our trigger
                 collisionStatus = ballCollider.Entity.Name + " left " + triggerCollider.Entity.Name;
             }
         }
 
         public override void Update()
         {
-            // the trigger collider can have 0, 1 or multiple collision going on in a single frame
+            // The trigger collider can have 0, 1 or multiple collision going on in a single frame
             foreach (var collision in triggerCollider.Collisions)
             {
                 DebugText.Print("ColliderA: " + collision.ColliderA.Entity.Name, new Int2(500, 300));

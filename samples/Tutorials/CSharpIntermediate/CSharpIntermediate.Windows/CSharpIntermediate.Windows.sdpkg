@@ -17,4 +17,6 @@ TemplateFolders: []
 RootAssets:
     - 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
     - a1bea2b1-5384-4c2a-b7cc-cda9ddcf4bd1:Scenes/1-UI basics/UI basics - Completed
-    - f01b7404-0b11-40c9-8729-8dcc544ef23c:Scenes/2-CollisionTriggers/CollisionTriggers
+    - d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/4-SceneLoading/ChildScenes/ChildSceneB
+    - f01b7404-0b11-40c9-8729-8dcc544ef23c:Scenes/2-CollisionTriggers/CollisionTriggers - Completed
+    - f1eaace8-d21a-46ef-87a6-5b5bf0698803:Scenes/4-SceneLoading/ChildScenes/ChildSceneA
