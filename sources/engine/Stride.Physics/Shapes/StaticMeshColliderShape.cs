@@ -117,8 +117,9 @@ namespace Stride.Physics
             }
             
             var dbProvider = services.GetService<IDatabaseFileProviderService>();
+            var sharedContent = services.GetService<ContentManager>();
 
-            ContentManager assetManager = null;
+            ContentManager rawContent = null;
             
             Matrix[] nodeTransforms = null;
             if (model.Skeleton != null)
@@ -166,54 +167,15 @@ namespace Stride.Physics
             {
                 var vBuffer = meshData.Draw.VertexBuffers[0].Buffer;
                 var iBuffer = meshData.Draw.IndexBuffer.Buffer;
-                byte[] verticesBytes = null;
-                byte[] indicesBytes = null;
-                
-                // Both of those can fail when data has already been sent to GPU
-                var vertexBufferRef = AttachedReferenceManager.GetAttachedReference(vBuffer);
-                var indexBufferRef = AttachedReferenceManager.GetAttachedReference(iBuffer);
-                if (vertexBufferRef.Data != null)
-                    verticesBytes = ((BufferData)vertexBufferRef.Data).Content;
-                if (indexBufferRef.Data != null)
-                    indicesBytes = ((BufferData)indexBufferRef.Data).Content;
-                
-                // Editor-specific workaround, we can't load assets when the file provider is null,
-                // will most likely break on non-dx11 APIs
-                if((verticesBytes == null || indicesBytes == null) && dbProvider != null && dbProvider.FileProvider == null)
-                {
-                    var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
-                    var commandList = (CommandList)typeof(GraphicsDevice)
-                        .GetField("InternalMainCommandList", flags)
-                        .GetValue(vBuffer.GraphicsDevice);
-                    
-                    verticesBytes = new byte[vBuffer.SizeInBytes];
-                    indicesBytes = new byte[iBuffer.SizeInBytes];
-                    fixed (byte* window = verticesBytes)
-                        FetchBufferFromGPU(vBuffer, commandList, new DataPointer(window, verticesBytes.Length));
-                    fixed (byte* window = indicesBytes)
-                        FetchBufferFromGPU(iBuffer, commandList, new DataPointer(window, indicesBytes.Length));
-                }
-                
-                if (verticesBytes == null && string.IsNullOrEmpty(vertexBufferRef.Url) == false)
-                {
-                    assetManager ??= new ContentManager(dbProvider);
-                    var dataAsset = assetManager.Load<Graphics.Buffer>(vertexBufferRef.Url);
-                    verticesBytes = dataAsset.GetSerializationData().Content;
-                    assetManager.Unload(vertexBufferRef.Url);
-                }
-                if (indicesBytes == null && string.IsNullOrEmpty(indexBufferRef.Url) == false)
-                {
-                    assetManager ??= new ContentManager(dbProvider);
-                    var dataAsset = assetManager.Load<Graphics.Buffer>(indexBufferRef.Url);
-                    indicesBytes = dataAsset.GetSerializationData().Content;
-                    assetManager.Unload(indexBufferRef.Url);
-                }
+                byte[] verticesBytes = TryFetchBufferContent(vBuffer, ref rawContent, sharedContent, dbProvider);
+                byte[] indicesBytes = TryFetchBufferContent(iBuffer, ref rawContent, sharedContent, dbProvider);
                 
                 if(verticesBytes == null || indicesBytes == null)
                 {
                     throw new InvalidOperationException(
                         $"Failed to find mesh buffers while attempting to build a {nameof(StaticMeshColliderShape)}. " +
-                        $"Make sure that the {nameof(model)} is either an asset on disk or use {nameof(StaticMeshColliderShape)}'s second constructor instead of this one");
+                        $"Make sure that the {nameof(model)} is either an asset on disk, or has its buffer data attached to the buffer through '{nameof(AttachedReference)}'\n" +
+                        $"You can also explicitly build a {nameof(StaticMeshColliderShape)} using the second constructor instead of this one.");
                 }
 
                 int vertMappingStart = combinedVerts.Count;
@@ -286,21 +248,58 @@ namespace Stride.Physics
                 return sharedData;
             }
         }
-
-
-        static void FetchBufferFromGPU(Graphics.Buffer buffer, CommandList commandList, DataPointer ptr)
+        
+        static unsafe byte[] TryFetchBufferContent(Graphics.Buffer buffer, ref ContentManager rawContent, ContentManager sharedContent, IDatabaseFileProviderService dbProvider)
         {
-            if (buffer.Description.Usage == GraphicsResourceUsage.Staging)
+            byte[] output;
+            var bufRef = AttachedReferenceManager.GetAttachedReference(buffer);
+            if (bufRef.Data != null && (output = ((BufferData)bufRef.Data).Content) != null)
+                return output;
+            
+            // Editor-specific workaround, we can't load assets when the file provider is null,
+            // will most likely break on non-dx11 APIs
+            if (dbProvider != null && dbProvider.FileProvider == null)
             {
-                // Directly if this is a staging resource
-                buffer.GetData(commandList, buffer, ptr);
+                var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+                var commandList = (CommandList)typeof(GraphicsDevice)
+                    .GetField("InternalMainCommandList", flags)
+                    .GetValue(buffer.GraphicsDevice);
+                
+                output = new byte[buffer.SizeInBytes];
+                fixed (byte* window = output)
+                {
+                    var ptr = new DataPointer(window, output.Length);
+                    if (buffer.Description.Usage == GraphicsResourceUsage.Staging)
+                    {
+                        // Directly if this is a staging resource
+                        buffer.GetData(commandList, buffer, ptr);
+                    }
+                    else
+                    {
+                        // inefficient way to use the Copy method using dynamic staging texture
+                        using (var throughStaging = buffer.ToStaging())
+                            buffer.GetData(commandList, throughStaging, ptr);
+                    }
+                }
+
+                return output;
             }
-            else
+
+            if (sharedContent.TryGetAssetUrl(buffer, out var url))
             {
-                // inefficient way to use the Copy method using dynamic staging texture
-                using (var throughStaging = buffer.ToStaging())
-                    buffer.GetData(commandList, throughStaging, ptr);
+                rawContent ??= new ContentManager(dbProvider);
+                var data = rawContent.Load<Graphics.Buffer>(url);
+                try
+                {
+                    return data.GetSerializationData().Content;
+                }
+                finally
+                {
+                    rawContent.Unload(url);
+                }
             }
+
+            return null;
         }
 
         private record SharedMeshData
@@ -334,9 +333,9 @@ namespace Stride.Physics
                 }
             }
 
-            public void Add(BulletSharp.Math.Vector3 item) => throw new System.InvalidOperationException("Collection is read only");
-            public bool Remove(BulletSharp.Math.Vector3 item) => throw new System.InvalidOperationException("Collection is read only");
-            public void Clear() => throw new System.InvalidOperationException("Collection is read only");
+            public void Add(BulletSharp.Math.Vector3 item) => throw new InvalidOperationException("Collection is read only");
+            public bool Remove(BulletSharp.Math.Vector3 item) => throw new InvalidOperationException("Collection is read only");
+            public void Clear() => throw new InvalidOperationException("Collection is read only");
 
             public IEnumerator<BulletSharp.Math.Vector3> GetEnumerator()
             {
