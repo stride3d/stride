@@ -42,11 +42,10 @@ namespace Stride.Graphics.Data
                         var contentSerializerContext = stream.Context.Get(ContentSerializerContext.ContentSerializerContextProperty);
                         if (contentSerializerContext != null)
                         {
-                            var assetManager = contentSerializerContext.ContentManager;
-                            var url = contentSerializerContext.Url;
-
-                            texture.Reload = (graphicsResource) =>
+                            texture.Reload = static (graphicsResource, services) =>
                             {
+                                var assetManager = services.GetService<ContentManager>();
+                                assetManager.TryGetAssetUrl(graphicsResource, out var url);
                                 var textureDataReloaded = assetManager.Load<Image>(url);
                                 ((Texture)graphicsResource).Recreate(textureDataReloaded.ToDataBox());
                                 assetManager.Unload(textureDataReloaded);
