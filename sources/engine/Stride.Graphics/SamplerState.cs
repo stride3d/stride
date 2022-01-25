@@ -54,9 +54,12 @@ namespace Stride.Graphics
 
         protected override void Destroy()
         {
-            lock (GraphicsDevice.CachedSamplerStates)
+            if (GraphicsDevice != null)
             {
-                GraphicsDevice.CachedSamplerStates.Remove(Description);
+                lock (GraphicsDevice.CachedSamplerStates)
+                {
+                    GraphicsDevice.CachedSamplerStates.Remove(Description);
+                }
             }
 
             base.Destroy();
