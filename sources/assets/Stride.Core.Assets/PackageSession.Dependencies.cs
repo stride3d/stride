@@ -396,26 +396,6 @@ namespace Stride.Core.Assets
             }
         }
 
-        private static RemoteWalkContext CreateRemoteWalkContext(RestoreRequest request, RestoreCollectorLogger logger)
-        {
-            var context = new RemoteWalkContext(
-                request.CacheContext,
-                request.PackageNameSpaces,
-                logger);
-
-            foreach (var provider in request.DependencyProviders.LocalProviders)
-            {
-                context.LocalLibraryProviders.Add(provider);
-            }
-
-            foreach (var provider in request.DependencyProviders.RemoteProviders)
-            {
-                context.RemoteLibraryProviders.Add(provider);
-            }
-
-            return context;
-        }
-
         private static ExternalProjectReference ToExternalProjectReference(PackageSpec project)
         {
             return new ExternalProjectReference(

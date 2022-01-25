@@ -5,9 +5,10 @@ setlocal
 set STARTTIME=%TIME%
 set __SkipTestBuild=true
 set __BuildType=Debug
-set __BuildVerbosity=m
+set __BuildVerbosity=n
 set __BuildDoc=0
 set __ContinueOnError=false
+set __SelectedProject=Stride.sln
 
 :Arg_Loop
 rem This does not check for duplicate arguments, the last one will take precedence
@@ -35,7 +36,7 @@ echo.
 echo   debug   : Build debug version
 echo   release : Build release version
 echo   tests   : Build tests
-echo verbosity : Verbosity level [q]uiet, [m]inimal, [n]ormal or [d]iagnostic. Default is [m]inimal
+echo verbosity : Verbosity level [q]uiet, [m]inimal, [n]ormal or [d]iagnostic. Default is [n]ormal
 echo   project : Chosen project
 echo.
 
@@ -70,68 +71,6 @@ call :compile
 set __SkipTestBuild=%__OldSkipTestBuild%
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
-set Project=Stride.Direct3D.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.Direct3D.SDL.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.Direct3D.CoreCLR.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.Direct3D12.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.Null.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.Vulkan.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.Vulkan.SDL.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.OpenGL.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.OpenGL.CoreCLR.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.Linux.sln
-set _platform_target=Linux
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.Linux.Vulkan.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.Linux.CoreCLR.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.Linux.Vulkan.CoreCLR.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.macOS.sln
-set _platform_target=macOS
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.macOS.CoreCLR.sln
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
 set Project=Stride.Android.sln
 set _platform_target=Android
 call :compile
@@ -139,11 +78,6 @@ if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
 set Project=Stride.iOS.sln
 set _platform_target=iPhone
-call :compile
-if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
-
-set Project=Stride.UWP.sln
-set _platform_target=UWP
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
