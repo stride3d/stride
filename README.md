@@ -1,5 +1,15 @@
 ![Stride](sources/data/images/Logo/stride-logo-readme.png)
 
+
+
+[![Financial sponsors](https://img.shields.io/opencollective/all/:collective)](https://opencollective.com/stride3d)
+
+[![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
+
+
+
+
+
 <img alt="open collective badge" src="https://opencollective.com/stride3d/tiers/copper-strider/badge.svg&color=brightgreen" />
 
 https://opencollective.com/stride3d/tiers/badge.svg
