@@ -1,4 +1,10 @@
 ![Stride](sources/data/images/Logo/stride-logo-readme.png)
+
+<img alt="open collective badge" src="https://opencollective.com/stride3d/tiers/copper-strider/badge.svg&color=brightgreen" />
+
+https://opencollective.com/stride3d/tiers/badge.svg
+
+<object type="image/svg+xml" data="https://opencollective.com/stride3d/tiers/copper-strider.svg?avatarHeight=36&width=600"></object>
 =======
 
 Welcome to the Stride source code repository!
