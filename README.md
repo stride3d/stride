@@ -2,7 +2,7 @@
 
 
 
-[![Financial sponsors](https://img.shields.io/opencollective/all/:collective)](https://opencollective.com/stride3d)
+[![Financial sponsors](https://img.shields.io/opencollective/all/stride3d)](https://opencollective.com/stride3d)
 
 [![Join the chat at https://discord.gg/f6aerfE](https://img.shields.io/discord/500285081265635328.svg?style=flat&logo=discord&label=discord)](https://discord.gg/f6aerfE)
 
