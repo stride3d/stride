@@ -4,6 +4,7 @@
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-26-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
+[![Open collective backers](https://img.shields.io/opencollective/all/stride3d)](https://opencollective.com/stride3d)
 =======
 
 Welcome to the Stride source code repository!
@@ -49,8 +50,8 @@ Ask for help or report issues:
 * [Chat with the community on Discord](https://discord.gg/f6aerfE)
 * [Discuss topics on Github discussions](https://github.com/stride3d/stride/discussions)
 * [Report engine issues](https://github.com/stride3d/stride/issues)
-* [Donate to support the project](https://opencollective.com/stride3d/)
-* [List of Projects made by users](https://github.com/stride3d/stride-community-projects)
+* [Donate to support the project](https://opencollective.com/stride3d/) [![Open collective backers](https://img.shields.io/opencollective/all/stride3d)](https://opencollective.com/stride3d)
+* [List of Projects made by users](https://github.com/stride3d/stride/wiki/StrideCommunityProjects)
 * [Localization](docs/localization.md)
 
 ## Building from source
