@@ -997,16 +997,10 @@ namespace Stride.Core.Mathematics
         /// <param name="result">The product of the two matrices.</param>
         public static void Multiply(ref Matrix left, ref Matrix right, out Matrix result)
         {
-            unsafe
-            {
-                fixed (Matrix* outPtr = &result)
-                {
-                    ref MatrixDotnet l = ref UnsafeRefAsDotNet(in left);
-                    ref MatrixDotnet r = ref UnsafeRefAsDotNet(in right);
-                    *(MatrixDotnet*)outPtr = LayoutIsRowMajor ? l * r : r * l;
-                    return; // Explicit return until JIT optimization is fixed
-                }
-            }
+            ref MatrixDotnet l = ref UnsafeRefAsDotNet(in left);
+            ref MatrixDotnet r = ref UnsafeRefAsDotNet(in right);
+            Unsafe.SkipInit(out result);
+            UnsafeRefAsDotNet(in result) = LayoutIsRowMajor ? l * r : r * l;
         }
 
         /// <summary>
@@ -1019,16 +1013,10 @@ namespace Stride.Core.Mathematics
         /// <param name="result">The product of the two matrices.</param>
         public static void MultiplyIn(in Matrix left, in Matrix right, out Matrix result)
         {
-            unsafe
-            {
-                fixed (Matrix* outPtr = &result)
-                {
-                    ref MatrixDotnet l = ref UnsafeRefAsDotNet(in left);
-                    ref MatrixDotnet r = ref UnsafeRefAsDotNet(in right);
-                    *(MatrixDotnet*)outPtr = LayoutIsRowMajor ? l * r : r * l;
-                    return; // Explicit return until JIT optimization is fixed
-                }
-            }
+            ref MatrixDotnet l = ref UnsafeRefAsDotNet(in left);
+            ref MatrixDotnet r = ref UnsafeRefAsDotNet(in right);
+            Unsafe.SkipInit(out result);
+            UnsafeRefAsDotNet(in result) = LayoutIsRowMajor ? l * r : r * l;
         }
 
         /// <summary>
@@ -1369,25 +1357,9 @@ namespace Stride.Core.Mathematics
         /// <param name="result">When the method completes, contains the inverse of the specified matrix.</param>
         public static void Invert(ref Matrix value, out Matrix result)
         {
-            unsafe
-            {
-                fixed (Matrix* resultPtr = &result)
-                {
-                    if (LayoutIsRowMajor)
-                    {
-                        MatrixDotnet.Invert(UnsafeRefAsDotNet(value), out *(MatrixDotnet*)resultPtr);
-                    }
-                    else
-                    {
-                        // 'value' must not be modified, copy to be able to transpose it instead
-                        Matrix buff = value;
-                        buff.Transpose();
-                        MatrixDotnet.Invert(*(MatrixDotnet*)&buff, out *(MatrixDotnet*)resultPtr);
-                        resultPtr->Transpose();
-                    }
-                    return; // Explicit return until JIT optimization is fixed
-                }
-            }
+            // Invert works the same in row and column major, no need to transpose
+            Unsafe.SkipInit(out result);
+            MatrixDotnet.Invert(UnsafeRefAsDotNet(value), out UnsafeRefAsDotNet(result));
         }
 
         /// <summary>
@@ -3110,6 +3082,7 @@ namespace Stride.Core.Mathematics
         }
         
         static ref MatrixDotnet UnsafeRefAsDotNet(in Matrix m) => ref Unsafe.As<Matrix, MatrixDotnet>(ref Unsafe.AsRef(in m));
+        static ref Matrix UnsafeRefFromDotNet(in MatrixDotnet m) => ref Unsafe.As<MatrixDotnet, Matrix>(ref Unsafe.AsRef(in m));
 
         /// <summary>
         /// Adds two matrices.
@@ -3193,14 +3166,9 @@ namespace Stride.Core.Mathematics
         /// <returns>The product of the two matrices.</returns>
         public static Matrix operator *(in Matrix left, in Matrix right)
         {
-            unsafe
-            {
-                ref MatrixDotnet l = ref UnsafeRefAsDotNet(in left);
-                ref MatrixDotnet r = ref UnsafeRefAsDotNet(in right);
-                Matrix outval = default;
-                *(MatrixDotnet*)&outval = LayoutIsRowMajor ? l * r : r * l;
-                return outval;
-            }
+            ref MatrixDotnet l = ref UnsafeRefAsDotNet(in left);
+            ref MatrixDotnet r = ref UnsafeRefAsDotNet(in right);
+            return UnsafeRefFromDotNet(LayoutIsRowMajor ? l * r : r * l);
         }
 
         /// <summary>
