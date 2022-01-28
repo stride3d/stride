@@ -155,7 +155,7 @@ namespace Stride.Games
             OnClosing(this, new EventArgs());
         }
 
-        internal override void Run()
+        public override void Run()
         {
             Debug.Assert(InitCallback != null, $"{nameof(InitCallback)} is null");
             Debug.Assert(RunCallback != null, $"{nameof(RunCallback)} is null");
@@ -291,7 +291,7 @@ namespace Stride.Games
             }
         }
 
-        internal override void Resize(int width, int height)
+        public override void Resize(int width, int height)
         {
             window.ClientSize = new Size2(width, height);
         }
