@@ -237,7 +237,7 @@ namespace Stride.Games
         
         private bool isFullscreen;
 
-        internal abstract void Run();
+        public abstract void Run();
 
         /// <summary>
         /// Sets the size of the client area and triggers the <see cref="ClientSizeChanged"/> event.
@@ -253,7 +253,7 @@ namespace Stride.Games
         /// Only used internally by the device managers when they adapt the window size to the backbuffer size.
         /// Resizes the window, without sending the resized event.
         /// </summary>
-        internal abstract void Resize(int width, int height);
+        public abstract void Resize(int width, int height);
 
         public virtual IMessageLoop CreateUserManagedMessageLoop()
         {
@@ -261,7 +261,7 @@ namespace Stride.Games
             throw new PlatformNotSupportedException();
         }
 
-        internal IServiceRegistry Services { get; set; }
+        protected internal IServiceRegistry Services { get; set; }
 
         protected internal abstract void SetSupportedOrientations(DisplayOrientation orientations);
 
@@ -341,7 +341,7 @@ namespace Stride.Games
             }
         }
 
-        internal GameContext<TK> GameContext;
+        protected GameContext<TK> GameContext;
 
         protected abstract void Initialize(GameContext<TK> context);
     }
