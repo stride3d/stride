@@ -5,23 +5,28 @@ using System.Text;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Engine;
+using Stride.Input;
 
 namespace CSharpIntermediate
 {
-    public class LoadAScene : SyncScript
+    public class SwitchScene : SyncScript
     {
-        public string SceneUrl;
-        private Scene childScene;
-
+        public Scene SceneToLoad;
 
         public override void Start()
         {
-            childScene = Content.Load<Scene>(SceneUrl);
-            childScene.Parent = Entity.Scene;
+
         }
 
         public override void Update()
         {
+            DebugText.Print("Press S to Switch child scene", new Int2(20, 60));
+            
+
+            if (Input.IsKeyPressed(Keys.L))
+            {
+                SceneSystem.SceneInstance.RootScene = SceneToLoad;
+            }
         }
     }
 }
