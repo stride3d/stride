@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Input;
 
@@ -11,35 +7,40 @@ namespace CSharpIntermediate
 {
     public class LoadChildScene : SyncScript
     {
-        public string SceneUrl;
-        private Scene childScene;
-        private int loaded = 1;
-
-        public override void Start()
-        {
-
-        }
+        //public string childSceneToLoad;
+        public UrlReference<Scene> childSceneToLoad;
+        private int loaded = 0;
+        private Scene loadedChildScene;
 
         public override void Update()
         {
-            if (childScene == null)
-                DebugText.Print("Press L to load child scene", new Int2(20, 20));
-            else
-                DebugText.Print("Press U to unload child scene", new Int2(20, 20));
-
-            if (Input.IsKeyPressed(Keys.L))
+            DebugText.Print("Press C to load/unload child scene", new Int2(20, 60));
+            if (loadedChildScene == null)
             {
-                childScene = Content.Load<Scene>(SceneUrl);
-                childScene.Offset = new Vector3(0, 0.5f * loaded, 0);
-                childScene.Parent = Entity.Scene;
-                loaded++;
+                if (Input.IsKeyPressed(Keys.C))
+                {
+                    // loadedChildScene = Content.Load<Scene>(childSceneToLoad);
+                    // Or
+                    loadedChildScene = Content.Load(childSceneToLoad);
+                    loadedChildScene.Offset = new Vector3(0, 0.5f * loaded, 0);
+                    loaded++;
+
+                    // Entity.Scene.Children.Add(loadedChildScene);
+                    // Or 
+                    loadedChildScene.Parent = Entity.Scene;
+                }
             }
-
-            if (Input.IsKeyPressed(Keys.U))
+            else
             {
-                childScene.Parent = null;
-                childScene.Dispose();
-                childScene = null;
+                if (Input.IsKeyPressed(Keys.C))
+                {
+                    // Entity.Scene.Children.Remove(loadedChildScene);
+                    // Or
+                    loadedChildScene.Parent = null;
+
+                    Content.Unload(loadedChildScene);
+                    loadedChildScene = null;
+                }
             }
         }
     }

@@ -8,9 +8,8 @@ Hierarchy:
     RootParts:
         - ref!! a382e781-4031-4e25-844e-bac362f84de5
         - ref!! 90368419-75b0-488f-8a6d-930fedfee141
-        - ref!! 9db05241-c4e1-442a-83e5-d84bac0b7fc7
-        - ref!! d2f3fa06-900c-4bdc-936b-fba7100826da
         - ref!! 0d558972-fba3-4f73-8e7d-630dcb4c2bb7
+        - ref!! d2f3fa06-900c-4bdc-936b-fba7100826da
     Parts:
         -   Entity:
                 Id: 01668d73-ffce-497a-9395-b0e30dd9c3d1
@@ -65,7 +64,7 @@ Hierarchy:
                 InstanceId: e601aea1-d210-482c-9f60-b592942377f0
         -   Entity:
                 Id: 0d558972-fba3-4f73-8e7d-630dcb4c2bb7
-                Name: SwitchScene
+                Name: LoadScene
                 Components:
                     f2a61858270be2834cce180e359bb173: !TransformComponent
                         Id: 714d15f8-0021-44bf-bf3d-d96aa01ae761
@@ -73,8 +72,8 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    a32e8b771456906d4f05d2c560b92846: !CSharpIntermediate.SwitchScene,CSharpIntermediate
-                        Id: 5aa99c30-bfa3-4903-bc17-1619988bce4d
+                    2d84446b3bee274f0cf71414d8ec7f4a: !CSharpIntermediate.LoadScene,CSharpIntermediate
+                        Id: ff3b82ec-8afe-4772-ab8e-6df46aabe706
                         SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/4-SceneLoading/Completed-SceneB
         -   Folder: Ground
             Entity:
@@ -736,18 +735,6 @@ Hierarchy:
                         Projection: Perspective
                         Slot: 41f9c2cc-ee60-452f-8f6d-44e30148d556
         -   Entity:
-                Id: 9db05241-c4e1-442a-83e5-d84bac0b7fc7
-                Name: ReloadScene
-                Components:
-                    f2a61858270be2834cce180e359bb173: !TransformComponent
-                        Id: a998a5b5-2f52-46fe-87fe-945e3374bf79
-                        Position: {X: 0.0, Y: 1.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    f2cae2e88c8df92feca9fe5055212a9d: !CSharpIntermediate.ReloadScene,CSharpIntermediate
-                        Id: fd4bafa9-121c-4f08-a479-c715fb5d2338
-        -   Entity:
                 Id: a382e781-4031-4e25-844e-bac362f84de5
                 Name: DefaultScenery
                 Components:
@@ -933,7 +920,7 @@ Hierarchy:
                 InstanceId: e601aea1-d210-482c-9f60-b592942377f0
         -   Entity:
                 Id: d2f3fa06-900c-4bdc-936b-fba7100826da
-                Name: ChildSceneLoading
+                Name: LoadChildScene
                 Components:
                     f2a61858270be2834cce180e359bb173: !TransformComponent
                         Id: 176bb13f-da39-444f-81db-209d050cbb4f
@@ -941,9 +928,9 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    079cbd70a85a7243eff7e8ccf001fb1b: !CSharpIntermediate.LoadChildScene,CSharpIntermediate
-                        Id: 66719bea-0979-4394-804c-1202f4684339
-                        SceneUrl: Scenes/4-SceneLoading/Completed-SceneA-ChildA
+                    e31cab0bcd95c488fa5a1fe9966787ee: !CSharpIntermediate.LoadChildScene,CSharpIntermediate
+                        Id: a2930a93-d0bf-4bfd-8bf1-5f74bc505c6f
+                        childSceneToLoad: 7e0d3cb4-324d-41c8-b215-c4b2800dff86:Scenes/4-SceneLoading/Completed-SceneA-Child
         -   Entity:
                 Id: d64d6dca-2366-4bce-9497-30466de8d4de
                 Name: Skybox
