@@ -2,7 +2,7 @@
 Id: 1e8aa650-da28-44e4-b76f-e7865c20fcd5
 SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
-DefaultScene: f6f2a96e-6b05-4119-bba1-87c1fa5c8fdf:Scenes/4-SceneLoading/Completed-SceneA
+DefaultScene: 58471c79-42fc-49b7-846f-44115f7ab70d:Scenes/Animation basics/Completed-Animations
 GraphicsCompositor: fe026ff4-fdf9-48b9-87fb-65764cb9153f:GraphicsCompositor
 Defaults:
     - !Stride.Audio.AudioEngineSettings,Stride.Audio
