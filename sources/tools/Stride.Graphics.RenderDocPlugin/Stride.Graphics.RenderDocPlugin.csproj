@@ -4,11 +4,6 @@
     <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Stride.props" />
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Graphics\Stride.Graphics.csproj" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
