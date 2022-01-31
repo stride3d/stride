@@ -8,7 +8,7 @@ namespace Stride.Audio
     /// </summary>
     public class SoundInstanceStreamedBuffer : SoundInstance, IMediaPlayer
     {
-        private StreamedBufferSoundSource streamedSource;
+        private StreamedBufferSoundSourceBase streamedSource;
         
         private MediaSynchronizer scheduler;
 
@@ -27,7 +27,7 @@ namespace Stride.Audio
         }
 
         internal SoundInstanceStreamedBuffer(MediaSynchronizer scheduler, StreamedBufferSound soundStreamedBuffer, string mediaDataUrl, long startPosition, long length, 
-            AudioListener listener, bool useHrtf = false, float directionalFactor = 0.0f, HrtfEnvironment environment = HrtfEnvironment.Small)
+            AudioListener listener, bool useHrtf = false, float directionalFactor = 0.0f, HrtfEnvironment environment = HrtfEnvironment.Small, ICustomBufferAudioSource audioSource = null)
         {
             this.scheduler = scheduler;
             Listener = listener;
@@ -39,7 +39,17 @@ namespace Stride.Audio
                 return;
 
             //We first create the soundSource so that it gets initialized and can give us sampleRate and Channels info
-            soundSource = streamedSource = new StreamedBufferSoundSource(this, this.scheduler, mediaDataUrl, startPosition, length);
+            streamedSource = default(StreamedBufferSoundSourceBase);
+            if (audioSource == null)
+                streamedSource = new StreamedBufferSoundSource(this, this.scheduler, mediaDataUrl, startPosition, length);
+            else
+            {
+                streamedSource = new CustomBufferSoundSource(this, audioSource);
+                soundStreamedBuffer.SampleRate = audioSource.SampleRate;
+                soundStreamedBuffer.Channels = audioSource.Channels;
+            }
+
+            soundSource = streamedSource;
 
             //Create the AudioLayer source
             Source = AudioLayer.SourceCreate(listener.Listener, soundStreamedBuffer.SampleRate, streamedSource.MaxNumberOfBuffers, 
