@@ -11,16 +11,14 @@ namespace CSharpIntermediate.Code
 
         public float AnimationSpeed = 1.0f;
         private AnimationComponent animation;
-        private PlayingAnimation currentAnimation;
-        private PlayingAnimation previousAnimation;
-
+        private PlayingAnimation latestAnimation;
 
         public override void Start()
         {
             animation = Entity.Get<AnimationComponent>();
 
             // Set the default animation
-            currentAnimation = animation.Play("Idle");
+            latestAnimation = animation.Play("Idle");
         }
 
         public override void Update()
@@ -32,29 +30,31 @@ namespace CSharpIntermediate.Code
             DebugText.Print("I to start playing Idle", new Int2(300, 60));
             if (Input.IsKeyPressed(Keys.I))
             {
-                currentAnimation = animation.Play("Idle");
-                currentAnimation.TimeFactor = AnimationSpeed;
+                latestAnimation = animation.Play("Idle");
+                latestAnimation.TimeFactor = AnimationSpeed;
             }
 
             DebugText.Print("R to crossfade to Run", new Int2(300, 80));
             if (Input.IsKeyPressed(Keys.R))
             {
-                currentAnimation = animation.Crossfade("Run", TimeSpan.FromSeconds(0.5));
-                currentAnimation.TimeFactor = AnimationSpeed;
+                latestAnimation = animation.Crossfade("Run", TimeSpan.FromSeconds(0.5));
+                latestAnimation.TimeFactor = AnimationSpeed;
             }
 
+            // We can crossfade to a punch animation, but onyl if it is not already playing
             DebugText.Print("P to crossfade to Punch and play it once", new Int2(300, 100));
             if (Input.IsKeyPressed(Keys.P) && !animation.IsPlaying("Punch"))
             {
-                previousAnimation = currentAnimation;
-                currentAnimation = animation.Crossfade("Punch", TimeSpan.FromSeconds(1));
-                currentAnimation.RepeatMode = AnimationRepeatMode.PlayOnce;
-                currentAnimation.TimeFactor = AnimationSpeed;
+                latestAnimation = animation.Crossfade("Punch", TimeSpan.FromSeconds(0.1));
+                latestAnimation.RepeatMode = AnimationRepeatMode.PlayOnce;
+                latestAnimation.TimeFactor = AnimationSpeed;
             }
-            if(currentAnimation.Name == "Punch" && currentAnimation.CurrentTime <= 0)
+            // When de punch animation is the latest animation, but it is no longer playing, we set a new animation
+            if (latestAnimation.Name == "Punch" && !animation.IsPlaying("Punch"))
             {
-                currentAnimation = animation.Play(previousAnimation.Name);
-                currentAnimation.TimeFactor = AnimationSpeed;
+                latestAnimation = animation.Play("Idle");
+                latestAnimation.RepeatMode = AnimationRepeatMode.LoopInfinite;
+                latestAnimation.TimeFactor = AnimationSpeed;
             }
         }
 
@@ -76,12 +76,12 @@ namespace CSharpIntermediate.Code
             if (Input.IsKeyPressed(Keys.E))
             {
                 AnimationSpeed += 0.1f;
-                currentAnimation.TimeFactor = AnimationSpeed;
+                latestAnimation.TimeFactor = AnimationSpeed;
             }
             if (Input.IsKeyPressed(Keys.Q))
             {
                 AnimationSpeed -= 0.1f;
-                currentAnimation.TimeFactor = AnimationSpeed;
+                latestAnimation.TimeFactor = AnimationSpeed;
             }
         }
     }
