@@ -229,12 +229,12 @@ namespace Stride.Games
 
         internal bool Exiting;
 
-        internal Action InitCallback;
+        protected internal Action InitCallback { get; internal set; }
 
-        internal Action RunCallback;
+        protected internal Action RunCallback { get; internal set; }
 
-        internal Action ExitCallback;
-        
+        protected internal Action ExitCallback { get; internal set; }
+
         private bool isFullscreen;
 
         public abstract void Run();
@@ -279,7 +279,7 @@ namespace Stride.Games
             {
                 // Update preferred windowed size in windowed mode 
                 var resizeSize = ClientBounds.Size;
-                PreferredWindowedSize = new Int2(resizeSize.Width, resizeSize.Height); 
+                PreferredWindowedSize = new Int2(resizeSize.Width, resizeSize.Height);
             }
             var handler = ClientSizeChanged;
             handler?.Invoke(this, e);
