@@ -2,48 +2,68 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Threading.Tasks;
-
-using Stride.Core;
 using Stride.Media;
 
 namespace Stride.Audio
 {
+    /// <summary>
+    /// Interface to implement to provide custom audio data via callback.
+    /// </summary>
     public interface ICustomBufferAudioSource
     {
-        bool ComputeAudioData(AudioDataBuffer storageBufferToFill, out bool endOfStream);
-
-        int Blocks { get; }
-        int BlockSize { get; }
-        int NativeBlockSize { get; }
+        /// <summary>
+        /// Number of audio channels, currently only 1 (mono, for sounds that can be spatialized) or 2 (stereo, sent directly to audio card) is supported.
+        /// </summary>
         int Channels { get; }
+
+        /// <summary>
+        /// Sample rate, i.e. 44100 or 48000
+        /// </summary>
         int SampleRate { get; }
+
+        /// <summary>
+        /// The size in bytes of each block that gets produced by this source.
+        /// i.e. Channels * 512 * BytesPerSample
+        /// </summary>
+        int BlockSizeInBytes { get; }
+        
+        /// <summary>
+        /// The number of audio blocks to allocate, should be greater than 2, but 4 is recommended.
+        /// </summary>
+        int Blocks { get; }
+
+        /// <summary>
+        /// Buffer size to allocate on the audio driver, 16384 is recommende. Increase if you want to produce bigger blocks. 
+        /// </summary>
+        int NativeBlockSizeInBytes { get; }
+
+        /// <summary>
+        /// Return true if this audio source supports seeking.
+        /// </summary>
+        bool CanSeek { get; }
+
+        /// <summary>
+        /// Called on the audio thread when <see cref="CanSeek"/> returns true and the seek is called by the user.
+        /// </summary>
+        /// <param name="mediaTime">The time to jump to.</param>
+        /// <param name="flushHardwareBuffers">Return true if the audio driver should flush the current buffers and start the stream anew.</param>
+        void Seek(TimeSpan mediaTime, out bool flushHardwareBuffers);
+        
+        /// <summary>
+        /// The main callback on the audio thread to produce the audio data.
+        /// </summary>
+        /// <param name="storageBufferToFill">The buffer to fill and set the amount of data that was filled.</param>
+        /// <param name="endOfStream">Set this to true to end this sound instance.</param>
+        /// <returns>True if any data was produced and should be send to the audio device.</returns>
+        bool ComputeAudioData(AudioData storageBufferToFill, out bool endOfStream);
     }
 
-    public class AudioDataBuffer
-    {
-        public readonly int MaxBufferSizeBytes;
-
-        public byte[] Data;
-
-        public int CountDataBytes = 0;
-        public TimeSpan PresentationTime;
-
-        public AudioDataBuffer(int maxBufferSizeBytes)
-        {
-            MaxBufferSizeBytes = maxBufferSizeBytes;
-            Data = new byte[MaxBufferSizeBytes];
-        }
-    }
-
-    //The audio buffer is created by a callback
+    /// <summary>
+    /// The audio is created by an external sound source implemented by the user.
+    /// </summary>
     public class CustomBufferSoundSource : StreamedBufferSoundSourceBase
     {
-        /// <summary>
-        /// Specifies how much data we wait to have extracted before we send the storage buffer to the audio buffer
-        /// </summary>
-        private int minBufferSizeBytesBeforeFlushingStorageBuffer = 28000;
-        private int numberOfBuffers = 1;
+        private int numberOfBuffers;
 
         private readonly object objLock = new object();
 
@@ -61,7 +81,7 @@ namespace Stride.Audio
         /// <summary>
         /// Temporary buffers for accumulating the data we're extracting before sending them to the AudioLayer
         /// </summary>
-        private AudioDataBuffer storageBuffer;
+        private AudioData storageBuffer;
 
         private bool beginningOfStream;
 
@@ -73,12 +93,11 @@ namespace Stride.Audio
         public override int MaxNumberOfBuffers => audioSource.Blocks;
 
         public CustomBufferSoundSource(SoundInstanceStreamedBuffer instance, ICustomBufferAudioSource customBufferAudioSource)
-            : base(instance, customBufferAudioSource.Blocks, customBufferAudioSource.NativeBlockSize)
+            : base(instance, customBufferAudioSource.Blocks, customBufferAudioSource.NativeBlockSizeInBytes)
         {
             audioSource = customBufferAudioSource;
             numberOfBuffers = audioSource.Blocks;
-            minBufferSizeBytesBeforeFlushingStorageBuffer = audioSource.BlockSize;
-            storageBuffer = new AudioDataBuffer(audioSource.BlockSize);
+            storageBuffer = new AudioData(audioSource.BlockSizeInBytes);
             Channels = audioSource.Channels;
             SampleRate = audioSource.SampleRate;
             NewSources.Add(this);
@@ -161,14 +180,22 @@ namespace Stride.Audio
         /// </summary>
         protected override void SeekInternal()
         {
-            storageBuffer.CountDataBytes = 0;
+            if (audioSource.CanSeek)
+            {
+                audioSource.Seek(commandSeekTime, out var flushHardwareBuffers);
 
-            //To set the begin flag to true
-            PrepareInternal();
-            MediaCurrentTime = mediaCurrentTimeMax = TimeSpan.Zero;
+                if (flushHardwareBuffers)
+                {
+                    storageBuffer.CountDataBytes = 0;
 
-            //Seek
-            AudioLayer.SourceFlushBuffers(soundInstance.Source);
+                    //To set the begin flag to true
+                    PrepareInternal();
+                    MediaCurrentTime = mediaCurrentTimeMax = TimeSpan.Zero;
+
+                    //Seek
+                    AudioLayer.SourceFlushBuffers(soundInstance.Source);
+                }
+            }
         }
 
         protected override void ExtractAndFillData()
@@ -176,68 +203,54 @@ namespace Stride.Audio
             //Try to extract some new audio data
             if (audioSource.ComputeAudioData(storageBuffer, out var endOfStream))
             {
-                //Can we flush the storage buffer?
-                if (storageBuffer.CountDataBytes >= minBufferSizeBytesBeforeFlushingStorageBuffer)
+                var bufferType = AudioLayer.BufferType.None;
+
+                if (beginningOfStream)
                 {
-                    var bufferType = AudioLayer.BufferType.None;
-
-                    if (beginningOfStream)
-                    {
-                        bufferType = AudioLayer.BufferType.BeginOfStream;
-                        beginningOfStream = false;
-                    }
-                    //We don't use an enfOfLoop or endOfStream type: we don't know what the mediaScheduler will ask us to do when we arrive at the end
-
-                    SendExtractedAudioDataToAudioBuffer(bufferType);
-                    storageBuffer.CountDataBytes = 0;
-
+                    bufferType = AudioLayer.BufferType.BeginOfStream;
+                    beginningOfStream = false;
                 }
+
+                SendExtractedAudioDataToAudioBuffer(bufferType);
+                storageBuffer.CountDataBytes = 0;
             }
 
             isEof = endOfStream;  //setting this bool to true will let the media scheduler know when the audio media is done
         }
 
-        protected override void DisposeInternal()
-        {
-            base.DisposeInternal();
-
-        }
-
         private unsafe void SendExtractedAudioDataToAudioBuffer(AudioLayer.BufferType bufferType)
         {
+            //Update the average number of bytes per buffer
+            sentBuffersCount++;
+            accumulatedSentBytesCount += storageBuffer.CountDataBytes;
+            var countAverageBytesPerBuffer = (accumulatedSentBytesCount / sentBuffersCount);
+            if (sentBuffersCount >= 10000)
             {
-                //Update the average number of bytes per buffer
-                sentBuffersCount++;
-                accumulatedSentBytesCount += storageBuffer.CountDataBytes;
-                var countAverageBytesPerBuffer = (accumulatedSentBytesCount / sentBuffersCount);
-                if (sentBuffersCount >= 10000)
-                {
-                    //To prevent overflow
-                    sentBuffersCount = 10;
-                    accumulatedSentBytesCount = countAverageBytesPerBuffer * sentBuffersCount;
-                }
-
-                //new buffer's estimated time
-                var bufferDuration = TimeSpan.FromSeconds(storageBuffer.CountDataBytes / byteRatePerSecond);
-
-                //compute an estimate of the time left before this new buffer can be played
-                var playTimeLeft = TimeSpan.FromSeconds((numberOfBuffers - freeBuffers.Count) * countAverageBytesPerBuffer / byteRatePerSecond);
-
-                //Normally: if the buffer are continuous: bufferStartingTimeUs should be very close from the previous MediaPresentationTimeUsMax value
-                //This could help us debug in the case of the audio timeFrame is incorrect
-
-                var currentTime = MediaCurrentTime;
-                var mediaCurrentTimeMin = storageBuffer.PresentationTime - playTimeLeft;
-                mediaCurrentTimeMax = storageBuffer.PresentationTime + bufferDuration;
-
-                //A buffer was being played, so we expect the currentTime to be between [min, bufferStartingTime]
-                if (currentTime > mediaCurrentTimeMin && mediaCurrentTimeMin < storageBuffer.PresentationTime)
-                    mediaCurrentTimeMin = MediaCurrentTime;
-
-                MediaCurrentTime = mediaCurrentTimeMin;
+                //To prevent overflow
+                sentBuffersCount = 10;
+                accumulatedSentBytesCount = countAverageBytesPerBuffer * sentBuffersCount;
             }
 
-            FillBuffer(storageBuffer.Data, storageBuffer.CountDataBytes, bufferType);
+            //new buffer's estimated time
+            var bufferDuration = TimeSpan.FromSeconds(storageBuffer.CountDataBytes / byteRatePerSecond);
+
+            //compute an estimate of the time left before this new buffer can be played
+            var playTimeLeft = TimeSpan.FromSeconds((numberOfBuffers - freeBuffers.Count) * countAverageBytesPerBuffer / byteRatePerSecond);
+
+            //Normally: if the buffer are continuous: bufferStartingTimeUs should be very close from the previous MediaPresentationTimeUsMax value
+            //This could help us debug in the case of the audio timeFrame is incorrect
+
+            var currentTime = MediaCurrentTime;
+            var mediaCurrentTimeMin = storageBuffer.PresentationTime - playTimeLeft;
+            mediaCurrentTimeMax = storageBuffer.PresentationTime + bufferDuration;
+
+            //A buffer was being played, so we expect the currentTime to be between [min, bufferStartingTime]
+            if (currentTime > mediaCurrentTimeMin && mediaCurrentTimeMin < storageBuffer.PresentationTime)
+                mediaCurrentTimeMin = MediaCurrentTime;
+
+            MediaCurrentTime = mediaCurrentTimeMin;
+
+            FillBuffer(storageBuffer.Data.ByteBuffer, storageBuffer.CountDataBytes, bufferType);
         }
     }
 }
