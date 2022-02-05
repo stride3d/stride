@@ -103,8 +103,10 @@ namespace Stride.Physics
 
         static unsafe SharedMeshData BuildAndShareMeshes(Model model, IServiceRegistry services)
         {
-            var modelUrl = AttachedReferenceManager.GetUrl(model);
-            if (string.IsNullOrWhiteSpace(modelUrl) == false)
+            var sharedContent = services.GetService<ContentManager>();
+
+            string modelUrl = null;
+            if (sharedContent != null && sharedContent.TryGetAssetUrl(model, out modelUrl))
             {
                 lock (MeshSharingCache)
                 {
@@ -117,8 +119,6 @@ namespace Stride.Physics
             }
             
             var dbProvider = services.GetService<IDatabaseFileProviderService>();
-            var sharedContent = services.GetService<ContentManager>();
-
             ContentManager rawContent = null;
             
             Matrix[] nodeTransforms = null;
