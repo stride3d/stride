@@ -642,7 +642,7 @@ Hierarchy:
                     59e6b9761edee5dd1bf6bc616e6c4354: !TransformComponent
                         Id: d8313ca8-f280-4b72-864b-af23e3c9e3a1
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Rotation: {X: 0.0, Y: -0.3829679, Z: 0.0, W: 0.92376167}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     6aee00475e16d2910949bc2db361e900: !ModelComponent
@@ -652,9 +652,11 @@ Hierarchy:
                     3d59a577a1b7a5df8494ccfe986191f0: !AnimationComponent
                         Id: cd626378-8a80-4adc-a758-840c6951a0a9
                         Animations:
-                            1e15158caa45d4b9e1b12efffb34d4f5~Idle: 5f286f7e-7d38-44cf-9bc1-3aad7be4f0fa:Models/Animations/Idle
-                            a60d8ac4e3a7d5e8cb322428e9b60f14~Run: 448ca260-c8b7-4f63-9bf6-e58a5970a830:Models/Animations/Run
-                            d026c8ee9849816481b0682f483cdf8c~Punch: 141615e7-9144-488a-860d-0abd7a9ace44:Models/Animations/Punch
+                            ade494ffe532dbd50f4eddd7448a40f0~run: 448ca260-c8b7-4f63-9bf6-e58a5970a830:Models/Animations/Run
+                            675a3f88dacb80410753f7f3b0c88328~runpunch: cd8ce13c-aae3-4ef0-8801-ae4957004931:Models/Animations/additive
+                    44829d38eebda0f8db211976ecfe0c57: !CSharpIntermediate.Code.AdditiveAnimationDemo,CSharpIntermediate
+                        Id: d6054825-ea50-4dcc-bf0a-b212f6924111
+                        AnimationSpeed: 1.0
         -   Folder: Ground
             Entity:
                 Id: 8b3d4f2b-b36d-42b5-8241-95f9dffd1d94
