@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CSharpIntermediate\CSharpIntermediate.csproj" />
+    <ProjectReference Include="..\CSharpIntermediate.Game\CSharpIntermediate.Game.csproj" />
   </ItemGroup>
 
 </Project>

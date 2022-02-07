@@ -1,4 +1,4 @@
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Engine;

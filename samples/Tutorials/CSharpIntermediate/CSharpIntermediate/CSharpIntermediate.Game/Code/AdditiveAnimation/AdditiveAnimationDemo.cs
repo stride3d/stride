@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Stride.Animations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
