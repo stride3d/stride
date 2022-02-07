@@ -1,0 +1,8 @@
+!Sound
+Id: 3885913c-4b28-49c8-b06f-5dbf54e7c5bb
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../Resources/Audio/tetoszka__ukulele-simple-sound.wav
+CompressionRatio: 15
+StreamFromDisk: false
+Spatialized: false
