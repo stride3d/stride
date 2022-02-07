@@ -15,13 +15,31 @@ namespace CSharpIntermediate.Code
         public override void Update()
         {
             var velocity = new Vector3(0);
-            if (Input.IsKeyDown(Keys.W))
+            if (Input.IsKeyDown(Keys.Q))
             {
                 velocity.Y += 1;
             }
-            if (Input.IsKeyDown(Keys.S))
+            if (Input.IsKeyDown(Keys.E))
             {
                 velocity.Y -= 1;
+            }
+
+            if (Input.IsKeyDown(Keys.W))
+            {
+                velocity.Z += 1;
+            }
+            if (Input.IsKeyDown(Keys.S))
+            {
+                velocity.Z -= 1;
+            }
+
+            if (Input.IsKeyDown(Keys.A))
+            {
+                velocity.X -= 1;
+            }
+            if (Input.IsKeyDown(Keys.D))
+            {
+                velocity.X += 1;
             }
 
             var delta = (float)Game.UpdateTime.Elapsed.TotalSeconds;
