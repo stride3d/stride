@@ -76,9 +76,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 2cb9ab49-c9ff-46d9-a061-cc9646f052b3
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: cfb7085e-36a0-4a48-9bcf-b13fdd6b426c
                         CanSleep: true
@@ -112,9 +111,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 70f040fb-3eff-47da-a20c-278878dd13a1
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: d2260b56-5e9e-4252-a6e2-1af9fde4d729
                         CanSleep: true
@@ -148,9 +146,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 6673072c-eaa2-43b4-8173-11dcc1470ad6
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 7816e023-abd3-47ac-b08a-dc7e03518589
                         CanSleep: true
@@ -226,9 +223,8 @@ Hierarchy:
                         Children: {}
                     8fff9564224e164bbfeeb200886985b1: !ModelComponent
                         Id: 488f040f-d41b-4b1f-9d7a-faee1c27632c
-                        Model: a0e0c032-4635-45cc-9d48-35525b89f1bb:Models/Box3x1x1
-                        Materials:
-                            1f66d7610cd6dc4c9b32d800d312e162~0: f34d47ea-f392-4085-b92e-73b87e82f7f9:Materials/TriggerMaterial
+                        Model: null
+                        Materials: {}
                     33d35d98ecea8f0f27d90d51258f35f0: !StaticColliderComponent
                         Id: 7205d59e-05e0-4002-a226-074e1c98f717
                         CanSleep: false
@@ -281,9 +277,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: ab7ca977-ee29-4125-a1c3-6152960908aa
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: e458b9c5-2cdf-4307-9e90-8311de24da1d
                         CanSleep: true
@@ -316,9 +311,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 737f8478-2d4d-42e8-ad1f-036517bb16b9
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 2315dea4-38cc-4520-9846-1813080aef21
                         CanSleep: true
@@ -422,9 +416,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 6c729259-ccbf-4169-a18b-52e7c7f34b72
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 7066902a-99c5-4bf0-a263-5642b37188fc
                         CanSleep: true
@@ -491,9 +484,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: e259ffa1-e8d4-434c-88fc-9c701608da03
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 745b84d9-e8ab-4ce0-acb4-aa75c678c4ef
                         CanSleep: true
@@ -600,9 +592,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: bfb9d844-f398-4e6e-817d-7f3d3e5e4a9d
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 4a403d91-4c87-4110-9a09-0d4a7ef8f9d9
                         CanSleep: true
@@ -685,8 +676,7 @@ Hierarchy:
                     a07c3f22b2be5ddfc8b92f5c0c2d0087: !ModelComponent
                         Id: 028ff03a-3048-4129-aaca-47bdc7deb633
                         Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
-                        Materials:
-                            90859ddeb549ea22e5a1e5efb0371fe7~0: b5937f37-8fa5-4c0c-9a21-9d563ee1bffc:Materials/RedCoating
+                        Materials: {}
                     0b571d0793095d6b9f667b5f19f9b7d5: !RigidbodyComponent
                         Id: 5fea6c8d-dc8c-421f-a216-32348d7190d3
                         CanSleep: false
@@ -719,9 +709,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: db1c4a56-bb1c-4f77-853b-10d7c60b38f4
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 8ca03be4-0ad8-4782-92aa-03e92909f923
                         CanSleep: true
@@ -755,9 +744,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 39a70f46-c7dc-42db-a75a-eb79e93ce6e7
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 38638e1c-07e3-4757-95c9-38c0faf629a1
                         CanSleep: true
@@ -790,9 +778,8 @@ Hierarchy:
                         Children: {}
                     f8c751136a9aa643afa88b938510189c: !ModelComponent
                         Id: 358d11e3-1b87-4134-b668-929388de61b0
-                        Model: e55d79be-700a-44db-a70f-8512c67dd07d:Models/Ramp1x1x1
-                        Materials:
-                            74dc3e7c6e633f46a3801edd86a197dd~0: 08b6f010-a274-4180-83c4-0f2c0920774b:Materials/GridMTStairs
+                        Model: null
+                        Materials: {}
                     ef71e33350ba7041a0b72c62a58ca295: !StaticColliderComponent
                         Id: e03a1b1e-21d5-4203-8363-ecc8320e1d53
                         CanSleep: true
@@ -805,11 +792,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             8359b4c0fa7e894ba4582a7bdd8e1ae6: !ColliderShapeAssetDesc
-                                Shape: 26f14582-93fd-4080-9f17-1f4444fe2205:Models/CollisionMeshes/Ramp1x1x1
-            Base:
-                BasePartAsset: ecf8a905-6220-499c-9d8a-47876d7fbee5:Prefabs/Blocks/Ramp1x1x1
-                BasePartId: 359739c2-83bd-443b-8749-d2f4ede41a24
-                InstanceId: 2d86246d-3799-4960-b8ad-b77aaea677b3
+                                Shape: null
         -   Entity:
                 Id: b2dd5dc3-c192-46b8-971c-284d0001ab3b
                 Name: Box4x2x1
@@ -822,9 +805,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: b90ee82e-6c2e-461c-8562-f80541b67bcd
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 66cfce7c-9c4e-4d39-bc98-1fa10bf16a76
                         CanSleep: true
@@ -857,9 +839,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: f5271f61-0dc6-4d3c-92b6-ad2e86157158
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 95c30f55-796c-42ee-b0b8-1981bb5feceb
                         CanSleep: true
@@ -893,9 +874,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: f648a0af-00ab-4e73-928f-62eea27eb7a3
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: e81cc532-8fb3-428e-afa1-a144efd699dc
                         CanSleep: true
@@ -928,9 +908,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 6fb95507-812a-4cee-9096-a6def4542a80
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 46ee1c49-e800-4a09-af87-f1669b4b1af2
                         CanSleep: true
@@ -963,11 +942,11 @@ Hierarchy:
                         Children: {}
                     508e804e75f75666d3c5e41788acc3cc: !BackgroundComponent
                         Id: 68e8c9cd-f1e1-4df4-a250-7aa84da39965
-                        Texture: b04bb83b-f805-4b8c-913e-6f6aa2f9b2a9:Materials/Sky/Skybox texture
+                        Texture: null
                     0a7d931be3c08faeeda5bbca8fefbc73: !LightComponent
                         Id: 4933a7e7-0721-4f01-8794-3460168e056c
                         Type: !LightSkybox
-                            Skybox: 325f223c-8f44-472c-96dd-8e35d6e643be:Materials/Sky/Skybox
+                            Skybox: null
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 157729d7-9c11-4c7d-8483-68f15dc8a47d
@@ -984,9 +963,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 0e38aec3-0f84-4bc2-93f7-623f03425985
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 9d4ebaa9-3381-4f43-8186-07d3b4e9b436
                         CanSleep: true
@@ -1093,9 +1071,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 630a07fa-25c4-4ad6-80d8-56d8115d1bee
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: c062e450-d956-4453-aa2b-03999d6f2016
                         CanSleep: true
@@ -1212,9 +1189,8 @@ Hierarchy:
                         Children: {}
                     7807e4f88759f5408bc713431dfc8978: !ModelComponent
                         Id: 92045977-1d4d-4ed2-9519-dd8aeffef637
-                        Model: 8716437c-7a19-4a59-840a-3f3e91214205:Models/Box4x2x1
-                        Materials:
-                            97cb539b4d6079458c5ef344e58d8e55~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                        Model: null
+                        Materials: {}
                     793d2ad2924e3a48a2a869b11f5df718: !StaticColliderComponent
                         Id: 9a949306-b088-4ce6-b0be-dcf013ddb064
                         CanSleep: true

@@ -5,12 +5,13 @@ Meta:
     Version: 1.0.0
     Authors: []
     Owners: []
+    RootNamespace: CSharpIntermediate
     Dependencies: null
 AssetFolders:
-    -   Path: !dir Assets
+    -   Path: !dir ../Assets
     -   Path: !dir Effects
 ResourceFolders:
-    - !dir Resources
+    - !dir ../Resources
 OutputGroupDirectories: {}
 ExplicitFolders: []
 Bundles: []

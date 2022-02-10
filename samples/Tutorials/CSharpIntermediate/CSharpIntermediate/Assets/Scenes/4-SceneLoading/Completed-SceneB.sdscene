@@ -27,7 +27,7 @@ Hierarchy:
                         Children: {}
                     a7a03764cc135dc6a9d69c2252a5fef2: !ModelComponent
                         Id: fea411d1-67f3-4b7d-9d96-09b0c78071fc
-                        Model: 2cb2f455-2bc0-40c0-bd1c-ed5f5ec5a851:Models/Floor1x0x1
+                        Model: null
                         Materials: {}
                     3d9089128ef4e0f58b1b8f581c8aebbd: !StaticColliderComponent
                         Id: 6ef9ca2a-b1d8-41f7-bb8d-fb9de83e83ea
@@ -89,7 +89,7 @@ Hierarchy:
                         Children: {}
                     86223eb74f0c59e6b32b187e8ea1e3a2: !ModelComponent
                         Id: 7aae5b39-5d9f-456f-a6cb-e3b6982e15b7
-                        Model: 01019ffb-11d0-42cb-a5c1-ce55f20e5042:Models/Gate1x2x1
+                        Model: null
                         Materials: {}
         -   Entity:
                 Id: a59e26bc-8f7a-4d04-9f1b-1a27db824b8d
@@ -116,7 +116,7 @@ Hierarchy:
                         Children: {}
                     8dc69fe56b5a11457c2ef515685bf8e4: !ModelComponent
                         Id: 77f9f633-a0ad-4f9c-b4c5-bf77a370075e
-                        Model: 924c9ca7-d8b3-4966-bc05-086bb500ff85:Models/Gate2x3x1
+                        Model: null
                         Materials: {}
         -   Entity:
                 Id: e74d11f4-4f02-4d54-bab2-e1e742b7ede2

@@ -1,0 +1,11 @@
+!TemplateSample
+Id: B12AF978-1F11-4BC8-9571-3B4DA9E20F05
+Name: "C# Intermediate"
+Scope: Session
+Description: Tutorial project which teaches you about intermediate C# topics with Stride
+FullDescription: This tutorial project contains various scenes that teach you various intermediate topics when developing games with the Stride game engine
+Group: Tutorials
+Icon: ../../.sdtpl/CSharpIntermediate.png
+DefaultOutputName: CSharpIntermediate
+Screenshots:
+    - .sdtpl/screenshot.jpg

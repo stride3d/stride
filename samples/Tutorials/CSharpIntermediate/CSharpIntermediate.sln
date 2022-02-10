@@ -1,11 +1,23 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31911.196
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 16.0.0.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpIntermediate.Windows", "CSharpIntermediate\CSharpIntermediate.Windows\CSharpIntermediate.Windows.csproj", "{9CC8F196-AAEB-4ED8-B675-D9A4C56062D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpIntermediate.Windows", "CSharpIntermediate\CSharpIntermediate.Windows\CSharpIntermediate.Windows.csproj", "{24272B11-2C32-4380-A220-8CEC19311DAE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpIntermediate.Game", "CSharpIntermediate\CSharpIntermediate.Game\CSharpIntermediate.Game.csproj", "{6E21C554-996E-45EA-8EEB-445DB884CB3A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpIntermediate.Game", "CSharpIntermediate\CSharpIntermediate.Game\CSharpIntermediate.Game.csproj", "{3E6CE5BD-34D1-4249-BFDF-833697807E14}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mannequinModel", "mannequinModel", "{EC64FD24-824F-4DA4-B077-3661CF988027}"
+	ProjectSection(StridePackage) = preProject
+		../../Templates/Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg = ../../Templates/Packs/mannequinModel/mannequinModel/mannequinModel.sdpkg
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PrototypingBlocks", "PrototypingBlocks", "{C9B4F26A-E7BA-4201-A6E0-0C0EEDFE9DE2}"
+	ProjectSection(StridePackage) = preProject
+		.../../Templates/Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.sdpkg = .../../Templates/Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.sdpkg
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CSharpIntermediate", "CSharpIntermediate", "{6C0E4C34-E917-4813-BAE7-8045C794AF93}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SamplesAssetPackage", "..\..\Templates\Packs\SamplesAssetPackage\SamplesAssetPackage.csproj", "{AC86952F-4671-4E55-BC45-24B3D1D5D6AD}"
 EndProject
@@ -14,9 +26,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\..\..\.editorconfig = ..\..\..\.editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mannequinModel", "..\..\Templates\Packs\mannequinModel\mannequinModel.csproj", "{C1F4854A-0730-4142-9B03-74A3371FDCB3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mannequinModel", "..\..\Templates\Packs\mannequinModel\mannequinModel.csproj", "{CF5D0D93-AA62-44D7-8E7B-147AF1CF52CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrototypingBlocks", "..\..\Templates\Packs\PrototypingBlocks\PrototypingBlocks.csproj", "{CEBAB246-342E-4BB6-9891-6C065FD4431C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrototypingBlocks", "..\..\Templates\Packs\PrototypingBlocks\PrototypingBlocks.csproj", "{EF23D74F-31DC-4BBF-9AD8-3EF3952EEDD1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,14 +36,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9CC8F196-AAEB-4ED8-B675-D9A4C56062D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9CC8F196-AAEB-4ED8-B675-D9A4C56062D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9CC8F196-AAEB-4ED8-B675-D9A4C56062D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9CC8F196-AAEB-4ED8-B675-D9A4C56062D4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6E21C554-996E-45EA-8EEB-445DB884CB3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6E21C554-996E-45EA-8EEB-445DB884CB3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6E21C554-996E-45EA-8EEB-445DB884CB3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6E21C554-996E-45EA-8EEB-445DB884CB3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24272B11-2C32-4380-A220-8CEC19311DAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24272B11-2C32-4380-A220-8CEC19311DAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24272B11-2C32-4380-A220-8CEC19311DAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24272B11-2C32-4380-A220-8CEC19311DAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E6CE5BD-34D1-4249-BFDF-833697807E14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E6CE5BD-34D1-4249-BFDF-833697807E14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E6CE5BD-34D1-4249-BFDF-833697807E14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E6CE5BD-34D1-4249-BFDF-833697807E14}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AC86952F-4671-4E55-BC45-24B3D1D5D6AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AC86952F-4671-4E55-BC45-24B3D1D5D6AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC86952F-4671-4E55-BC45-24B3D1D5D6AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -40,7 +52,11 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{24272B11-2C32-4380-A220-8CEC19311DAE} = {6C0E4C34-E917-4813-BAE7-8045C794AF93}
+		{3E6CE5BD-34D1-4249-BFDF-833697807E14} = {6C0E4C34-E917-4813-BAE7-8045C794AF93}
+	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {C5D423DE-0A24-4525-804A-86D20F8E48B3}
+		SolutionGuid = {EAC75442-D21F-4E64-85C2-FF9350472B4F}
 	EndGlobalSection
 EndGlobal

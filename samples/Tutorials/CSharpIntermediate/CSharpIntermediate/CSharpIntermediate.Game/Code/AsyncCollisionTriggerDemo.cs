@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Stride.Engine;
 using Stride.Rendering;
 
