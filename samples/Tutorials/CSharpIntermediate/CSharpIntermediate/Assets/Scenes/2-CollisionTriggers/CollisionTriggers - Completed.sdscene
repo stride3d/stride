@@ -27,8 +27,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: efa425b3-91e1-4d1d-ac1c-baf00a194d7e
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: c9926fc9-6589-40e8-a42d-22106e39343a
@@ -241,8 +240,8 @@ Hierarchy:
                                 Size: {X: 3.0, Y: 1.0, Z: 1.0}
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                    46cf90a55839d41efd80415a88524b74: !CSharpIntermediate.Code.CollisionTriggerDemo,CSharpIntermediate
-                        Id: fc4f711d-f88d-4ed1-8711-309f7a71316a
+                    e3dd6d98a2b885befa8e52ce4ebbe724: !CSharpIntermediate.Code.CollisionTriggerDemo,CSharpIntermediate.Game
+                        Id: 307ca574-fed8-498c-b4ff-c2b20dd526f5
                     d85b2b6e072fba4f9eac30a89cde96ea: ~(Deleted)
         -   Folder: Ground
             Entity:
@@ -258,8 +257,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 411cb83b-57cc-424b-bf94-cd11ff23a6cd
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 99b86c5a-d67f-42f3-83bd-915f1c9cb8d5
@@ -364,8 +362,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 8f0c0141-e6d5-41b1-9377-029d8bc3c1ab
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 620cdb9e-e123-43c0-abe9-8108caa46663
@@ -448,8 +445,8 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    20714c3f6c1df4661c4675a8f0d562ab: !CSharpIntermediate.Code.Teleport,CSharpIntermediate
-                        Id: 4e749ac4-8d04-4d15-8641-b6dfe6f2b33b
+                    39b31ed04d334dd4b1b8d9175d834daf: !CSharpIntermediate.Code.Teleport,CSharpIntermediate.Game
+                        Id: 92cee80a-056a-4e38-8c32-fadabce5b17f
                         Ball: ref!! 90250255-6561-4f83-a1fc-298e8270876f
         -   Folder: Ground
             Entity:
@@ -465,8 +462,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: f10e475a-9c41-4b2a-99ee-9c75996d9ebe
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: e173cb28-86d4-4c4d-bde7-6302d0d62821
@@ -553,8 +549,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 2e3a82ba-7771-4c7d-a7e3-b0f88d5d4044
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 3c1bd1d8-ed0e-4ba4-9d7b-ab06016be6f2
@@ -573,8 +568,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 9dd70d3e-0bf0-46f1-a7d6-aa8c88c7da6f
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 9d288c6a-c0b3-4c71-bf15-d7007aa9a7e8
@@ -628,8 +622,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 07d497c9-3a17-48b7-91a3-fa5f0b78a4d0
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: f1ced593-eb7f-4621-a893-58716765e6fd
@@ -1015,8 +1008,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 43f877e9-9881-4aa3-ae91-e0f7a2ff45ff
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 6566caf9-1fbf-46cb-b440-b5c3f1ab06b2
@@ -1035,8 +1027,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: a3854a0e-7df5-44d5-ace5-1d58692197da
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: f7cf8e94-8c8c-49ad-ae01-c4f6b757a16a

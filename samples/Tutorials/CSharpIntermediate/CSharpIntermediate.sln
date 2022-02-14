@@ -26,9 +26,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\..\..\.editorconfig = ..\..\..\.editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mannequinModel", "..\..\Templates\Packs\mannequinModel\mannequinModel.csproj", "{CF5D0D93-AA62-44D7-8E7B-147AF1CF52CE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mannequinModel", "..\..\Templates\Packs\mannequinModel\mannequinModel.csproj", "{46C14B59-0FC2-403E-821D-A8A5483A7F89}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrototypingBlocks", "..\..\Templates\Packs\PrototypingBlocks\PrototypingBlocks.csproj", "{EF23D74F-31DC-4BBF-9AD8-3EF3952EEDD1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrototypingBlocks", "..\..\Templates\Packs\PrototypingBlocks\PrototypingBlocks.csproj", "{47C05460-A287-4C7C-B8CD-65359BDF8800}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

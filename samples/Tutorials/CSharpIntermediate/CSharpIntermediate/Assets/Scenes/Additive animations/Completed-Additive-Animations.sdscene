@@ -163,8 +163,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 55c73fe5-bb09-41ff-b1e6-665998f35711
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 99b86c5a-d67f-42f3-83bd-915f1c9cb8d5
@@ -217,8 +216,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: f0c20b90-8760-481e-8e7c-d4500f5dc778
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 620cdb9e-e123-43c0-abe9-8108caa46663
@@ -271,8 +269,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 3c0fd29a-c77a-48e4-8c81-8ee292424578
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: f1ced593-eb7f-4621-a893-58716765e6fd
@@ -658,8 +655,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 938d021e-7011-4e17-91a8-596855cde124
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: c9926fc9-6589-40e8-a42d-22106e39343a
@@ -744,8 +740,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: dec6dc4a-e9ee-4fdb-8d2f-ccfd1c9d9d76
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 3c1bd1d8-ed0e-4ba4-9d7b-ab06016be6f2
@@ -832,8 +827,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 6b24e869-6425-4a21-aa30-993702ddff37
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: e173cb28-86d4-4c4d-bde7-6302d0d62821
@@ -887,8 +881,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 78ddcc44-b6c7-480d-a337-37552f464fac
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 6566caf9-1fbf-46cb-b440-b5c3f1ab06b2
@@ -923,8 +916,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: ae9b6f42-457e-4111-a335-3ec72e382631
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 9d288c6a-c0b3-4c71-bf15-d7007aa9a7e8
@@ -1008,8 +1000,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 20b1b180-1230-4ca2-bb05-a6bce8f6a978
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: f7cf8e94-8c8c-49ad-ae01-c4f6b757a16a

@@ -9,6 +9,8 @@ Hierarchy:
         - ref!! abc7d72a-90a4-432a-a912-a297e8b8eae6
         - ref!! 5cc00c9f-1d5c-483b-9a62-c984b0ca0211
         - ref!! 00115f69-f14a-444d-9ca6-9ba0b8673797
+        - ref!! 0d56f4a3-5d12-4f53-9dd8-c87c2ff8d0e6
+        - ref!! b8f0a8b5-013a-4b5b-9b98-74583adf8163
     Parts:
         -   Entity:
                 Id: 00115f69-f14a-444d-9ca6-9ba0b8673797
@@ -20,8 +22,8 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    fbb6981384430478b7e22ad458a02843: !CSharpIntermediate.Code.AudioPlayer,CSharpIntermediate
-                        Id: 4d4d15de-31c3-4534-b4e1-f3c082c51dfa
+                    c1f07678d075d60d1f0713cd35678b91: !CSharpIntermediate.Code.AudioPlayer,CSharpIntermediate.Game
+                        Id: 5ca3c18a-b6d7-44f8-b58a-3dbd34a9c6db
                         BackgroundMusic: 453cec73-3017-4990-b95c-6bce5b42a491:Audio/FishLampByUlrick-EvensSalies
         -   Folder: Walls
             Entity:
@@ -74,6 +76,21 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: b7fb846d-83ca-4f77-a112-7fc1df98c290
                 InstanceId: 4b0908cf-48d5-433b-a2e6-052c64b35b1f
+        -   Entity:
+                Id: 0d56f4a3-5d12-4f53-9dd8-c87c2ff8d0e6
+                Name: SpatialAudioDemo
+                Components:
+                    93f85c3cd82e2b5a708e12b461168817: !TransformComponent
+                        Id: 9d97577c-a471-482f-8b60-161c4a7df592
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    12edc3f909fd41a322679785f9ffee9c: !CSharpIntermediate.Code.SpatialAudioDemo,CSharpIntermediate.Game
+                        Id: 03a490f5-6065-4d9b-9cf9-f4885fb5ecb6
+                        GunSound: 7cdab399-3c93-49fb-9f65-e0a91e57caa0:Audio/gun-shot-effect
+                    8291111417b48897eb8fdc817ca91f79: !CSharpIntermediate.Code.UpDownMovement,CSharpIntermediate.Game
+                        Id: f3b4a437-cf59-40ec-b3c4-1315045881a2
         -   Folder: Walls
             Entity:
                 Id: 0eaad8da-d9a1-46f1-b41d-80f1e5d8f291
@@ -207,8 +224,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 1144694b-8da3-4efa-bca7-efb8e90581a7
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 3c1bd1d8-ed0e-4ba4-9d7b-ab06016be6f2
@@ -227,8 +243,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 72d8c529-648f-4e3e-a0af-66e1be62bfc6
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: e173cb28-86d4-4c4d-bde7-6302d0d62821
@@ -282,8 +297,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: c0da0ebc-cb53-4d9e-bd93-0fcf904be912
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 9d288c6a-c0b3-4c71-bf15-d7007aa9a7e8
@@ -302,8 +316,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 6efc93f3-6aec-4316-ae2c-994be620083a
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: f7cf8e94-8c8c-49ad-ae01-c4f6b757a16a
@@ -373,8 +386,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: d8180765-c2e3-4286-b6f5-3e03b8528028
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: c9926fc9-6589-40e8-a42d-22106e39343a
@@ -567,8 +579,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 429ce3de-4d92-4f3a-b221-c210cdb5c943
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 6566caf9-1fbf-46cb-b440-b5c3f1ab06b2
@@ -718,7 +729,7 @@ Hierarchy:
                     6183111083e3146ea11b1f324290cf21: !TransformComponent
                         Id: a2fb6c71-87b4-47bb-934d-40cca14ff15b
                         Position: {X: 0.0, Y: 0.715693, Z: 0.40292135}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Rotation: {X: 0.0, Y: 1.0, Z: 0.0, W: -4.371139E-08}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     0e4b187b416edb638f46ea18aaaacfbf: !CameraComponent
@@ -726,6 +737,25 @@ Hierarchy:
                         Name: null
                         Projection: Perspective
                         Slot: 41f9c2cc-ee60-452f-8f6d-44e30148d556
+        -   Entity:
+                Id: b8f0a8b5-013a-4b5b-9b98-74583adf8163
+                Name: MachinegunModel
+                Components:
+                    38dc7f6ccd46b7f5d412f454581eb074: !TransformComponent
+                        Id: 2f264456-6e62-4bb2-a2e0-63323b49dcea
+                        Position: {X: -1.5074232E-07, Y: 0.73911846, Z: 2.5290365}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    fd8efddf1d8804bfbbe2765a4dfedb92: !ModelComponent
+                        Id: c54349a0-654f-494f-9400-f600ec97fe8c
+                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
+                        Materials: {}
+                    ea94639449830894937659450d1475f7: !CSharpIntermediate.Code.SpatialAudioDemo,CSharpIntermediate.Game
+                        Id: 73b2fe39-fe84-4c82-b314-dbe8d3b43818
+                        GunSound: 7cdab399-3c93-49fb-9f65-e0a91e57caa0:Audio/gun-shot-effect
+                    ee5a4494a6b776d65205a5d37429da0d: !CSharpIntermediate.Code.UpDownMovement,CSharpIntermediate.Game
+                        Id: b78be6b9-bbc3-4c3b-bca6-c8c0c7e10446
         -   Entity:
                 Id: bfd9b24c-7a9f-4aa5-b212-bb0df8658d0e
                 Name: Box4x2x1
@@ -952,8 +982,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 0603732e-b88b-4966-a1f0-819452b18b1a
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 99b86c5a-d67f-42f3-83bd-915f1c9cb8d5
@@ -1075,8 +1104,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 20edfb97-da09-4702-acbb-cd0c12deadcf
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 620cdb9e-e123-43c0-abe9-8108caa46663
@@ -1112,8 +1140,7 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: f7f30d61-9b5c-474f-bb29-846567a34b95
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials:
-                            a3f9e19b1c15759eb2d7057d4532faf2~0: 787aff63-b263-4e7a-9388-15cb162eb44f:Materials/wood_nongloss/wood_nongloss
+                        Materials: {}
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: f1ced593-eb7f-4621-a893-58716765e6fd

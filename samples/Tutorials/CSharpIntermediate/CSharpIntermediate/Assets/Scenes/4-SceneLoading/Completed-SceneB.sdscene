@@ -101,8 +101,8 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    05ca1a62c1169cd13d5c16a5f45bbe24: !CSharpIntermediate.LoadScene,CSharpIntermediate
-                        Id: c5d37c3e-1c66-4b86-b633-399f8f8df876
+                    b1bfbb5b545fa075ab43bb49a7459aaf: !CSharpIntermediate.LoadScene,CSharpIntermediate.Game
+                        Id: c971497d-f0b0-4c4e-a922-4fdbac7ca9b5
                         SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/4-SceneLoading/Completed-SceneB
         -   Entity:
                 Id: dbd15918-28c5-4576-8ee1-54c044e62e35
