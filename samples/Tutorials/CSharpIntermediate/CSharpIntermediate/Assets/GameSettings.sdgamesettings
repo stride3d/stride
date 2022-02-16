@@ -6,7 +6,7 @@ DefaultScene: 1e5ed5df-d685-4f73-beb0-2672147f9aef:Scenes/Audio/Completed-Audio
 GraphicsCompositor: fe026ff4-fdf9-48b9-87fb-65764cb9153f:GraphicsCompositor
 Defaults:
     - !Stride.Audio.AudioEngineSettings,Stride.Audio
-        HrtfSupport: false
+        HrtfSupport: true
     - !Stride.Assets.EditorSettings,Stride.Assets
         RenderingMode: HDR
     - !Stride.Graphics.RenderingSettings,Stride.Graphics

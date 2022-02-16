@@ -19,7 +19,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\..\..\.editorconfig = ..\..\..\.editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mannequinModel", "..\..\Templates\Packs\mannequinModel\mannequinModel.csproj", "{B6C4CD1E-2A98-45EB-8423-10EA60E1B775}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mannequinModel", "..\..\Templates\Packs\mannequinModel\mannequinModel.csproj", "{B6C4CD1E-2A98-45EB-8423-10EA60E1B775}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrototypingBlocks", "..\..\Templates\Packs\PrototypingBlocks\PrototypingBlocks.csproj", "{D2135214-A04E-4E17-B3BA-7099225B023D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,14 @@ Global
 		{AC86952F-4671-4E55-BC45-24B3D1D5D6AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC86952F-4671-4E55-BC45-24B3D1D5D6AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC86952F-4671-4E55-BC45-24B3D1D5D6AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6C4CD1E-2A98-45EB-8423-10EA60E1B775}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6C4CD1E-2A98-45EB-8423-10EA60E1B775}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6C4CD1E-2A98-45EB-8423-10EA60E1B775}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6C4CD1E-2A98-45EB-8423-10EA60E1B775}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2135214-A04E-4E17-B3BA-7099225B023D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2135214-A04E-4E17-B3BA-7099225B023D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2135214-A04E-4E17-B3BA-7099225B023D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2135214-A04E-4E17-B3BA-7099225B023D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

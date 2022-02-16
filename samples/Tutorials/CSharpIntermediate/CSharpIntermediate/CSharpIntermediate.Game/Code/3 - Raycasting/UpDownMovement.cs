@@ -35,11 +35,11 @@ namespace CSharpIntermediate.Code
 
             if (Input.IsKeyDown(Keys.A))
             {
-                movement.X -= 1;
+                movement.X += 1;
             }
             if (Input.IsKeyDown(Keys.D))
             {
-                movement.X += 1;
+                movement.X -= 1;
             }
 
             var delta = (float)Game.UpdateTime.Elapsed.TotalSeconds;

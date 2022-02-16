@@ -8,38 +8,8 @@ Hierarchy:
     RootParts:
         - ref!! abc7d72a-90a4-432a-a912-a297e8b8eae6
         - ref!! 5cc00c9f-1d5c-483b-9a62-c984b0ca0211
-        - ref!! 00115f69-f14a-444d-9ca6-9ba0b8673797
-        - ref!! 0d56f4a3-5d12-4f53-9dd8-c87c2ff8d0e6
         - ref!! b8f0a8b5-013a-4b5b-9b98-74583adf8163
     Parts:
-        -   Entity:
-                Id: 00115f69-f14a-444d-9ca6-9ba0b8673797
-                Name: AudioPlayer
-                Components:
-                    93f85c3cd82e2b5a708e12b461168817: !TransformComponent
-                        Id: 2f20cf47-98dd-4bae-b076-e346da6ecea2
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    c1f07678d075d60d1f0713cd35678b91: !CSharpIntermediate.Code.AudioPlayer,CSharpIntermediate.Game
-                        Id: 5ca3c18a-b6d7-44f8-b58a-3dbd34a9c6db
-                        BackgroundMusic: 453cec73-3017-4990-b95c-6bce5b42a491:Audio/FishLampByUlrick-EvensSalies
-        -   Entity:
-                Id: 0d56f4a3-5d12-4f53-9dd8-c87c2ff8d0e6
-                Name: SpatialAudioDemo
-                Components:
-                    93f85c3cd82e2b5a708e12b461168817: !TransformComponent
-                        Id: 9d97577c-a471-482f-8b60-161c4a7df592
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    12edc3f909fd41a322679785f9ffee9c: !CSharpIntermediate.Code.SpatialAudioDemo,CSharpIntermediate.Game
-                        Id: 03a490f5-6065-4d9b-9cf9-f4885fb5ecb6
-                        GunSound: 7cdab399-3c93-49fb-9f65-e0a91e57caa0:Audio/gun-shot-effect
-                    8291111417b48897eb8fdc817ca91f79: !CSharpIntermediate.Code.UpDownMovement,CSharpIntermediate.Game
-                        Id: f3b4a437-cf59-40ec-b3c4-1315045881a2
         -   Entity:
                 Id: 218238d7-afb3-4ae3-b290-092e22d1bd9c
                 Name: Skybox
@@ -89,9 +59,11 @@ Hierarchy:
                         Name: null
                         Projection: Perspective
                         Slot: 41f9c2cc-ee60-452f-8f6d-44e30148d556
+                    d254f713283043bec231cc6a9684b5c8: !AudioListenerComponent
+                        Id: 3def3c6c-c8dd-47d6-98cd-8a8da6898531
         -   Entity:
                 Id: b8f0a8b5-013a-4b5b-9b98-74583adf8163
-                Name: MachinegunModel
+                Name: AudioDemo
                 Components:
                     38dc7f6ccd46b7f5d412f454581eb074: !TransformComponent
                         Id: 2f264456-6e62-4bb2-a2e0-63323b49dcea
@@ -101,13 +73,21 @@ Hierarchy:
                         Children: {}
                     fd8efddf1d8804bfbbe2765a4dfedb92: !ModelComponent
                         Id: c54349a0-654f-494f-9400-f600ec97fe8c
-                        Model: null
+                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
                         Materials: {}
-                    ea94639449830894937659450d1475f7: !CSharpIntermediate.Code.SpatialAudioDemo,CSharpIntermediate.Game
-                        Id: 73b2fe39-fe84-4c82-b314-dbe8d3b43818
-                        GunSound: 7cdab399-3c93-49fb-9f65-e0a91e57caa0:Audio/gun-shot-effect
                     ee5a4494a6b776d65205a5d37429da0d: !CSharpIntermediate.Code.UpDownMovement,CSharpIntermediate.Game
                         Id: b78be6b9-bbc3-4c3b-bca6-c8c0c7e10446
+                    dabe8c39fdedad8b32f182aac0cec1e0: !AudioEmitterComponent
+                        Id: 6bac4eae-69c5-4dd0-8c3b-a231d56d81f2
+                        Sounds:
+                            dc77655967954b931c81c0f569548f05~Gun: 7cdab399-3c93-49fb-9f65-e0a91e57caa0:Audio/gun-shot-effect
+                        UseHRTF: false
+                        DirectionalFactor: 0.0
+                        Environment: Small
+                    9b5c17fd501f9839aed554a74bc4575e: !CSharpIntermediate.Code.AudioDemo,CSharpIntermediate.Game
+                        Id: bb4b827c-f0e2-4a11-943e-2603cb6c83eb
+                        BackgroundMusic: 453cec73-3017-4990-b95c-6bce5b42a491:Audio/FishLampByUlrick-EvensSalies
+                        UkeleleMusic: 3885913c-4b28-49c8-b06f-5dbf54e7c5bb:Audio/Ukelele
         -   Entity:
                 Id: d00939ac-0d84-455d-ac0b-95412df358f5
                 Name: Directional light
