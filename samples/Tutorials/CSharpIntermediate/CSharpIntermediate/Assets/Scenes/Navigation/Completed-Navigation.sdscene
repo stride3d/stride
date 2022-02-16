@@ -1,0 +1,449 @@
+!SceneAsset
+Id: 6cd262df-d02e-4709-81fa-a93750f4ddd5
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 95898dc6-bd76-4f5c-99ba-069cde29d7b6
+        - ref!! 21b724d6-bd01-4381-bbbd-7e02b1d8d7c1
+        - ref!! 4d59c38d-5996-4d11-b665-9ee4e167049f
+        - ref!! 9bf9c65c-8fe7-4791-957b-e2aff1622d46
+        - ref!! f20e0971-e8b1-4e44-bc24-615a6234cb63
+        - ref!! b5eb0e9a-84e2-4603-8c7a-4b42405b663d
+        - ref!! 9950dc53-a21f-4552-aaaf-62729b865e2b
+        - ref!! f429f6f1-c8bd-4d52-842f-37a05bf63e83
+    Parts:
+        -   Entity:
+                Id: 21b724d6-bd01-4381-bbbd-7e02b1d8d7c1
+                Name: Stairs
+                Components:
+                    9a1d66eae487009ca4274ad92d002cfc: !TransformComponent
+                        Id: e07df4ff-990c-480f-ab4d-b9f1096b1498
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            cad35ad89500c8f86f1487fe815276fb: ref!! be11ac10-c8a9-46bd-9ffe-dc1120771407
+                            ba1d54e7cae55aa7bc4d82ce6cda7408: ref!! 99d59945-4278-4147-b0a3-ae414d433903
+                            eb64947a1038f1176ae4f5aff8abd2c5: ref!! c95bc474-ad7a-4906-8435-457ad1c10e8f
+                            389d91e6e982bd9ae470e11b396f0019: ref!! 7d567ff6-e612-4b37-91b7-7f3079b0e297
+                            75fb01ae2b505b8ffb64679d0d2a2807: ref!! 1b30f3e4-9c51-477e-9309-657e45d5ba35
+                            4c4a4e2c84ca89797453e10696a46c88: ref!! c46dfc2a-49f8-481e-abce-bfa5a4768ff8
+                            4b41108916c5f79554c7c4f2820fa2fe: ref!! d393090a-fc27-43e4-be82-a97dfb664efe
+        -   Entity:
+                Id: 497b0bcb-1345-4567-9876-ed86627253e8
+                Name: Directional light
+                Components:
+                    16e72a50b470bfe748983da5458eb723: !TransformComponent
+                        Id: d7c7affa-6f59-4429-b490-9f8dc5ba8c20
+                        Position*: {X: 0.0, Y: 9.520389, Z: 0.0}
+                        Rotation: {X: 0.007513374, Y: -0.85018384, Z: -0.45847577, W: -0.25871006}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    97d8ad5803ac5cb648f845db4591e5cf: !LightComponent
+                        Id: 8ed92969-ccaf-480c-8f38-66cf3296fa14
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter5x5
+                                Size: Large
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters: {}
+                        Intensity: 20.0
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 6fb0f099-8844-4b0b-bb60-809fa9895243
+                InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707
+        -   Entity:
+                Id: 4d59c38d-5996-4d11-b665-9ee4e167049f
+                Name: Navigation Demo
+                Components:
+                    b3f2453c94cea2494ce0f1422202ce4b: !TransformComponent
+                        Id: 7f8f2cd9-701b-4e9c-a5fa-a85426aab0e8
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Folder: Ground
+            Entity:
+                Id: 5747bc34-a6b2-4269-ba2b-2c6c8e75c2c8
+                Name: GridBase10x10
+                Components:
+                    988b33898a90e85e2534eb51a3a991cf: !TransformComponent
+                        Id: 1fc89cce-03da-4a86-9a1e-edc2f2fbf8ca
+                        Position: {X: -5.0000005, Y: 0.0, Z: -5.0000005}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            139c644a50f28a67373c0ee61bed76e6: ref!! 6c08172b-2a27-4d74-8afe-d090fe60c4e1
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 5625332c-ba48-4920-8f28-e2d1376c608a
+                InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707
+        -   Entity:
+                Id: 7ca04602-e8d1-4008-9014-2c4eb0dfdb51
+                Name: Box3x1x1
+                Components:
+                    b985eef57914f7805acf8a31f6a91d54: !TransformComponent
+                        Id: c46dfc2a-49f8-481e-abce-bfa5a4768ff8
+                        Position: {X: -0.45581222, Y: 0.70537513, Z: -2.8061857}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Entity:
+                Id: 81e8eda6-b7b9-4366-adb9-eedf9c931c98
+                Name: Stairs1x1x2
+                Components:
+                    1fd94bf6112e05418d8b81f8ee7c0a28: !TransformComponent
+                        Id: 5d8c0865-97fc-4a16-b2db-16556c973f73
+                        Position*: {X: 0.34474838, Y: 0.5, Z: 0.22349083}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    289202be5050af41832ce05e2d398d2c: !ModelComponent
+                        Id: 5834af2c-ba7f-47d1-a245-50a95f0a53f2
+                        Enabled*: true
+                        Model: da028d29-e641-4020-8977-dafaaf656ad4:Models/Stairs1x1x2
+                        Materials:
+                            74dc3e7c6e633f46a3801edd86a197dd~0: 08b6f010-a274-4180-83c4-0f2c0920774b:Materials/GridMTStairs
+                    01635891d64e2c4d98af82259f64e540: !StaticColliderComponent
+                        Id: 2f81d300-9225-4280-9bf2-a23ad21ef7d9
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e50925e86d99e849bde2b006ac86de09: !ColliderShapeAssetDesc
+                                Shape: 934024bf-9a3a-4e33-8fb0-fa4e14832f2b:CollisionMeshes/Stairs1x1x2
+            Base:
+                BasePartAsset: d74cc744-2324-4e4b-ad1b-577d83087eea:BlocksPrefabs/Stairs1x1x2
+                BasePartId: b7b6a519-2edb-4e90-88ef-1426d0feac16
+                InstanceId: 63ccaeb2-05df-47a5-a86e-ce3e75cc27c1
+        -   Entity:
+                Id: 862e9228-785f-4600-aece-0fa4527288ec
+                Name: Box3x1x1
+                Components:
+                    b985eef57914f7805acf8a31f6a91d54: !TransformComponent
+                        Id: 1b30f3e4-9c51-477e-9309-657e45d5ba35
+                        Position: {X: -1.5330018, Y: 0.70537513, Z: -2.8061857}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Entity:
+                Id: 92c06e8f-3ec6-44e1-ab1a-d50ecbf2d5c9
+                Name: Ramp1x1x1
+                Components:
+                    1ec2082036bff4caaa63eaf4eb78ec2f: !TransformComponent
+                        Id: d393090a-fc27-43e4-be82-a97dfb664efe
+                        Position: {X: 0.49409294, Y: 0.10526219, Z: -2.954041}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            04be5454cde521e01adf1861eec5069e: ref!! 20bab83b-a023-4dd0-9724-d2e84423ec75
+        -   Entity:
+                Id: 938a9ad3-37f9-4adc-8c79-a378e6ec12ab
+                Name: Floor2x0x1
+                Components:
+                    8977bcef904f23ceb42524e3c1e679fd: !TransformComponent
+                        Id: c95bc474-ad7a-4906-8435-457ad1c10e8f
+                        Position: {X: -1.9904088, Y: 0.9353833, Z: -3.9567363}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            648186eca72fe50993d89924326aba0d: ref!! a9fcca21-593b-4ff3-87b1-1ab036a3111e
+        -   Entity:
+                Id: 95898dc6-bd76-4f5c-99ba-069cde29d7b6
+                Name: DefaultScenery
+                Components:
+                    da436bd5facd193729190bc026fb4dc9: !TransformComponent
+                        Id: d4d5d59e-effe-43b0-9abf-bbbade3adf44
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            5eb80fb687ceb9120b9e276f0b152cd1: ref!! d7c7affa-6f59-4429-b490-9f8dc5ba8c20
+                            927278cb7ef6a4aaf2702b5ad8c46857: ref!! e7dc42a3-86e3-4e15-9fdd-6e68a5e8abd9
+                            dc028b698df25300a32d45c95e85acb3: ref!! 1fc89cce-03da-4a86-9a1e-edc2f2fbf8ca
+        -   Entity:
+                Id: 9950dc53-a21f-4552-aaaf-62729b865e2b
+                Name: Camera
+                Components:
+                    b41aefdb5f32e2f107a70451fae63806: !TransformComponent
+                        Id: 73ed1e09-b06c-493d-ac35-0069b594c633
+                        Position: {X: 0.0, Y: 4.587303, Z: 4.226979}
+                        Rotation: {X: -0.39028946, Y: 0.0, Z: 0.0, W: 0.9206922}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    649dc8c48d92e4c7f8d556d17fa66cfa: !CameraComponent
+                        Id: 89a21f50-836f-46af-8c9e-d37f710878b6
+                        Name: null
+                        Projection: Perspective
+                        Slot: 41f9c2cc-ee60-452f-8f6d-44e30148d556
+                    3a96e46770e9f58a359d59264de6247b: !CSharpIntermediate.Code.Navigate,CSharpIntermediate.Game
+                        Id: 7a1dc291-37c1-4b90-973e-f879e50aa4a1
+                        RegularCharacter: ref!! b5eb0e9a-84e2-4603-8c7a-4b42405b663d
+                        TargetSphere: null
+        -   Entity:
+                Id: 9bf9c65c-8fe7-4791-957b-e2aff1622d46
+                Name: NavigationMesh boundingbox A
+                Components:
+                    d58699f8e1bee3cc0f799354dad4ea57: !TransformComponent
+                        Id: 457787c4-47d3-4996-ac66-303f25186f60
+                        Position: {X: -2.2739, Y: 1.2896843, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    8a6a7e8fd135e0acf4914e69477014b6: !Stride.Navigation.NavigationBoundingBoxComponent,Stride.Navigation
+                        Id: 71d51f20-0751-44d7-a435-d6f1706935f0
+                        Size: {X: 2.0, Y: 2.0, Z: 5.0}
+        -   Entity:
+                Id: b30927a4-fec3-44d5-8114-c4eff48f17d3
+                Name: GridBase10x10
+                Components:
+                    4eecb3c27affe3478bcc584553d59e41: !TransformComponent
+                        Id: 6c08172b-2a27-4d74-8afe-d090fe60c4e1
+                        Position: {X: 5.0, Y: 0.0, Z: 5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7c901dfed21c864283aa0639481520b1: !ModelComponent
+                        Id: 0880ae34-2c89-4edf-acb0-6ed53fadc387
+                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
+                        Materials: {}
+                    e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
+                        Id: 66c4f3ac-b2c5-444c-834e-1a16521c103c
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            6f9d4e7e5147bf47ad510aa5f27d122b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 10.0, Y: 0.3, Z: 10.0}
+                                LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 76dbe8af-692a-45d5-8c9a-6fd390e04586
+                InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707
+        -   Entity:
+                Id: b5eb0e9a-84e2-4603-8c7a-4b42405b663d
+                Name: RegularCharacter
+                Components:
+                    aa799e808c5836540f9aeb04ba600be8: !TransformComponent
+                        Id: d582a1e7-0ab5-47f8-9529-14a0c35dd37c
+                        Position: {X: -2.3220387, Y: 0.49333665, Z: -0.63706756}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 1.8, Z: 0.5}
+                        Children: {}
+                    32b1c2f87b79e975940c95bde52fc0d2: !ModelComponent
+                        Id: 168da8ce-0dfc-4651-b3e3-da72eb10aabb
+                        Model: 3bebe6b9-2b1c-43d6-9d5d-936e861187f9:Models/Cylinder
+                        Materials:
+                            51f8101362a6c8baff5b2d790a714cb5~0: adf8fc52-f54b-48d8-b883-e4b78e774d99:Materials/MaterialA
+                    a0a98353404bd2291711f540962452e4: !NavigationComponent
+                        Id: 12ca02c6-1450-437b-8a77-da5e56dde9ef
+                        NavigationMesh: fa78ae58-3128-4495-a3de-ee61de77b1a3:Scenes/Navigation/NavigationMesh-Normal
+                        GroupId: 9398904c-72b7-ca9b-e966-23346704ae98
+        -   Entity:
+                Id: c88fa76a-4e95-4ac8-89de-95042d574a06
+                Name: Stairs1x1x2
+                Components:
+                    6975408fa4436989610197f82ab739ae: !TransformComponent
+                        Id: be11ac10-c8a9-46bd-9ffe-dc1120771407
+                        Position: {X: -1.853881, Y: -0.06461668, Z: -2.1948233}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            c7c13324a8a5075983dbd58bf9709377: ref!! 5d8c0865-97fc-4a16-b2db-16556c973f73
+        -   Entity:
+                Id: c979e5d1-f4e4-482e-8967-0a73f7ebe060
+                Name: Ramp1x1x1
+                Components:
+                    f209476be8802a4aa93c1768358ae3c4: !TransformComponent
+                        Id: 20bab83b-a023-4dd0-9724-d2e84423ec75
+                        Position*: {X: 1.0099471, Y: 0.4075867, Z: 0.54303074}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f8c751136a9aa643afa88b938510189c: !ModelComponent
+                        Id: 1c94eaea-21fc-4665-b3a5-4fe598bb0583
+                        Enabled*: true
+                        Model: e55d79be-700a-44db-a70f-8512c67dd07d:Models/Ramp1x1x1
+                        Materials:
+                            74dc3e7c6e633f46a3801edd86a197dd~0: 08b6f010-a274-4180-83c4-0f2c0920774b:Materials/GridMTStairs
+                    ef71e33350ba7041a0b72c62a58ca295: !StaticColliderComponent
+                        Id: b6ffa329-6e7a-40fb-9603-a4f78c9d8dae
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            8359b4c0fa7e894ba4582a7bdd8e1ae6: !ColliderShapeAssetDesc
+                                Shape: 26f14582-93fd-4080-9f17-1f4444fe2205:CollisionMeshes/Ramp1x1x1
+            Base:
+                BasePartAsset: ecf8a905-6220-499c-9d8a-47876d7fbee5:BlocksPrefabs/Ramp1x1x1
+                BasePartId: 359739c2-83bd-443b-8749-d2f4ede41a24
+                InstanceId: c4065a36-6804-4363-90e4-e36edeffe1ba
+        -   Entity:
+                Id: d394851a-3f0f-4020-9685-581c12db8558
+                Name: Stairs1x1x2
+                Components:
+                    6975408fa4436989610197f82ab739ae: !TransformComponent
+                        Id: 99d59945-4278-4147-b0a3-ae414d433903
+                        Position: {X: 1.1496652, Y: 0.10040879, Z: -2.1948233}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Entity:
+                Id: d9f98ac9-df09-4d90-b011-76bbd164972b
+                Name: Floor2x0x1
+                Components:
+                    983c7b3bf13aac40829f8af4045b77c1: !TransformComponent
+                        Id: a9fcca21-593b-4ff3-87b1-1ab036a3111e
+                        Position: {X: 0.99999994, Y: 0.0, Z: 0.49999997}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    1a51cab18c015f4bad0f8f83933b02cc: !ModelComponent
+                        Id: c43056a7-eddc-4e43-a2e9-3bd2764e24f4
+                        Enabled*: true
+                        Model: 6f70f12f-e8d9-467e-a4e7-7489cf967274:Models/Floor2x0x1
+                        Materials:
+                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    9b0dc84c029fed4caf8b86b095c216e6: !StaticColliderComponent
+                        Id: c28adf9a-8ef9-47a7-bd1d-8b0f750203d9
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            69605f939a4042449ecc2179c0de2592: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 2.0, Y: 0.05, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 3724e4ed-4cb5-447d-a3ea-86ee8bfec3e5:BlocksPrefabs/Floor2x0x1
+                BasePartId: b7b381ac-aac8-4c5b-8eba-7aabe138ee6f
+                InstanceId: f8e837bb-a52f-4ebc-a69a-f23cec1880cc
+        -   Entity:
+                Id: e8351216-60cf-401b-90f1-ba074da9e8e5
+                Name: Floor2x0x1
+                Components:
+                    8977bcef904f23ceb42524e3c1e679fd: !TransformComponent
+                        Id: 7d567ff6-e612-4b37-91b7-7f3079b0e297
+                        Position: {X: 0.009591271, Y: -0.06461668, Z: -3.9567363}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            648186eca72fe50993d89924326aba0d: ref!! fab4c7da-d31d-4430-8b52-81b96a697ef5
+        -   Folder: null
+            Entity:
+                Id: ec0d6681-978d-42ec-8330-3af57772ee4f
+                Name: Floor2x0x1
+                Components:
+                    983c7b3bf13aac40829f8af4045b77c1: !TransformComponent
+                        Id: fab4c7da-d31d-4430-8b52-81b96a697ef5
+                        Position*: {X: 0.99999994, Y: 1.0, Z: 0.49999997}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    1a51cab18c015f4bad0f8f83933b02cc: !ModelComponent
+                        Id: abf54712-9aee-4839-8bcf-dcc0b5df73db
+                        Enabled*: true
+                        Model: 6f70f12f-e8d9-467e-a4e7-7489cf967274:Models/Floor2x0x1
+                        Materials:
+                            1f66d7610cd6dc4c9b32d800d312e162~0: 9366d8fb-3605-4070-abaa-7bb7f1cdfbc1:Materials/GridMTPlatform
+                    9b0dc84c029fed4caf8b86b095c216e6: !StaticColliderComponent
+                        Id: e3b7b1f2-6ef8-46e3-bf18-866cb6e43538
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            69605f939a4042449ecc2179c0de2592: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 2.0, Y: 0.05, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 3724e4ed-4cb5-447d-a3ea-86ee8bfec3e5:BlocksPrefabs/Floor2x0x1
+                BasePartId: b7b381ac-aac8-4c5b-8eba-7aabe138ee6f
+                InstanceId: ee703131-fcdd-4d9f-92d5-c1c5f1adca89
+        -   Entity:
+                Id: f20e0971-e8b1-4e44-bc24-615a6234cb63
+                Name: NavigationMesh boundingbox B
+                Components:
+                    d58699f8e1bee3cc0f799354dad4ea57: !TransformComponent
+                        Id: 763ba471-f051-4583-9765-c3a485239e14
+                        Position: {X: 2.2226057, Y: 1.418687, Z: -2.6103754}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    8a6a7e8fd135e0acf4914e69477014b6: !Stride.Navigation.NavigationBoundingBoxComponent,Stride.Navigation
+                        Id: 0518c748-6b63-4022-aaa2-94ac144aa4d0
+                        Size: {X: 2.0, Y: 2.0, Z: 2.0}
+        -   Entity:
+                Id: f429f6f1-c8bd-4d52-842f-37a05bf63e83
+                Name: Sphere
+                Components:
+                    2c5a30d777d94d39783de06181de32ea: !TransformComponent
+                        Id: 1e10ef5b-515d-4146-9ef5-1cef1d45844a
+                        Position: {X: -1.9792256, Y: 0.0, Z: 1.3886127}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.35165212, Y: 0.35165212, Z: 0.35165212}
+                        Children: {}
+                    c0d96d3d79d7ce7880e414bb0749c8ad: !ModelComponent
+                        Id: 42834d37-1d90-4816-acba-9367a969335c
+                        Model: 5178da4c-69ec-4123-a502-ef9925474f3d:Models/Sphere
+                        Materials:
+                            dc333b7ff3d35a498d01e8aa0a51f16e~0: ee1ef4b7-4fb4-4597-ad68-84b86ab128c7:Materials/board1
+        -   Entity:
+                Id: f91ca713-78c6-4c97-a6f4-3fe0854e6da7
+                Name: Skybox
+                Components:
+                    a052bb2a7ce338fbc0727426771a7d4c: !TransformComponent
+                        Id: e7dc42a3-86e3-4e15-9fdd-6e68a5e8abd9
+                        Position*: {X: 0.0, Y: 9.520389, Z: -2.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    508e804e75f75666d3c5e41788acc3cc: !BackgroundComponent
+                        Id: 28c01f9b-cb64-433f-b7af-cf987a2b9493
+                        Texture: null
+                    0a7d931be3c08faeeda5bbca8fefbc73: !LightComponent
+                        Id: 6fe52892-2712-4025-aa55-d831b54518e1
+                        Type: !LightSkybox
+                            Skybox: null
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 157729d7-9c11-4c7d-8483-68f15dc8a47d
+                InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707

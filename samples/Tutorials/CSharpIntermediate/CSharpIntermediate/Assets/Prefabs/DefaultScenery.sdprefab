@@ -7,6 +7,7 @@ Hierarchy:
         - ref!! 1f6a48cb-f1c3-4fa0-8426-10460b957224
         - ref!! 6fb0f099-8844-4b0b-bb60-809fa9895243
         - ref!! 157729d7-9c11-4c7d-8483-68f15dc8a47d
+        - ref!! 5625332c-ba48-4920-8f28-e2d1376c608a
     Parts:
         -   Entity:
                 Id: 157729d7-9c11-4c7d-8483-68f15dc8a47d
@@ -51,6 +52,18 @@ Hierarchy:
                             21dd436cc2cb430bd71cbe9891a2a1d8: !StaticPlaneColliderShapeDesc
                                 Normal: {X: 0.0, Y: 1.0, Z: 0.0}
                                 Offset: 0.0
+        -   Folder: Ground
+            Entity:
+                Id: 5625332c-ba48-4920-8f28-e2d1376c608a
+                Name: GridBase10x10
+                Components:
+                    988b33898a90e85e2534eb51a3a991cf: !TransformComponent
+                        Id: a9a8911d-f8c4-433a-aa91-1a7b6f1da3e7
+                        Position: {X: -5.0000005, Y: 0.0, Z: -5.0000005}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            139c644a50f28a67373c0ee61bed76e6: ref!! c897e331-1240-488e-8470-41293b0e5f53
         -   Entity:
                 Id: 6fb0f099-8844-4b0b-bb60-809fa9895243
                 Name: Directional light
@@ -76,3 +89,37 @@ Hierarchy:
                                 ComputeTransmittance: false
                                 BiasParameters: {}
                         Intensity: 20.0
+        -   Entity:
+                Id: 76dbe8af-692a-45d5-8c9a-6fd390e04586
+                Name: GridBase10x10
+                Components:
+                    4eecb3c27affe3478bcc584553d59e41: !TransformComponent
+                        Id: c897e331-1240-488e-8470-41293b0e5f53
+                        Position: {X: 5.0, Y: 0.0, Z: 5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7c901dfed21c864283aa0639481520b1: !ModelComponent
+                        Id: 31b2ab8f-a355-41c5-9866-d80173864b67
+                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
+                        Materials: {}
+                    e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
+                        Id: 1cce9088-0bec-4187-b14b-284af892396d
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            6f9d4e7e5147bf47ad510aa5f27d122b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 10.0, Y: 0.3, Z: 10.0}
+                                LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:BlocksPrefabs/GridBase10x10
+                BasePartId: b045349c-565e-4488-9130-a795b0e3b229
+                InstanceId: cd287632-0c5e-4a73-a8eb-575efe930692

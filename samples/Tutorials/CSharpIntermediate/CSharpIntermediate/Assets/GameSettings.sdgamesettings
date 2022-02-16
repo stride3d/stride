@@ -2,13 +2,9 @@
 Id: 1e8aa650-da28-44e4-b76f-e7865c20fcd5
 SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
-DefaultScene: 1e5ed5df-d685-4f73-beb0-2672147f9aef:Scenes/Audio/Completed-Audio
+DefaultScene: 6cd262df-d02e-4709-81fa-a93750f4ddd5:Scenes/Navigation/Completed-Navigation
 GraphicsCompositor: fe026ff4-fdf9-48b9-87fb-65764cb9153f:GraphicsCompositor
 Defaults:
-    - !Stride.Audio.AudioEngineSettings,Stride.Audio
-        HrtfSupport: true
-    - !Stride.Assets.EditorSettings,Stride.Assets
-        RenderingMode: HDR
     - !Stride.Graphics.RenderingSettings,Stride.Graphics
         DefaultBackBufferWidth: 1280
         DefaultBackBufferHeight: 720
@@ -16,11 +12,47 @@ Defaults:
         DefaultGraphicsProfile: Level_10_0
         ColorSpace: Linear
         DisplayOrientation: LandscapeRight
+    - !Stride.Assets.EditorSettings,Stride.Assets
+        RenderingMode: HDR
+    - !Stride.Assets.Textures.TextureSettings,Stride.Assets
+        TextureQuality: Fast
+    - !Stride.Physics.PhysicsSettings,Stride.Physics
+        Flags: None
+        MaxSubSteps: 1
+        FixedTimeStep: 0.016666668
+    - !Stride.Audio.AudioEngineSettings,Stride.Audio
+        HrtfSupport: false
+    - !Stride.Navigation.NavigationSettings,Stride.Navigation
+        EnableDynamicNavigationMesh: false
+        IncludedCollisionGroups: AllFilter
+        BuildSettings:
+            CellHeight: 0.1
+            CellSize: 0.1
+            TileSize: 16
+            MinRegionArea: 10
+            RegionMergeArea: 20
+            MaxEdgeLen: 20.0
+            MaxEdgeError: 2.0
+            DetailSamplingDistance: 2.0
+            MaxDetailSamplingError: 2.0
+        Groups:
+            -   Id: 9398904c-72b7-ca9b-e966-23346704ae98
+                Name: RegularCharacters
+                AgentSettings:
+                    Height: 1.2
+                    MaxClimb: 0.3
+                    MaxSlope: {Radians: 1.0471976}
+                    Radius: 0.3
+            -   Id: 7a5f7a1c-26bd-4cff-acb2-882a748e3f7a
+                Name: TinyCharacters
+                AgentSettings:
+                    Height: 0.5
+                    MaxClimb: 0.4
+                    MaxSlope: {Radians: 0.6981317}
+                    Radius: 0.1
     - !Stride.Streaming.StreamingSettings,Stride.Rendering
         ManagerUpdatesInterval: 0:00:00:00.0330000
         ResourceLiveTimeout: 0:00:00:08.0000000
-    - !Stride.Assets.Textures.TextureSettings,Stride.Assets
-        TextureQuality: Fast
 Overrides: []
 PlatformFilters:
     - PowerVR SGX 54[0-9]

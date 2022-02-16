@@ -400,6 +400,40 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 9a11c9b8-bfff-46a1-b0d7-01f302e193f3
                 InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 4be31a7b-a1f3-452f-8f27-02959ba406b5
+                Name: GridBase10x10
+                Components:
+                    4eecb3c27affe3478bcc584553d59e41: !TransformComponent
+                        Id: 764014fa-4405-40c1-b376-f6fd8d09326e
+                        Position: {X: 5.0, Y: 0.0, Z: 5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7c901dfed21c864283aa0639481520b1: !ModelComponent
+                        Id: f400fb9d-6cf8-42d9-bd78-f6d7c7a22109
+                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
+                        Materials: {}
+                    e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
+                        Id: cf02d090-9d77-4fa2-92e6-e493636bcad8
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            6f9d4e7e5147bf47ad510aa5f27d122b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 10.0, Y: 0.3, Z: 10.0}
+                                LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 76dbe8af-692a-45d5-8c9a-6fd390e04586
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
         -   Folder: null
             Entity:
                 Id: 4e3127fb-aca1-4df2-b7a8-ec0cd63cc108
@@ -655,6 +689,22 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 6fb0f099-8844-4b0b-bb60-809fa9895243
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Folder: Ground
+            Entity:
+                Id: 8d88457d-1425-4d54-838b-e2c52a2aab92
+                Name: GridBase10x10
+                Components:
+                    988b33898a90e85e2534eb51a3a991cf: !TransformComponent
+                        Id: c43d0d89-1688-433d-aa6f-695da5b8c405
+                        Position: {X: -5.0000005, Y: 0.0, Z: -5.0000005}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            139c644a50f28a67373c0ee61bed76e6: ref!! 764014fa-4405-40c1-b376-f6fd8d09326e
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 5625332c-ba48-4920-8f28-e2d1376c608a
                 InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
         -   Entity:
                 Id: 90250255-6561-4f83-a1fc-298e8270876f
@@ -1134,6 +1184,7 @@ Hierarchy:
                             597071202cdad191f46360779ea69e16: ref!! ba03ca89-e8dd-43a0-9d54-40a290e5060a
                             c80c5386705820955b0450a6f6ec17f3: ref!! 0ec9ba78-1910-43be-8f46-09ef2e06a45e
                             c0bf067145eaeb4b1e38c3f672bda9cb: ref!! 2363f259-aebb-415c-8f91-845ec7a9a2d8
+                            21dcc84ddabe9922a4b2bbcb783c9513: ref!! c43d0d89-1688-433d-aa6f-695da5b8c405
         -   Folder: Walls
             Entity:
                 Id: eef7eb55-63e0-44a2-8663-c640aaaeae33

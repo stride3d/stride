@@ -403,6 +403,40 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 28ad2098-88a9-4d40-a88b-f640554b8b25
                 InstanceId: 04ef00e9-f593-4624-a9c7-e2f707a8d6fc
+        -   Entity:
+                Id: 20ab1d42-65d4-46ad-8cbd-29790a7bafbf
+                Name: GridBase10x10
+                Components:
+                    4eecb3c27affe3478bcc584553d59e41: !TransformComponent
+                        Id: 45a5b91d-cdd0-48ed-8009-15b581aca915
+                        Position: {X: 5.0, Y: 0.0, Z: 5.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7c901dfed21c864283aa0639481520b1: !ModelComponent
+                        Id: fab91d2b-3bc1-4030-a01f-319419ba5fdb
+                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
+                        Materials: {}
+                    e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
+                        Id: e541a412-102f-4b9b-aed1-1973c65ac24f
+                        CanSleep: true
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            6f9d4e7e5147bf47ad510aa5f27d122b: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 10.0, Y: 0.3, Z: 10.0}
+                                LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 76dbe8af-692a-45d5-8c9a-6fd390e04586
+                InstanceId: 04ef00e9-f593-4624-a9c7-e2f707a8d6fc
         -   Folder: null
             Entity:
                 Id: 225635f2-6c76-4d41-8c37-58e4342d6f17
@@ -802,6 +836,22 @@ Hierarchy:
                                 Size: {X: 1.0, Y: 1.0, Z: 1.0}
                                 LocalOffset: {X: 0.0, Y: 0.5, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+        -   Folder: Ground
+            Entity:
+                Id: 7524022f-bfa0-4f7d-a6c2-f777533440a4
+                Name: GridBase10x10
+                Components:
+                    988b33898a90e85e2534eb51a3a991cf: !TransformComponent
+                        Id: c037a7b7-a03d-4b9c-9d10-dc0a374adc00
+                        Position: {X: -5.0000005, Y: 0.0, Z: -5.0000005}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            139c644a50f28a67373c0ee61bed76e6: ref!! 45a5b91d-cdd0-48ed-8009-15b581aca915
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 5625332c-ba48-4920-8f28-e2d1376c608a
+                InstanceId: 04ef00e9-f593-4624-a9c7-e2f707a8d6fc
         -   Folder: RightBoxes
             Entity:
                 Id: 7920fe21-ec69-44e3-bd24-31ab996d6c1b
@@ -949,6 +999,7 @@ Hierarchy:
                             0748e6f3e55bc22c3bea75ac2b264582: ref!! 29585dd0-7728-4db0-b8c1-c074679e8499
                             69d03d14a52927068b9a38325976fbaf: ref!! e50fe674-a2bb-4acf-af79-05ac7ab43884
                             5118d3be8410532adc22f41e4c70ae2b: ref!! a7249687-983e-4c34-8a55-d8dbb3b291b2
+                            352bc53f36be23e1bc823b4ea5f7abe4: ref!! c037a7b7-a03d-4b9c-9d10-dc0a374adc00
         -   Folder: Walls
             Entity:
                 Id: 89c3f49d-af33-45c1-9ad8-f68d781fd300
