@@ -7,10 +7,9 @@ Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
         - ref!! 4000bff4-26b7-415f-bb67-85826b0d84de
-        - ref!! e64642a3-1f41-4013-a1eb-a66827546ae3
+        - ref!! 71fd5905-7678-4af4-bb15-9dc6c6e667c9
         - ref!! c643ec95-43c4-4a33-b179-30d1c13dad5e
-        - ref!! e92f8d95-9ded-40b0-b668-53afb9104639
-        - ref!! de266893-c2dd-48c8-979d-dc022909f475
+        - ref!! 31d59c26-83f3-4bf3-a7cb-8cd5a53047c3
     Parts:
         -   Folder: Walls
             Entity:
@@ -81,22 +80,6 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: f7cf8e94-8c8c-49ad-ae01-c4f6b757a16a
-                InstanceId: 20b67e1c-1ee1-49f6-8812-a3c1c439fe36
-        -   Folder: Ground
-            Entity:
-                Id: 115649d1-1a26-4d6c-9d0c-915b83d5f78b
-                Name: GridBase10x10
-                Components:
-                    988b33898a90e85e2534eb51a3a991cf: !TransformComponent
-                        Id: 366da06f-e8b9-4267-97bb-403c311a9793
-                        Position: {X: -5.0000005, Y: 0.0, Z: -5.0000005}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children:
-                            139c644a50f28a67373c0ee61bed76e6: ref!! cb979fdc-36d6-49ec-9684-5f6fed0100e2
-            Base:
-                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
-                BasePartId: 5625332c-ba48-4920-8f28-e2d1376c608a
                 InstanceId: 20b67e1c-1ee1-49f6-8812-a3c1c439fe36
         -   Folder: Walls
             Entity:
@@ -404,7 +387,8 @@ Hierarchy:
                     f5d509756a0c27a7691050d5f8da1cc9: !ModelComponent
                         Id: 1983d365-6cf5-4d4d-8b69-e3bea168af90
                         Model: 0750fa0b-63d1-48cb-b1e2-2ab83137a27f:Models/Ground
-                        Materials: {}
+                        Materials:
+                            de4c29965d8ddf18433f3883de9bd5f8~0: ba13e600-e1c8-4ba7-b66d-aa0e1489e02e:Materials/board1B
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: e173cb28-86d4-4c4d-bde7-6302d0d62821
@@ -441,6 +425,21 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 71ea0616-e690-4dce-80cd-c5ab19afdcd7
                 InstanceId: 20b67e1c-1ee1-49f6-8812-a3c1c439fe36
+        -   Entity:
+                Id: 31d59c26-83f3-4bf3-a7cb-8cd5a53047c3
+                Name: SphereToClone
+                Components:
+                    29862d748c6c717b669ccf41132fa040: !TransformComponent
+                        Id: 43e9f59a-4e20-498f-be53-27f767907ae8
+                        Position: {X: -0.28074116, Y: 0.10764314, Z: -0.12699005}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.2, Y: 0.2, Z: 0.2}
+                        Children: {}
+                    ed1edcfaec7fc3abb3f56494eb8700c7: !ModelComponent
+                        Id: 3fa6dfa0-ce6d-4c10-bf7f-b03403bbe0b5
+                        Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
+                        Materials:
+                            7e56a993a29dfba2ae7bff3f870a4ae2~0: fc7b0f1e-efc5-48d4-8707-86e32152431d:Materials/Bullet
         -   Folder: Ground
             Entity:
                 Id: 3327bda5-403e-4487-980e-6596f68f797a
@@ -596,7 +595,6 @@ Hierarchy:
                             4c1a18011f3168b8b6e6ecb4c656ba2b: ref!! 209056df-f427-424a-b7eb-7dd2d405ea4d
                             86615f8fff016f263e4e4eae0b523670: ref!! 3449847c-2ec7-4f4d-a439-9ccab34ebf5b
                             c7f523a338fda0c69c17572c50f5ab7d: ref!! 18b54654-bf2f-4ce8-8635-4a7547135f61
-                            c57c3921c5556e944f4244c2b2f9b9d0: ref!! 366da06f-e8b9-4267-97bb-403c311a9793
                             69964c426e781763226dfb753da172f8: ref!! d41512ea-30eb-4121-9fda-37e33faeb987
                             39929306191a719657b2d74687c8a311: ref!! edcf8764-d232-47b3-98fb-3372a9d393aa
                             32ecd2bc9c3956c6875841efbad8527e: ref!! 6020d712-e3d3-4aa5-b43f-26f4eeb68988
@@ -620,6 +618,27 @@ Hierarchy:
                             cb1011543a202e5e6654313a0892ae8f: ref!! 859d83fb-93e0-4286-90bd-5487cda9238f
                             1a4aa6ebd358931b77afb551a0d562a9: ref!! 32c5b024-d6dd-4126-9925-d67d0e39d86a
                             4b43fa614b29596e8dc42f117b52db54: ref!! 22658798-b2bd-4df7-a1c9-0957d598d2b4
+        -   Entity:
+                Id: 4005acb4-533e-495e-a223-bd86f51e6431
+                Name: LocalSphere
+                Components:
+                    29862d748c6c717b669ccf41132fa040: !TransformComponent
+                        Id: 3e35b674-9d8b-46c3-8a73-0c9c65a8fc5a
+                        Position: {X: 0.26437, Y: 0.7454761, Z: -2.8430598}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    ed1edcfaec7fc3abb3f56494eb8700c7: !ModelComponent
+                        Id: d98576ba-a4f8-4f5d-9d44-9ddbb3c9a2a4
+                        Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
+                        Materials:
+                            23663b620f869593f11b8c73bb57e086~0: 789f5487-e853-4d88-95ca-cb9eee5e14e7:Materials/CustomFilterMaterial
+                    0cfed20df70070ccecfe0ad8404d6640: !CSharpIntermediate.Code.OmniDirectionMovement,CSharpIntermediate.Game
+                        Id: 81dfc161-b587-4027-b192-2cc6fc3b3dc9
+                        MoveSpeed: 4.0
+                        Vertical: false
+                        Horizontal: true
+                        Forward: true
         -   Folder: null
             Entity:
                 Id: 43198216-bb7f-4dfb-8bbb-da39ee91e4c8
@@ -833,16 +852,23 @@ Hierarchy:
                 Components:
                     6dc6ab64768d7ec52f27c066da6c91bc: !TransformComponent
                         Id: 0460fd10-c3ec-4386-a54e-e144eefeb2bc
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: -0.07157704, Y: -0.91977805, Z: -0.1992339, W: 0.33044055}
+                        Position: {X: -1.6647495, Y: 1.9009591, Z: -2.229128}
+                        Rotation: {X: 0.072238855, Y: 0.9186747, Z: 0.1989949, W: -0.33349586}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     35504340248b601ce93f09dfb5059803: !CameraComponent
                         Id: bca97fd5-6e55-48c1-a202-fd69ffc92ec3
                         Name: null
                         Projection: Perspective
-                        VerticalFieldOfView: 90.0
+                        VerticalFieldOfView: 70.0
                         Slot: 41f9c2cc-ee60-452f-8f6d-44e30148d556
+                    b1683d0d7b150506bba2c26684db3a51: !CSharpIntermediate.Code.ProjectDemo,CSharpIntermediate.Game
+                        Id: 01c8cafb-1473-4301-87b7-a32779acccb3
+                        projectSphere: ref!! c643ec95-43c4-4a33-b179-30d1c13dad5e
+                        projectSphereChild: ref!! 4005acb4-533e-495e-a223-bd86f51e6431
+                    2ed4200840eb1eaa09a5eec20dd7edf2: !CSharpIntermediate.Code.UnprojectDemo,CSharpIntermediate.Game
+                        Id: a20f9302-7829-4bbb-98e9-0c4bd5098c51
+                        sphereToClone: ref!! 31d59c26-83f3-4bf3-a7cb-8cd5a53047c3
         -   Folder: null
             Entity:
                 Id: 724a2d55-40b0-40e8-9779-82eaac4581c5
@@ -962,12 +988,13 @@ Hierarchy:
                     508e804e75f75666d3c5e41788acc3cc: !BackgroundComponent
                         Id: 12fc35fb-6b6a-47ba-88e4-e2c1c8a06ed7
                         Texture: b7f73672-f9bf-44ae-8a04-0017010b4ca1:Materials/Skybox texture
-                        Intensity: 2.5
+                        Intensity*: 2.12
                     0a7d931be3c08faeeda5bbca8fefbc73: !LightComponent
                         Id: 69ffc076-592b-466b-a45a-b893672cb813
-                        Enabled: false
+                        Enabled*: true
                         Type: !LightSkybox
                             Skybox: ae4fd991-6290-4c24-b73b-25d81a1a4837:Materials/Skybox
+                        Intensity*: 4.0
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 157729d7-9c11-4c7d-8483-68f15dc8a47d
@@ -1375,22 +1402,6 @@ Hierarchy:
                 BasePartId: 9346f53e-9233-4ee7-9d11-9e20c517179e
                 InstanceId: 20b67e1c-1ee1-49f6-8812-a3c1c439fe36
         -   Entity:
-                Id: b42a8602-28f4-4008-8038-037005b89f21
-                Name: StrideBallChild
-                Components:
-                    29862d748c6c717b669ccf41132fa040: !TransformComponent
-                        Id: aee7b9d3-d950-4ad6-b30f-3ce59538a0c9
-                        Position: {X: 1.7539215, Y: 0.0, Z: 2.7328925}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 0.2870438, Y: 0.2870438, Z: 0.2870438}
-                        Children: {}
-                    ed1edcfaec7fc3abb3f56494eb8700c7: !ModelComponent
-                        Id: 7d85f989-8aa4-460c-a909-00634ff9b208
-                        Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
-                        Materials: {}
-                    9f3814e34addfd234d50b4bf6752fd98: !CSharpIntermediate.Code.UpDownMovement,CSharpIntermediate
-                        Id: 9c8cad05-31a7-456a-b29b-2c11a60bf334
-        -   Entity:
                 Id: b50c55b7-77ea-42af-b53d-20065127abd7
                 Name: table
                 Components:
@@ -1612,20 +1623,25 @@ Hierarchy:
                 InstanceId: 20b67e1c-1ee1-49f6-8812-a3c1c439fe36
         -   Entity:
                 Id: c643ec95-43c4-4a33-b179-30d1c13dad5e
-                Name: StrideBallGlobal
+                Name: GlobalSphere
                 Components:
                     29862d748c6c717b669ccf41132fa040: !TransformComponent
                         Id: 34bfe641-941d-4786-a098-d1c2f87b8cef
-                        Position: {X: -2.0242367, Y: 1.0, Z: 0.35399365}
+                        Position: {X: -0.28074116, Y: 1.0, Z: -0.12699005}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 0.2, Y: 0.2, Z: 0.2}
-                        Children: {}
+                        Children:
+                            ded2c13844d6b97661f2cc6cb5905fd5: ref!! 3e35b674-9d8b-46c3-8a73-0c9c65a8fc5a
                     ed1edcfaec7fc3abb3f56494eb8700c7: !ModelComponent
                         Id: 96e1b253-411b-4b48-b927-724b83b6b8d1
                         Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
                         Materials: {}
-                    8d316273d47836cdcbc8ff902d33e105: !CSharpIntermediate.Code.UpDownMovement,CSharpIntermediate.Game
-                        Id: e908e27b-14d3-49e8-b639-3c93340630b4
+                    0cfed20df70070ccecfe0ad8404d6640: !CSharpIntermediate.Code.OmniDirectionMovement,CSharpIntermediate.Game
+                        Id: d9f04c66-01a2-46a5-b84e-a1871b32a92e
+                        MoveSpeed: 2.0
+                        Vertical: true
+                        Horizontal: true
+                        Forward: false
         -   Folder: Walls
             Entity:
                 Id: c7b967eb-a7c8-46cb-9abc-9fd12544e202
@@ -1778,60 +1794,6 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: c42621bf-0615-46c8-8864-0865986153fb
                 InstanceId: 20b67e1c-1ee1-49f6-8812-a3c1c439fe36
-        -   Entity:
-                Id: de266893-c2dd-48c8-979d-dc022909f475
-                Name: PhysicsBall2
-                Components:
-                    29862d748c6c717b669ccf41132fa040: !TransformComponent
-                        Id: 1e31bd1b-4bdb-4b07-a1b2-6f2cbf86c039
-                        Position: {X: -1.5437598, Y: 0.9428728, Z: 0.7640666}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 0.19262075, Y: 0.19262075, Z: 0.19262075}
-                        Children: {}
-                    ed1edcfaec7fc3abb3f56494eb8700c7: !ModelComponent
-                        Id: e9c6e784-3030-4d25-b749-675f424830d3
-                        Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
-                        Materials: {}
-                    6d958d8dada48e96afbc8cb29ccce1ee: !RigidbodyComponent
-                        Id: 53910158-4549-4929-b206-d46967218957
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        IsKinematic: false
-                        Mass: 1.0
-                        LinearDamping: 0.0
-                        AngularDamping: 0.0
-                        OverrideGravity: false
-                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
-                        NodeName: null
-                        ColliderShapes:
-                            0f20237fb39847110e36ca5ce88f8513: !SphereColliderShapeDesc
-                                Is2D: false
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-        -   Entity:
-                Id: e64642a3-1f41-4013-a1eb-a66827546ae3
-                Name: Project demo
-                Components:
-                    1c45f98e58229a97d07f2b37245c85c9: !TransformComponent
-                        Id: 18a19499-66bd-4f11-a0ae-f795760a83d9
-                        Position: {X: 2.607127, Y: 1.0, Z: -2.4905603}
-                        Rotation: {X: 0.0, Y: -0.6427876, Z: 0.0, W: 0.76604444}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children:
-                            824639eb3d8ba8b53d05801ca07196d0: ref!! 0460fd10-c3ec-4386-a54e-e144eefeb2bc
-                            f9904308d9290535ef77b435af07d374: ref!! aee7b9d3-d950-4ad6-b30f-3ce59538a0c9
-                    866d3098ad2f5c4afdfcf895cc54c627: !CSharpIntermediate.Code.Rotate,CSharpIntermediate.Game
-                        Id: dd6d62db-18ed-438f-adc0-07c7dc9a9e86
-                    1bef2d7938d182b21de608f10cf4107a: !CSharpIntermediate.Code.UnprojectDemo,CSharpIntermediate.Game
-                        Id: 0e62bf2e-f688-4a41-9483-ce36aa6cc1d6
-                        impulse: {X: 0.0, Y: 0.0, Z: 5.0}
-                        camera: ref!! bca97fd5-6e55-48c1-a202-fd69ffc92ec3
-                        ball: ref!! e92f8d95-9ded-40b0-b668-53afb9104639
-                        ball2: ref!! de266893-c2dd-48c8-979d-dc022909f475
         -   Folder: Walls
             Entity:
                 Id: e65c9f9b-d5c3-49e4-83e6-efc8f4fc8f9b
@@ -1848,40 +1810,6 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 2bf6a317-46e5-4890-bfca-1e33ee08b1df
                 InstanceId: 20b67e1c-1ee1-49f6-8812-a3c1c439fe36
-        -   Entity:
-                Id: e92f8d95-9ded-40b0-b668-53afb9104639
-                Name: PhysicsBall
-                Components:
-                    29862d748c6c717b669ccf41132fa040: !TransformComponent
-                        Id: 4416edd9-17e7-4a45-bc58-e616cf3ce054
-                        Position: {X: -1.4046323, Y: 0.9428728, Z: 0.62910855}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 0.107152954, Y: 0.107152954, Z: 0.107152954}
-                        Children: {}
-                    ed1edcfaec7fc3abb3f56494eb8700c7: !ModelComponent
-                        Id: 967f4efa-dd96-4cee-808e-95bcd3bfb0f8
-                        Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
-                        Materials: {}
-                    6d958d8dada48e96afbc8cb29ccce1ee: !RigidbodyComponent
-                        Id: ee76c10d-95fd-4122-86fb-d06646720777
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        IsKinematic: false
-                        Mass: 1.0
-                        LinearDamping: 0.0
-                        AngularDamping: 0.0
-                        OverrideGravity: false
-                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
-                        NodeName: null
-                        ColliderShapes:
-                            0f20237fb39847110e36ca5ce88f8513: !SphereColliderShapeDesc
-                                Is2D: false
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
         -   Folder: null
             Entity:
                 Id: ee66a0a7-07d2-46f7-a1c9-b51a256593a5
@@ -1916,41 +1844,6 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 40599ea6-6ca4-4a1a-882a-b4648a4b1998
-                InstanceId: 20b67e1c-1ee1-49f6-8812-a3c1c439fe36
-        -   Entity:
-                Id: f1df3ef0-da56-481b-832d-1fad179ee46e
-                Name: GridBase10x10
-                Components:
-                    4eecb3c27affe3478bcc584553d59e41: !TransformComponent
-                        Id: cb979fdc-36d6-49ec-9684-5f6fed0100e2
-                        Position: {X: 5.0, Y: 0.0, Z: 5.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    7c901dfed21c864283aa0639481520b1: !ModelComponent
-                        Id: 1fe46554-5f05-487b-b676-7f1eb6fa3fb9
-                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
-                        Materials:
-                            7162a11adaa0d3631fa962c9b60c310a~0: ba13e600-e1c8-4ba7-b66d-aa0e1489e02e:Materials/board1B
-                    e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
-                        Id: 8754437a-3567-43ba-a987-361209c6213c
-                        CanSleep: true
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        AlwaysUpdateNaviMeshCache: false
-                        ColliderShapes:
-                            6f9d4e7e5147bf47ad510aa5f27d122b: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 10.0, Y: 0.3, Z: 10.0}
-                                LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-            Base:
-                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
-                BasePartId: 76dbe8af-692a-45d5-8c9a-6fd390e04586
                 InstanceId: 20b67e1c-1ee1-49f6-8812-a3c1c439fe36
         -   Folder: null
             Entity:
@@ -2083,7 +1976,7 @@ Hierarchy:
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
                                 ComputeTransmittance: false
                                 BiasParameters: {}
-                        Intensity: 1.5
+                        Intensity*: 2.5
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 6fb0f099-8844-4b0b-bb60-809fa9895243

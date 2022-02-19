@@ -1,12 +1,23 @@
-﻿using Stride.Core.Mathematics;
+using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 
 namespace CSharpIntermediate.Code
 {
-    public class UpDownMovement : SyncScript
+    public class OmniDirectionMovement : SyncScript
     {
-        private float MoveSpeed = 3.0f;
+        [DataMember(1)]
+        public float MoveSpeed = 3.0f;
+
+        [DataMember(2)]
+        public bool Vertical = true;
+
+        [DataMember(3)]
+        public bool Horizontal = false;
+
+        [DataMember(4)]
+        public bool Forward = false;
 
         public override void Start()
         {
@@ -15,29 +26,29 @@ namespace CSharpIntermediate.Code
         public override void Update()
         {
             var movement = new Vector3(0);
-            if (Input.IsKeyDown(Keys.Q))
+            if (Input.IsKeyDown(Keys.Q) && Vertical)
             {
                 movement.Y += 1;
             }
-            if (Input.IsKeyDown(Keys.E))
+            if (Input.IsKeyDown(Keys.E) && Vertical)
             {
                 movement.Y -= 1;
             }
 
-            if (Input.IsKeyDown(Keys.W))
+            if (Input.IsKeyDown(Keys.W) && Forward)
             {
                 movement.Z += 1;
             }
-            if (Input.IsKeyDown(Keys.S))
+            if (Input.IsKeyDown(Keys.S) && Forward)
             {
                 movement.Z -= 1;
             }
 
-            if (Input.IsKeyDown(Keys.A))
+            if (Input.IsKeyDown(Keys.A) && Horizontal)
             {
                 movement.X += 1;
             }
-            if (Input.IsKeyDown(Keys.D))
+            if (Input.IsKeyDown(Keys.D) && Horizontal)
             {
                 movement.X -= 1;
             }

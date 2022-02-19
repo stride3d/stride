@@ -1,4 +1,4 @@
-﻿using Stride.Core.Mathematics;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 
@@ -22,24 +22,6 @@ namespace CSharpIntermediate.Code
             if (Input.IsKeyDown(Keys.E))
             {
                 movement.Y -= 1;
-            }
-
-            if (Input.IsKeyDown(Keys.W))
-            {
-                movement.Z += 1;
-            }
-            if (Input.IsKeyDown(Keys.S))
-            {
-                movement.Z -= 1;
-            }
-
-            if (Input.IsKeyDown(Keys.A))
-            {
-                movement.X += 1;
-            }
-            if (Input.IsKeyDown(Keys.D))
-            {
-                movement.X -= 1;
             }
 
             var delta = (float)Game.UpdateTime.Elapsed.TotalSeconds;
