@@ -8,4 +8,4 @@ Type: !TeapotProceduralModel
     LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
     NumberOfTextureCoordinates: 10
     MaterialInstance:
-        Material: null
+        Material: c6f9218e-ae58-4d4d-9bb5-c83f722b9977:Materials/DarkStone

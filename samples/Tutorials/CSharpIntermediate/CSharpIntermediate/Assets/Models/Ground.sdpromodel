@@ -10,4 +10,4 @@ Type: !PlaneProceduralModel
     LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
     NumberOfTextureCoordinates: 10
     MaterialInstance:
-        Material: null
+        Material: ba13e600-e1c8-4ba7-b66d-aa0e1489e02e:Materials/board1B

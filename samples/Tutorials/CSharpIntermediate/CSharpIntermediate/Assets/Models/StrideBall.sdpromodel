@@ -8,4 +8,4 @@ Type: !SphereProceduralModel
     LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
     NumberOfTextureCoordinates: 10
     MaterialInstance:
-        Material: null
+        Material: b5937f37-8fa5-4c0c-9a21-9d563ee1bffc:Materials/RedCoating

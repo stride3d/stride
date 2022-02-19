@@ -1,4 +1,4 @@
-﻿using Stride.Core.Mathematics;
+using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Input;
@@ -38,19 +38,14 @@ namespace CSharpIntermediate.Code
                 var mousePosition = Input.AbsoluteMousePosition;
                 var viewport = new Viewport(0, 0, backBuffer.Width, backBuffer.Height);
 
-                var positionNearCamera = viewport.Unproject(new Vector3(mousePosition, -4), camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
-                var positionFarFromCamera = viewport.Unproject(new Vector3(mousePosition, 4f), camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
+            
+                var camera = Entity.Get<CameraComponent>();
+                var nearPosition = viewport.Unproject(new Vector3(mousePosition, 0.0f), camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
+                var farPosition = viewport.Unproject(new Vector3(mousePosition, 1.0f), camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
 
 
-                var childBall2d = Vector3.Unproject(new Vector3(mousePosition, -4), 0, 0, backBuffer.Width, backBuffer.Height, -4, 4, Entity.Transform.WorldMatrix);
-                var globalBall2d = Vector3.Unproject(new Vector3(mousePosition, 4), 0, 0, backBuffer.Width, backBuffer.Height, -4, 4, Entity.Transform.WorldMatrix);
-
-                //var positionNearCamera = viewport.Unproject(new Vector3(mousePosition, 0), ref Entity.Transform.WorldMatrix);
-                //var positionFarFromCamera = viewport.Unproject(new Vector3(mousePosition, 2), ref Entity.Transform.WorldMatrix);
-
-
-                ball.Transform.Position = childBall2d;
-                ball2.Transform.Position = globalBall2d;
+                ball.Transform.Position = nearPosition;
+                ball2.Transform.Position = farPosition;
 
 
                 var rigidBody = ball.Get<RigidbodyComponent>();

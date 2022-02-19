@@ -9,4 +9,4 @@ Type: !SphereProceduralModel
     LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
     NumberOfTextureCoordinates: 10
     MaterialInstance:
-        Material: null
+        Material: 2d580307-8a98-4dca-9b03-cc22f0b66ea8:Materials/Gold
