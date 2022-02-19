@@ -1,0 +1,70 @@
+!MaterialAsset
+Id: 789f5487-e853-4d88-95ca-cb9eee5e14e7
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Attributes:
+    Diffuse: !MaterialDiffuseMapFeature
+        DiffuseMap: !ComputeColor
+            Value: {R: 0.371875, G: 0.6740234, B: 0.74375, A: 1.0}
+    DiffuseModel: !MaterialDiffuseLambertModelFeature {}
+    Specular: !MaterialMetalnessMapFeature
+        MetalnessMap: !ComputeFloat
+            Value: 0.0
+    SpecularModel: !MaterialSpecularMicrofacetModelFeature
+        Fresnel: !MaterialSpecularMicrofacetFresnelSchlick {}
+        Visibility: !MaterialSpecularMicrofacetVisibilitySmithSchlickGGX {}
+        NormalDistribution: !MaterialSpecularMicrofacetNormalDistributionGGX {}
+        Environment: !MaterialSpecularMicrofacetEnvironmentGGXLUT {}
+    Overrides:
+        UVScale: {X: 1.0, Y: 1.0}
+    ClearCoat: !MaterialClearCoatFeature
+        LODDistance: !ComputeFloat
+            Value: 1.0
+        BasePaintDiffuseMap: !ComputeColor
+            Value: {R: 0.0, G: 0.09411765, B: 0.32941177, A: 1.0}
+        BasePaintGlossinessMap: !ComputeBinaryScalar
+            Operator: Multiply
+            LeftChild: !ComputeFloat
+                Value: 0.5
+            RightChild: !ComputeTextureScalar
+                Texture: 7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb:StrideClearCoatMetalFlakesNM
+                FallbackValue:
+                    Value: 1.0
+                Scale: {X: 128.0, Y: 128.0}
+                Offset: {X: 0.0, Y: 0.0}
+                UseRandomTextureCoordinates: true
+        MetalFlakesDiffuseMap: !ComputeColor
+            Value: {R: 0.0, G: 0.18039216, B: 0.6313726, A: 1.0}
+        MetalFlakesGlossinessMap: !ComputeBinaryScalar
+            Operator: Multiply
+            LeftChild: !ComputeFloat
+                Value: 1.0
+            RightChild: !ComputeTextureScalar
+                Texture: 7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb:StrideClearCoatMetalFlakesNM
+                FallbackValue:
+                    Value: 1.0
+                Scale: {X: 128.0, Y: 128.0}
+                Offset: {X: 0.0, Y: 0.0}
+                UseRandomTextureCoordinates: true
+        MetalFlakesMetalnessMap: !ComputeFloat
+            Value: 1.0
+        MetalFlakesNormalMap: !ComputeTextureColor
+            Texture: 7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb:StrideClearCoatMetalFlakesNM
+            FallbackValue:
+                Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+            Scale: {X: 128.0, Y: 128.0}
+            Offset: {X: 0.0, Y: 0.0}
+            UseRandomTextureCoordinates: true
+            Swizzle: null
+        ClearCoatGlossinessMap: !ComputeFloat
+            Value: 1.0
+        ClearCoatMetalnessMap: !ComputeFloat
+            Value: 0.5
+        OrangePeelNormalMap: !ComputeTextureColor
+            Texture: 2f76bcba-ae9f-4954-b98d-f94c2102ff86:StrideClearCoatOrangePeelNM
+            FallbackValue:
+                Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+            Scale: {X: 8.0, Y: 8.0}
+            Offset: {X: 0.0, Y: 0.0}
+            Swizzle: null
+Layers: {}

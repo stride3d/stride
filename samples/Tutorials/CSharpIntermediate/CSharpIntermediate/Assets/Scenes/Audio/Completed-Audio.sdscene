@@ -10,24 +10,6 @@ Hierarchy:
         - ref!! 5cc00c9f-1d5c-483b-9a62-c984b0ca0211
         - ref!! b8f0a8b5-013a-4b5b-9b98-74583adf8163
     Parts:
-        -   Entity:
-                Id: 00118659-6394-48bf-b289-0deaaf3917b6
-                Name: table
-                Components:
-                    a96d9137b5c02000481066a447e73f75: !TransformComponent
-                        Id: 4c8eb0fa-c5dc-4bbb-beea-12c389f0d190
-                        Position: {X: 4.512216, Y: 0.0, Z: 0.30121356}
-                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    a5678d8da44944fa5e209d12d6ea0f71: !ModelComponent
-                        Id: e18c51d4-8840-4daf-bb0c-f4ea11426669
-                        Model: d5482be8-144a-4f3a-a6c6-238c4a8e7908:Models/table
-                        Materials: {}
-            Base:
-                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
-                BasePartId: ca3d29a1-060d-42c2-beb1-14c3ab4a0f75
-                InstanceId: 4b0908cf-48d5-433b-a2e6-052c64b35b1f
         -   Folder: Walls
             Entity:
                 Id: 05104097-7150-4391-bf87-9f0aaa87afd5
@@ -180,11 +162,13 @@ Hierarchy:
                         Children: {}
                     508e804e75f75666d3c5e41788acc3cc: !BackgroundComponent
                         Id: 611594e6-d602-4fa4-8add-d6c1907a6d1b
-                        Texture: null
+                        Texture: b7f73672-f9bf-44ae-8a04-0017010b4ca1:Materials/Skybox texture
+                        Intensity: 2.5
                     0a7d931be3c08faeeda5bbca8fefbc73: !LightComponent
                         Id: 95d35eb7-36fe-4598-98d1-640f1e2c2746
+                        Enabled: false
                         Type: !LightSkybox
-                            Skybox: null
+                            Skybox: ae4fd991-6290-4c24-b73b-25d81a1a4837:Materials/Skybox
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 157729d7-9c11-4c7d-8483-68f15dc8a47d
@@ -409,7 +393,8 @@ Hierarchy:
                     7c901dfed21c864283aa0639481520b1: !ModelComponent
                         Id: d92a8563-c7cd-4abe-9898-62179361e116
                         Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
-                        Materials: {}
+                        Materials:
+                            7162a11adaa0d3631fa962c9b60c310a~0: ba13e600-e1c8-4ba7-b66d-aa0e1489e02e:Materials/board1B
                     e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
                         Id: 227c7377-5d4a-4c2d-a30a-4f601cd27a53
                         CanSleep: true
@@ -461,17 +446,16 @@ Hierarchy:
                             93b845c146e4de3be092a440305cafef: ref!! 9f4b5189-2f19-403b-bc0b-9cbc9727ac3e
                             e89cafe4260aa21dd48d2e76e4905237: ref!! a85c1e95-48c0-4080-9182-791937d93c2c
                             5ea9da174ebd8b43bcd2da162e84ca19: ref!! a532c4da-4827-46c1-9639-9def7c9db223
-                            31ec5a8428a7c2d824706ad6174ef7e1: ref!! 4c8eb0fa-c5dc-4bbb-beea-12c389f0d190
                             43b07f78799be697cb9e6245c571dd2c: ref!! 34eca510-d49c-45a1-b90c-6009769c15fc
-                            f031d8ab5b53ac8cb730bd55cdfe0cab: ref!! d261045b-8998-4458-8742-5346669f976d
+                            461530bce37c2952431a658bc17126ee: ref!! e1081374-ba67-4a8a-9009-7350a34769de
         -   Entity:
                 Id: 6309a4ae-28c5-4899-a63a-5be03d0e8143
                 Name: Ladder0x2x0handle
                 Components:
                     1e0d46103a7dea80297379a5d77443c1: !TransformComponent
                         Id: 9f4b5189-2f19-403b-bc0b-9cbc9727ac3e
-                        Position: {X: 0.0, Y: 1.0, Z: -4.7780137}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Position: {X: -4.796396, Y: 1.0, Z: 0.032114506}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     938e3a10e1782cd9b89dd0c4ee6b6640: !ModelComponent
@@ -703,6 +687,27 @@ Hierarchy:
                     d254f713283043bec231cc6a9684b5c8: !AudioListenerComponent
                         Id: 3def3c6c-c8dd-47d6-98cd-8a8da6898531
         -   Entity:
+                Id: b754bc45-91f7-4dc1-828f-9521acd5d5e6
+                Name: table
+                Components:
+                    9a077707b7d91e9c3f6f80eabbf6a83e: !TransformComponent
+                        Id: e1081374-ba67-4a8a-9009-7350a34769de
+                        Position: {X: 4.392847, Y: 0.0, Z: -3.153232}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    6b045f347ec870808499ca99f03a7242: !ModelComponent
+                        Id: 93721f84-360f-411c-94b5-eafd295d364d
+                        Model: d5482be8-144a-4f3a-a6c6-238c4a8e7908:Models/table
+                        Materials:
+                            aac48e089700b5666f7834876488d4a7~0: e4a8b81d-08ea-4561-92cc-ef5a7fef6a7d:Materials/DullSilver
+                            052f7ac2d72b1c7dc1e7f4f61043a136~1: c6f9218e-ae58-4d4d-9bb5-c83f722b9977:Materials/DarkStone
+                            086eef7c07d069c1f14a417bee475279~2: e4a8b81d-08ea-4561-92cc-ef5a7fef6a7d:Materials/DullSilver
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 1c9a5abc-8191-4536-b49f-a38c5313e5d9
+                InstanceId: 4b0908cf-48d5-433b-a2e6-052c64b35b1f
+        -   Entity:
                 Id: b8f0a8b5-013a-4b5b-9b98-74583adf8163
                 Name: AudioDemo
                 Components:
@@ -847,24 +852,6 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 6fb0f099-8844-4b0b-bb60-809fa9895243
-                InstanceId: 4b0908cf-48d5-433b-a2e6-052c64b35b1f
-        -   Entity:
-                Id: d0bb3724-0fc7-4b0e-be70-606ac47ebf3d
-                Name: mannequinModel
-                Components:
-                    d905d8c5fd8ed173c09536691c2a82f8: !TransformComponent
-                        Id: d261045b-8998-4458-8742-5346669f976d
-                        Position: {X: 4.2873616, Y: -0.06639463, Z: -4.242746}
-                        Rotation: {X: 0.0, Y: -0.40545017, Z: 0.0, W: 0.91411716}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    c75cc6e8e722b122382c54c377668d5d: !ModelComponent
-                        Id: d279356a-431f-47cc-a2b5-f151e0431c1a
-                        Model: f68ea240-695a-4de5-9884-60d77544fcd6:Models/mannequinModel
-                        Materials: {}
-            Base:
-                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
-                BasePartId: f9eee5b0-392d-4faa-bab1-42e0a9108394
                 InstanceId: 4b0908cf-48d5-433b-a2e6-052c64b35b1f
         -   Folder: Walls
             Entity:

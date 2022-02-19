@@ -41,7 +41,7 @@ Hierarchy:
                 Text: Enter your name
                 Font: c90f3988-0544-4cbe-993f-13af7d9c23c6:StrideDefaultFont
                 TextSize: 20.0
-                TextColor: {R: 240, G: 240, B: 240, A: 255}
+                TextColor: {R: 237, G: 1, B: 1, A: 255}
                 TextAlignment: Center
         -   UIElement: !Button
                 Id: 32563d11-9252-49f9-8c9d-49bffc42206c

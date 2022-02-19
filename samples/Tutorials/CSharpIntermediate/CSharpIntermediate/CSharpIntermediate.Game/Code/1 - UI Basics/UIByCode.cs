@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
@@ -10,13 +10,13 @@ namespace CSharpIntermediate.Code
 {
     public class UIByCode : StartupScript
     {
-        public SpriteFont Font;
-
+        private SpriteFont font;
         private Button button;
         private TextBlock textBlock;
 
         public override void Start()
         {
+            font = Content.Load<SpriteFont>("UI/Ebrima");
             button = CreateButton("Show me the time!");
             textBlock = CreateTextBlock("...");
 
@@ -29,7 +29,7 @@ namespace CSharpIntermediate.Code
                     DefaultHeight = 400,
                     DefaultWidth = 600,
                     Margin = new Thickness(600.0f, 0, 0, 0),
-                    BackgroundColor = new Color(1, 0.6f, 0.6f, 0.5f),
+                    BackgroundColor = new Color(0, 1, 0, 0.1f),
                     Children =
                     {
                         button,
@@ -48,9 +48,9 @@ namespace CSharpIntermediate.Code
                 BackgroundColor = Color.DarkKhaki,
                 Content = new TextBlock {
                     Text = buttonText, 
-                    Font = Font,
+                    Font = font,
                     TextSize = 16, 
-                    TextColor = Color.BlanchedAlmond,
+                    TextColor = Color.Black,
                     VerticalAlignment = VerticalAlignment.Center
                 }
             };
@@ -69,9 +69,9 @@ namespace CSharpIntermediate.Code
             {
                 Name = "TextBlockByCode",
                 Text = defaultText,
-                Font = Font,
-                TextColor = Color.DarkViolet,
-                BackgroundColor = Color.LightSkyBlue,
+                Font = font,
+                TextColor = Color.Yellow,
+                BackgroundColor = Color.OrangeRed,
                 HorizontalAlignment = HorizontalAlignment.Center
             };
 

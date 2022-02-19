@@ -39,6 +39,7 @@ Attributes:
             Swizzle: null
     DiffuseModel: !MaterialDiffuseLambertModelFeature {}
     Specular: !MaterialSpecularMapFeature
+        Enabled: false
         SpecularMap: !ComputeTextureColor
             Texture: e9e282e5-aaa7-4745-87a1-8145c6bf2cc6:Textures/wood_table_tex_Spe_2
             FallbackValue:
@@ -47,11 +48,14 @@ Attributes:
             Offset: {X: 0.0, Y: 0.0}
             Swizzle: null
         Intensity: !ComputeFloat
-            Value: 0.3
+            Value: 0.07
+        IsEnergyConservative: false
     SpecularModel: !MaterialSpecularMicrofacetModelFeature
+        Enabled: false
         Fresnel: !MaterialSpecularMicrofacetFresnelSchlick {}
         Visibility: !MaterialSpecularMicrofacetVisibilitySmithSchlickGGX {}
         NormalDistribution: !MaterialSpecularMicrofacetNormalDistributionGGX {}
+        Environment: !MaterialSpecularMicrofacetEnvironmentGGXLUT {}
     Overrides:
         UVScale: {X: 1.0, Y: 1.0}
 Layers: {}

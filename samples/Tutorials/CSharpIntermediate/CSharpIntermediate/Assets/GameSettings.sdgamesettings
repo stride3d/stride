@@ -2,7 +2,7 @@
 Id: 1e8aa650-da28-44e4-b76f-e7865c20fcd5
 SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
-DefaultScene: 6cd262df-d02e-4709-81fa-a93750f4ddd5:Scenes/Navigation/Completed-Navigation
+DefaultScene: f01b7404-0b11-40c9-8729-8dcc544ef23c:Scenes/CollisionTriggers/CollisionTriggers - Completed
 GraphicsCompositor: fe026ff4-fdf9-48b9-87fb-65764cb9153f:GraphicsCompositor
 Defaults:
     - !Stride.Graphics.RenderingSettings,Stride.Graphics

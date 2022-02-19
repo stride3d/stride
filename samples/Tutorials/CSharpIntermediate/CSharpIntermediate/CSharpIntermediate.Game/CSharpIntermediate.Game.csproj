@@ -17,4 +17,7 @@
     <ProjectReference Include="..\..\..\..\Templates\Packs\mannequinModel\mannequinModel.csproj" />
     <ProjectReference Include="..\..\..\..\Templates\Packs\SamplesAssetPackage\SamplesAssetPackage.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Code\Helpers\" />
+  </ItemGroup>
 </Project>

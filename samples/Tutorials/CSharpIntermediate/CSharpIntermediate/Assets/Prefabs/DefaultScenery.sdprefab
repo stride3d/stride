@@ -25,9 +25,8 @@ Hierarchy:
         - ref!! bdef49b0-5148-4bde-9d44-94d32a87c137
         - ref!! 22edceae-5cb9-472d-8ebf-fe09eef1e3cc
         - ref!! fef57993-8d27-4e79-9dd4-9c0f7368427e
-        - ref!! ca3d29a1-060d-42c2-beb1-14c3ab4a0f75
         - ref!! 6d51050a-1062-452f-abd0-5810d7a53325
-        - ref!! f9eee5b0-392d-4faa-bab1-42e0a9108394
+        - ref!! 1c9a5abc-8191-4536-b49f-a38c5313e5d9
     Parts:
         -   Folder: null
             Entity:
@@ -113,11 +112,30 @@ Hierarchy:
                         Children: {}
                     508e804e75f75666d3c5e41788acc3cc: !BackgroundComponent
                         Id: d0eca842-8b3f-4a45-b6ea-12af0f2d8e16
-                        Texture: null
+                        Texture: b7f73672-f9bf-44ae-8a04-0017010b4ca1:Materials/Skybox texture
+                        Intensity: 2.5
                     0a7d931be3c08faeeda5bbca8fefbc73: !LightComponent
                         Id: 5d4fe2c6-3159-4537-b798-d5976f31c6b9
+                        Enabled: false
                         Type: !LightSkybox
-                            Skybox: null
+                            Skybox: ae4fd991-6290-4c24-b73b-25d81a1a4837:Materials/Skybox
+        -   Entity:
+                Id: 1c9a5abc-8191-4536-b49f-a38c5313e5d9
+                Name: table
+                Components:
+                    9a077707b7d91e9c3f6f80eabbf6a83e: !TransformComponent
+                        Id: 492fcdf0-7540-4b77-80ff-aebf73b274d5
+                        Position: {X: 4.392847, Y: 0.0, Z: -3.153232}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    6b045f347ec870808499ca99f03a7242: !ModelComponent
+                        Id: 537b5ebf-547a-4324-80e6-bdd00328d409
+                        Model: d5482be8-144a-4f3a-a6c6-238c4a8e7908:Models/table
+                        Materials:
+                            aac48e089700b5666f7834876488d4a7~0: e4a8b81d-08ea-4561-92cc-ef5a7fef6a7d:Materials/DullSilver
+                            052f7ac2d72b1c7dc1e7f4f61043a136~1: c6f9218e-ae58-4d4d-9bb5-c83f722b9977:Materials/DarkStone
+                            086eef7c07d069c1f14a417bee475279~2: e4a8b81d-08ea-4561-92cc-ef5a7fef6a7d:Materials/DullSilver
         -   Folder: Walls
             Entity:
                 Id: 1e30b3e7-8014-4f79-af21-9d19d52dde1a
@@ -365,7 +383,8 @@ Hierarchy:
                     7c901dfed21c864283aa0639481520b1: !ModelComponent
                         Id: 31b2ab8f-a355-41c5-9866-d80173864b67
                         Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
-                        Materials: {}
+                        Materials:
+                            7162a11adaa0d3631fa962c9b60c310a*~0: ba13e600-e1c8-4ba7-b66d-aa0e1489e02e:Materials/board1B
                     e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
                         Id: 1cce9088-0bec-4187-b14b-284af892396d
                         CanSleep: true
@@ -751,8 +770,8 @@ Hierarchy:
                 Components:
                     1e0d46103a7dea80297379a5d77443c1: !TransformComponent
                         Id: ec2bc763-ec5d-427a-bae4-4afbed8786f6
-                        Position: {X: 0.0, Y: 1.0, Z: -4.7780137}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Position: {X: -4.796396, Y: 1.0, Z: 0.032114506}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     938e3a10e1782cd9b89dd0c4ee6b6640: !ModelComponent
@@ -771,20 +790,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             47252b6e7461be562f8ee34feb9a840b: ref!! a7cb2a0c-9d10-4afb-b55d-4bc0d4dca488
-        -   Entity:
-                Id: ca3d29a1-060d-42c2-beb1-14c3ab4a0f75
-                Name: table
-                Components:
-                    a96d9137b5c02000481066a447e73f75: !TransformComponent
-                        Id: 8d6c7e9f-7c57-4efa-b30e-060148658391
-                        Position: {X: 4.512216, Y: 0.0, Z: 0.30121356}
-                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    a5678d8da44944fa5e209d12d6ea0f71: !ModelComponent
-                        Id: 7a168a33-d91d-4f97-ae6f-38eb31d64d17
-                        Model: d5482be8-144a-4f3a-a6c6-238c4a8e7908:Models/table
-                        Materials: {}
         -   Folder: null
             Entity:
                 Id: e9d6392a-232a-419a-bd63-8552ce5b8a9a
@@ -869,20 +874,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             47252b6e7461be562f8ee34feb9a840b: ref!! 691f7448-b8a0-4a30-bfda-26344bb0515d
-        -   Entity:
-                Id: f9eee5b0-392d-4faa-bab1-42e0a9108394
-                Name: mannequinModel
-                Components:
-                    d905d8c5fd8ed173c09536691c2a82f8: !TransformComponent
-                        Id: e29ad1eb-9fb5-48f9-ab94-fcdcc16f3451
-                        Position: {X: 4.2873616, Y: -0.06639463, Z: -4.242746}
-                        Rotation: {X: 0.0, Y: -0.40545017, Z: 0.0, W: 0.91411716}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    c75cc6e8e722b122382c54c377668d5d: !ModelComponent
-                        Id: ba29f852-b756-437f-8707-287ba79af062
-                        Model: f68ea240-695a-4de5-9884-60d77544fcd6:Models/mannequinModel
-                        Materials: {}
         -   Entity:
                 Id: fef57993-8d27-4e79-9dd4-9c0f7368427e
                 Name: BoxF
