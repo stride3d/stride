@@ -9,6 +9,7 @@ Hierarchy:
         - ref!! abc7d72a-90a4-432a-a912-a297e8b8eae6
         - ref!! 5cc00c9f-1d5c-483b-9a62-c984b0ca0211
         - ref!! b8f0a8b5-013a-4b5b-9b98-74583adf8163
+        - ref!! b969f2f6-cfe0-44f8-b2e4-1b37f4fae5d4
     Parts:
         -   Folder: Walls
             Entity:
@@ -732,8 +733,24 @@ Hierarchy:
                         Environment: Small
                     9b5c17fd501f9839aed554a74bc4575e: !CSharpIntermediate.Code.AudioDemo,CSharpIntermediate.Game
                         Id: bb4b827c-f0e2-4a11-943e-2603cb6c83eb
-                        BackgroundMusic: 453cec73-3017-4990-b95c-6bce5b42a491:Audio/FishLampByUlrick-EvensSalies
                         UkeleleMusic: 3885913c-4b28-49c8-b06f-5dbf54e7c5bb:Audio/Ukelele
+        -   Entity:
+                Id: b969f2f6-cfe0-44f8-b2e4-1b37f4fae5d4
+                Name: MusidStream
+                Components:
+                    38dc7f6ccd46b7f5d412f454581eb074: !TransformComponent
+                        Id: 698923ee-8ee3-440c-873b-00df3a5cae0a
+                        Position: {X: -1.5074232E-07, Y: 0.73911846, Z: 2.5290365}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    fd8efddf1d8804bfbbe2765a4dfedb92: !ModelComponent
+                        Id: 46b5198c-f60a-4940-895d-e7e36ac8b457
+                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
+                        Materials: {}
+                    7068ae32a26915c9af5cf9ff31e1d2a0: !CSharpIntermediate.Code.LoadMusic,CSharpIntermediate.Game
+                        Id: 1ec8b226-a688-4b0d-bc99-278875c38ed1
+                        BackgroundMusic: 453cec73-3017-4990-b95c-6bce5b42a491:Audio/FishLampByUlrick-EvensSalies
         -   Folder: null
             Entity:
                 Id: c003326e-0153-46d2-8f24-a54767a20507
