@@ -120,17 +120,18 @@ namespace Stride.Rendering
 
         private void UpdateMaterial(RenderMesh renderMesh, MaterialPass materialPass, MaterialInstance modelMaterialInstance, ModelComponent modelComponent)
         {
-            renderMesh.MaterialPass = materialPass;
-
             var isShadowCaster = modelComponent.IsShadowCaster;
             if (modelMaterialInstance != null)
                 isShadowCaster &= modelMaterialInstance.IsShadowCaster;
 
-            if (isShadowCaster != renderMesh.IsShadowCaster)
+            if (isShadowCaster != renderMesh.IsShadowCaster
+                || materialPass.HasTransparency != renderMesh.MaterialPass.HasTransparency)
             {
                 renderMesh.IsShadowCaster = isShadowCaster;
                 VisibilityGroup.NeedActiveRenderStageReevaluation = true;
             }
+
+            renderMesh.MaterialPass = materialPass;
         }
 
         private Material FindMaterial(Material materialOverride, MaterialInstance modelMaterialInstance)
