@@ -39,9 +39,9 @@ namespace Stride.Physics
             return other?.Is2D == Is2D && Math.Abs(other.Radius - Radius) < float.Epsilon && other.LocalOffset == LocalOffset;
         }
 
-        public ColliderShape CreateShape()
+        public ColliderShape CreateShape(IServiceRegistry services)
         {
-            return new SphereColliderShape(Is2D, Radius) { LocalOffset = LocalOffset };
+            return new SphereColliderShape(Is2D, Radius) { LocalOffset = LocalOffset, Description = this };
         }
     }
 }

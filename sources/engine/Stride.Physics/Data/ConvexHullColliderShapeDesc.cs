@@ -70,7 +70,7 @@ namespace Stride.Physics
                    other.Decomposition.Match(Decomposition);
         }
 
-        public ColliderShape CreateShape()
+        public ColliderShape CreateShape(IServiceRegistry services)
         {
             if (ConvexHulls == null) return null;
             ColliderShape shape;

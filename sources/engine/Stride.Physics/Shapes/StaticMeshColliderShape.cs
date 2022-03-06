@@ -5,9 +5,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.IO;
 using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 using Stride.Extensions;
 using Stride.Graphics;
+using Stride.Graphics.Data;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 
@@ -15,55 +21,297 @@ namespace Stride.Physics
 {
     public class StaticMeshColliderShape : ColliderShape
     {
-        private readonly Vector3[] vertices;
-        private readonly int[] indices;
-
-        public IReadOnlyList<Vector3> Vertices => vertices;
-        public IReadOnlyList<int> Indices => indices;
-
-
+        /// <summary> Can be null when this was created without Model </summary>
+        [CanBeNull]
+        public readonly Model Model;
+        
+        private readonly SharedMeshData sharedData;
+        
+        private static readonly Dictionary<string, SharedMeshData> MeshSharingCache = new();
+        
         /// <summary>
-        /// Create a static collider from the vertices provided, ICollection will be duplicated before usage, 
-        /// changes to the collection provided won't be reflected on the collider or <see cref="Vertices"/> and <see cref="Indices"/>.
+        /// Create a static collider from an asset model, any changes the model receives won't be reflected on the collider
         /// </summary>
-        public StaticMeshColliderShape(ICollection<Vector3> vertices, ICollection<int> indices, Vector3 scaling) : this(vertices.ToArray(), indices.ToArray(), scaling)
+        public StaticMeshColliderShape(Model model, IServiceRegistry services) : this(BuildAndShareMeshes(model, services)) => this.Model = model;
+        
+        /// <summary>
+        /// Create a static collider from the data provided, data will only be read, changes to it
+        /// won't be reflected on the collider.
+        /// </summary>
+        public StaticMeshColliderShape(ICollection<Vector3> vertices, ICollection<int> indices) 
+            : this(new SharedMeshData
+            {
+                BulletMesh = new BulletSharp.TriangleIndexVertexArray(indices, new StrideToBulletWrapper(vertices))
+            })
         {
-
         }
-
-        /// <summary>
-        /// Internal constructor, expects readonly array; any changes made to the vertices won't be reflected on the physics shape
-        /// </summary>
-        StaticMeshColliderShape(Vector3[] verticesParam, int[] indicesParam, Vector3 scaling)
+        
+        StaticMeshColliderShape(SharedMeshData sharedDataParam)
         {
+            sharedData = sharedDataParam;
             Type = ColliderShapeTypes.StaticMesh;
             Is2D = false;
 
-            vertices = verticesParam;
-            indices = indicesParam;
-            
-            var meshData = new BulletSharp.TriangleIndexVertexArray(indices, new StrideToBulletWrapper(vertices));
-            var baseCollider = new BulletSharp.BvhTriangleMeshShape(meshData, true);
-            InternalShape = new BulletSharp.ScaledBvhTriangleMeshShape(baseCollider, scaling);
+            InternalShape = new BulletSharp.BvhTriangleMeshShape(sharedDataParam.BulletMesh, true);
             DebugPrimitiveMatrix = Matrix.Scaling(Vector3.One * DebugScaling);
-            Scaling = scaling;
         }
 
-        public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)
+        public override void Dispose()
         {
-            var verts = new VertexPositionNormalTexture[vertices.Length];
-            for(int i = 0; i < vertices.Length; i++)
+            base.Dispose();
+            if (sharedData.Key == null)
             {
-                verts[i].Position = vertices[i];
+                // Not actually shared, dispose and move on
+                sharedData.BulletMesh.Dispose();
+                return;
             }
-            var meshData = new GeometricMeshData<VertexPositionNormalTexture>(verts, indices, false);
 
-            return new GeometricPrimitive(device, meshData).ToMeshDraw();
+            lock (MeshSharingCache)
+            {
+                sharedData.RefCount--;
+                if (sharedData.RefCount == 0)
+                {
+                    MeshSharingCache.Remove(sharedData.Key);
+                    sharedData.BulletMesh.Dispose();
+                }
+            }
         }
         
-        class StrideToBulletWrapper : ICollection<BulletSharp.Math.Vector3>
+        public unsafe void GetMeshDataCopy(out Vector3[] verts, out int[] indices)
         {
-            ICollection<Vector3> internalColl;
+            var iMesh = sharedData.BulletMesh.IndexedMeshArray[0];
+            {
+                int lengthInBytes = iMesh.NumVertices * iMesh.VertexStride;
+                verts = new Span<Vector3>( (void*)iMesh.VertexBase, lengthInBytes / sizeof(Vector3) ).ToArray();
+            }
+            {
+                int lengthInBytes = iMesh.NumTriangles * iMesh.TriangleIndexStride;
+                indices = new Span<int>( (void*)iMesh.TriangleIndexBase, lengthInBytes / sizeof(int) ).ToArray();
+            }
+        }
+        
+        public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)
+        {
+            GetMeshDataCopy(out var verts, out var indices);
+            var vPos = new VertexPositionNormalTexture[verts.Length];
+            for (int i = 0; i < vPos.Length; i++)
+                vPos[i].Position = verts[i];
+            
+            var meshData = new GeometricMeshData<VertexPositionNormalTexture>(vPos, indices, false);
+            return new GeometricPrimitive(device, meshData).ToMeshDraw();
+        }
+
+        static unsafe SharedMeshData BuildAndShareMeshes(Model model, IServiceRegistry services)
+        {
+            var sharedContent = services.GetService<ContentManager>();
+
+            string modelUrl = null;
+            if (sharedContent != null && sharedContent.TryGetAssetUrl(model, out modelUrl))
+            {
+                lock (MeshSharingCache)
+                {
+                    if (MeshSharingCache.TryGetValue(modelUrl, out var sharedData))
+                    {
+                        sharedData.RefCount++;
+                        return sharedData;
+                    }
+                }
+            }
+            
+            var dbProvider = services.GetService<IDatabaseFileProviderService>();
+            ContentManager rawContent = null;
+            
+            Matrix[] nodeTransforms = null;
+            if (model.Skeleton != null)
+            {
+                var nodesLength = model.Skeleton.Nodes.Length;
+                nodeTransforms = new Matrix[nodesLength];
+                nodeTransforms[0] = Matrix.Identity;
+                for (var i = 0; i < nodesLength; i++)
+                {
+                    var node = model.Skeleton.Nodes[i];
+                    Matrix localMatrix;
+                    Matrix.Transformation(ref node.Transform.Scale, ref node.Transform.Rotation, ref node.Transform.Position, out localMatrix);
+
+                    Matrix worldMatrix;
+                    if (node.ParentIndex != -1)
+                    {
+                        if (node.ParentIndex >= i)
+                            throw new InvalidOperationException("Skeleton nodes are not sorted");
+                        var nodeTransform = nodeTransforms[node.ParentIndex];
+                        Matrix.Multiply(ref localMatrix, ref nodeTransform, out worldMatrix);
+                    }
+                    else
+                    {
+                        worldMatrix = localMatrix;
+                    }
+
+                    if (i != 0)
+                    {
+                        nodeTransforms[i] = worldMatrix;
+                    }
+                }
+            }
+            
+            int totalVerts = 0, totalIndices = 0;
+            foreach (var meshData in model.Meshes)
+            {
+                totalVerts += meshData.Draw.VertexBuffers[0].Count;
+                totalIndices += meshData.Draw.IndexBuffer.Count;
+            }
+            
+            var combinedVerts = new List<Vector3>(totalVerts);
+            var combinedIndices = new List<int>(totalIndices);
+
+            foreach (var meshData in model.Meshes)
+            {
+                var vBuffer = meshData.Draw.VertexBuffers[0].Buffer;
+                var iBuffer = meshData.Draw.IndexBuffer.Buffer;
+                byte[] verticesBytes = TryFetchBufferContent(vBuffer, ref rawContent, sharedContent, dbProvider);
+                byte[] indicesBytes = TryFetchBufferContent(iBuffer, ref rawContent, sharedContent, dbProvider);
+                
+                if(verticesBytes == null || indicesBytes == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to find mesh buffers while attempting to build a {nameof(StaticMeshColliderShape)}. " +
+                        $"Make sure that the {nameof(model)} is either an asset on disk, or has its buffer data attached to the buffer through '{nameof(AttachedReference)}'\n" +
+                        $"You can also explicitly build a {nameof(StaticMeshColliderShape)} using the second constructor instead of this one.");
+                }
+
+                int vertMappingStart = combinedVerts.Count;
+
+                fixed (byte* bytePtr = verticesBytes)
+                {
+                    var vBindings = meshData.Draw.VertexBuffers[0];
+                    int count = vBindings.Count;
+                    int stride = vBindings.Declaration.VertexStride;
+                    for (int i = 0, vHead = vBindings.Offset; i < count; i++, vHead += stride)
+                    {
+                        var pos = *(Vector3*)(bytePtr + vHead);
+                        
+                        if (nodeTransforms != null)
+                        {
+                            Matrix posMatrix = Matrix.Translation(pos);
+                            Matrix finalMatrix;
+                            Matrix.Multiply(ref posMatrix, ref nodeTransforms[meshData.NodeIndex], out finalMatrix);
+                            pos = finalMatrix.TranslationVector;
+                        }
+
+                        combinedVerts.Add(pos);
+                    }
+                }
+                
+                fixed (byte* bytePtr = indicesBytes)
+                {
+                    if (meshData.Draw.IndexBuffer.Is32Bit)
+                    {
+                        foreach (int i in new Span<int>(bytePtr + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
+                        {
+                            combinedIndices.Add(vertMappingStart + i);
+                        }
+                    }
+                    else
+                    {
+                        foreach (ushort i in new Span<ushort>(bytePtr + meshData.Draw.IndexBuffer.Offset, meshData.Draw.IndexBuffer.Count))
+                        {
+                            combinedIndices.Add(vertMappingStart + i);
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(modelUrl))
+            {
+                return new SharedMeshData
+                {
+                    BulletMesh = new BulletSharp.TriangleIndexVertexArray(combinedIndices, new StrideToBulletWrapper(combinedVerts))
+                };
+            }
+            
+            lock (MeshSharingCache)
+            {
+                if (MeshSharingCache.TryGetValue(modelUrl, out var sharedData))
+                {
+                    // Another thread was building this concurrently and it finished before us,
+                    // nothing to cleanup so we can just use theirs and move on.
+                    sharedData.RefCount++;
+                    return sharedData;
+                }
+                
+                sharedData = new SharedMeshData
+                {
+                    BulletMesh = new BulletSharp.TriangleIndexVertexArray(combinedIndices, new StrideToBulletWrapper(combinedVerts)),
+                    Key = modelUrl,
+                    RefCount = 1,
+                };
+                MeshSharingCache.Add(modelUrl, sharedData);
+                return sharedData;
+            }
+        }
+        
+        static unsafe byte[] TryFetchBufferContent(Graphics.Buffer buffer, ref ContentManager rawContent, ContentManager sharedContent, IDatabaseFileProviderService dbProvider)
+        {
+            byte[] output;
+            var bufRef = AttachedReferenceManager.GetAttachedReference(buffer);
+            if (bufRef.Data != null && (output = ((BufferData)bufRef.Data).Content) != null)
+                return output;
+            
+            // Editor-specific workaround, we can't load assets when the file provider is null,
+            // will most likely break on non-dx11 APIs
+            if (dbProvider != null && dbProvider.FileProvider == null)
+            {
+                var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+                var commandList = (CommandList)typeof(GraphicsDevice)
+                    .GetField("InternalMainCommandList", flags)
+                    .GetValue(buffer.GraphicsDevice);
+                
+                output = new byte[buffer.SizeInBytes];
+                fixed (byte* window = output)
+                {
+                    var ptr = new DataPointer(window, output.Length);
+                    if (buffer.Description.Usage == GraphicsResourceUsage.Staging)
+                    {
+                        // Directly if this is a staging resource
+                        buffer.GetData(commandList, buffer, ptr);
+                    }
+                    else
+                    {
+                        // inefficient way to use the Copy method using dynamic staging texture
+                        using (var throughStaging = buffer.ToStaging())
+                            buffer.GetData(commandList, throughStaging, ptr);
+                    }
+                }
+
+                return output;
+            }
+
+            if (sharedContent.TryGetAssetUrl(buffer, out var url))
+            {
+                rawContent ??= new ContentManager(dbProvider);
+                var data = rawContent.Load<Graphics.Buffer>(url);
+                try
+                {
+                    return data.GetSerializationData().Content;
+                }
+                finally
+                {
+                    rawContent.Unload(url);
+                }
+            }
+
+            return null;
+        }
+
+        private record SharedMeshData
+        {
+            public BulletSharp.TriangleIndexVertexArray BulletMesh;
+            public int RefCount;
+            public string Key;
+        }
+        
+        private class StrideToBulletWrapper : ICollection<BulletSharp.Math.Vector3>
+        {
+            private readonly ICollection<Vector3> internalColl;
             public StrideToBulletWrapper(ICollection<Vector3> collectionToConvert)
             {
                 internalColl = collectionToConvert;
@@ -85,11 +333,9 @@ namespace Stride.Physics
                 }
             }
 
-            public void Add(BulletSharp.Math.Vector3 item) { throw new System.InvalidOperationException("Collection is read only"); }
-
-            public bool Remove(BulletSharp.Math.Vector3 item) { throw new System.InvalidOperationException("Collection is read only"); }
-
-            public void Clear() { throw new System.InvalidOperationException("Collection is read only"); }
+            public void Add(BulletSharp.Math.Vector3 item) => throw new InvalidOperationException("Collection is read only");
+            public bool Remove(BulletSharp.Math.Vector3 item) => throw new InvalidOperationException("Collection is read only");
+            public void Clear() => throw new InvalidOperationException("Collection is read only");
 
             public IEnumerator<BulletSharp.Math.Vector3> GetEnumerator()
             {
