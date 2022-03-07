@@ -15,4 +15,6 @@ ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
 RootAssets:
+    - 3690986c-39ec-4b3b-a116-24fc5181906d:Materials/Yellow
+    - bc1eb91c-bd3e-4f75-b30a-b74729cba531:Materials/Red
     - c2da4379-f33e-40b3-aae2-1404bf5e6cb6:UI/Ebrima

@@ -1,5 +1,6 @@
 
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Stride.Audio;
 using Stride.Core.Mathematics;
@@ -18,9 +19,12 @@ namespace CSharpIntermediate.Code
 
         public override async Task Execute()
         {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             musicInstance = BackgroundMusic.CreateInstance();
 
             await musicInstance.ReadyToPlay();
+            Log.Info(stopWatch.Elapsed.ToString());
 
             while (Game.IsRunning)
             {
