@@ -18,29 +18,26 @@ Stride comes with an editor that allows you to create and manage the content of 
 To learn more about Stride, visit [stride3d.net](https://stride3d.net/).
 
 ## License and governance
-
 ### .NET Foundation
-
 This project is supported by the [.NET Foundation](https://dotnetfoundation.org).
 
 ### License
-
 Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects).
-
 You can find the list of third party projects [here](THIRD%20PARTY.md).
-
 Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
 
 ### Code of conduct
-
 Stride being a [.NET Foundation](https://www.dotnetfoundation.org/) project, it has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community.
-
 For more information see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct). 
+
+### Earn money for contributing
+If you are a developer with solid C# experience, rendering techniques or game development, we want to hire you! We have allocated funds from supportes on OpenCollective an can pay for work on certain projects. Please [have a look at them here](https://doc.stride3d.net/latest/en/tutorials/) and get in contact with us, we are happy to provide help and guidance. The amount of money will be discussed after an assessment of the work that will be done.
 
 ## Documentation
 
 Find explanations and information about Stride:
 * [Stride Manual](https://doc.stride3d.net/latest/manual/index.html)
+* [Tutorials](https://doc.stride3d.net/latest/en/tutorials/)
 * [API Reference](https://doc.stride3d.net/latest/api/index.html)
 * [Release Notes](https://doc.stride3d.net/latest/ReleaseNotes/index.html)
 
