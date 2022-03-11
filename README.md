@@ -31,7 +31,7 @@ Stride being a [.NET Foundation](https://www.dotnetfoundation.org/) project, it 
 For more information see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct). 
 
 ### Earn money for contributing
-If you are a developer with solid C# experience, rendering techniques or game development, we want to hire you! We have allocated funds from supportes on OpenCollective an can pay for work on certain projects. Please [have a look at them here](https://opencollective.com/stride3d/projects) and get in contact with us, we are happy to provide help and guidance. The amount of money will be discussed after an assessment of the work that will be done.
+If you are a developer with solid experience in C#, rendering techniques or game development, we want to hire you! We have allocated funds from supportes on OpenCollective an can pay for work on certain projects. Please [have a look at them here](https://opencollective.com/stride3d/projects) and get in contact with us, we are happy to provide help and guidance.
 
 ## Documentation
 
