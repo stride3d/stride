@@ -26,5 +26,5 @@ Here are some questions that can aid in the description of the feature request:
 - Is the feature affecting behaviour in the editor? 
   - if so: how should this look in the editor?
 - Is there a component or datastructure? 
-- what kind of documentation is needed or needs to be updatred?
+- what kind of documentation is needed or needs to be updated?
 - Should there be an example project?
