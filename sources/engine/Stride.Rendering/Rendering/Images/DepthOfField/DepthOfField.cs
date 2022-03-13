@@ -429,6 +429,7 @@ namespace Stride.Rendering.Images
             // Creates all the levels with different CoC strengths.
             // (Skips level with CoC 0 which is always the original buffer.)
             combineLevelsEffect.Parameters.Set(CombineLevelsFromCoCKeys.LevelCount, cocLevels.Count);
+            combineLevelsEffect.EffectInstance.UpdateEffect(GraphicsDevice); //update needed if permutation changed and shader has a value array parameter
             combineLevelsEffect.SetInput(0, cocLinearDepthTexture);
             combineLevelsEffect.SetInput(1, blurredCoCTexture);
             combineLevelsEffect.SetInput(2, originalColorBuffer);

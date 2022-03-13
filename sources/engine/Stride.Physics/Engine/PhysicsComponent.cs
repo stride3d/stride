@@ -632,16 +632,16 @@ namespace Stride.Engine
             }
 
             CanScaleShape = true;
-
+            foreach (var desc in ColliderShapes)
+            {
+                if(desc is ColliderShapeAssetDesc)
+                    CanScaleShape = false;
+            }
+            
+            var services = Entity?.EntityManager?.Services;
             if (ColliderShapes.Count == 1) //single shape case
             {
-                if (ColliderShapes[0] == null) return;
-                if (ColliderShapes[0].GetType() == typeof(ColliderShapeAssetDesc))
-                {
-                    CanScaleShape = false;
-                }
-
-                ColliderShape = PhysicsColliderShape.CreateShape(ColliderShapes[0]);
+                ColliderShape = ColliderShapes[0]?.CreateShape(services);
             }
             else if (ColliderShapes.Count > 1) //need a compound shape in this case
             {
@@ -649,12 +649,8 @@ namespace Stride.Engine
                 foreach (var desc in ColliderShapes)
                 {
                     if (desc == null) continue;
-                    if (desc.GetType() == typeof(ColliderShapeAssetDesc))
-                    {
-                        CanScaleShape = false;
-                    }
 
-                    var subShape = PhysicsColliderShape.CreateShape(desc);
+                    var subShape = desc.CreateShape(services);
                     if (subShape != null)
                     {
                         compound.AddChildShape(subShape);

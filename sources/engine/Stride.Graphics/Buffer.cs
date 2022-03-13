@@ -596,7 +596,7 @@ namespace Stride.Graphics
         /// <returns>This instance.</returns>
         public Buffer RecreateWith<T>(T[] dataPointer) where T : struct
         {
-            Reload = (graphicsResource) => ((Buffer)graphicsResource).Recreate(dataPointer);
+            Reload = (graphicsResource, services) => ((Buffer)graphicsResource).Recreate(dataPointer);
 
             return this;
         }
@@ -609,7 +609,7 @@ namespace Stride.Graphics
         /// <returns>This instance.</returns>
         public Buffer RecreateWith(IntPtr dataPointer)
         {
-            Reload = (graphicsResource) => ((Buffer)graphicsResource).Recreate(dataPointer);
+            Reload = (graphicsResource, services) => ((Buffer)graphicsResource).Recreate(dataPointer);
 
             return this;
         }

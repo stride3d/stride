@@ -42,9 +42,9 @@ namespace Stride.Physics
             return other?.Is2D == Is2D && other.Size == Size && other.LocalOffset == LocalOffset && other.LocalRotation == LocalRotation;
         }
 
-        public ColliderShape CreateShape()
+        public ColliderShape CreateShape(IServiceRegistry services)
         {
-            return new BoxColliderShape(Is2D, Size) { LocalOffset = LocalOffset, LocalRotation = LocalRotation };
+            return new BoxColliderShape(Is2D, Size) { LocalOffset = LocalOffset, LocalRotation = LocalRotation, Description = this };
         }
     }
 }

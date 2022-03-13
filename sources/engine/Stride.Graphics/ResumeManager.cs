@@ -11,9 +11,11 @@ namespace Stride.Graphics
         private GraphicsDevice graphicsDevice;
         private bool deviceHasBeenDestroyed = false;
         private bool deviceHasBeenPaused = false;
+        private IServiceRegistry services;
 
         public ResumeManager(IServiceRegistry services)
         {
+            this.services = services;
             graphicsDevice = services.GetSafeServiceAs<IGraphicsDeviceService>().GraphicsDevice;
         }
 
@@ -124,7 +126,7 @@ namespace Stride.Graphics
                 {
                     if (resource.Reload != null)
                     {
-                        resource.Reload(resource);
+                        resource.Reload(resource, services);
                         resource.LifetimeState = GraphicsResourceLifetimeState.Active;
                     }
                 }

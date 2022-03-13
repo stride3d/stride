@@ -65,9 +65,9 @@ namespace Stride.Physics
                    other.LocalRotation == LocalRotation;
         }
 
-        public ColliderShape CreateShape()
+        public ColliderShape CreateShape(IServiceRegistry services)
         {
-            return new CapsuleColliderShape(Is2D, Radius, Length, Orientation) { LocalOffset = LocalOffset, LocalRotation = LocalRotation };
+            return new CapsuleColliderShape(Is2D, Radius, Length, Orientation) { LocalOffset = LocalOffset, LocalRotation = LocalRotation, Description = this };
         }
     }
 }
