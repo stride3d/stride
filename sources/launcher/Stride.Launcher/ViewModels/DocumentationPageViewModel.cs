@@ -3,8 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Stride.LauncherApp.Resources;
@@ -17,6 +16,7 @@ namespace Stride.LauncherApp.ViewModels
     internal class DocumentationPageViewModel : DispatcherViewModel
     {
         private static readonly Regex ParsingRegex = new Regex(@"\{([^\{\}]+)\}\{([^\{\}]+)\}\{([^\{\}]+)\}");
+        private static readonly HttpClient httpClient = new();
         private const string DocPageScheme = "page:";
         private const string PageUrlFormatString = "{0}{1}";
 
@@ -71,24 +71,13 @@ namespace Stride.LauncherApp.ViewModels
 
         public static async Task<List<DocumentationPageViewModel>> FetchGettingStartedPages(IViewModelServiceProvider serviceProvider, string version)
         {
-            string urlData = null;
             var result = new List<DocumentationPageViewModel>();
+            string urlData;
             try
             {
-                WebRequest request = WebRequest.Create(string.Format(Urls.GettingStarted, version));
-                using (var reponse = await request.GetResponseAsync())
-                {
-                    using (var str = reponse.GetResponseStream())
-                    {
-                        if (str != null)
-                        {
-                            using (var reader = new StreamReader(str))
-                            {
-                                urlData = reader.ReadToEnd();
-                            }
-                        }
-                    }
-                }
+                var response = await httpClient.GetAsync(string.Format(Urls.GettingStarted, version));
+                response.EnsureSuccessStatusCode();
+                urlData = await response.Content.ReadAsStringAsync();
             }
             catch (Exception)
             {

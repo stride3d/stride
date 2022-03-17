@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
 using Stride.LauncherApp.Resources;
@@ -17,6 +17,8 @@ namespace Stride.LauncherApp.ViewModels
 {
     internal class NewsPageViewModel : DispatcherViewModel
     {
+        private static readonly HttpClient httpClient = new();
+
         public NewsPageViewModel(IViewModelServiceProvider serviceProvider)
             : base(serviceProvider)
         {
@@ -63,17 +65,12 @@ namespace Stride.LauncherApp.ViewModels
         public static async Task<List<NewsPageViewModel>> FetchNewsPages(IViewModelServiceProvider serviceProvider, int maxCount)
         {
             var result = new List<NewsPageViewModel>();
-            var rss = new MemoryStream();
+            MemoryStream rss;
             try
             {
-                WebRequest request = WebRequest.Create(Urls.RssFeed);
-                using (var reponse = await request.GetResponseAsync())
-                {
-                    using (var str = reponse.GetResponseStream())
-                    {
-                        str?.CopyTo(rss);
-                    }
-                }
+                HttpResponseMessage response = await httpClient.GetAsync(Urls.RssFeed);
+                response.EnsureSuccessStatusCode();
+                rss = (MemoryStream)await response.Content.ReadAsStreamAsync();
             }
             catch (Exception)
             {
