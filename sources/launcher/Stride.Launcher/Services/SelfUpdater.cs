@@ -214,13 +214,14 @@ namespace Stride.LauncherApp.Services
 
 
                 var strideInstaller = Path.Combine(Path.GetTempPath(), $"StrideSetup-{Guid.NewGuid()}.exe");
-                var response = await httpClient.GetAsync(strideInstallerUrl);
-                response.EnsureSuccessStatusCode();
+                using (var response = await httpClient.GetAsync(strideInstallerUrl))
+                {
+                    response.EnsureSuccessStatusCode();
 
-                await using var responseStream = await response.Content.ReadAsStreamAsync();
-                await using var fileStream = File.Create(strideInstaller);
-                responseStream.Seek(0, SeekOrigin.Begin);
-                responseStream.CopyTo(fileStream);
+                    await using var responseStream = await response.Content.ReadAsStreamAsync();
+                    await using var fileStream = File.Create(strideInstaller);
+                    responseStream.CopyTo(fileStream);
+                }
 
                 var startInfo = new ProcessStartInfo(strideInstaller)
                 {

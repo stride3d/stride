@@ -52,7 +52,7 @@ namespace Stride.LauncherApp.ViewModels
             ToggleCommand = new AnonymousCommand(ServiceProvider, Toggle);
         }
 
-        public string BaseUrl { get { return baseUrl; } private set { SetValue(ref baseUrl, value); } }
+        public string BaseUrl { get { return baseUrl; } }
 
         public string Version { get; }
 
@@ -78,10 +78,6 @@ namespace Stride.LauncherApp.ViewModels
                 {
                     response.EnsureSuccessStatusCode();
                     releaseNotesMarkdown = await response.Content.ReadAsStringAsync();
-
-                    // If redirected, the RequestMessage will contain the final full URI for the given response
-                    var responseUri = response.RequestMessage.RequestUri.ToString();
-                    BaseUrl = responseUri.Remove(responseUri.Length - ReleaseNotesFileName.Length);
                 }
             }
             catch (Exception)

@@ -65,51 +65,43 @@ namespace Stride.LauncherApp.ViewModels
         public static async Task<List<NewsPageViewModel>> FetchNewsPages(IViewModelServiceProvider serviceProvider, int maxCount)
         {
             var result = new List<NewsPageViewModel>();
-            MemoryStream rss;
             try
             {
-                HttpResponseMessage response = await httpClient.GetAsync(Urls.RssFeed);
-                response.EnsureSuccessStatusCode();
-                rss = (MemoryStream)await response.Content.ReadAsStreamAsync();
-            }
-            catch (Exception)
-            {
-                // Unable to reach the url, return an empty list.
-                return result;
-            }
-
-            rss.Position = 0;
-            if (rss.Length == 0)
-                return result;
-
-            try
-            {
-                int count = 0;
-                using (XmlReader rssReader = XmlReader.Create(rss))
+                using (var response = await httpClient.GetAsync(Urls.RssFeed))
                 {
-                    rssReader.MoveToContent();
-                    while (rssReader.ReadToFollowing("item") && count < maxCount)
+                    response.EnsureSuccessStatusCode();
+                    var rss = await response.Content.ReadAsStreamAsync();
+
+                    if (rss.Length == 0)
+                        return result;
+
+                    int count = 0;
+                    using (XmlReader rssReader = XmlReader.Create(rss))
                     {
-                        rssReader.ReadToFollowing("title");
-                        string title = rssReader.Read() ? rssReader.Value : null;
-                        rssReader.ReadToFollowing("description");
-                        string description = rssReader.Read() ? rssReader.Value : null;
-                        rssReader.ReadToFollowing("pubDate");
-                        var date = new DateTime();
-                        bool dateValid = rssReader.Read() && DateTime.TryParseExact(rssReader.Value, "ddd, dd MMM yyyy HH:mm:ss zz00", CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
-                        rssReader.ReadToFollowing("link");
-                        string link = rssReader.Read() ? rssReader.Value : null;
-                        if (dateValid && title != null && link != null && description != null)
+                        rssReader.MoveToContent();
+                        while (rssReader.ReadToFollowing("item") && count < maxCount)
                         {
-                            var page = new NewsPageViewModel(serviceProvider)
+                            rssReader.ReadToFollowing("title");
+                            string title = rssReader.Read() ? rssReader.Value : null;
+                            rssReader.ReadToFollowing("description");
+                            string description = rssReader.Read() ? rssReader.Value : null;
+                            rssReader.ReadToFollowing("pubDate");
+                            var date = new DateTime();
+                            bool dateValid = rssReader.Read() && DateTime.TryParseExact(rssReader.Value, "ddd, dd MMM yyyy HH:mm:ss zz00", CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
+                            rssReader.ReadToFollowing("link");
+                            string link = rssReader.Read() ? rssReader.Value : null;
+                            if (dateValid && title != null && link != null && description != null)
                             {
-                                Title = title,
-                                Url = link,
-                                Description = description,
-                                Date = date
-                            };
-                            result.Add(page);
-                            ++count;
+                                var page = new NewsPageViewModel(serviceProvider)
+                                {
+                                    Title = title,
+                                    Url = link,
+                                    Description = description,
+                                    Date = date
+                                };
+                                result.Add(page);
+                                ++count;
+                            }
                         }
                     }
                 }

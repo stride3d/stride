@@ -75,39 +75,33 @@ namespace Stride.LauncherApp.ViewModels
             string urlData;
             try
             {
-                var response = await httpClient.GetAsync(string.Format(Urls.GettingStarted, version));
-                response.EnsureSuccessStatusCode();
-                urlData = await response.Content.ReadAsStringAsync();
-            }
-            catch (Exception)
-            {
-                // Unable to reach the url, return an empty list.
-                return result;
-            }
-
-            if (urlData == null)
-                return result;
-
-            try
-            {
-                var urls = urlData.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var url in urls)
+                using (var response = await httpClient.GetAsync(string.Format(Urls.GettingStarted, version)))
                 {
-                    var match = ParsingRegex.Match(url);
-                    if (match.Success && match.Groups.Count == 4)
+                    response.EnsureSuccessStatusCode();
+                    urlData = await response.Content.ReadAsStringAsync();
+
+                    if (urlData != null)
                     {
-                        var link = match.Groups[3].Value;
-                        if (link.StartsWith(DocPageScheme))
+                        var urls = urlData.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var url in urls)
                         {
-                            link = GetDocumentationPageUrl(version, link.Substring(DocPageScheme.Length));
+                            var match = ParsingRegex.Match(url);
+                            if (match.Success && match.Groups.Count == 4)
+                            {
+                                var link = match.Groups[3].Value;
+                                if (link.StartsWith(DocPageScheme))
+                                {
+                                    link = GetDocumentationPageUrl(version, link.Substring(DocPageScheme.Length));
+                                }
+                                var page = new DocumentationPageViewModel(serviceProvider, version)
+                                {
+                                    Title = match.Groups[1].Value.Trim(),
+                                    Description = match.Groups[2].Value.Trim(),
+                                    Url = link.Trim()
+                                };
+                                result.Add(page);
+                            }
                         }
-                        var page = new DocumentationPageViewModel(serviceProvider, version)
-                        {
-                            Title = match.Groups[1].Value.Trim(),
-                            Description = match.Groups[2].Value.Trim(),
-                            Url = link.Trim()
-                        };
-                        result.Add(page);
                     }
                 }
             }
