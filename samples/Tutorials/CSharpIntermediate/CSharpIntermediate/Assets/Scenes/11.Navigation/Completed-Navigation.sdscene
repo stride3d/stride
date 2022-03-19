@@ -14,6 +14,24 @@ Hierarchy:
         - ref!! 8443a87b-1f25-4437-9f81-8898234cb94b
         - ref!! ffc6dedb-c9b2-4f25-9332-265551b04467
     Parts:
+        -   Entity:
+                Id: 03366c6d-f174-4045-9283-15ef1f0f1963
+                Name: Teapot
+                Components:
+                    7371bd41d092c95f3fff2ac8851dbaef: !TransformComponent
+                        Id: 39a5eb6f-dc85-49f2-a29a-91d052391db6
+                        Position: {X: -4.44255, Y: 0.16017595, Z: -4.3005123}
+                        Rotation: {X: 0.0, Y: -0.3505099, Z: 0.0, W: 0.936559}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    864af2aa2aac0d5afb8dbe492b78ed17: !ModelComponent
+                        Id: b902039b-fd0a-4f6b-a5f1-6c40a17b046d
+                        Model: 9a3a7dbc-7b08-478a-aab2-19afe1d6ce1c:Models/Teapot
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 56fdc383-2f9d-4103-a873-144abbd2db32
+                InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707
         -   Folder: Walls
             Entity:
                 Id: 10e529ac-264c-4693-98cd-39fe418b0067
@@ -250,7 +268,7 @@ Hierarchy:
                         Id: 8ed92969-ccaf-480c-8f38-66cf3296fa14
                         Type: !LightDirectional
                             Color: !ColorRgbProvider
-                                Value: {R: 0.86625, G: 0.9, B: 0.9}
+                                Value: {R: 0.97332424, G: 0.975, B: 0.84093755}
                             Shadow:
                                 Enabled: true
                                 Filter: !LightShadowMapFilterTypePcf
@@ -260,7 +278,7 @@ Hierarchy:
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
                                 ComputeTransmittance: false
                                 BiasParameters: {}
-                        Intensity: 1.5
+                        Intensity: 2.0
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 6fb0f099-8844-4b0b-bb60-809fa9895243
@@ -618,7 +636,7 @@ Hierarchy:
                             f88ca0994ac1b6032c48363fb260ca28: ref!! d582a1e7-0ab5-47f8-9529-14a0c35dd37c
                     2a9c0063f1377a3329079e340861bbb5: !NavigationComponent
                         Id: e2d35b1d-36c4-4c07-8682-9092d745b561
-                        NavigationMesh: fa78ae58-3128-4495-a3de-ee61de77b1a3:Scenes/Navigation/NavigationMesh-Normal
+                        NavigationMesh: fa78ae58-3128-4495-a3de-ee61de77b1a3:Scenes/11.Navigation/NavigationMesh-Normal
                         GroupId: 9398904c-72b7-ca9b-e966-23346704ae98
         -   Entity:
                 Id: 862e9228-785f-4600-aece-0fa4527288ec
@@ -741,6 +759,9 @@ Hierarchy:
                             6642594b29d12718a028a9f4c60001ce: ref!! ce0c7ae2-1a9a-40df-8992-4ce9ca393788
                             1ccb8d584066ad24d06cc3ba3686aea4: ref!! 3bbbb8ac-4d7c-4820-a3f5-bab617807bce
                             061e74fc47433ddf51ca3be1d4407f1a: ref!! 1a6a074e-f2a4-4e80-8f1d-be5bf61a47bc
+                            3449afddf71f72daa32f4a0ed541e611: ref!! 02c4cff1-fb07-43a0-9059-12aa0fc65113
+                            bafdcda8b561f232eebe5dc021ab2d4b: ref!! 136bb39b-4ce8-4a75-89e2-fa1100bbcd44
+                            85b26ac3d2626928a318904a73a0e652: ref!! 39a5eb6f-dc85-49f2-a29a-91d052391db6
         -   Entity:
                 Id: 9950dc53-a21f-4552-aaaf-62729b865e2b
                 Name: Camera
@@ -821,6 +842,24 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 2bf6a317-46e5-4890-bfca-1e33ee08b1df
+                InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707
+        -   Entity:
+                Id: b187b60c-cef9-4c0b-8a2e-f6383f08a35a
+                Name: MachinegunModel
+                Components:
+                    bd77aec31db5bedbf6e4703cba7620a0: !TransformComponent
+                        Id: 136bb39b-4ce8-4a75-89e2-fa1100bbcd44
+                        Position: {X: 0.34085572, Y: 1.1914668, Z: 4.9607964}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    2f6675f73fa7da1d626d316d25218ac1: !ModelComponent
+                        Id: bf3c5b2e-bcb5-419d-9b69-7ce4403b5d33
+                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 45e5b999-26cb-4b1d-a795-ce9587684765
                 InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707
         -   Entity:
                 Id: b30927a4-fec3-44d5-8114-c4eff48f17d3
@@ -1140,6 +1179,24 @@ Hierarchy:
                 BasePartAsset: 3724e4ed-4cb5-447d-a3ea-86ee8bfec3e5:BlocksPrefabs/Floor2x0x1
                 BasePartId: b7b381ac-aac8-4c5b-8eba-7aabe138ee6f
                 InstanceId: f8e837bb-a52f-4ebc-a69a-f23cec1880cc
+        -   Entity:
+                Id: dddac259-41d8-4f80-8184-7eaa356d0bee
+                Name: SwordModel
+                Components:
+                    dcaec24f9514018842a39d47110038d4: !TransformComponent
+                        Id: 02c4cff1-fb07-43a0-9059-12aa0fc65113
+                        Position: {X: 4.354127, Y: 0.807375, Z: -2.6856482}
+                        Rotation: {X: -0.10159004, Y: 0.16348566, Z: -0.5179293, W: 0.83348733}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    85152eea64a3af116907dc53895c5c60: !ModelComponent
+                        Id: 5b497ed5-697f-4f05-983e-3a3e273176e8
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 458fecff-cd6e-44cb-8416-e25954af5138
+                InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707
         -   Folder: Walls
             Entity:
                 Id: e29b7920-c5d0-45bb-9c3c-683d511a6f20
@@ -1267,7 +1324,6 @@ Hierarchy:
                         Intensity*: 3.0
                     0a7d931be3c08faeeda5bbca8fefbc73: !LightComponent
                         Id: 6fe52892-2712-4025-aa55-d831b54518e1
-                        Enabled: false
                         Type: !LightSkybox
                             Skybox*: ae4fd991-6290-4c24-b73b-25d81a1a4837:Materials/Skybox
                         Intensity*: 1.5

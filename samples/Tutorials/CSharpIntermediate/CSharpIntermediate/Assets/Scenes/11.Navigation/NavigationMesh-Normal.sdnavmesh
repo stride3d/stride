@@ -2,7 +2,7 @@
 Id: fa78ae58-3128-4495-a3de-ee61de77b1a3
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Scene: 6cd262df-d02e-4709-81fa-a93750f4ddd5:Scenes/Navigation/Completed-Navigation
+Scene: 6cd262df-d02e-4709-81fa-a93750f4ddd5:Scenes/11.Navigation/Completed-Navigation
 IncludedCollisionGroups: AllFilter
 BuildSettings:
     CellHeight: 0.1

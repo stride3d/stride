@@ -27,6 +27,8 @@ Hierarchy:
         - ref!! fef57993-8d27-4e79-9dd4-9c0f7368427e
         - ref!! 6d51050a-1062-452f-abd0-5810d7a53325
         - ref!! 1c9a5abc-8191-4536-b49f-a38c5313e5d9
+        - ref!! 458fecff-cd6e-44cb-8416-e25954af5138
+        - ref!! 45e5b999-26cb-4b1d-a795-ce9587684765
     Parts:
         -   Folder: null
             Entity:
@@ -113,12 +115,12 @@ Hierarchy:
                     508e804e75f75666d3c5e41788acc3cc: !BackgroundComponent
                         Id: d0eca842-8b3f-4a45-b6ea-12af0f2d8e16
                         Texture: b7f73672-f9bf-44ae-8a04-0017010b4ca1:Materials/Skybox texture
-                        Intensity: 2.5
+                        Intensity: 4.0
                     0a7d931be3c08faeeda5bbca8fefbc73: !LightComponent
                         Id: 5d4fe2c6-3159-4537-b798-d5976f31c6b9
-                        Enabled: false
                         Type: !LightSkybox
                             Skybox: ae4fd991-6290-4c24-b73b-25d81a1a4837:Materials/Skybox
+                        Intensity: 2.0
         -   Entity:
                 Id: 1c9a5abc-8191-4536-b49f-a38c5313e5d9
                 Name: table
@@ -212,6 +214,34 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             47252b6e7461be562f8ee34feb9a840b: ref!! 628cd510-0a4a-46e0-8240-2f8da9003384
+        -   Entity:
+                Id: 458fecff-cd6e-44cb-8416-e25954af5138
+                Name: SwordModel
+                Components:
+                    dcaec24f9514018842a39d47110038d4: !TransformComponent
+                        Id: 86c4938a-4839-4c3c-80e6-5d3b564c598d
+                        Position: {X: 4.354127, Y: 0.807375, Z: -2.6856482}
+                        Rotation: {X: -0.10159004, Y: 0.16348566, Z: -0.5179293, W: 0.83348733}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    85152eea64a3af116907dc53895c5c60: !ModelComponent
+                        Id: de2b89c5-34a4-480e-bdeb-9a5b8e6c10d7
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Materials: {}
+        -   Entity:
+                Id: 45e5b999-26cb-4b1d-a795-ce9587684765
+                Name: MachinegunModel
+                Components:
+                    bd77aec31db5bedbf6e4703cba7620a0: !TransformComponent
+                        Id: 8933b506-a8c8-4377-863c-f3be7328eddb
+                        Position: {X: 0.34085572, Y: 1.1914668, Z: 4.9607964}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    2f6675f73fa7da1d626d316d25218ac1: !ModelComponent
+                        Id: 5afb6b6b-44cc-4f2b-b011-1214f9eec804
+                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
+                        Materials: {}
         -   Folder: null
             Entity:
                 Id: 4778e3a6-1bad-4a49-b3ed-c94566d3cce4
@@ -347,7 +377,7 @@ Hierarchy:
                         Id: 7d99008f-5ec2-48c4-a4a3-b2be7c07bb69
                         Type: !LightDirectional
                             Color: !ColorRgbProvider
-                                Value: {R: 0.86625, G: 0.9, B: 0.9}
+                                Value: {R: 0.97332424, G: 0.975, B: 0.84093755}
                             Shadow:
                                 Enabled: true
                                 Filter: !LightShadowMapFilterTypePcf
@@ -357,7 +387,7 @@ Hierarchy:
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
                                 ComputeTransmittance: false
                                 BiasParameters: {}
-                        Intensity: 1.5
+                        Intensity: 2.0
         -   Folder: Walls
             Entity:
                 Id: 71ea0616-e690-4dce-80cd-c5ab19afdcd7

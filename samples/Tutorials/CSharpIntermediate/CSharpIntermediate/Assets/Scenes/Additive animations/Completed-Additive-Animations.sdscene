@@ -587,6 +587,24 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: f1ced593-eb7f-4621-a893-58716765e6fd
                 InstanceId: c328e779-664e-47a9-a158-9fc5a4ef7073
+        -   Entity:
+                Id: 4cac85ab-c0a5-4e48-ab89-f6f9b8575d99
+                Name: MachinegunModel
+                Components:
+                    bd77aec31db5bedbf6e4703cba7620a0: !TransformComponent
+                        Id: 6b30c72e-81e9-43dd-9693-36f1e4f0cba3
+                        Position: {X: 0.34085572, Y: 1.1914668, Z: 4.9607964}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    2f6675f73fa7da1d626d316d25218ac1: !ModelComponent
+                        Id: 92661a8e-961d-4b11-8555-6c00b987c59e
+                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 45e5b999-26cb-4b1d-a795-ce9587684765
+                InstanceId: c328e779-664e-47a9-a158-9fc5a4ef7073
         -   Folder: null
             Entity:
                 Id: 4fbe6bcf-cd4e-4a23-8621-f1dba95ff5c1
@@ -711,6 +729,9 @@ Hierarchy:
                             55bc3688195fa2b92b85392f232000e9: ref!! 5ba4bf90-f072-471c-bd1f-0304edb6c4dc
                             22cb3ddf2595e9fe5052721374cda624: ref!! 9520ded7-0bda-46aa-a662-782bf400b81d
                             38f3b95b269a4fa32c1be407b4ce8ac9: ref!! 145cb684-ba25-441d-8440-bc74bf8acf63
+                            2da3f6ba467c64074a92b4f94eb2e616: ref!! 70c52b60-5307-4dec-9e44-5aab6c9e384c
+                            6eb9dad43d4d9c0ceb28f928a6f45952: ref!! 6b30c72e-81e9-43dd-9693-36f1e4f0cba3
+                            52a15691dd099cfb5839305bac982dbd: ref!! cc4a7da3-557c-4b67-8e19-8256617ce5e6
         -   Folder: Walls
             Entity:
                 Id: 53535b20-a0a8-4180-b6c0-c79a6c0442c6
@@ -1026,6 +1047,24 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: af01ee46-1132-4956-9993-e1d21ce655af
                 InstanceId: c328e779-664e-47a9-a158-9fc5a4ef7073
+        -   Entity:
+                Id: 6be2e916-3af6-4c7f-86a9-b1697de74281
+                Name: SwordModel
+                Components:
+                    dcaec24f9514018842a39d47110038d4: !TransformComponent
+                        Id: 70c52b60-5307-4dec-9e44-5aab6c9e384c
+                        Position: {X: 4.354127, Y: 0.807375, Z: -2.6856482}
+                        Rotation: {X: -0.10159004, Y: 0.16348566, Z: -0.5179293, W: 0.83348733}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    85152eea64a3af116907dc53895c5c60: !ModelComponent
+                        Id: 4b28f007-4f8f-4c80-8095-7450dd4ebfde
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 458fecff-cd6e-44cb-8416-e25954af5138
+                InstanceId: c328e779-664e-47a9-a158-9fc5a4ef7073
         -   Folder: Walls
             Entity:
                 Id: 6f0d7ad0-f929-4e36-8745-e736c7fa0d6c
@@ -1339,7 +1378,7 @@ Hierarchy:
                         Id: 7904dda7-13cf-4573-9075-f03344f85038
                         Type: !LightDirectional
                             Color: !ColorRgbProvider
-                                Value: {R: 0.86625, G: 0.9, B: 0.9}
+                                Value: {R: 0.97332424, G: 0.975, B: 0.84093755}
                             Shadow:
                                 Enabled: true
                                 Filter: !LightShadowMapFilterTypePcf
@@ -1349,7 +1388,7 @@ Hierarchy:
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
                                 ComputeTransmittance: false
                                 BiasParameters: {}
-                        Intensity: 1.5
+                        Intensity: 2.0
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 6fb0f099-8844-4b0b-bb60-809fa9895243
@@ -1419,12 +1458,12 @@ Hierarchy:
                     508e804e75f75666d3c5e41788acc3cc: !BackgroundComponent
                         Id: ed9438d2-83f0-435b-b5ac-b5fde4e19e00
                         Texture: b7f73672-f9bf-44ae-8a04-0017010b4ca1:Materials/Skybox texture
-                        Intensity: 2.5
+                        Intensity: 4.0
                     0a7d931be3c08faeeda5bbca8fefbc73: !LightComponent
                         Id: 13fa67d7-0bf8-44d1-af1b-d2bba62a15bf
-                        Enabled: false
                         Type: !LightSkybox
                             Skybox: ae4fd991-6290-4c24-b73b-25d81a1a4837:Materials/Skybox
+                        Intensity: 2.0
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 157729d7-9c11-4c7d-8483-68f15dc8a47d
@@ -1447,6 +1486,24 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 3c1bd1d8-ed0e-4ba4-9d7b-ab06016be6f2
+                InstanceId: c328e779-664e-47a9-a158-9fc5a4ef7073
+        -   Entity:
+                Id: a45d38f5-079c-4cc3-891e-b364379799ae
+                Name: Teapot
+                Components:
+                    7371bd41d092c95f3fff2ac8851dbaef: !TransformComponent
+                        Id: cc4a7da3-557c-4b67-8e19-8256617ce5e6
+                        Position: {X: -4.44255, Y: 0.16017595, Z: -4.3005123}
+                        Rotation: {X: 0.0, Y: -0.3505099, Z: 0.0, W: 0.936559}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    864af2aa2aac0d5afb8dbe492b78ed17: !ModelComponent
+                        Id: 563297d4-d7c6-40e3-ac68-acee3058da4f
+                        Model: 9a3a7dbc-7b08-478a-aab2-19afe1d6ce1c:Models/Teapot
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 56fdc383-2f9d-4103-a873-144abbd2db32
                 InstanceId: c328e779-664e-47a9-a158-9fc5a4ef7073
         -   Entity:
                 Id: a71e1573-bd40-4e39-bf40-94e87d206a90

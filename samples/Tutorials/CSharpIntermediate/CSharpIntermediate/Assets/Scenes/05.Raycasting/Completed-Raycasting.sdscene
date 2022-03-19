@@ -172,6 +172,24 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
         -   Entity:
+                Id: 0aa383a6-3360-4f27-b3f6-9a20e41622af
+                Name: MachinegunModel
+                Components:
+                    bd77aec31db5bedbf6e4703cba7620a0: !TransformComponent
+                        Id: 73314ab7-aa32-4d4c-be1f-522140a002e9
+                        Position: {X: 0.34085572, Y: 1.1914668, Z: 4.9607964}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    2f6675f73fa7da1d626d316d25218ac1: !ModelComponent
+                        Id: d8ac5d59-ce02-43ab-b4cb-b05406b6acd1
+                        Model: 32c1ef96-e4a0-49a2-b286-b932c6d43f49:Models/MachinegunModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 45e5b999-26cb-4b1d-a795-ce9587684765
+                InstanceId: 54a667ee-d5b3-445d-b294-c9d9d5825a3a
+        -   Entity:
                 Id: 0cac110a-2792-4b67-85a5-2ad5e75ce255
                 Name: RaycastPenetrating
                 Components:
@@ -230,6 +248,24 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: b90661fa-e8d6-428e-841f-5d39c319f8e6
+                InstanceId: 54a667ee-d5b3-445d-b294-c9d9d5825a3a
+        -   Entity:
+                Id: 16055820-865a-41d4-86fa-a48b339e4304
+                Name: SwordModel
+                Components:
+                    dcaec24f9514018842a39d47110038d4: !TransformComponent
+                        Id: 101fd7c9-2770-48bb-96c6-b9a48de7cbab
+                        Position: {X: 4.354127, Y: 0.807375, Z: -2.6856482}
+                        Rotation: {X: -0.10159004, Y: 0.16348566, Z: -0.5179293, W: 0.83348733}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    85152eea64a3af116907dc53895c5c60: !ModelComponent
+                        Id: 620e87cf-0c06-43ac-8ee4-165deae48f42
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 458fecff-cd6e-44cb-8416-e25954af5138
                 InstanceId: 54a667ee-d5b3-445d-b294-c9d9d5825a3a
         -   Folder: null
             Entity:
@@ -1160,6 +1196,24 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
         -   Entity:
+                Id: b59ebc1d-7109-4622-aaf3-26b32a5ed4ba
+                Name: Teapot
+                Components:
+                    7371bd41d092c95f3fff2ac8851dbaef: !TransformComponent
+                        Id: 730b68a1-bbcc-4b76-a3cf-79c552ea3043
+                        Position: {X: -4.44255, Y: 0.16017595, Z: -4.3005123}
+                        Rotation: {X: 0.0, Y: -0.3505099, Z: 0.0, W: 0.936559}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    864af2aa2aac0d5afb8dbe492b78ed17: !ModelComponent
+                        Id: 2681c8be-c6a0-409e-87e2-b5e7401dc8a0
+                        Model: 9a3a7dbc-7b08-478a-aab2-19afe1d6ce1c:Models/Teapot
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 56fdc383-2f9d-4103-a873-144abbd2db32
+                InstanceId: 54a667ee-d5b3-445d-b294-c9d9d5825a3a
+        -   Entity:
                 Id: c07cb5fe-1bc4-43f9-bbac-e963d1671664
                 Name: DefaultScenery
                 Components:
@@ -1192,6 +1246,9 @@ Hierarchy:
                             6b33c7c6c43947372265bf0f7ed762eb: ref!! bf4bd4fb-b007-439a-89ba-f0feee2f75e1
                             90e9f0e9fc2f3180ccb6db10baa1a3d4: ref!! d8a47c79-3770-4c64-8514-73b7f49ba8db
                             cd70da65b27a0a543da5ba376eeea435: ref!! 4615d6b8-abcf-43a0-8fdf-a30209edae6f
+                            fcb2ead9aabd7194150e8e65dc56ff1b: ref!! 101fd7c9-2770-48bb-96c6-b9a48de7cbab
+                            fddf5b5ef1db72ec6e3b43eb024f6da9: ref!! 73314ab7-aa32-4d4c-be1f-522140a002e9
+                            b3ed0a8c06b90ae73509114f981855c0: ref!! 730b68a1-bbcc-4b76-a3cf-79c552ea3043
         -   Entity:
                 Id: cc379d03-c456-4cab-bed2-e4c15a3c55a4
                 Name: Directional light
@@ -1206,7 +1263,7 @@ Hierarchy:
                         Id: 523aadcb-d6bc-4385-abe9-767e81b1414b
                         Type: !LightDirectional
                             Color: !ColorRgbProvider
-                                Value: {R: 0.86625, G: 0.9, B: 0.9}
+                                Value: {R: 0.97332424, G: 0.975, B: 0.84093755}
                             Shadow:
                                 Enabled: true
                                 Filter: !LightShadowMapFilterTypePcf
@@ -1284,7 +1341,7 @@ Hierarchy:
                     508e804e75f75666d3c5e41788acc3cc: !BackgroundComponent
                         Id: 073270a6-69b7-45b3-912b-865db4fb7e71
                         Texture: b7f73672-f9bf-44ae-8a04-0017010b4ca1:Materials/Skybox texture
-                        Intensity: 2.5
+                        Intensity: 4.0
                     0a7d931be3c08faeeda5bbca8fefbc73: !LightComponent
                         Id: ea26d17d-2ef6-49d7-a8cc-64d4d817e5dd
                         Enabled*: true

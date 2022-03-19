@@ -103,7 +103,7 @@ Hierarchy:
                         Children: {}
                     b1bfbb5b545fa075ab43bb49a7459aaf: !CSharpIntermediate.LoadScene,CSharpIntermediate.Game
                         Id: c971497d-f0b0-4c4e-a922-4fdbac7ca9b5
-                        SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/SceneLoading/Completed-SceneB
+                        SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/02.SceneLoading/Completed-SceneB
         -   Entity:
                 Id: dbd15918-28c5-4576-8ee1-54c044e62e35
                 Name: Gate2x3x1
