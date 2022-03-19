@@ -338,10 +338,11 @@ Hierarchy:
                     ebb8c648b3c760c6fc50ee48a8bcf802: !TransformComponent
                         Id: f8d2d032-1cc8-46d2-bea2-3c10649f87c5
                         Position: {X: -1.3672157E-09, Y: 1.358, Z: 0.124}
-                        Rotation: {X: 0.24206229, Y: 0.0, Z: 0.0, W: 0.97026074}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             848f0fde98b41008f68d80437264038d: ref!! 2e606884-460d-4b35-8e1d-d5c519000476
+                            40feea849aa6eadc501e056933d5ba0f: ref!! 2ff36124-ebf9-4ffe-b405-5f594ee131a6
         -   Folder: null
             Entity:
                 Id: 2c1c9b82-3f6f-4b60-9a52-b7b3d131fecb
@@ -941,7 +942,7 @@ Hierarchy:
                 Components:
                     ebb8c648b3c760c6fc50ee48a8bcf802: !TransformComponent
                         Id: 2ff36124-ebf9-4ffe-b405-5f594ee131a6
-                        Position: {X: 0.0, Y: 1.358, Z: 0.0}
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
@@ -1246,7 +1247,6 @@ Hierarchy:
                         Children:
                             18eebc7166d1c3dd4e4759ba85042f5f: ref!! 8e61dfe6-cc62-4ffe-a021-da30ae1763ed
                             a48aeaf4d40befd84b6cfeb5d0b0aa3a: ref!! f8d2d032-1cc8-46d2-bea2-3c10649f87c5
-                            305713bb7908596454185c8b813d314d: ref!! 2ff36124-ebf9-4ffe-b405-5f594ee131a6
                     2618d3f191737b889e3068416fb06df3: !CharacterComponent
                         Id: 8a4d0849-3045-462d-9857-7c0b29b045c5
                         CanSleep: false
@@ -1270,8 +1270,8 @@ Hierarchy:
                         MouseSpeed: {X: 20.0, Y: 14.0}
                         MaxLookUpAngle: -40.0
                         MaxLookDownAngle: 50.0
-                        MinimumCameraDistance: 0.5
-                        MaxCameraDistance: 2.0
+                        MinimumCameraDistance: 1.0
+                        CameraOffset: {X: 0.0, Y: 0.0, Z: -2.0}
                     ce3d2045506befde73e2991d94e87e83: !CSharpIntermediate.Code.CharacterMovement,CSharpIntermediate.Game
                         Id: 363b0db2-bf3f-473b-bfa4-b2710792e33d
                         MovementMultiplier: {X: 2.0, Y: 0.0, Z: 3.0}
