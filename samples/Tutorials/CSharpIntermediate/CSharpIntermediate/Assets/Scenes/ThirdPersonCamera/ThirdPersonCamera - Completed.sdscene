@@ -1269,9 +1269,9 @@ Hierarchy:
                         InvertMouseY: false
                         MouseSpeed: {X: 20.0, Y: 14.0}
                         MaxLookUpAngle: -40.0
-                        MaxLookDownAngle: 50.0
-                        MinimumCameraDistance: 1.0
-                        CameraOffset: {X: 0.0, Y: 0.0, Z: -2.0}
+                        MaxLookDownAngle: 40.0
+                        MinimumCameraDistance: 1.5
+                        CameraOffset: {X: 0.0, Y: 0.0, Z: -3.0}
                     ce3d2045506befde73e2991d94e87e83: !CSharpIntermediate.Code.CharacterMovement,CSharpIntermediate.Game
                         Id: 363b0db2-bf3f-473b-bfa4-b2710792e33d
                         MovementMultiplier: {X: 2.0, Y: 0.0, Z: 3.0}

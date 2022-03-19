@@ -12,10 +12,10 @@ namespace CSharpIntermediate.Code
     {
         public bool InvertMouseY = false;
         public Vector2 MouseSpeed = new Vector2(20, 14);
-        public float MaxLookUpAngle = -50;
-        public float MaxLookDownAngle = 50;
-        public float MinimumCameraDistance = 0.5f;
-        public Vector3 CameraOffset = new Vector3(0, 0, 0);
+        public float MaxLookUpAngle = -40;
+        public float MaxLookDownAngle = 40;
+        public float MinimumCameraDistance = 1.5f;
+        public Vector3 CameraOffset = new Vector3(0, 0, -3);
 
         private Entity firstPersonPivot;
         private Entity thirdPersonPivot;
@@ -70,33 +70,29 @@ namespace CSharpIntermediate.Code
                 // Apply X rotation the existing first person pivot
                 firstPersonPivot.Transform.Rotation = Quaternion.RotationX(camRotation.X);
 
+                // The third person pivot gets the same position and rotation as the first person pivot + the camera offset
                 thirdPersonPivot.Transform.Position = new Vector3(0);
                 thirdPersonPivot.Transform.Rotation = firstPersonPivot.Transform.Rotation;
                 thirdPersonPivot.Transform.Position += Vector3.Transform(CameraOffset, firstPersonPivot.Transform.Rotation);
 
                 // Raycast from first person pivot to third person pivot
+                thirdPersonPivot.Transform.UpdateWorldMatrix();
                 var raycastStart = firstPersonPivot.Transform.WorldMatrix.TranslationVector;
-                var raycastEnd = thirdPersonPivot.Transform.WorldMatrix.TranslationVector; ;
-
-                DebugText.Print($"raycastStart: {raycastStart.Print()}", new Int2(40, 40));
-                DebugText.Print($"raycastEnd: {raycastEnd.Print()}", new Int2(40, 60));
+                var raycastEnd = thirdPersonPivot.Transform.WorldMatrix.TranslationVector;
 
                 if (simulation.Raycast(raycastStart, raycastEnd, out HitResult hitResult))
                 {
                     // If we hit something along the way, calculate the distance
-                    var distance = Vector3.Distance(raycastStart, hitResult.Point);
-                    DebugText.Print($"Distance {distance}", new Int2(40, 80));
+                    var hitDistance = Vector3.Distance(raycastStart, hitResult.Point);
 
-                    if (distance >= MinimumCameraDistance)
+                    if (hitDistance >= MinimumCameraDistance)
                     {
                         // If the distance is larger than the minimum distance, place the camera at the hitpoint
-                        DebugText.Print($"Close to object, place camera on hit point {hitResult.Point}", new Int2(40, 100));
-                        // thirdPersonPivot.Transform.WorldMatrix.TranslationVector = hitResult.Point;
+                        thirdPersonPivot.Transform.Position.Z = -(hitDistance-0.1f);
                     }
                     else
                     {
                         // If the distance is lower than the minimum distance, place the camera at first person pivot
-                        DebugText.Print($"Too close to object, switch to first person camera", new Int2(40, 120));
                         thirdPersonPivot.Transform.Position = new Vector3(0);
                     }
                 }
