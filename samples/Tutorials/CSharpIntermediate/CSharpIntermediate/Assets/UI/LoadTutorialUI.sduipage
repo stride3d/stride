@@ -35,7 +35,7 @@ Hierarchy:
                 MaximumWidth: 3.4028235E+38
                 MaximumHeight: 3.4028235E+38
                 MaximumDepth: 3.4028235E+38
-                Name: TutorialButtonsCompletedStackPanel
+                Name: ButtonsCompleted
                 Children:
                     e14bf8f0ccdf50dea05138671cff10ff: !Button ref!! ac458635-2d22-4017-ad25-4897cdc15efa
         -   UIElement: !StackPanel
@@ -49,7 +49,7 @@ Hierarchy:
                 MaximumWidth: 3.4028235E+38
                 MaximumHeight: 3.4028235E+38
                 MaximumDepth: 3.4028235E+38
-                Name: TutorialButtonsStartStackPanel
+                Name: ButtonsStart
                 Children:
                     e14bf8f0ccdf50dea05138671cff10ff: !Button ref!! 8e8a75e5-6eec-42fc-8cb8-7c7033d5dce1
         -   UIElement: !Button

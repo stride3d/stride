@@ -29,6 +29,7 @@ Hierarchy:
         - ref!! 1c9a5abc-8191-4536-b49f-a38c5313e5d9
         - ref!! 458fecff-cd6e-44cb-8416-e25954af5138
         - ref!! 45e5b999-26cb-4b1d-a795-ce9587684765
+        - ref!! 80a6b3eb-b87e-4c16-96c4-61afc31f7ac3
     Parts:
         -   Folder: null
             Entity:
@@ -447,6 +448,24 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             598017553775baa4350012936ef177ff: ref!! de59c0cc-34c0-4db0-ad1f-5551b6b9b4a5
+        -   Entity:
+                Id: 80a6b3eb-b87e-4c16-96c4-61afc31f7ac3
+                Name: TutorialUI
+                Components:
+                    f448749b52a320d40d810d33becfc1f5: !TransformComponent
+                        Id: 65d070f5-3c9b-4103-9e1d-fe6ecbb63127
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    1e68bc24472b991fafa8974e889b459a: !UIComponent
+                        Id: ff7f8b77-8e9e-4176-b062-9c611df8a2f5
+                        Page: 5175f272-13da-45dd-9f7b-540e7121dd56:UI/LoadTutorialUI
+                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+                        Size: {X: 1.28, Y: 0.72, Z: 1.0}
+                    76335c0dab5254e13c23c7182873cb9c: !CSharpIntermediate.Code.TutorialUI,CSharpIntermediate.Game
+                        Id: e9befaab-fd08-42f5-9d53-c1cf78482d10
+                        ShowMenuOnSceneLoad: false
         -   Folder: Walls
             Entity:
                 Id: 86c225dd-0463-47c5-9114-0d6a7b1649b1

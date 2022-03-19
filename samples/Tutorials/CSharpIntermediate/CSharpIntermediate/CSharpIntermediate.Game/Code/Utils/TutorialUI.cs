@@ -10,8 +10,7 @@ namespace CSharpIntermediate.Code
 {
     public class TutorialUI : SyncScript
     {
-
-        private Scene tutorialScene;
+        public bool ShowMenuOnSceneLoad = false;
         private UIPage activePage;
         private Button btnTutorialMenu;
         private StackPanel buttonsStartUI;
@@ -30,11 +29,14 @@ namespace CSharpIntermediate.Code
             tutorialTitleTxt = activePage.RootElement.FindVisualChildOfType<TextBlock>("tutorialTitleTxt");
             tutorialTitleTxt.Text = "";
 
-            buttonsStartUI = activePage.RootElement.FindVisualChildOfType<StackPanel>("TutorialButtonsStartStackPanel");
-            buttonsCompletedUI = activePage.RootElement.FindVisualChildOfType<StackPanel>("TutorialButtonsCompletedStackPanel");
-            var placeHolderButton = buttonsStartUI.Children[0] as Button;
-            var placeHolderTextBlock = placeHolderButton.VisualChildren[0] as TextBlock;
-            placeHolderButton.Visibility = Visibility.Hidden;
+            buttonsStartUI = activePage.RootElement.FindVisualChildOfType<StackPanel>("ButtonsStart");
+            buttonsCompletedUI = activePage.RootElement.FindVisualChildOfType<StackPanel>("ButtonsCompleted");
+            var startButton = buttonsStartUI.Children[0] as Button;
+            var startText = startButton.VisualChildren[0] as TextBlock;
+            var completedButton = buttonsCompletedUI.Children[0] as Button;
+            var complextedText = completedButton.VisualChildren[0] as TextBlock;
+            startButton.Visibility = Visibility.Hidden;
+            completedButton.Visibility = Visibility.Hidden;
 
 
             //Start tutorials
@@ -50,28 +52,35 @@ namespace CSharpIntermediate.Code
             //tutorialScenes.Add("Third person camera", "Scenes/09.ThirdPersonCamera/Start-ThirdPersonCamera");
             //tutorialScenes.Add("Animation basics", "Scenes/10.Animation basics/Start-Animations");
             //tutorialScenes.Add("Navigation", "Scenes/11.Navigation/Start-Navigation");
-            //CreateButton(placeHolderButton, placeHolderTextBlock, tutorialScenes, buttonsStartUI);
+            //CreateButton(startButton, startText, tutorialScenes, buttonsStartUI);
 
             //Completed tutorials
             tutorialScenes = new Dictionary<string, string>();
-            tutorialScenes.Add("UI interaction", "01.UI basics/Completed-UI basics");
+            tutorialScenes.Add("UI basics", "01.UI basics/Completed-UI basics");
             tutorialScenes.Add("Scene loading", "02.SceneLoading/Completed-SceneA");
-            tutorialScenes.Add("Collision trigger", "Scenes/03.CollisionTriggers/Completed-CollisionTriggers");
-            tutorialScenes.Add("Project & Unproject", "Scenes/04.ProjectUnproject/Completed-ProjectUnproject");
-            tutorialScenes.Add("Raycasting", "Scenes/05.Raycasting/Completed-Raycasting");
-            tutorialScenes.Add("Async Scripts", "Scenes/06.Async/Completed-AsyncScriptsTriggers");
-            tutorialScenes.Add("Audio", "Scenes/07.Audio/Completed-Audio");
-            tutorialScenes.Add("First person camera", "Scenes/08.FirstPersonCamera/Completed-FirstPersonCamera");
-            tutorialScenes.Add("Third person camera", "Scenes/09.ThirdPersonCamera/Completed-ThirdPersonCamera");
-            tutorialScenes.Add("Animation basics", "Scenes/10.Animation basics/Completed-Animations");
-            tutorialScenes.Add("Navigation", "Scenes/11.Navigation/Completed-Navigation");
+            tutorialScenes.Add("Collision trigger", "03.CollisionTriggers/Completed-CollisionTriggers");
+            tutorialScenes.Add("Raycasting", "04.Raycasting/Completed-Raycasting");
+            tutorialScenes.Add("Project & Unproject", "05.ProjectUnproject/Completed-ProjectUnproject");
+            tutorialScenes.Add("Async Scripts", "06.Async/Completed-AsyncScriptsTriggers");
+            tutorialScenes.Add("Audio", "07.Audio/Completed-Audio");
+            tutorialScenes.Add("First person camera", "08.FirstPersonCamera/Completed-FirstPersonCamera");
+            tutorialScenes.Add("Third person camera", "09.ThirdPersonCamera/Completed-ThirdPersonCamera");
+            tutorialScenes.Add("Animation basics", "10.Animation basics/Completed-Animations");
+            tutorialScenes.Add("Navigation", "11.Navigation/Completed-Navigation");
 
-            CreateButton(placeHolderButton, placeHolderTextBlock, tutorialScenes, buttonsCompletedUI);
+            CreateButton(completedButton, complextedText, tutorialScenes, buttonsCompletedUI);
 
-            buttonsCompletedUI.Children.Remove(placeHolderButton);
+            buttonsStartUI.Children.Remove(startButton);
+            buttonsCompletedUI.Children.Remove(completedButton);
+
+            if (!ShowMenuOnSceneLoad)
+            {
+                buttonsStartUI.Visibility = Visibility.Hidden;
+                buttonsCompletedUI.Visibility = Visibility.Hidden;
+            }
         }
 
-        private void CreateButton(Button baseButtonButton, TextBlock textBlock, Dictionary<string, string> tutorialScenes, 
+        private void CreateButton(Button baseButtonButton, TextBlock textBlock, Dictionary<string, string> tutorialScenes,
             StackPanel stackPanel)
         {
             foreach (var keyPair in tutorialScenes)
@@ -98,7 +107,7 @@ namespace CSharpIntermediate.Code
                 button.Click += (sender, e) => BtnLoadTutorial(sender, e, keyPair);
 
                 stackPanel.Children.Add(button);
-            } 
+            }
         }
 
         private void BtnTutorialMenuClicked(object sender, RoutedEventArgs e)
@@ -109,17 +118,13 @@ namespace CSharpIntermediate.Code
 
         private void BtnLoadTutorial(object sender, RoutedEventArgs e, KeyValuePair<string, string> newTutorialScene)
         {
-            if (tutorialScene != null)
+            if (SceneSystem.SceneInstance.RootScene.Children.Count > 0)
             {
-                SceneSystem.SceneInstance.RootScene.Children.Remove(tutorialScene);
+                SceneSystem.SceneInstance.RootScene.Children.RemoveAt(0);
             }
-           
-            tutorialTitleTxt.Text = newTutorialScene.Key;
-            buttonsStartUI.Visibility = Visibility.Hidden;
-            buttonsCompletedUI.Visibility = Visibility.Hidden;
-            tutorialScene = Content.Load<Scene>("Scenes/" + newTutorialScene.Value);
-            tutorialScene.Parent = Entity.Scene;
- 
+
+            var tutorialScene = Content.Load<Scene>("Scenes/" + newTutorialScene.Value);
+            SceneSystem.SceneInstance.RootScene = tutorialScene;
         }
 
         public override void Update()

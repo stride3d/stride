@@ -731,7 +731,7 @@ Hierarchy:
                             38f3b95b269a4fa32c1be407b4ce8ac9: ref!! 145cb684-ba25-441d-8440-bc74bf8acf63
                             2da3f6ba467c64074a92b4f94eb2e616: ref!! 70c52b60-5307-4dec-9e44-5aab6c9e384c
                             6eb9dad43d4d9c0ceb28f928a6f45952: ref!! 6b30c72e-81e9-43dd-9693-36f1e4f0cba3
-                            52a15691dd099cfb5839305bac982dbd: ref!! cc4a7da3-557c-4b67-8e19-8256617ce5e6
+                            6aea63f08dd9769ae036412d8a220c21: ref!! 45185d08-349a-43d5-ae64-0ef3990b9289
         -   Folder: Walls
             Entity:
                 Id: 53535b20-a0a8-4180-b6c0-c79a6c0442c6
@@ -941,6 +941,28 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: c42621bf-0615-46c8-8864-0865986153fb
+                InstanceId: c328e779-664e-47a9-a158-9fc5a4ef7073
+        -   Entity:
+                Id: 63c26888-0d16-430a-ac38-e671fd8d3d45
+                Name: TutorialUI
+                Components:
+                    f448749b52a320d40d810d33becfc1f5: !TransformComponent
+                        Id: 45185d08-349a-43d5-ae64-0ef3990b9289
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    1e68bc24472b991fafa8974e889b459a: !UIComponent
+                        Id: c6374702-630b-4282-931a-253122c761fa
+                        Page: 5175f272-13da-45dd-9f7b-540e7121dd56:UI/LoadTutorialUI
+                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+                        Size: {X: 1.28, Y: 0.72, Z: 1.0}
+                    76335c0dab5254e13c23c7182873cb9c: !CSharpIntermediate.Code.TutorialUI,CSharpIntermediate.Game
+                        Id: 321f582b-dcdb-49e2-9df8-07d90c5cc4bc
+                        ShowMenuOnSceneLoad: false
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 80a6b3eb-b87e-4c16-96c4-61afc31f7ac3
                 InstanceId: c328e779-664e-47a9-a158-9fc5a4ef7073
         -   Folder: Walls
             Entity:
@@ -1486,24 +1508,6 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 3c1bd1d8-ed0e-4ba4-9d7b-ab06016be6f2
-                InstanceId: c328e779-664e-47a9-a158-9fc5a4ef7073
-        -   Entity:
-                Id: a45d38f5-079c-4cc3-891e-b364379799ae
-                Name: Teapot
-                Components:
-                    7371bd41d092c95f3fff2ac8851dbaef: !TransformComponent
-                        Id: cc4a7da3-557c-4b67-8e19-8256617ce5e6
-                        Position: {X: -4.44255, Y: 0.16017595, Z: -4.3005123}
-                        Rotation: {X: 0.0, Y: -0.3505099, Z: 0.0, W: 0.936559}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    864af2aa2aac0d5afb8dbe492b78ed17: !ModelComponent
-                        Id: 563297d4-d7c6-40e3-ac68-acee3058da4f
-                        Model: 9a3a7dbc-7b08-478a-aab2-19afe1d6ce1c:Models/Teapot
-                        Materials: {}
-            Base:
-                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
-                BasePartId: 56fdc383-2f9d-4103-a873-144abbd2db32
                 InstanceId: c328e779-664e-47a9-a158-9fc5a4ef7073
         -   Entity:
                 Id: a71e1573-bd40-4e39-bf40-94e87d206a90
