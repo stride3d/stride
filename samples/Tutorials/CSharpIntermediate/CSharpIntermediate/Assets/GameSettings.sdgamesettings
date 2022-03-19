@@ -2,7 +2,7 @@
 Id: 1e8aa650-da28-44e4-b76f-e7865c20fcd5
 SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
-DefaultScene: d5a14911-dddc-42d0-b9f1-7c57fca5d0cb:Scenes/Async/AsyncScriptsTriggers - Completed
+DefaultScene: 14e3ac20-460d-4a3a-8e7a-79d54dad2dd2:Scenes/ThirdPersonCamera/ThirdPersonCamera - Completed
 GraphicsCompositor: fe026ff4-fdf9-48b9-87fb-65764cb9153f:GraphicsCompositor
 Defaults:
     - !Stride.Graphics.RenderingSettings,Stride.Graphics

@@ -871,7 +871,7 @@ Hierarchy:
                         Id: 168da8ce-0dfc-4651-b3e3-da72eb10aabb
                         Model: 3bebe6b9-2b1c-43d6-9d5d-936e861187f9:Models/Cylinder
                         Materials:
-                            51f8101362a6c8baff5b2d790a714cb5~0: adf8fc52-f54b-48d8-b883-e4b78e774d99:Materials/MaterialA
+                            51f8101362a6c8baff5b2d790a714cb5~0: 3690986c-39ec-4b3b-a116-24fc5181906d:Materials/Yellow
         -   Folder: null
             Entity:
                 Id: b69a4860-9237-40d7-a3b4-6c051655b9b3
@@ -1288,4 +1288,5 @@ Hierarchy:
                     ded73e662432c1e24b525d4c21f87ce8: !ModelComponent
                         Id: 27fa0706-08cf-4c7d-a04b-3ad2fbc67e88
                         Model: 5178da4c-69ec-4123-a502-ef9925474f3d:Models/Sphere
-                        Materials: {}
+                        Materials:
+                            c0164b6c2742955f777bed8dc59c279a~0: 789f5487-e853-4d88-95ca-cb9eee5e14e7:Materials/CustomFilterMaterial
