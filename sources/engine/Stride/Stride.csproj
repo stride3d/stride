@@ -30,8 +30,8 @@
     <ProjectReference Include="..\..\core\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
     <!-- SharpDX is needed for WIC -->
-    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" Condition="'$(StridePlatform)' == 'UWP'" />
-    <PackageReference Include="System.Drawing.Common" Version="4.6.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'Linux'" />
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
   </ItemGroup>
 
   <ItemGroup>

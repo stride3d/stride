@@ -29,7 +29,7 @@ namespace Stride.Input
 
             Id = InputDeviceUtils.DeviceNameToGuid(window.SdlHandle.ToString() + Name);
         }
-        
+
         public void Dispose()
         {
             window.KeyDownActions -= OnKeyEvent;
@@ -63,8 +63,8 @@ namespace Stride.Input
         private void OnKeyEvent(KeyboardEvent e)
         {
             // Try to map to a stride key
-            Keys key;
-            if (SDLKeys.MapKeys.TryGetValue((KeyCode)e.Keysym.Sym, out key) && key != Keys.None)
+            Keys key = SDLKeys.MapKey((KeyCode)e.Keysym.Sym, e.Keysym.Scancode);
+            if (key != Keys.None)
             {
                 if ((EventType)e.Type == EventType.Keydown)
                     HandleKeyDown(key);
@@ -90,7 +90,7 @@ namespace Stride.Input
             textInputEvent.Type = TextInputEventType.Input;
             textEvents.Add(textInputEvent);
         }
-        
+
         private unsafe string SDLBufferToString(byte* text, int size = 32)
         {
             byte[] sourceBytes = new byte[size];
@@ -114,205 +114,196 @@ namespace Stride.Input
         /// </summary>
         private static class SDLKeys
         {
-            /// <summary>
-            /// Map between SDL keys and Stride keys.
-            /// </summary>
-            internal static readonly Dictionary<KeyCode, Keys> MapKeys = NewMapKeys();
-
-            /// <summary>
-            /// Create a mapping between <see cref="KeyCode"/> and <see cref="Stride.Input.Keys"/>
-            /// </summary>
-            /// <remarks>Not all <see cref="Stride.Input.Keys"/> have a corresponding SDL entries. For the moment they are commented out in the code below.</remarks>
-            /// <returns>A new map.</returns>
-            private static Dictionary<KeyCode, Keys> NewMapKeys()
+            internal static Keys MapKey(KeyCode input, Scancode scancode)
             {
-                var map = new Dictionary<KeyCode, Keys>(200);
-                map[KeyCode.KUnknown] = Keys.None;
-                map[KeyCode.KCancel] = Keys.Cancel;
-                map[KeyCode.KBackspace] = Keys.Back;
-                map[KeyCode.KTab] = Keys.Tab;
-                map[KeyCode.KKPTab] = Keys.Tab;
-                //            map [KeyCode.KUnknown] = Keys.LineFeed;
-                map[KeyCode.KClear] = Keys.Clear;
-                map[KeyCode.KClearagain] = Keys.Clear;
-                map[KeyCode.KKPClear] = Keys.Clear;
-                map[KeyCode.KKPClearentry] = Keys.Clear;
-                map[KeyCode.KKPEnter] = Keys.Enter;
-                map[KeyCode.KReturn] = Keys.Return;
-                map[KeyCode.KReturn2] = Keys.Return;
-                map[KeyCode.KPause] = Keys.Pause;
-                map[KeyCode.KCapslock] = Keys.Capital;
-                //            map [KeyCode.KCapslock] = Keys.CapsLock;
-                //            map [KeyCode.KUnknown] = Keys.HangulMode;
-                //            map [KeyCode.KUnknown] = Keys.KanaMode;
-                //            map [KeyCode.KUnknown] = Keys.JunjaMode;
-                //            map [KeyCode.KUnknown] = Keys.FinalMode;
-                //            map [KeyCode.KUnknown] = Keys.HanjaMode;
-                //            map [KeyCode.KUnknown] = Keys.KanjiMode;
-                map[KeyCode.KEscape] = Keys.Escape;
-                //            map [KeyCode.KUnknown] = Keys.ImeConvert;
-                //            map [KeyCode.KUnknown] = Keys.ImeNonConvert;
-                //            map [KeyCode.KUnknown] = Keys.ImeAccept;
-                //            map [KeyCode.KUnknown] = Keys.ImeModeChange;
-                map[KeyCode.KSpace] = Keys.Space;
-                map[KeyCode.KKPSpace] = Keys.Space;
-                map[KeyCode.KPageup] = Keys.PageUp;
-                map[KeyCode.KPrior] = Keys.Prior;
-                //            map [KeyCode.KPagedown] = Keys.Next); // Next is the same as PageDo;
-                map[KeyCode.KPagedown] = Keys.PageDown;
-                map[KeyCode.KEnd] = Keys.End;
-                map[KeyCode.KHome] = Keys.Home;
-                map[KeyCode.KACHome] = Keys.Home;
-                map[KeyCode.KLeft] = Keys.Left;
-                map[KeyCode.KUp] = Keys.Up;
-                map[KeyCode.KRight] = Keys.Right;
-                map[KeyCode.KDown] = Keys.Down;
-                map[KeyCode.KSelect] = Keys.Select;
-                //            map [KeyCode.KUnknown] = Keys.Print;
-                map[KeyCode.KExecute] = Keys.Execute;
-                map[KeyCode.KPrintscreen] = Keys.PrintScreen;
-                //            map [KeyCode.KPrintscreen] = Keys.Snapshot); // Snapshot is the same as PageDo;
-                map[KeyCode.KInsert] = Keys.Insert;
-                map[KeyCode.KDelete] = Keys.Delete;
-                map[KeyCode.KHelp] = Keys.Help;
-                map[KeyCode.K0] = Keys.D0;
-                map[KeyCode.K1] = Keys.D1;
-                map[KeyCode.K2] = Keys.D2;
-                map[KeyCode.K3] = Keys.D3;
-                map[KeyCode.K4] = Keys.D4;
-                map[KeyCode.K5] = Keys.D5;
-                map[KeyCode.K6] = Keys.D6;
-                map[KeyCode.K7] = Keys.D7;
-                map[KeyCode.K8] = Keys.D8;
-                map[KeyCode.K9] = Keys.D9;
-                map[KeyCode.KA] = Keys.A;
-                map[KeyCode.KB] = Keys.B;
-                map[KeyCode.KC] = Keys.C;
-                map[KeyCode.KD] = Keys.D;
-                map[KeyCode.KE] = Keys.E;
-                map[KeyCode.KF] = Keys.F;
-                map[KeyCode.KG] = Keys.G;
-                map[KeyCode.KH] = Keys.H;
-                map[KeyCode.KI] = Keys.I;
-                map[KeyCode.KJ] = Keys.J;
-                map[KeyCode.KK] = Keys.K;
-                map[KeyCode.KL] = Keys.L;
-                map[KeyCode.KM] = Keys.M;
-                map[KeyCode.KN] = Keys.N;
-                map[KeyCode.KO] = Keys.O;
-                map[KeyCode.KP] = Keys.P;
-                map[KeyCode.KQ] = Keys.Q;
-                map[KeyCode.KR] = Keys.R;
-                map[KeyCode.KS] = Keys.S;
-                map[KeyCode.KT] = Keys.T;
-                map[KeyCode.KU] = Keys.U;
-                map[KeyCode.KV] = Keys.V;
-                map[KeyCode.KW] = Keys.W;
-                map[KeyCode.KX] = Keys.X;
-                map[KeyCode.KY] = Keys.Y;
-                map[KeyCode.KZ] = Keys.Z;
-                map[KeyCode.KLgui] = Keys.LeftWin;
-                map[KeyCode.KRgui] = Keys.RightWin;
-                map[KeyCode.KApplication] = Keys.Apps; // TODO: Verify value
-                map[KeyCode.KSleep] = Keys.Sleep;
-                map[KeyCode.KKP0] = Keys.NumPad0;
-                map[KeyCode.KKP1] = Keys.NumPad1;
-                map[KeyCode.KKP2] = Keys.NumPad2;
-                map[KeyCode.KKP3] = Keys.NumPad3;
-                map[KeyCode.KKP4] = Keys.NumPad4;
-                map[KeyCode.KKP5] = Keys.NumPad5;
-                map[KeyCode.KKP6] = Keys.NumPad6;
-                map[KeyCode.KKP7] = Keys.NumPad7;
-                map[KeyCode.KKP8] = Keys.NumPad8;
-                map[KeyCode.KKP9] = Keys.NumPad9;
-                map[KeyCode.KKPMultiply] = Keys.Multiply;
-                map[KeyCode.KPlus] = Keys.OemPlus;
-                map[KeyCode.KKPPlus] = Keys.Add;
-                map[KeyCode.KSeparator] = Keys.Separator;
-                map[KeyCode.KMinus] = Keys.OemMinus;
-                map[KeyCode.KKPMinus] = Keys.Subtract;
-                map[KeyCode.KDecimalseparator] = Keys.Decimal;
-                map[KeyCode.KKPDecimal] = Keys.Decimal;
-                map[KeyCode.KKPDivide] = Keys.Divide;
-                map[KeyCode.KF1] = Keys.F1;
-                map[KeyCode.KF2] = Keys.F2;
-                map[KeyCode.KF3] = Keys.F3;
-                map[KeyCode.KF4] = Keys.F4;
-                map[KeyCode.KF5] = Keys.F5;
-                map[KeyCode.KF6] = Keys.F6;
-                map[KeyCode.KF7] = Keys.F7;
-                map[KeyCode.KF8] = Keys.F8;
-                map[KeyCode.KF9] = Keys.F9;
-                map[KeyCode.KF10] = Keys.F10;
-                map[KeyCode.KF11] = Keys.F11;
-                map[KeyCode.KF12] = Keys.F12;
-                map[KeyCode.KF13] = Keys.F13;
-                map[KeyCode.KF14] = Keys.F14;
-                map[KeyCode.KF15] = Keys.F15;
-                map[KeyCode.KF16] = Keys.F16;
-                map[KeyCode.KF17] = Keys.F17;
-                map[KeyCode.KF18] = Keys.F18;
-                map[KeyCode.KF19] = Keys.F19;
-                map[KeyCode.KF20] = Keys.F20;
-                map[KeyCode.KF21] = Keys.F21;
-                map[KeyCode.KF22] = Keys.F22;
-                map[KeyCode.KF23] = Keys.F23;
-                map[KeyCode.KF24] = Keys.F24;
-                map[KeyCode.KNumlockclear] = Keys.NumLock;
-                map[KeyCode.KScrolllock] = Keys.Scroll;
-                map[KeyCode.KLshift] = Keys.LeftShift;
-                map[KeyCode.KRshift] = Keys.RightShift;
-                map[KeyCode.KLctrl] = Keys.LeftCtrl;
-                map[KeyCode.KRctrl] = Keys.RightCtrl;
-                map[KeyCode.KLalt] = Keys.LeftAlt;
-                map[KeyCode.KRalt] = Keys.RightAlt;
-                map[KeyCode.KACBack] = Keys.BrowserBack;
-                map[KeyCode.KACForward] = Keys.BrowserForward;
-                map[KeyCode.KACRefresh] = Keys.BrowserRefresh;
-                map[KeyCode.KACStop] = Keys.BrowserStop;
-                map[KeyCode.KACSearch] = Keys.BrowserSearch;
-                map[KeyCode.KACBookmarks] = Keys.BrowserFavorites;
-                map[KeyCode.KACHome] = Keys.BrowserHome;
-                map[KeyCode.KAudiomute] = Keys.VolumeMute;
-                map[KeyCode.KVolumedown] = Keys.VolumeDown;
-                map[KeyCode.KVolumeup] = Keys.VolumeUp;
-                map[KeyCode.KAudionext] = Keys.MediaNextTrack;
-                map[KeyCode.KAudioprev] = Keys.MediaPreviousTrack;
-                map[KeyCode.KAudiostop] = Keys.MediaStop;
-                map[KeyCode.KAudioplay] = Keys.MediaPlayPause;
-                map[KeyCode.KMail] = Keys.LaunchMail;
-                map[KeyCode.KMediaselect] = Keys.SelectMedia;
-                //            map [KeyCode.KUnknown] = Keys.LaunchApplication1;
-                //            map [KeyCode.KUnknown] = Keys.LaunchApplication2;
-                //            map [KeyCode.KUnknown] = Keys.Oem1;
-                //            map [KeyCode.KUnknown] = Keys.OemSemicolon;
-                //            map [KeyCode.KUnknown] = Keys.OemComma;
-                //            map [KeyCode.KUnknown] = Keys.OemPeriod;
-                //            map [KeyCode.KUnknown] = Keys.Oem2;
-                //            map [KeyCode.KUnknown] = Keys.OemQuestion;
-                //            map [KeyCode.KUnknown] = Keys.Oem3;
-                //            map [KeyCode.KUnknown] = Keys.OemTilde;
-                //            map [KeyCode.KUnknown] = Keys.Oem4;
-                //            map [KeyCode.KUnknown] = Keys.OemOpenBrackets;
-                //            map [KeyCode.KUnknown] = Keys.Oem5;
-                //            map [KeyCode.KUnknown] = Keys.OemPipe;
-                //            map [KeyCode.KUnknown] = Keys.Oem6;
-                //            map [KeyCode.KUnknown] = Keys.OemCloseBrackets;
-                //            map [KeyCode.KUnknown] = Keys.Oem7;
-                //            map [KeyCode.KUnknown] = Keys.OemQuotes;
-                //            map [KeyCode.KUnknown] = Keys.Oem8;
-                //            map [KeyCode.KUnknown] = Keys.Oem102;
-                //            map [KeyCode.KUnknown] = Keys.OemBackslash;
-                //            map [KeyCode.KUnknown] = Keys.Attn;
-                map[KeyCode.KCrsel] = Keys.CrSel;
-                map[KeyCode.KExsel] = Keys.ExSel;
-                //            map [KeyCode.KUnknown] = Keys.EraseEof;
-                //            map [KeyCode.KUnknown] = Keys.Play;
-                //            map [KeyCode.KUnknown] = Keys.Zoom;
-                //            map [KeyCode.KUnknown] = Keys.NoName;
-                //            map [KeyCode.KUnknown] = Keys.Pa1;
-                //            map [KeyCode.KUnknown] = Keys.OemClear;
-                return map;
+                // Resources: http://kbdlayout.info/kbdusx/overview+virtualkeys
+                //            https://wiki.libsdl.org/SDL_Keycode
+                //            http://kbdedit.com/manual/low_level_vk_list.html
+                switch(input)
+                {
+                    case KeyCode.KUnknown: return Keys.None;
+                    case KeyCode.KCancel: return Keys.Cancel;
+                    case KeyCode.KKPBackspace: case KeyCode.KBackspace: return Keys.Back;
+                    case KeyCode.KTab: case KeyCode.KKPTab: return Keys.Tab;
+                    //            KeyCode.KUnknown: return Keys.LineFeed;
+                    case KeyCode.KClear: case KeyCode.KClearagain: case KeyCode.KKPClear: case KeyCode.KKPClearentry: return Keys.Clear;
+                    case KeyCode.KReturn: case KeyCode.KReturn2: return Keys.Return;
+                    case KeyCode.KPause: return Keys.Pause;
+                    //            KeyCode.KCapslock: return Keys.Capital; // Capital is the same as CapsLock
+                    case KeyCode.KCapslock: return Keys.CapsLock;
+                    //            KeyCode.KUnknown: return Keys.HangulMode;
+                    //            KeyCode.KUnknown: return Keys.KanaMode;
+                    //            KeyCode.KUnknown: return Keys.JunjaMode;
+                    //            KeyCode.KUnknown: return Keys.FinalMode;
+                    //            KeyCode.KUnknown: return Keys.HanjaMode;
+                    //            KeyCode.KUnknown: return Keys.KanjiMode;
+                    case KeyCode.KEscape: return Keys.Escape;
+                    //            KeyCode.KUnknown: return Keys.ImeConvert;
+                    //            KeyCode.KUnknown: return Keys.ImeNonConvert;
+                    //            KeyCode.KUnknown: return Keys.ImeAccept;
+                    //            KeyCode.KUnknown: return Keys.ImeModeChange;
+                    case KeyCode.KSpace: case KeyCode.KKPSpace: return Keys.Space;
+                    case KeyCode.KPageup: return Keys.PageUp;
+                    case KeyCode.KPrior: return Keys.Prior;
+                    //            KeyCode.KPagedown: return Keys.Next; // Next is the same as PageDown
+                    case KeyCode.KPagedown: return Keys.PageDown;
+                    case KeyCode.KEnd: return Keys.End;
+                    case KeyCode.KHome: return Keys.Home;
+                    case KeyCode.KLeft: return Keys.Left;
+                    case KeyCode.KUp: return Keys.Up;
+                    case KeyCode.KRight: return Keys.Right;
+                    case KeyCode.KDown: return Keys.Down;
+                    case KeyCode.KSelect: return Keys.Select;
+                    //            KeyCode.KUnknown: return Keys.Print;
+                    case KeyCode.KExecute: return Keys.Execute;
+                    case KeyCode.KPrintscreen: return Keys.PrintScreen;
+                    //            KeyCode.KPrintscreen: return Keys.Snapshot; // Snapshot is the same as PrintScreen
+                    case KeyCode.KInsert: return Keys.Insert;
+                    case KeyCode.KDelete: return Keys.Delete;
+                    case KeyCode.KHelp: return Keys.Help;
+                    case KeyCode.K0: return Keys.D0;
+                    case KeyCode.K1: return Keys.D1;
+                    case KeyCode.K2: return Keys.D2;
+                    case KeyCode.K3: return Keys.D3;
+                    case KeyCode.K4: return Keys.D4;
+                    case KeyCode.K5: return Keys.D5;
+                    case KeyCode.K6: return Keys.D6;
+                    case KeyCode.K7: return Keys.D7;
+                    case KeyCode.K8: return Keys.D8;
+                    case KeyCode.K9: return Keys.D9;
+                    case KeyCode.KA: return Keys.A;
+                    case KeyCode.KB: return Keys.B;
+                    case KeyCode.KC: return Keys.C;
+                    case KeyCode.KD: return Keys.D;
+                    case KeyCode.KE: return Keys.E;
+                    case KeyCode.KF: return Keys.F;
+                    case KeyCode.KG: return Keys.G;
+                    case KeyCode.KH: return Keys.H;
+                    case KeyCode.KI: return Keys.I;
+                    case KeyCode.KJ: return Keys.J;
+                    case KeyCode.KK: return Keys.K;
+                    case KeyCode.KL: return Keys.L;
+                    case KeyCode.KM: return Keys.M;
+                    case KeyCode.KN: return Keys.N;
+                    case KeyCode.KO: return Keys.O;
+                    case KeyCode.KP: return Keys.P;
+                    case KeyCode.KQ: return Keys.Q;
+                    case KeyCode.KR: return Keys.R;
+                    case KeyCode.KS: return Keys.S;
+                    case KeyCode.KT: return Keys.T;
+                    case KeyCode.KU: return Keys.U;
+                    case KeyCode.KV: return Keys.V;
+                    case KeyCode.KW: return Keys.W;
+                    case KeyCode.KX: return Keys.X;
+                    case KeyCode.KY: return Keys.Y;
+                    case KeyCode.KZ: return Keys.Z;
+                    case KeyCode.KLgui: return Keys.LeftWin;
+                    case KeyCode.KRgui: return Keys.RightWin;
+                    case KeyCode.KApplication: return Keys.Apps;
+                    case KeyCode.KSleep: return Keys.Sleep;
+                    case KeyCode.KKP0: return Keys.NumPad0;
+                    case KeyCode.KKP1: return Keys.NumPad1;
+                    case KeyCode.KKP2: return Keys.NumPad2;
+                    case KeyCode.KKP3: return Keys.NumPad3;
+                    case KeyCode.KKP4: return Keys.NumPad4;
+                    case KeyCode.KKP5: return Keys.NumPad5;
+                    case KeyCode.KKP6: return Keys.NumPad6;
+                    case KeyCode.KKP7: return Keys.NumPad7;
+                    case KeyCode.KKP8: return Keys.NumPad8;
+                    case KeyCode.KKP9: return Keys.NumPad9;
+                    case KeyCode.KKPMultiply: return Keys.Multiply;
+                    case KeyCode.KPlus/*KPlus is not a physical key*/: case KeyCode.KKPPlus: return Keys.Add;
+                    case KeyCode.KSeparator: return Keys.Separator;
+                    case KeyCode.KKPMinus: return Keys.Subtract;
+                    case KeyCode.KKPComma: case KeyCode.KKPPeriod: case KeyCode.KKPDecimal: return Keys.Decimal;
+                    case KeyCode.KThousandsseparator: case KeyCode.KDecimalseparator: return Keys.Decimal; // See ISO/IEC 9995-4
+                    case KeyCode.KKPDivide: return Keys.Divide;
+                    case KeyCode.KF1: return Keys.F1;
+                    case KeyCode.KF2: return Keys.F2;
+                    case KeyCode.KF3: return Keys.F3;
+                    case KeyCode.KF4: return Keys.F4;
+                    case KeyCode.KF5: return Keys.F5;
+                    case KeyCode.KF6: return Keys.F6;
+                    case KeyCode.KF7: return Keys.F7;
+                    case KeyCode.KF8: return Keys.F8;
+                    case KeyCode.KF9: return Keys.F9;
+                    case KeyCode.KF10: return Keys.F10;
+                    case KeyCode.KF11: return Keys.F11;
+                    case KeyCode.KF12: return Keys.F12;
+                    case KeyCode.KF13: return Keys.F13;
+                    case KeyCode.KF14: return Keys.F14;
+                    case KeyCode.KF15: return Keys.F15;
+                    case KeyCode.KF16: return Keys.F16;
+                    case KeyCode.KF17: return Keys.F17;
+                    case KeyCode.KF18: return Keys.F18;
+                    case KeyCode.KF19: return Keys.F19;
+                    case KeyCode.KF20: return Keys.F20;
+                    case KeyCode.KF21: return Keys.F21;
+                    case KeyCode.KF22: return Keys.F22;
+                    case KeyCode.KF23: return Keys.F23;
+                    case KeyCode.KF24: return Keys.F24;
+                    case KeyCode.KNumlockclear: return Keys.NumLock;
+                    case KeyCode.KScrolllock: return Keys.Scroll;
+                    case KeyCode.KLshift: return Keys.LeftShift;
+                    case KeyCode.KRshift: return Keys.RightShift;
+                    case KeyCode.KLctrl: return Keys.LeftCtrl;
+                    case KeyCode.KRctrl: return Keys.RightCtrl;
+                    case KeyCode.KLalt: return Keys.LeftAlt;
+                    case KeyCode.KRalt: return Keys.RightAlt;
+                    case KeyCode.KACBack: return Keys.BrowserBack;
+                    case KeyCode.KACForward: return Keys.BrowserForward;
+                    case KeyCode.KACRefresh: return Keys.BrowserRefresh;
+                    case KeyCode.KACStop: return Keys.BrowserStop;
+                    case KeyCode.KACSearch: return Keys.BrowserSearch;
+                    case KeyCode.KACBookmarks: return Keys.BrowserFavorites;
+                    case KeyCode.KACHome: return Keys.BrowserHome;
+                    case KeyCode.KAudiomute: return Keys.VolumeMute;
+                    case KeyCode.KVolumedown: return Keys.VolumeDown;
+                    case KeyCode.KVolumeup: return Keys.VolumeUp;
+                    case KeyCode.KAudionext: return Keys.MediaNextTrack;
+                    case KeyCode.KAudioprev: return Keys.MediaPreviousTrack;
+                    case KeyCode.KAudiostop: return Keys.MediaStop;
+                    case KeyCode.KAudioplay: return Keys.MediaPlayPause;
+                    case KeyCode.KMail: return Keys.LaunchMail;
+                    case KeyCode.KMediaselect: return Keys.SelectMedia;
+                    case KeyCode.KApp1: return Keys.LaunchApplication1;
+                    case KeyCode.KApp2: return Keys.LaunchApplication2;
+                    //            KeyCode.KSemicolon: return Keys.Oem1; // Same as OemSemicolon
+                    case KeyCode.KSemicolon: return Keys.OemSemicolon;
+                    case KeyCode.KEquals: return Keys.OemPlus;
+                    case KeyCode.KComma: return Keys.OemComma;
+                    case KeyCode.KMinus: return Keys.OemMinus;
+                    case KeyCode.KPeriod: return Keys.OemPeriod;
+                    //            KeyCode.KUnknown: return Keys.Oem2; // Same as OemQuestion
+                    case KeyCode.KSlash: return Keys.OemQuestion;
+                    //            KeyCode.KUnknown: return Keys.Oem3; // Same as OemTilde
+                    case KeyCode.KBackquote: return Keys.OemTilde;
+                    //            KeyCode.KUnknown: return Keys.Oem4; // Same as OemOpenBrackets
+                    case KeyCode.KLeftbracket: return Keys.OemOpenBrackets;
+                    //            KeyCode.KUnknown: return Keys.Oem5; // Same as OemPipe
+                    case KeyCode.KBackslash when scancode != Scancode.ScancodeNonusbackslash: return Keys.OemPipe; // SDL maps both Oem5 and Oem102 to the same KeyCode; we have to select based on scancode
+                    //            KeyCode.KUnknown: return Keys.Oem6; // Same as OemCloseBrackets
+                    case KeyCode.KRightbracket: return Keys.OemCloseBrackets;
+                    //            KeyCode.KUnknown: return Keys.Oem7; // same as OemQuotes
+                    case KeyCode.KQuote: return Keys.OemQuotes;
+                    // SDL maps OEM8 to Backquote which is already OEMTilde; this key is often used to open in game consoles and such; I think we should keep it as is
+                    // to avoid UK players being unable to access that feature
+                    // http://kbdlayout.info/kbdsmsfi
+                    // KeyCode.KBackquote: return Keys.Oem8;
+                    //            KeyCode.KUnknown: return Keys.Oem102; // same as OemBackslash
+                    case KeyCode.KBackslash when scancode == Scancode.ScancodeNonusbackslash: return Keys.OemBackslash;
+                    //            KeyCode.KUnknown: return Keys.Attn;
+                    case KeyCode.KCrsel: return Keys.CrSel;
+                    case KeyCode.KExsel: return Keys.ExSel;
+                    //            KeyCode.KUnknown: return Keys.EraseEof;
+                    //            KeyCode.KUnknown: return Keys.Play;
+                    //            KeyCode.KUnknown: return Keys.Zoom;
+                    //            KeyCode.KUnknown: return Keys.NoName;
+                    //            KeyCode.KUnknown: return Keys.Pa1;
+                    //            KeyCode.KUnknown: return Keys.OemClear;
+                    case KeyCode.KKPEnter: return Keys.NumPadEnter;
+                    default: return Keys.None;
+                }
             }
         }
     }

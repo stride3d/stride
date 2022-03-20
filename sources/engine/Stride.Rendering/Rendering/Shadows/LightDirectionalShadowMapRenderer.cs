@@ -221,9 +221,10 @@ namespace Stride.Rendering.Shadows
                     {
                         // Snap camera to texel units (so that shadow doesn't jitter when light doesn't change direction but camera is moving)
                         // Technique from ShaderX7 - Practical Cascaded Shadows Maps -  p310-311
-                        var shadowMapHalfSize = lightShadowMap.Size * 0.5f;
-                        float x = MathF.Ceiling(Vector3.Dot(target, upDirection) * shadowMapHalfSize / radius) * radius / shadowMapHalfSize;
-                        float y = MathF.Ceiling(Vector3.Dot(target, side) * shadowMapHalfSize / radius) * radius / shadowMapHalfSize;
+                        // 0.25f to stabilize the 4x4 dithered shadow pattern
+                        var snappingFactor = lightShadowMap.Size * 0.5f * 0.25f / radius;
+                        float x = MathF.Ceiling(Vector3.Dot(target, upDirection) * snappingFactor) / snappingFactor;
+                        float y = MathF.Ceiling(Vector3.Dot(target, side) * snappingFactor) / snappingFactor;
                         float z = Vector3.Dot(target, direction);
 
                         //target = up * x + side * y + direction * R32G32B32_Float.Dot(target, direction);

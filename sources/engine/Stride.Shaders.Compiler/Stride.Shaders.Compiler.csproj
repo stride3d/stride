@@ -8,7 +8,7 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer</StrideAssemblyProcessorOptions>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(DisableRegistryUse)' != 'true' And '$(StridePlatform)' == 'Windows'">
+  <PropertyGroup Condition="'$(DisableRegistryUse)' != 'true'">
     <WindowsSdkDir_10 Condition="'$(WindowsSdkDir_10)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0@InstallationFolder)</WindowsSdkDir_10>
     <WindowsSdkDir_10 Condition="'$(WindowsSdkDir_10)' == ''">$(Registry:HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v10.0@InstallationFolder)</WindowsSdkDir_10>
   </PropertyGroup>
@@ -19,9 +19,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Parser\Stride.Shaders.Parser.csproj" />
-    <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'UWP'" />
+    <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" />
   </ItemGroup>
-  <ItemGroup Condition="$(TargetFramework.StartsWith('net'))">
+  <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
     <StrideNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">
       <Link>win-%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>win-%(RecursiveDir)%(Filename)%(Extension)</RelativePath>

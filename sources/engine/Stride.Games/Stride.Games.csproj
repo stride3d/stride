@@ -21,7 +21,7 @@
     <Compile Remove="Resources\Resource.Designer.cs" />
   </ItemGroup>
   <Choose>
-    <When Condition=" '$(StridePlatform)' == 'Android'">
+    <When Condition=" '$(TargetFramework)' == '$(StrideFrameworkAndroid)'">
       <PropertyGroup>
         <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
       </PropertyGroup>

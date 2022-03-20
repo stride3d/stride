@@ -11,33 +11,6 @@ namespace Stride.Games
     /// </summary>
     public static class GameContextFactory
     {
-        [Obsolete("Use NewGameContext with the proper AppContextType.")]
-        internal static GameContext NewDefaultGameContext(int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
-        {
-            // Default context is Desktop
-            AppContextType type = AppContextType.Desktop;
-#if STRIDE_PLATFORM_DESKTOP
-    #if STRIDE_GRAPHICS_API_OPENGL
-        #if STRIDE_UI_SDL
-            type = AppContextType.DesktopSDL;
-        #endif
-    #elif STRIDE_GRAPHICS_API_VULKAN
-        #if STRIDE_UI_SDL && !STRIDE_UI_WINFORMS && !STRIDE_UI_WPF
-            type = AppContextType.DesktopSDL;
-        #endif
-    #else
-            type = AppContextType.Desktop;
-    #endif
-#elif STRIDE_PLATFORM_UWP
-            type = AppContextType.UWPXaml; // Can change later to CoreWindow
-#elif STRIDE_PLATFORM_ANDROID
-            type = AppContextType.Android;
-#elif STRIDE_PLATFORM_IOS
-            type = AppContextType.iOS;
-#endif
-            return NewGameContext(type, requestedWidth, requestedHeight, isUserManagingRun);
-        }
-
         /// <summary>
         /// Given a <paramref name="type"/> create the appropriate game Context for the current executing platform.
         /// </summary>

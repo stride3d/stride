@@ -22,7 +22,6 @@
     <ProjectReference Include="..\..\core\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <StrideContent Condition="'$(StridePlatform)' == 'Linux'" Include="Stride.Native.dll.config" />
     <None Include="Stride.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>

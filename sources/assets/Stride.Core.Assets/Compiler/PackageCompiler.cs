@@ -21,7 +21,7 @@ namespace Stride.Core.Assets.Compiler
         {
             // Compute StrideSdkDir from this assembly
             // TODO Move this code to a reusable method
-            var codeBase = typeof(PackageCompiler).Assembly.CodeBase;
+            var codeBase = typeof(PackageCompiler).Assembly.Location;
             var uri = new UriBuilder(codeBase);
             var path = Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path));
             SdkDirectory = Path.GetFullPath(Path.Combine(path, @"..\.."));

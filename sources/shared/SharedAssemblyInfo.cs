@@ -45,7 +45,7 @@ namespace Stride
         /// <summary>
         /// The NuGet package suffix (i.e. -beta).
         /// </summary>
-        public const string NuGetVersionSuffix = "-beta";
+        public const string NuGetVersionSuffix = "";
 
         /// <summary>
         /// The build metadata, usually +g[git_hash] during package. Automatically set by Stride.GitVersioning.GenerateVersionFile.

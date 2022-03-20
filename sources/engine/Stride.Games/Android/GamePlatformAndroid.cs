@@ -37,7 +37,7 @@ namespace Stride.Games
         {
             get
             {
-                var assemblyUri = new Uri(Assembly.GetEntryAssembly().CodeBase);
+                var assemblyUri = new Uri(Assembly.GetEntryAssembly().Location);
                 return Path.GetDirectoryName(assemblyUri.LocalPath);
             }
         }
