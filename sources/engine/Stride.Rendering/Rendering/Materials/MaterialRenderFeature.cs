@@ -74,6 +74,8 @@ namespace Stride.Rendering.Materials
             public ShaderSource PixelStageSurfaceShaders;
             public ShaderSource PixelStageStreamInitializer;
 
+            public ShaderSource CustomShaders;
+
             public bool HasNormalMap;
 
             /// <summary>
@@ -233,6 +235,8 @@ namespace Stride.Rendering.Materials
                                 materialInfo.MaterialParameters = material.Parameters;
                                 materialInfo.ParametersChanged = isMaterialParametersChanged;
                                 materialInfo.PermutationCounter = material.Parameters.PermutationCounter;
+
+                                materialInfo.CustomShaders = material.Parameters.Get(MaterialKeys.CustomShaders);
                             }
                         }
                     }
@@ -264,6 +268,10 @@ namespace Stride.Rendering.Materials
                         renderEffect.EffectValidator.ValidateParameter(MaterialKeys.UsePixelShaderWithDepthPass, materialInfo.UsePixelShaderWithDepthPass);
                     if (materialInfo.UseDitheredShadows)
                         renderEffect.EffectValidator.ValidateParameter(MaterialKeys.UseDitheredShadows, materialInfo.UseDitheredShadows);
+
+                    // Custom
+                    if (materialInfo.CustomShaders != null)
+                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.CustomShaders, materialInfo.CustomShaders);
                 }
             });
 

@@ -14,7 +14,8 @@ namespace Stride.Rendering.Materials
         public static readonly PermutationParameterKey<ShaderSource> VertexStageSurfaceShaders = ParameterKeys.NewPermutation<ShaderSource>();
         public static readonly PermutationParameterKey<ShaderSource> DomainStageSurfaceShaders = ParameterKeys.NewPermutation<ShaderSource>();
         public static readonly PermutationParameterKey<ShaderSource> PixelStageSurfaceShaders = ParameterKeys.NewPermutation<ShaderSource>();
-        
+        public static readonly PermutationParameterKey<ShaderSource> CustomShaders = ParameterKeys.NewPermutation<ShaderSource>();
+
         public static readonly PermutationParameterKey<ShaderSource> VertexStageStreamInitializer = ParameterKeys.NewPermutation<ShaderSource>();
         public static readonly PermutationParameterKey<ShaderSource> DomainStageStreamInitializer = ParameterKeys.NewPermutation<ShaderSource>();
         public static readonly PermutationParameterKey<ShaderSource> PixelStageStreamInitializer = ParameterKeys.NewPermutation<ShaderSource>();
