@@ -1,0 +1,8 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'Stride.Core.CompilerServices'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../core/Stride.Core.CompilerServices/Stride.Core.CompilerServices.csproj"
+                      OutputItemType="Analyzer"
+                      SetTargetFramework="TargetFramework=netstandard2.0"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

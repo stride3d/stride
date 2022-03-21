@@ -243,6 +243,9 @@
     </ItemGroup>
   </Target>
 
+  <!-- Include Stride analyzer/code generator -->
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.CompilerServices.props"/>
+
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" Condition="'$(StrideProjectType)' != 'Cpp'" />
 
 </Project>
