@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Description>Code generators for Stride.Core and its dependents</Description>
 		<StrideSkipAutoPack>true</StrideSkipAutoPack>
-		<DefineConstants>LAUNCH_DEBUGGER;$(DefineConstants)</DefineConstants>
+		<!--<DefineConstants>LAUNCH_DEBUGGER;$(DefineConstants)</DefineConstants>-->
 	</PropertyGroup>
 
 	<ItemGroup>

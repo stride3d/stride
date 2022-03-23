@@ -10,6 +10,8 @@ namespace Stride.Core.CompilerServices
     [Generator]
     public partial class SerializerGenerator : ISourceGenerator
     {
+        private static ITypeSymbol systemInt32Symbol;
+        private static ITypeSymbol systemObjectSymbol;
         public void Initialize(GeneratorInitializationContext context)
         {
 #if LAUNCH_DEBUGGER
@@ -22,7 +24,16 @@ namespace Stride.Core.CompilerServices
 
         public void Execute(GeneratorExecutionContext context)
         {
+            InitStaticSymbols(context);
             var spec = GenerateSpec(context);
+            // TODO validate every type referenced by a member is serializable
+            EmitCode(context, spec);
+        }
+
+        private static void InitStaticSymbols(GeneratorExecutionContext context)
+        {
+            systemInt32Symbol ??= context.Compilation.GetSpecialType(SpecialType.System_Int32);
+            systemObjectSymbol ??= context.Compilation.GetSpecialType(SpecialType.System_Object);
         }
     }
 }

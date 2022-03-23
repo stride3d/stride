@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -8,28 +10,48 @@ namespace Stride.Core.CompilerServices
     public partial class SerializerGenerator
     {
         private const string DataContractAttributeName = "Stride.Core.DataContractAttribute";
+        private const string DataSerializerAttributeName = "Stride.Core.Serialization.DataSerializerAttribute";
+        private const string DataAliasAttributeName = "Stride.Core.DataAliasAttribute";
         private const string DataMemberAttributeName = "Stride.Core.DataMemberAttribute";
         private const string DataMemberIgnoreAttributeName = "Stride.Core.DataMemberIgnoreAttribute";
+        private const string StructLayoutAttributeName = "System.Runtime.InteropServices.StructLayoutAttribute";
+        private const string FieldOffsetAttributeName = "System.Runtime.InteropServices.FieldOffsetAttribute";
 
-        internal SerializerSpec GenerateSpec(GeneratorExecutionContext context)
+        private static readonly SymbolDisplayFormat SimpleClassNameWithNestedInfo = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+
+        internal static SerializerSpec GenerateSpec(GeneratorExecutionContext context)
         {
-            List<SerializerTypeSpec> typeSpecs = new List<SerializerTypeSpec>();
+            HashSet<SerializerTypeSpec> typeSpecs = new HashSet<SerializerTypeSpec>(new SerializerTypeSpec.EqualityComparer());
             foreach (var syntaxTree in context.Compilation.SyntaxTrees)
             {
                 var semanticModel = context.Compilation.GetSemanticModel(syntaxTree);
 
-                foreach (var classSyntax in syntaxTree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Cast<ClassDeclarationSyntax>())
+                foreach (var typeSyntax in syntaxTree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>().Cast<TypeDeclarationSyntax>())
                 {
-                    if (CheckForDataContract(semanticModel, classSyntax))
+                    if (typeSyntax is InterfaceDeclarationSyntax)
                     {
-                        var classSymbol = semanticModel.GetDeclaredSymbol(classSyntax) as INamedTypeSymbol;
-                        if (!classSymbol.Constructors.Any(ctor => !ctor.Parameters.Any()))
+                        // we don't support interface serializers
+                        continue;
+                    }
+
+                    var typeSymbol = semanticModel.GetDeclaredSymbol(typeSyntax) as INamedTypeSymbol;
+
+                    if (CheckForDataContract(typeSymbol))
+                    {
+                        if (!typeSymbol.IsValueType && !typeSymbol.IsAbstract && !typeSymbol.Constructors.Any(
+                                ctor => !ctor.Parameters.Any() && ctor.DeclaredAccessibility == Accessibility.Public))
                         {
-                            // complain warning
+                            // DataContract classes should have a public parameterless constructor to satisfy a generic new() constraint
+                            context.ReportDiagnostic(Diagnostic.Create(
+                                DataContractClassHasNoAccessibleParameterlessCtor,
+                                typeSymbol.Locations.FirstOrDefault(),
+                                typeSymbol.ToDisplayString(SimpleClassNameWithNestedInfo)));
                             continue;
                         }
 
-                        typeSpecs.Add(GenerateTypeSpec(semanticModel, classSyntax));
+                        typeSpecs.Add(GenerateTypeSpec(context, typeSymbol));
                     }
                 }
             }
@@ -40,28 +62,31 @@ namespace Stride.Core.CompilerServices
             };
         }
 
-        private static SerializerTypeSpec GenerateTypeSpec(SemanticModel semanticModel, ClassDeclarationSyntax classSyntax)
+        private static SerializerTypeSpec GenerateTypeSpec(GeneratorExecutionContext context, INamedTypeSymbol type)
         {
-            // get members
-            var type = semanticModel.GetDeclaredSymbol(classSyntax) as INamedTypeSymbol;
+            var typeAttributes = type.GetAttributes();
+            var dataContractAttribute = typeAttributes.FirstOrDefault(static attr => attr.AttributeClass.ToDisplayString() == DataContractAttributeName);
+            var dataAliasAttributes = typeAttributes.Where(static attr => attr.AttributeClass.ToDisplayString() == DataAliasAttributeName).ToList();
+
             var members = new List<SerializerMemberSpec>();
-
-            // TODO: assign Order to each member if it's set in [DataMember] || type.IsSequentialLayout || type.IsExplicitLayout <- based on [FieldOffset]
-
             foreach (var member in type.GetMembers())
             {
                 if (member.IsStatic || member is IMethodSymbol)
                     continue;
 
                 var attributes = member.GetAttributes();
-                var ignoreAttribute = attributes.FirstOrDefault(attr => attr.AttributeClass.ToDisplayString() == DataMemberIgnoreAttributeName);
-                var memberAttribute = attributes.FirstOrDefault(attr => attr.AttributeClass.ToDisplayString() == DataMemberAttributeName);
+                var ignoreAttribute = attributes.FirstOrDefault(static attr => attr.AttributeClass.ToDisplayString() == DataMemberIgnoreAttributeName);
+                var dataMemberAttribute = attributes.FirstOrDefault(static attr => attr.AttributeClass.ToDisplayString() == DataMemberAttributeName);
 
                 if (ignoreAttribute != null)
                 {
-                    if (memberAttribute != null)
+                    if (dataMemberAttribute != null)
                     {
-                        // complain warning
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            DataContractMemberHasBothIncludeAndIgnoreAttr,
+                            member.Locations.FirstOrDefault(),
+                            member.Name,
+                            type.ToDisplayString(SimpleClassNameWithNestedInfo)));
                     }
 
                     // member was ignored
@@ -70,14 +95,13 @@ namespace Stride.Core.CompilerServices
 
                 if (member.DeclaredAccessibility != Accessibility.Public)
                 {
-                    if (!(member.DeclaredAccessibility == Accessibility.Internal && memberAttribute != null))
+                    if (!(member.DeclaredAccessibility == Accessibility.Internal && dataMemberAttribute != null))
                     {
                         // member is not public or internal with attribute 
                         continue;
                     }
                 }
 
-                string name = null;
                 ITypeSymbol memberType = null;
 
                 if (member is IPropertySymbol prop)
@@ -94,81 +118,105 @@ namespace Stride.Core.CompilerServices
                         continue;
                     }
 
-                    name = prop.Name;
                     memberType = prop.Type;
                 }
                 else if (member is IFieldSymbol field)
                 {
-                    name = field.Name;
                     memberType = field.Type;
                 }
 
-                if (name == null || memberType == null)
+                if (memberType == null)
                 {
                     // member is neither a property or a field?
                     continue;
                 }
 
-                members.Add(new SerializerMemberSpec(name, memberType));
+                int? order = GetOrderOfMember(typeAttributes, attributes, dataMemberAttribute);
+
+                members.Add(new SerializerMemberSpec(member, memberType, order));
             }
 
-            return new SerializerTypeSpec(type, members);
+            // Sort members by their order
+            members.Sort();
+
+            var typeSpec = new SerializerTypeSpec(type, members);
+
+            // add aliases
+            {
+                if (dataContractAttribute != null && dataContractAttribute.ConstructorArguments.FirstOrDefault() is TypedConstant aliasWrapper && aliasWrapper.Value is string alias)
+                {
+                    typeSpec.Aliases.Add(alias);
+                }
+            }
+            foreach (var aliasAttr in dataAliasAttributes)
+            {
+                if (aliasAttr.ConstructorArguments.FirstOrDefault() is TypedConstant aliasWrapper && aliasWrapper.Value is string alias)
+                {
+                    typeSpec.Aliases.Add(alias);
+                }
+            }
+
+            return typeSpec;
         }
 
-        private bool CheckForDataContract(SemanticModel semanticModel, ClassDeclarationSyntax classSyntax)
+        private static int? GetOrderOfMember(ImmutableArray<AttributeData> typeAttributes, ImmutableArray<AttributeData> memberAttributes, AttributeData dataMemberAttribute)
         {
+            var layoutAttribute = typeAttributes.FirstOrDefault(static attr => attr.AttributeClass.ToDisplayString() == StructLayoutAttributeName);
+            if (layoutAttribute != null)
+            {
+                LayoutKind layoutKind = (LayoutKind)layoutAttribute.ConstructorArguments[0].Value;
+
+                if (layoutKind == LayoutKind.Sequential)
+                {
+                    return null;
+                }
+                else if (layoutKind == LayoutKind.Explicit)
+                {
+                    var fieldOffsetAttribute = memberAttributes.FirstOrDefault(static attr => attr.AttributeClass.ToDisplayString() == FieldOffsetAttributeName);
+                    int offset = (int)fieldOffsetAttribute.ConstructorArguments[0].Value;
+                    return offset;
+                }
+            }
+
+            if (dataMemberAttribute != null)
+            {
+                if (dataMemberAttribute.AttributeConstructor.Parameters.FirstOrDefault() is IParameterSymbol parameter &&
+                    parameter.Type.Equals(systemInt32Symbol, SymbolEqualityComparer.Default))
+                {
+                    return (int)dataMemberAttribute.ConstructorArguments[0].Value;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool CheckForDataContract(INamedTypeSymbol typeSymbol)
+        {
+            if (CheckSymbolClassAttributesForSpecificAttribute(typeSymbol, DataSerializerAttributeName))
+            {
+                // if a class has a custom serializer define we should not attempt to generate one for it from a DataContract
+                return false;
+            }
+            
             // check if class has [DataContract]
-            bool hasDataContract = CheckClassAttributesForDataContract(semanticModel, classSyntax);
+            bool hasDataContract = CheckSymbolClassAttributesForSpecificAttribute(typeSymbol, DataContractAttributeName);
 
             // check if class inherits [DataContract]
-            if (!hasDataContract && classSyntax.BaseList != null)
+            if (!hasDataContract)
             {
-                hasDataContract = CheckBaseClassesForInheritedDataContract(semanticModel, classSyntax);
+                hasDataContract = CheckSymbolBaseClassesForInheritedDataContract(typeSymbol);
             }
 
             return hasDataContract;
         }
 
-        private static bool CheckClassAttributesForDataContract(SemanticModel semanticModel, ClassDeclarationSyntax classSyntax)
-        {
-            foreach (AttributeListSyntax attributeListSyntax in classSyntax.AttributeLists)
-            {
-                foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
-                {
-                    // Get Attribute declaration symbol which is a method
-                    IMethodSymbol attributeSymbol = semanticModel.GetSymbolInfo(attributeSyntax).Symbol as IMethodSymbol;
-                    if (attributeSymbol == null)
-                    {
-                        continue;
-                    }
-
-                    INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
-                    string fullName = attributeContainingTypeSymbol.ToDisplayString();
-
-                    // if the name of the type equals to name of DataContractAttribute add it to collection
-                    if (fullName == DataContractAttributeName)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private static bool CheckBaseClassesForInheritedDataContract(SemanticModel semanticModel, ClassDeclarationSyntax classSyntax)
-        {
-            var classSymbol = semanticModel.GetDeclaredSymbol(classSyntax) as INamedTypeSymbol;
-            return CheckSymbolBaseClassesForInheritedDataContract(classSymbol);
-        }
-
-        private static bool CheckSymbolClassAttributesForDataContract(INamedTypeSymbol classSymbol)
+        private static bool CheckSymbolClassAttributesForSpecificAttribute(INamedTypeSymbol classSymbol, string attributeClassName)
         {
             var attributes = classSymbol.GetAttributes();
             foreach (var attribute in attributes)
             {
                 var attributeFullName = attribute.AttributeClass.ToDisplayString();
-                if (attributeFullName == DataContractAttributeName)
+                if (attributeFullName == attributeClassName)
                 {
                     return true;
                 }

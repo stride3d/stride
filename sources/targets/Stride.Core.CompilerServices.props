@@ -5,4 +5,7 @@
                       SetTargetFramework="TargetFramework=netstandard2.0"
                       ReferenceOutputAssembly="false" />
   </ItemGroup>
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
 </Project>

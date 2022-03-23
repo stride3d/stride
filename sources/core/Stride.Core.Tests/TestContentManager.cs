@@ -50,7 +50,6 @@ namespace Stride.Core.Tests
         }
 
         [ContentSerializer(typeof(D.Serializer))]
-        [DataContract]
         public class D : ComponentBase
         {
             public D(int a)
