@@ -12,6 +12,11 @@ namespace Stride.Core.CompilerServices
         private readonly string typeName;
         public INamedTypeSymbol Type { get; private set; }
 
+        /// <summary>
+        /// Base type of Type, or null if base type is System.Object or the type is not serializable.
+        /// </summary>
+        public ITypeSymbol BaseType { get; set; }
+
         public List<SerializerMemberSpec> Members { get; private set; }
 
         public List<string> Aliases { get; } = new List<string>();

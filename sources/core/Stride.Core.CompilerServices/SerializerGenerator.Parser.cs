@@ -156,6 +156,12 @@ namespace Stride.Core.CompilerServices
                 }
             }
 
+            // Check if there's a base type, which will be validated later
+            if (!type.BaseType.Equals(systemObjectSymbol, SymbolEqualityComparer.Default))
+            {
+                typeSpec.BaseType = type.BaseType;
+            }
+
             return typeSpec;
         }
 

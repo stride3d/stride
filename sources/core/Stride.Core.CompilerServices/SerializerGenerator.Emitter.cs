@@ -9,6 +9,8 @@ namespace Stride.Core.CompilerServices
 {
     public partial class SerializerGenerator
     {
+        private const string ParentSerializerFieldName = "parentSerializer";
+
         private static readonly SymbolDisplayFormat NamespaceWithTypeNameWithoutGenerics = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
         private static readonly SymbolDisplayFormat NamespaceWithTypeNameWithGenerics = new SymbolDisplayFormat(
@@ -40,7 +42,7 @@ namespace Stride.Core.CompilerServices
                 if (typeSpec.Type.IsGenericType)
                 {
                     builder.Append("<");
-                    var genericParameters = typeSpec.Type.TypeArguments;
+                    var genericParameters = typeSpec.Type.TypeParameters;
                     for (int i = 0; i < genericParameters.Length; i++)
                     {
                         if (i > 0) builder.Append(", ");
@@ -64,51 +66,35 @@ namespace Stride.Core.CompilerServices
                 builder.AppendLine();
 
                 // emit generic type constraints
-                if (typeSpec.Type.TypeParameters.Length > 0)
-                {
-                    foreach (var typeParam in typeSpec.Type.TypeParameters)
-                    {
-                        var constraintBuilder = new StringBuilder();
-                        if (typeParam.HasValueTypeConstraint) constraintBuilder.Append("struct");
-                        if (typeParam.HasReferenceTypeConstraint) constraintBuilder.Append("class");
-                        if (typeParam.HasConstructorConstraint)
-                        {
-                            if (constraintBuilder.Length > 0)
-                            {
-                                constraintBuilder.Append(", ");
-                            }
-                            constraintBuilder.Append("new()");
-                        }
-                        foreach (var constraintType in typeParam.ConstraintTypes)
-                        {
-                            if (constraintBuilder.Length > 0)
-                            {
-                                constraintBuilder.Append(", ");
-                            }
-                            constraintBuilder.Append(constraintType.Name);
-                        }
-
-                        if (constraintBuilder.Length > 0)
-                        {
-                            builder.Append("  where ").Append(typeParam.Name).Append(" : ").Append(constraintBuilder.ToString()).AppendLine();
-                        }
-                    }
-                }
+                EmitDataContractSerializerGenericConstraints(typeSpec, builder);
 
                 builder.AppendLine("{");
-                var serializers = GetSerializerFieldList(typeSpec);
 
-                foreach (var kvp in serializers)
+                // Emit private fields - serializers, one for each type
+                var serializers = GetDataContractSerializerFieldList(typeSpec);
+                foreach (var (fieldName, serializerType) in serializers)
                 {
-                    var fieldName = kvp.Key;
-                    var serializerType = kvp.Value;
-                    builder.Append("  private DataSerializer<").Append(serializerType.ToDisplayString()).Append("> ").Append(fieldName).Append(";").AppendLine();
+                    EmitDataContractSerializerField(builder, fieldName, serializerType);
+                }
+                // And one for parent, if present
+                if (typeSpec.BaseType != null)
+                {
+                    EmitDataContractSerializerField(builder, ParentSerializerFieldName, typeSpec.BaseType);
                 }
 
                 builder.AppendLine();
                 builder.AppendLine("  public override void Initialize(SerializerSelector serializerSelector)");
                 builder.AppendLine("  {");
-                // TODO: Initialize(...)
+                // Create a member serializer for each member type
+                foreach (var (fieldName, serializerType) in serializers)
+                {
+                    builder.Append("    this.").Append(fieldName).Append(" = MemberSerializer<").Append(serializerType.ToDisplayString()).Append(">.Create(serializerSelector);").AppendLine();
+                }
+                // Get a serializer for the parent type
+                if (typeSpec.BaseType != null)
+                {
+                    builder.Append("    this.").Append(ParentSerializerFieldName).Append(" = serializerSelector.GetSerializer<").Append(typeSpec.BaseType.ToDisplayString()).Append(">();").AppendLine();
+                }
                 builder.AppendLine("  }");
 
                 builder.AppendLine();
@@ -128,20 +114,55 @@ namespace Stride.Core.CompilerServices
             }
         }
 
-        private static Dictionary<string, ITypeSymbol> GetSerializerFieldList(SerializerTypeSpec typeSpec)
+        private static void EmitDataContractSerializerGenericConstraints(SerializerTypeSpec typeSpec, StringBuilder builder)
         {
-            var serializers = new Dictionary<string, ITypeSymbol>();
+            if (typeSpec.Type.TypeParameters.Length > 0)
+            {
+                foreach (var typeParam in typeSpec.Type.TypeParameters)
+                {
+                    var constraintBuilder = new StringBuilder();
+                    if (typeParam.HasValueTypeConstraint) constraintBuilder.Append("struct");
+                    if (typeParam.HasReferenceTypeConstraint) constraintBuilder.Append("class");
+                    if (typeParam.HasConstructorConstraint)
+                    {
+                        if (constraintBuilder.Length > 0)
+                        {
+                            constraintBuilder.Append(", ");
+                        }
+                        constraintBuilder.Append("new()");
+                    }
+                    foreach (var constraintType in typeParam.ConstraintTypes)
+                    {
+                        if (constraintBuilder.Length > 0)
+                        {
+                            constraintBuilder.Append(", ");
+                        }
+                        constraintBuilder.Append(constraintType.Name);
+                    }
+
+                    if (constraintBuilder.Length > 0)
+                    {
+                        builder.Append("  where ").Append(typeParam.Name).Append(" : ").Append(constraintBuilder.ToString()).AppendLine();
+                    }
+                }
+            }
+        }
+
+        private static void EmitDataContractSerializerField(StringBuilder builder, string fieldName, ITypeSymbol serializerType)
+        {
+            builder.Append("  private DataSerializer<").Append(serializerType.ToDisplayString()).Append("> ").Append(fieldName).Append(";").AppendLine();
+        }
+
+        private static List<(string, ITypeSymbol)> GetDataContractSerializerFieldList(SerializerTypeSpec typeSpec)
+        {
+            var serializers = new List<(string, ITypeSymbol)>();
             foreach (var distinctMemberType in typeSpec.Members.Select(static member => member.Type).Distinct(SymbolEqualityComparer.Default).Cast<ITypeSymbol>())
             {
-                serializers.Add(
+                serializers.Add((
                     distinctMemberType.ToDisplayString(NamespaceWithTypeNameWithGenerics)
                         .Replace(".", "_").Replace("<", "_").Replace(">", "_").Replace(", ", "_").Replace("[]", "Array")
                         + "__Serializer",
-                    distinctMemberType);
-            }
-            if (!typeSpec.Type.BaseType.Equals(systemObjectSymbol, SymbolEqualityComparer.Default))
-            {
-                serializers.Add("parentSerializer", typeSpec.Type.BaseType);
+                    distinctMemberType));
             }
 
             return serializers;
