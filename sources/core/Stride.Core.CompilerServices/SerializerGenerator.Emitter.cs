@@ -29,7 +29,7 @@ namespace Stride.Core.CompilerServices
             {
                 try
                 {
-                    var serializerName = typeSpec.Type.ToDisplayString(NamespaceWithTypeNameWithoutGenerics).Replace(".", "_") + "Serializer";
+                    var serializerName = GetDataContractSerializerName(typeSpec.Type, includeArity: false);
                     var typeName = typeSpec.Type.ToDisplayString();
                     var builder = new StringBuilder();
 
@@ -150,8 +150,7 @@ namespace Stride.Core.CompilerServices
 
                     builder.AppendLine("}");
 
-                    // serializerFileName is serializerName with generic args arity
-                    var serializerFileName = typeSpec.Type.ToDisplayString(NamespaceWithTypeNameWithoutGenerics).Replace(".", "_") + typeSpec.Type.TypeArguments.Length + "Serializer";
+                    var serializerFileName = GetDataContractSerializerName(typeSpec.Type, includeArity: true);
                     context.AddSource(serializerFileName, builder.ToString());
                 }
                 catch (Exception ex)
@@ -232,6 +231,17 @@ namespace Stride.Core.CompilerServices
             }
 
             return serializers;
+        }
+
+        private static string GetDataContractSerializerName(INamedTypeSymbol typeSymbol, bool includeArity)
+        {
+            const string fmt = "{0}{1}Serializer";
+            string arity = string.Empty;
+            if (includeArity && typeSymbol.IsGenericType)
+            {
+                arity = typeSymbol.TypeArguments.Length.ToString();
+            }
+            return string.Format(fmt, typeSymbol.ToDisplayString(NamespaceWithTypeNameWithoutGenerics).Replace(".", "_"), arity);
         }
     }
 }
