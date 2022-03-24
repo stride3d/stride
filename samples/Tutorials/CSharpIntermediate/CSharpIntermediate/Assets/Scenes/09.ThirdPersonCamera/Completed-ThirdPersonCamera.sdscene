@@ -20,7 +20,7 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
             Base:
-                BasePartAsset: 97e60aaf-3e3b-4745-aa6a-cb1aa2cfe851:Scenes/09.ThirdPersonCamera/TutorialUI
+                BasePartAsset: 97e60aaf-3e3b-4745-aa6a-cb1aa2cfe851:Prefabs/TutorialUI
                 BasePartId: ff5050c1-2f2a-4c96-a3a7-93a69f6dfc0e
                 InstanceId: ea81e8e2-ce8c-4935-aa06-2133e41256d0
         -   Folder: null

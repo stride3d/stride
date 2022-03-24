@@ -126,6 +126,9 @@ Hierarchy:
                     5f1158f057e0da16aa9b456c8eab17a9: !CSharpIntermediate.LoadScene,CSharpIntermediate.Game
                         Id: 19d7b33c-9f1c-40da-a04b-60ba49a2dc11
                         SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/02.SceneLoading/Completed-SceneB
+                        DrawY: 20
+                        Info: To load Scene B, press
+                        KeyTopress: L
         -   Folder: Ground
             Entity:
                 Id: 147a295b-1b60-4e9c-81a7-c8ecee8ce3d6

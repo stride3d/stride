@@ -15,6 +15,7 @@ ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
 RootAssets:
+    - 14e3ac20-460d-4a3a-8e7a-79d54dad2dd2:Scenes/09.ThirdPersonCamera/Completed-ThirdPersonCamera
     - 1e5ed5df-d685-4f73-beb0-2672147f9aef:Scenes/07.Audio/Completed-Audio
     - 342cd962-c26d-4fbb-88cb-fca14e8bed41:Scenes/08.FirstPersonCamera/Completed-FirstPersonCamera
     - 3690986c-39ec-4b3b-a116-24fc5181906d:Materials/Yellow

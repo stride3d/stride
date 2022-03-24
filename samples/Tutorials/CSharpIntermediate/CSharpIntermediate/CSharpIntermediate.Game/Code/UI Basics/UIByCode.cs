@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
@@ -26,9 +26,10 @@ namespace CSharpIntermediate.Code
             {
                 RootElement = new StackPanel
                 {
+                    DrawLayerNumber = 100,
                     DefaultHeight = 400,
                     DefaultWidth = 600,
-                    Margin = new Thickness(600.0f, 0, 0, 0),
+                    Margin = new Thickness(600.0f, 100, 0, 0),
                     BackgroundColor = new Color(0, 1, 0, 0.1f),
                     Children =
                     {

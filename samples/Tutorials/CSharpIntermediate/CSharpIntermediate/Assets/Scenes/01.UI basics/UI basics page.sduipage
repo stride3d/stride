@@ -95,7 +95,8 @@ Hierarchy:
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
         -   UIElement: !EditText
                 Id: fb9aef7c-2e6e-44f9-b60e-190a01724540
-                DependencyProperties: {}
+                DependencyProperties:
+                    a875fb57b436c4aa89c672fc33b5bf22~Panel.ZIndexPropertyKey: 10
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 5
                 CanBeHitByUser: true

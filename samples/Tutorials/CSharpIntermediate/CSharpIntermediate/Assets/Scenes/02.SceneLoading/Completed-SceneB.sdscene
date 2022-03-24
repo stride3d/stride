@@ -14,6 +14,7 @@ Hierarchy:
         - ref!! 4bb2e70c-b9c2-4184-bf1f-e7005660dec1
         - ref!! f6bb1ba8-aeb5-41fe-b566-87a340f991f5
         - ref!! a59e26bc-8f7a-4d04-9f1b-1a27db824b8d
+        - ref!! 86ea71e1-6822-4267-b0c5-3ca59ff226d2
     Parts:
         -   Entity:
                 Id: 182c76da-84e1-4273-9591-640b5206a428
@@ -27,7 +28,7 @@ Hierarchy:
                         Children: {}
                     a7a03764cc135dc6a9d69c2252a5fef2: !ModelComponent
                         Id: fea411d1-67f3-4b7d-9d96-09b0c78071fc
-                        Model: null
+                        Model: 2cb2f455-2bc0-40c0-bd1c-ed5f5ec5a851:Models/Floor1x0x1
                         Materials: {}
                     3d9089128ef4e0f58b1b8f581c8aebbd: !StaticColliderComponent
                         Id: 6ef9ca2a-b1d8-41f7-bb8d-fb9de83e83ea
@@ -49,14 +50,15 @@ Hierarchy:
                 Components:
                     6dc2ce631fa45b24305a29159f06400b: !TransformComponent
                         Id: ad33743d-cc0e-4c31-b982-547b69d4fe52
-                        Position: {X: 0.60505843, Y: 1.6944011, Z: 0.79653585}
+                        Position: {X: 0.20917079, Y: 1.6264505, Z: 0.79653585}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 0.5, Y: 0.5, Z: 0.5}
                         Children: {}
                     dcaff8a1c189e14e5f0218a10c23de4f: !ModelComponent
                         Id: 8916e561-bdfe-4bf3-bdff-74b7ceac78f1
                         Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
-                        Materials: {}
+                        Materials:
+                            cc8fb97c59b5fcb2d37d3c023baa11e8~0: adf8fc52-f54b-48d8-b883-e4b78e774d99:Materials/MaterialA
                     31cb0bc3eeacb34c557a84b0d3e2c116: !RigidbodyComponent
                         Id: 9d9299b9-5e37-4dbd-af2d-f5b61b12ba9b
                         CanSleep: false
@@ -78,6 +80,22 @@ Hierarchy:
                                 Is2D: false
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
         -   Entity:
+                Id: 86ea71e1-6822-4267-b0c5-3ca59ff226d2
+                Name: ReloadSceneA
+                Components:
+                    eb5035f857a0e6f5d775a26b64b3bf3f: !TransformComponent
+                        Id: 6802fa61-110f-4b11-ad35-e8616143f6b9
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b1bfbb5b545fa075ab43bb49a7459aaf: !CSharpIntermediate.LoadScene,CSharpIntermediate.Game
+                        Id: 890a1f70-25a0-4412-b94a-27ba469f1ac0
+                        SceneToLoad: f6f2a96e-6b05-4119-bba1-87c1fa5c8fdf:Scenes/02.SceneLoading/Completed-SceneA
+                        DrawY: 60
+                        Info: 'To go back to scene A, press '
+                        KeyTopress: Escape
+        -   Entity:
                 Id: 8d16a77c-de44-444c-9a80-48691f614e88
                 Name: Gate1x2x1
                 Components:
@@ -89,7 +107,7 @@ Hierarchy:
                         Children: {}
                     86223eb74f0c59e6b32b187e8ea1e3a2: !ModelComponent
                         Id: 7aae5b39-5d9f-456f-a6cb-e3b6982e15b7
-                        Model: null
+                        Model: 01019ffb-11d0-42cb-a5c1-ce55f20e5042:Models/Gate1x2x1
                         Materials: {}
         -   Entity:
                 Id: a59e26bc-8f7a-4d04-9f1b-1a27db824b8d
@@ -104,6 +122,9 @@ Hierarchy:
                     b1bfbb5b545fa075ab43bb49a7459aaf: !CSharpIntermediate.LoadScene,CSharpIntermediate.Game
                         Id: c971497d-f0b0-4c4e-a922-4fdbac7ca9b5
                         SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/02.SceneLoading/Completed-SceneB
+                        DrawY: 20
+                        Info: 'To reload scene, press '
+                        KeyTopress: R
         -   Entity:
                 Id: dbd15918-28c5-4576-8ee1-54c044e62e35
                 Name: Gate2x3x1
@@ -112,12 +133,23 @@ Hierarchy:
                         Id: 9908ed65-3682-4297-a15a-439a3227ace2
                         Position: {X: 0.0, Y: 1.532342, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Scale: {X: 1.6801541, Y: 1.0, Z: 1.9896898}
                         Children: {}
                     8dc69fe56b5a11457c2ef515685bf8e4: !ModelComponent
                         Id: 77f9f633-a0ad-4f9c-b4c5-bf77a370075e
-                        Model: null
+                        Model: 924c9ca7-d8b3-4966-bc05-086bb500ff85:Models/Gate2x3x1
                         Materials: {}
+                    544c4875bc2bbfa3809b2b2dc25198d4: !StaticColliderComponent
+                        Id: fafad728-9ae3-4d75-8489-1eaf226e4a61
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes: {}
         -   Entity:
                 Id: e74d11f4-4f02-4d54-bab2-e1e742b7ede2
                 Name: Camera
@@ -153,21 +185,22 @@ Hierarchy:
                                 Enabled: true
                                 Size: Small
                                 BiasParameters: {}
-                        Intensity: 5.0
+                        Intensity: 8.0
         -   Entity:
                 Id: f6bb1ba8-aeb5-41fe-b566-87a340f991f5
                 Name: StrideBall
                 Components:
                     6dc2ce631fa45b24305a29159f06400b: !TransformComponent
                         Id: 6ed6f11d-cf4a-4676-9310-a49d32609307
-                        Position: {X: -0.5087109, Y: 1.8898466, Z: 0.79653585}
+                        Position: {X: -0.17721045, Y: 2.2006278, Z: 0.6481514}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 0.5, Y: 0.5, Z: 0.5}
                         Children: {}
                     dcaff8a1c189e14e5f0218a10c23de4f: !ModelComponent
                         Id: f7ad7829-d960-434d-8947-13a31b4fc17a
                         Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
-                        Materials: {}
+                        Materials:
+                            d203dc1596e8e297325b925bd457c9fe~0: b5937f37-8fa5-4c0c-9a21-9d563ee1bffc:Materials/RedCoating
                     31cb0bc3eeacb34c557a84b0d3e2c116: !RigidbodyComponent
                         Id: 120e193e-6fa9-4637-a415-62eaf502b532
                         CanSleep: false

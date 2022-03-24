@@ -4,7 +4,6 @@ using Stride.Engine;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System;
 
 namespace CSharpIntermediate.Code
 {
