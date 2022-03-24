@@ -26,7 +26,11 @@ namespace Stride.Core.CompilerServices
         {
             InitStaticSymbols(context);
             var spec = GenerateSpec(context);
+
             // TODO validate every type referenced by a member is serializable
+            var validator = new Validator();
+            validator.Validate(context, ref spec);
+
             EmitCode(context, spec);
         }
 

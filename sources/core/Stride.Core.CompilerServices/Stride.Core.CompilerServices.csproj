@@ -11,6 +11,9 @@
 		<Compile Include="..\..\shared\SharedAssemblyInfo.cs">
 			<Link>Properties\SharedAssemblyInfo.cs</Link>
 		</Compile>
+		<Compile Include="..\Stride.Core\Serialization\DataSerializerGenericMode.cs">
+			<Link>Core\DataSerializerGenericMode.cs</Link>
+		</Compile>
 	</ItemGroup>
 
 	<ItemGroup>

@@ -14,6 +14,7 @@ namespace Stride.Core.CompilerServices
         private const string DataAliasAttributeName = "Stride.Core.DataAliasAttribute";
         private const string DataMemberAttributeName = "Stride.Core.DataMemberAttribute";
         private const string DataMemberIgnoreAttributeName = "Stride.Core.DataMemberIgnoreAttribute";
+        private const string DataSerializerGlobalAttributeName = "Stride.Core.Serialization.DataSerializerGlobalAttribute";
         private const string StructLayoutAttributeName = "System.Runtime.InteropServices.StructLayoutAttribute";
         private const string FieldOffsetAttributeName = "System.Runtime.InteropServices.FieldOffsetAttribute";
 
