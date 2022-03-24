@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.DirectoryServices.ActiveDirectory;
 using System.IO;
 using System.Linq;
 using NuGet.Frameworks;
@@ -18,6 +17,8 @@ namespace Stride.LauncherApp.ViewModels
     internal abstract class StrideVersionViewModel : PackageVersionViewModel, IComparable<StrideVersionViewModel>, IComparable<Tuple<int, int>>
     {
         public const string MainExecutables = @"lib\net472\Stride.GameStudio.exe,lib\net472\Xenko.GameStudio.exe,Bin\Windows\Xenko.GameStudio.exe,Bin\Windows-Direct3D11\Xenko.GameStudio.exe";
+        private const string StrideGameStudioExe = "Stride.GameStudio.exe";
+        private const string XenkoGameStudioExe = "Xenko.GameStudio.exe";
 
         private bool isVisible;
         private bool canStart;
@@ -42,14 +43,14 @@ namespace Stride.LauncherApp.ViewModels
                 foreach (var toplevelFolder in new[] { "tools", "lib" })
                 {
                     var libDirectory = Path.Combine(InstallPath, toplevelFolder);
-                    var frameworks = Directory.EnumerateDirectories(libDirectory);
-                    foreach (var frameworkPath in frameworks)
+                    if (Directory.Exists(libDirectory))
                     {
-                        var frameworkFolder = new DirectoryInfo(frameworkPath).Name;
-                        if (File.Exists(Path.Combine(frameworkPath, "Stride.GameStudio.exe"))
-                            || File.Exists(Path.Combine(frameworkPath, "Xenko.GameStudio.exe")))
+                        foreach (var frameworkPath in Directory.EnumerateDirectories(libDirectory))
                         {
-                            Frameworks.Add(frameworkFolder);
+                            if (File.Exists(Path.Combine(frameworkPath, Major >= 4 ? StrideGameStudioExe : XenkoGameStudioExe)))
+                            {
+                                Frameworks.Add(new DirectoryInfo(frameworkPath).Name);
+                            }
                         }
                     }
                 }
