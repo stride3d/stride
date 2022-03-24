@@ -7,6 +7,17 @@ namespace Stride.Core.CompilerServices
 {
     public partial class SerializerGenerator
     {
+        private const string CompilerServicesDiagnosticIdFormat = "STR0{0:000}";
+        private const string CompilerServicesDiagnosticCategory = "CompilerServices";
+
+        private static DiagnosticDescriptor CompilerServicesExceptionDuringDataContractGeneration = new DiagnosticDescriptor(
+            string.Format(DataContractDiagnosticIdFormat, 1),
+            "An exception occurred while emitting a DataContract class serializer",
+            "An {1} occurred while emitting a DataContract class serializer for class {0}. {2}",
+            CompilerServicesDiagnosticCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         private const string DataContractDiagnosticIdFormat = "STR2{0:000}";
         private const string DataContractDiagnosticCategory = "DataContract";
 

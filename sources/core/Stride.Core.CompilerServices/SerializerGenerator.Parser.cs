@@ -102,13 +102,20 @@ namespace Stride.Core.CompilerServices
                     }
                 }
 
-                ITypeSymbol memberType = null;
+                ITypeSymbol memberType;
+                MemberAccessMode accessMode;
 
                 if (member is IPropertySymbol prop)
                 {
                     if (prop.SetMethod == null && prop.Type.IsValueType)
                     {
                         // structs have to be assignable to properties
+                        continue;
+                    }
+
+                    if (prop.SetMethod != null && !(prop.SetMethod.DeclaredAccessibility == Accessibility.Public || prop.SetMethod.DeclaredAccessibility == Accessibility.Internal))
+                    {
+                        // setter is inaccessible
                         continue;
                     }
 
@@ -119,13 +126,19 @@ namespace Stride.Core.CompilerServices
                     }
 
                     memberType = prop.Type;
+
+                    accessMode = MemberAccessMode.ByLocalRef;
+                    if (prop.SetMethod != null)
+                    {
+                        accessMode |= MemberAccessMode.WithAssignment;
+                    }
                 }
                 else if (member is IFieldSymbol field)
                 {
                     memberType = field.Type;
+                    accessMode = field.IsReadOnly ? MemberAccessMode.ByLocalRef : MemberAccessMode.ByRef;
                 }
-
-                if (memberType == null)
+                else
                 {
                     // member is neither a property or a field?
                     continue;
@@ -133,7 +146,7 @@ namespace Stride.Core.CompilerServices
 
                 int? order = GetOrderOfMember(typeAttributes, attributes, dataMemberAttribute);
 
-                members.Add(new SerializerMemberSpec(member, memberType, order));
+                members.Add(new SerializerMemberSpec(member, memberType, order, accessMode));
             }
 
             // Sort members by their order
