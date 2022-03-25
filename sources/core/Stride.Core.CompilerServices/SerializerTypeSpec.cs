@@ -15,9 +15,14 @@ namespace Stride.Core.CompilerServices
         /// <summary>
         /// Base type of Type, or null if base type is System.Object or the type is not serializable.
         /// </summary>
-        public ITypeSymbol BaseType { get; set; }
+        public INamedTypeSymbol BaseType { get; set; }
 
         public List<SerializerMemberSpec> Members { get; private set; }
+
+        /// <summary>
+        /// Was DataContract inherited from base class?
+        /// </summary>
+        public bool Inherited { get; set; }
 
         public List<string> Aliases { get; } = new List<string>();
 

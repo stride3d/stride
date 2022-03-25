@@ -35,6 +35,7 @@ namespace Stride.Core.CompilerServices
 
         public SerializerMemberSpec(ISymbol memberSymbol, ITypeSymbol type, int? order, MemberAccessMode accessMode)
         {
+            Member = memberSymbol;
             Name = memberSymbol.Name;
             Type = type;
             Order = order;

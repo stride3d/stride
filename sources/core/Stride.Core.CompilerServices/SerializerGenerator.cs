@@ -24,14 +24,24 @@ namespace Stride.Core.CompilerServices
 
         public void Execute(GeneratorExecutionContext context)
         {
-            InitStaticSymbols(context);
-            var spec = GenerateSpec(context);
+            try
+            {
+                InitStaticSymbols(context);
+                var spec = GenerateSpec(context);
 
-            // TODO validate every type referenced by a member is serializable
-            var validator = new Validator();
-            validator.Validate(context, ref spec);
+                var validator = new Validator();
+                validator.Validate(context, spec);
 
-            EmitCode(context, spec);
+                EmitCode(context, spec);
+            }
+            catch (Exception ex)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    CompilerServicesUnhandledException,
+                    Location.None,
+                    ex.GetType().Name,
+                    ex.ToString()));
+            }
         }
 
         private static void InitStaticSymbols(GeneratorExecutionContext context)

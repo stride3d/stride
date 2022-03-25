@@ -52,6 +52,12 @@ namespace Stride.Core.CompilerServices
                             continue;
                         }
 
+                        if (typeSymbol.DeclaredAccessibility != Accessibility.Public && typeSymbol.DeclaredAccessibility != Accessibility.Internal)
+                        {
+                            // class is not accessible, we won't warn because it may be used for YAML reflection based serialization
+                            continue;
+                        }
+
                         typeSpecs.Add(GenerateTypeSpec(context, typeSymbol));
                     }
                 }
@@ -60,6 +66,7 @@ namespace Stride.Core.CompilerServices
             return new SerializerSpec
             {
                 DataContractTypes = typeSpecs,
+                Assembly = context.Compilation.Assembly,
             };
         }
 
@@ -126,6 +133,12 @@ namespace Stride.Core.CompilerServices
                         continue;
                     }
 
+                    if (prop.GetMethod.Parameters.Length > 0)
+                    {
+                        // Ignore properties with indexer
+                        continue;
+                    }
+
                     memberType = prop.Type;
 
                     accessMode = MemberAccessMode.ByLocalRef;
@@ -153,7 +166,10 @@ namespace Stride.Core.CompilerServices
             // Sort members by their order
             members.Sort();
 
-            var typeSpec = new SerializerTypeSpec(type, members);
+            var typeSpec = new SerializerTypeSpec(type, members)
+            {
+                Inherited = dataContractAttribute == null || (dataContractAttribute.NamedArguments.FirstOrDefault(static kvp => kvp.Key == "Inherited").Value.Value?.Equals(true) ?? false),
+            };
 
             // add aliases
             {

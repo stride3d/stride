@@ -16,7 +16,9 @@ using QuickGraph.Algorithms.Condensation;
 using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
+/* TODO: figure out if this is used
 using AssemblyProcessorProgram = Stride.Core.AssemblyProcessor.AssemblyProcessorProgram;
+*/
 using ProjectReference = Microsoft.CodeAnalysis.ProjectReference;
 
 namespace Stride.GameStudio.Debugging
@@ -186,6 +188,7 @@ namespace Stride.GameStudio.Debugging
                             if (referenceBuild.IsCanceled || result.HasErrors)
                                 break;
 
+                            /* TODO: figure out if this is used
                             var assemblyProcessorParameters = "--parameter-key --auto-module-initializer --serialization";
                             var assemblyProcessorApp = AssemblyProcessorProgram.CreateAssemblyProcessorApp(SplitCommandLine(assemblyProcessorParameters).ToArray(), new LoggerAssemblyProcessorWrapper(result));
 
@@ -257,6 +260,7 @@ namespace Stride.GameStudio.Debugging
 
                             File.Delete(peFileName);
                             File.Delete(pdbFileName);
+                            */
                         }
                         else
                         {
