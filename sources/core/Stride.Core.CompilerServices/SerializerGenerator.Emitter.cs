@@ -49,7 +49,7 @@ namespace Stride.Core.CompilerServices
                 {
                     var serializerTypeString = registration.Value.SerializerType != null
                        ? GetTypeNameForTypeOf(registration.Value.SerializerType)
-                       : MakeSerializerNameForTypeOf(registration.Value.DataType);
+                       : TargetNameSpace + "." + MakeSerializerNameForTypeOf(registration.Value.DataType);
                     builder.Append("typeof(").Append(serializerTypeString).Append("), ");
                 }
 
