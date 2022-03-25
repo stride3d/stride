@@ -42,7 +42,12 @@ namespace Stride.Core.CompilerServices
 
                     // emit class header
                     {
-                        builder.Append("internal sealed class ").Append(serializerName);
+                        // serializers for closed types can internal because they won't be accessed directly (only through registry)
+                        // serializers for open types need to be public so that we can register their specializations in child assemblies
+                        // i.e. assembly A defines S<T>, assembly B defines K : S<int>, assembly B needs to register SSerializer<int> bc registry currently doesn't support open types
+                        var accessModifier = typeSpec.Type.IsGenericType ? "public" : "internal";
+
+                        builder.Append(accessModifier).Append(" sealed class ").Append(serializerName);
 
                         if (typeSpec.Type.IsGenericType)
                         {
