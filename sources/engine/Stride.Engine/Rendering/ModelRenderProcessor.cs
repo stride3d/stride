@@ -125,7 +125,7 @@ namespace Stride.Rendering
                 isShadowCaster &= modelMaterialInstance.IsShadowCaster;
 
             if (isShadowCaster != renderMesh.IsShadowCaster
-                || materialPass.HasTransparency != renderMesh.MaterialPass.HasTransparency)
+                || materialPass.HasTransparency != renderMesh.MaterialPass?.HasTransparency)
             {
                 renderMesh.IsShadowCaster = isShadowCaster;
                 VisibilityGroup.NeedActiveRenderStageReevaluation = true;
