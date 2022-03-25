@@ -7,7 +7,7 @@ namespace Stride.Core.CompilerServices
     {
         public IAssemblySymbol Assembly { get; set; }
         public HashSet<SerializerTypeSpec> DataContractTypes { get; set; }
-        public Dictionary<ITypeSymbol, GlobalSerializerRegistration> DependencySerializerReference { get; set; }
-        public Dictionary<ITypeSymbol, GlobalSerializerRegistration> GlobalSerializerRegistrationsToEmit { get; set; }
+        public Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration> DependencySerializerReference { get; set; }
+        public Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration> GlobalSerializerRegistrationsToEmit { get; set; }
     }
 }

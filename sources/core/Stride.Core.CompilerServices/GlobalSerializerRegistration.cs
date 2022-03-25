@@ -12,7 +12,7 @@ namespace Stride.Core.CompilerServices
         /// Symbol of the serializer type.
         /// </summary>
         /// <remarks>
-        /// If null, serializer type is emitted via this generator so we can figure out its name.
+        /// If null and <see cref="Generated"/> = true, serializer type is emitted via this generator so we can figure out its name in the emitter.
         /// </remakrs>
         public INamedTypeSymbol SerializerType { get; set; }
         

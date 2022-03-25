@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Stride.Core.Serialization;
 
 namespace Stride.Core.CompilerServices
 {
@@ -17,6 +18,7 @@ namespace Stride.Core.CompilerServices
         private const string DataSerializerGlobalAttributeName = "Stride.Core.Serialization.DataSerializerGlobalAttribute";
         private const string StructLayoutAttributeName = "System.Runtime.InteropServices.StructLayoutAttribute";
         private const string FieldOffsetAttributeName = "System.Runtime.InteropServices.FieldOffsetAttribute";
+        private const string DataSerializerName = "Stride.Core.Serialization.DataSerializer";
 
         private static readonly SymbolDisplayFormat SimpleClassNameWithNestedInfo = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
@@ -24,50 +26,62 @@ namespace Stride.Core.CompilerServices
 
         internal static SerializerSpec GenerateSpec(GeneratorExecutionContext context)
         {
-            HashSet<SerializerTypeSpec> typeSpecs = new HashSet<SerializerTypeSpec>(new SerializerTypeSpec.EqualityComparer());
-            foreach (var syntaxTree in context.Compilation.SyntaxTrees)
-            {
-                var semanticModel = context.Compilation.GetSemanticModel(syntaxTree);
+            var assembly = context.Compilation.Assembly;
+            var allTypes = GetAllTypesForAssembly(assembly);
 
-                foreach (var typeSyntax in syntaxTree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>().Cast<TypeDeclarationSyntax>())
+            HashSet<SerializerTypeSpec> typeSpecs = new HashSet<SerializerTypeSpec>(new SerializerTypeSpec.EqualityComparer());
+            Dictionary<(ITypeSymbol, string), GlobalSerializerRegistration> customSerializers = new Dictionary<(ITypeSymbol, string), GlobalSerializerRegistration>();
+            foreach (var typeSymbol in allTypes)
+            {
+                if (typeSymbol.DeclaredAccessibility != Accessibility.Public && typeSymbol.DeclaredAccessibility != Accessibility.Internal)
                 {
-                    if (typeSyntax is InterfaceDeclarationSyntax)
+                    // class is not accessible, we won't warn because it may be used for YAML reflection based serialization
+                    continue;
+                }
+
+                if (typeSymbol.IsGenericType && typeSymbol.TypeParameters.Length == 0)
+                {
+                    // this is likely a nested type that extends a generic class which take a parameter from outer class
+                    // TODO skipping for now 
+                    continue;
+                }
+
+                if (CheckForDataContract(typeSymbol))
+                {
+                    if (!typeSymbol.IsValueType && !typeSymbol.IsAbstract && !typeSymbol.Constructors.Any(
+                            ctor => !ctor.Parameters.Any() && ctor.DeclaredAccessibility == Accessibility.Public))
                     {
-                        // we don't support interface serializers
+                        // DataContract classes should have a public parameterless constructor to satisfy a generic new() constraint
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            DataContractClassHasNoAccessibleParameterlessCtor,
+                            typeSymbol.Locations.FirstOrDefault(),
+                            typeSymbol.ToDisplayString(SimpleClassNameWithNestedInfo)));
                         continue;
                     }
 
-                    var typeSymbol = semanticModel.GetDeclaredSymbol(typeSyntax) as INamedTypeSymbol;
-
-                    if (CheckForDataContract(typeSymbol))
-                    {
-                        if (!typeSymbol.IsValueType && !typeSymbol.IsAbstract && !typeSymbol.Constructors.Any(
-                                ctor => !ctor.Parameters.Any() && ctor.DeclaredAccessibility == Accessibility.Public))
-                        {
-                            // DataContract classes should have a public parameterless constructor to satisfy a generic new() constraint
-                            context.ReportDiagnostic(Diagnostic.Create(
-                                DataContractClassHasNoAccessibleParameterlessCtor,
-                                typeSymbol.Locations.FirstOrDefault(),
-                                typeSymbol.ToDisplayString(SimpleClassNameWithNestedInfo)));
-                            continue;
-                        }
-
-                        if (typeSymbol.DeclaredAccessibility != Accessibility.Public && typeSymbol.DeclaredAccessibility != Accessibility.Internal)
-                        {
-                            // class is not accessible, we won't warn because it may be used for YAML reflection based serialization
-                            continue;
-                        }
-
-                        typeSpecs.Add(GenerateTypeSpec(context, typeSymbol));
-                    }
+                    typeSpecs.Add(GenerateTypeSpec(context, typeSymbol));
                 }
+
+                CheckTypeForCustomSerializers(context, typeSymbol, customSerializers);
             }
+
+            // look for assembly scoped global serializers
+            CheckTypeForCustomSerializers(context, assembly, customSerializers);
 
             return new SerializerSpec
             {
                 DataContractTypes = typeSpecs,
                 Assembly = context.Compilation.Assembly,
+                GlobalSerializerRegistrationsToEmit = customSerializers,
+                DependencySerializerReference = new Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration>(),
             };
+        }
+
+        private static List<INamedTypeSymbol> GetAllTypesForAssembly(IAssemblySymbol assembly)
+        {
+            var types = new List<INamedTypeSymbol>();
+            VisitTypes(assembly.GlobalNamespace, type => types.Add(type));
+            return types;
         }
 
         private static SerializerTypeSpec GenerateTypeSpec(GeneratorExecutionContext context, INamedTypeSymbol type)
@@ -226,6 +240,106 @@ namespace Stride.Core.CompilerServices
             return null;
         }
 
+        internal static void CheckTypeForCustomSerializers(GeneratorExecutionContext context, ISymbol symbol, Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration> customSerializers)
+        {
+            var attributes = symbol.GetAttributes();
+            foreach (var attribute in attributes)
+            {
+                GlobalSerializerRegistration spec = null;
+                var attributeFullName = attribute.AttributeClass.ToDisplayString();
+                if (attributeFullName == DataSerializerAttributeName)
+                {
+                    var dataType = symbol as ITypeSymbol;
+                    var serializerType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
+                    serializerType = serializerType.OriginalDefinition; // get the full definition for this symbol to access base type info
+                    var genericMode = attribute.NamedArguments.Length > 0 ? (DataSerializerGenericMode)(int)attribute.NamedArguments[0].Value.Value : DataSerializerGenericMode.None;
+                    
+                    spec = new GlobalSerializerRegistration
+                    {
+                        DataType = dataType,
+                        SerializerType = serializerType,
+                        GenericMode = genericMode,
+                    };
+                }
+                else if (attributeFullName == DataSerializerGlobalAttributeName)
+                {
+                    var dataType = attribute.ConstructorArguments[1].Value as ITypeSymbol;
+                    var serializerType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
+                    serializerType = serializerType.OriginalDefinition; // get the full definition for this symbol to access base type info
+                    var genericMode = (DataSerializerGenericMode)(int)attribute.ConstructorArguments[2].Value;
+                    var profile = attribute.NamedArguments.Length > 0 ? (string)attribute.NamedArguments[0].Value.Value : null;
+                    
+                    if (dataType == null && serializerType != null)
+                    {
+                        // we need to figure out the type from generic argument of DataSerializer`1 that serializerType extends
+                        var baseType = serializerType.BaseType;
+                        while (baseType != null)
+                        {
+                            if (baseType.ToDisplayString(NamespaceWithTypeNameWithoutGenerics) == DataSerializerName && baseType.IsGenericType)
+                            {
+                                dataType = baseType.TypeArguments[0];
+                                break;
+                            }
+                            baseType = baseType.BaseType;
+                        }
+                    }
+
+                    spec = new GlobalSerializerRegistration
+                    {
+                        DataType = dataType,
+                        SerializerType = serializerType,
+                        GenericMode = genericMode,
+                    };
+
+                    if (profile != null)
+                    {
+                        spec.Profile = profile;
+                    }
+                }
+                // TODO: content serializer
+
+                if (spec != null)
+                {
+                    // we allow serializerType to be null if dataType:
+                    //   is abstract
+                    //   is interface
+                    //   is System.Object
+                    //   is closed generic and we can find a serializer for the open generic type to construct a specialization
+                    if (spec.SerializerType == null && spec.DataType == null)
+                    {
+                        // complain both types cannot be null
+                        continue;
+                    }
+                    if (spec.SerializerType != null &&
+                        !HasBaseTypesMatchingPredicate(spec.SerializerType, baseType => baseType.ToDisplayString() == DataSerializerName))
+                    {
+                        // complain serializer type is not a serializer
+                        continue;
+                    }
+                    
+
+                    // if we're dealing with generic types we need to make sure they are unbound
+                    if (spec.SerializerType.TypeParameters.Length > 0 && spec.SerializerType.TypeArguments.All(static arg => arg.TypeKind == TypeKind.TypeParameter))
+                    {
+                        spec.SerializerType = spec.SerializerType.ConstructUnboundGenericType();
+                    }
+                    if (spec.DataType is INamedTypeSymbol namedDataType && namedDataType.TypeParameters.Length > 0 && namedDataType.TypeArguments.All(static arg => arg.TypeKind == TypeKind.TypeParameter))
+                    {
+                        spec.DataType = namedDataType.ConstructUnboundGenericType();
+                    }
+
+                    if (customSerializers.ContainsKey((spec.DataType, spec.Profile)))
+                    {
+                        // complain multiple serializers for type within the same profile
+                    }
+                    else
+                    {
+                        customSerializers.Add((spec.DataType, spec.Profile), spec);
+                    }
+                }
+            }
+        }
+
         private static bool CheckForDataContract(INamedTypeSymbol typeSymbol)
         {
             if (CheckSymbolClassAttributesForSpecificAttribute(typeSymbol, DataSerializerAttributeName))
@@ -256,6 +370,22 @@ namespace Stride.Core.CompilerServices
                 {
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        private static bool HasBaseTypesMatchingPredicate(INamedTypeSymbol type, Func<INamedTypeSymbol, bool> predicate)
+        {
+            var baseSymbol = type.BaseType;
+            while (baseSymbol != null)
+            {
+                if (predicate(baseSymbol))
+                {
+                    return true;
+                }
+
+                baseSymbol = baseSymbol.BaseType;
             }
 
             return false;
@@ -292,6 +422,18 @@ namespace Stride.Core.CompilerServices
             }
 
             return false;
+        }
+
+        private static void VisitTypes(INamespaceSymbol @namespace, Action<INamedTypeSymbol> visitor)
+        {
+            foreach (var type in @namespace.GetTypeMembers())
+            {
+                visitor(type);
+            }
+            foreach (var namespaceSymbol in @namespace.GetNamespaceMembers())
+            {
+                VisitTypes(namespaceSymbol, visitor);
+            }
         }
     }
 }

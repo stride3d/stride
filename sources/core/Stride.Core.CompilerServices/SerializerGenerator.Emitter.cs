@@ -22,7 +22,7 @@ namespace Stride.Core.CompilerServices
         internal static void EmitCode(GeneratorExecutionContext context, SerializerSpec serializerSpec)
         {
             EmitDataContractSerializers(context, serializerSpec);
-            //EmitSerializerFactory(context, serializerSpec);
+            EmitSerializerFactory(context, serializerSpec);
         }
 
         private static void EmitSerializerFactory(GeneratorExecutionContext context, SerializerSpec serializerSpec)
@@ -38,17 +38,34 @@ namespace Stride.Core.CompilerServices
 
             foreach (var registration in serializerSpec.GlobalSerializerRegistrationsToEmit)
             {
-                var serializerTypeString = registration.Value.SerializerType != null
-                    ? GetTypeNameForTypeOf(registration.Value.SerializerType)
-                    : MakeSerializerNameForTypeOf(registration.Value.DataType);
-                var dataTypeString = GetTypeNameForTypeOf(registration.Value.DataType);
 
-                builder.Append("[DataSerializerGlobal(")
-                    .Append("typeof(").Append(serializerTypeString).Append("), ")
-                    .Append("typeof(").Append(dataTypeString).Append("), ")
-                    .Append("DataSerializerGenericMode.").Append(registration.Value.GenericMode.ToString()).Append(", ")
+                builder.Append("// [DataSerializerGlobal(");
+                
+                if (registration.Value.SerializerType == null && !registration.Value.Generated)
+                {
+                    builder.Append("null, ");
+                }
+                else
+                {
+                    var serializerTypeString = registration.Value.SerializerType != null
+                       ? GetTypeNameForTypeOf(registration.Value.SerializerType)
+                       : MakeSerializerNameForTypeOf(registration.Value.DataType);
+                    builder.Append("typeof(").Append(serializerTypeString).Append("), ");
+                }
+
+                if (registration.Value.DataType == null && !registration.Value.Generated)
+                {
+                    builder.Append("null, ");
+                }
+                else
+                {
+                    var dataTypeString = GetTypeNameForTypeOf(registration.Value.DataType);
+                    builder.Append("typeof(").Append(dataTypeString).Append("), ");
+                }
+
+                builder.Append("DataSerializerGenericMode.").Append(registration.Value.GenericMode.ToString()).Append(", ")
                     .Append("inherited: ").Append(registration.Value.Inherited.ToString().ToLower()).Append(", ")
-                    .Append("complexSerializer: ").Append(registration.Value.Inherited.ToString().ToLower()).Append(", ")
+                    .Append("complexSerializer: ").Append(registration.Value.Generated.ToString().ToLower()).Append(", ")
                     .Append("Profile = \"").Append(registration.Value.Profile).Append("\")]")
                     .AppendLine();
             }
@@ -97,13 +114,6 @@ namespace Stride.Core.CompilerServices
             {
                 try
                 {
-                    if (typeSpec.Type.IsGenericType && typeSpec.Type.TypeParameters.Length == 0)
-                    {
-                        // this is likely a nested type that extends a generic class which take a parameter from outer class
-                        // TODO skipping for now - we should discard this at the parser level
-                        continue;
-                    }
-
                     var serializerName = GetDataContractSerializerName(typeSpec.Type, includeArity: false);
                     var typeName = typeSpec.Type.ToDisplayString();
                     var builder = new StringBuilder();
