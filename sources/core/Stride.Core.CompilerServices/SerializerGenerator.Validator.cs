@@ -125,7 +125,7 @@ namespace Stride.Core.CompilerServices
                         serializerSpec.GlobalSerializerRegistrationsToEmit.Add((memberType, DefaultProfile), new GlobalSerializerRegistration
                         {
                             DataType = memberType,
-                            SerializerType = arraySerializer.Construct(memberType),
+                            SerializerType = arraySerializer.Construct((memberType as IArrayTypeSymbol).ElementType),
                             Generated = false,
                             Inherited = false,
                             GenericMode = DataSerializerGenericMode.None,
