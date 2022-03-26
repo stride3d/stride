@@ -13,20 +13,25 @@ namespace Stride.Core.CompilerServices
         private const string AssemblyProcessedAttribute = "Stride.Core.AssemblyProcessedAttribute";
         internal class Validator
         {
-            private INamedTypeSymbol enumSerializer;
-            private INamedTypeSymbol arraySerializer;
+            private readonly INamedTypeSymbol enumSerializer;
+            private readonly INamedTypeSymbol arraySerializer;
+            private readonly GeneratorExecutionContext context;
 
-            public void Validate(GeneratorExecutionContext context, SerializerSpec serializerSpec)
+            public Validator(GeneratorExecutionContext context)
             {
+                this.context = context;
                 enumSerializer = context.Compilation.GetTypeByMetadataName("Stride.Core.Serialization.Serializers.EnumSerializer`1");
                 arraySerializer = context.Compilation.GetTypeByMetadataName("Stride.Core.Serialization.Serializers.ArraySerializer`1");
-
-                CollectSerializableTypesFromDependencies(context, serializerSpec);
-
-                GenerateGlobalSerializerAttributeSpecs(context, serializerSpec);
             }
 
-            private void GenerateGlobalSerializerAttributeSpecs(GeneratorExecutionContext context, SerializerSpec serializerSpec)
+            public void Validate(SerializerSpec serializerSpec)
+            {
+                CollectSerializableTypesFromDependencies(serializerSpec);
+
+                GenerateGlobalSerializerAttributeSpecs(serializerSpec);
+            }
+
+            private void GenerateGlobalSerializerAttributeSpecs(SerializerSpec serializerSpec)
             {
                 // For each type defined in this assembly add a registration
                 foreach (var typeSpec in serializerSpec.DataContractTypes)
@@ -56,15 +61,8 @@ namespace Stride.Core.CompilerServices
                     for (var i = 0; i < typeSpec.Members.Count; i++)
                     {
                         var member = typeSpec.Members[i];
-                        var memberType = member.Type;
-                        if (CheckMemberForSpecialKinds(serializerSpec, member, memberType))
-                        {
-                            continue;
-                        }
-                        // TODO: if nullable, verify NullableSerializer<T> is used
-
                         // For each member validate it's serializable and for local generic instantiations add concrete serializer
-                        if (!ValidateBaseTypeChain(serializerSpec, member.Type as INamedTypeSymbol, thisAssembly))
+                        if (!CheckTypeReference(serializerSpec, member.Type, thisAssembly))
                         {
                             context.ReportDiagnostic(Diagnostic.Create(
                                 DataContractMemberHasNonSerializableType,
@@ -84,10 +82,25 @@ namespace Stride.Core.CompilerServices
                 serializerSpec.GlobalSerializerRegistrationsToEmit = serializerSpec.GlobalSerializerRegistrationsToEmit;
             }
 
+            private bool CheckTypeReference(SerializerSpec serializerSpec, ITypeSymbol typeSymbol, IAssemblySymbol assembly)
+            {
+                if (CheckMemberForSpecialKinds(serializerSpec, typeSymbol))
+                {
+                    return true;
+                }
+
+                if (ValidateBaseTypeChain(serializerSpec, typeSymbol as INamedTypeSymbol, assembly))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
             /// <summary>
             /// True if member is special and has been handled, false otherwise.
             /// </summary>
-            private bool CheckMemberForSpecialKinds(SerializerSpec serializerSpec, SerializerMemberSpec member, ITypeSymbol memberType)
+            private bool CheckMemberForSpecialKinds(SerializerSpec serializerSpec, ITypeSymbol memberType)
             {
                 if (memberType.TypeKind == TypeKind.Enum)
                 {
@@ -108,7 +121,7 @@ namespace Stride.Core.CompilerServices
                 {
                     if (!serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((memberType, DefaultProfile)) && !serializerSpec.DependencySerializerReference.ContainsKey((memberType, DefaultProfile)))
                     {
-                        serializerSpec.GlobalSerializerRegistrationsToEmit.Add((member.Type, DefaultProfile), new GlobalSerializerRegistration
+                        serializerSpec.GlobalSerializerRegistrationsToEmit.Add((memberType, DefaultProfile), new GlobalSerializerRegistration
                         {
                             DataType = memberType,
                             SerializerType = arraySerializer.Construct(memberType),
@@ -134,6 +147,7 @@ namespace Stride.Core.CompilerServices
                     }
                     return true;
                 }
+                // TODO: if nullable, verify NullableSerializer<T> is used
 
                 return false;
             }
@@ -155,6 +169,7 @@ namespace Stride.Core.CompilerServices
                         else
                         {
                             // If parent type is a closed generic type we need to add a registration for it
+                            // TODO: see how AssemblyProcessor regards type arguments - IMO we shouldn't validate them to avoid unnecessary preventing stuff
                             if (baseType.TypeParameters.Length > 0)
                             {
                                 var baseTypeDefinition = baseType.ConstructUnboundGenericType();
@@ -207,7 +222,7 @@ namespace Stride.Core.CompilerServices
                                         {
                                             DataType = baseType,
                                             // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn
-                                            SerializerType = registration.SerializerType.ConstructedFrom.Construct(baseType.TypeArguments, baseType.TypeArgumentNullableAnnotations),
+                                            SerializerType = registration.SerializerType?.ConstructedFrom.Construct(baseType.TypeArguments, baseType.TypeArgumentNullableAnnotations),
                                             Generated = registration.Generated,
                                             Inherited = false,
                                             GenericMode = DataSerializerGenericMode.None,
@@ -237,7 +252,7 @@ namespace Stride.Core.CompilerServices
             /// <summary>
             /// Look through attributes on static types to find serializer factories and collect data from [DataSerializerGlobal]
             /// </summary>
-            private void CollectSerializableTypesFromDependencies(GeneratorExecutionContext context, SerializerSpec serializerSpec)
+            private void CollectSerializableTypesFromDependencies(SerializerSpec serializerSpec)
             {
                 var assemblies = context.Compilation.References
                     .Select(context.Compilation.GetAssemblyOrModuleSymbol)

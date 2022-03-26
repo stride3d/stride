@@ -29,8 +29,8 @@ namespace Stride.Core.CompilerServices
                 InitStaticSymbols(context);
                 var spec = GenerateSpec(context);
 
-                var validator = new Validator();
-                validator.Validate(context, spec);
+                var validator = new Validator(context);
+                validator.Validate(spec);
 
                 EmitCode(context, spec);
             }

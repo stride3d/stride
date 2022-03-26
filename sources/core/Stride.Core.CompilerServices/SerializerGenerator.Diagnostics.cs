@@ -8,7 +8,7 @@ namespace Stride.Core.CompilerServices
     public partial class SerializerGenerator
     {
         private const string CompilerServicesDiagnosticIdFormat = "STR0{0:000}";
-        private const string CompilerServicesDiagnosticCategory = "CompilerServices";
+        private const string CompilerServicesDiagnosticCategory = "Stride.CompilerServices";
 
         private static DiagnosticDescriptor CompilerServicesUnhandledException = new DiagnosticDescriptor(
             string.Format(CompilerServicesDiagnosticIdFormat, 1),
@@ -27,7 +27,7 @@ namespace Stride.Core.CompilerServices
             isEnabledByDefault: true);
 
         private const string DataContractDiagnosticIdFormat = "STR2{0:000}";
-        private const string DataContractDiagnosticCategory = "DataContract";
+        private const string DataContractDiagnosticCategory = "Stride.Serialization";
 
         private static DiagnosticDescriptor DataContractClassHasNoAccessibleParameterlessCtor = new DiagnosticDescriptor(
             string.Format(DataContractDiagnosticIdFormat, 1),
@@ -49,6 +49,30 @@ namespace Stride.Core.CompilerServices
             string.Format(DataContractDiagnosticIdFormat, 3),
             "Member type is not serializable",
             "Member {0} of class {1} is of type {2} that cannot be serialized. Add [DataMemberIgnore] to suppress this warning.",
+            DataContractDiagnosticCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        private static DiagnosticDescriptor DataSerializerGlobalNoTypeInformation = new DiagnosticDescriptor(
+            string.Format(DataContractDiagnosticIdFormat, 10),
+            "No type has been specified for DataSerializerGlobal attribute",
+            "Both types provided to [DataSerializerGlobal] may not be null.",
+            DataContractDiagnosticCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        private static DiagnosticDescriptor DataSerializerDoesNotExtendDataSerializerBaseClass = new DiagnosticDescriptor(
+            string.Format(DataContractDiagnosticIdFormat, 11),
+            "Custom serializer doesn't extend Stride.Core.DataSerializer",
+            "Custom serializer {0} doesn't extend Stride.Core.DataSerializer.",
+            DataContractDiagnosticCategory,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        private static DiagnosticDescriptor DataSerializerGlobalDuplicateDeclarations = new DiagnosticDescriptor(
+            string.Format(DataContractDiagnosticIdFormat, 12),
+            "Multiple DataSerializerGlobal attribute declarations for the same data type and profile",
+            "Multiple [DataSerializerGlobal] declarations for the same data type {0} and profile '{1}'.",
             DataContractDiagnosticCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);

@@ -251,7 +251,6 @@ namespace Stride.Core.CompilerServices
                 {
                     var dataType = symbol as ITypeSymbol;
                     var serializerType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
-                    serializerType = serializerType.OriginalDefinition; // get the full definition for this symbol to access base type info
                     var genericMode = attribute.NamedArguments.Length > 0 ? (DataSerializerGenericMode)(int)attribute.NamedArguments[0].Value.Value : DataSerializerGenericMode.None;
                     
                     spec = new GlobalSerializerRegistration
@@ -265,7 +264,6 @@ namespace Stride.Core.CompilerServices
                 {
                     var dataType = attribute.ConstructorArguments[1].Value as ITypeSymbol;
                     var serializerType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
-                    serializerType = serializerType.OriginalDefinition; // get the full definition for this symbol to access base type info
                     var genericMode = (DataSerializerGenericMode)(int)attribute.ConstructorArguments[2].Value;
                     var profile = attribute.NamedArguments.Length > 0 ? (string)attribute.NamedArguments[0].Value.Value : null;
                     
@@ -307,19 +305,28 @@ namespace Stride.Core.CompilerServices
                     //   is closed generic and we can find a serializer for the open generic type to construct a specialization
                     if (spec.SerializerType == null && spec.DataType == null)
                     {
-                        // complain both types cannot be null
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            DataSerializerGlobalNoTypeInformation,
+                            Location.Create(attribute.ApplicationSyntaxReference.SyntaxTree, attribute.ApplicationSyntaxReference.Span)));
+                        
                         continue;
                     }
+                    // get the OriginalDefinition for this symbol to access base type info
+                    // and validate it extends Stride.Core.Serialization.DataSerializer
                     if (spec.SerializerType != null &&
-                        !HasBaseTypesMatchingPredicate(spec.SerializerType, baseType => baseType.ToDisplayString() == DataSerializerName))
+                        !HasBaseTypesMatchingPredicate(spec.SerializerType.OriginalDefinition, baseType => baseType.ToDisplayString() == DataSerializerName))
                     {
-                        // complain serializer type is not a serializer
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            DataSerializerDoesNotExtendDataSerializerBaseClass,
+                            Location.Create(attribute.ApplicationSyntaxReference.SyntaxTree, attribute.ApplicationSyntaxReference.Span),
+                            spec.SerializerType.ToDisplayString(SimpleClassNameWithNestedInfo)));
+                        
                         continue;
                     }
                     
 
                     // if we're dealing with generic types we need to make sure they are unbound
-                    if (spec.SerializerType.TypeParameters.Length > 0 && spec.SerializerType.TypeArguments.All(static arg => arg.TypeKind == TypeKind.TypeParameter))
+                    if (spec.SerializerType != null && spec.SerializerType.TypeParameters.Length > 0 && spec.SerializerType.TypeArguments.All(static arg => arg.TypeKind == TypeKind.TypeParameter))
                     {
                         spec.SerializerType = spec.SerializerType.ConstructUnboundGenericType();
                     }
@@ -330,7 +337,11 @@ namespace Stride.Core.CompilerServices
 
                     if (customSerializers.ContainsKey((spec.DataType, spec.Profile)))
                     {
-                        // complain multiple serializers for type within the same profile
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            DataSerializerGlobalDuplicateDeclarations,
+                            Location.Create(attribute.ApplicationSyntaxReference.SyntaxTree, attribute.ApplicationSyntaxReference.Span),
+                            spec.DataType.ToDisplayString(SimpleClassNameWithNestedInfo),
+                            spec.Profile));
                     }
                     else
                     {
