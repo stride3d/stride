@@ -505,9 +505,10 @@
                 </DockPanel>
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Bottom">
-                <UniformGrid Columns="2">
-                  <ContentControl Grid.Column="0" Margin="0,0,2,0" Content="{Binding VsixPackage}"/>
-                  <ContentControl Grid.Column="1" Margin="2,0,0,0" Content="{Binding VsixPackageXenko}"/>
+                <UniformGrid Columns="3">
+                  <ContentControl Grid.Column="0" Margin="0,0,2,0" Content="{Binding VsixPackage2019}"/>
+                  <ContentControl Grid.Column="1" Margin="2,0,2,0" Content="{Binding VsixPackage2022}"/>
+                  <ContentControl Grid.Column="2" Margin="2,0,0,0" Content="{Binding VsixPackageXenko}"/>
                 </UniformGrid>
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}" DockPanel.Dock="Bottom">

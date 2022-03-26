@@ -59,7 +59,8 @@ namespace Stride.LauncherApp.ViewModels
 
             DisplayReleaseAnnouncement();
 
-            VsixPackage = new VsixVersionViewModel(this, store, store.VsixPluginId);
+            VsixPackage2019 = new VsixVersionViewModel(this, store, store.VsixPluginId);
+            VsixPackage2022 = new VsixVersionViewModel(this, store, store.VsixPluginId); // TODO: replace with id of new plugin when published
             VsixPackageXenko = new VsixVersionViewModel(this, store, store.VsixPluginId.Replace("Stride", "Xenko"));
             // Commands
             InstallLatestVersionCommand = new AnonymousTaskCommand(ServiceProvider, InstallLatestVersion) { IsEnabled = false };
@@ -109,7 +110,8 @@ namespace Stride.LauncherApp.ViewModels
 
         public bool ShowBetaVersions { get { return showBetaVersions; } set { SetValue(ref showBetaVersions, value); } }
 
-        public VsixVersionViewModel VsixPackage { get; }
+        public VsixVersionViewModel VsixPackage2019 { get; }
+        public VsixVersionViewModel VsixPackage2022 { get; }
 
         public VsixVersionViewModel VsixPackageXenko { get; }
 
@@ -195,7 +197,8 @@ namespace Stride.LauncherApp.ViewModels
                 var newsTask = FetchNewsPages();
 
                 await RetrieveServerStrideVersions();
-                await VsixPackage.UpdateFromStore();
+                await VsixPackage2019.UpdateFromStore();
+                await VsixPackage2022.UpdateFromStore();
                 await VsixPackageXenko.UpdateFromStore();
                 await CheckForFirstInstall();
 
@@ -514,12 +517,23 @@ namespace Stride.LauncherApp.ViewModels
                         var versionToInstall = StrideVersions.First(x => x.CanBeDownloaded);
                         await versionToInstall.Download(true);
                     }
-                    if (!VsixPackage.IsLatestVersionInstalled && VisualStudioVersions.AvailableVisualStudioInstances.Any())
+                    // if VS2019 is installed (version 16.x)
+                    if (!VsixPackage2019.IsLatestVersionInstalled && VisualStudioVersions.AvailableVisualStudioInstances.Any(ide => ide.Version.Major == 16))
                     {
                         result = await ServiceProvider.Get<IDialogService>().MessageBox(Strings.AskInstallVSIX, MessageBoxButton.YesNo, MessageBoxImage.Question);
                         if (result == MessageBoxResult.Yes)
                         {
-                            await VsixPackage.ExecuteAction();
+                            await VsixPackage2019.ExecuteAction();
+                        }
+                    }
+                    // if VS2022 is installed (version 17.x)
+                    if (!VsixPackage2022.IsLatestVersionInstalled && VisualStudioVersions.AvailableVisualStudioInstances.Any(ide => ide.Version.Major == 17))
+                    {
+                        // TODO: modify the localized string to include version? Otherwise user may be confused to see the dialog twice if they have both VS2019 and VS2022 installed
+                        result = await ServiceProvider.Get<IDialogService>().MessageBox(Strings.AskInstallVSIX, MessageBoxButton.YesNo, MessageBoxImage.Question);
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            await VsixPackage2022.ExecuteAction();
                         }
                     }
                 }

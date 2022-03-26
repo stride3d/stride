@@ -81,6 +81,7 @@ namespace Stride.LauncherApp.ViewModels
 
         private string FormatStatus(string status)
         {
+            // TODO: add VS2019 vs VS2022 mark once packageId is established
             return $"{packageId.Split('.')[0]}: {status}";
         }
 
