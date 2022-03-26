@@ -80,7 +80,17 @@ namespace Stride.Core.CompilerServices
         private static List<INamedTypeSymbol> GetAllTypesForAssembly(IAssemblySymbol assembly)
         {
             var types = new List<INamedTypeSymbol>();
-            VisitTypes(assembly.GlobalNamespace, type => types.Add(type));
+            VisitTypes(assembly.GlobalNamespace, type =>
+            {
+                types.Add(type);
+                VisitNestedTypes(type, t =>
+                {
+                    if (t.DeclaredAccessibility == Accessibility.Public || t.DeclaredAccessibility == Accessibility.Internal)
+                    {
+                        types.Add(t);
+                    }
+                });
+            });
             return types;
         }
 
@@ -297,7 +307,6 @@ namespace Stride.Core.CompilerServices
                         spec.Profile = profile;
                     }
                 }
-                // TODO: content serializer
 
                 if (spec != null)
                 {
@@ -447,6 +456,15 @@ namespace Stride.Core.CompilerServices
             foreach (var namespaceSymbol in @namespace.GetNamespaceMembers())
             {
                 VisitTypes(namespaceSymbol, visitor);
+            }
+        }
+
+        private static void VisitNestedTypes(INamedTypeSymbol type, Action<INamedTypeSymbol> visitor)
+        {
+            foreach (var nestedType in type.GetMembers().OfType<INamedTypeSymbol>().Cast<INamedTypeSymbol>())
+            {
+                visitor(nestedType);
+                VisitNestedTypes(nestedType, visitor);
             }
         }
     }
