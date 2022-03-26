@@ -205,6 +205,7 @@ namespace Stride.Core.CompilerServices
                             if (type.TypeArguments.All(static arg => arg.TypeKind != TypeKind.TypeParameter) &&
                                 !serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((type, DefaultProfile)))
                             {
+                                // TODO: check the GenericMode as you may need to construct type with a different scheme
                                 serializerSpec.GlobalSerializerRegistrationsToEmit.Add((type, DefaultProfile), new GlobalSerializerRegistration
                                 {
                                     DataType = type,

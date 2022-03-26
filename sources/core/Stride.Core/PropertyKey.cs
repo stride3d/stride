@@ -161,6 +161,7 @@ namespace Stride.Core
     /// A class that represents a typed tag propety.
     /// </summary>
     /// <typeparam name="T">Type of the property</typeparam>
+    [DataSerializer(typeof(PropertyKeySerializer<>), Mode = DataSerializerGenericMode.Type)]
     public sealed class PropertyKey<T> : PropertyKey
     {
         private static readonly bool IsValueTypeGeneric = typeof(T).GetTypeInfo().IsValueType;

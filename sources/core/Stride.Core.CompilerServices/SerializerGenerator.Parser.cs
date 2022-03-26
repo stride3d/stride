@@ -48,6 +48,20 @@ namespace Stride.Core.CompilerServices
 
                 if (CheckForDataContract(typeSymbol))
                 {
+                    if (typeSymbol.TypeKind == TypeKind.Enum)
+                    {
+                        customSerializers.Add((typeSymbol, DefaultProfile), new GlobalSerializerRegistration
+                        {
+                            DataType = typeSymbol,
+                            SerializerType = context.Compilation.GetTypeByMetadataName("Stride.Core.Serialization.Serializers.EnumSerializer`1").Construct(typeSymbol),
+                            Generated = false,
+                            Inherited = false,
+                            GenericMode = DataSerializerGenericMode.None,
+                        });
+
+                        goto endDataContractCheck;
+                    }
+
                     if (!typeSymbol.IsValueType && !typeSymbol.IsAbstract && !typeSymbol.Constructors.Any(
                             ctor => !ctor.Parameters.Any() && ctor.DeclaredAccessibility == Accessibility.Public))
                     {
@@ -60,7 +74,9 @@ namespace Stride.Core.CompilerServices
                     }
 
                     typeSpecs.Add(GenerateTypeSpec(context, typeSymbol));
+endDataContractCheck:;
                 }
+
 
                 CheckTypeForCustomSerializers(context, typeSymbol, customSerializers);
             }
@@ -103,6 +119,8 @@ namespace Stride.Core.CompilerServices
             var members = new List<SerializerMemberSpec>();
             foreach (var member in type.GetMembers())
             {
+                // TODO: currently AssemblyProcessor takes static members to generate serializers for them (i.e. PropertyKey)
+                //       so we'd have to add a flag to remove it from member list after validating its type
                 if (member.IsStatic || member is IMethodSymbol)
                     continue;
 
