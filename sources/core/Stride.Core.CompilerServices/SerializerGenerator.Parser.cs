@@ -269,6 +269,9 @@ namespace Stride.Core.CompilerServices
                     
                     if (dataType == null && serializerType != null)
                     {
+                        // TODO: I moved .OriginalDefinition for the later base type check, but do we need it here?
+                        //       if base type is null then yes, but if type is generic then we will loose bound type arguments
+                        //       ~> maybe serializerType.OriginalDefinition.Construct(serializerType.TypeArguments)
                         // we need to figure out the type from generic argument of DataSerializer`1 that serializerType extends
                         var baseType = serializerType.BaseType;
                         while (baseType != null)
