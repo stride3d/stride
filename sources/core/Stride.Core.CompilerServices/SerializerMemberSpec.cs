@@ -33,13 +33,16 @@ namespace Stride.Core.CompilerServices
         /// </summary>
         public MemberAccessMode AccessMode { get; }
 
-        public SerializerMemberSpec(ISymbol memberSymbol, ITypeSymbol type, int? order, MemberAccessMode accessMode)
+        public bool HasExplicitDataMemberAttribute { get; }
+
+        public SerializerMemberSpec(ISymbol memberSymbol, ITypeSymbol type, int? order, MemberAccessMode accessMode, bool explicitAttribute)
         {
             Member = memberSymbol;
             Name = memberSymbol.Name;
             Type = type;
             Order = order;
             AccessMode = accessMode;
+            HasExplicitDataMemberAttribute = explicitAttribute;
         }
 
         public int CompareTo(SerializerMemberSpec other)

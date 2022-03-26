@@ -51,9 +51,7 @@ namespace Stride.Core.CompilerServices
 
                 foreach (var typeSpec in serializerSpec.DataContractTypes)
                 {
-                    var thisAssembly = typeSpec.Type.ContainingAssembly;
-
-                    if (!ValidateBaseTypeChain(serializerSpec, typeSpec.BaseType, thisAssembly))
+                    if (!ValidateBaseTypeChain(serializerSpec, typeSpec.BaseType))
                     {
                         typeSpec.BaseType = null;
                     }
@@ -62,11 +60,14 @@ namespace Stride.Core.CompilerServices
                     {
                         var member = typeSpec.Members[i];
                         // For each member validate it's serializable and for local generic instantiations add concrete serializer
-                        if (!CheckTypeReference(serializerSpec, member.Type, thisAssembly))
+                        if (!CheckTypeReference(serializerSpec, member.Type))
                         {
                             context.ReportDiagnostic(Diagnostic.Create(
                                 DataContractMemberHasNonSerializableType,
                                 member.Member.Locations.FirstOrDefault(),
+                                DiagnosticSeverity.Warning, // TODO: enable when switching to generator fully| member.HasExplicitDataMemberAttribute ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
+                                additionalLocations: null,
+                                properties: null,
                                 member.Name,
                                 member.Member.ContainingType.ToDisplayString(SimpleClassNameWithNestedInfo),
                                 member.Type.ToDisplayString(SimpleClassNameWithNestedInfo)));
@@ -82,14 +83,14 @@ namespace Stride.Core.CompilerServices
                 serializerSpec.GlobalSerializerRegistrationsToEmit = serializerSpec.GlobalSerializerRegistrationsToEmit;
             }
 
-            private bool CheckTypeReference(SerializerSpec serializerSpec, ITypeSymbol typeSymbol, IAssemblySymbol assembly)
+            private bool CheckTypeReference(SerializerSpec serializerSpec, ITypeSymbol typeSymbol)
             {
                 if (CheckMemberForSpecialKinds(serializerSpec, typeSymbol))
                 {
                     return true;
                 }
 
-                if (ValidateBaseTypeChain(serializerSpec, typeSymbol as INamedTypeSymbol, assembly))
+                if (ValidateBaseTypeChain(serializerSpec, typeSymbol as INamedTypeSymbol))
                 {
                     return true;
                 }
@@ -132,14 +133,14 @@ namespace Stride.Core.CompilerServices
                     }
                     return true;
                 }
-                else if (memberType.TypeKind == TypeKind.Interface || (memberType.TypeKind == TypeKind.Class && memberType.IsAbstract))
+                else if (memberType.TypeKind == TypeKind.Interface || (memberType.TypeKind == TypeKind.Class && memberType.IsAbstract) || memberType.Equals(systemObjectSymbol, SymbolEqualityComparer.Default))
                 {
                     if (!serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((memberType, DefaultProfile)) && !serializerSpec.DependencySerializerReference.ContainsKey((memberType, DefaultProfile)))
                     {
                         serializerSpec.GlobalSerializerRegistrationsToEmit.Add((memberType, DefaultProfile), new GlobalSerializerRegistration
                         {
                             DataType = memberType,
-                            SerializerType = null, // special case for abstract/interface types
+                            SerializerType = null, // special case for abstract/interface types or System.Object
                             Generated = false,
                             Inherited = false,
                             GenericMode = DataSerializerGenericMode.None,
@@ -155,91 +156,23 @@ namespace Stride.Core.CompilerServices
             /// <summary>
             /// True if validation was successful, false if base type should be made null.
             /// </summary>
-            private bool ValidateBaseTypeChain(SerializerSpec serializerSpec, INamedTypeSymbol baseType, IAssemblySymbol thisAssembly)
+            private bool ValidateBaseTypeChain(SerializerSpec serializerSpec, INamedTypeSymbol baseType)
             {
                 while (baseType != null && !baseType.Equals(systemObjectSymbol, SymbolEqualityComparer.Default))
                 {
-                    // if it's from this assembly
-                    if (baseType.ContainingAssembly.Equals(thisAssembly, SymbolEqualityComparer.Default))
+                    var referencesDictionary = serializerSpec.GlobalSerializerRegistrationsToEmit;
+                    bool? check = ValidateTypeInChain(serializerSpec, referencesDictionary, baseType);
+                    if (check == true)
                     {
-                        if (serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((baseType, DefaultProfile)))
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            // If parent type is a closed generic type we need to add a registration for it
-                            // TODO: see how AssemblyProcessor regards type arguments - IMO we shouldn't validate them to avoid unnecessary preventing stuff
-                            if (baseType.TypeParameters.Length > 0)
-                            {
-                                var baseTypeDefinition = baseType.ConstructUnboundGenericType();
-                                if (serializerSpec.GlobalSerializerRegistrationsToEmit.TryGetValue((baseTypeDefinition, DefaultProfile), out var registration))
-                                {
-                                    if (baseType.TypeArguments.All(static arg => arg.TypeKind != TypeKind.TypeParameter) &&
-                                        !serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((baseType, DefaultProfile)))
-                                    {
-                                        serializerSpec.GlobalSerializerRegistrationsToEmit.Add((baseType, DefaultProfile), new GlobalSerializerRegistration
-                                        {
-                                            DataType = baseType,
-                                            SerializerType = registration.SerializerType?.Construct(baseType.TypeArguments, baseType.TypeArgumentNullableAnnotations),
-                                            Generated = registration.Generated,
-                                            Inherited = false,
-                                            GenericMode = DataSerializerGenericMode.None,
-                                        });
-                                    }
-                                }
-                                else
-                                {
-                                    // the class is from the same assembly, but has no registered serializer
-                                    return false;
-                                }
-                            }
-                            else // not generic
-                            {
-                                // the class is from the same assembly, but has no registered serializer
-                                return false;
-                            }
-                        }
+                        return true;
                     }
-                    else // from a dependency assembly
+                    else if (check == false)
                     {
-                        if (serializerSpec.DependencySerializerReference.ContainsKey((baseType, DefaultProfile)))
+                        referencesDictionary = serializerSpec.DependencySerializerReference;
+                        check = ValidateTypeInChain(serializerSpec, referencesDictionary, baseType);
+                        if (check != null)
                         {
-                            return true;
-                        }
-                        else
-                        {
-                            // If parent type is a closed generic type we need to add a registration for it
-                            if (baseType.TypeParameters.Length > 0)
-                            {
-                                var baseTypeDefinition = baseType.ConstructUnboundGenericType();
-                                if (serializerSpec.DependencySerializerReference.TryGetValue((baseTypeDefinition, DefaultProfile), out var registration))
-                                {
-                                    if (baseType.TypeArguments.All(static arg => arg.TypeKind != TypeKind.TypeParameter) &&
-                                        !serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((baseType, DefaultProfile)))
-                                    {
-                                        serializerSpec.GlobalSerializerRegistrationsToEmit.Add((baseType, DefaultProfile), new GlobalSerializerRegistration
-                                        {
-                                            DataType = baseType,
-                                            // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn
-                                            SerializerType = registration.SerializerType?.ConstructedFrom.Construct(baseType.TypeArguments, baseType.TypeArgumentNullableAnnotations),
-                                            Generated = registration.Generated,
-                                            Inherited = false,
-                                            GenericMode = DataSerializerGenericMode.None,
-                                        });
-                                    }
-                                }
-                                else
-                                {
-                                    // the class has no registered serializer
-                                    return false;
-                                }
-                            }
-                            else // not generic
-                            {
-                                // the class has no registered serializer
-                                return false;
-                            }
+                            return check.Value;
                         }
                     }
 
@@ -247,6 +180,57 @@ namespace Stride.Core.CompilerServices
                 }
 
                 return true;
+            }
+
+            
+            private bool? ValidateTypeInChain(
+                SerializerSpec serializerSpec,
+                Dictionary<(ITypeSymbol, string profile), GlobalSerializerRegistration>  referencesDictionary,
+                INamedTypeSymbol type)
+            {
+                if (referencesDictionary.ContainsKey((type, DefaultProfile)))
+                {
+                    return true;
+                }
+                else
+                {
+                    // If parent type is a closed generic type we need to add a registration for it
+                    // TODO: see how AssemblyProcessor regards type arguments - IMO we shouldn't validate them to avoid unnecessary preventing stuff
+                    //       however, when type is known to expect a serializer of the argument and it isn't serializable we should return false
+                    if (type.TypeParameters.Length > 0)
+                    {
+                        var baseTypeDefinition = type.ConstructUnboundGenericType();
+                        if (referencesDictionary.TryGetValue((baseTypeDefinition, DefaultProfile), out var registration))
+                        {
+                            if (type.TypeArguments.All(static arg => arg.TypeKind != TypeKind.TypeParameter) &&
+                                !serializerSpec.GlobalSerializerRegistrationsToEmit.ContainsKey((type, DefaultProfile)))
+                            {
+                                serializerSpec.GlobalSerializerRegistrationsToEmit.Add((type, DefaultProfile), new GlobalSerializerRegistration
+                                {
+                                    DataType = type,
+                                    // using ConstructedFrom here to pass a ReferenceEquals check in Roslyn for externally resolved types
+                                    SerializerType = registration.SerializerType?.ConstructedFrom.Construct(type.TypeArguments, type.TypeArgumentNullableAnnotations),
+                                    Generated = registration.Generated,
+                                    Inherited = false,
+                                    GenericMode = DataSerializerGenericMode.None,
+                                });
+                            }
+
+                            // a serializer has been added or type has a mix of bound and unbound type parameters, anyways continue looking through the base chain
+                            return null;
+                        }
+                        else
+                        {
+                            // the class has no registered serializer
+                            return false;
+                        }
+                    }
+                    else // not generic
+                    {
+                        // the class has no registered serializer
+                        return false;
+                    }
+                }
             }
 
             /// <summary>

@@ -174,7 +174,7 @@ namespace Stride.Core.CompilerServices
 
                 int? order = GetOrderOfMember(typeAttributes, attributes, dataMemberAttribute);
 
-                members.Add(new SerializerMemberSpec(member, memberType, order, accessMode));
+                members.Add(new SerializerMemberSpec(member, memberType, order, accessMode, dataMemberAttribute != null));
             }
 
             // Sort members by their order
