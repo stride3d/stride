@@ -11,8 +11,6 @@ namespace Stride.Core.Assets
     public static class DirectoryHelper
     {
         private const string StrideSolution = @"build\Stride.sln";
-        private const string StrideNuspec = @"stride.nuspec";
-        private static string packageDirectoryOverride;
 
         /// <summary>
         /// Gets the path to the file corresponding to the given package name in the given directory.

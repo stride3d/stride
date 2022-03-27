@@ -20,11 +20,10 @@ namespace Stride.Graphics
 
         private int boundScissorCount;
         private readonly Rectangle[] scissors = new Rectangle[MaxViewportAndScissorRectangleCount];
-        private bool scissorsDirty = false;
 
         private Texture depthStencilBuffer;
 
-        private Texture[] renderTargets = new Texture[MaxRenderTargetCount];
+        private readonly Texture[] renderTargets = new Texture[MaxRenderTargetCount];
         private int renderTargetCount;
 
         /// <summary>
@@ -74,7 +73,6 @@ namespace Stride.Graphics
                 viewports[i] = new Viewport();
 
             // Setup empty scissors
-            scissorsDirty = true;
             for (int i = 0; i < scissors.Length; i++)
                 scissors[i] = new Rectangle();
 
@@ -144,7 +142,6 @@ namespace Stride.Graphics
         /// <param name="rectangle">The scissor rectangle.</param>
         public void SetScissorRectangle(Rectangle rectangle)
         {
-            scissorsDirty = true;
             boundScissorCount = 1;
             scissors[0] = rectangle;
             SetScissorRectangleImpl(ref rectangle);
@@ -166,7 +163,6 @@ namespace Stride.Graphics
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
         public void SetScissorRectangles(int scissorCount, Rectangle[] scissorRectangles)
         {
-            scissorsDirty = true;
             boundScissorCount = scissorCount;
             for (int i = 0; i < scissorCount; ++i)
             {
