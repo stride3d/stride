@@ -470,6 +470,9 @@ Hierarchy:
                             824196b13c0ff49a38298366f94c3781: ref!! cbd198f1-b3fa-4a4d-9f0b-c226614fcfde
                             ebd342f69fc7637cd029a198734b3924: ref!! 2b3cd803-7c38-426a-b4ff-7f4ba79713d0
                             e5e5f5f3908062e95ac86cf7dddbcb7e: ref!! 8120feaa-fd79-43c3-a383-429ae2eb6f36
+                            79dfa33b647bb563bdd39d37435595c1: ref!! 788760c9-999a-4287-b25c-a48d23789906
+                            bd7829760cb8e682d8057967900a30a4: ref!! 9b19ff33-449c-4b9e-9c63-a33e21f715cf
+                            b8831aa8ad87580a09695e687f0d7f8f: ref!! f8b4ca56-6481-455d-b1a2-6128d959df3f
         -   Entity:
                 Id: 6309a4ae-28c5-4899-a63a-5be03d0e8143
                 Name: Ladder0x2x0handle
@@ -681,6 +684,24 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 80a6b3eb-b87e-4c16-96c4-61afc31f7ac3
                 InstanceId: 4b0908cf-48d5-433b-a2e6-052c64b35b1f
+        -   Entity:
+                Id: 98a186c7-6028-4faf-9cf5-2904c7089ab0
+                Name: BoxE
+                Components:
+                    d68b495573f73d8ec33bb4c027141f5b: !TransformComponent
+                        Id: 9b19ff33-449c-4b9e-9c63-a33e21f715cf
+                        Position: {X: -1.8387775, Y: 0.5, Z: -2.0751097}
+                        Rotation: {X: 0.0, Y: 0.19509047, Z: 0.0, W: 0.98078525}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d26d4401654559a61beaec07aae5d27c: !ModelComponent
+                        Id: 1e05dcdb-acff-4e5f-a1af-c3e8e42a9361
+                        Model: d0a8736e-23e3-4463-b0bb-66efd2b9ff1c:Models/BoxE
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 77c439c0-c5ac-4721-8e75-70038a48d34c
+                InstanceId: 4b0908cf-48d5-433b-a2e6-052c64b35b1f
         -   Folder: Walls
             Entity:
                 Id: 98e9d520-e90b-41d8-a7a4-3b5e7895119a
@@ -770,6 +791,24 @@ Hierarchy:
                 BasePartId: 1c9a5abc-8191-4536-b49f-a38c5313e5d9
                 InstanceId: 4b0908cf-48d5-433b-a2e6-052c64b35b1f
         -   Entity:
+                Id: b7b03ada-7c54-4f60-ba71-29c0ad674496
+                Name: BoxF
+                Components:
+                    bf3b1e0243078596131088f87dd4ed36: !TransformComponent
+                        Id: 788760c9-999a-4287-b25c-a48d23789906
+                        Position: {X: -1.9655209, Y: 1.1289288, Z: -2.013882}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    50f3338f4a392c10a0c4b8a9a795bed7: !ModelComponent
+                        Id: 445af499-9da5-413e-a5d4-52ff6e72e1e9
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 193b40bf-3c1b-4360-9546-1999fbca5877
+                InstanceId: 4b0908cf-48d5-433b-a2e6-052c64b35b1f
+        -   Entity:
                 Id: b8f0a8b5-013a-4b5b-9b98-74583adf8163
                 Name: AudioDemo
                 Components:
@@ -794,7 +833,7 @@ Hierarchy:
                         Environment: Small
                     9b5c17fd501f9839aed554a74bc4575e: !CSharpIntermediate.Code.AudioDemo,CSharpIntermediate.Game
                         Id: bb4b827c-f0e2-4a11-943e-2603cb6c83eb
-                        UkeleleMusic: 3885913c-4b28-49c8-b06f-5dbf54e7c5bb:Audio/Ukelele
+                        UkeleleSound: null
         -   Entity:
                 Id: b969f2f6-cfe0-44f8-b2e4-1b37f4fae5d4
                 Name: MusidStream
@@ -901,6 +940,24 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 4778e3a6-1bad-4a49-b3ed-c94566d3cce4
+                InstanceId: 4b0908cf-48d5-433b-a2e6-052c64b35b1f
+        -   Entity:
+                Id: cd301612-d434-45eb-a79d-4c4863024483
+                Name: SwordModel
+                Components:
+                    dcaec24f9514018842a39d47110038d4: !TransformComponent
+                        Id: f8b4ca56-6481-455d-b1a2-6128d959df3f
+                        Position: {X: -1.0842642, Y: 0.1848677, Z: -2.8560681}
+                        Rotation: {X: -0.73039365, Y: 0.27939585, Z: -0.47868133, W: -0.39915872}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    85152eea64a3af116907dc53895c5c60: !ModelComponent
+                        Id: 77d76409-29f6-47de-bc13-515c7f2f4354
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 7b644182-143f-433c-a83c-1be0e3af4600
                 InstanceId: 4b0908cf-48d5-433b-a2e6-052c64b35b1f
         -   Entity:
                 Id: d00939ac-0d84-455d-ac0b-95412df358f5

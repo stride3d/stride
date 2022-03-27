@@ -284,6 +284,24 @@ Hierarchy:
                 BasePartId: 6563e9fe-60c8-4de4-bf81-6fa6988528d1
                 InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
         -   Entity:
+                Id: 205d180e-3164-472f-843e-cb13478ab8d4
+                Name: SwordModel
+                Components:
+                    dcaec24f9514018842a39d47110038d4: !TransformComponent
+                        Id: 831f876f-6249-4dc5-8102-e93d485a74c1
+                        Position: {X: -1.0842642, Y: 0.1848677, Z: -2.8560681}
+                        Rotation: {X: -0.73039365, Y: 0.27939585, Z: -0.47868133, W: -0.39915872}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    85152eea64a3af116907dc53895c5c60: !ModelComponent
+                        Id: f3d211ce-eb21-4929-9432-a4060b226c52
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 7b644182-143f-433c-a83c-1be0e3af4600
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
                 Id: 20d7c0ec-8066-47e4-81e6-4e52c9cc7e08
                 Name: Ladder0x2x0handle
                 Components:
@@ -300,6 +318,24 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: bdef49b0-5148-4bde-9d44-94d32a87c137
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 22c52395-cead-4f72-b2e0-f45fe5d3fe28
+                Name: BoxF
+                Components:
+                    bf3b1e0243078596131088f87dd4ed36: !TransformComponent
+                        Id: 7f04b352-12dd-4a50-b06b-1ea1433ff027
+                        Position: {X: -1.9655209, Y: 1.1289288, Z: -2.013882}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    50f3338f4a392c10a0c4b8a9a795bed7: !ModelComponent
+                        Id: 405f47b4-12a6-44ec-b318-223b464f1c4a
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 193b40bf-3c1b-4360-9546-1999fbca5877
                 InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
         -   Entity:
                 Id: 22f22a4b-1b2e-418d-9538-4e5d0a4ada0e
@@ -1009,6 +1045,24 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: e9d6392a-232a-419a-bd63-8552ce5b8a9a
+                InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
+        -   Entity:
+                Id: 759cac84-4233-403e-a952-fa52c564e751
+                Name: BoxE
+                Components:
+                    d68b495573f73d8ec33bb4c027141f5b: !TransformComponent
+                        Id: fdc32c56-4707-411d-93d5-4111fe9f739b
+                        Position: {X: -1.8387775, Y: 0.5, Z: -2.0751097}
+                        Rotation: {X: 0.0, Y: 0.19509047, Z: 0.0, W: 0.98078525}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d26d4401654559a61beaec07aae5d27c: !ModelComponent
+                        Id: 41690ffa-2a91-4a16-aa01-5022439b3c6e
+                        Model: d0a8736e-23e3-4463-b0bb-66efd2b9ff1c:Models/BoxE
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 77c439c0-c5ac-4721-8e75-70038a48d34c
                 InstanceId: 93b689a8-3380-41c2-9eca-daee9f4b910b
         -   Entity:
                 Id: 779d730e-296e-4e91-bfbf-b14797cc14fe
@@ -1944,6 +1998,9 @@ Hierarchy:
                             189c823ec8134879257344001abf36ac: ref!! b9b988df-b38d-4b23-806c-a42a1426fe6b
                             61ce56a389a269ff620a375bcdb2df99: ref!! 91ac2ea4-dc48-4085-b857-c763ffa4acae
                             01cd138b62e3c6fb37e6e9244e8355f4: ref!! 0d521758-3862-443d-ab7e-ff0435a32b22
+                            6cb62d1dcf8ecf4782c9199fda7e1dc7: ref!! 7f04b352-12dd-4a50-b06b-1ea1433ff027
+                            8bfb900ae6c9c2cde608c50edc872842: ref!! fdc32c56-4707-411d-93d5-4111fe9f739b
+                            14ba46931b46e9c19908e4f3027a3ec1: ref!! 831f876f-6249-4dc5-8102-e93d485a74c1
         -   Folder: Walls
             Entity:
                 Id: eef7eb55-63e0-44a2-8663-c640aaaeae33

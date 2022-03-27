@@ -304,6 +304,24 @@ Hierarchy:
                 BasePartId: 1e30b3e7-8014-4f79-af21-9d19d52dde1a
                 InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707
         -   Entity:
+                Id: 53e9e51f-8017-4ebd-a206-944afe26bc27
+                Name: BoxE
+                Components:
+                    d68b495573f73d8ec33bb4c027141f5b: !TransformComponent
+                        Id: c3cdde35-6579-45cc-8f9b-5fc9e365667f
+                        Position: {X: -1.8387775, Y: 0.5, Z: -2.0751097}
+                        Rotation: {X: 0.0, Y: 0.19509047, Z: 0.0, W: 0.98078525}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d26d4401654559a61beaec07aae5d27c: !ModelComponent
+                        Id: 4def186e-d71c-46e4-8a70-8e2c61d85303
+                        Model: d0a8736e-23e3-4463-b0bb-66efd2b9ff1c:Models/BoxE
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 77c439c0-c5ac-4721-8e75-70038a48d34c
+                InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707
+        -   Entity:
                 Id: 56229322-a11f-436f-9da5-da9e3d000f6c
                 Name: Box2x1x1
                 Components:
@@ -766,6 +784,9 @@ Hierarchy:
                             3449afddf71f72daa32f4a0ed541e611: ref!! 02c4cff1-fb07-43a0-9059-12aa0fc65113
                             bafdcda8b561f232eebe5dc021ab2d4b: ref!! 136bb39b-4ce8-4a75-89e2-fa1100bbcd44
                             e7a971ac2d67512179ebbf3958c3f446: ref!! 41b13459-3bc4-4410-a3ea-f59e540ab1e2
+                            995eacbfdb71b97a2f23eeea1b9532fb: ref!! c98947ac-cfce-4d4d-8a19-01820b013c6d
+                            d359b9e249f4f92fb73a157a00060132: ref!! c3cdde35-6579-45cc-8f9b-5fc9e365667f
+                            eb4f802a215dbd599f2810b6d9278b80: ref!! f17b658e-f7ae-4347-acd4-99b818a25d7b
         -   Entity:
                 Id: 9950dc53-a21f-4552-aaaf-62729b865e2b
                 Name: Camera
@@ -1313,6 +1334,24 @@ Hierarchy:
                         Id: 0518c748-6b63-4022-aaa2-94ac144aa4d0
                         Size: {X: 2.0, Y: 2.0, Z: 2.0}
         -   Entity:
+                Id: f310e333-8280-4a3b-831b-cd39409b2fe1
+                Name: SwordModel
+                Components:
+                    dcaec24f9514018842a39d47110038d4: !TransformComponent
+                        Id: f17b658e-f7ae-4347-acd4-99b818a25d7b
+                        Position: {X: -1.0842642, Y: 0.1848677, Z: -2.8560681}
+                        Rotation: {X: -0.73039365, Y: 0.27939585, Z: -0.47868133, W: -0.39915872}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    85152eea64a3af116907dc53895c5c60: !ModelComponent
+                        Id: 70772d8a-0911-4871-a2bd-e05007a18a53
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 7b644182-143f-433c-a83c-1be0e3af4600
+                InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707
+        -   Entity:
                 Id: f91ca713-78c6-4c97-a6f4-3fe0854e6da7
                 Name: Skybox
                 Components:
@@ -1334,6 +1373,24 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 157729d7-9c11-4c7d-8483-68f15dc8a47d
+                InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707
+        -   Entity:
+                Id: fa06c8a5-c4de-4c48-ada0-cd1e33585255
+                Name: BoxF
+                Components:
+                    bf3b1e0243078596131088f87dd4ed36: !TransformComponent
+                        Id: c98947ac-cfce-4d4d-8a19-01820b013c6d
+                        Position: {X: -1.9655209, Y: 1.1289288, Z: -2.013882}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    50f3338f4a392c10a0c4b8a9a795bed7: !ModelComponent
+                        Id: 94459056-d663-406f-8d98-2c7569e66084
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 193b40bf-3c1b-4360-9546-1999fbca5877
                 InstanceId: 15f3238c-c3ff-425f-8c49-710f7c040707
         -   Entity:
                 Id: ffc6dedb-c9b2-4f25-9332-265551b04467

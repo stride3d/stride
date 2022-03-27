@@ -30,6 +30,9 @@ Hierarchy:
         - ref!! 458fecff-cd6e-44cb-8416-e25954af5138
         - ref!! 45e5b999-26cb-4b1d-a795-ce9587684765
         - ref!! 80a6b3eb-b87e-4c16-96c4-61afc31f7ac3
+        - ref!! 193b40bf-3c1b-4360-9546-1999fbca5877
+        - ref!! 77c439c0-c5ac-4721-8e75-70038a48d34c
+        - ref!! 7b644182-143f-433c-a83c-1be0e3af4600
     Parts:
         -   Folder: null
             Entity:
@@ -122,6 +125,20 @@ Hierarchy:
                         Type: !LightSkybox
                             Skybox: ae4fd991-6290-4c24-b73b-25d81a1a4837:Materials/Skybox
                         Intensity: 2.0
+        -   Entity:
+                Id: 193b40bf-3c1b-4360-9546-1999fbca5877
+                Name: BoxF
+                Components:
+                    bf3b1e0243078596131088f87dd4ed36: !TransformComponent
+                        Id: f2374a61-0ca0-46c1-a59a-3f12246917f5
+                        Position: {X: -1.9655209, Y: 1.1289288, Z: -2.013882}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    50f3338f4a392c10a0c4b8a9a795bed7: !ModelComponent
+                        Id: cbfe797c-c3b8-4787-9779-d7ff8e1e2e73
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
         -   Entity:
                 Id: 1c9a5abc-8191-4536-b49f-a38c5313e5d9
                 Name: table
@@ -436,6 +453,20 @@ Hierarchy:
                 BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:BlocksPrefabs/GridBase10x10
                 BasePartId: b045349c-565e-4488-9130-a795b0e3b229
                 InstanceId: cd287632-0c5e-4a73-a8eb-575efe930692
+        -   Entity:
+                Id: 77c439c0-c5ac-4721-8e75-70038a48d34c
+                Name: BoxE
+                Components:
+                    d68b495573f73d8ec33bb4c027141f5b: !TransformComponent
+                        Id: cae76233-eebb-41ce-b18a-eb05999575c3
+                        Position: {X: -1.8387775, Y: 0.5, Z: -2.0751097}
+                        Rotation: {X: 0.0, Y: 0.19509047, Z: 0.0, W: 0.98078525}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d26d4401654559a61beaec07aae5d27c: !ModelComponent
+                        Id: 42d57a66-2183-4fd6-9cd3-a90eddf7e1f7
+                        Model: d0a8736e-23e3-4463-b0bb-66efd2b9ff1c:Models/BoxE
+                        Materials: {}
         -   Folder: Walls
             Entity:
                 Id: 7affae99-a628-49e8-bb7c-ac8b2ac47ef0
@@ -448,6 +479,20 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             598017553775baa4350012936ef177ff: ref!! de59c0cc-34c0-4db0-ad1f-5551b6b9b4a5
+        -   Entity:
+                Id: 7b644182-143f-433c-a83c-1be0e3af4600
+                Name: SwordModel
+                Components:
+                    dcaec24f9514018842a39d47110038d4: !TransformComponent
+                        Id: 207eb0e4-fef1-4be6-a7ad-fa6f03f3537b
+                        Position: {X: -1.0842642, Y: 0.1848677, Z: -2.8560681}
+                        Rotation: {X: -0.73039365, Y: 0.27939585, Z: -0.47868133, W: -0.39915872}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    85152eea64a3af116907dc53895c5c60: !ModelComponent
+                        Id: 15aa96c9-1ea1-4b61-aca2-90ea68faf538
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Materials: {}
         -   Entity:
                 Id: 80a6b3eb-b87e-4c16-96c4-61afc31f7ac3
                 Name: TutorialUI

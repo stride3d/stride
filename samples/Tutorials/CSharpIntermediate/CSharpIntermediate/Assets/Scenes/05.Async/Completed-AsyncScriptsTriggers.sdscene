@@ -1204,6 +1204,24 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 0c9cfca0-5b2d-4816-92e9-5713542e53a6
                 InstanceId: b50ab86f-ffe8-43bd-9892-be884e6f12e3
+        -   Entity:
+                Id: 9fca72af-037d-4f55-a5ab-ec5caf84ac3f
+                Name: SwordModel
+                Components:
+                    dcaec24f9514018842a39d47110038d4: !TransformComponent
+                        Id: 24a0a24c-d79b-4380-9958-6693769ef2a0
+                        Position: {X: -1.0842642, Y: 0.1848677, Z: -2.8560681}
+                        Rotation: {X: -0.73039365, Y: 0.27939585, Z: -0.47868133, W: -0.39915872}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    85152eea64a3af116907dc53895c5c60: !ModelComponent
+                        Id: 97aae0d0-5417-4f30-acfb-78db0baec023
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 7b644182-143f-433c-a83c-1be0e3af4600
+                InstanceId: b50ab86f-ffe8-43bd-9892-be884e6f12e3
         -   Folder: Ground
             Entity:
                 Id: a55833c1-9227-43ff-86b9-e6d776ba2c40
@@ -1787,6 +1805,24 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 6ce51046-dd1d-484e-a4f3-235d62d0e8a8
                 InstanceId: b50ab86f-ffe8-43bd-9892-be884e6f12e3
+        -   Entity:
+                Id: de570dbe-ca16-4916-8147-d2193224fcd6
+                Name: BoxE
+                Components:
+                    d68b495573f73d8ec33bb4c027141f5b: !TransformComponent
+                        Id: 150a8e6a-c48c-47d1-acbf-914839db4c0d
+                        Position: {X: -1.8387775, Y: 0.5, Z: -2.0751097}
+                        Rotation: {X: 0.0, Y: 0.19509047, Z: 0.0, W: 0.98078525}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d26d4401654559a61beaec07aae5d27c: !ModelComponent
+                        Id: d81cddcf-b118-4128-9122-38a467361fce
+                        Model: d0a8736e-23e3-4463-b0bb-66efd2b9ff1c:Models/BoxE
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 77c439c0-c5ac-4721-8e75-70038a48d34c
+                InstanceId: b50ab86f-ffe8-43bd-9892-be884e6f12e3
         -   Folder: null
             Entity:
                 Id: e4e72b3a-be3d-4407-922a-891e7e07a94f
@@ -1878,6 +1914,9 @@ Hierarchy:
                             18db33c0bf1ba1fdb222e871eb39a4c8: ref!! c776129a-3a93-414b-bc12-ebaec9ca8e6c
                             1b611ac493f1d929062d525d0800e23c: ref!! 7a5bcdb3-a685-48d8-9538-0721acd26d73
                             e00c7231b1d1bca05b072359169d7c71: ref!! 32651172-7b43-4990-9e77-cc69837c50a5
+                            5329ab14c1de744383e94be87c1fe45b: ref!! 5ec08874-57bb-4044-9e27-e7db2db3ebbf
+                            4cb79208cad3836835f0a309dedd2ca4: ref!! 150a8e6a-c48c-47d1-acbf-914839db4c0d
+                            e2aefeb99a5ee9ce7fa1416fd001aa94: ref!! 24a0a24c-d79b-4380-9958-6693769ef2a0
         -   Folder: null
             Entity:
                 Id: e90ad295-5104-425d-b67a-0e1b6aaec47e
@@ -2088,6 +2127,24 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: a59011f6-6c67-4ce2-b10e-533422c63e84
+                InstanceId: b50ab86f-ffe8-43bd-9892-be884e6f12e3
+        -   Entity:
+                Id: fb92016b-36a4-4ed3-b599-4a84ce7d0321
+                Name: BoxF
+                Components:
+                    bf3b1e0243078596131088f87dd4ed36: !TransformComponent
+                        Id: 5ec08874-57bb-4044-9e27-e7db2db3ebbf
+                        Position: {X: -1.9655209, Y: 1.1289288, Z: -2.013882}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    50f3338f4a392c10a0c4b8a9a795bed7: !ModelComponent
+                        Id: b29f68af-4124-4a49-b427-2d89f4f56c8e
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Materials: {}
+            Base:
+                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
+                BasePartId: 193b40bf-3c1b-4360-9546-1999fbca5877
                 InstanceId: b50ab86f-ffe8-43bd-9892-be884e6f12e3
         -   Entity:
                 Id: fe857ed2-8ef1-4ea0-a36a-a01c2f9dbd72
