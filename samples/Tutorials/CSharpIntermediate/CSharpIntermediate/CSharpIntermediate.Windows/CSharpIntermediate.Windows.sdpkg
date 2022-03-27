@@ -15,17 +15,17 @@ ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
 RootAssets:
-    - 14e3ac20-460d-4a3a-8e7a-79d54dad2dd2:Scenes/09.ThirdPersonCamera/Completed-ThirdPersonCamera
-    - 1e5ed5df-d685-4f73-beb0-2672147f9aef:Scenes/07.Audio/Completed-Audio
-    - 342cd962-c26d-4fbb-88cb-fca14e8bed41:Scenes/08.FirstPersonCamera/Completed-FirstPersonCamera
+    - 14e3ac20-460d-4a3a-8e7a-79d54dad2dd2:Scenes/10.ThirdPersonCamera/Completed-ThirdPersonCamera
+    - 1e5ed5df-d685-4f73-beb0-2672147f9aef:Scenes/08.Audio/Completed-Audio
+    - 342cd962-c26d-4fbb-88cb-fca14e8bed41:Scenes/09.FirstPersonCamera/Completed-FirstPersonCamera
     - 3690986c-39ec-4b3b-a116-24fc5181906d:Materials/Yellow
-    - 58471c79-42fc-49b7-846f-44115f7ab70d:Scenes/10.Animation basics/Completed-Animations
+    - 58471c79-42fc-49b7-846f-44115f7ab70d:Scenes/07.Animation basics/Completed-Animations
     - 6cd262df-d02e-4709-81fa-a93750f4ddd5:Scenes/11.Navigation/Completed-Navigation
-    - 854ee5fb-e2eb-4f57-9030-9930de608d13:Scenes/05.ProjectUnproject/Completed-ProjectUnproject
+    - 854ee5fb-e2eb-4f57-9030-9930de608d13:Scenes/04.ProjectUnproject/Completed-ProjectUnproject
     - a1bea2b1-5384-4c2a-b7cc-cda9ddcf4bd1:Scenes/01.UI basics/Completed-UI basics
     - bc1eb91c-bd3e-4f75-b30a-b74729cba531:Materials/Red
     - c2da4379-f33e-40b3-aae2-1404bf5e6cb6:UI/Ebrima
-    - d5a14911-dddc-42d0-b9f1-7c57fca5d0cb:Scenes/06.Async/Completed-AsyncScriptsTriggers
-    - f01b7404-0b11-40c9-8729-8dcc544ef23c:Scenes/03.CollisionTriggers/Completed-CollisionTriggers
-    - f6f2a96e-6b05-4119-bba1-87c1fa5c8fdf:Scenes/02.SceneLoading/Completed-SceneA
-    - fb432089-cd62-4e51-976a-38727de1fd50:Scenes/04.Raycasting/Completed-Raycasting
+    - d5a14911-dddc-42d0-b9f1-7c57fca5d0cb:Scenes/05.Async/Completed-AsyncScriptsTriggers
+    - f01b7404-0b11-40c9-8729-8dcc544ef23c:Scenes/02.CollisionTriggers/Completed-CollisionTriggers
+    - f6f2a96e-6b05-4119-bba1-87c1fa5c8fdf:Scenes/06.SceneLoading/Completed-SceneA
+    - fb432089-cd62-4e51-976a-38727de1fd50:Scenes/03.Raycasting/Completed-Raycasting

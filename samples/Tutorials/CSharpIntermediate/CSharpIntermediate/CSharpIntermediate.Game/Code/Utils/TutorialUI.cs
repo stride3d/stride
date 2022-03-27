@@ -58,30 +58,30 @@ namespace CSharpIntermediate.Code
             // Start tutorials
             var tutorialScenes = new Dictionary<string, string>();
             tutorialScenes.Add("UI interaction", "01.UI basics/Start-UI basics");
-            tutorialScenes.Add("Scene loading", "02.SceneLoading/Start-SceneA");
-            tutorialScenes.Add("Collision trigger", "Scenes/03.CollisionTriggers/Start-CollisionTriggers");
-            tutorialScenes.Add("Project & Unproject", "Scenes/04.ProjectUnproject/Start-ProjectUnproject");
-            tutorialScenes.Add("Raycasting", "Scenes/05.Raycasting/Start-Raycasting");
-            tutorialScenes.Add("Async Scripts", "Scenes/06.Async/Start-AsyncScriptsTriggers");
-            tutorialScenes.Add("Audio", "Scenes/07.Audio/Start-Audio");
-            tutorialScenes.Add("First person camera", "Scenes/08.FirstPersonCamera/Start-FirstPersonCamera");
-            tutorialScenes.Add("Third person camera", "Scenes/09.ThirdPersonCamera/Start-ThirdPersonCamera");
-            tutorialScenes.Add("Animation basics", "Scenes/10.Animation basics/Start-Animations");
-            tutorialScenes.Add("Navigation", "Scenes/11.Navigation/Start-Navigation");
+            tutorialScenes.Add("Collision trigger", "02.CollisionTriggers/Start-CollisionTriggers");
+            tutorialScenes.Add("Raycasting", "03.Raycasting/Start-Raycasting");
+            tutorialScenes.Add("Project & Unproject", "04.ProjectUnproject/Start-ProjectUnproject");
+            tutorialScenes.Add("Async Scripts", "05.Async/Start-AsyncScriptsTriggers");
+            tutorialScenes.Add("Scene loading", "06.SceneLoading/Start-SceneA");
+            tutorialScenes.Add("Animation basics", "07.Animation basics/Start-Animations");
+            tutorialScenes.Add("Audio", "08.Audio/Start-Audio");
+            tutorialScenes.Add("First person camera", "09.FirstPersonCamera/Start-FirstPersonCamera");
+            tutorialScenes.Add("Third person camera", "10.ThirdPersonCamera/Start-ThirdPersonCamera");
+            tutorialScenes.Add("Navigation", "11.Navigation/Start-Navigation");
             CreateButton(startButton, startText, tutorialScenes, buttonsStartUI);
 
             //Completed tutorials
             tutorialScenes = new Dictionary<string, string>();
-            tutorialScenes.Add("UI basics", "01.UI basics/Completed-UI basics");
-            tutorialScenes.Add("Scene loading", "02.SceneLoading/Completed-SceneA");
-            tutorialScenes.Add("Collision trigger", "03.CollisionTriggers/Completed-CollisionTriggers");
-            tutorialScenes.Add("Raycasting", "04.Raycasting/Completed-Raycasting");
-            tutorialScenes.Add("Project & Unproject", "05.ProjectUnproject/Completed-ProjectUnproject");
-            tutorialScenes.Add("Async Scripts", "06.Async/Completed-AsyncScriptsTriggers");
-            tutorialScenes.Add("Audio", "07.Audio/Completed-Audio");
-            tutorialScenes.Add("First person camera", "08.FirstPersonCamera/Completed-FirstPersonCamera");
-            tutorialScenes.Add("Third person camera", "09.ThirdPersonCamera/Completed-ThirdPersonCamera");
-            tutorialScenes.Add("Animation basics", "10.Animation basics/Completed-Animations");
+            tutorialScenes.Add("UI interaction", "01.UI basics/Completed-UI basics");
+            tutorialScenes.Add("Collision trigger", "02.CollisionTriggers/Completed-CollisionTriggers");
+            tutorialScenes.Add("Raycasting", "03.Raycasting/Completed-Raycasting");
+            tutorialScenes.Add("Project & Unproject", "04.ProjectUnproject/Completed-ProjectUnproject");
+            tutorialScenes.Add("Async Scripts", "05.Async/Completed-AsyncScriptsTriggers");
+            tutorialScenes.Add("Scene loading", "06.SceneLoading/Completed-SceneA");
+            tutorialScenes.Add("Animation basics", "07.Animation basics/Completed-Animations");
+            tutorialScenes.Add("Audio", "08.Audio/Completed-Audio");
+            tutorialScenes.Add("First person camera", "09.FirstPersonCamera/Completed-FirstPersonCamera");
+            tutorialScenes.Add("Third person camera", "10.ThirdPersonCamera/Completed-ThirdPersonCamera");
             tutorialScenes.Add("Navigation", "11.Navigation/Completed-Navigation");
 
             CreateButton(completedButton, complextedText, tutorialScenes, buttonsCompletedUI);
