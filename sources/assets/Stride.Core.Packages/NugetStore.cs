@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -18,15 +17,12 @@ using NuGet.Packaging;
 using NuGet.ProjectManagement;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
-using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Windows;
 using ISettings = NuGet.Configuration.ISettings;
 using PackageSource = NuGet.Configuration.PackageSource;
 using PackageSourceProvider = NuGet.Configuration.PackageSourceProvider;
-using Settings = NuGet.Configuration.Settings;
 using NuGet.Resolver;
-using System.Reflection;
 using NuGet.Frameworks;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
@@ -42,7 +38,7 @@ namespace Stride.Core.Packages
     public class NugetStore : INugetDownloadProgress
     {
         private IPackagesLogger logger;
-        private readonly ISettings settings, localSettings;
+        private readonly ISettings settings;
         private ProgressReport currentProgressReport;
 
         private readonly string oldRootDirectory;

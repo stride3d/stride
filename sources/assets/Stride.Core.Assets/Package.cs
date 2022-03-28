@@ -63,8 +63,6 @@ namespace Stride.Core.Assets
 
         internal readonly List<UFile> FilesToDelete = new List<UFile>();
 
-        private PackageSession session;
-
         private UFile packagePath;
         internal UFile PreviousPackagePath;
         private bool isDirty;

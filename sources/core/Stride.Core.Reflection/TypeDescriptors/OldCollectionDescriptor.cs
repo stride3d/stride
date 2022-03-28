@@ -243,16 +243,6 @@ namespace Stride.Core.Reflection
             return collection == null || GetCollectionCountFunction == null ? -1 : GetCollectionCountFunction(collection);
         }
 
-        /// <summary>
-        /// Determines whether the specified type is collection.
-        /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns><c>true</c> if the specified type is collection; otherwise, <c>false</c>.</returns>
-        public static bool IsCollection(Type type)
-        {
-            return TypeHelper.IsCollection(type);
-        }
-
         protected override bool PrepareMember(MemberDescriptorBase member, MemberInfo metadataClassMemberInfo)
         {
             // Filter members
