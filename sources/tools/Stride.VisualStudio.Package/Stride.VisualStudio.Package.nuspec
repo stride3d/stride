@@ -5,7 +5,7 @@
     <version>4.1.0</version>
     <authors>Stride</authors>
     <owners>Stride</owners>
-    <licenseUrl>https://github.com/stride3d/stride/blob/master/LICENSE.md</licenseUrl>
+    <license type="expression">MIT</license>
     <projectUrl>http://stride3d.net/</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/stride3d/media/master/images/mainlogo/nuget/logo.png</iconUrl>
     <repository type="git" url="https://github.com/stride3d/stride" />
