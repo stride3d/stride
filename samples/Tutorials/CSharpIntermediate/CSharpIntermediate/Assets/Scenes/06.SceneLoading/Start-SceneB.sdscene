@@ -1,0 +1,189 @@
+!SceneAsset
+Id: 396756cf-a7c9-40f6-af2c-01211b5dfea0
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: -0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 44451884-d457-4c08-9f94-5a25c4e2619a
+        - ref!! e9d90cad-7863-4bc7-bd2b-08c90ec53350
+        - ref!! 50b43e0f-0b2e-4f43-8453-98a73c13eceb
+        - ref!! 6b6710f8-43b0-45a8-ae56-9cf48c4bfbf1
+        - ref!! c3429ab7-99f4-409f-9ed1-63d282648003
+        - ref!! 4b8c26bd-6703-4d3c-9e18-7b31aac0757e
+        - ref!! 5dda4d97-3871-457e-8ef5-beada55da9ad
+    Parts:
+        -   Entity:
+                Id: 44451884-d457-4c08-9f94-5a25c4e2619a
+                Name: Gate2x3x1
+                Components:
+                    9c6922a063fffbcdd6445e8ce2af0913: !TransformComponent
+                        Id: ce21041d-82e9-4389-8569-b0c919005340
+                        Position: {X: 0.0, Y: 1.532342, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.6801541, Y: 1.0, Z: 1.9896898}
+                        Children: {}
+                    8dc69fe56b5a11457c2ef515685bf8e4: !ModelComponent
+                        Id: 371fecb8-90d8-4fa3-abfa-1d9399d12a82
+                        Model: 924c9ca7-d8b3-4966-bc05-086bb500ff85:Models/Gate2x3x1
+                        Materials: {}
+                    544c4875bc2bbfa3809b2b2dc25198d4: !StaticColliderComponent
+                        Id: 12d65830-fe90-4d17-8738-2026e2f7c168
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes: {}
+        -   Entity:
+                Id: 4b8c26bd-6703-4d3c-9e18-7b31aac0757e
+                Name: StrideBall
+                Components:
+                    6dc2ce631fa45b24305a29159f06400b: !TransformComponent
+                        Id: 5254c9da-de28-4752-9d18-3f892ba83429
+                        Position: {X: 0.20917079, Y: 1.6264505, Z: 0.79653585}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    dcaff8a1c189e14e5f0218a10c23de4f: !ModelComponent
+                        Id: d5e7447e-1696-4fd2-affe-631fe07c88f3
+                        Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
+                        Materials:
+                            cc8fb97c59b5fcb2d37d3c023baa11e8~0: adf8fc52-f54b-48d8-b883-e4b78e774d99:Materials/MaterialA
+                    31cb0bc3eeacb34c557a84b0d3e2c116: !RigidbodyComponent
+                        Id: 717dac2b-976b-4a4b-872f-6eaab2e7420b
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            9d5537d8117939048352618f349b2b9c: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+        -   Entity:
+                Id: 50b43e0f-0b2e-4f43-8453-98a73c13eceb
+                Name: Point light
+                Components:
+                    ede4b40b482a35579291f4dd4eed11d6: !TransformComponent
+                        Id: eeae381e-af6d-4977-9a64-dbf20ccf413b
+                        Position: {X: 0.0, Y: 1.5431148, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    3827894423b86835c92ced3e28969ad8: !LightComponent
+                        Id: ad1e7098-0d03-4e42-8dd8-f185931fcd04
+                        Type: !LightPoint
+                            Color: !ColorRgbProvider
+                                Value: {R: 0.18867187, G: 0.44045892, B: 0.71875}
+                            Radius: 7.0
+                            Shadow:
+                                Enabled: true
+                                Size: Small
+                                BiasParameters: {}
+                        Intensity: 8.0
+        -   Entity:
+                Id: 5dda4d97-3871-457e-8ef5-beada55da9ad
+                Name: StrideBall
+                Components:
+                    6dc2ce631fa45b24305a29159f06400b: !TransformComponent
+                        Id: 4a06e311-54fb-43b1-a669-bfde69ef71c5
+                        Position: {X: -0.17721045, Y: 2.2006278, Z: 0.6481514}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
+                        Children: {}
+                    dcaff8a1c189e14e5f0218a10c23de4f: !ModelComponent
+                        Id: 6ff901ae-992d-40d0-9952-4b7d48f560f8
+                        Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
+                        Materials:
+                            d203dc1596e8e297325b925bd457c9fe~0: b5937f37-8fa5-4c0c-9a21-9d563ee1bffc:Materials/RedCoating
+                    31cb0bc3eeacb34c557a84b0d3e2c116: !RigidbodyComponent
+                        Id: da4196dc-01e4-4b7a-a395-8a822bb55dc3
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            9d5537d8117939048352618f349b2b9c: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+        -   Entity:
+                Id: 6b6710f8-43b0-45a8-ae56-9cf48c4bfbf1
+                Name: Camera
+                Components:
+                    4ac9a61336bf39492bb7a319f8e3279f: !TransformComponent
+                        Id: 4bd23378-e577-4a20-977a-f6d104f30819
+                        Position: {X: 0.0, Y: 1.7354664, Z: -5.0729904}
+                        Rotation: {X: 0.0, Y: 1.0, Z: 0.0, W: -4.371139E-08}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    4a716170c60fba9cd4c963065157a438: !CameraComponent
+                        Id: 6881f122-330b-4dd5-9069-bc2913326c01
+                        Name: null
+                        Projection: Perspective
+                        Slot: 41f9c2cc-ee60-452f-8f6d-44e30148d556
+        -   Entity:
+                Id: c3429ab7-99f4-409f-9ed1-63d282648003
+                Name: Floor1x0x1
+                Components:
+                    3708a386b0addae06124f2f8ff3befa0: !TransformComponent
+                        Id: 67052802-5c07-418b-bcb6-d5f6b6647672
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 10.0, Y: 1.0, Z: 10.0}
+                        Children: {}
+                    a7a03764cc135dc6a9d69c2252a5fef2: !ModelComponent
+                        Id: de347e17-411c-4474-9aec-769d73f5429f
+                        Model: 2cb2f455-2bc0-40c0-bd1c-ed5f5ec5a851:Models/Floor1x0x1
+                        Materials: {}
+                    3d9089128ef4e0f58b1b8f581c8aebbd: !StaticColliderComponent
+                        Id: d8b5ffe5-ffe2-4adb-acf9-e9ee33ab570a
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
+                        ColliderShapes:
+                            e9c6096b990cfbbc40db0f2c482aca1c: !StaticPlaneColliderShapeDesc
+                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                Offset: 0.0
+        -   Entity:
+                Id: e9d90cad-7863-4bc7-bd2b-08c90ec53350
+                Name: Gate1x2x1
+                Components:
+                    946fdb493250236af06bebe5fc445350: !TransformComponent
+                        Id: fde3e241-4497-4e4b-a0c3-a82c79ad1728
+                        Position: {X: 0.0, Y: 1.0281458, Z: 1.5723286}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    86223eb74f0c59e6b32b187e8ea1e3a2: !ModelComponent
+                        Id: db0ce13a-cd08-456a-94e1-d69781ac2835
+                        Model: 01019ffb-11d0-42cb-a5c1-ce55f20e5042:Models/Gate1x2x1
+                        Materials: {}

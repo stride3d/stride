@@ -15,17 +15,30 @@ ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
 RootAssets:
+    - 142e5ceb-04a0-41e2-845d-b3d177a4700e:Scenes/09.FirstPersonCamera/Start-FirstPersonCamera
     - 14e3ac20-460d-4a3a-8e7a-79d54dad2dd2:Scenes/10.ThirdPersonCamera/Completed-ThirdPersonCamera
+    - 16ba7151-e740-40a0-832c-d10152ae61b8:Scenes/03.Raycasting/Start-Raycasting
     - 1e5ed5df-d685-4f73-beb0-2672147f9aef:Scenes/08.Audio/Completed-Audio
+    - 204bae64-02b1-42fd-9cc4-225cf53150d5:Scenes/02.CollisionTriggers/Start-CollisionTriggers
     - 342cd962-c26d-4fbb-88cb-fca14e8bed41:Scenes/09.FirstPersonCamera/Completed-FirstPersonCamera
     - 3690986c-39ec-4b3b-a116-24fc5181906d:Materials/Yellow
+    - 396756cf-a7c9-40f6-af2c-01211b5dfea0:Scenes/06.SceneLoading/Start-SceneB
+    - 4e537b0a-215f-4b4d-976d-aef5bc85e893:Scenes/11.Navigation/NavigationMesh-Tiny
     - 58471c79-42fc-49b7-846f-44115f7ab70d:Scenes/07.Animation basics/Completed-Animations
     - 6cd262df-d02e-4709-81fa-a93750f4ddd5:Scenes/11.Navigation/Completed-Navigation
+    - 822da8f7-0742-467f-8a91-da1e976e557a:Scenes/07.Animation basics/Start-Animations
     - 854ee5fb-e2eb-4f57-9030-9930de608d13:Scenes/04.ProjectUnproject/Completed-ProjectUnproject
+    - 8ba6a81b-402f-49fd-8cec-aff7841e1cbf:Scenes/06.SceneLoading/Start-SceneA
+    - 8cfb1382-534c-46f0-aacf-83a0f0fe3e2e:Scenes/11.Navigation/Start-Navigation
+    - 95e8576b-5a95-459e-9b96-fe5aca57bd5a:Scenes/01.UI basics/Start-UI basics
     - a1bea2b1-5384-4c2a-b7cc-cda9ddcf4bd1:Scenes/01.UI basics/Completed-UI basics
+    - abd568f7-9566-4315-a8d9-a104146a15b2:Scenes/10.ThirdPersonCamera/Start-ThirdPersonCamera
+    - b273e7cb-1838-4a96-8f13-7a6a69b79c4d:Scenes/05.Async/Start-AsyncScriptsTriggers
     - bc1eb91c-bd3e-4f75-b30a-b74729cba531:Materials/Red
     - c2da4379-f33e-40b3-aae2-1404bf5e6cb6:UI/Ebrima
+    - c36567d1-1e06-4c23-9fd5-0a080e8652ac:Scenes/08.Audio/Start-Audio
     - d5a14911-dddc-42d0-b9f1-7c57fca5d0cb:Scenes/05.Async/Completed-AsyncScriptsTriggers
+    - ef1a3175-b0ff-4b01-a926-45af16407d24:Scenes/04.ProjectUnproject/Start-ProjectUnproject
     - f01b7404-0b11-40c9-8729-8dcc544ef23c:Scenes/02.CollisionTriggers/Completed-CollisionTriggers
     - f6f2a96e-6b05-4119-bba1-87c1fa5c8fdf:Scenes/06.SceneLoading/Completed-SceneA
     - fb432089-cd62-4e51-976a-38727de1fd50:Scenes/03.Raycasting/Completed-Raycasting

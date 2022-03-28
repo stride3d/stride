@@ -658,7 +658,7 @@ Hierarchy:
                             f88ca0994ac1b6032c48363fb260ca28: ref!! d582a1e7-0ab5-47f8-9529-14a0c35dd37c
                     2a9c0063f1377a3329079e340861bbb5: !NavigationComponent
                         Id: e2d35b1d-36c4-4c07-8682-9092d745b561
-                        NavigationMesh: fa78ae58-3128-4495-a3de-ee61de77b1a3:Scenes/11.Navigation/NavigationMesh-Normal
+                        NavigationMesh: fa78ae58-3128-4495-a3de-ee61de77b1a3:Scenes/11.Navigation/NavigationMesh-Regular
                         GroupId: 9398904c-72b7-ca9b-e966-23346704ae98
         -   Entity:
                 Id: 862e9228-785f-4600-aece-0fa4527288ec
