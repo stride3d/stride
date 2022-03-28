@@ -25,3 +25,4 @@ TemplateFolders:
         - !file ../../../samples/Templates/TopDownRPG/TopDownRPG/TopDownRPG.sdtpl
         - !file ../../../samples/Templates/VRSandbox/VRSandbox/VRSandbox.sdtpl
         - !file ../../../samples/Tutorials/CSharpBeginner/CSharpBeginner/CSharpBeginner.sdtpl
+        - !file ../../../samples/Tutorials/CSharpIntermediate/CSharpIntermediate/CSharpIntermediate.sdtpl

@@ -752,7 +752,7 @@ Hierarchy:
                 Components:
                     2e40cf343a3cf2a2b0044d0011fae553: !TransformComponent
                         Id: 87d0f0d8-80d1-4ec8-b041-646fe6a42835
-                        Position: {X: -0.5, Y: 1.9736722, Z: 4.5}
+                        Position: {X: -0.5, Y: 2.0, Z: 4.5}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
