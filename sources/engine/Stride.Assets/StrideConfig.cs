@@ -133,9 +133,24 @@ namespace Stride.Assets
                 Name = PlatformType.macOS.ToString(),
                 IsAvailable = true,
                 TargetFramework = "net6.0",
-                RuntimeIdentifier = "osx-x64",
-                Type = PlatformType.macOS,
+                Type = PlatformType.macOS
             };
+
+            foreach (var cpu in new[] { "x64", "arm64" })
+            {
+                var macOSPlatformCpu = new SolutionPlatformPart(macOSPlatform.Name + "-" + cpu)
+                {
+                    LibraryProjectName = macOSPlatform.Name,
+                    ExecutableProjectName = cpu,
+                    Cpu = cpu,
+                    InheritConfigurations = true
+                };
+                macOSPlatformCpu.Configurations.Clear();
+                macOSPlatformCpu.Configurations.AddRange(macOSPlatform.Configurations);
+
+                macOSPlatform.PlatformsPart.Add(macOSPlatformCpu);
+            }
+
             solutionPlatforms.Add(macOSPlatform);
 
             // Android
