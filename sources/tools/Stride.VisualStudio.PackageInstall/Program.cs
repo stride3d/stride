@@ -24,11 +24,12 @@ namespace Stride.VisualStudio.PackageInstall
 
                 // Locate VSIXInstaller.exe
                 // We now only deal with VS2019+ which has a unified installer. Still getting latest version of VS possible, in case there is some bugfixes or incompatible changes.
-                var visualStudioVersionByVsixVersion = VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasVsixInstaller && x.VsixInstallerVersion == VSIXInstallerVersion.VS2019AndFutureVersions);
+                // Since the Stride 4.0x VS Package is only supported on VS2019, only look for that one version.
+                var visualStudioVersionByVsixVersion = VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasVsixInstaller && x.VsixInstallerVersion == VSIXInstallerVersion.VS2019);
                 var visualStudioVersion = visualStudioVersionByVsixVersion.OrderByDescending(x => x.Version).FirstOrDefault(x => File.Exists(x.VsixInstallerPath));
                 if (visualStudioVersion == null)
                 {
-                    throw new InvalidOperationException($"Could not find a proper installation of Visual Studio 2019 or later");
+                    throw new InvalidOperationException($"Could not find a proper installation of Visual Studio 2019");
                 }
 
                 switch (args[0])

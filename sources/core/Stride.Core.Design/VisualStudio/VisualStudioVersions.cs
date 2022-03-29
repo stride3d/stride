@@ -78,7 +78,8 @@ namespace Stride.Core.VisualStudio
     public enum VSIXInstallerVersion
     {
         None,
-        VS2019AndFutureVersions,
+        VS2019,
+        VS2022AndFutureVersions,
     }
 
     public static class VisualStudioVersions
@@ -110,7 +111,7 @@ namespace Stride.Core.VisualStudio
         {
             var ideInfos = new List<IDEInfo>();
 
-            // Visual Studio 15.0 (2017) and later
+            // Visual Studio 16.0 (2019) and later
             try
             {
                 var configuration = new SetupConfiguration();
@@ -133,7 +134,7 @@ namespace Stride.Core.VisualStudio
 
                         // Only deal with VS2019+
                         if (!Version.TryParse(inst2.GetInstallationVersion(), out var version)
-                            || version.Major < 15)
+                            || version.Major < 16)
                             continue;
 
                         var installationPath = inst2.GetInstallationPath();
@@ -186,7 +187,7 @@ namespace Stride.Core.VisualStudio
                         {
                             BuildToolsPath = buildToolsPath,
                             DevenvPath = devenvPath,
-                            VsixInstallerVersion = VSIXInstallerVersion.VS2019AndFutureVersions,
+                            VsixInstallerVersion = version.Major == 16 ? VSIXInstallerVersion.VS2019 : VSIXInstallerVersion.VS2022AndFutureVersions,
                             VsixInstallerPath = vsixInstallerPath,
                         };
 
