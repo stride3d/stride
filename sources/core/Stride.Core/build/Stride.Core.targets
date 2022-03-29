@@ -202,7 +202,7 @@
     <PropertyGroup>
       <StrideCPU Condition="'$(Platform)' == 'x86'">x86</StrideCPU>
       <StrideCPU Condition="'$(Platform)' == 'x64'">x64</StrideCPU>
-      <StrideCPU Condition="'$(Platform)' == 'ARM'">ARM</StrideCPU>
+      <StrideCPU Condition="'$(Platform)' == 'arm'">arm</StrideCPU>
     </PropertyGroup>
     <ItemGroup>
       <Content Include="@(_StrideDependencyNativeLib)" Condition="$([System.String]::Copy('%(_StrideDependencyNativeLib.Link)').StartsWith('$(StrideCPU)'))">

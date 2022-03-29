@@ -50,7 +50,7 @@
     <StrideNativeCPU Include="top" LibraryExtension=".a" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkUWP)'">
-    <StrideNativeCPU Include="x86;x64;ARM" LibraryExtension=".dll" />
+    <StrideNativeCPU Include="x86;x64;arm" LibraryExtension=".dll" />
   </ItemGroup>
   <ItemGroup>
     <StrideNativeCPU Update="@(StrideNativeCPU)">
@@ -139,9 +139,9 @@
     <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang-cl.exe&quot; $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\x64\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -WX -GS- -MD -DUWP -m64" />
     <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\UWP\UWP.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\x64;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibsUWP);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\x64;Configuration=$(Configuration);Platform=x64" StopOnFirstFailure="true" />
 
-    <MakeDir Directories="$(OutputObjectPath)\ARM"/>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang-cl.exe&quot; $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\ARM\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -WX -GS- -MD -DUWP -m32 --target=thumbv7-windows-msvc" />
-    <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\UWP\UWP.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\ARM;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibsUWP);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\ARM;Configuration=$(Configuration);Platform=ARM" StopOnFirstFailure="true" />
+    <MakeDir Directories="$(OutputObjectPath)\arm"/>
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\..\deps\\LLVM\clang-cl.exe&quot; $(StrideNativeClang) -DNEED_DLL_EXPORT -o &quot;$(OutputObjectPath)\arm\%(StrideNativeCFile.Filename).obj&quot; -c &quot;%(StrideNativeCFile.FullPath)&quot; -WX -GS- -MD -DUWP -m32 --target=thumbv7-windows-msvc" />
+    <MSBuild Projects="$(MSBuildThisFileDirectory)WindowsProjects\UWP\UWP.vcxproj" Targets="Build" Properties="StrideNativeOutputName=$(StrideNativeOutputName);StrideNativeOutputDir=$(StrideNativeOutputPath)\arm;StrideDependenciesDir=$(MSBuildThisFileDirectory)..\..\deps\;StrideNativePathLibs=libNativePath.lib $(StrideNativePathLibsUWP);StrideNativeProjectFolder=$(ProjectDir);StrideNativeProjectObjFolder=$(OutputObjectPath)\arm;Configuration=$(Configuration);Platform=arm" StopOnFirstFailure="true" />
 
     <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
     <Delete Files="@(IntermediateAssembly)"/>

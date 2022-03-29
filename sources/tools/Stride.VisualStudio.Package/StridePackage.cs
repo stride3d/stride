@@ -280,7 +280,7 @@ namespace Stride.VisualStudio
         private static bool IsPreferredPlatform(string projectPlatform, string platformName)
         {
             // Prefer non-ARM
-            return (platformName != "ARM");
+            return (platformName != "arm" && platformName != "arm64");
         }
 
         private void UpdateStartupProjectFromConfiguration()

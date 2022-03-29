@@ -97,7 +97,7 @@ namespace Stride.Assets
             uwpPlatform.Configurations["Testing"].Properties.Add("<UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>");
             uwpPlatform.Configurations["AppStore"].Properties.Add("<UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>");
 
-            foreach (var cpu in new[] { "x86", "x64", "ARM" })
+            foreach (var cpu in new[] { "x86", "x64", "arm" })
             {
                 var uwpPlatformCpu = new SolutionPlatformPart(uwpPlatform.Name + "-" + cpu)
                 {
@@ -182,7 +182,7 @@ namespace Stride.Assets
                 {
                     "<ConsolePause>false</ConsolePause>",
                     "<MtouchUseSGen>True</MtouchUseSGen>",
-                    "<MtouchArch>ARMv7, ARMv7s, ARM64</MtouchArch>"
+                    "<MtouchArch>armv7, armv7s, arm64</MtouchArch>"
                 };
 
             iphonePlatform.Configurations["Debug"].Properties.AddRange(iPhoneCommonProperties);
