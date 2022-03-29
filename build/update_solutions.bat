@@ -4,6 +4,10 @@ echo Processing Runtime (currently using Linux as template)
 ..\sources\tools\Stride.ProjectGenerator\bin\Debug\net472\Stride.ProjectGenerator.exe solution Stride.sln -o Stride.Runtime.sln -p Linux
 echo.
 
+echo Processing macOS
+..\sources\tools\Stride.ProjectGenerator\bin\Debug\net472\Stride.ProjectGenerator.exe solution Stride.sln -o Stride.macOS.sln -p macOS
+echo.
+
 echo Processing Android
 ..\sources\tools\Stride.ProjectGenerator\bin\Debug\net472\Stride.ProjectGenerator.exe solution Stride.sln -o Stride.Android.sln -p Android
 echo.
