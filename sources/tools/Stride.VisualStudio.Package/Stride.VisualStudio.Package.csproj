@@ -34,7 +34,10 @@
     <PackageReference Include="Microsoft.VisualStudio.Package.LanguageService.14.0" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="14.0.25023" />
     <PackageReference Include="VSLangProj" Version="7.0.3301" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.0.26201" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.10.1055">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
     <PackageReference Include="NuGet.Commands" Version="5.8.0" />
