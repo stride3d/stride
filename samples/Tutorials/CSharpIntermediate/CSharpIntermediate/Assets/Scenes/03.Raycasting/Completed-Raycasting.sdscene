@@ -204,8 +204,8 @@ Hierarchy:
                         Id: 6243dd3e-cb8c-409a-9ac3-a85cb1570f58
                     d5fc5b9d4033b3675a0b46ddc44d0280: !CSharpIntermediate.Code.RaycastPenetratingDemo,CSharpIntermediate.Game
                         Id: b15a1386-b2d5-4098-a34e-c53b31617f34
-                        CollideWithGroup: 0
-                        CollideWithTriggers: false
+                        CollideWithGroup: CustomFilter1
+                        CollideWithTriggers: true
         -   Entity:
                 Id: 0e32c010-ad04-4e51-bf99-bbfae14f5d16
                 Name: BoxE
@@ -1613,6 +1613,7 @@ Hierarchy:
                             5df289f2597cd279d9dcc05bc9e895fd~0: c5f8292f-4ef2-4417-b296-ca46f08b2411:Materials/Transparent
                     a611784bb47a2fd81a5464c73697642e: !StaticColliderComponent
                         Id: 32e82212-0b4f-4a47-b77e-22c51d71b3e1
+                        CollisionGroup: CustomFilter1
                         CanSleep: false
                         Restitution: 0.0
                         Friction: 0.5
