@@ -324,7 +324,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 sessionViewModel.ServiceProvider.Get<CopyPasteService>().PropertyGraphContainer = sessionViewModel.GraphContainer;
 
                 // Load assets from packages
-                sessionViewModel.LoadAssetsFromPackages(loggerResult, workProgress);
+               sessionViewModel.LoadAssetsFromPackages(loggerResult, workProgress);
 
                 // Automatically select a start-up package.
                 sessionViewModel.AutoSelectCurrentProject();

@@ -91,7 +91,7 @@ Hierarchy:
                         Children: {}
                     b1bfbb5b545fa075ab43bb49a7459aaf: !CSharpIntermediate.LoadScene,CSharpIntermediate.Game
                         Id: 890a1f70-25a0-4412-b94a-27ba469f1ac0
-                        SceneToLoad: f6f2a96e-6b05-4119-bba1-87c1fa5c8fdf:Scenes/06.SceneLoading/Completed-SceneA
+                        SceneToLoad: f6f2a96e-6b05-4119-bba1-87c1fa5c8fdf:Scenes/06_SceneLoading/Completed-SceneA
                         DrawY: 60
                         Info: 'To go back to scene A, press '
                         KeyTopress: Escape
@@ -121,7 +121,7 @@ Hierarchy:
                         Children: {}
                     b1bfbb5b545fa075ab43bb49a7459aaf: !CSharpIntermediate.LoadScene,CSharpIntermediate.Game
                         Id: c971497d-f0b0-4c4e-a922-4fdbac7ca9b5
-                        SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/06.SceneLoading/Completed-SceneB
+                        SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/06_SceneLoading/Completed-SceneB
                         DrawY: 20
                         Info: 'To reload scene, press '
                         KeyTopress: R

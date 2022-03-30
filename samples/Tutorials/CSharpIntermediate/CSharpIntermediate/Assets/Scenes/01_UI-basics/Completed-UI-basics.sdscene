@@ -399,7 +399,7 @@ Hierarchy:
                         Children: {}
                     87b8cdebe44ac39172bf30b42e504fa1: !UIComponent
                         Id: 883678ae-1cc0-42b5-be4b-73ba3274323f
-                        Page: 2fa9f139-59c7-49b4-8ec2-d7cb1733c44e:Scenes/01.UI basics/UI basics page
+                        Page: 2fa9f139-59c7-49b4-8ec2-d7cb1733c44e:Scenes/01_UI-basics/UI-basics-page
                         Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
                         Size: {X: 1.28, Y: 0.72, Z: 1.0}
                         RenderGroup: Group31

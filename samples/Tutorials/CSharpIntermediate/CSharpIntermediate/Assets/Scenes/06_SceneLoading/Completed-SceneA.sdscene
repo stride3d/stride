@@ -125,7 +125,7 @@ Hierarchy:
                         Children: {}
                     5f1158f057e0da16aa9b456c8eab17a9: !CSharpIntermediate.LoadScene,CSharpIntermediate.Game
                         Id: 19d7b33c-9f1c-40da-a04b-60ba49a2dc11
-                        SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/06.SceneLoading/Completed-SceneB
+                        SceneToLoad: d2f251fc-d4eb-43b8-b7e0-0247597eca81:Scenes/06_SceneLoading/Completed-SceneB
                         DrawY: 20
                         Info: To load Scene B, press
                         KeyTopress: L
@@ -1743,7 +1743,7 @@ Hierarchy:
                         Children: {}
                     26e3e412f760e91322c1db1acbae29ed: !CSharpIntermediate.LoadChildScene,CSharpIntermediate.Game
                         Id: 07df4438-9123-411b-891a-d6c2e78950eb
-                        childSceneToLoad: 7e0d3cb4-324d-41c8-b215-c4b2800dff86:Scenes/06.SceneLoading/SceneA-Child
+                        childSceneToLoad: 7e0d3cb4-324d-41c8-b215-c4b2800dff86:Scenes/06_SceneLoading/SceneA-Child
         -   Folder: Walls
             Entity:
                 Id: d5c6a6c0-068c-4b80-847a-75d77766858b
