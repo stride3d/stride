@@ -7,11 +7,11 @@ Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
         - ref!! 081e9066-e104-401f-a447-4cd320ccb537
+        - ref!! 8e054a68-2283-4fe2-bfb5-9add6c492aa6
         - ref!! 2b742abc-e4c8-4bec-937e-7642e3ce3766
         - ref!! c48b4d42-e530-4313-aca3-1f4c65b64a84
         - ref!! 58a17272-139b-4ba1-9f7f-59abdaf7b900
         - ref!! 8e073111-13f5-42a5-9290-59c943ee3456
-        - ref!! 8e054a68-2283-4fe2-bfb5-9add6c492aa6
     Parts:
         -   Folder: Walls
             Entity:

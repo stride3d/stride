@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.UI;
@@ -61,7 +61,7 @@ namespace CSharpIntermediate.Code
             tutorialScenes.Add("Collision trigger", "02_CollisionTriggers/Start-CollisionTriggers");
             tutorialScenes.Add("Raycasting", "03_Raycasting/Start-Raycasting");
             tutorialScenes.Add("Project & Unproject", "04_ProjectUnproject/Start-ProjectUnproject");
-            tutorialScenes.Add("Async Scripts", "05_Async/Start-AsyncScriptsTriggers");
+            tutorialScenes.Add("Async Scripts", "05_Async/Start-AsyncScript");
             tutorialScenes.Add("Scene loading", "06_SceneLoading/Start-SceneA");
             tutorialScenes.Add("Animation basics", "07_Animation-basics/Start-Animations");
             tutorialScenes.Add("Audio", "08_Audio/Start-Audio");
@@ -76,7 +76,7 @@ namespace CSharpIntermediate.Code
             tutorialScenes.Add("Collision trigger", "02_CollisionTriggers/Completed-CollisionTriggers");
             tutorialScenes.Add("Raycasting", "03_Raycasting/Completed-Raycasting");
             tutorialScenes.Add("Project & Unproject", "04_ProjectUnproject/Completed-ProjectUnproject");
-            tutorialScenes.Add("Async Scripts", "05_Async/Completed-AsyncScriptsTriggers");
+            tutorialScenes.Add("Async Scripts", "05_Async/Completed-AsyncScript");
             tutorialScenes.Add("Scene loading", "06_SceneLoading/Completed-SceneA");
             tutorialScenes.Add("Animation basics", "07_Animation-basics/Completed-Animations");
             tutorialScenes.Add("Audio", "08_Audio/Completed-Audio");

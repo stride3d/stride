@@ -2048,7 +2048,7 @@ Hierarchy:
                             a48aeaf4d40befd84b6cfeb5d0b0aa3a: ref!! 76bb7c43-6618-4c9e-a4fc-3e7d6945afd1
                     c2d046ce0e7aa15a23bb051ee9dc469e: !CSharpIntermediate.Code.FirstPersonCamera,CSharpIntermediate.Game
                         Id: d99bbc26-bbac-4fb4-864e-94c5789542c1
-                        MouseSpeed: 8.5
+                        MouseSpeed: 16.0
                         MaxLookUpAngle: -50.0
                         MaxLookDownAngle: 50.0
                         InvertMouseY: false
