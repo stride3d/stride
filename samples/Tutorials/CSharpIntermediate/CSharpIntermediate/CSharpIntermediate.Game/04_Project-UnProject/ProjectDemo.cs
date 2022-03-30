@@ -1,4 +1,4 @@
-using CSharpIntermediate.Code.Extensions;
+﻿using CSharpIntermediate.Code.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;

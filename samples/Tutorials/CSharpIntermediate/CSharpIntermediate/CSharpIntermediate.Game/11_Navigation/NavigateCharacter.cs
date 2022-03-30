@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CSharpIntermediate.Code.Extensions;
 using Stride.Core.Mathematics;

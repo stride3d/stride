@@ -1,4 +1,4 @@
-using Stride.Core;
+﻿using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;

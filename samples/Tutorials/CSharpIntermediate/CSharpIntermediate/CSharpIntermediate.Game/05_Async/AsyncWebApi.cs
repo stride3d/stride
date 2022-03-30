@@ -1,4 +1,4 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Threading.Tasks;
 using Stride.Engine;
 using Newtonsoft.Json;

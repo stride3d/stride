@@ -1,4 +1,4 @@
-
+﻿
 using System;
 using Stride.Audio;
 using Stride.Core.Mathematics;

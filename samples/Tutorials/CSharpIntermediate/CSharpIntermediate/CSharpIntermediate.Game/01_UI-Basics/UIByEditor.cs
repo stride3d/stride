@@ -1,4 +1,4 @@
-using Stride.Engine;
+﻿using Stride.Engine;
 using Stride.Graphics;
 using Stride.UI;
 using Stride.UI.Controls;
