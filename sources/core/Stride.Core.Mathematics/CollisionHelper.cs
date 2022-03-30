@@ -27,6 +27,7 @@
 * THE SOFTWARE.
 */
 using System;
+using System.Collections.Generic;
 
 namespace Stride.Core.Mathematics
 {
@@ -1546,6 +1547,41 @@ namespace Stride.Core.Mathematics
                 return true;
             }
  */
+        }
+
+        /// <summary>
+        /// Retrieves the nearest hit object starting from the position of the ray in the direction of the ray.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="objects">The objects that get tested for a collision with the ray.</param>
+        /// <param name="ray">The ray.</param>
+        /// <param name="hitObject">The hit object.</param>
+        /// <param name="distance">The distance from the start of the ray.</param>
+        /// <param name="point">The position of the collision.</param>
+        /// <returns>Whether there was a hit.</returns>
+        public static bool GetNearestHit<T>(IEnumerable<T> objects, ref Ray ray, out T hitObject, out float distance, out Vector3 point)
+            where T : IIntersectableWithRay
+        {
+            bool hit = false;
+            distance = float.PositiveInfinity;
+            hitObject = default;
+
+            foreach (var o in objects)
+            {
+                if (o.Intersects(ref ray, out float d) && (d < distance))
+                {
+                    distance = d;
+                    hitObject = o;
+                    hit = true;
+                }
+            }
+
+            if (hit)
+                hitObject.Intersects(ref ray, out point);
+            else
+                point = default;
+
+            return hit;
         }
     }
 }
