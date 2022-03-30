@@ -900,9 +900,6 @@ Hierarchy:
                             15cf687d1403518d3a1a857d5046d243: ref!! cd5eae2a-a776-48e7-8524-f869068041d6
                             e6daf2d4b7b21b5bf4ca49cad09af92f: ref!! 82ee28b6-6a5a-456e-a82e-16601e10041a
                             a25ddd99ff95a2c276ca0728286450b6: ref!! f0040b2f-2a50-4fd0-96fe-f0ecd4d3f502
-                            5c63aa3fad2c3943c1774399f1b89e8d: ref!! 9ccc4b12-6b9e-41a0-858a-36f338c33ccd
-                            52c2e0bdc999db27db006664a8bf4b1f: ref!! 77332a50-2d08-421b-a901-80107447fa1a
-                            7114c564325c80f43f4121d1abc714fb: ref!! 3e579869-e8b5-4fe2-98d3-6f997eeba55d
         -   Folder: Walls
             Entity:
                 Id: 5449aaab-f662-4e55-86f3-aad3d0ac45d6
@@ -1367,24 +1364,6 @@ Hierarchy:
                 BasePartId: 5625332c-ba48-4920-8f28-e2d1376c608a
                 InstanceId: 92bb38d7-0329-499f-a029-3321034a8431
         -   Entity:
-                Id: 8f467bea-091e-4055-b8ef-e6a7cc4426f4
-                Name: BoxE
-                Components:
-                    d68b495573f73d8ec33bb4c027141f5b: !TransformComponent
-                        Id: 77332a50-2d08-421b-a901-80107447fa1a
-                        Position: {X: -1.8387775, Y: 0.5, Z: -2.0751097}
-                        Rotation: {X: 0.0, Y: 0.19509047, Z: 0.0, W: 0.98078525}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    d26d4401654559a61beaec07aae5d27c: !ModelComponent
-                        Id: a37eaa11-199e-4116-9818-46be33fe30fb
-                        Model: d0a8736e-23e3-4463-b0bb-66efd2b9ff1c:Models/BoxE
-                        Materials: {}
-            Base:
-                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
-                BasePartId: 77c439c0-c5ac-4721-8e75-70038a48d34c
-                InstanceId: 92bb38d7-0329-499f-a029-3321034a8431
-        -   Entity:
                 Id: 9b8ee44a-3a40-42d6-8705-640f451a756f
                 Name: TutorialUI
                 Components:
@@ -1536,24 +1515,6 @@ Hierarchy:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 68a5ba41-d842-4b51-a25f-b157457b1b55
                 InstanceId: 92bb38d7-0329-499f-a029-3321034a8431
-        -   Entity:
-                Id: ac7d94d2-f8a5-4aa7-b047-beb03b2ae853
-                Name: BoxF
-                Components:
-                    bf3b1e0243078596131088f87dd4ed36: !TransformComponent
-                        Id: 9ccc4b12-6b9e-41a0-858a-36f338c33ccd
-                        Position: {X: -1.9655209, Y: 1.1289288, Z: -2.013882}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 0.5, Y: 0.5, Z: 0.5}
-                        Children: {}
-                    50f3338f4a392c10a0c4b8a9a795bed7: !ModelComponent
-                        Id: b8f37d2b-25ed-4b30-b791-fa1eb3b8ec67
-                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
-                        Materials: {}
-            Base:
-                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
-                BasePartId: 193b40bf-3c1b-4360-9546-1999fbca5877
-                InstanceId: 92bb38d7-0329-499f-a029-3321034a8431
         -   Folder: null
             Entity:
                 Id: ac9f4b63-ed63-421b-b2fa-af0165ee98f0
@@ -1637,24 +1598,6 @@ Hierarchy:
             Base:
                 BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
                 BasePartId: 6fb0f099-8844-4b0b-bb60-809fa9895243
-                InstanceId: 92bb38d7-0329-499f-a029-3321034a8431
-        -   Entity:
-                Id: c1cf15e1-e726-401b-af8a-14c1ccbee089
-                Name: SwordModel
-                Components:
-                    dcaec24f9514018842a39d47110038d4: !TransformComponent
-                        Id: 3e579869-e8b5-4fe2-98d3-6f997eeba55d
-                        Position: {X: -1.0842642, Y: 0.1848677, Z: -2.8560681}
-                        Rotation: {X: -0.73039365, Y: 0.27939585, Z: -0.47868133, W: -0.39915872}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    85152eea64a3af116907dc53895c5c60: !ModelComponent
-                        Id: 19465ce5-8a52-479e-a882-114b907a69de
-                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
-                        Materials: {}
-            Base:
-                BasePartAsset: 56ef43aa-df99-4225-970c-d8fc613fcd3b:Prefabs/DefaultScenery
-                BasePartId: 7b644182-143f-433c-a83c-1be0e3af4600
                 InstanceId: 92bb38d7-0329-499f-a029-3321034a8431
         -   Folder: null
             Entity:
