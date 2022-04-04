@@ -37,7 +37,7 @@ namespace Stride.Core.Mathematics
     /// </summary>
     [DataContract]
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct Plane : IEquatable<Plane>, IFormattable
+    public struct Plane : IEquatable<Plane>, IFormattable, IIntersectableWithRay
     {
         /// <summary>
         /// The normal vector of the plane.

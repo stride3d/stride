@@ -37,7 +37,7 @@ namespace Stride.Core.Mathematics
     /// </summary>
     [DataContract]
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct BoundingBox : IEquatable<BoundingBox>, IFormattable
+    public struct BoundingBox : IEquatable<BoundingBox>, IFormattable, IIntersectableWithRay, IIntersectableWithPlane
     {
         /// <summary>
         /// A <see cref="BoundingBox"/> which represents an empty space.
