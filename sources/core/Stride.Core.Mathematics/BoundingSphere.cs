@@ -37,7 +37,7 @@ namespace Stride.Core.Mathematics
     /// </summary>
     [DataContract]
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable
+    public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable, IIntersectableWithRay, IIntersectableWithPlane
     {
         /// <summary>
         /// An empty bounding sphere (Center = 0 and Radius = 0).
